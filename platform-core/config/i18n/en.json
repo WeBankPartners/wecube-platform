@@ -143,5 +143,9 @@
   "data_permission_deny": {
     "code": 20000031,
     "message": "Data Permission Deny"
+  },
+  "add_role_exist_error": {
+    "code": 20000032,
+    "message": "Failed to add: The current role already exists. Modify the role and add it again"
   }
 }
