@@ -209,13 +209,15 @@ func init() {
 		&handlerFuncObj{Url: "/user-scheduled-tasks/process-instances/query", Method: "POST", HandlerFunc: process.QueryProcScheduleInstance, ApiCode: "query_proc_schedule_inst"},
 
 		// process report
+		// 编排 tab
 		&handlerFuncObj{Url: "/statistics/process/definitions", Method: "GET", HandlerFunc: process.StatisticsProDefList, ApiCode: "statistics-prodef-list"},
-
-		&handlerFuncObj{Url: "/statistics/process/definitions/tasknodes/service-ids", Method: "GET", HandlerFunc: process.StatisticsServiceNames, ApiCode: "statistics-service-ids"},
-		&handlerFuncObj{Url: "/statistics/process/definitions/service-ids/tasknode-bindings/query", Method: "POST", HandlerFunc: process.StatisticsBindingsEntityByService, ApiCode: "statistics-bindings-entity-by-service"},
-
+		&handlerFuncObj{Url: "/statistics/process/definitions/executions/overviews/query", Method: "POST", HandlerFunc: process.StatisticsProcessExec, ApiCode: "statistics-process-exec"},
+		// 编排节点 tab
 		&handlerFuncObj{Url: "/statistics/process/definitions/tasknodes/query", Method: "POST", HandlerFunc: process.StatisticsTasknodes, ApiCode: "statistics-tasknodes"},
 		&handlerFuncObj{Url: "/statistics/process/definitions/tasknodes/tasknode-bindings/query", Method: "POST", HandlerFunc: process.StatisticsBindingsEntityByNode, ApiCode: "statistics-bindings-entity-by-node"},
+		// 插件服务 tab
+		&handlerFuncObj{Url: "/statistics/process/definitions/tasknodes/service-ids", Method: "GET", HandlerFunc: process.StatisticsServiceNames, ApiCode: "statistics-service-ids"},
+		&handlerFuncObj{Url: "/statistics/process/definitions/service-ids/tasknode-bindings/query", Method: "POST", HandlerFunc: process.StatisticsBindingsEntityByService, ApiCode: "statistics-bindings-entity-by-service"},
 	)
 }
 
