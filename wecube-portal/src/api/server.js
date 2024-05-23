@@ -302,6 +302,8 @@ export const getBatchExecuteList = data => req.post(`/platform/v1/batch-executio
 export const batchExecuteHistory = id => req.get(`/platform/v1/batch-execution/${id}`)
 // 保存批量执行
 export const saveBatchExecute = (url, data) => req.post(url, data)
+// 批量执行获取密钥
+export const getInputParamsEncryptKey = () => req.get(`/platform/v1/batch-execution/seed`)
 
 // 申请列表-管理员视角
 export const getProcessableList = data => req.post(`/auth/v1/roles/apply/byhandler`, data)
