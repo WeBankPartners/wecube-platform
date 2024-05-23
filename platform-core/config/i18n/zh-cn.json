@@ -143,5 +143,9 @@
   "data_permission_deny": {
     "code": 20000031,
     "message": "无数据权限"
+  },
+  "add_role_exist_error": {
+    "code": 20000032,
+    "message": "添加失败:当前角色已存在,请修改后重新添加"
   }
 }
