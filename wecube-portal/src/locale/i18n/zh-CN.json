@@ -510,7 +510,7 @@
   "count": "总数",
   "hide_same_parameters": "隐藏相同参数",
   "highlight_different_parameters": "高亮不同参数",
-  "timed_execution": "定时执行",
+  "timed_execution": "定时",
   "set_up_person": "设置人",
   "timing_type": "定时类型",
   "schedule_expr": "定时设置",
