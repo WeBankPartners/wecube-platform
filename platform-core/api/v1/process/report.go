@@ -2,11 +2,12 @@ package process
 
 import (
 	"fmt"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/try"
+	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
 )
@@ -56,8 +57,8 @@ func StatisticsServiceNames(c *gin.Context) {
 	return
 }
 
-// StatisticsTasknodeBindingsEntity 数据对象
-func StatisticsTasknodeBindingsEntity(c *gin.Context) {
+// StatisticsBindingsEntityByService 数据对象
+func StatisticsBindingsEntityByService(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
@@ -70,7 +71,7 @@ func StatisticsTasknodeBindingsEntity(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	result, err := database.StatisticsTasknodeBindingsEntity(c, serviceNameList)
+	result, err := database.StatisticsBindingsEntityByService(c, serviceNameList)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -94,6 +95,52 @@ func StatisticsTasknodes(c *gin.Context) {
 		return
 	}
 	result, err := database.StatisticsTasknodes(c, procDefIdList)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+	return
+}
+
+// StatisticsBindingsEntityByNode 数据对象
+func StatisticsBindingsEntityByNode(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	var nodeList []string
+	var err error
+	if err = c.ShouldBind(&nodeList); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	result, err := database.StatisticsBindingsEntityByNode(c, nodeList)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+	return
+}
+
+// StatisticsProcessExec 编排查询
+func StatisticsProcessExec(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	var reqParam models.StatisticsProcessExecReq
+	var err error
+	if err = c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	result, err := database.StatisticsProcessExec(c, &reqParam)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
