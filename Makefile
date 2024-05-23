@@ -13,7 +13,7 @@ clean:
 build_core:
 	rm -f platform-core/platform-core
 	chmod +x platform-core/build/*.sh
-	docker run --rm -v $(current_dir)/platform-core:/go/src/github.com/WeBankPartners/wecube-platform/platform-core golang:1.21.8 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/platform-core/build/build-server.sh
+	docker run --rm -v $(current_dir)/platform-core:/go/src/github.com/WeBankPartners/wecube-platform/platform-core golang:1.19.1 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/platform-core/build/build-server.sh
 
 image_core: build_core
 	docker build -t platform-core:$(version) platform-core/.
