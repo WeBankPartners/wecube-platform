@@ -25,6 +25,7 @@
                   clearable
                   @on-open-change="getProcessInstances(false)"
                   @on-clear="clearHistoryOrch"
+                  @on-change="queryHandler"
                 >
                   <Option
                     v-for="item in allFlowInstances"
@@ -59,27 +60,37 @@
                     </span>
                   </Option>
                 </Select>
-                <Button type="info" @click="queryHandler">{{ $t('query_orch') }}</Button>
+                <!-- <Button type="info" @click="queryHandler">{{ $t('query_orch') }}</Button> -->
                 <Button
                   type="warning"
                   @click="flowControlHandler('stop')"
-                  :disabled="currentInstanceStatusForNodeOperation !== 'InProgress'"
+                  style="background-color: #f9bf6b; border-color: #f9bf6b"
+                  v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
                   icon="md-pause"
                   >{{ $t('be_pause') }}</Button
                 >
                 <Button
                   type="primary"
                   @click="flowControlHandler('recover')"
-                  :disabled="currentInstanceStatusForNodeOperation !== 'Stop'"
+                  v-if="currentInstanceStatusForNodeOperation === 'Stop'"
+                  style="background-color: #a2ef4c; border-color: #a2ef4c"
                   icon="md-play"
                   >{{ $t('be_continue') }}</Button
                 >
-                <Button :disabled="currentInstanceStatus || stopSuccess" type="warning" @click="stopHandler">{{
-                  $t('stop_orch')
-                }}</Button>
-                <Button :disabled="canAbleToSetting" type="warning" @click="setTimedExecution">{{
-                  $t('timed_execution')
-                }}</Button>
+                <Button
+                  v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
+                  type="warning"
+                  @click="stopHandler"
+                  >{{ $t('stop_orch') }}</Button
+                >
+                <!-- disabled="currentInstanceStatus || stopSuccess"  stop_orch -->
+                <Button
+                  v-if="currentInstanceStatusForNodeOperation === 'Completed'"
+                  type="warning"
+                  @click="setTimedExecution"
+                  >{{ $t('timed_execution') }}</Button
+                >
+                <!-- :disabled="canAbleToSetting" timed_execution -->
               </FormItem>
               <Col v-if="!isEnqueryPage" span="7">
                 <FormItem :label-width="100" :label="$t('select_orch')">
