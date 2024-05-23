@@ -18,7 +18,7 @@ func StatisticsServiceNames(ctx *gin.Context) (serviceNames []string, err error)
 	return
 }
 
-func StatisticsTasknodeBindingsEntity(ctx *gin.Context, serviceNameList []string) (result []*models.TasknodeBindsEntityData, err error) {
+func StatisticsBindingsEntityByService(ctx *gin.Context, serviceNameList []string) (result []*models.TasknodeBindsEntityData, err error) {
 	result = []*models.TasknodeBindsEntityData{}
 	filterSql, filterParams := db.CreateListParams(serviceNameList, "")
 	baseSql := db.CombineDBSql(`SELECT pdb.entity_data_id,pdb.entity_data_name FROM proc_ins_node_req_param pinrp LEFT JOIN proc_ins_node_req pinr ON pinrp.req_id=pinr.id LEFT JOIN proc_ins_node pin ON pinr.proc_ins_node_id=pin.id LEFT JOIN proc_data_binding pdb ON pin.id=pdb.proc_ins_node_id WHERE pdb.proc_ins_node_id IN `,
@@ -42,6 +42,23 @@ func StatisticsTasknodes(ctx *gin.Context, procDefIdList []string) (result []*mo
 	if filterSql != "" {
 		baseSql = db.CombineDBSql(baseSql, " WHERE proc_def_id in (", filterSql, ")")
 	}
+	err = db.MysqlEngine.Context(ctx).SQL(baseSql, filterParams...).Find(&result)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
+
+func StatisticsBindingsEntityByNode(ctx *gin.Context, nodeList []string) (result []*models.TasknodeBindsEntityData, err error) {
+	result = []*models.TasknodeBindsEntityData{}
+	filterSql, filterParams := db.CreateListParams(nodeList, "")
+	baseSql := db.CombineDBSql(`SELECT pdb.entity_data_id,pdb.entity_data_name FROM proc_ins_node_req_param pinrp LEFT JOIN proc_ins_node_req pinr ON pinrp.req_id=pinr.id LEFT JOIN proc_ins_node pin ON pinr.proc_ins_node_id=pin.id LEFT JOIN proc_data_binding pdb ON pin.id=pdb.proc_ins_node_id WHERE pdb.proc_ins_node_id IN `,
+		` (SELECT DISTINCT pin1.id FROM proc_ins_node_req_param pinrp1 LEFT JOIN proc_ins_node_req pinr1 ON pinrp1.req_id=pinr1.id LEFT JOIN proc_ins_node pin1 ON pinr1.proc_ins_node_id=pin1.id LEFT JOIN proc_def_node pdn1 ON pin1.proc_def_node_id=pdn1.id `)
+	if filterSql != "" {
+		baseSql = db.CombineDBSql(baseSql, " WHERE pdn1.node_id IN (", filterSql, ")")
+	}
+	baseSql = db.CombineDBSql(baseSql, ") GROUP BY pdb.entity_data_id,pdb.entity_data_name")
 	err = db.MysqlEngine.Context(ctx).SQL(baseSql, filterParams...).Find(&result)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
