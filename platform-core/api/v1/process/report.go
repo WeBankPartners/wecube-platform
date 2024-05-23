@@ -78,3 +78,26 @@ func StatisticsTasknodeBindingsEntity(c *gin.Context) {
 	}
 	return
 }
+
+// StatisticsTasknodes 节点查询
+func StatisticsTasknodes(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	var procDefIdList []string
+	var err error
+	if err = c.ShouldBind(&procDefIdList); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	result, err := database.StatisticsTasknodes(c, procDefIdList)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+	return
+}

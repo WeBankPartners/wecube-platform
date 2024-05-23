@@ -212,6 +212,7 @@ func init() {
 		&handlerFuncObj{Url: "/statistics/process/definitions", Method: "GET", HandlerFunc: process.StatisticsProDefList, ApiCode: "statistics-prodef-list"},
 		&handlerFuncObj{Url: "/statistics/process/definitions/tasknodes/service-ids", Method: "GET", HandlerFunc: process.StatisticsServiceNames, ApiCode: "statistics-service-ids"},
 		&handlerFuncObj{Url: "/statistics/process/definitions/service-ids/tasknode-bindings/query", Method: "POST", HandlerFunc: process.StatisticsTasknodeBindingsEntity, ApiCode: "statistics-tasknode-bindings-entity"},
+		&handlerFuncObj{Url: "/statistics/process/definitions/tasknodes/query", Method: "POST", HandlerFunc: process.StatisticsTasknodes, ApiCode: "statistics-tasknodes"},
 	)
 }
 
