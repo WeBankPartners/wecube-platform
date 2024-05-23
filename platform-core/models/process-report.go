@@ -15,3 +15,25 @@ type Tasknode struct {
 	ServiceId   string `json:"serviceId" xorm:"service_name"`
 	ServiceName string `json:"serviceName" xorm:"service_name"`
 }
+
+type StatisticsProcessExecReq struct {
+	StartDate  string    `json:"startDate"`
+	EndDate    string    `json:"endDate"`
+	Pageable   *PageInfo `json:"pageable"`
+	ProcDefIds []string  `json:"procDefIds"`
+}
+
+type StatisticsProcessExecResp struct {
+	ProcDefId                string `json:"procDefId"`
+	ProcDefName              string `json:"procDefName"`
+	TotalCompletedInstances  int    `json:"totalCompletedInstances"`
+	TotalFaultedInstances    int    `json:"totalFaultedInstances"`
+	TotalInProgressInstances int    `json:"totalInProgressInstances"`
+	TotalInstances           int    `json:"totalInstances"`
+}
+
+type StatisticsProcExecCnt struct {
+	ProcDefId string `json:"procDefId" xorm:"proc_def_id"`
+	Cnt       int    `json:"cnt" xorm:"cnt"`
+	Status    string `json:"status" xorm:"status"`
+}

@@ -2,11 +2,12 @@ package process
 
 import (
 	"fmt"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/try"
+	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
 )
@@ -117,6 +118,29 @@ func StatisticsBindingsEntityByNode(c *gin.Context) {
 		return
 	}
 	result, err := database.StatisticsBindingsEntityByNode(c, nodeList)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+	return
+}
+
+// StatisticsProcessExec 编排查询
+func StatisticsProcessExec(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	var reqParam models.StatisticsProcessExecReq
+	var err error
+	if err = c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	result, err := database.StatisticsProcessExec(c, &reqParam)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
