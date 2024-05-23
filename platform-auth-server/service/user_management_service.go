@@ -1285,7 +1285,7 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 							RoleId:      roleApply.RoleId,
 							RoleName:    role.Name,
 							ExpireTime:  roleApply.ExpireTime,
-							RoleApply:   roleApply.Id,
+							RoleApply:   &roleApply.Id,
 						}
 						insertUserRoles = append(insertUserRoles, userRole)
 					}
