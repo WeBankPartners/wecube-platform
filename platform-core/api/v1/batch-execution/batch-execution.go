@@ -413,7 +413,12 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		// 解密敏感字段的输入值
 		if inputParam.InputParameter.SensitiveData == "Y" {
 			if pluginDefInputParams.ParameValue != "" {
-				encryptText, _ := strings.CutPrefix(pluginDefInputParams.ParameValue, models.BatchExecEncryptPrefix)
+				// encryptText, _ := strings.CutPrefix(pluginDefInputParams.ParameValue, models.BatchExecEncryptPrefix)
+				encryptText := pluginDefInputParams.ParameValue
+				if strings.HasPrefix(encryptText, models.BatchExecEncryptPrefix) {
+					encryptText = encryptText[len(models.BatchExecEncryptPrefix):]
+				}
+
 				decryptData, tmpErr := decryptWithEncryptSeed(encryptText)
 				if tmpErr != nil {
 					err = fmt.Errorf("decrypt sensitive data of inputParameter id: %s failed: %s", pluginDefInputParams.ParamId, tmpErr.Error())
