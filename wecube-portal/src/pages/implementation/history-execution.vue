@@ -20,15 +20,15 @@
         {{ $t('flow_name') }}:
         <Select
           label
-          v-model="searchConfig.params.procInstName"
+          v-model="searchConfig.params.procDefId"
           @on-open-change="getFlows()"
           filterable
           clearable
           style="width: 60%"
         >
-          <Option v-for="item in allFlows" :value="item.procDefName" :key="item.procDefId">{{
-            item.procDefName
-          }}</Option>
+          <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId"
+            >{{ item.procDefName }} [{{ item.procDefVersion }}]</Option
+          >
         </Select>
       </div>
       <div class="item">
@@ -67,13 +67,19 @@
 </template>
 
 <script>
-import { instancesWithPaging, getUserList, getAllFlow, createWorkflowInstanceTerminationRequest } from '@/api/server'
+import {
+  instancesWithPaging,
+  getUserList,
+  getAllFlow,
+  createWorkflowInstanceTerminationRequest,
+  pauseAndContinueFlow
+} from '@/api/server'
 export default {
   name: '',
   data () {
     return {
       MODALHEIGHT: 0,
-      statusOptions: ['NotStarted', 'InProgress', 'Completed', 'Faulted', 'Timeouted', 'InternallyTerminated'],
+      statusOptions: ['NotStarted', 'InProgress', 'Completed', 'Faulted', 'Timeouted', 'InternallyTerminated', 'Stop'],
       time: ['', ''],
       pageable: {
         pageSize: 10,
@@ -86,7 +92,7 @@ export default {
           id: '',
           startTime: '',
           endTime: '',
-          procInstName: '',
+          procDefId: '',
           entityDisplayName: '',
           operator: '',
           status: ''
@@ -152,22 +158,32 @@ export default {
           render: (h, params) => {
             return (
               <div style="text-align:left">
-                <Button
-                  onClick={() => this.jumpToHistory(params.row)}
-                  type="info"
-                  size="small"
-                  style="margin-right: 5px"
-                >
+                <Button onClick={() => this.jumpToHistory(params.row)} type="info" size="small" style="margin: 2px">
                   {this.$t('details')}
                 </Button>
                 {params.row.status === 'InProgress' && (
+                  <Button onClick={() => this.stopTask(params.row)} type="warning" size="small" style="margin: 2px">
+                    {this.$t('stop_orch')}
+                  </Button>
+                )}
+                {params.row.status === 'InProgress' && (
                   <Button
-                    onClick={() => this.stopTask(params.row)}
+                    onClick={() => this.flowControlHandler('stop', params.row)}
                     type="warning"
                     size="small"
-                    style="margin-right: 5px"
+                    style="margin: 2px;background-color: #f9bf6b;border-color: #f9bf6b;"
                   >
-                    {this.$t('stop_orch')}
+                    {this.$t('pause')}
+                  </Button>
+                )}
+                {params.row.status === 'Stop' && (
+                  <Button
+                    onClick={() => this.flowControlHandler('recover', params.row)}
+                    type="warning"
+                    size="small"
+                    style="margin: 2px;background-color: #a2ef4c;border-color: #a2ef4c;"
+                  >
+                    {this.$t('be_continue')}
                   </Button>
                 )}
               </div>
@@ -187,7 +203,7 @@ export default {
       this.searchConfig.params.id = tmp.id || ''
       this.searchConfig.params.startTime = tmp.startTime || ''
       this.searchConfig.params.endTime = tmp.endTime || ''
-      this.searchConfig.params.procInstName = tmp.procInstName || ''
+      this.searchConfig.params.procDefId = tmp.procDefId || ''
       this.searchConfig.params.entityDisplayName = tmp.entityDisplayName || ''
       this.searchConfig.params.operator = tmp.operator || ''
       this.searchConfig.params.status = tmp.status || ''
@@ -201,6 +217,28 @@ export default {
     localStorage.setItem('history-execution-search-params', selectParams)
   },
   methods: {
+    // #region 暂停、继续编排
+    async flowControlHandler (operateType, row) {
+      this.$Modal.confirm({
+        title: this.$t('bc_confirm') + ' ' + (operateType === 'stop' ? this.$t('pause') : this.$t('be_continue')),
+        'z-index': 1000000,
+        onOk: async () => {
+          let payload = {
+            procInstId: row.id,
+            act: operateType
+          }
+          const { status } = await pauseAndContinueFlow(payload)
+          if (status === 'OK') {
+            this.getProcessInstances()
+            this.$Notice.success({
+              title: 'Success',
+              desc: 'Success'
+            })
+          }
+        },
+        onCancel: () => {}
+      })
+    },
     // 终止任务
     stopTask (row) {
       this.$Modal.confirm({
@@ -251,7 +289,7 @@ export default {
     async getProcessInstances () {
       const params = {
         id: this.searchConfig.params.id !== '' ? this.searchConfig.params.id : undefined,
-        procInstName: this.searchConfig.params.procInstName !== '' ? this.searchConfig.params.procInstName : undefined,
+        procDefId: this.searchConfig.params.procDefId !== '' ? this.searchConfig.params.procDefId : undefined,
         entityDisplayName:
           this.searchConfig.params.entityDisplayName !== '' ? this.searchConfig.params.entityDisplayName : undefined,
         operator: this.searchConfig.params.operator !== '' ? this.searchConfig.params.operator : undefined,

@@ -21,6 +21,7 @@ type ProcDefListObj struct {
 	CreatedTime    string             `json:"createdTime"`
 	Scene          string             `json:"scene"`
 	FlowNodes      []*ProcDefFlowNode `json:"flowNodes"`
+	NodeLinks      []*ProcDefNodeLink `json:"nodeLinks"`
 }
 
 func (p *ProcDefListObj) Parse(input *ProcDef) {
@@ -186,6 +187,7 @@ type ProcInsDetail struct {
 	CreatedTime       string               `json:"createdTime"`
 	TaskNodeInstances []*ProcInsNodeDetail `json:"taskNodeInstances"`
 	Version           string               `json:"version"`
+	NodeLinks         []*ProcDefNodeLink   `json:"nodeLinks"`
 }
 
 type ProcInsNodeDetail struct {
