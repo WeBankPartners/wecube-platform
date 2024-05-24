@@ -118,6 +118,7 @@ func ProcDefOutline(ctx context.Context, procDefId string) (result *models.ProcD
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
+	result.NodeLinks = procDefLinks
 	parentMap, childrenMap := make(map[string][]string), make(map[string][]string)
 	for _, link := range procDefLinks {
 		if v, b := childrenMap[link.Source]; b {
@@ -833,6 +834,7 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
+	result.NodeLinks = procDefLinks
 	parentMap, childrenMap := make(map[string][]string), make(map[string][]string)
 	for _, link := range procDefLinks {
 		if v, b := childrenMap[link.Source]; b {
