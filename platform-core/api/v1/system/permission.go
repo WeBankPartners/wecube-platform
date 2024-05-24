@@ -72,11 +72,8 @@ func CreateRole(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("name or displayName or administrator is empty")))
 		return
 	}
-	roleResponse, err = remote.RetrieveRoleByRoleName(param.Name, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
-	if err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
+	// 此处 error不处理,没查询到当前账号 auth-server也返回错误
+	roleResponse, _ = remote.RetrieveRoleByRoleName(param.Name, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if roleResponse != nil && roleResponse.ID != "" {
 		middleware.ReturnError(c, exterror.New().AddRoleExistError)
 		return
