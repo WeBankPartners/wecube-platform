@@ -244,7 +244,7 @@ func transFiltersToSQL(queryParam *model.QueryRequestParam, transParam *model.Tr
 						filterSql += " AND status='approve' AND (expire_time > ? or expire_time is null) AND EXISTS ( SELECT * from auth_sys_user_role WHERE role_apply = ap.id AND is_deleted = 0) "
 						param = append(param, time.Now().Format(constant.DateTimeFormat))
 					} else if inValueStringList[0] == string(constant.UserRolePermissionStatusExpire) {
-						filterSql += " AND status='approve' AND expire_time <= ? AND EXISTS ( SELECT * from auth_sys_user_role WHERE role_apply = ap.id AND is_deleted = 0)"
+						filterSql += " AND status='approve' AND expire_time <= ? AND EXISTS ( SELECT * from auth_sys_user_role WHERE role_apply = ap.id)"
 						param = append(param, time.Now().Format(constant.DateTimeFormat))
 					} else if inValueStringList[0] == string(constant.UserRolePermissionStatusDeleted) {
 						filterSql += " AND status='approve' AND EXISTS ( SELECT * from auth_sys_user_role WHERE role_apply = ap.id AND is_deleted = 1) "
