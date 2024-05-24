@@ -288,3 +288,86 @@ func StatisticsTasknodeExec(ctx *gin.Context, reqParam *models.StatisticsTasknod
 	})
 	return
 }
+
+func StatisticsPluginExec(ctx *gin.Context, reqParam *models.StatisticsTasknodeExecReq) (result *models.StatisticsTasknodeExecResp, err error) {
+	result = &models.StatisticsTasknodeExecResp{
+		PageInfo: &models.PageInfo{},
+		Contents: []*models.StatisticsTasknodeExecResult{},
+	}
+	var queryParams []interface{}
+	serviceIdsFilterSql, serviceIdsFilterParams := db.CreateListParams(reqParam.ServiceIds, "")
+	entityDataIdsFilterSql, entityDataIdsFilterParams := db.CreateListParams(reqParam.EntityDataIds, "")
+
+	baseSql := db.CombineDBSql(`SELECT pdn.service_name, pinrp.callback_id AS entity_data_id, pdb.entity_data_name, pinrp.data_value, COUNT(1) AS cnt FROM proc_ins_node_req_param pinrp
+    LEFT JOIN proc_ins_node_req pinr ON pinrp.req_id=pinr.id
+    LEFT JOIN proc_ins_node pin ON pinr.proc_ins_node_id=pin.id
+    LEFT JOIN proc_data_binding pdb ON pdb.proc_ins_node_id=pin.id
+    LEFT JOIN proc_def_node pdn ON pdn.id=pin.proc_def_node_id
+    WHERE pinrp.from_type='output' AND pinrp.name='errorCode'`)
+
+	if reqParam.StartDate != "" {
+		baseSql = db.CombineDBSql(baseSql, " AND pinrp.created_time >= ?")
+		queryParams = append(queryParams, reqParam.StartDate)
+	}
+	if reqParam.EndDate != "" {
+		baseSql = db.CombineDBSql(baseSql, " AND pinrp.created_time <= ?")
+		queryParams = append(queryParams, reqParam.EndDate)
+	}
+	if serviceIdsFilterSql != "" {
+		baseSql = db.CombineDBSql(baseSql, " AND pdn.service_name IN (", serviceIdsFilterSql, ")")
+		queryParams = append(queryParams, serviceIdsFilterParams...)
+	}
+	if entityDataIdsFilterSql != "" {
+		baseSql = db.CombineDBSql(baseSql, " AND pinrp.callback_id IN (", entityDataIdsFilterSql, ")")
+		queryParams = append(queryParams, entityDataIdsFilterParams...)
+	}
+
+	baseSql = db.CombineDBSql(baseSql, " GROUP BY pdn.service_name, pinrp.callback_id, pdb.entity_data_name, pinrp.data_value")
+
+	if reqParam.Pageable != nil {
+		if reqParam.Pageable.PageSize != 0 {
+			result.PageInfo.PageSize = reqParam.Pageable.PageSize
+			result.PageInfo.StartIndex = 1
+
+			baseSql = db.CombineDBSql(baseSql, " LIMIT ?")
+			queryParams = append(queryParams, reqParam.Pageable.PageSize)
+		}
+	}
+
+	queryResult := []*models.StatisticsPluginExecQueryResult{}
+	err = db.MysqlEngine.Context(ctx).SQL(baseSql, queryParams...).Find(&queryResult)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	md5MapResultData := make(map[string]*models.StatisticsTasknodeExecResult)
+	for _, data := range queryResult {
+		strValForHash := data.StringValForHash()
+		strValMd5 := cipher.Md5Encode(strValForHash)
+		if _, ok := md5MapResultData[strValMd5]; !ok {
+			md5MapResultData[strValMd5] = &models.StatisticsTasknodeExecResult{
+				EntityDataId:   data.EntityDataId,
+				EntityDataName: data.EntityDataName,
+				ServiceId:      data.ServiceName,
+			}
+		}
+		if data.DataValue == "0" {
+			// 成功
+			md5MapResultData[strValMd5].SuccessCount += data.Cnt
+		} else {
+			// 失败
+			md5MapResultData[strValMd5].FailureCount += data.Cnt
+		}
+	}
+
+	for _, resultData := range md5MapResultData {
+		result.Contents = append(result.Contents, resultData)
+	}
+	result.PageInfo.TotalRows = len(result.Contents)
+
+	sort.Slice(result.Contents, func(i int, j int) bool {
+		return result.Contents[i].ServiceId < result.Contents[j].ServiceId
+	})
+	return
+}

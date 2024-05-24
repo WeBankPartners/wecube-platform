@@ -219,6 +219,7 @@ func init() {
 		// 插件服务 tab
 		&handlerFuncObj{Url: "/statistics/process/definitions/tasknodes/service-ids", Method: "GET", HandlerFunc: process.StatisticsServiceNames, ApiCode: "statistics-service-ids"},
 		&handlerFuncObj{Url: "/statistics/process/definitions/service-ids/tasknode-bindings/query", Method: "POST", HandlerFunc: process.StatisticsBindingsEntityByService, ApiCode: "statistics-bindings-entity-by-service"},
+		&handlerFuncObj{Url: "/statistics/process/definitions/executions/plugin/reports/query", Method: "POST", HandlerFunc: process.StatisticsPluginExec, ApiCode: "statistics-plugin-exec"},
 	)
 }
 
