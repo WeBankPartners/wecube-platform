@@ -367,7 +367,15 @@ func StatisticsPluginExec(ctx *gin.Context, reqParam *models.StatisticsTasknodeE
 	result.PageInfo.TotalRows = len(result.Contents)
 
 	sort.Slice(result.Contents, func(i int, j int) bool {
-		return result.Contents[i].ServiceId < result.Contents[j].ServiceId
+		// return result.Contents[i].ServiceId < result.Contents[j].ServiceId
+		if result.Contents[i].ServiceId != result.Contents[j].ServiceId {
+			return result.Contents[i].ServiceId < result.Contents[j].ServiceId
+		} else {
+			if result.Contents[i].EntityDataId != result.Contents[j].EntityDataId {
+				return result.Contents[i].EntityDataId < result.Contents[j].EntityDataId
+			}
+		}
+		return result.Contents[i].EntityDataName < result.Contents[j].EntityDataName
 	})
 	return
 }
