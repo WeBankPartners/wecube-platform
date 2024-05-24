@@ -465,20 +465,11 @@
     >
       <span>{{ $t('be_expected_completion_time') }}：【{{ manualSkipParams.dateToDisplay }}】</span>
       <div class="workflowActionModal-container" style="text-align: center; margin-top: 20px">
-        <Poptip
-          confirm
-          :title="$t('bc_confirm') + ' ' + $t('be_manual_skip')"
-          @on-ok="confirmSkip"
-          @on-cancel="manualSkipVisible = false"
-          :ok-text="$t('bc_confirm')"
-          :cancel-text="$t('bc_cancel')"
-        >
-          <Button type="warning">{{ $t('be_manual_skip') }}</Button>
-        </Poptip>
+        <Button @click="confirmSkip" type="warning">{{ $t('be_manual_skip') }}</Button>
       </div>
     </Modal>
 
-    <!-- 手动跳过 -->
+    <!-- 执行分支 -->
     <Modal
       :title="$t('select_an_operation')"
       v-model="executeBranchVisible"
@@ -486,21 +477,14 @@
       :mask-closable="false"
       :scrollable="true"
     >
-      <span>{{ $t('be_decision_branch') }}：</span>
-      <Select v-model="manualSkipParams.message" style="width: 300px">
+      <div style="width: 120px; display: inline-block; text-align: right">{{ $t('be_decision_branch') }}：</div>
+      <Select v-model="manualSkipParams.message" style="width: 350px">
         <Option v-for="item in manualSkipParams.branchOption" :value="item" :key="item">{{ item }}</Option>
       </Select>
       <div class="workflowActionModal-container" style="text-align: center; margin-top: 20px">
-        <Poptip
-          confirm
-          :title="$t('bc_confirm') + ' ' + $t('be_execute_branch')"
-          @on-ok="confirmExecuteBranch"
-          @on-cancel="executeBranchVisible = false"
-          :ok-text="$t('bc_confirm')"
-          :cancel-text="$t('bc_cancel')"
-        >
-          <Button type="warning" :disabled="!manualSkipParams.message">{{ $t('be_execute_branch') }}</Button>
-        </Poptip>
+        <Button type="warning" @click="confirmExecuteBranch" :disabled="!manualSkipParams.message">{{
+          $t('be_execute_branch')
+        }}</Button>
       </div>
     </Modal>
   </div>
@@ -1771,6 +1755,11 @@ export default {
             }
           })
       let genEdge = () => {
+        let lineName = {}
+        this.flowData.nodeLinks &&
+          this.flowData.nodeLinks.forEach(link => {
+            lineName[link.source + link.target] = link.name
+          })
         let pathAry = []
         this.flowData &&
           this.flowData.flowNodes &&
@@ -1783,7 +1772,9 @@ export default {
                   _.nodeId +
                   '"' +
                   ' -> ' +
-                  `${'"' + to + '"'} [color="${excution ? statusColor[_.status] : 'black'}"]`
+                  `${'"' + to + '"'} [label="${lineName[_.nodeId + to]}" color="${
+                    excution ? statusColor[_.status] : 'black'
+                  }"]`
                 )
               })
               pathAry.push(current)
