@@ -181,3 +181,28 @@ func StatisticsTasknodeExec(c *gin.Context) {
 
 	return
 }
+
+// StatisticsPluginExec 插件注册-查询
+func StatisticsPluginExec(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	var reqParam models.StatisticsTasknodeExecReq
+	var err error
+	if err = c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+
+	result, err := database.StatisticsPluginExec(c, &reqParam)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+
+	return
+}
