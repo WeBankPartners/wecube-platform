@@ -1637,6 +1637,7 @@ export default {
       let nodesToString = Array.isArray(nodes) && nodes.length > 0 ? nodes.toString().replace(/,/g, ';') + ';' : ''
       let nodesString =
         'digraph G { ' +
+        'splines="polyline";' +
         'bgcolor="transparent";' +
         'Node [fontname=Arial, shape="ellipse"];' +
         'Edge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];' +
