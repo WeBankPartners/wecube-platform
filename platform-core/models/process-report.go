@@ -86,3 +86,16 @@ func (t *StatisticsTasknodeExecQueryResult) StringValForHash() string {
 		t.EntityDataId, t.EntityDataName, t.NodeDefId, t.NodeDefName,
 		t.ProcDefId, t.ProcDefName, t.ProcDefVersion)
 }
+
+type StatisticsPluginExecQueryResult struct {
+	ServiceName    string `json:"serviceName" xorm:"service_name"`
+	EntityDataId   string `json:"entityDataId" xorm:"entity_data_id"`
+	EntityDataName string `json:"entityDataName" xorm:"entity_data_name"`
+	DataValue      string `json:"dataValue" xorm:"data_value"`
+	Cnt            int    `json:"cnt" xorm:"cnt"`
+}
+
+func (t *StatisticsPluginExecQueryResult) StringValForHash() string {
+	return fmt.Sprintf("%s%s%s",
+		t.ServiceName, t.EntityDataId, t.EntityDataName)
+}
