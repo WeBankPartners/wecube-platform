@@ -74,6 +74,7 @@ type ErrorTemplate struct {
 	// 同时处理报错
 	DealWithAtTheSameTimeError CustomError `json:"deal_with_at_the_same_time_error"`
 	DataPermissionDeny         CustomError `json:"data_permission_deny"`
+	AddRoleExistError          CustomError `json:"add_role_exist_error"`
 }
 
 var (
