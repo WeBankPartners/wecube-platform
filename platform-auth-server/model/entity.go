@@ -234,12 +234,12 @@ func CalcUserRolePermissionStatusByApplyInfo(roleApply *RoleApplyDto) string {
 		if err != nil {
 			return RoleApplyStatusApprove
 		}
-		updateTime, _ := time.ParseInLocation(constant.DateTimeFormat, roleApply.UpdatedTime, time.Local)
+		createdTime, _ := time.ParseInLocation(constant.DateTimeFormat, roleApply.CreatedTime, time.Local)
 		if err != nil {
 			return RoleApplyStatusApprove
 		}
-		max := expireTime.Sub(updateTime).Seconds()
-		use := time.Now().Sub(updateTime).Seconds()
+		max := expireTime.Sub(createdTime).Seconds()
+		use := time.Now().Sub(createdTime).Seconds()
 		if (use/max)*100 >= 100 {
 			return string(constant.UserRolePermissionStatusExpire)
 		} else if (use/max)*100 >= Config.NotifyPercent {
