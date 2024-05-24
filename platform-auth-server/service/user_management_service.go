@@ -1285,6 +1285,7 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 							RoleId:      roleApply.RoleId,
 							RoleName:    role.Name,
 							ExpireTime:  roleApply.ExpireTime,
+							RoleApply:   &roleApply.Id,
 						}
 						insertUserRoles = append(insertUserRoles, userRole)
 					}
@@ -1319,6 +1320,10 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 }
 
 func (UserManagementService) DeleteRoleApply(applyId string) error {
-	_, err := db.Engine.Exec("delete from auth_sys_role_apply where id = ?", applyId)
+	var err error
+	if _, err = db.Engine.Exec("update auth_sys_user_role set role_apply = null where role_apply = ?", applyId); err != nil {
+		return err
+	}
+	_, err = db.Engine.Exec("delete from auth_sys_role_apply where id = ?", applyId)
 	return err
 }

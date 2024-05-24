@@ -49,7 +49,7 @@
             </li>
           </ul>
           <hr style="margin-top: 5px" />
-          <div style="max-height: 145px; overflow: auto; margin-top: 5px">
+          <div v-if="pathList.length === 0" style="max-height: 145px; overflow: auto; margin-top: 5px">
             <ul
               v-if="!needNativeAttr"
               v-for="opt in filterCurrentLeafOptiongs"
