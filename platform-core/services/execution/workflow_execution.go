@@ -148,7 +148,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 	if procDefNode.DynamicBind == 1 {
 		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
 		if err != nil {
-			err = fmt.Errorf("get dynamic bind data fail,%s ", err.Error())
+			err = fmt.Errorf("get node dynamic bind data fail,%s ", err.Error())
 			return
 		}
 		if len(dataBindings) > 0 {
@@ -159,7 +159,18 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 			}
 		}
 	} else if procDefNode.DynamicBind == 2 {
-
+		dataBindings, err = dynamicBindNodeInRuntime(ctx, procInsNode, procDefNode)
+		if err != nil {
+			err = fmt.Errorf("get runtime dynamic bind data fail,%s ", err.Error())
+			return
+		}
+		if len(dataBindings) > 0 {
+			err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
+			if err != nil {
+				err = fmt.Errorf("try to update runtime dynamic node binding data fail,%s ", err.Error())
+				return
+			}
+		}
 	}
 	if len(dataBindings) == 0 {
 		log.Logger.Warn("auto job return with empty binding data", log.String("procIns", procInsNode.ProcInsId), log.String("procInsNode", procInsNode.Id))
@@ -932,19 +943,30 @@ func dynamicBindNodeInRuntime(ctx context.Context, procInsNode *models.ProcInsNo
 			}
 		}
 	}
+	var rootEntityDataId, rootExpr string
+	rootEntityDataId, _, rootExpr, err = database.GetProcInsRootEntityData(ctx, procInsNode.ProcInsId)
+	if err != nil {
+		return
+	}
 	nodeDataList := []*models.ProcPreviewEntityNode{}
 	nodeExpressionList := []string{procDefNode.RoutineExpression}
-	rootFilter := models.QueryExpressionDataFilter{
-		//Index:       len(rootExprList) - 1,
-		//PackageName: rootLastExprObj.Package,
-		//EntityName:  rootLastExprObj.Entity,
-		//AttributeFilters: []*models.QueryExpressionDataAttrFilter{{
-		//	Name:     "id",
-		//	Operator: "eq",
-		//	Value:    entityDataId,
-		//}},
+	rootExprList, analyzeErr := remote.AnalyzeExpression(rootExpr)
+	if analyzeErr != nil {
+		err = analyzeErr
+		return
 	}
-	rootEntityNode := models.ProcPreviewEntityNode{DataId: "", FullDataId: ""}
+	rootLastExprObj := rootExprList[len(rootExprList)-1]
+	rootFilter := models.QueryExpressionDataFilter{
+		Index:       len(rootExprList) - 1,
+		PackageName: rootLastExprObj.Package,
+		EntityName:  rootLastExprObj.Entity,
+		AttributeFilters: []*models.QueryExpressionDataAttrFilter{{
+			Name:     "id",
+			Operator: "eq",
+			Value:    rootEntityDataId,
+		}},
+	}
+	rootEntityNode := models.ProcPreviewEntityNode{DataId: rootEntityDataId, FullDataId: rootEntityDataId}
 	for _, nodeExpression := range nodeExpressionList {
 		tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: nodeExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
 		tmpNodeDataList, tmpErr := QueryProcPreviewNodeData(ctx, &tmpQueryDataParam, &rootEntityNode, false, interfaceFilters)
@@ -957,32 +979,25 @@ func dynamicBindNodeInRuntime(ctx context.Context, procInsNode *models.ProcInsNo
 	if err != nil {
 		return
 	}
-	//log.Logger.Debug("nodeData", log.String("node", node.NodeId), log.JsonObj("data", nodeDataList))
-	//for _, nodeDataObj := range nodeDataList {
-	//	if nodeDataObj.LastFlag {
-	//		tmpPreviewRow := models.ProcDataPreview{
-	//			EntityDataId:   nodeDataObj.DataId,
-	//			EntityTypeId:   fmt.Sprintf("%s:%s", nodeDataObj.PackageName, nodeDataObj.EntityName),
-	//			ProcDefId:      rootPreviewRow.ProcDefId,
-	//			BindType:       "taskNode",
-	//			IsBound:        true,
-	//			ProcSessionId:  result.ProcessSessionId,
-	//			EntityDataName: nodeDataObj.DisplayName,
-	//			FullDataId:     nodeDataObj.FullDataId,
-	//			ProcDefNodeId:  node.NodeId,
-	//			OrderedNo:      node.OrderedNo,
-	//			CreatedBy:      operator,
-	//			CreatedTime:    nowTime,
-	//		}
-	//		previewRows = append(previewRows, &tmpPreviewRow)
-	//	}
-	//	if existEntityNodeObj, ok := entityNodeMap[nodeDataObj.Id]; !ok {
-	//		entityNodeMap[nodeDataObj.Id] = nodeDataObj
-	//		result.EntityTreeNodes = append(result.EntityTreeNodes, nodeDataObj)
-	//	} else {
-	//		existEntityNodeObj.PreviousIds = append(existEntityNodeObj.PreviousIds, nodeDataObj.PreviousIds...)
-	//		existEntityNodeObj.SucceedingIds = append(existEntityNodeObj.SucceedingIds, nodeDataObj.SucceedingIds...)
-	//	}
-	//}
+	log.Logger.Debug("dynamicBindNodeInRuntime nodeData", log.String("node", procInsNode.Id), log.JsonObj("data", nodeDataList))
+	nowTime := time.Now()
+	for _, nodeDataObj := range nodeDataList {
+		if nodeDataObj.LastFlag {
+			tmpPreviewRow := models.ProcDataBinding{
+				EntityId:       nodeDataObj.DataId,
+				EntityDataId:   nodeDataObj.DataId,
+				EntityTypeId:   fmt.Sprintf("%s:%s", nodeDataObj.PackageName, nodeDataObj.EntityName),
+				ProcDefId:      procDefNode.ProcDefId,
+				BindType:       "taskNode",
+				BindFlag:       true,
+				EntityDataName: nodeDataObj.DisplayName,
+				FullDataId:     nodeDataObj.FullDataId,
+				ProcDefNodeId:  procDefNode.NodeId,
+				CreatedBy:      "system",
+				CreatedTime:    nowTime,
+			}
+			dataBinding = append(dataBinding, &tmpPreviewRow)
+		}
+	}
 	return
 }
