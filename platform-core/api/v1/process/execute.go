@@ -426,6 +426,15 @@ func ProcInsOperation(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
+	permissionLegal, checkPermissionErr := database.CheckProcInsUserPermission(c, middleware.GetRequestRoles(c), param.ProcInstId)
+	if checkPermissionErr != nil {
+		middleware.ReturnError(c, checkPermissionErr)
+		return
+	}
+	if !permissionLegal {
+		middleware.ReturnError(c, exterror.New().DataPermissionDeny)
+		return
+	}
 	workflowId, nodeId, err := database.GetProcWorkByInsId(c, param.ProcInstId, param.NodeInstId)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -491,6 +500,15 @@ func ProcInsNodeRetry(c *gin.Context) {
 	procInsId := c.Param("procInsId")
 	if procInsId == "" {
 		middleware.ReturnError(c, exterror.New().RequestParamValidateError)
+		return
+	}
+	permissionLegal, checkPermissionErr := database.CheckProcInsUserPermission(c, middleware.GetRequestRoles(c), procInsId)
+	if checkPermissionErr != nil {
+		middleware.ReturnError(c, checkPermissionErr)
+		return
+	}
+	if !permissionLegal {
+		middleware.ReturnError(c, exterror.New().DataPermissionDeny)
 		return
 	}
 	procInsNodeId := c.Param("procInsNodeId")
@@ -585,6 +603,15 @@ func ProcTermination(c *gin.Context) {
 	procInsId := c.Param("procInsId")
 	if procInsId == "" {
 		middleware.ReturnError(c, exterror.New().RequestParamValidateError)
+		return
+	}
+	permissionLegal, checkPermissionErr := database.CheckProcInsUserPermission(c, middleware.GetRequestRoles(c), procInsId)
+	if checkPermissionErr != nil {
+		middleware.ReturnError(c, checkPermissionErr)
+		return
+	}
+	if !permissionLegal {
+		middleware.ReturnError(c, exterror.New().DataPermissionDeny)
 		return
 	}
 	workflowId, _, err := database.GetProcWorkByInsId(c, procInsId, "")
