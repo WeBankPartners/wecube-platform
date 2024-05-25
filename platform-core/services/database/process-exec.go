@@ -1586,3 +1586,40 @@ func getProcInsVersionMap(ctx context.Context, procDefList []string) (procDefMap
 	}
 	return
 }
+
+func GetProcInsRootEntityData(ctx context.Context, procInsId string) (entityDataId, entityTypeId, rootExpr string, err error) {
+	queryResult, queryErr := db.MysqlEngine.Context(ctx).QueryString("select t1.entity_data_id,t1.entity_type_id,t2.root_entity from proc_ins t1 left join proc_def t2 on t1.proc_def_id=t2.id where t1.id=?", procInsId)
+	if queryErr != nil {
+		err = fmt.Errorf("query proc ins %s root entity data fail,%s ", procInsId, err.Error())
+		return
+	}
+	if len(queryResult) == 0 {
+		err = fmt.Errorf("query proc ins %s root entity fail with empty data", procInsId)
+		return
+	}
+	entityDataId = queryResult[0]["entity_data_id"]
+	entityTypeId = queryResult[0]["entity_type_id"]
+	rootExpr = queryResult[0]["root_entity"]
+	return
+}
+
+func CheckProcInsUserPermission(ctx context.Context, userRoleList []string, procInsId string) (legal bool, err error) {
+	var permissionRows []*models.ProcDefPermission
+	err = db.MysqlEngine.Context(ctx).SQL("select role_id from proc_def_permission where proc_def_id in (select proc_def_id from proc_ins where id=?) and permission='USE'", procInsId).Find(&permissionRows)
+	if err != nil {
+		err = fmt.Errorf("query proc permission data fail,%s ", err.Error())
+		return
+	}
+	for _, row := range permissionRows {
+		for _, userRole := range userRoleList {
+			if row.RoleId == userRole {
+				legal = true
+				break
+			}
+		}
+		if legal {
+			break
+		}
+	}
+	return
+}
