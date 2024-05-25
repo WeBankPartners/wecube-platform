@@ -158,6 +158,8 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 				return
 			}
 		}
+	} else if procDefNode.DynamicBind == 2 {
+
 	}
 	if len(dataBindings) == 0 {
 		log.Logger.Warn("auto job return with empty binding data", log.String("procIns", procInsNode.ProcInsId), log.String("procInsNode", procInsNode.Id))
@@ -912,5 +914,75 @@ func QueryProcPreviewNodeData(ctx context.Context, param *models.QueryExpression
 		exprList[exprLen-1].Filters = append(exprList[exprLen-1].Filters, lastEntityFilters...)
 	}
 	dataList, err = remote.QueryPluginFullData(ctx, exprList, param.Filters[0], rootEntityNode, remote.GetToken(), withEntityData)
+	return
+}
+
+func dynamicBindNodeInRuntime(ctx context.Context, procInsNode *models.ProcInsNode, procDefNode *models.ProcDefNode) (dataBinding []*models.ProcDataBinding, err error) {
+	interfaceFilters := []*models.Filter{}
+	if procDefNode.ServiceName != "" {
+		interfaceObj, getInterfaceErr := database.GetSimpleLastPluginInterface(ctx, procDefNode.ServiceName)
+		if getInterfaceErr != nil {
+			err = fmt.Errorf("get node plugin interface:%s fail,%s ", procDefNode.ServiceName, getInterfaceErr.Error())
+			return
+		}
+		if interfaceObj.FilterRule != "" {
+			if interfaceFilters, err = remote.AnalyzeExprFilters(interfaceObj.FilterRule); err != nil {
+				err = fmt.Errorf("analyze expr filters:%s fail,%s ", interfaceObj.FilterRule, err.Error())
+				return
+			}
+		}
+	}
+	nodeDataList := []*models.ProcPreviewEntityNode{}
+	nodeExpressionList := []string{procDefNode.RoutineExpression}
+	rootFilter := models.QueryExpressionDataFilter{
+		//Index:       len(rootExprList) - 1,
+		//PackageName: rootLastExprObj.Package,
+		//EntityName:  rootLastExprObj.Entity,
+		//AttributeFilters: []*models.QueryExpressionDataAttrFilter{{
+		//	Name:     "id",
+		//	Operator: "eq",
+		//	Value:    entityDataId,
+		//}},
+	}
+	rootEntityNode := models.ProcPreviewEntityNode{DataId: "", FullDataId: ""}
+	for _, nodeExpression := range nodeExpressionList {
+		tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: nodeExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
+		tmpNodeDataList, tmpErr := QueryProcPreviewNodeData(ctx, &tmpQueryDataParam, &rootEntityNode, false, interfaceFilters)
+		if tmpErr != nil {
+			err = tmpErr
+			break
+		}
+		nodeDataList = append(nodeDataList, tmpNodeDataList...)
+	}
+	if err != nil {
+		return
+	}
+	//log.Logger.Debug("nodeData", log.String("node", node.NodeId), log.JsonObj("data", nodeDataList))
+	//for _, nodeDataObj := range nodeDataList {
+	//	if nodeDataObj.LastFlag {
+	//		tmpPreviewRow := models.ProcDataPreview{
+	//			EntityDataId:   nodeDataObj.DataId,
+	//			EntityTypeId:   fmt.Sprintf("%s:%s", nodeDataObj.PackageName, nodeDataObj.EntityName),
+	//			ProcDefId:      rootPreviewRow.ProcDefId,
+	//			BindType:       "taskNode",
+	//			IsBound:        true,
+	//			ProcSessionId:  result.ProcessSessionId,
+	//			EntityDataName: nodeDataObj.DisplayName,
+	//			FullDataId:     nodeDataObj.FullDataId,
+	//			ProcDefNodeId:  node.NodeId,
+	//			OrderedNo:      node.OrderedNo,
+	//			CreatedBy:      operator,
+	//			CreatedTime:    nowTime,
+	//		}
+	//		previewRows = append(previewRows, &tmpPreviewRow)
+	//	}
+	//	if existEntityNodeObj, ok := entityNodeMap[nodeDataObj.Id]; !ok {
+	//		entityNodeMap[nodeDataObj.Id] = nodeDataObj
+	//		result.EntityTreeNodes = append(result.EntityTreeNodes, nodeDataObj)
+	//	} else {
+	//		existEntityNodeObj.PreviousIds = append(existEntityNodeObj.PreviousIds, nodeDataObj.PreviousIds...)
+	//		existEntityNodeObj.SucceedingIds = append(existEntityNodeObj.SucceedingIds, nodeDataObj.SucceedingIds...)
+	//	}
+	//}
 	return
 }
