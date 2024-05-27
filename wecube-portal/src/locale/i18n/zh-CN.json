@@ -750,5 +750,11 @@
   "be_execute_branch": "执行分支",
   "be_decision_branch": "判断分支",
   "be_pause": "暂停",
-  "be_continue": "继续"
+  "be_continue": "继续",
+  "be_workflow_non_owner_title": "非本人编排提示",
+  "be_workflow_non_owner_tip1": "您不是当前编排的创建人,所有操作都可能引起编排流程变动,请和编排创建人",
+  "be_workflow_non_owner_tip2": "沟通之后再操作",
+  "be_workflow_non_owner_list_tip1": "您不是当前编排的创建人,所有操作都可能引起编排流程变动,确认已和创建人",
+  "be_workflow_non_owner_list_tip2": "沟通并执行操作?",
+  "be_i_aware": "我已知晓"
 }
