@@ -67,7 +67,7 @@ type ProcDefNode struct {
 	Status            string    `json:"status" xorm:"status"`                         // 状态
 	NodeType          string    `json:"nodeType" xorm:"node_type"`                    // 节点类型
 	ServiceName       string    `json:"serviceName" xorm:"service_name"`              // 插件服务名
-	DynamicBind       int       `json:"dynamicBind" xorm:"dynamic_bind"`              // 是否动态绑定
+	DynamicBind       int       `json:"dynamicBind" xorm:"dynamic_bind"`              // 动态绑定 -> 0(启动时绑定)|1->(绑定节点)|2->(运行时)
 	BindNodeId        string    `json:"bindNodeId" xorm:"bind_node_id"`               // 动态绑定节点
 	RiskCheck         bool      `json:"riskCheck" xorm:"risk_check"`                  // 是否高危检测
 	RoutineExpression string    `json:"routineExpression" xorm:"routine_expression"`  // 定位规则
