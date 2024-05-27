@@ -1969,6 +1969,20 @@ export default {
           this.stop()
         }
       }
+
+      this.refreshModelData()
+    },
+    async refreshModelData () {
+      // this.modelData = []
+      if ((!this.selectedFlow || !this.selectedTarget) && !this.isEnqueryPage) {
+        this.renderModelGraph()
+        return
+      }
+      if (this.processSessionId) {
+        const binds = await getAllBindingsProcessSessionId(this.processSessionId)
+        this.allBindingsList = binds.data
+        this.renderModelGraph()
+      }
     },
     comparativeData (old, newData) {
       let isNew = false
