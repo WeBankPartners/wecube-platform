@@ -751,5 +751,11 @@
   "be_execute_branch": "Execute Branch",
   "be_decision_branch": "Decision Branch",
   "be_pause": "Pause",
-  "be_continue": "Continue"
+  "be_continue": "Continue",
+  "be_workflow_non_owner_title": "You are not the creator of the current ocess",
+  "be_workflow_non_owner_tip1": "You are not the creator of the current ocess, and all operations will change the result. Please communicate with the creator ",
+  "be_workflow_non_owner_tip2": "before proceeding with the operation",
+  "be_workflow_non_owner_list_tip1": "You are not the creator of the current process, and all actions will change the result. Please confirm that you have communicated with the creator ",
+  "be_workflow_non_owner_list_tip2": "and executed the actions?",
+  "be_i_aware": "I am aware"
 }
