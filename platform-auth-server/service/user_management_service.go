@@ -912,10 +912,15 @@ func (UserManagementService) RegisterUmUser(param *model.RoleApplyParam, curUser
 		if roleApply, ok := existRoleApplyMap[roleId]; !ok {
 			insertRoleIds = append(insertRoleIds, roleId)
 		} else {
-			updateRoleApplys = append(updateRoleApplys, &model.RoleApplyEntity{
+			roleApplyEntity := &model.RoleApplyEntity{
 				Id:          roleApply.Id,
-				CreatedTime: now,
-			})
+				UpdatedBy:   curUser,
+				UpdatedTime: now,
+			}
+			if param.ExpireTime != "" {
+				roleApplyEntity.ExpireTime, _ = time.ParseInLocation(constant.DateTimeFormat, param.ExpireTime, time.Local)
+			}
+			updateRoleApplys = append(updateRoleApplys, roleApplyEntity)
 		}
 	}
 
@@ -941,7 +946,13 @@ func (UserManagementService) RegisterUmUser(param *model.RoleApplyParam, curUser
 	}
 	_, err = db.Engine.Transaction(func(session *xorm.Session) (interface{}, error) {
 		for _, roleApply := range updateRoleApplys {
-			if _, err := session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id}); err != nil {
+			if param.ExpireTime != "" {
+				_, err = session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id})
+			} else {
+				// 过期时间传递为空,需要更新 db expire_time设置为空
+				_, err = session.Exec("update auth_sys_role_apply set created_time = ?,expire_time = null where id=?", roleApply.CreatedTime, roleApply.Id)
+			}
+			if err != nil {
 				return nil, err
 			}
 		}
@@ -1017,7 +1028,8 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 		} else {
 			roleApplyEntity := &model.RoleApplyEntity{
 				Id:          roleApply.Id,
-				CreatedTime: now,
+				UpdatedTime: now,
+				UpdatedBy:   curUser,
 			}
 			if param.ExpireTime != "" {
 				roleApplyEntity.ExpireTime, _ = time.ParseInLocation(constant.DateTimeFormat, param.ExpireTime, time.Local)
