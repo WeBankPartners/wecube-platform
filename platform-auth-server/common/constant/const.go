@@ -17,6 +17,7 @@ const (
 	UriTaskLogin          = "/v1/api/taskLogin"
 	UriUsersRegister      = "/v1/users/register"
 	UriListApplyByApplier = "/v1/roles/apply/byapplier"
+	UriApplyByApplier     = "/v1/roles/apply/byhandler"
 	UriRoles              = "/v1/roles"
 	UriHealthCheck        = "/v1/health-check"
 
