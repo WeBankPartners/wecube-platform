@@ -461,7 +461,8 @@
       v-model="manualSkipVisible"
       :footer-hide="true"
       :mask-closable="false"
-      :scrollable="true"
+      :z-index="10"
+      width="500"
     >
       <span>{{ $t('be_expected_completion_time') }}：【{{ manualSkipParams.dateToDisplay }}】</span>
       <div class="workflowActionModal-container" style="text-align: center; margin-top: 20px">
@@ -485,6 +486,41 @@
         <Button type="warning" @click="confirmExecuteBranch" :disabled="!manualSkipParams.message">{{
           $t('be_execute_branch')
         }}</Button>
+      </div>
+    </Modal>
+
+    <!-- 执行分支 -->
+    <Modal
+      :title="$t('select_an_operation')"
+      v-model="executeBranchVisible"
+      :footer-hide="true"
+      :mask-closable="false"
+      :scrollable="true"
+    >
+      <div style="width: 120px; display: inline-block; text-align: right">{{ $t('be_decision_branch') }}：</div>
+      <Select v-model="manualSkipParams.message" style="width: 350px">
+        <Option v-for="item in manualSkipParams.branchOption" :value="item" :key="item">{{ item }}</Option>
+      </Select>
+      <div class="workflowActionModal-container" style="text-align: center; margin-top: 20px">
+        <Button type="warning" @click="confirmExecuteBranch" :disabled="!manualSkipParams.message">{{
+          $t('be_execute_branch')
+        }}</Button>
+      </div>
+    </Modal>
+
+    <!-- 非本人编排提示 -->
+    <Modal
+      :title="$t('be_workflow_non_owner_title')"
+      v-model="isShowNonOwnerModal"
+      :mask-closable="false"
+      :scrollable="true"
+      :z-index="10000"
+    >
+      <span style="margin: 8px">
+        {{ $t('be_workflow_non_owner_tip1') }}[{{ flowOwner }}]{{ $t('be_workflow_non_owner_tip2') }}
+      </span>
+      <div slot="footer">
+        <Button type="warning" @click="isShowNonOwnerModal = false">{{ $t('be_i_aware') }}</Button>
       </div>
     </Modal>
   </div>
@@ -882,7 +918,9 @@ export default {
         nodeInstId: '',
         message: '', // 选择执行的分支
         branchOption: [] // 可执行分支
-      }
+      },
+      isShowNonOwnerModal: false, // 查询非本人用户编排提示
+      flowOwner: ''
     }
   },
   components: { TimedExecution, JsonViewer, HistoryExecution },
@@ -1052,7 +1090,7 @@ export default {
     async stopHandler () {
       this.$Modal.confirm({
         title: this.$t('bc_confirm') + ' ' + this.$t('stop_orch'),
-        'z-index': 1000000,
+        'z-index': 10,
         onOk: async () => {
           // createWorkflowInstanceTerminationRequest
           const instance = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
@@ -1483,7 +1521,17 @@ export default {
             .map(d => d.nodeId)
         }
         this.getModelData()
+        this.tipForNonOwner(found)
       })
+    },
+    tipForNonOwner (flow) {
+      if (
+        ['InProgress', 'Timeouted', 'Stop'].includes(flow.status) &&
+        flow.operator !== localStorage.getItem('username')
+      ) {
+        this.flowOwner = flow.operator
+        this.isShowNonOwnerModal = true
+      }
     },
     queryHistory () {
       this.selectedTarget = null
@@ -1921,6 +1969,20 @@ export default {
           this.stop()
         }
       }
+
+      this.refreshModelData()
+    },
+    async refreshModelData () {
+      // this.modelData = []
+      if ((!this.selectedFlow || !this.selectedTarget) && !this.isEnqueryPage) {
+        this.renderModelGraph()
+        return
+      }
+      if (this.processSessionId) {
+        const binds = await getAllBindingsProcessSessionId(this.processSessionId)
+        this.allBindingsList = binds.data
+        this.renderModelGraph()
+      }
     },
     comparativeData (old, newData) {
       let isNew = false
@@ -2014,7 +2076,7 @@ export default {
       } else if (type === 'skip') {
         this.$Modal.confirm({
           title: this.$t('confirm_to_skip'),
-          'z-index': 1000000,
+          'z-index': 100,
           onOk: async () => {
             const payload = {
               act: type,

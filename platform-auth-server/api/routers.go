@@ -159,7 +159,7 @@ func init() {
 			ApiCode: "CreateRoleApply"},
 		&handlerFuncObj{Url: "/v1/roles/apply", Method: http.MethodDelete, HandlerFunc: DeleteRoleApply,
 			ApiCode: "DeleteRoleApply"},
-		&handlerFuncObj{Url: "/v1/roles/apply/byhandler", Method: http.MethodPost, HandlerFunc: ListRoleApply,
+		&handlerFuncObj{Url: constant.UriApplyByApplier, Method: http.MethodPost, HandlerFunc: ListRoleApply,
 			ApiCode: "ListRoleApply"},
 		&handlerFuncObj{Url: constant.UriListApplyByApplier, Method: http.MethodPost, HandlerFunc: ListRoleApplyByApplier,
 			ApiCode: "ListRoleApplyByApplier"},
