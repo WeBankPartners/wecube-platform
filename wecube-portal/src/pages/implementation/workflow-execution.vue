@@ -81,6 +81,7 @@
                   v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
                   type="warning"
                   @click="stopHandler"
+                  icon="md-square"
                   >{{ $t('stop_orch') }}</Button
                 >
                 <!-- disabled="currentInstanceStatus || stopSuccess"  stop_orch -->
@@ -88,6 +89,7 @@
                   v-if="currentInstanceStatusForNodeOperation === 'Completed'"
                   type="warning"
                   @click="setTimedExecution"
+                  icon="md-stopwatch"
                   >{{ $t('timed_execution') }}</Button
                 >
                 <!-- :disabled="canAbleToSetting" timed_execution -->
