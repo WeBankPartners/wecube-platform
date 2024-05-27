@@ -215,14 +215,24 @@ func (RoleApplyEntity) TableName() string {
 	return "auth_sys_role_apply"
 }
 
+// CalcUserRolePermissionStatus  此处有个问题,useRole 的创建、更新时间可能为空,后续已经修复这个问题
 func CalcUserRolePermissionStatus(userRole *UserRoleRsEntity) string {
 	if userRole.ExpireTime.Unix() > 0 {
-		max := userRole.ExpireTime.Sub(userRole.CreatedTime).Seconds()
-		use := time.Now().Sub(userRole.CreatedTime).Seconds()
-		if (use/max)*100 >= 100 {
-			return string(constant.UserRolePermissionStatusExpire)
-		} else if (use/max)*100 >= Config.NotifyPercent {
-			return string(constant.UserRolePermissionStatusPreExpire)
+		if userRole.CreatedTime.Unix() > 0 {
+			max := userRole.ExpireTime.Sub(userRole.CreatedTime).Seconds()
+			use := time.Now().Sub(userRole.CreatedTime).Seconds()
+			if (use/max)*100 >= 100 {
+				return string(constant.UserRolePermissionStatusExpire)
+			} else if (use/max)*100 >= Config.NotifyPercent {
+				return string(constant.UserRolePermissionStatusPreExpire)
+			}
+			return string(constant.UserRolePermissionStatusInEffect)
+		} else {
+			if userRole.ExpireTime.Before(time.Now()) {
+				return string(constant.UserRolePermissionStatusExpire)
+			} else {
+				return string(constant.UserRolePermissionStatusInEffect)
+			}
 		}
 	}
 	return string(constant.UserRolePermissionStatusForever)
