@@ -78,9 +78,16 @@ func notifyAction() {
 }
 
 func calcExpireObj(entity *model.UserRoleRsEntity) float64 {
-	max := entity.ExpireTime.Sub(entity.CreatedTime).Seconds()
-	use := time.Now().Sub(entity.CreatedTime).Seconds()
-	return (use / max) * 100
+	if entity.CreatedTime.Unix() > 0 {
+		max := entity.ExpireTime.Sub(entity.CreatedTime).Seconds()
+		use := time.Now().Sub(entity.CreatedTime).Seconds()
+		return (use / max) * 100
+	} else {
+		if entity.ExpireTime.After(time.Now()) {
+			return 0
+		}
+		return 100
+	}
 }
 
 func NotifyRoleExpireMail(role, email, expireTime string) (err error) {
