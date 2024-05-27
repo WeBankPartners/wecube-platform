@@ -421,7 +421,7 @@ export default {
       dynamicBindOptions: [
         {
           label: this.$t('during_startup'),
-          value: 1
+          value: 0
         },
         {
           label: this.$t('during_runtime'),
@@ -429,7 +429,7 @@ export default {
         },
         {
           label: this.$t('dynamic_bind'),
-          value: 0
+          value: 1
         }
       ]
     }
