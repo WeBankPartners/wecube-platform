@@ -239,6 +239,9 @@ func StatisticsTasknodeExec(ctx *gin.Context, reqParam *models.StatisticsTasknod
 	if entityDataIdsFilterSql != "" {
 		baseSql = db.CombineDBSql(baseSql, " AND pinrp.callback_id IN (", entityDataIdsFilterSql, ")")
 		queryParams = append(queryParams, entityDataIdsFilterParams...)
+
+		baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id = ?")
+		queryParams = append(queryParams, entityDataIdsFilterParams...)
 	}
 
 	baseSql = db.CombineDBSql(baseSql, " GROUP BY pdb.proc_def_id, pd.name, pd.version, pin.proc_def_node_id, pdn.name, pinrp.callback_id, pdb.entity_data_name, pinrp.data_value")
@@ -335,6 +338,9 @@ func StatisticsPluginExec(ctx *gin.Context, reqParam *models.StatisticsTasknodeE
 	if entityDataIdsFilterSql != "" {
 		baseSql = db.CombineDBSql(baseSql, " AND pinrp.callback_id IN (", entityDataIdsFilterSql, ")")
 		queryParams = append(queryParams, entityDataIdsFilterParams...)
+
+		baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id = ?")
+		queryParams = append(queryParams, entityDataIdsFilterParams...)
 	}
 
 	baseSql = db.CombineDBSql(baseSql, " GROUP BY pdn.service_name, pinrp.callback_id, pdb.entity_data_name, pinrp.data_value")
@@ -410,7 +416,7 @@ func StatisticsTasknodeExecDetails(ctx *gin.Context, reqParam *models.Statistics
     LEFT JOIN proc_ins pi ON pi.id=pin.proc_ins_id WHERE 1=1 `)
 
 	if reqParam.Status == ProcExecCompleted {
-		baseSql = db.CombineDBSql(baseSql, " AND pinrp.data_value=='0'")
+		baseSql = db.CombineDBSql(baseSql, " AND pinrp.data_value='0'")
 	} else {
 		baseSql = db.CombineDBSql(baseSql, " AND pinrp.data_value!='0'")
 	}
@@ -497,5 +503,13 @@ func StatisticsTasknodeExecDetails(ctx *gin.Context, reqParam *models.Statistics
 		}
 		return result[i].ReqId < result[j].ReqId
 	})
+	return
+}
+
+// 插件注册-查询-详情
+func StatisticsPluginExecDetails(ctx *gin.Context, reqParam *models.StatisticsTasknodeExecDetailsReq) (result []*models.StatisticsTasknodeExecDetailsResp, err error) {
+	result = []*models.StatisticsTasknodeExecDetailsResp{}
+	// var queryParams []interface{}
+
 	return
 }
