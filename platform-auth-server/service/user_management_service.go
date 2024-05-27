@@ -279,14 +279,17 @@ func (UserManagementService) ConfigureUserWithRoles(userId string, roleDtos []*m
 			continue
 		} else {
 			userRole := &model.UserRoleRsEntity{
-				Id:        utils.Uuid(),
-				CreatedBy: curUser,
-				UserId:    userId,
-				Username:  user.Username,
-				RoleId:    role.Id,
-				RoleName:  role.Name,
-				Active:    true,
-				Deleted:   false,
+				Id:          utils.Uuid(),
+				CreatedBy:   curUser,
+				UpdatedBy:   curUser,
+				UserId:      userId,
+				Username:    user.Username,
+				RoleId:      role.Id,
+				RoleName:    role.Name,
+				Active:      true,
+				Deleted:     false,
+				CreatedTime: time.Now(),
+				UpdatedTime: time.Now(),
 			}
 			affected, err := session.Insert(userRole)
 			if err != nil || affected == 0 {
@@ -440,14 +443,18 @@ func (UserManagementService) ConfigureRoleForUsers(roleId string, userDtos []*mo
 			continue
 		} else {
 			userRole = &model.UserRoleRsEntity{
-				Id:        utils.Uuid(),
-				CreatedBy: curUser,
-				UserId:    userDto.ID,
-				Username:  user.Username,
-				RoleId:    roleId,
-				RoleName:  role.Name,
-				Active:    true,
-				Deleted:   false,
+				Id:          utils.Uuid(),
+				CreatedBy:   curUser,
+				UpdatedBy:   curUser,
+				CreatedTime: time.Now(),
+				UpdatedTime: time.Now(),
+				Active:      true,
+				Deleted:     false,
+				UserId:      userDto.ID,
+				Username:    user.Username,
+				RoleId:      roleId,
+				RoleName:    role.Name,
+				NotifyCount: 0,
 			}
 			if strings.TrimSpace(userDto.ExpireTime) != "" {
 				expireTime, _ := time.ParseInLocation(constant.DateTimeFormat, userDto.ExpireTime, time.Local)
