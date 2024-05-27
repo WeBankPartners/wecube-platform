@@ -148,13 +148,26 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 	if procDefNode.DynamicBind == 1 {
 		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
 		if err != nil {
-			err = fmt.Errorf("get dynamic bind data fail,%s ", err.Error())
+			err = fmt.Errorf("get node dynamic bind data fail,%s ", err.Error())
 			return
 		}
 		if len(dataBindings) > 0 {
 			err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
 			if err != nil {
 				err = fmt.Errorf("try to update dynamic node binding data fail,%s ", err.Error())
+				return
+			}
+		}
+	} else if procDefNode.DynamicBind == 2 {
+		dataBindings, err = dynamicBindNodeInRuntime(ctx, procInsNode, procDefNode)
+		if err != nil {
+			err = fmt.Errorf("get runtime dynamic bind data fail,%s ", err.Error())
+			return
+		}
+		if len(dataBindings) > 0 {
+			err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
+			if err != nil {
+				err = fmt.Errorf("try to update runtime dynamic node binding data fail,%s ", err.Error())
 				return
 			}
 		}
@@ -912,5 +925,79 @@ func QueryProcPreviewNodeData(ctx context.Context, param *models.QueryExpression
 		exprList[exprLen-1].Filters = append(exprList[exprLen-1].Filters, lastEntityFilters...)
 	}
 	dataList, err = remote.QueryPluginFullData(ctx, exprList, param.Filters[0], rootEntityNode, remote.GetToken(), withEntityData)
+	return
+}
+
+func dynamicBindNodeInRuntime(ctx context.Context, procInsNode *models.ProcInsNode, procDefNode *models.ProcDefNode) (dataBinding []*models.ProcDataBinding, err error) {
+	interfaceFilters := []*models.Filter{}
+	if procDefNode.ServiceName != "" {
+		interfaceObj, getInterfaceErr := database.GetSimpleLastPluginInterface(ctx, procDefNode.ServiceName)
+		if getInterfaceErr != nil {
+			err = fmt.Errorf("get node plugin interface:%s fail,%s ", procDefNode.ServiceName, getInterfaceErr.Error())
+			return
+		}
+		if interfaceObj.FilterRule != "" {
+			if interfaceFilters, err = remote.AnalyzeExprFilters(interfaceObj.FilterRule); err != nil {
+				err = fmt.Errorf("analyze expr filters:%s fail,%s ", interfaceObj.FilterRule, err.Error())
+				return
+			}
+		}
+	}
+	var rootEntityDataId, rootExpr string
+	rootEntityDataId, _, rootExpr, err = database.GetProcInsRootEntityData(ctx, procInsNode.ProcInsId)
+	if err != nil {
+		return
+	}
+	nodeDataList := []*models.ProcPreviewEntityNode{}
+	nodeExpressionList := []string{procDefNode.RoutineExpression}
+	rootExprList, analyzeErr := remote.AnalyzeExpression(rootExpr)
+	if analyzeErr != nil {
+		err = analyzeErr
+		return
+	}
+	rootLastExprObj := rootExprList[len(rootExprList)-1]
+	rootFilter := models.QueryExpressionDataFilter{
+		Index:       len(rootExprList) - 1,
+		PackageName: rootLastExprObj.Package,
+		EntityName:  rootLastExprObj.Entity,
+		AttributeFilters: []*models.QueryExpressionDataAttrFilter{{
+			Name:     "id",
+			Operator: "eq",
+			Value:    rootEntityDataId,
+		}},
+	}
+	rootEntityNode := models.ProcPreviewEntityNode{DataId: rootEntityDataId, FullDataId: rootEntityDataId}
+	for _, nodeExpression := range nodeExpressionList {
+		tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: nodeExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
+		tmpNodeDataList, tmpErr := QueryProcPreviewNodeData(ctx, &tmpQueryDataParam, &rootEntityNode, false, interfaceFilters)
+		if tmpErr != nil {
+			err = tmpErr
+			break
+		}
+		nodeDataList = append(nodeDataList, tmpNodeDataList...)
+	}
+	if err != nil {
+		return
+	}
+	log.Logger.Debug("dynamicBindNodeInRuntime nodeData", log.String("node", procInsNode.Id), log.JsonObj("data", nodeDataList))
+	nowTime := time.Now()
+	for _, nodeDataObj := range nodeDataList {
+		if nodeDataObj.LastFlag {
+			tmpPreviewRow := models.ProcDataBinding{
+				EntityId:       nodeDataObj.DataId,
+				EntityDataId:   nodeDataObj.DataId,
+				EntityTypeId:   fmt.Sprintf("%s:%s", nodeDataObj.PackageName, nodeDataObj.EntityName),
+				ProcDefId:      procDefNode.ProcDefId,
+				BindType:       "taskNode",
+				BindFlag:       true,
+				EntityDataName: nodeDataObj.DisplayName,
+				FullDataId:     nodeDataObj.FullDataId,
+				ProcDefNodeId:  procDefNode.NodeId,
+				CreatedBy:      "system",
+				CreatedTime:    nowTime,
+			}
+			dataBinding = append(dataBinding, &tmpPreviewRow)
+		}
+	}
 	return
 }
