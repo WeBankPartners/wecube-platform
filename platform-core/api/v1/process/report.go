@@ -231,3 +231,28 @@ func StatisticsPluginExec(c *gin.Context) {
 
 	return
 }
+
+// StatisticsPluginExecDetails 插件注册-查询-详情
+func StatisticsPluginExecDetails(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	var reqParam models.StatisticsTasknodeExecDetailsReq
+	var err error
+	if err = c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+
+	result, err := database.StatisticsTasknodeExecDetails(c, &reqParam)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+
+	return
+}
