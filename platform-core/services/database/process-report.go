@@ -18,6 +18,7 @@ var (
 	ProcExecTotal      = "Total"
 )
 
+// 插件注册列表
 func StatisticsServiceNames(ctx *gin.Context) (serviceNames []string, err error) {
 	serviceNames = []string{}
 	baseSql := db.CombineDBSql("SELECT DISTINCT service_name FROM proc_def_node WHERE service_name!='' AND id IN (SELECT proc_def_node_id FROM proc_ins_node)")
@@ -29,6 +30,7 @@ func StatisticsServiceNames(ctx *gin.Context) (serviceNames []string, err error)
 	return
 }
 
+// 插件服务-数据对象
 func StatisticsBindingsEntityByService(ctx *gin.Context, serviceNameList []string) (result []*models.TasknodeBindsEntityData, err error) {
 	result = []*models.TasknodeBindsEntityData{}
 	filterSql, filterParams := db.CreateListParams(serviceNameList, "")
@@ -50,6 +52,7 @@ func StatisticsBindingsEntityByService(ctx *gin.Context, serviceNameList []strin
 	return
 }
 
+// 任务节点查询
 func StatisticsTasknodes(ctx *gin.Context, procDefIdList []string) (result []*models.Tasknode, err error) {
 	result = []*models.Tasknode{}
 	filterSql, filterParams := db.CreateListParams(procDefIdList, "")
@@ -65,6 +68,7 @@ func StatisticsTasknodes(ctx *gin.Context, procDefIdList []string) (result []*mo
 	return
 }
 
+// 编排节点-数据对象
 func StatisticsBindingsEntityByNode(ctx *gin.Context, nodeList []string) (result []*models.TasknodeBindsEntityData, err error) {
 	result = []*models.TasknodeBindsEntityData{}
 	filterSql, filterParams := db.CreateListParams(nodeList, "")
@@ -86,6 +90,7 @@ func StatisticsBindingsEntityByNode(ctx *gin.Context, nodeList []string) (result
 	return
 }
 
+// 编排-查询
 func StatisticsProcessExec(ctx *gin.Context, reqParam *models.StatisticsProcessExecReq) (result []*models.StatisticsProcessExecResp, err error) {
 	result = []*models.StatisticsProcessExecResp{}
 	var statisticsProcExecCnt []*models.StatisticsProcExecCnt
@@ -196,6 +201,7 @@ func StatisticsProcessExec(ctx *gin.Context, reqParam *models.StatisticsProcessE
 	return
 }
 
+// 编排节点-查询
 func StatisticsTasknodeExec(ctx *gin.Context, reqParam *models.StatisticsTasknodeExecReq) (result *models.StatisticsTasknodeExecResp, err error) {
 	result = &models.StatisticsTasknodeExecResp{
 		PageInfo: &models.PageInfo{},
@@ -284,11 +290,20 @@ func StatisticsTasknodeExec(ctx *gin.Context, reqParam *models.StatisticsTasknod
 	result.PageInfo.TotalRows = len(result.Contents)
 
 	sort.Slice(result.Contents, func(i int, j int) bool {
-		return result.Contents[i].ProcDefName < result.Contents[j].ProcDefName
+		// return result.Contents[i].ProcDefName < result.Contents[j].ProcDefName
+		if result.Contents[i].ProcDefName != result.Contents[j].ProcDefName {
+			return result.Contents[i].ProcDefName < result.Contents[j].ProcDefName
+		} else if result.Contents[i].NodeDefName != result.Contents[j].NodeDefName {
+			return result.Contents[i].NodeDefName < result.Contents[j].NodeDefName
+		} else if result.Contents[i].EntityDataId != result.Contents[j].EntityDataId {
+			return result.Contents[i].EntityDataId < result.Contents[j].EntityDataId
+		}
+		return result.Contents[i].EntityDataName < result.Contents[j].EntityDataName
 	})
 	return
 }
 
+// 插件注册-查询
 func StatisticsPluginExec(ctx *gin.Context, reqParam *models.StatisticsTasknodeExecReq) (result *models.StatisticsTasknodeExecResp, err error) {
 	result = &models.StatisticsTasknodeExecResp{
 		PageInfo: &models.PageInfo{},
@@ -376,6 +391,111 @@ func StatisticsPluginExec(ctx *gin.Context, reqParam *models.StatisticsTasknodeE
 			}
 		}
 		return result.Contents[i].EntityDataName < result.Contents[j].EntityDataName
+	})
+	return
+}
+
+// 编排节点-查询-详情
+func StatisticsTasknodeExecDetails(ctx *gin.Context, reqParam *models.StatisticsTasknodeExecDetailsReq) (result []*models.StatisticsTasknodeExecDetailsResp, err error) {
+	result = []*models.StatisticsTasknodeExecDetailsResp{}
+	var queryParams []interface{}
+
+	baseSql := db.CombineDBSql(`SELECT pdb.proc_def_id, pd.name AS proc_def_name, pd.version AS proc_def_version, pi.created_time AS proc_exec_date, pi.created_by AS proc_exec_oper, pi.status AS proc_exec_status, pin.proc_def_node_id, pdn.name AS proc_def_node_name, pin.created_time AS proc_node_exec_date, pin.status AS proc_node_status, pdb.entity_data_id, pdb.entity_data_name, pinr.created_time AS exec_date, pinr.id AS req_id,
+       pinrp.id AS pinrp_id, pinrp.req_id AS pinrp_req_id, pinrp.from_type AS pinrp_param_type, pinrp.name AS pinrp_name, pinrp.data_type AS pinrp_data_type, pinrp.data_value AS pinrp_data_value, pinrp.callback_id AS pinrp_callback_id, pinrp.entity_type_id AS pinrp_entity_type_id FROM proc_ins_node_req_param pinrp
+    LEFT JOIN proc_ins_node_req pinr ON pinrp.req_id=pinr.id
+    LEFT JOIN proc_ins_node pin ON pinr.proc_ins_node_id=pin.id
+    LEFT JOIN proc_data_binding pdb ON pdb.proc_ins_node_id=pin.id
+    LEFT JOIN proc_def_node pdn ON pdn.id=pin.proc_def_node_id
+    LEFT JOIN proc_def pd ON pd.id=pdb.proc_def_id
+    LEFT JOIN proc_ins pi ON pi.id=pin.proc_ins_id WHERE 1=1 `)
+
+	if reqParam.Status == ProcExecCompleted {
+		baseSql = db.CombineDBSql(baseSql, " AND pinrp.data_value=='0'")
+	} else {
+		baseSql = db.CombineDBSql(baseSql, " AND pinrp.data_value!='0'")
+	}
+
+	if reqParam.StartDate != "" {
+		baseSql = db.CombineDBSql(baseSql, " AND pinrp.created_time >= ?")
+		queryParams = append(queryParams, reqParam.StartDate)
+	}
+	if reqParam.EndDate != "" {
+		baseSql = db.CombineDBSql(baseSql, " AND pinrp.created_time <= ?")
+		queryParams = append(queryParams, reqParam.EndDate)
+	}
+	if reqParam.ProcDefId != "" {
+		baseSql = db.CombineDBSql(baseSql, " AND pdb.proc_def_id = ?")
+		queryParams = append(queryParams, reqParam.ProcDefId)
+	}
+	if reqParam.NodeDefId != "" {
+		baseSql = db.CombineDBSql(baseSql, " AND pin.proc_def_node_id = ?")
+		queryParams = append(queryParams, reqParam.NodeDefId)
+	}
+	if reqParam.EntityDataId != "" {
+		baseSql = db.CombineDBSql(baseSql, " AND pinrp.callback_id = ?")
+		queryParams = append(queryParams, reqParam.EntityDataId)
+
+		baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id = ?")
+		queryParams = append(queryParams, reqParam.EntityDataId)
+	}
+	if reqParam.EntityDataName != "" {
+		baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_name = ?")
+		queryParams = append(queryParams, reqParam.EntityDataName)
+	}
+
+	baseSql = db.CombineDBSql(baseSql, " ORDER BY pinr.created_time,pinr.id,pinrp.from_type,pinrp.name")
+
+	queryResult := []*models.StatisticsTasknodeExecDetailsQueryResult{}
+	err = db.MysqlEngine.Context(ctx).SQL(baseSql, queryParams...).Find(&queryResult)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	// handle queryResult
+	reqIdMapResultData := make(map[string]*models.StatisticsTasknodeExecDetailsResp)
+	for _, data := range queryResult {
+		if _, ok := reqIdMapResultData[data.ReqId]; !ok {
+			reqIdMapResultData[data.ReqId] = &models.StatisticsTasknodeExecDetailsResp{
+				EntityDataId: data.EntityDataId,
+				ExecDate:     data.ExecDate,
+				ExecParams:   []*models.TasknodeExecParam{},
+				NodeDefId:    data.NodeDefId,
+				NodeDefName:  data.NodeDefName,
+				NodeExecDate: data.NodeExecDate,
+				NodeStatus:   data.NodeStatus,
+				ProcDefId:    data.ProcDefId,
+				ProcDefName:  fmt.Sprintf("%s%s", data.ProcDefName, data.ProcDefVersion),
+				ProcExecDate: data.ProcExecDate,
+				ProcExecOper: data.ProcExecOper,
+				ProcStatus:   data.ProcStatus,
+				ReqId:        data.ReqId,
+				ServiceId:    data.ServiceId,
+			}
+		}
+		execParam := &models.TasknodeExecParam{
+			EntityDataId:   data.CallbackId,
+			EntityTypeId:   data.EntityTypeId,
+			Id:             data.Id,
+			ObjectId:       data.ObjectId,
+			ParamDataType:  data.ParamDataType,
+			ParamDataValue: data.ParamDataValue,
+			ParamName:      data.ParamName,
+			ParamType:      data.ParamType,
+			RequestId:      data.RequestId,
+		}
+		reqIdMapResultData[data.ReqId].ExecParams = append(reqIdMapResultData[data.ReqId].ExecParams, execParam)
+	}
+
+	for _, resultData := range reqIdMapResultData {
+		result = append(result, resultData)
+	}
+
+	sort.Slice(result, func(i int, j int) bool {
+		if result[i].ExecDate != result[j].ExecDate {
+			return result[i].ExecDate < result[j].ExecDate
+		}
+		return result[i].ReqId < result[j].ReqId
 	})
 	return
 }
