@@ -38,9 +38,9 @@ const (
 type UserRolePermissionStatus string
 
 const (
-	UserRolePermissionStatusExpire    UserRolePermissionStatus = "expire"    // 已过期
-	UserRolePermissionStatusForever   UserRolePermissionStatus = "forever"   // 永久
-	UserRolePermissionStatusPreExpire UserRolePermissionStatus = "preExpire" // 将要过期
-	UserRolePermissionStatusInEffect  UserRolePermissionStatus = "inEffect"  // 生效中
-	UserRolePermissionStatusDeleted   UserRolePermissionStatus = "deleted"   // 已删除
+	UserRolePermissionStatusExpire    UserRolePermissionStatus = "expire"     // 已过期
+	UserRolePermissionStatusForever   UserRolePermissionStatus = "forever"    // 永久
+	UserRolePermissionStatusPreExpire UserRolePermissionStatus = "preExpired" // 将要过期
+	UserRolePermissionStatusInEffect  UserRolePermissionStatus = "inEffect"   // 生效中
+	UserRolePermissionStatusDeleted   UserRolePermissionStatus = "deleted"    // 已删除
 )

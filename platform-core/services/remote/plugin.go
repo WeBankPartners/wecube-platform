@@ -222,6 +222,7 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 	nodePreviousMap := make(map[string][]string)
 	nodeSucceedingMap := make(map[string][]string)
 	exprLastIndex := len(exprList) - 1
+	resultNodeMap := make(map[string]*models.ProcPreviewEntityNode)
 	for i, exprObj := range exprList {
 		tmpFilters := []*models.EntityQueryObj{}
 		if exprObj.Filters != nil {
@@ -281,7 +282,7 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 			for _, rowData := range lastQueryResult {
 				rowDataId := rowData["id"].(string)
 				rowDataNode := &models.ProcPreviewEntityNode{}
-				if _, existFlag := dataFullIdMap[rowDataId]; !existFlag {
+				if existNode, existFlag := resultNodeMap[rowDataId]; !existFlag {
 					rowDataNode.Parse(exprObj.Package, exprObj.Entity, rowData)
 					if withEntityData {
 						rowDataNode.EntityData = rowData
@@ -290,6 +291,11 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 						rowDataNode.LastFlag = true
 					}
 					resultNodeList = append(resultNodeList, rowDataNode)
+					resultNodeMap[rowDataId] = rowDataNode
+				} else {
+					if i == exprLastIndex {
+						existNode.LastFlag = true
+					}
 				}
 				if exprObj.LeftJoinColumn != "" {
 					log.Logger.Debug("QueryPluginFullData handle row,LeftJoinColumn", log.String("id", rowDataId), log.String("LeftJoinColumn", exprObj.LeftJoinColumn))
