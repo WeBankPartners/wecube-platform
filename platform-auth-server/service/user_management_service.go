@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
@@ -448,7 +449,10 @@ func (UserManagementService) ConfigureRoleForUsers(roleId string, userDtos []*mo
 				Active:    true,
 				Deleted:   false,
 			}
-
+			if strings.TrimSpace(userDto.ExpireTime) != "" {
+				expireTime, _ := time.ParseInLocation(constant.DateTimeFormat, userDto.ExpireTime, time.Local)
+				userRole.ExpireTime = expireTime
+			}
 			affected, err := session.Insert(userRole)
 			if err != nil || affected == 0 {
 				if err != nil {
