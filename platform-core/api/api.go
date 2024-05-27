@@ -215,9 +215,11 @@ func init() {
 		// 编排节点 tab
 		&handlerFuncObj{Url: "/statistics/process/definitions/tasknodes/query", Method: "POST", HandlerFunc: process.StatisticsTasknodes, ApiCode: "statistics-tasknodes"},
 		&handlerFuncObj{Url: "/statistics/process/definitions/tasknodes/tasknode-bindings/query", Method: "POST", HandlerFunc: process.StatisticsBindingsEntityByNode, ApiCode: "statistics-bindings-entity-by-node"},
+		&handlerFuncObj{Url: "/statistics/process/definitions/executions/tasknodes/reports/query", Method: "POST", HandlerFunc: process.StatisticsTasknodeExec, ApiCode: "statistics-tasknode-exec"},
 		// 插件服务 tab
 		&handlerFuncObj{Url: "/statistics/process/definitions/tasknodes/service-ids", Method: "GET", HandlerFunc: process.StatisticsServiceNames, ApiCode: "statistics-service-ids"},
 		&handlerFuncObj{Url: "/statistics/process/definitions/service-ids/tasknode-bindings/query", Method: "POST", HandlerFunc: process.StatisticsBindingsEntityByService, ApiCode: "statistics-bindings-entity-by-service"},
+		&handlerFuncObj{Url: "/statistics/process/definitions/executions/plugin/reports/query", Method: "POST", HandlerFunc: process.StatisticsPluginExec, ApiCode: "statistics-plugin-exec"},
 	)
 }
 
