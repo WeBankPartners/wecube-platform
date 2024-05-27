@@ -99,3 +99,71 @@ func (t *StatisticsPluginExecQueryResult) StringValForHash() string {
 	return fmt.Sprintf("%s%s%s",
 		t.ServiceName, t.EntityDataId, t.EntityDataName)
 }
+
+type StatisticsTasknodeExecDetailsReq struct {
+	StartDate      string `json:"startDate"`
+	EndDate        string `json:"endDate"`
+	ProcDefId      string `json:"procDefId"`
+	EntityDataId   string `json:"entityDataId"`
+	EntityDataName string `json:"entityDataName"`
+	NodeDefId      string `json:"nodeDefId"`
+	ServiceId      string `json:"serviceId"`
+	Status         string `json:"status"` // Faulted, Completed
+}
+
+type StatisticsTasknodeExecDetailsResp struct {
+	EntityDataId string               `json:"entityDataId"`
+	ExecDate     string               `json:"execDate"`
+	ExecParams   []*TasknodeExecParam `json:"execParams"`
+	NodeDefId    string               `json:"nodeDefId"`
+	NodeDefName  string               `json:"nodeDefName"`
+	NodeExecDate string               `json:"nodeExecDate"`
+	NodeStatus   string               `json:"nodeStatus"`
+	ProcDefId    string               `json:"procDefId"`
+	ProcDefName  string               `json:"procDefName"`
+	ProcExecDate string               `json:"procExecDate"`
+	ProcExecOper string               `json:"procExecOper"`
+	ProcStatus   string               `json:"procStatus"`
+	ReqId        string               `json:"reqId"`
+	ServiceId    string               `json:"serviceId"`
+}
+
+type TasknodeExecParam struct {
+	EntityDataId   string `json:"entityDataId"`
+	EntityTypeId   string `json:"entityTypeId"`
+	Id             string `json:"id"`
+	ObjectId       string `json:"objectId"`
+	ParamDataType  string `json:"paramDataType"`
+	ParamDataValue string `json:"paramDataValue"`
+	ParamName      string `json:"paramName"`
+	ParamType      string `json:"paramType"`
+	RequestId      string `json:"requestId"`
+}
+
+type StatisticsTasknodeExecDetailsQueryResult struct {
+	ProcDefId      string `json:"procDefId" xorm:"proc_def_id"`
+	ProcDefName    string `json:"procDefName" xorm:"proc_def_name"`
+	ProcDefVersion string `json:"procDefVersion" xorm:"proc_def_version"`
+	ProcExecDate   string `json:"procExecDate" xorm:"proc_exec_date"`
+	ProcExecOper   string `json:"procExecOper" xorm:"proc_exec_oper"`
+	ProcStatus     string `json:"procStatus" xorm:"proc_exec_status"`
+	NodeDefId      string `json:"nodeDefId" xorm:"proc_def_node_id"`
+	NodeDefName    string `json:"nodeDefName" xorm:"proc_def_node_name"`
+	NodeExecDate   string `json:"nodeExecDate" xorm:"proc_node_exec_date"`
+	NodeStatus     string `json:"nodeStatus" xorm:"proc_node_status"`
+	EntityDataId   string `json:"entityDataId" xorm:"entity_data_id"`
+	ExecDate       string `json:"execDate" xorm:"exec_date"`
+	ReqId          string `json:"reqId" xorm:"req_id"`
+	ServiceId      string `json:"serviceId" xorm:"service_id"`
+
+	// execParams
+	Id             string `json:"id" xorm:"pinrp_id"`
+	RequestId      string `json:"requestId" xorm:"pinrp_req_id"`
+	ParamType      string `json:"paramType" xorm:"pinrp_param_type"`
+	ParamName      string `json:"paramName" xorm:"pinrp_name"`
+	ParamDataType  string `json:"paramDataType" xorm:"pinrp_data_type"`
+	ParamDataValue string `json:"paramDataValue" xorm:"pinrp_data_value"`
+	CallbackId     string `json:"callbackId" xorm:"pinrp_callback_id"`
+	EntityTypeId   string `json:"entityTypeId" xorm:"pinrp_entity_type_id"`
+	ObjectId       string `json:"objectId"`
+}
