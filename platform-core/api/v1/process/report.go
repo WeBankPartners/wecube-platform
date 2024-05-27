@@ -32,10 +32,18 @@ func StatisticsProDefList(c *gin.Context) {
 	}
 	log.Logger.Debug("procDefList", log.String("includeDraft", includeDraft), log.String("permission", permission), log.String("tag", tag), log.StringList("roleList", middleware.GetRequestRoles(c)))
 	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, middleware.GetRequestRoles(c))
+	mergeProcDefNameAndVersion(result)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
 		middleware.ReturnData(c, result)
+	}
+	return
+}
+
+func mergeProcDefNameAndVersion(procDefList []*models.ProcDefListObj) {
+	for _, data := range procDefList {
+		data.ProcDefName = fmt.Sprintf("%s%s", data.ProcDefName, data.ProcDefVersion)
 	}
 	return
 }
@@ -80,7 +88,7 @@ func StatisticsBindingsEntityByService(c *gin.Context) {
 	return
 }
 
-// StatisticsTasknodes 节点查询
+// StatisticsTasknodes 任务节点查询
 func StatisticsTasknodes(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
@@ -146,5 +154,55 @@ func StatisticsProcessExec(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, result)
 	}
+	return
+}
+
+// StatisticsTasknodeExec 编排节点-查询
+func StatisticsTasknodeExec(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	var reqParam models.StatisticsTasknodeExecReq
+	var err error
+	if err = c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+
+	result, err := database.StatisticsTasknodeExec(c, &reqParam)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+
+	return
+}
+
+// StatisticsPluginExec 插件注册-查询
+func StatisticsPluginExec(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	var reqParam models.StatisticsTasknodeExecReq
+	var err error
+	if err = c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+
+	result, err := database.StatisticsPluginExec(c, &reqParam)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+
 	return
 }
