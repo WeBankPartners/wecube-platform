@@ -65,7 +65,7 @@ func StatisticsServiceNames(c *gin.Context) {
 	return
 }
 
-// StatisticsBindingsEntityByService 数据对象
+// StatisticsBindingsEntityByService 插件服务-数据对象
 func StatisticsBindingsEntityByService(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
@@ -111,7 +111,7 @@ func StatisticsTasknodes(c *gin.Context) {
 	return
 }
 
-// StatisticsBindingsEntityByNode 数据对象
+// StatisticsBindingsEntityByNode 编排节点-数据对象
 func StatisticsBindingsEntityByNode(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
@@ -134,7 +134,7 @@ func StatisticsBindingsEntityByNode(c *gin.Context) {
 	return
 }
 
-// StatisticsProcessExec 编排查询
+// StatisticsProcessExec 编排-查询
 func StatisticsProcessExec(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
@@ -173,6 +173,31 @@ func StatisticsTasknodeExec(c *gin.Context) {
 	}
 
 	result, err := database.StatisticsTasknodeExec(c, &reqParam)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+
+	return
+}
+
+// StatisticsTasknodeExecDetails 编排节点-查询-详情
+func StatisticsTasknodeExecDetails(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	var reqParam models.StatisticsTasknodeExecDetailsReq
+	var err error
+	if err = c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+
+	result, err := database.StatisticsTasknodeExecDetails(c, &reqParam)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
