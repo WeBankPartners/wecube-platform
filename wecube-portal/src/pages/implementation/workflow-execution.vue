@@ -1966,13 +1966,12 @@ export default {
           this.initFlowGraph(true)
           this.renderModelGraph()
         }
-        if (data.status === 'Completed' || data.status === 'InternallyTerminated') {
+        if (['Completed', 'InternallyTerminated', 'Faulted'].includes(data.status)) {
           this.stopSuccess = true
           this.stop()
         }
+        this.refreshModelData()
       }
-
-      this.refreshModelData()
     },
     async refreshModelData () {
       // this.modelData = []
