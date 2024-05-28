@@ -218,6 +218,26 @@ func CreateProcPreview(ctx context.Context, previewRows []*models.ProcDataPrevie
 func ProcInsTaskNodeBindings(ctx context.Context, sessionId, taskNodeId string) (result []*models.TaskNodeBindingObj, err error) {
 	var previewRows []*models.ProcDataPreview
 	if taskNodeId == "" {
+		var procInsRows []*models.ProcIns
+		err = db.MysqlEngine.Context(ctx).SQL("select id,status from proc_ins where proc_session_id=?", sessionId).Find(&procInsRows)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		if len(procInsRows) > 0 {
+			procInsStatus := procInsRows[0].Status
+			if procInsStatus == models.JobStatusRunning || procInsStatus == models.WorkflowStatusStop {
+				var procInsNodeRows []*models.ProcInsNode
+				err = db.MysqlEngine.Context(ctx).SQL("select id,proc_def_node_id,status from proc_ins_node where proc_ins_id=?", procInsRows[0].Id).Find(&procInsNodeRows)
+				if err != nil {
+					err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+					return
+				}
+
+			} else if procInsStatus == models.JobStatusSuccess || procInsStatus == models.JobStatusFail || procInsStatus == models.JobStatusKill {
+
+			}
+		}
 		err = db.MysqlEngine.Context(ctx).SQL("select proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,ordered_no,bind_type,is_bound from proc_data_preview where proc_session_id=?", sessionId).Find(&previewRows)
 	} else {
 		err = db.MysqlEngine.Context(ctx).SQL("select proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,ordered_no,bind_type,is_bound from proc_data_preview where proc_session_id=? and proc_def_node_id=?", sessionId, taskNodeId).Find(&previewRows)
