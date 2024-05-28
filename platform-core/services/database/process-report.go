@@ -242,8 +242,8 @@ func StatisticsTasknodeExec(ctx *gin.Context, reqParam *models.StatisticsTasknod
 
 		// baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id IN (", entityDataIdsFilterSql, ")")
 		// queryParams = append(queryParams, entityDataIdsFilterParams...)
-		baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id = pinrp.callback_id")
 	}
+	baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id = pinrp.callback_id")
 
 	baseSql = db.CombineDBSql(baseSql, " GROUP BY pdb.proc_def_id, pd.name, pd.version, pin.proc_def_node_id, pdn.name, pinrp.callback_id, pdb.entity_data_name, pinrp.data_value")
 
@@ -342,8 +342,8 @@ func StatisticsPluginExec(ctx *gin.Context, reqParam *models.StatisticsTasknodeE
 
 		// baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id IN (", entityDataIdsFilterSql, ")")
 		// queryParams = append(queryParams, entityDataIdsFilterParams...)
-		baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id = pinrp.callback_id")
 	}
+	baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id = pinrp.callback_id")
 
 	baseSql = db.CombineDBSql(baseSql, " GROUP BY pdn.service_name, pinrp.callback_id, pdb.entity_data_name, pinrp.data_value")
 
