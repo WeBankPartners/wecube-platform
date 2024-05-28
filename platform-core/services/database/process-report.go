@@ -407,13 +407,13 @@ func StatisticsTasknodeExecDetails(ctx *gin.Context, reqParam *models.Statistics
 	var queryParams []interface{}
 
 	baseSql := db.CombineDBSql(`SELECT pdb.proc_def_id, pd.name AS proc_def_name, pd.version AS proc_def_version, pi.created_time AS proc_exec_date, pi.created_by AS proc_exec_oper, pi.status AS proc_exec_status, pin.proc_def_node_id, pdn.name AS proc_def_node_name, pin.created_time AS proc_node_exec_date, pin.status AS proc_node_status, pdb.entity_data_id, pdb.entity_data_name, pinr.created_time AS exec_date, pinr.id AS req_id,
-       pinrp.id AS pinrp_id, pinrp.req_id AS pinrp_req_id, pinrp.from_type AS pinrp_param_type, pinrp.name AS pinrp_name, pinrp.data_type AS pinrp_data_type, pinrp.data_value AS pinrp_data_value, pinrp.callback_id AS pinrp_callback_id, pinrp.entity_type_id AS pinrp_entity_type_id FROM proc_ins_node_req_param pinrp
+       pinrp.req_id AS pinrp_req_id FROM proc_ins_node_req_param pinrp
     LEFT JOIN proc_ins_node_req pinr ON pinrp.req_id=pinr.id
     LEFT JOIN proc_ins_node pin ON pinr.proc_ins_node_id=pin.id
     LEFT JOIN proc_data_binding pdb ON pdb.proc_ins_node_id=pin.id
     LEFT JOIN proc_def_node pdn ON pdn.id=pin.proc_def_node_id
     LEFT JOIN proc_def pd ON pd.id=pdb.proc_def_id
-    LEFT JOIN proc_ins pi ON pi.id=pin.proc_ins_id WHERE 1=1 `)
+    LEFT JOIN proc_ins pi ON pi.id=pin.proc_ins_id WHERE 1=1 AND pinrp.from_type='output' AND pinrp.name='errorCode' `)
 
 	if reqParam.Status == ProcExecCompleted {
 		baseSql = db.CombineDBSql(baseSql, " AND pinrp.data_value='0'")
@@ -449,7 +449,7 @@ func StatisticsTasknodeExecDetails(ctx *gin.Context, reqParam *models.Statistics
 		queryParams = append(queryParams, reqParam.EntityDataName)
 	}
 
-	baseSql = db.CombineDBSql(baseSql, " ORDER BY pinr.created_time,pinr.id,pinrp.from_type,pinrp.name")
+	baseSql = db.CombineDBSql(baseSql, " ORDER BY pinr.created_time,pinr.id")
 
 	queryResult := []*models.StatisticsTasknodeExecDetailsQueryResult{}
 	err = db.MysqlEngine.Context(ctx).SQL(baseSql, queryParams...).Find(&queryResult)
@@ -459,6 +459,7 @@ func StatisticsTasknodeExecDetails(ctx *gin.Context, reqParam *models.Statistics
 	}
 
 	// handle queryResult
+	reqIdList := []string{}
 	reqIdMapResultData := make(map[string]*models.StatisticsTasknodeExecDetailsResp)
 	for _, data := range queryResult {
 		if _, ok := reqIdMapResultData[data.ReqId]; !ok {
@@ -478,19 +479,50 @@ func StatisticsTasknodeExecDetails(ctx *gin.Context, reqParam *models.Statistics
 				ReqId:        data.ReqId,
 				ServiceId:    data.ServiceId,
 			}
+			reqIdList = append(reqIdList, data.ReqId)
 		}
-		execParam := &models.TasknodeExecParam{
-			EntityDataId:   data.CallbackId,
-			EntityTypeId:   data.EntityTypeId,
-			Id:             data.Id,
-			ObjectId:       data.ObjectId,
-			ParamDataType:  data.ParamDataType,
-			ParamDataValue: data.ParamDataValue,
-			ParamName:      data.ParamName,
-			ParamType:      data.ParamType,
-			RequestId:      data.RequestId,
+		/*
+			execParam := &models.TasknodeExecParam{
+				EntityDataId:   data.CallbackId,
+				EntityTypeId:   data.EntityTypeId,
+				Id:             data.Id,
+				ObjectId:       data.ObjectId,
+				ParamDataType:  data.ParamDataType,
+				ParamDataValue: data.ParamDataValue,
+				ParamName:      data.ParamName,
+				ParamType:      data.ParamType,
+				RequestId:      data.RequestId,
+			}
+			reqIdMapResultData[data.ReqId].ExecParams = append(reqIdMapResultData[data.ReqId].ExecParams, execParam)
+		*/
+	}
+	if len(reqIdList) > 0 {
+		queryParams = []interface{}{}
+		tasknodeExecParamList := []*models.TasknodeExecParam{}
+		reqIdFilterSql, reqIdFilterParams := db.CreateListParams(reqIdList, "")
+
+		baseSql = db.CombineDBSql(`SELECT pinrp.id, pinrp.req_id, pinrp.from_type, pinrp.name, pinrp.data_type, pinrp.data_value, pinrp.callback_id, pinrp.entity_type_id FROM proc_ins_node_req_param pinrp
+			WHERE pinrp.req_id IN (`, reqIdFilterSql, `)`)
+		queryParams = append(queryParams, reqIdFilterParams...)
+
+		if reqParam.EntityDataId != "" {
+			baseSql = db.CombineDBSql(baseSql, " AND pinrp.callback_id = ?")
+			queryParams = append(queryParams, reqParam.EntityDataId)
 		}
-		reqIdMapResultData[data.ReqId].ExecParams = append(reqIdMapResultData[data.ReqId].ExecParams, execParam)
+
+		baseSql = db.CombineDBSql(baseSql, " ORDER BY pinrp.req_id,pinrp.id")
+
+		err = db.MysqlEngine.Context(ctx).SQL(baseSql, queryParams...).Find(&tasknodeExecParamList)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+
+		for i, paramData := range tasknodeExecParamList {
+			if _, ok := reqIdMapResultData[paramData.RequestId]; ok {
+				reqIdMapResultData[paramData.RequestId].ExecParams = append(reqIdMapResultData[paramData.RequestId].ExecParams, tasknodeExecParamList[i])
+			}
+		}
 	}
 
 	for _, resultData := range reqIdMapResultData {

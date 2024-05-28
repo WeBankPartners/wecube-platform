@@ -129,15 +129,15 @@ type StatisticsTasknodeExecDetailsResp struct {
 }
 
 type TasknodeExecParam struct {
-	EntityDataId   string `json:"entityDataId"`
-	EntityTypeId   string `json:"entityTypeId"`
-	Id             string `json:"id"`
-	ObjectId       string `json:"objectId"`
-	ParamDataType  string `json:"paramDataType"`
-	ParamDataValue string `json:"paramDataValue"`
-	ParamName      string `json:"paramName"`
-	ParamType      string `json:"paramType"`
-	RequestId      string `json:"requestId"`
+	EntityDataId   string `json:"entityDataId" xorm:"callback_id"`
+	EntityTypeId   string `json:"entityTypeId" xorm:"entity_type_id"`
+	Id             string `json:"id" xorm:"id"`
+	ObjectId       string `json:"objectId" xorm:"-"` // "0"
+	ParamDataType  string `json:"paramDataType" xorm:"data_type"`
+	ParamDataValue string `json:"paramDataValue" xorm:"data_value"`
+	ParamName      string `json:"paramName" xorm:"name"`
+	ParamType      string `json:"paramType" xorm:"from_type"`
+	RequestId      string `json:"requestId" xorm:"req_id"`
 }
 
 type StatisticsTasknodeExecDetailsQueryResult struct {
