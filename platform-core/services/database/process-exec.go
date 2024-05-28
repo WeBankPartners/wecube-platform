@@ -218,6 +218,7 @@ func CreateProcPreview(ctx context.Context, previewRows []*models.ProcDataPrevie
 func ProcInsTaskNodeBindings(ctx context.Context, sessionId, taskNodeId string) (result []*models.TaskNodeBindingObj, err error) {
 	var previewRows []*models.ProcDataPreview
 	nodeBindDataMap := make(map[string][]*models.ProcDataBinding)
+	ignoreNodeBindMap := make(map[string]*models.ProcInsNode)
 	if taskNodeId == "" {
 		var procInsRows []*models.ProcIns
 		err = db.MysqlEngine.Context(ctx).SQL("select id,status from proc_ins where proc_session_id=?", sessionId).Find(&procInsRows)
@@ -235,15 +236,21 @@ func ProcInsTaskNodeBindings(ctx context.Context, sessionId, taskNodeId string) 
 				return
 			}
 			notStartNodeMap := make(map[string]*models.ProcInsNode)
+			err = db.MysqlEngine.Context(ctx).SQL("select id,proc_def_node_id,status from proc_ins_node where proc_ins_id=?", procInsRows[0].Id).Find(&procInsNodeRows)
+			if err != nil {
+				err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+				return
+			}
 			if procInsStatus == models.JobStatusRunning || procInsStatus == models.WorkflowStatusStop {
-				err = db.MysqlEngine.Context(ctx).SQL("select id,proc_def_node_id,status from proc_ins_node where proc_ins_id=?", procInsRows[0].Id).Find(&procInsNodeRows)
-				if err != nil {
-					err = exterror.Catch(exterror.New().DatabaseQueryError, err)
-					return
-				}
 				for _, node := range procInsNodeRows {
 					if node.Status == models.JobStatusReady {
 						notStartNodeMap[node.ProcDefNodeId] = node
+					}
+				}
+			} else if procInsStatus == models.JobStatusSuccess || procInsStatus == models.JobStatusFail || procInsStatus == models.JobStatusKill {
+				for _, node := range procInsNodeRows {
+					if node.Status == models.JobStatusReady {
+						ignoreNodeBindMap[node.ProcDefNodeId] = node
 					}
 				}
 			}
@@ -260,6 +267,7 @@ func ProcInsTaskNodeBindings(ctx context.Context, sessionId, taskNodeId string) 
 					nodeBindDataMap[bindRow.ProcDefNodeId] = []*models.ProcDataBinding{bindRow}
 				}
 			}
+			log.Logger.Debug("nodeBinding", log.JsonObj("notStartNodeMap", notStartNodeMap), log.JsonObj("nodeBindDataMap", nodeBindDataMap))
 		}
 		err = db.MysqlEngine.Context(ctx).SQL("select proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,ordered_no,bind_type,is_bound from proc_data_preview where proc_session_id=?", sessionId).Find(&previewRows)
 	} else {
@@ -274,15 +282,8 @@ func ProcInsTaskNodeBindings(ctx context.Context, sessionId, taskNodeId string) 
 		if row.ProcDefNodeId == "" {
 			continue
 		}
-		tmpBindingObj := models.TaskNodeBindingObj{
-			Bound:        "Y",
-			EntityDataId: row.EntityDataId,
-			EntityTypeId: row.EntityTypeId,
-			NodeDefId:    row.ProcDefNodeId,
-			OrderedNo:    row.OrderedNo,
-		}
-		if !row.IsBound {
-			tmpBindingObj.Bound = "N"
+		if _, ignoreFlag := ignoreNodeBindMap[row.ProcDefNodeId]; ignoreFlag {
+			continue
 		}
 		if nodeDataRows, ok := nodeBindDataMap[row.ProcDefNodeId]; ok {
 			passFlag := true
@@ -295,6 +296,16 @@ func ProcInsTaskNodeBindings(ctx context.Context, sessionId, taskNodeId string) 
 			if passFlag {
 				continue
 			}
+		}
+		tmpBindingObj := models.TaskNodeBindingObj{
+			Bound:        "Y",
+			EntityDataId: row.EntityDataId,
+			EntityTypeId: row.EntityTypeId,
+			NodeDefId:    row.ProcDefNodeId,
+			OrderedNo:    row.OrderedNo,
+		}
+		if !row.IsBound {
+			tmpBindingObj.Bound = "N"
 		}
 		result = append(result, &tmpBindingObj)
 	}
