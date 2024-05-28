@@ -240,7 +240,7 @@ func StatisticsTasknodeExec(ctx *gin.Context, reqParam *models.StatisticsTasknod
 		baseSql = db.CombineDBSql(baseSql, " AND pinrp.callback_id IN (", entityDataIdsFilterSql, ")")
 		queryParams = append(queryParams, entityDataIdsFilterParams...)
 
-		baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id = ?")
+		baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id IN (", entityDataIdsFilterSql, ")")
 		queryParams = append(queryParams, entityDataIdsFilterParams...)
 	}
 
@@ -339,7 +339,7 @@ func StatisticsPluginExec(ctx *gin.Context, reqParam *models.StatisticsTasknodeE
 		baseSql = db.CombineDBSql(baseSql, " AND pinrp.callback_id IN (", entityDataIdsFilterSql, ")")
 		queryParams = append(queryParams, entityDataIdsFilterParams...)
 
-		baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id = ?")
+		baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id IN (", entityDataIdsFilterSql, ")")
 		queryParams = append(queryParams, entityDataIdsFilterParams...)
 	}
 
