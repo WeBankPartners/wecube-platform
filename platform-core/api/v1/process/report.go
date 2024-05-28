@@ -247,7 +247,7 @@ func StatisticsPluginExecDetails(c *gin.Context) {
 		return
 	}
 
-	result, err := database.StatisticsTasknodeExecDetails(c, &reqParam)
+	result, err := database.StatisticsPluginExecDetails(c, &reqParam)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
