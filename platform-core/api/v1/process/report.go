@@ -43,7 +43,7 @@ func StatisticsProDefList(c *gin.Context) {
 
 func mergeProcDefNameAndVersion(procDefList []*models.ProcDefListObj) {
 	for _, data := range procDefList {
-		data.ProcDefName = fmt.Sprintf("%s%s", data.ProcDefName, data.ProcDefVersion)
+		data.ProcDefName = fmt.Sprintf("%s [%s]", data.ProcDefName, data.ProcDefVersion)
 	}
 	return
 }
