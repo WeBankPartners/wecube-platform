@@ -1512,6 +1512,10 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam) (re
 		filterSqlList = append(filterSqlList, "proc_def_name like ?")
 		filterParams = append(filterParams, "%"+param.ProcInstName+"%")
 	}
+	if param.ProcDefId != "" {
+		filterSqlList = append(filterSqlList, "proc_def_id=?")
+		filterParams = append(filterParams, param.ProcDefId)
+	}
 	if param.Status != "" {
 		filterSqlList = append(filterSqlList, "status=?")
 		filterParams = append(filterParams, param.Status)
