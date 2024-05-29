@@ -185,7 +185,7 @@ func StatisticsProcessExec(ctx *gin.Context, reqParam *models.StatisticsProcessE
 			}
 			resultData := &models.StatisticsProcessExecResp{
 				ProcDefId:                procDefId,
-				ProcDefName:              fmt.Sprintf("%s%s", info.Name, info.Version),
+				ProcDefName:              fmt.Sprintf("%s [%s]", info.Name, info.Version),
 				TotalCompletedInstances:  procDefIdMapStatusCnt[procDefId][ProcExecCompleted],
 				TotalFaultedInstances:    procDefIdMapStatusCnt[procDefId][ProcExecFaulted],
 				TotalInProgressInstances: procDefIdMapStatusCnt[procDefId][ProcExecInProgress],
@@ -275,7 +275,7 @@ func StatisticsTasknodeExec(ctx *gin.Context, reqParam *models.StatisticsTasknod
 				NodeDefId:      data.NodeDefId,
 				NodeDefName:    data.NodeDefName,
 				ProcDefId:      data.ProcDefId,
-				ProcDefName:    fmt.Sprintf("%s%s", data.ProcDefName, data.ProcDefVersion),
+				ProcDefName:    fmt.Sprintf("%s [%s]", data.ProcDefName, data.ProcDefVersion),
 				ProcDefVersion: data.ProcDefVersion,
 			}
 		}
@@ -474,7 +474,7 @@ func StatisticsTasknodeExecDetails(ctx *gin.Context, reqParam *models.Statistics
 				NodeExecDate: data.NodeExecDate,
 				NodeStatus:   data.NodeStatus,
 				ProcDefId:    data.ProcDefId,
-				ProcDefName:  fmt.Sprintf("%s%s", data.ProcDefName, data.ProcDefVersion),
+				ProcDefName:  fmt.Sprintf("%s [%s]", data.ProcDefName, data.ProcDefVersion),
 				ProcExecDate: data.ProcExecDate,
 				ProcExecOper: data.ProcExecOper,
 				ProcStatus:   data.ProcStatus,
@@ -617,7 +617,7 @@ func StatisticsPluginExecDetails(ctx *gin.Context, reqParam *models.StatisticsTa
 				NodeExecDate: data.NodeExecDate,
 				NodeStatus:   data.NodeStatus,
 				ProcDefId:    data.ProcDefId,
-				ProcDefName:  fmt.Sprintf("%s%s", data.ProcDefName, data.ProcDefVersion),
+				ProcDefName:  fmt.Sprintf("%s [%s]", data.ProcDefName, data.ProcDefVersion),
 				ProcExecDate: data.ProcExecDate,
 				ProcExecOper: data.ProcExecOper,
 				ProcStatus:   data.ProcStatus,
