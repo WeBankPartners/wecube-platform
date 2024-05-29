@@ -185,7 +185,7 @@ func StatisticsProcessExec(ctx *gin.Context, reqParam *models.StatisticsProcessE
 			}
 			resultData := &models.StatisticsProcessExecResp{
 				ProcDefId:                procDefId,
-				ProcDefName:              fmt.Sprintf("%s%s", info.Name, info.Version),
+				ProcDefName:              fmt.Sprintf("%s [%s]", info.Name, info.Version),
 				TotalCompletedInstances:  procDefIdMapStatusCnt[procDefId][ProcExecCompleted],
 				TotalFaultedInstances:    procDefIdMapStatusCnt[procDefId][ProcExecFaulted],
 				TotalInProgressInstances: procDefIdMapStatusCnt[procDefId][ProcExecInProgress],
@@ -240,9 +240,10 @@ func StatisticsTasknodeExec(ctx *gin.Context, reqParam *models.StatisticsTasknod
 		baseSql = db.CombineDBSql(baseSql, " AND pinrp.callback_id IN (", entityDataIdsFilterSql, ")")
 		queryParams = append(queryParams, entityDataIdsFilterParams...)
 
-		baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id IN (", entityDataIdsFilterSql, ")")
-		queryParams = append(queryParams, entityDataIdsFilterParams...)
+		// baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id IN (", entityDataIdsFilterSql, ")")
+		// queryParams = append(queryParams, entityDataIdsFilterParams...)
 	}
+	baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id = pinrp.callback_id")
 
 	baseSql = db.CombineDBSql(baseSql, " GROUP BY pdb.proc_def_id, pd.name, pd.version, pin.proc_def_node_id, pdn.name, pinrp.callback_id, pdb.entity_data_name, pinrp.data_value")
 
@@ -274,7 +275,7 @@ func StatisticsTasknodeExec(ctx *gin.Context, reqParam *models.StatisticsTasknod
 				NodeDefId:      data.NodeDefId,
 				NodeDefName:    data.NodeDefName,
 				ProcDefId:      data.ProcDefId,
-				ProcDefName:    fmt.Sprintf("%s%s", data.ProcDefName, data.ProcDefVersion),
+				ProcDefName:    fmt.Sprintf("%s [%s]", data.ProcDefName, data.ProcDefVersion),
 				ProcDefVersion: data.ProcDefVersion,
 			}
 		}
@@ -339,9 +340,10 @@ func StatisticsPluginExec(ctx *gin.Context, reqParam *models.StatisticsTasknodeE
 		baseSql = db.CombineDBSql(baseSql, " AND pinrp.callback_id IN (", entityDataIdsFilterSql, ")")
 		queryParams = append(queryParams, entityDataIdsFilterParams...)
 
-		baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id IN (", entityDataIdsFilterSql, ")")
-		queryParams = append(queryParams, entityDataIdsFilterParams...)
+		// baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id IN (", entityDataIdsFilterSql, ")")
+		// queryParams = append(queryParams, entityDataIdsFilterParams...)
 	}
+	baseSql = db.CombineDBSql(baseSql, " AND pdb.entity_data_id = pinrp.callback_id")
 
 	baseSql = db.CombineDBSql(baseSql, " GROUP BY pdn.service_name, pinrp.callback_id, pdb.entity_data_name, pinrp.data_value")
 
@@ -472,7 +474,7 @@ func StatisticsTasknodeExecDetails(ctx *gin.Context, reqParam *models.Statistics
 				NodeExecDate: data.NodeExecDate,
 				NodeStatus:   data.NodeStatus,
 				ProcDefId:    data.ProcDefId,
-				ProcDefName:  fmt.Sprintf("%s%s", data.ProcDefName, data.ProcDefVersion),
+				ProcDefName:  fmt.Sprintf("%s [%s]", data.ProcDefName, data.ProcDefVersion),
 				ProcExecDate: data.ProcExecDate,
 				ProcExecOper: data.ProcExecOper,
 				ProcStatus:   data.ProcStatus,
@@ -615,7 +617,7 @@ func StatisticsPluginExecDetails(ctx *gin.Context, reqParam *models.StatisticsTa
 				NodeExecDate: data.NodeExecDate,
 				NodeStatus:   data.NodeStatus,
 				ProcDefId:    data.ProcDefId,
-				ProcDefName:  fmt.Sprintf("%s%s", data.ProcDefName, data.ProcDefVersion),
+				ProcDefName:  fmt.Sprintf("%s [%s]", data.ProcDefName, data.ProcDefVersion),
 				ProcExecDate: data.ProcExecDate,
 				ProcExecOper: data.ProcExecOper,
 				ProcStatus:   data.ProcStatus,
