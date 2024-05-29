@@ -436,6 +436,20 @@
             format="HH:mm:ss"
           ></TimePicker>
         </FormItem>
+        <FormItem :label="$t('be_mgmt_role')">
+          <Select v-model="timeConfig.params.role" style="width: 370px">
+            <Option v-for="item in timeConfig.currentUserRoles" :key="item.name" :value="item.name">{{
+              item.displayName
+            }}</Option>
+          </Select>
+        </FormItem>
+        <FormItem :label="$t('be_email_push')">
+          <Select v-model="timeConfig.params.mailMode" style="width: 370px">
+            <Option v-for="item in timeConfig.mailModeOptions" :key="item.value" :value="item.value">{{
+              item.label
+            }}</Option>
+          </Select>
+        </FormItem>
       </Form>
       <div slot="footer">
         <Button type="text" @click="timeConfig.isShow = false">{{ $t('bc_cancel') }}</Button>
@@ -554,7 +568,8 @@ import {
   skipNode,
   getBranchByNodeId,
   executeBranch,
-  pauseAndContinueFlow
+  pauseAndContinueFlow,
+  getCurrentUserRoles
 } from '@/api/server'
 import JsonViewer from 'vue-json-viewer'
 import * as d3 from 'd3-selection'
@@ -854,7 +869,9 @@ export default {
         params: {
           scheduleMode: 'Monthly',
           time: '00:00:00',
-          cycle: ''
+          cycle: '',
+          role: '',
+          mailMode: 'node'
         },
         scheduleModeOptions: [
           { label: this.$t('Hourly'), value: 'Hourly' },
@@ -905,7 +922,13 @@ export default {
             { label: this.$t('Sat'), value: 6 },
             { label: this.$t('Sun'), value: 7 }
           ]
-        }
+        },
+        mailModeOptions: [
+          { label: this.$t('be_role_email'), value: 'role' },
+          { label: this.$t('be_user_email'), value: 'user' },
+          { label: this.$t('be_not_send'), value: 'none' }
+        ],
+        currentUserRoles: []
       },
       pluginInfo: '',
       nodesCannotBindData: [], // 初始化不能绑定数据的节点
@@ -1070,7 +1093,9 @@ export default {
         procDefName: found.procInstName,
         procDefId: found.procDefId,
         entityDataName: found.entityDisplayName,
-        entityDataId: found.entityDataId
+        entityDataId: found.entityDataId,
+        mailMode: this.timeConfig.params.mailMode,
+        role: this.timeConfig.params.role
       }
       const { status } = await setUserScheduledTasks(params)
       if (status === 'OK') {
@@ -1083,10 +1108,19 @@ export default {
       }
     },
     async setTimedExecution () {
+      await this.getCurrentUserRoles()
       this.timeConfig.params.scheduleMode = 'Monthly'
       this.timeConfig.params.time = '00:00:00'
       this.timeConfig.params.cycle = ''
+      this.timeConfig.params.role = ''
+      this.timeConfig.params.mailMode = 'none'
       this.timeConfig.isShow = true
+    },
+    async getCurrentUserRoles () {
+      const { status, data } = await getCurrentUserRoles()
+      if (status === 'OK') {
+        this.timeConfig.currentUserRoles = data
+      }
     },
     async stopHandler () {
       this.$Modal.confirm({
