@@ -64,16 +64,15 @@
                 <Button
                   type="warning"
                   @click="flowControlHandler('stop')"
-                  style="background-color: #f9bf6b; border-color: #f9bf6b"
+                  style="background-color: #826bea; border-color: #826bea"
                   v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
                   icon="md-pause"
                   >{{ $t('be_pause') }}</Button
                 >
                 <Button
-                  type="primary"
+                  type="success"
                   @click="flowControlHandler('recover')"
                   v-if="currentInstanceStatusForNodeOperation === 'Stop'"
-                  style="background-color: #a2ef4c; border-color: #a2ef4c"
                   icon="md-play"
                   >{{ $t('be_continue') }}</Button
                 >
@@ -87,7 +86,7 @@
                 <!-- disabled="currentInstanceStatus || stopSuccess"  stop_orch -->
                 <Button
                   v-if="currentInstanceStatusForNodeOperation === 'Completed'"
-                  type="warning"
+                  type="primary"
                   @click="setTimedExecution"
                   icon="md-stopwatch"
                   >{{ $t('timed_execution') }}</Button

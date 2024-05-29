@@ -146,7 +146,12 @@
                     }}</Option>
                   </Select>
                 </FormItem>
-                <FormItem v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)">
+                <FormItem
+                  v-if="
+                    ['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType) &&
+                    [1].includes(itemCustomInfo.customAttrs.dynamicBind)
+                  "
+                >
                   <label slot="label">
                     <span style="color: red" v-if="itemCustomInfo.customAttrs.dynamicBind === 1">*</span>
                     {{ $t('bind_node') }}

@@ -162,27 +162,22 @@ export default {
                   {this.$t('details')}
                 </Button>
                 {params.row.status === 'InProgress' && (
-                  <Button onClick={() => this.stopTask(params.row)} type="warning" size="small" style="margin: 2px">
-                    {this.$t('stop_orch')}
-                  </Button>
-                )}
-                {params.row.status === 'InProgress' && (
                   <Button
                     onClick={() => this.flowControlHandler('stop', params.row)}
                     type="warning"
                     size="small"
-                    style="margin: 2px;background-color: #f9bf6b;border-color: #f9bf6b;"
+                    style="margin: 2px;background-color: #826bea;border-color: #826bea;"
                   >
                     {this.$t('pause')}
                   </Button>
                 )}
+                {params.row.status === 'InProgress' && (
+                  <Button onClick={() => this.stopTask(params.row)} type="warning" size="small" style="margin: 2px">
+                    {this.$t('stop_orch')}
+                  </Button>
+                )}
                 {params.row.status === 'Stop' && (
-                  <Button
-                    onClick={() => this.flowControlHandler('recover', params.row)}
-                    type="warning"
-                    size="small"
-                    style="margin: 2px;background-color: #a2ef4c;border-color: #a2ef4c;"
-                  >
+                  <Button onClick={() => this.flowControlHandler('recover', params.row)} type="success" size="small">
                     {this.$t('be_continue')}
                   </Button>
                 )}
