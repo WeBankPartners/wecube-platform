@@ -118,7 +118,7 @@
   "edit_role_": "编辑角色",
   "menu": "菜单",
   "data": "数据",
-  "details": "详情",
+  "be_details": "详情",
   "username": "用户名",
   "fullname": "全名",
   "description": "描述",
@@ -418,7 +418,7 @@
   "bc_continue": "继续",
   "bc_warn_del": "将要清除当前结果，是否继续？",
   "bc_warn_empty": "为空",
-  "bc_history_record": "历史记录",
+  "bc_history_record": "历史详情",
   "bc_query_conditions": "查询条件",
   "bc_execution_instance": "操作对象",
   "bc_change_instance": "选择对象",
@@ -510,7 +510,7 @@
   "count": "总数",
   "hide_same_parameters": "隐藏相同参数",
   "highlight_different_parameters": "高亮不同参数",
-  "timed_execution": "定时",
+  "timed_execution": "定时执行",
   "set_up_person": "设置人",
   "timing_type": "定时类型",
   "schedule_expr": "定时设置",
@@ -540,7 +540,7 @@
   "select_cancel_all": "全部选中或取消",
   "notify": "通知",
   "reload_notify": "3S后刷新页面，以便重新加载资源",
-  "execution_history": "编排执行历史",
+  "execution_history": "执行记录",
   "entity_name": "实体名称",
   "no_detail_warning": "本条编排数据已过期，如有疑问请联系平台管理员",
   "start_node_warning": "只能包含一个开始节点",
@@ -756,5 +756,6 @@
   "be_workflow_non_owner_tip2": "沟通之后再操作",
   "be_workflow_non_owner_list_tip1": "您不是当前编排的创建人,所有操作都可能引起编排流程变动,确认已和创建人",
   "be_workflow_non_owner_list_tip2": "沟通并执行操作?",
-  "be_i_aware": "我已知晓"
+  "be_i_aware": "我已知晓",
+  "be_timed": "定时"
 }
