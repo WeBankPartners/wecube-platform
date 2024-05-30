@@ -829,9 +829,10 @@ func getReplaceOidMap(inputList []string, oidMap map[string]string) (outputList 
 	return
 }
 
-func ListProcInstance(ctx context.Context) (result []*models.ProcInsDetail, err error) {
+func ListProcInstance(ctx context.Context, userRoles []string) (result []*models.ProcInsDetail, err error) {
 	var procInsRows []*models.ProcInsWithVersion
-	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t2.`version` from proc_ins t1 left join proc_def t2 on t1.proc_def_id=t2.id order by t1.created_time desc limit 500").Find(&procInsRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t2.`version` from proc_ins t1 left join proc_def t2 on t1.proc_def_id=t2.id and t1.proc_def_id" +
+		" in (select proc_def_id from proc_def_permission where permission='" + string(models.USE) + "' and role_id in ('" + strings.Join(userRoles, "','") + "')) order by t1.created_time desc limit 500").Find(&procInsRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -1494,7 +1495,7 @@ func RewriteProcInsEntityData(ctx context.Context, procInsId string, rewriteList
 	return
 }
 
-func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam) (result *models.QueryProcPageResponse, err error) {
+func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, userRoles []string) (result *models.QueryProcPageResponse, err error) {
 	result = &models.QueryProcPageResponse{PageInfo: &models.PageInfo{}, Contents: []*models.ProcInsDetail{}}
 	var procInsRows []*models.ProcIns
 	baseSql := "select * from proc_ins"
@@ -1532,6 +1533,9 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam) (re
 		filterSqlList = append(filterSqlList, "created_time<=?")
 		filterParams = append(filterParams, param.EndTime)
 	}
+	filterSqlList = append(filterSqlList, "proc_def_id in (select proc_def_id from proc_def_permission where permission=? and role_id in ('"+strings.Join(userRoles, "','")+"'))")
+	filterParams = append(filterParams, models.PermissionTypeUSE)
+
 	if len(filterSqlList) > 0 {
 		baseSql += " where " + strings.Join(filterSqlList, " and ")
 	}
