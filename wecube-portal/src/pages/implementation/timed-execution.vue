@@ -33,7 +33,7 @@
     <Table size="small" ref="table" :columns="tableColumns" :max-height="MODALHEIGHT" :data="tableData"></Table>
     <Modal v-model="showModal" :fullscreen="fullscreen" width="1000" footer-hide>
       <p slot="header">
-        <span>{{ $t('details') }}</span>
+        <span>{{ $t('be_details') }}</span>
         <Icon
           v-if="!fullscreen"
           @click="fullscreen = true"
@@ -412,7 +412,12 @@ export default {
             return (
               <div>
                 {params.row.status === 'Ready' && (
-                  <Button onClick={() => this.pause(params.row)} type="warning" size="small" style="margin-right: 5px">
+                  <Button
+                    onClick={() => this.pause(params.row)}
+                    type="warning"
+                    size="small"
+                    style="background-color: #826bea; border-color: #826bea;margin-right: 5px"
+                  >
                     {this.$t('pause')}
                   </Button>
                 )}
