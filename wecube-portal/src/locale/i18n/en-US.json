@@ -117,7 +117,7 @@
   "edit_role_": "Edit Role",
   "menu": "Menu",
   "data": "Data",
-  "details": "Details",
+  "be_details": "Details",
   "username": "User Name",
   "fullname": "Full Name",
   "description": "Description",
@@ -413,7 +413,7 @@
   "bc_continue": "Continue",
   "bc_warn_del": "Data will be cleared if you choose to continue",
   "bc_warn_empty": " is empty",
-  "bc_history_record": "History Record",
+  "bc_history_record": "History Details",
   "bc_query_conditions": "Query Conditions",
   "bc_execution_instance": "Execution Instance",
   "bc_change_instance": "Change Instance",
@@ -542,7 +542,7 @@
   "select_cancel_all": "Select All OR Cancel All",
   "notify": "Notify",
   "reload_notify": "Refresh The Page After 3S To Reload Resources",
-  "execution_history": "Execution History",
+  "execution_history": "Execution Records",
   "entity_name": "Entity Name",
   "no_detail_warning": "This arrangement data has expired, if you have any questions, please contact the platform administrator",
   "start_node_warning": "Can only contain one start node",
@@ -757,5 +757,6 @@
   "be_workflow_non_owner_tip2": "before proceeding with the operation",
   "be_workflow_non_owner_list_tip1": "You are not the creator of the current process, and all actions will change the result. Please confirm that you have communicated with the creator ",
   "be_workflow_non_owner_list_tip2": "and executed the actions?",
-  "be_i_aware": "I am aware"
+  "be_i_aware": "I am aware",
+  "be_timed": "Timed"
 }
