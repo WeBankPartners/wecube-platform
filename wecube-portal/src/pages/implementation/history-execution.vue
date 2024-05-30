@@ -159,7 +159,7 @@ export default {
             return (
               <div style="text-align:left">
                 <Button onClick={() => this.jumpToHistory(params.row)} type="info" size="small" style="margin: 2px">
-                  {this.$t('details')}
+                  {this.$t('be_details')}
                 </Button>
                 {params.row.status === 'InProgress' && (
                   <Button
