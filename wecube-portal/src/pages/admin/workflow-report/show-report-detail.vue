@@ -2,22 +2,22 @@
   <div class=" ">
     <Modal v-model="showModal" :fullscreen="fullscreen" width="1000" footer-hide>
       <p slot="header">
-        <span>{{ $t('details') }}</span>
+        <span>{{ $t('be_details') }}</span>
         <Icon
           v-if="!fullscreen"
           @click="fullscreen = true"
-          style="float: right;margin: 3px 40px 0 0 !important;"
+          style="float: right; margin: 3px 40px 0 0 !important"
           type="ios-expand"
         />
         <Icon
           v-else
           @click="fullscreen = false"
-          style="float: right;margin: 3px 40px 0 0 !important;"
+          style="float: right; margin: 3px 40px 0 0 !important"
           type="ios-contract"
         />
       </p>
-      <div style="text-align: end;">
-        <CheckboxGroup @on-change="changeParamsGroup" v-model="paramsGroup" style="display: initial;">
+      <div style="text-align: end">
+        <CheckboxGroup @on-change="changeParamsGroup" v-model="paramsGroup" style="display: initial">
           <Checkbox label="hideParams" value="hideSameParams">{{ $t('hide_same_parameters') }}</Checkbox>
           <Checkbox label="highlightParams" value="highlightDiffParams">{{
             $t('highlight_different_parameters')
@@ -30,7 +30,7 @@
               <Checkbox
                 v-for="item in oriDetailTableColums"
                 :label="item.key"
-                style="display:block"
+                style="display: block"
                 :disabled="item.disabled"
                 :key="item.key + item.title"
               >
