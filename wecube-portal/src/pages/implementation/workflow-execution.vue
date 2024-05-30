@@ -2,9 +2,9 @@
   <div>
     <Card dis-hover>
       <Tabs @on-click="tabChanged" :value="currentTab">
-        <TabPane :label="$t('create_new_workflow_job')" name="create_new_workflow_job"></TabPane>
-        <TabPane :label="$t('execution_history')" name="execution_history"></TabPane>
+        <TabPane :label="$t('be_new_execute')" name="create_new_workflow_job"></TabPane>
         <TabPane :label="$t('timed_execution')" name="timed_execution"></TabPane>
+        <TabPane :label="$t('execution_history')" name="execution_history"></TabPane>
         <TabPane :label="$t('bc_history_record')" name="enquery_new_workflow_job"></TabPane>
       </Tabs>
       <template v-if="currentTab === 'timed_execution'">
