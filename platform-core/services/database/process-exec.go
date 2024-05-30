@@ -476,8 +476,9 @@ func GetProcPreviewEntityNode(ctx context.Context, procInsId string) (result *mo
 		return
 	}
 	sessionId := insRows[0].ProcSessionId
-	if sessionId == "" {
+	if sessionId == "" || strings.HasPrefix(sessionId, "public_session_") {
 		result, err = getProcCacheEntityNode(ctx, procInsId)
+		result.ProcessSessionId = sessionId
 		return
 	}
 	result = &models.ProcPreviewData{ProcessSessionId: sessionId, EntityTreeNodes: []*models.ProcPreviewEntityNode{}}
@@ -729,7 +730,7 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 			continue
 		}
 	}
-	procSessionId := "proc_session_" + guid.CreateGuid()
+	procSessionId := "public_session_" + guid.CreateGuid()
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,created_by,created_time,updated_by,updated_time,proc_session_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 		procInsId, procDefObj.Id, procDefObj.Key, procDefObj.Name, models.JobStatusReady, entityDataId, entityTypeId, entityDataName, operator, nowTime, operator, nowTime, procSessionId,
 	}})
