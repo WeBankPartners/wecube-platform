@@ -356,7 +356,7 @@ func ProcInsStart(c *gin.Context) {
 }
 
 func ProcInsList(c *gin.Context) {
-	result, err := database.ListProcInstance(c)
+	result, err := database.ListProcInstance(c, middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -591,7 +591,7 @@ func QueryProcInsPageData(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	result, err := database.QueryProcInsPage(c, &param)
+	result, err := database.QueryProcInsPage(c, &param, middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
