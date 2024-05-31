@@ -252,7 +252,11 @@ export default {
         {
           title: this.$t('timing_type'),
           key: 'scheduleMode',
-          width: 120
+          width: 120,
+          render: (h, params) => {
+            const find = this.timeConfig.scheduleModeOptions.find(item => item.value === params.row.scheduleMode)
+            return <div>{find.label}</div>
+          }
         },
         {
           title: this.$t('schedule_expr'),
@@ -262,7 +266,11 @@ export default {
         {
           title: this.$t('status'),
           key: 'status',
-          width: 110
+          width: 110,
+          render: (h, params) => {
+            const find = this.timeConfig.scheduleModeOptions.find(item => item.value === params.row.scheduleMode)
+            return <div>{find.label}</div>
+          }
         },
         {
           title: this.$t('role'),
