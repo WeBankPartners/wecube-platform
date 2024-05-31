@@ -2005,11 +2005,14 @@ export default {
         if (['Completed', 'InternallyTerminated', 'Faulted'].includes(data.status)) {
           this.stopSuccess = true
           this.stop()
+          this.getProcessInstances(false)
+          this.refreshModelData()
         }
         this.refreshModelData()
       }
     },
     async refreshModelData () {
+      await this.getModelData()
       // this.modelData = []
       if ((!this.selectedFlow || !this.selectedTarget) && !this.isEnqueryPage) {
         this.renderModelGraph()
