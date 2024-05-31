@@ -831,7 +831,7 @@ func getReplaceOidMap(inputList []string, oidMap map[string]string) (outputList 
 
 func ListProcInstance(ctx context.Context, userRoles []string) (result []*models.ProcInsDetail, err error) {
 	var procInsRows []*models.ProcInsWithVersion
-	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t2.`version` from proc_ins t1 left join proc_def t2 on t1.proc_def_id=t2.id and t1.proc_def_id" +
+	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t2.`version` from proc_ins t1 join proc_def t2 on t1.proc_def_id=t2.id and t1.proc_def_id" +
 		" in (select proc_def_id from proc_def_permission where permission='" + string(models.USE) + "' and role_id in ('" + strings.Join(userRoles, "','") + "')) order by t1.created_time desc limit 500").Find(&procInsRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
