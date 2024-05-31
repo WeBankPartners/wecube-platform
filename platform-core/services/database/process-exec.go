@@ -476,8 +476,9 @@ func GetProcPreviewEntityNode(ctx context.Context, procInsId string) (result *mo
 		return
 	}
 	sessionId := insRows[0].ProcSessionId
-	if sessionId == "" {
+	if sessionId == "" || strings.HasPrefix(sessionId, "public_session_") {
 		result, err = getProcCacheEntityNode(ctx, procInsId)
+		result.ProcessSessionId = sessionId
 		return
 	}
 	result = &models.ProcPreviewData{ProcessSessionId: sessionId, EntityTreeNodes: []*models.ProcPreviewEntityNode{}}
@@ -729,8 +730,9 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 			continue
 		}
 	}
-	actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,created_by,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-		procInsId, procDefObj.Id, procDefObj.Key, procDefObj.Name, models.JobStatusReady, entityDataId, entityTypeId, entityDataName, operator, nowTime, operator, nowTime,
+	procSessionId := "public_session_" + guid.CreateGuid()
+	actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,created_by,created_time,updated_by,updated_time,proc_session_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		procInsId, procDefObj.Id, procDefObj.Key, procDefObj.Name, models.JobStatusReady, entityDataId, entityTypeId, entityDataName, operator, nowTime, operator, nowTime, procSessionId,
 	}})
 	workflowRow = &models.ProcRunWorkflow{Id: "wf_" + guid.CreateGuid(), ProcInsId: procInsId, Name: procDefObj.Name, Status: models.JobStatusReady, CreatedTime: nowTime}
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_workflow(id,proc_ins_id,name,status,created_time) values (?,?,?,?,?)", Param: []interface{}{
@@ -755,6 +757,9 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 			actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_binding(id,proc_def_id,proc_ins_id,entity_id,entity_data_id,entity_data_name,entity_type_id,bind_flag,bind_type,full_data_id,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 				fmt.Sprintf("p_bind_%s", guid.CreateGuid()), procDefObj.Id, procInsId, row.EntityDataId, row.EntityDataId, row.EntityDisplayName, tmpEntityTypeId, 0, "process", row.FullEntityDataId, operator, nowTime,
 			}})
+			actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_preview(proc_def_id,proc_session_id,proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,ordered_no,bind_type,full_data_id,is_bound,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+				procDefObj.Id, procSessionId, "", row.EntityDataId, row.EntityDisplayName, tmpEntityTypeId, "", "process", row.FullEntityDataId, 0, operator, nowTime,
+			}})
 		}
 		actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_cache(id,proc_ins_id,entity_id,entity_data_id,entity_data_name,entity_type_id,full_data_id,data_value,prev_ids,succ_ids,created_time) values (?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 			"p_cache_" + guid.CreateGuid(), procInsId, row.Oid, row.EntityDataId, row.EntityDisplayName, tmpEntityTypeId, row.FullEntityDataId, row.GetAttrDataValueString(), strings.Join(getReplaceOidMap(row.PreviousOids, newOidMap), ","), strings.Join(getReplaceOidMap(row.SucceedingOids, newOidMap), ","), nowTime,
@@ -762,7 +767,13 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 		inputEntityMap[row.Oid] = row
 	}
 	workNodeIdMap := make(map[string]string)
+	orderIndex := 1
 	for _, node := range procDefNodes {
+		nodeOrderNo := ""
+		if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) {
+			nodeOrderNo = fmt.Sprintf("%d", orderIndex)
+			orderIndex += 1
+		}
 		if node.NodeType != "automatic" && node.NodeType != "data" {
 			node.Timeout = 0
 		}
@@ -798,8 +809,12 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 					if row.BindFlag == "Y" {
 						tmpBoundFlag = true
 					}
+					tmpEntityTypeId := fmt.Sprintf("%s:%s", inputEntityObj.PackageName, inputEntityObj.EntityName)
 					actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_binding(id,proc_def_id,proc_ins_id,proc_def_node_id,proc_ins_node_id,entity_id,entity_data_id,entity_data_name,entity_type_id,bind_flag,bind_type,full_data_id,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-						fmt.Sprintf("p_bind_%s", guid.CreateGuid()), procDefObj.Id, procInsId, node.Id, tmpProcInsNodeId, row.EntityDataId, row.EntityDataId, inputEntityObj.EntityDisplayName, fmt.Sprintf("%s:%s", inputEntityObj.PackageName, inputEntityObj.EntityName), tmpBoundFlag, "taskNode", inputEntityObj.FullEntityDataId, operator, nowTime,
+						fmt.Sprintf("p_bind_%s", guid.CreateGuid()), procDefObj.Id, procInsId, node.Id, tmpProcInsNodeId, row.EntityDataId, row.EntityDataId, inputEntityObj.EntityDisplayName, tmpEntityTypeId, tmpBoundFlag, "taskNode", inputEntityObj.FullEntityDataId, operator, nowTime,
+					}})
+					actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_preview(proc_def_id,proc_session_id,proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,ordered_no,bind_type,full_data_id,is_bound,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+						procDefObj.Id, procSessionId, node.Id, row.EntityDataId, inputEntityObj.EntityDisplayName, tmpEntityTypeId, nodeOrderNo, "taskNode", inputEntityObj.FullEntityDataId, tmpBoundFlag, operator, nowTime,
 					}})
 				}
 			}
@@ -829,9 +844,10 @@ func getReplaceOidMap(inputList []string, oidMap map[string]string) (outputList 
 	return
 }
 
-func ListProcInstance(ctx context.Context) (result []*models.ProcInsDetail, err error) {
+func ListProcInstance(ctx context.Context, userRoles []string) (result []*models.ProcInsDetail, err error) {
 	var procInsRows []*models.ProcInsWithVersion
-	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t2.`version` from proc_ins t1 left join proc_def t2 on t1.proc_def_id=t2.id order by t1.created_time desc limit 500").Find(&procInsRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t2.`version` from proc_ins t1 join proc_def t2 on t1.proc_def_id=t2.id and t1.proc_def_id" +
+		" in (select proc_def_id from proc_def_permission where permission='" + string(models.USE) + "' and role_id in ('" + strings.Join(userRoles, "','") + "')) order by t1.created_time desc limit 500").Find(&procInsRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -1494,7 +1510,7 @@ func RewriteProcInsEntityData(ctx context.Context, procInsId string, rewriteList
 	return
 }
 
-func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam) (result *models.QueryProcPageResponse, err error) {
+func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, userRoles []string) (result *models.QueryProcPageResponse, err error) {
 	result = &models.QueryProcPageResponse{PageInfo: &models.PageInfo{}, Contents: []*models.ProcInsDetail{}}
 	var procInsRows []*models.ProcIns
 	baseSql := "select * from proc_ins"
@@ -1532,6 +1548,9 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam) (re
 		filterSqlList = append(filterSqlList, "created_time<=?")
 		filterParams = append(filterParams, param.EndTime)
 	}
+	filterSqlList = append(filterSqlList, "proc_def_id in (select proc_def_id from proc_def_permission where permission=? and role_id in ('"+strings.Join(userRoles, "','")+"'))")
+	filterParams = append(filterParams, models.PermissionTypeUSE)
+
 	if len(filterSqlList) > 0 {
 		baseSql += " where " + strings.Join(filterSqlList, " and ")
 	}
