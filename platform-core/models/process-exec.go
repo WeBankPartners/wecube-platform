@@ -239,6 +239,7 @@ type ProcNodeContextReq struct {
 	PluginInfo     string                     `json:"pluginInfo"`
 	RequestId      string                     `json:"requestId"`
 	ErrorMessage   string                     `json:"errorMessage,omitempty"`
+	Operator       string                     `json:"operator,omitempty"`
 	RequestObjects []ProcNodeContextReqObject `json:"requestObjects"`
 }
 
