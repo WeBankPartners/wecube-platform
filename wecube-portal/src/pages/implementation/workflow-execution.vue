@@ -1824,6 +1824,9 @@ export default {
               if (['decision'].includes(_.nodeType) && _.status === 'InProgress') {
                 className = 'decision-node'
               }
+              if (['decision'].includes(_.nodeType) && _.status === 'Faulted') {
+                className = ''
+              }
               const isModelClick = this.currentModelNodeRefs.indexOf(_.orderedNo) > -1
               return `${_.nodeId} [fixedsize=false label="${
                 (_.orderedNo ? _.orderedNo + ' ' : '') + _.nodeName
