@@ -14,12 +14,27 @@ func QuerySystemVariables(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
+	if !validateSystemVariablePermission(middleware.GetRequestRoles(c)) {
+		middleware.ReturnError(c, exterror.New().DataPermissionDeny)
+		return
+	}
 	result, err := database.QuerySystemVariables(c, &param)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
 		middleware.ReturnData(c, result)
 	}
+}
+
+func validateSystemVariablePermission(userRoles []string) (legalFlag bool) {
+	legalFlag = false
+	for _, v := range userRoles {
+		if v == "ADMIN_SYSTEM_PARAMS" {
+			legalFlag = true
+			break
+		}
+	}
+	return
 }
 
 func GetSystemVariableScope(c *gin.Context) {
@@ -37,6 +52,10 @@ func CreateSystemVariable(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
+	if !validateSystemVariablePermission(middleware.GetRequestRoles(c)) {
+		middleware.ReturnError(c, exterror.New().DataPermissionDeny)
+		return
+	}
 	err := database.CreateSystemVariables(c, params)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -51,6 +70,10 @@ func UpdateSystemVariable(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
+	if !validateSystemVariablePermission(middleware.GetRequestRoles(c)) {
+		middleware.ReturnError(c, exterror.New().DataPermissionDeny)
+		return
+	}
 	err := database.UpdateSystemVariables(c, params)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -63,6 +86,10 @@ func DeleteSystemVariable(c *gin.Context) {
 	var params []*models.SystemVariables
 	if err := c.ShouldBindJSON(&params); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if !validateSystemVariablePermission(middleware.GetRequestRoles(c)) {
+		middleware.ReturnError(c, exterror.New().DataPermissionDeny)
 		return
 	}
 	err := database.DeleteSystemVariables(c, params)
