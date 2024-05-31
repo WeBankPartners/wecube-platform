@@ -1239,6 +1239,7 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 	result.ErrorMessage = queryObj.ErrorMsg
 	result.BeginTime = queryObj.StartTime.Format(models.DateTimeFormat)
 	result.EndTime = queryObj.EndTime.Format(models.DateTimeFormat)
+	result.Operator = getProcNodeOperator(ctx, procInsNodeId)
 	result.RequestObjects = []models.ProcNodeContextReqObject{}
 	var reqRows []*models.ProcInsNodeReq
 	err = db.MysqlEngine.Context(ctx).SQL("select id from proc_ins_node_req where proc_ins_node_id=? order by created_time", queryObj.Id).Find(&reqRows)
@@ -1285,6 +1286,19 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 	curReqObj.Inputs = []map[string]interface{}{tmpInputMap}
 	curReqObj.Outputs = []map[string]interface{}{tmpOutputMap}
 	result.RequestObjects = append(result.RequestObjects, curReqObj)
+	return
+}
+
+func getProcNodeOperator(ctx context.Context, procInsNodeId string) (operator string) {
+	var operationRows []*models.ProcRunOperation
+	err := db.MysqlEngine.Context(ctx).SQL("select * from proc_run_operation where node_id in (select id from proc_run_node where proc_ins_node_id=?)", procInsNodeId).Find(&operationRows)
+	if err != nil {
+		log.Logger.Error("getProcNodeOperator query row fail", log.String("procInsNodeId", procInsNodeId), log.Error(err))
+		return
+	}
+	for _, row := range operationRows {
+		operator = row.CreatedBy
+	}
 	return
 }
 
