@@ -758,5 +758,16 @@
   "be_workflow_non_owner_list_tip1": "You are not the creator of the current process, and all actions will change the result. Please confirm that you have communicated with the creator ",
   "be_workflow_non_owner_list_tip2": "and executed the actions?",
   "be_i_aware": "I am aware",
-  "be_timed": "Timed"
+  "be_timed": "Timed",
+  "be_roleDelete": "The role has been deleted",
+  "be_forever": "Perpetuity",
+  "be_willExpire": "Will Expire",
+  "be_hasExpired": "Expired",
+  "be_expire": "Expire",
+  "be_inEffect": "In Effect",
+  "be_hasDenyed": "Declined",
+  "be_hasDeleted": "Deleted",
+  "role_invalidDate": "Role Expiration Time",
+  "role_invalidDatePlaceholder": "Not set to permanent",
+  "role_invalidDateValidate": "The permission expiration time cannot be earlier than the current time"
 }
