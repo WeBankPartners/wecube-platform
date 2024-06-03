@@ -109,6 +109,7 @@ export const getEncryptKey = () => req.get(`/auth/v1/login/seed`)
 // 获取可申请角色列表
 export const getApplyRoles = data => req.get(`/auth/v1/roles?all=${data.all}&roleAdmin=${data.roleAdmin}`)
 export const startApply = data => req.post('/auth/v1/roles/apply', data)
+export const deleteApplyData = params => req.delete(`/auth/v1/roles/apply`, params)
 export const registerUser = data => req.post('/auth/v1/users/register', data)
 
 export const deletePluginPkg = id => req.post(`/platform/v1/packages/decommission/${id}`)
