@@ -757,5 +757,16 @@
   "be_workflow_non_owner_list_tip1": "您不是当前编排的创建人,所有操作都可能引起编排流程变动,确认已和创建人",
   "be_workflow_non_owner_list_tip2": "沟通并执行操作?",
   "be_i_aware": "我已知晓",
-  "be_timed": "定时"
+  "be_timed": "定时",
+  "be_roleDelete": "角色已删除",
+  "be_forever": "永久有效",
+  "be_willExpire": "将到期",
+  "be_hasExpired": "已过期",
+  "be_expire": "到期",
+  "be_inEffect": "生效中",
+  "be_hasDenyed": "已拒绝",
+  "be_hasDeleted": "已删除",
+  "role_invalidDate": "权限到期",
+  "role_invalidDatePlaceholder": "不选为永久有效",
+  "role_invalidDateValidate": "权限到期时间不能早于当前时间"
 }
