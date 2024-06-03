@@ -769,5 +769,6 @@
   "be_hasDeleted": "Deleted",
   "role_invalidDate": "Role Expiration Time",
   "role_invalidDatePlaceholder": "Not set to permanent",
-  "role_invalidDateValidate": "The permission expiration time cannot be earlier than the current time"
+  "role_invalidDateValidate": "The permission expiration time cannot be earlier than the current time",
+  "be_expireTime": "Validity"
 }
