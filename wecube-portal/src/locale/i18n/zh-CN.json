@@ -768,5 +768,6 @@
   "be_hasDeleted": "已删除",
   "role_invalidDate": "权限到期",
   "role_invalidDatePlaceholder": "不选为永久有效",
-  "role_invalidDateValidate": "权限到期时间不能早于当前时间"
+  "role_invalidDateValidate": "权限到期时间不能早于当前时间",
+  "be_expireTime": "有效期"
 }
