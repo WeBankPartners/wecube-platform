@@ -22,11 +22,17 @@
 </template>
 
 <script>
+import CryptoJS from 'crypto-js'
 import ChooseTemplate from './template.vue'
 import BaseForm from './base-form.vue'
 import DangerousModal from './components/dangerous-modal.vue'
 import { debounce } from '@/const/util'
-import { getBatchExecuteTemplateDetail, batchExecuteHistory, saveBatchExecute } from '@/api/server.js'
+import {
+  getBatchExecuteTemplateDetail,
+  batchExecuteHistory,
+  saveBatchExecute,
+  getInputParamsEncryptKey
+} from '@/api/server.js'
 export default {
   components: {
     ChooseTemplate,
@@ -45,7 +51,8 @@ export default {
         message: '',
         params: {},
         isShowConfirmModal: false
-      }
+      },
+      encryptKey: ''
     }
   },
   mounted () {
@@ -62,6 +69,12 @@ export default {
         this.$eventBusP.$emit('change-menu', 'executeList')
       } else {
         this.step = 1
+      }
+    },
+    async getInputParamsEncryptKey () {
+      const { status, data } = await getInputParamsEncryptKey()
+      if (status === 'OK') {
+        this.encryptKey = data
       }
     },
     // 选择模板创建
@@ -122,6 +135,26 @@ export default {
         userTableColumns,
         pluginOutputParams
       } = this.$refs.form
+      // 插件入参为敏感字段，需要加密
+      const encryptFlag = pluginInputParams.some(i => i.sensitiveData === 'Y')
+      if (encryptFlag) {
+        await this.getInputParamsEncryptKey()
+        const key = CryptoJS.enc.Utf8.parse(this.encryptKey)
+        const config = {
+          iv: key,
+          mode: CryptoJS.mode.CBC
+        }
+        pluginInputParams.forEach(item => {
+          if (
+            item.mappingType === 'constant' &&
+            item.sensitiveData === 'Y' &&
+            item.bindValue &&
+            !item.bindValue.startsWith('encrypt ')
+          ) {
+            item.bindValue = 'encrypt ' + CryptoJS.AES.encrypt(item.bindValue, key, config).toString()
+          }
+        })
+      }
       // 缓存前端数据，页面回显使用
       const frontData = {
         userTableColumns,
