@@ -61,13 +61,13 @@ export const MENUS = [
   {
     code: 'ADMIN_RESOURCES_MANAGEMENT',
     cnName: '资源管理',
-    enName: 'Resources',
+    enName: 'Resources Config',
     link: '/admin/resources'
   },
   {
     code: 'ADMIN_CERTIFICATION',
     cnName: '授权管理',
-    enName: 'Certification',
+    enName: 'Certification Config',
     link: '/admin/certification'
   },
   {
@@ -85,18 +85,18 @@ export const MENUS = [
   {
     code: 'ADMIN_USER_ROLE_MANAGEMENT',
     cnName: '权限管理',
-    enName: 'Permissions',
+    enName: 'Auth Config',
     link: '/admin/user-role-management'
   },
   {
     code: 'ADMIN_SYSTEM_DATA_MODEL',
-    cnName: '系统数据模型',
-    enName: 'Data Model',
+    cnName: '系统模型',
+    enName: 'System Data Model',
     link: '/admin/system-data-model'
   },
   {
     code: 'ADMIN_SYSTEM_WORKFLOW_REPORT',
-    cnName: '编排执行报表',
+    cnName: '编排报表',
     enName: 'Workflow Report',
     link: '/admin/workflow-report'
   }

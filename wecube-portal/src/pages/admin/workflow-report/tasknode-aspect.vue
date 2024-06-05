@@ -134,14 +134,17 @@ export default {
           width: 60,
           align: 'center'
         },
+        // 编排名称
         {
           title: this.$t('flow_name'),
           key: 'procDefName'
         },
+        // 编排节点
         {
-          title: this.$t('task_node'),
+          title: this.$t('workflow_task_node_aspect'),
           key: 'nodeDefName'
         },
+        // 数据对象
         {
           title: this.$t('task_node_bindings'),
           // key: 'entityDataName',

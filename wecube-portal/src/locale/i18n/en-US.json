@@ -499,7 +499,7 @@
   "regist_plugin_tip2": "2. Update the system parameters of this version of the plugin package to the active state, and the system parameters of other versions of the plugin package to the inactive state.",
   "workflow_report_aspect": "Workflow",
   "workflow_task_node_aspect": "Workflow Task Node",
-  "workflow_plugin_aspect": "Workflow Plugin",
+  "workflow_plugin_aspect": "Plugin Service",
   "datetime_range": "Datetime",
   "task_node": "Task Nodes",
   "task_node_bindings ": "Tasknode Bindings",

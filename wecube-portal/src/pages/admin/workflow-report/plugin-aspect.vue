@@ -17,7 +17,7 @@
           :max-tag-count="2"
           multiple
           filterable
-          :placeholder="$t('plugin_regist')"
+          :placeholder="$t('workflow_plugin_aspect')"
           @on-open-change="getPlugin"
           @on-change="changePlugin"
           style="width: 200px"
@@ -109,10 +109,12 @@ export default {
           width: 60,
           align: 'center'
         },
+        // 插件服务
         {
-          title: this.$t('plugin_regist'),
+          title: this.$t('workflow_plugin_aspect'),
           key: 'serviceId'
         },
+        // 数据对象
         {
           title: this.$t('task_node_bindings'),
           // key: 'entityDataName',
