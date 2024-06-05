@@ -497,7 +497,7 @@
   "regist_plugin_tip2": "2、更新此版本插件包的系统参数为active状态，其他版本的插件包系统参数为inactive状态。",
   "workflow_report_aspect": "编排",
   "workflow_task_node_aspect": "编排节点",
-  "workflow_plugin_aspect": "插件注册",
+  "workflow_plugin_aspect": "插件服务",
   "datetime_range": "时间范围",
   "task_node": "任务节点",
   "task_node_bindings": "数据对象",

@@ -108,7 +108,7 @@
         </template>
       </Form>
     </div>
-    <div class="platform-base-search-button">
+    <div v-if="showBtn" class="platform-base-search-button">
       <Icon
         v-show="!expand"
         @click="handleExpand"
@@ -145,6 +145,10 @@ export default {
       default: () => []
     },
     showExpand: {
+      type: Boolean,
+      default: true
+    },
+    showBtn: {
       type: Boolean,
       default: true
     }
