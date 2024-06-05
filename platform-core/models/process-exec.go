@@ -458,9 +458,10 @@ type PublicProcDefObj struct {
 }
 
 type RewriteEntityDataObj struct {
-	Oid         string
-	Nid         string
-	DisplayName string
+	Oid               string
+	Nid               string
+	DisplayName       string
+	ProcDataCacheList []*ProcDataCache
 }
 
 type QueryProcPageParam struct {
