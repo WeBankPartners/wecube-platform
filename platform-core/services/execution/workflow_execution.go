@@ -295,24 +295,34 @@ func DoWorkflowDataJob(ctx context.Context, procRunNodeId string, retryFlag bool
 			}
 		}
 		if len(createEntityIdList) > 0 {
-			rewriteList := []*models.RewriteEntityDataObj{}
-			createDataList := buildDataWriteObj(cacheDataList, createEntityIdList)
-			for _, createDataObj := range createDataList {
-				tmpDataOid := fmt.Sprintf("%s", createDataObj["id"])
+			for len(createEntityIdList) > 0 {
+				tmpDataOid, newIdList, createDataObj, tmpErr := findDataWriteObj(cacheDataList, createEntityIdList)
+				if tmpErr != nil {
+					err = tmpErr
+					break
+				}
+				createEntityIdList = newIdList
 				createDataResult, createDataErr := remote.CreatePluginModelData(ctx, lastExprEntity.Package, lastExprEntity.Entity, remote.GetToken(), exprObj.Operation, []map[string]interface{}{createDataObj})
 				if createDataErr != nil {
 					err = fmt.Errorf("try to create plugin model data %s:%s %s fail,%s", lastExprEntity.Package, lastExprEntity.Entity, tmpDataOid, createDataErr.Error())
 					return
 				}
 				if len(createDataResult) > 0 {
-					rewriteList = append(rewriteList, &models.RewriteEntityDataObj{Oid: tmpDataOid, Nid: fmt.Sprintf("%s", createDataResult[0]["id"]), DisplayName: fmt.Sprintf("%s", createDataResult[0]["displayName"])})
+					rewriteObj := models.RewriteEntityDataObj{Oid: tmpDataOid, Nid: fmt.Sprintf("%s", createDataResult[0]["id"]), DisplayName: fmt.Sprintf("%s", createDataResult[0]["displayName"])}
+					for _, tmpCacheData := range cacheDataList {
+						if strings.Contains(tmpCacheData.DataValue, tmpDataOid) {
+							tmpCacheData.DataValue = strings.ReplaceAll(tmpCacheData.DataValue, rewriteObj.Oid, rewriteObj.Nid)
+							rewriteObj.ProcDataCacheList = append(rewriteObj.ProcDataCacheList, tmpCacheData)
+						}
+					}
+					if err = database.RewriteProcInsEntityDataNew(ctx, procInsNode.ProcInsId, &rewriteObj); err != nil {
+						err = fmt.Errorf("try to rewrite new entity data %s to procIns:%s fail,%s ", rewriteObj.Oid, procInsNode.ProcInsId, err.Error())
+						return
+					}
 				}
 			}
-			if len(rewriteList) > 0 {
-				if err = database.RewriteProcInsEntityData(ctx, procInsNode.ProcInsId, rewriteList); err != nil {
-					err = fmt.Errorf("try to rewrite new entity data to procIns:%s fail,%s ", procInsNode.ProcInsId, err.Error())
-					return
-				}
+			if err != nil {
+				return
 			}
 		}
 		if len(updateEntityIdList) > 0 {
@@ -344,6 +354,49 @@ func buildDataWriteObj(cacheDataList []*models.ProcDataCache, ids []string) (dat
 		}
 		tmpDataObj["id"] = id
 		dataList = append(dataList, tmpDataObj)
+	}
+	return
+}
+
+func findDataWriteObj(cacheDataList []*models.ProcDataCache, ids []string) (id string, newIds []string, dataObj map[string]interface{}, err error) {
+	for _, dataId := range ids {
+		for _, cacheData := range cacheDataList {
+			if cacheData.EntityDataId == dataId {
+				refId := ""
+				for _, targetId := range ids {
+					if strings.Contains(cacheData.DataValue, targetId) {
+						refId = targetId
+						break
+					}
+				}
+				if refId == "" {
+					id = dataId
+					if cacheData.DataValue == "" {
+						cacheData.DataValue = "{}"
+					}
+					dataObj = make(map[string]interface{})
+					if tmpErr := json.Unmarshal([]byte(cacheData.DataValue), &dataObj); tmpErr != nil {
+						err = fmt.Errorf("buildDataWriteObj json unmarshal data fail,cacheDataValue:%s err:%s ", cacheData.DataValue, tmpErr.Error())
+						return
+					}
+					dataObj["id"] = id
+				}
+				break
+			}
+		}
+		if id != "" {
+			break
+		}
+	}
+	if id != "" {
+		for _, dataId := range ids {
+			if dataId == id {
+				continue
+			}
+			newIds = append(newIds, dataId)
+		}
+	} else {
+		err = fmt.Errorf("can not find write data job legal data to write")
 	}
 	return
 }
