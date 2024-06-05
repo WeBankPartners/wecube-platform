@@ -1524,6 +1524,22 @@ func RewriteProcInsEntityData(ctx context.Context, procInsId string, rewriteList
 	return
 }
 
+func RewriteProcInsEntityDataNew(ctx context.Context, procInsId string, rewriteData *models.RewriteEntityDataObj) (err error) {
+	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "update proc_data_binding set entity_data_id=?,entity_data_name=? where proc_ins_id=? and entity_id=?", Param: []interface{}{rewriteData.Nid, rewriteData.DisplayName, procInsId, rewriteData.Oid}})
+	actions = append(actions, &db.ExecAction{Sql: "update proc_data_cache set entity_data_id=?,entity_data_name=? where proc_ins_id=? and entity_id=?", Param: []interface{}{rewriteData.Nid, rewriteData.DisplayName, procInsId, rewriteData.Oid}})
+	for _, row := range rewriteData.ProcDataCacheList {
+		actions = append(actions, &db.ExecAction{Sql: "update proc_data_cache set data_value=? where id=?", Param: []interface{}{row.DataValue, row.Id}})
+	}
+	if len(actions) > 0 {
+		err = db.Transaction(actions, ctx)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		}
+	}
+	return
+}
+
 func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, userRoles []string) (result *models.QueryProcPageResponse, err error) {
 	result = &models.QueryProcPageResponse{PageInfo: &models.PageInfo{}, Contents: []*models.ProcInsDetail{}}
 	var procInsRows []*models.ProcIns
