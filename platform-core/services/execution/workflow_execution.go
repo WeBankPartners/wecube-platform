@@ -296,7 +296,7 @@ func DoWorkflowDataJob(ctx context.Context, procRunNodeId string, retryFlag bool
 		}
 		if len(createEntityIdList) > 0 {
 			for len(createEntityIdList) > 0 {
-				tmpDataOid, newIdList, createDataObj, tmpErr := findDataWriteObj(cacheDataList, createEntityIdList)
+				tmpDataOid, tmpDataId, newIdList, createDataObj, tmpErr := findDataWriteObj(cacheDataList, createEntityIdList)
 				if tmpErr != nil {
 					err = tmpErr
 					break
@@ -310,8 +310,8 @@ func DoWorkflowDataJob(ctx context.Context, procRunNodeId string, retryFlag bool
 				if len(createDataResult) > 0 {
 					rewriteObj := models.RewriteEntityDataObj{Oid: tmpDataOid, Nid: fmt.Sprintf("%s", createDataResult[0]["id"]), DisplayName: fmt.Sprintf("%s", createDataResult[0]["displayName"])}
 					for _, tmpCacheData := range cacheDataList {
-						if strings.Contains(tmpCacheData.DataValue, tmpDataOid) {
-							tmpCacheData.DataValue = strings.ReplaceAll(tmpCacheData.DataValue, rewriteObj.Oid, rewriteObj.Nid)
+						if strings.Contains(tmpCacheData.DataValue, tmpDataId) {
+							tmpCacheData.DataValue = strings.ReplaceAll(tmpCacheData.DataValue, tmpDataId, rewriteObj.Nid)
 							rewriteObj.ProcDataCacheList = append(rewriteObj.ProcDataCacheList, tmpCacheData)
 						}
 					}
@@ -358,19 +358,27 @@ func buildDataWriteObj(cacheDataList []*models.ProcDataCache, ids []string) (dat
 	return
 }
 
-func findDataWriteObj(cacheDataList []*models.ProcDataCache, ids []string) (id string, newIds []string, dataObj map[string]interface{}, err error) {
+func findDataWriteObj(cacheDataList []*models.ProcDataCache, ids []string) (oid, tmpId string, newIds []string, dataObj map[string]interface{}, err error) {
+	var tmpIds []string
+	for _, dataId := range ids {
+		if strings.HasPrefix(dataId, models.NewOidDataPrefix) {
+			tmpIds = append(tmpIds, dataId[4:])
+		} else {
+			tmpIds = append(tmpIds, dataId)
+		}
+	}
 	for _, dataId := range ids {
 		for _, cacheData := range cacheDataList {
 			if cacheData.EntityDataId == dataId {
 				refId := ""
-				for _, targetId := range ids {
+				for _, targetId := range tmpIds {
 					if strings.Contains(cacheData.DataValue, targetId) {
 						refId = targetId
 						break
 					}
 				}
 				if refId == "" {
-					id = dataId
+					oid = dataId
 					if cacheData.DataValue == "" {
 						cacheData.DataValue = "{}"
 					}
@@ -379,21 +387,26 @@ func findDataWriteObj(cacheDataList []*models.ProcDataCache, ids []string) (id s
 						err = fmt.Errorf("buildDataWriteObj json unmarshal data fail,cacheDataValue:%s err:%s ", cacheData.DataValue, tmpErr.Error())
 						return
 					}
-					dataObj["id"] = id
+					dataObj["id"] = oid
 				}
 				break
 			}
 		}
-		if id != "" {
+		if oid != "" {
 			break
 		}
 	}
-	if id != "" {
+	if oid != "" {
 		for _, dataId := range ids {
-			if dataId == id {
+			if dataId == oid {
 				continue
 			}
 			newIds = append(newIds, dataId)
+		}
+		if strings.HasPrefix(oid, models.NewOidDataPrefix) {
+			tmpId = oid[4:]
+		} else {
+			tmpId = oid
 		}
 	} else {
 		err = fmt.Errorf("can not find write data job legal data to write")
