@@ -153,11 +153,12 @@ export default {
         {
           title: this.$t('table_action'),
           key: 'action',
-          width: 180,
+          width: 185,
           align: 'center',
+          fixed: 'right',
           render: (h, params) => {
             return (
-              <div style="text-align:left">
+              <div style="display:flex;justify-content:center;">
                 <Button onClick={() => this.jumpToHistory(params.row)} type="info" size="small" style="margin: 2px">
                   {this.$t('be_details')}
                 </Button>
