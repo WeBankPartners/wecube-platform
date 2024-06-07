@@ -2,9 +2,9 @@
   <div>
     <Card dis-hover>
       <Tabs @on-click="tabChanged" :value="currentTab">
-        <TabPane :label="$t('create_new_workflow_job')" name="create_new_workflow_job"></TabPane>
-        <TabPane :label="$t('execution_history')" name="execution_history"></TabPane>
+        <TabPane :label="$t('be_new_execute')" name="create_new_workflow_job"></TabPane>
         <TabPane :label="$t('timed_execution')" name="timed_execution"></TabPane>
+        <TabPane :label="$t('execution_history')" name="execution_history"></TabPane>
         <TabPane :label="$t('bc_history_record')" name="enquery_new_workflow_job"></TabPane>
       </Tabs>
       <template v-if="currentTab === 'timed_execution'">
@@ -25,6 +25,7 @@
                   clearable
                   @on-open-change="getProcessInstances(false)"
                   @on-clear="clearHistoryOrch"
+                  @on-change="queryHandler"
                 >
                   <Option
                     v-for="item in allFlowInstances"
@@ -33,6 +34,9 @@
                     :label="
                       item.procInstName +
                       '  ' +
+                      '[' +
+                      item.version +
+                      ']  ' +
                       item.entityDisplayName +
                       '  ' +
                       (item.operator || 'operator') +
@@ -44,6 +48,7 @@
                   >
                     <span>
                       <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
+                      <span style="color: #515a6e">{{ '[' + item.version + '] ' }}</span>
                       <span style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</span>
                       <span style="color: #ccc; padding-left: 8px; float: right">{{ item.status }}</span>
                       <span style="color: #ccc; float: right">{{
@@ -55,13 +60,38 @@
                     </span>
                   </Option>
                 </Select>
-                <Button type="info" @click="queryHandler">{{ $t('query_orch') }}</Button>
-                <Button :disabled="currentInstanceStatus || stopSuccess" type="warning" @click="stopHandler">{{
-                  $t('stop_orch')
-                }}</Button>
-                <Button :disabled="canAbleToSetting" type="warning" @click="setTimedExecution">{{
-                  $t('timed_execution')
-                }}</Button>
+                <!-- <Button type="info" @click="queryHandler">{{ $t('query_orch') }}</Button> -->
+                <Button
+                  type="warning"
+                  @click="flowControlHandler('stop')"
+                  style="background-color: #826bea; border-color: #826bea"
+                  v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
+                  icon="md-pause"
+                  >{{ $t('be_pause') }}</Button
+                >
+                <Button
+                  type="success"
+                  @click="flowControlHandler('recover')"
+                  v-if="currentInstanceStatusForNodeOperation === 'Stop'"
+                  icon="md-play"
+                  >{{ $t('be_continue') }}</Button
+                >
+                <Button
+                  v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
+                  type="warning"
+                  @click="stopHandler"
+                  icon="md-square"
+                  >{{ $t('stop_orch') }}</Button
+                >
+                <!-- disabled="currentInstanceStatus || stopSuccess"  stop_orch -->
+                <Button
+                  v-if="currentInstanceStatusForNodeOperation === 'Completed'"
+                  type="primary"
+                  @click="setTimedExecution"
+                  icon="md-stopwatch"
+                  >{{ $t('timed_execution') }}</Button
+                >
+                <!-- :disabled="canAbleToSetting" timed_execution -->
               </FormItem>
               <Col v-if="!isEnqueryPage" span="7">
                 <FormItem :label-width="100" :label="$t('select_orch')">
@@ -76,7 +106,7 @@
                     @on-clear="clearFlow"
                   >
                     <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId"
-                      >{{ item.procDefName }} {{ item.createdTime }}</Option
+                      >{{ item.procDefName }} [{{ item.procDefVersion }}] {{ item.createdTime }}</Option
                     >
                   </Select>
                 </FormItem>
@@ -406,6 +436,20 @@
             format="HH:mm:ss"
           ></TimePicker>
         </FormItem>
+        <FormItem :label="$t('be_mgmt_role')">
+          <Select v-model="timeConfig.params.role" style="width: 370px">
+            <Option v-for="item in timeConfig.currentUserRoles" :key="item.name" :value="item.name">{{
+              item.displayName
+            }}</Option>
+          </Select>
+        </FormItem>
+        <FormItem :label="$t('be_email_push')">
+          <Select v-model="timeConfig.params.mailMode" style="width: 370px">
+            <Option v-for="item in timeConfig.mailModeOptions" :key="item.value" :value="item.value">{{
+              item.label
+            }}</Option>
+          </Select>
+        </FormItem>
       </Form>
       <div slot="footer">
         <Button type="text" @click="timeConfig.isShow = false">{{ $t('bc_cancel') }}</Button>
@@ -424,6 +468,74 @@
       </Form>
       <div slot="footer">
         <Button type="primary" @click="attrValue.isShow = false">{{ $t('bc_cancel') }}</Button>
+      </div>
+    </Modal>
+    <!-- 手动跳过 -->
+    <Modal
+      :title="$t('select_an_operation')"
+      v-model="manualSkipVisible"
+      :footer-hide="true"
+      :mask-closable="false"
+      :z-index="10"
+      width="500"
+    >
+      <span>{{ $t('be_expected_completion_time') }}：【{{ manualSkipParams.dateToDisplay }}】</span>
+      <div class="workflowActionModal-container" style="text-align: center; margin-top: 20px">
+        <Button @click="confirmSkip" type="warning">{{ $t('be_manual_skip') }}</Button>
+      </div>
+    </Modal>
+
+    <!-- 执行分支 -->
+    <Modal
+      :title="$t('select_an_operation')"
+      v-model="executeBranchVisible"
+      :footer-hide="true"
+      :mask-closable="false"
+      :scrollable="true"
+    >
+      <div style="width: 120px; display: inline-block; text-align: right">{{ $t('be_decision_branch') }}：</div>
+      <Select v-model="manualSkipParams.message" style="width: 350px">
+        <Option v-for="item in manualSkipParams.branchOption" :value="item" :key="item">{{ item }}</Option>
+      </Select>
+      <div class="workflowActionModal-container" style="text-align: center; margin-top: 20px">
+        <Button type="warning" @click="confirmExecuteBranch" :disabled="!manualSkipParams.message">{{
+          $t('be_execute_branch')
+        }}</Button>
+      </div>
+    </Modal>
+
+    <!-- 执行分支 -->
+    <Modal
+      :title="$t('select_an_operation')"
+      v-model="executeBranchVisible"
+      :footer-hide="true"
+      :mask-closable="false"
+      :scrollable="true"
+    >
+      <div style="width: 120px; display: inline-block; text-align: right">{{ $t('be_decision_branch') }}：</div>
+      <Select v-model="manualSkipParams.message" style="width: 350px">
+        <Option v-for="item in manualSkipParams.branchOption" :value="item" :key="item">{{ item }}</Option>
+      </Select>
+      <div class="workflowActionModal-container" style="text-align: center; margin-top: 20px">
+        <Button type="warning" @click="confirmExecuteBranch" :disabled="!manualSkipParams.message">{{
+          $t('be_execute_branch')
+        }}</Button>
+      </div>
+    </Modal>
+
+    <!-- 非本人编排提示 -->
+    <Modal
+      :title="$t('be_workflow_non_owner_title')"
+      v-model="isShowNonOwnerModal"
+      :mask-closable="false"
+      :scrollable="true"
+      :z-index="10000"
+    >
+      <span style="margin: 8px">
+        {{ $t('be_workflow_non_owner_tip1') }}[{{ flowOwner }}]{{ $t('be_workflow_non_owner_tip2') }}
+      </span>
+      <div slot="footer">
+        <Button type="warning" @click="isShowNonOwnerModal = false">{{ $t('be_i_aware') }}</Button>
       </div>
     </Modal>
   </div>
@@ -451,7 +563,13 @@ import {
   updateTaskNodeInstanceExecBindings,
   setUserScheduledTasks,
   getMetaData,
-  instancesWithPaging
+  instancesWithPaging,
+  getExecutionTimeByNodeId,
+  skipNode,
+  getBranchByNodeId,
+  executeBranch,
+  pauseAndContinueFlow,
+  getCurrentUserRoles
 } from '@/api/server'
 import JsonViewer from 'vue-json-viewer'
 import * as d3 from 'd3-selection'
@@ -751,7 +869,9 @@ export default {
         params: {
           scheduleMode: 'Monthly',
           time: '00:00:00',
-          cycle: ''
+          cycle: '',
+          role: '',
+          mailMode: 'node'
         },
         scheduleModeOptions: [
           { label: this.$t('Hourly'), value: 'Hourly' },
@@ -802,11 +922,29 @@ export default {
             { label: this.$t('Sat'), value: 6 },
             { label: this.$t('Sun'), value: 7 }
           ]
-        }
+        },
+        mailModeOptions: [
+          { label: this.$t('be_role_email'), value: 'role' },
+          { label: this.$t('be_user_email'), value: 'user' },
+          { label: this.$t('be_not_send'), value: 'none' }
+        ],
+        currentUserRoles: []
       },
       pluginInfo: '',
       nodesCannotBindData: [], // 初始化不能绑定数据的节点
-      isNodeCanBindData: false
+      isNodeCanBindData: false,
+      manualSkipVisible: false, // 手动跳过
+      executeBranchVisible: false, // 执行分支
+      hasExecuteBranchVisible: false, // 同一编排在进入只进行一次展示
+      manualSkipParams: {
+        act: '', // 执行动作
+        procInstId: '',
+        nodeInstId: '',
+        message: '', // 选择执行的分支
+        branchOption: [] // 可执行分支
+      },
+      isShowNonOwnerModal: false, // 查询非本人用户编排提示
+      flowOwner: ''
     }
   },
   components: { TimedExecution, JsonViewer, HistoryExecution },
@@ -955,7 +1093,9 @@ export default {
         procDefName: found.procInstName,
         procDefId: found.procDefId,
         entityDataName: found.entityDisplayName,
-        entityDataId: found.entityDataId
+        entityDataId: found.entityDataId,
+        mailMode: this.timeConfig.params.mailMode,
+        role: this.timeConfig.params.role
       }
       const { status } = await setUserScheduledTasks(params)
       if (status === 'OK') {
@@ -968,15 +1108,24 @@ export default {
       }
     },
     async setTimedExecution () {
+      await this.getCurrentUserRoles()
       this.timeConfig.params.scheduleMode = 'Monthly'
       this.timeConfig.params.time = '00:00:00'
       this.timeConfig.params.cycle = ''
+      this.timeConfig.params.role = ''
+      this.timeConfig.params.mailMode = 'none'
       this.timeConfig.isShow = true
+    },
+    async getCurrentUserRoles () {
+      const { status, data } = await getCurrentUserRoles()
+      if (status === 'OK') {
+        this.timeConfig.currentUserRoles = data
+      }
     },
     async stopHandler () {
       this.$Modal.confirm({
         title: this.$t('bc_confirm') + ' ' + this.$t('stop_orch'),
-        'z-index': 1000000,
+        'z-index': 10,
         onOk: async () => {
           // createWorkflowInstanceTerminationRequest
           const instance = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
@@ -999,6 +1148,7 @@ export default {
     },
     tabChanged (v) {
       this.selectedFlowInstance = ''
+      this.currentInstanceStatusForNodeOperation = ''
       // create_new_workflow_job   enquery_new_workflow_job
       this.currentTab = v
       if (v === 'create_new_workflow_job') {
@@ -1287,6 +1437,7 @@ export default {
       this.allBindingsList = filter.concat(payload)
     },
     async getProcessInstances (isAfterCreate = false, createResponse = undefined) {
+      this.currentInstanceStatusForNodeOperation = ''
       if (this.querySelectedFlowInstanceId) {
         const params = {
           id: this.querySelectedFlowInstanceId,
@@ -1359,6 +1510,7 @@ export default {
       this.stop()
       this.selectedFlow = ''
       this.selectedTarget = ''
+      this.currentInstanceStatusForNodeOperation = ''
       d3.select('#flow').selectAll('*').remove()
       d3.select('#graph').selectAll('*').remove()
     },
@@ -1371,9 +1523,11 @@ export default {
       }
     },
     queryHandler () {
+      this.hasExecuteBranchVisible = false
       this.currentInstanceStatusForNodeOperation = ''
       this.stop()
       if (!this.selectedFlowInstance) return
+      this.getStatus()
       this.getCurrentInstanceStatus()
       this.isEnqueryPage = true
       this.$nextTick(async () => {
@@ -1393,14 +1547,26 @@ export default {
           // this.getTargetOptions()
           removeEvent('.retry', 'click', this.retryHandler)
           removeEvent('.normal', 'click', this.normalHandler)
+          removeEvent('.time-node', 'click', this.timeNodeHandler)
+          removeEvent('.decision-node', 'click', this.executeBranchHandler)
           this.initFlowGraph(true)
           this.showExcution = false
           this.nodesCannotBindData = data.taskNodeInstances
-            .filter(d => d.dynamicBind && d.status === 'NotStarted')
+            .filter(d => [1, 2].includes(d.dynamicBind) && d.status === 'NotStarted')
             .map(d => d.nodeId)
         }
         this.getModelData()
+        this.tipForNonOwner(found)
       })
+    },
+    tipForNonOwner (flow) {
+      if (
+        ['InProgress', 'Timeouted', 'Stop'].includes(flow.status) &&
+        flow.operator !== localStorage.getItem('username')
+      ) {
+        this.flowOwner = flow.operator
+        this.isShowNonOwnerModal = true
+      }
     },
     queryHistory () {
       this.selectedTarget = null
@@ -1534,7 +1700,7 @@ export default {
         const firstLabel = str.length > 30 ? `${str.slice(0, 1)}...${str.slice(-29)}` : str
         // const fontSize = Math.min((58 / len) * 3, 16)
         const label = firstLabel + '\n' + refStr
-        return `${nodeTitle} [label="${label}" class="model" id="${nodeId}" color="${color}" fontsize="6" style="filled" fillcolor="${fillcolor}" shape="box"]`
+        return `${nodeTitle} [label="${label}" class="model" id="${nodeId}" flowInstanceId="" color="${color}" fontsize="6" style="filled" fillcolor="${fillcolor}" shape="box"]`
       })
       let genEdge = () => {
         let pathAry = []
@@ -1554,6 +1720,7 @@ export default {
       let nodesToString = Array.isArray(nodes) && nodes.length > 0 ? nodes.toString().replace(/,/g, ';') + ';' : ''
       let nodesString =
         'digraph G { ' +
+        'splines="polyline";' +
         'bgcolor="transparent";' +
         'Node [fontname=Arial, shape="ellipse"];' +
         'Edge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];' +
@@ -1650,7 +1817,16 @@ export default {
               }" color="${excution ? statusColor[_.status] : '#7F8A96'}" shape="circle", id="${_.nodeId}"]`
             } else {
               // const className = _.status === 'Faulted' || _.status === 'Timeouted' ? 'retry' : 'normal'
-              const className = 'retry'
+              let className = 'retry'
+              if (['timeInterval', 'date'].includes(_.nodeType) && _.status === 'InProgress') {
+                className = 'time-node'
+              }
+              if (['decision'].includes(_.nodeType) && _.status === 'InProgress') {
+                className = 'decision-node'
+              }
+              if (['decision'].includes(_.nodeType) && _.status === 'Faulted') {
+                className = ''
+              }
               const isModelClick = this.currentModelNodeRefs.indexOf(_.orderedNo) > -1
               return `${_.nodeId} [fixedsize=false label="${
                 (_.orderedNo ? _.orderedNo + ' ' : '') + _.nodeName
@@ -1666,6 +1842,11 @@ export default {
             }
           })
       let genEdge = () => {
+        let lineName = {}
+        this.flowData.nodeLinks &&
+          this.flowData.nodeLinks.forEach(link => {
+            lineName[link.source + link.target] = link.name
+          })
         let pathAry = []
         this.flowData &&
           this.flowData.flowNodes &&
@@ -1678,7 +1859,9 @@ export default {
                   _.nodeId +
                   '"' +
                   ' -> ' +
-                  `${'"' + to + '"'} [color="${excution ? statusColor[_.status] : 'black'}"]`
+                  `${'"' + to + '"'} [label="${lineName[_.nodeId + to]}" color="${
+                    excution ? statusColor[_.status] : 'black'
+                  }"]`
                 )
               })
               pathAry.push(current)
@@ -1703,12 +1886,20 @@ export default {
           if (this.isEnqueryPage) {
             removeEvent('.retry', 'click', this.retryHandler)
             removeEvent('.normal', 'click', this.normalHandler)
+            removeEvent('.time-node', 'click', this.timeNodeHandler)
+            removeEvent('.decision-node', 'click', this.executeBranchHandler)
             addEvent('.retry', 'click', this.retryHandler)
             addEvent('.normal', 'click', this.normalHandler)
+            addEvent('.time-node', 'click', this.timeNodeHandler)
+            addEvent('.decision-node', 'click', this.executeBranchHandler)
             d3.selectAll('.retry').attr('cursor', 'pointer')
+            d3.selectAll('.time-node').attr('cursor', 'pointer')
+            d3.selectAll('.decision-node').attr('cursor', 'pointer')
           } else {
             removeEvent('.retry', 'click', this.retryHandler)
             removeEvent('.normal', 'click', this.normalHandler)
+            removeEvent('.time-node', 'click', this.timeNodeHandler)
+            removeEvent('.decision-node', 'click', this.executeBranchHandler)
           }
         })
       this.bindFlowEvent()
@@ -1788,6 +1979,14 @@ export default {
       if (!(found && found.id)) return
       let { status, data } = await getProcessInstance(found.id)
       if (status === 'OK') {
+        this.currentInstanceStatusForNodeOperation = data.status
+        const inProcessNode = data.taskNodeInstances.find(
+          node => node.nodeType === 'decision' && node.status === 'InProgress'
+        )
+        // 正在执行分支为判断分支时，拉起分支选择
+        if (this.currentInstanceStatusForNodeOperation !== 'Stop' && !this.hasExecuteBranchVisible && inProcessNode) {
+          this.executeBranchHandler(null, inProcessNode.nodeId)
+        }
         if (
           !this.flowData.flowNodes ||
           (this.flowData.flowNodes && this.comparativeData(this.flowData.flowNodes, data.taskNodeInstances))
@@ -1798,13 +1997,31 @@ export default {
           }
           removeEvent('.retry', 'click', this.retryHandler)
           removeEvent('.normal', 'click', this.normalHandler)
+          removeEvent('.time-node', 'click', this.timeNodeHandler)
+          removeEvent('.decision-node', 'click', this.executeBranchHandler)
           this.initFlowGraph(true)
           this.renderModelGraph()
         }
-        if (data.status === 'Completed' || data.status === 'InternallyTerminated') {
+        if (['Completed', 'InternallyTerminated', 'Faulted'].includes(data.status)) {
           this.stopSuccess = true
           this.stop()
+          this.getProcessInstances(false)
+          this.refreshModelData()
         }
+        this.refreshModelData()
+      }
+    },
+    async refreshModelData () {
+      await this.getModelData()
+      // this.modelData = []
+      if ((!this.selectedFlow || !this.selectedTarget) && !this.isEnqueryPage) {
+        this.renderModelGraph()
+        return
+      }
+      if (this.processSessionId) {
+        const binds = await getAllBindingsProcessSessionId(this.processSessionId)
+        this.allBindingsList = binds.data
+        this.renderModelGraph()
       }
     },
     comparativeData (old, newData) {
@@ -1828,6 +2045,64 @@ export default {
       this.targetModalVisible = false
       this.showNodeDetail = false
     },
+    // 显示时间节点手动跳过
+    async timeNodeHandler (e) {
+      const flowInstanceNode = this.flowData.flowNodes.find(
+        node => node.nodeId === e.target.parentNode.getAttribute('id')
+      )
+      if (flowInstanceNode) {
+        this.manualSkipParams.act = 'skip'
+        this.manualSkipParams.message = ''
+        this.manualSkipParams.procInstId = flowInstanceNode.procInstId
+        this.manualSkipParams.nodeInstId = flowInstanceNode.id
+        const { status, data } = await getExecutionTimeByNodeId(this.manualSkipParams.nodeInstId)
+        if (status === 'OK') {
+          this.manualSkipParams.dateToDisplay = data
+          this.manualSkipVisible = true
+        }
+      }
+    },
+    // 确定手动跳过
+    async confirmSkip () {
+      const { status } = await skipNode(this.manualSkipParams)
+      if (status === 'OK') {
+        this.manualSkipVisible = false
+        this.$Notice.success({
+          title: 'Success',
+          desc: 'Skip action is proceed successfully'
+        })
+      }
+    },
+    // 判断节点-显示可执行分支
+    async executeBranchHandler (e, nodeId) {
+      if (this.executeBranchVisible) return
+      const flowInstanceNode =
+        this.flowData.flowNodes &&
+        this.flowData.flowNodes.find(node => node.nodeId === (nodeId || e.target.parentNode.getAttribute('id')))
+      if (flowInstanceNode) {
+        this.manualSkipParams.act = 'choose'
+        this.manualSkipParams.message = ''
+        this.manualSkipParams.procInstId = flowInstanceNode.procInstId
+        this.manualSkipParams.nodeInstId = flowInstanceNode.id
+        const { status, data } = await getBranchByNodeId(this.manualSkipParams.nodeInstId)
+        if (status === 'OK') {
+          this.manualSkipParams.branchOption = data
+          this.executeBranchVisible = true
+          this.hasExecuteBranchVisible = true
+        }
+      }
+    },
+    // 判断分支-执行分支
+    async confirmExecuteBranch () {
+      const { status } = await executeBranch(this.manualSkipParams)
+      if (status === 'OK') {
+        this.executeBranchVisible = false
+        this.$Notice.success({
+          title: 'Success',
+          desc: 'Execute branch action is proceed successfully'
+        })
+      }
+    },
     normalHandler (e) {
       this.flowGraphMouseenterHandler(e.target.parentNode.getAttribute('id'))
     },
@@ -1841,7 +2116,7 @@ export default {
       } else if (type === 'skip') {
         this.$Modal.confirm({
           title: this.$t('confirm_to_skip'),
-          'z-index': 1000000,
+          'z-index': 100,
           onOk: async () => {
             const payload = {
               act: type,
@@ -2120,7 +2395,24 @@ export default {
     zoomModal () {
       this.tableMaxHeight = document.body.scrollHeight - 410
       this.nodeDetailFullscreen = true
+    },
+    // #region 暂停、继续编排
+    async flowControlHandler (operateType) {
+      let payload = {
+        procInstId: this.selectedFlowInstance,
+        act: operateType
+      }
+      const { status } = await pauseAndContinueFlow(payload)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: 'Success'
+        })
+        this.currentInstanceStatusForNodeOperation = operateType === 'stop' ? 'Stop' : 'InProgress'
+        this.getProcessInstances()
+      }
     }
+    // #endregion
   }
 }
 </script>
