@@ -7,6 +7,7 @@
           type="datetimerange"
           v-model="time"
           format="yyyy-MM-dd HH:mm:ss"
+          split-panels
           @on-change="getDate"
           style="width: 320px"
         ></DatePicker>
@@ -32,7 +33,7 @@
     <Table size="small" ref="table" :columns="tableColumns" :max-height="MODALHEIGHT" :data="tableData"></Table>
     <Modal v-model="showModal" :fullscreen="fullscreen" width="1000" footer-hide>
       <p slot="header">
-        <span>{{ $t('details') }}</span>
+        <span>{{ $t('be_details') }}</span>
         <Icon
           v-if="!fullscreen"
           @click="fullscreen = true"
@@ -221,7 +222,17 @@ export default {
         {
           title: this.$t('flow_name'),
           key: 'procDefName',
-          width: 200
+          width: 200,
+          render: (h, params) => {
+            return (
+              <div>
+                <span>
+                  {params.row.procDefName}
+                  <Tag style="margin-left:2px">{params.row.version}</Tag>
+                </span>
+              </div>
+            )
+          }
         },
         {
           title: this.$t('target_object'),
@@ -241,7 +252,11 @@ export default {
         {
           title: this.$t('timing_type'),
           key: 'scheduleMode',
-          width: 120
+          width: 120,
+          render: (h, params) => {
+            const find = this.timeConfig.scheduleModeOptions.find(item => item.value === params.row.scheduleMode)
+            return <div>{find.label}</div>
+          }
         },
         {
           title: this.$t('schedule_expr'),
@@ -251,7 +266,11 @@ export default {
         {
           title: this.$t('status'),
           key: 'status',
-          width: 110
+          width: 110,
+          render: (h, params) => {
+            const find = this.timeConfig.scheduleModeOptions.find(item => item.value === params.row.scheduleMode)
+            return <div>{find.label}</div>
+          }
         },
         {
           title: this.$t('role'),
@@ -401,7 +420,12 @@ export default {
             return (
               <div>
                 {params.row.status === 'Ready' && (
-                  <Button onClick={() => this.pause(params.row)} type="warning" size="small" style="margin-right: 5px">
+                  <Button
+                    onClick={() => this.pause(params.row)}
+                    type="warning"
+                    size="small"
+                    style="background-color: #826bea; border-color: #826bea;margin-right: 5px"
+                  >
                     {this.$t('pause')}
                   </Button>
                 )}

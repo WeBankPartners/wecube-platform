@@ -61,18 +61,36 @@ func CreateUser(c *gin.Context) {
 // CreateRole 创建角色
 func CreateRole(c *gin.Context) {
 	var param models.SimpleLocalRoleDto
+	var roleResponse *models.SimpleLocalRoleDto
+	var response models.QuerySingleRolesResponse
 	var err error
 	if err = c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	if param.Administrator == "" {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("administrator not empty")))
+	if strings.TrimSpace(param.Name) == "" || strings.TrimSpace(param.DisplayName) == "" || strings.TrimSpace(param.Administrator) == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("name or displayName or administrator is empty")))
 		return
 	}
-	response, err := remote.RegisterLocalRole(&param, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
+	// 此处 error不处理,没查询到当前账号 auth-server也返回错误
+	roleResponse, _ = remote.RetrieveRoleByRoleName(param.Name, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
+	if roleResponse != nil && roleResponse.ID != "" {
+		middleware.ReturnError(c, exterror.New().AddRoleExistError)
+		return
+	}
+	response, err = remote.RegisterLocalRole(&param, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
+		return
+	}
+	if response.Data != nil && response.Data.ID != "" {
+		err = remote.ConfigureRoleForUsers(response.Data.ID, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"), []string{param.Administrator})
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+	} else {
+		middleware.ReturnError(c, fmt.Errorf("register user fail"))
 		return
 	}
 	middleware.Return(c, response)
