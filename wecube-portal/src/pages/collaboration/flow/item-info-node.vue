@@ -82,6 +82,18 @@
                     </Select>
                   </FormItem>
                 </template>
+                <template
+                  v-if="
+                    itemCustomInfo.customAttrs && ['date', 'timeInterval'].includes(itemCustomInfo.customAttrs.nodeType)
+                  "
+                >
+                  <FormItem>
+                    <label slot="label">
+                      {{ $t('be_allow_skip') }}
+                    </label>
+                    <i-switch v-model="itemCustomInfo.customAttrs.allowContinue" @on-change="paramsChanged" />
+                  </FormItem>
+                </template>
               </Form>
             </template>
           </Panel>
@@ -125,14 +137,23 @@
             <template slot="content">
               <Form :label-width="120">
                 <FormItem
-                  :label="$t('dynamic_bind')"
+                  :label="$t('locate_approach')"
                   v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
                 >
-                  <i-switch v-model="itemCustomInfo.customAttrs.dynamicBind" @on-change="changDynamicBind" />
+                  <Select v-model="itemCustomInfo.customAttrs.dynamicBind" @on-change="changDynamicBind">
+                    <Option v-for="item in dynamicBindOptions" :value="item.value" :key="item.value">{{
+                      item.label
+                    }}</Option>
+                  </Select>
                 </FormItem>
-                <FormItem v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)">
+                <FormItem
+                  v-if="
+                    ['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType) &&
+                    [1].includes(itemCustomInfo.customAttrs.dynamicBind)
+                  "
+                >
                   <label slot="label">
-                    <span style="color: red" v-if="itemCustomInfo.customAttrs.dynamicBind">*</span>
+                    <span style="color: red" v-if="itemCustomInfo.customAttrs.dynamicBind === 1">*</span>
                     {{ $t('bind_node') }}
                   </label>
                   <Select
@@ -141,21 +162,24 @@
                     @on-open-change="getAssociatedNodes"
                     clearable
                     filterable
-                    :disabled="!itemCustomInfo.customAttrs.dynamicBind"
+                    :disabled="[0, 2].includes(itemCustomInfo.customAttrs.dynamicBind)"
                   >
                     <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{
                       i.nodeName
                     }}</Option>
                   </Select>
                   <span
-                    v-if="itemCustomInfo.customAttrs.dynamicBind && itemCustomInfo.customAttrs.bindNodeId === ''"
+                    v-if="
+                      [1].includes(itemCustomInfo.customAttrs.dynamicBind) &&
+                      itemCustomInfo.customAttrs.bindNodeId === ''
+                    "
                     style="color: red"
                     >{{ $t('bind_node') }}{{ $t('cannotBeEmpty') }}</span
                   >
                 </FormItem>
                 <FormItem>
                   <label slot="label">
-                    <span style="color: red" v-if="!itemCustomInfo.customAttrs.dynamicBind">*</span>
+                    <span style="color: red">*</span>
                     {{ $t('locate_rules') }}
                   </label>
                   <template v-if="itemCustomInfo.customAttrs.routineExpression === ''">
@@ -166,7 +190,7 @@
                       :isBatch="itemCustomInfo.customAttrs.nodeType === 'data'"
                       ref="filterRulesGroupRef"
                       @filterRuleChanged="singleFilterRuleChanged"
-                      :disabled="itemCustomInfo.customAttrs.dynamicBind"
+                      :disabled="[1].includes(itemCustomInfo.customAttrs.dynamicBind)"
                       :routineExpression="itemCustomInfo.customAttrs.routineExpression || currentSelectedEntity"
                       :allEntityType="allEntityType"
                       :currentSelectedEntity="currentSelectedEntity"
@@ -398,7 +422,21 @@ export default {
         { value: 'OUTPUT', label: this.$t('output') }
       ],
       mgmtRole: '', // 编排属主角色，供错误提示用
-      isShowAlert: false // 在服务插件有值，但无可选项是提示
+      isShowAlert: false, // 在服务插件有值，但无可选项是提示
+      dynamicBindOptions: [
+        {
+          label: this.$t('during_startup'),
+          value: 0
+        },
+        {
+          label: this.$t('during_runtime'),
+          value: 2
+        },
+        {
+          label: this.$t('dynamic_bind'),
+          value: 1
+        }
+      ]
     }
   },
   components: {
@@ -504,7 +542,7 @@ export default {
         }
       }
       if (['human', 'automatic'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
-        if (this.itemCustomInfo.customAttrs.dynamicBind) {
+        if (this.itemCustomInfo.customAttrs.dynamicBind === 1) {
           if (this.itemCustomInfo.customAttrs.bindNodeId === '') {
             res = true
           }
