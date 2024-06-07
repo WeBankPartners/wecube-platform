@@ -5,7 +5,8 @@
         <DatePicker
           type="datetimerange"
           format="yyyy-MM-dd HH:mm:ss"
-          style="width:300px"
+          style="width: 300px"
+          split-panels
           :placeholder="$t('datetime_range')"
           @on-change="getDate"
         ></DatePicker>
@@ -16,10 +17,10 @@
           :max-tag-count="2"
           multiple
           filterable
-          :placeholder="$t('plugin_regist')"
+          :placeholder="$t('workflow_plugin_aspect')"
           @on-open-change="getPlugin"
           @on-change="changePlugin"
-          style="width:200px"
+          style="width: 200px"
         >
           <Option v-for="item in searchConfig.pluginOptions" :value="item" :key="item">{{ item }}</Option>
         </Select>
@@ -34,7 +35,7 @@
           @on-open-change="getTasknodesBindings"
           @on-change="changeTasknodesBindings"
           :disabled="searchConfig.params.serviceIds.length === 0"
-          style="width:200px"
+          style="width: 200px"
         >
           <Option
             v-for="(item, itemIndex) in searchConfig.tasknodeBindingOptions"
@@ -49,7 +50,7 @@
           v-model="searchConfig.params.pageable.pageSize"
           :placeholder="$t('display_number')"
           filterable
-          style="width:200px"
+          style="width: 200px"
         >
           <Option v-for="item in searchConfig.displayNumberOptions" :value="item" :key="item">{{ item }}</Option>
         </Select>
@@ -108,10 +109,12 @@ export default {
           width: 60,
           align: 'center'
         },
+        // 插件服务
         {
-          title: this.$t('plugin_regist'),
+          title: this.$t('workflow_plugin_aspect'),
           key: 'serviceId'
         },
+        // 数据对象
         {
           title: this.$t('task_node_bindings'),
           // key: 'entityDataName',
@@ -183,6 +186,7 @@ export default {
         endDate: this.searchConfig.params.endDate,
         startDate: this.searchConfig.params.startDate,
         status: type,
+        entityDataName: val.entityDataName,
         serviceId: val.serviceId,
         nodeDefId: val.nodeDefId,
         entityDataId: val.entityDataId

@@ -177,6 +177,8 @@ func init() {
 		&handlerFuncObj{Url: "/process/instancesWithPaging", Method: "POST", HandlerFunc: process.QueryProcInsPageData, ApiCode: "proc-ins-page-data"},
 		&handlerFuncObj{Url: "/operation-events", Method: "POST", HandlerFunc: process.ProcStartEvents, ApiCode: "proc-start-events"},
 		&handlerFuncObj{Url: "/public/process/definitions/:proc-def-id/options/:proc-node-def-id", Method: "GET", HandlerFunc: process.GetProcNodeAllowOptions, ApiCode: "get-proc-node-options"},
+		&handlerFuncObj{Url: "/process/instances/node-message/:procInsNodeId/time", Method: "GET", HandlerFunc: process.GetProcNodeEndTime, ApiCode: "get-process-ins-node-time"},
+		&handlerFuncObj{Url: "/process/instances/node-message/:procInsNodeId/choose", Method: "GET", HandlerFunc: process.GetProcNodeNextChoose, ApiCode: "get-process-ins-node-choose"},
 
 		// certification manager
 		&handlerFuncObj{Url: "/plugin-certifications", Method: "GET", HandlerFunc: certification.GetCertifications, ApiCode: "get-certifications"},
@@ -196,6 +198,7 @@ func init() {
 		&handlerFuncObj{Url: "/batch-execution/list", Method: "POST", HandlerFunc: batch_execution.RetrieveBatchExec, ApiCode: "retrieve-batch-execution"},
 		&handlerFuncObj{Url: "/batch-execution/:batchExecId", Method: "GET", HandlerFunc: batch_execution.GetBatchExec, ApiCode: "get-batch-execution"},
 		&handlerFuncObj{Url: "/batch-execution/job/run", Method: "POST", HandlerFunc: batch_execution.RunJob, ApiCode: "run-batch-execution-job"},
+		&handlerFuncObj{Url: "/batch-execution/seed", Method: "GET", HandlerFunc: batch_execution.GetSeed, ApiCode: "get-batch-execution-seed"},
 
 		// process schedule
 		&handlerFuncObj{Url: "/user-scheduled-tasks/query", Method: "POST", HandlerFunc: process.QueryProcScheduleList, ApiCode: "query_proc_schedule"},
@@ -204,6 +207,21 @@ func init() {
 		&handlerFuncObj{Url: "/user-scheduled-tasks/resume", Method: "POST", HandlerFunc: process.StartProcSchedule, ApiCode: "resume_proc_schedule"},
 		&handlerFuncObj{Url: "/user-scheduled-tasks/delete", Method: "POST", HandlerFunc: process.DeleteProcSchedule, ApiCode: "delete_proc_schedule"},
 		&handlerFuncObj{Url: "/user-scheduled-tasks/process-instances/query", Method: "POST", HandlerFunc: process.QueryProcScheduleInstance, ApiCode: "query_proc_schedule_inst"},
+
+		// process report
+		// 编排 tab
+		&handlerFuncObj{Url: "/statistics/process/definitions", Method: "GET", HandlerFunc: process.StatisticsProDefList, ApiCode: "statistics-prodef-list"},
+		&handlerFuncObj{Url: "/statistics/process/definitions/executions/overviews/query", Method: "POST", HandlerFunc: process.StatisticsProcessExec, ApiCode: "statistics-process-exec"},
+		// 编排节点 tab
+		&handlerFuncObj{Url: "/statistics/process/definitions/tasknodes/query", Method: "POST", HandlerFunc: process.StatisticsTasknodes, ApiCode: "statistics-tasknodes"},
+		&handlerFuncObj{Url: "/statistics/process/definitions/tasknodes/tasknode-bindings/query", Method: "POST", HandlerFunc: process.StatisticsBindingsEntityByNode, ApiCode: "statistics-bindings-entity-by-node"},
+		&handlerFuncObj{Url: "/statistics/process/definitions/executions/tasknodes/reports/query", Method: "POST", HandlerFunc: process.StatisticsTasknodeExec, ApiCode: "statistics-tasknode-exec"},
+		&handlerFuncObj{Url: "/statistics/process/definitions/executions/tasknodes/report-details/query", Method: "POST", HandlerFunc: process.StatisticsTasknodeExecDetails, ApiCode: "statistics-tasknode-exec-details"},
+		// 插件服务 tab
+		&handlerFuncObj{Url: "/statistics/process/definitions/tasknodes/service-ids", Method: "GET", HandlerFunc: process.StatisticsServiceNames, ApiCode: "statistics-service-ids"},
+		&handlerFuncObj{Url: "/statistics/process/definitions/service-ids/tasknode-bindings/query", Method: "POST", HandlerFunc: process.StatisticsBindingsEntityByService, ApiCode: "statistics-bindings-entity-by-service"},
+		&handlerFuncObj{Url: "/statistics/process/definitions/executions/plugin/reports/query", Method: "POST", HandlerFunc: process.StatisticsPluginExec, ApiCode: "statistics-plugin-exec"},
+		&handlerFuncObj{Url: "/statistics/process/definitions/executions/plugin/report-details/query", Method: "POST", HandlerFunc: process.StatisticsPluginExecDetails, ApiCode: "statistics-plugin-exec-details"},
 	)
 }
 

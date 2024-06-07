@@ -86,6 +86,7 @@ type ProcScheduleConfigObj struct {
 	TotalTerminateInstances  int    `json:"totalTerminateInstances"`
 	Role                     string `json:"role" xorm:"role"`          // 管理角色
 	MailMode                 string `json:"mailMode" xorm:"mail_mode"` // 邮件发送模式->role(角色邮箱) | user(用户邮箱) | none(不发送)
+	Version                  string `json:"version"`
 }
 
 type ProcScheduleOperationParam struct {

@@ -6,7 +6,8 @@
           type="datetimerange"
           format="yyyy-MM-dd HH:mm:ss"
           :placeholder="$t('datetime_range')"
-          style="width:300px"
+          style="width: 300px"
+          split-panels
           @on-change="getDate"
         ></DatePicker>
       </div>
@@ -18,7 +19,7 @@
           filterable
           :placeholder="$t('flow_name')"
           @on-open-change="getProcess"
-          style="width:200px"
+          style="width: 200px"
         >
           <Option v-for="item in searchConfig.processOptions" :value="item.procDefId" :key="item.procDefId">{{
             item.procDefName
@@ -30,7 +31,7 @@
           v-model="searchConfig.params.pageable.pageSize"
           filterable
           :placeholder="$t('display_number')"
-          style="width:200px"
+          style="width: 200px"
         >
           <Option v-for="item in searchConfig.displayNumberOptions" :value="item" :key="item">{{ item }}</Option>
         </Select>
