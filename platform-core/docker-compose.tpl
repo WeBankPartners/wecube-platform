@@ -40,3 +40,4 @@ services:
       - sub_system_private_key=[#sub_system_private_key]
       - cron_keep_batch_exec_days=[#cron_keep_batch_exec_days]
       - host_ip=[#host_ip]
+      - encrypt_seed=[#encrypt_seed]

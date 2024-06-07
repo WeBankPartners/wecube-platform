@@ -49,6 +49,7 @@ func AuthApi(authoritiesFetcher GetAuthorities) gin.HandlerFunc {
 			if authClaim.NeedRegister {
 				if urlPath != constant.UrlPrefix+constant.UriUsersRegister &&
 					urlPath != constant.UrlPrefix+constant.UriListApplyByApplier &&
+					urlPath != constant.UrlPrefix+constant.UriApplyByApplier &&
 					!(urlPath == constant.UrlPrefix+constant.UriRoles && c.Request.Method == http.MethodGet) {
 					log.Logger.Warn("jwt token need register", log.String("path", c.Request.URL.Path))
 					support.ReturnErrorWithHttpCode(c, errors.New("jwt token need register"), http.StatusUnauthorized)
