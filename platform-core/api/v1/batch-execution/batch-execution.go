@@ -1,10 +1,14 @@
 package batch_execution
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
@@ -405,6 +409,26 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 			ParamId:     inputParam.InputParameter.Id,
 			ParameValue: inputParam.InputParameterValue,
 		}
+
+		// 解密敏感字段的输入值
+		if inputParam.InputParameter.SensitiveData == "Y" {
+			if pluginDefInputParams.ParameValue != "" {
+				// encryptText, _ := strings.CutPrefix(pluginDefInputParams.ParameValue, models.BatchExecEncryptPrefix)
+				encryptText := pluginDefInputParams.ParameValue
+				if strings.HasPrefix(encryptText, models.BatchExecEncryptPrefix) {
+					encryptText = encryptText[len(models.BatchExecEncryptPrefix):]
+				}
+
+				decryptData, tmpErr := decryptWithEncryptSeed(encryptText)
+				if tmpErr != nil {
+					err = fmt.Errorf("decrypt sensitive data of inputParameter id: %s failed: %s", pluginDefInputParams.ParamId, tmpErr.Error())
+					log.Logger.Error(err.Error())
+					return
+				}
+				pluginDefInputParams.ParameValue = decryptData
+			}
+		}
+
 		inputParamConstants = append(inputParamConstants, pluginDefInputParams)
 	}
 
@@ -540,5 +564,33 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 
 	result.BatchExecRunResult = batchExecRunResult
 	result.DangerousCheckResult = dangerousCheckResult
+	return
+}
+
+func decryptWithEncryptSeed(data string) (decryptData string, err error) {
+	dataBytes, err := base64.StdEncoding.DecodeString(data)
+	if err != nil {
+		err = fmt.Errorf("base64 decode data failed: %s", err.Error())
+		return
+	}
+	dataHex := hex.EncodeToString(dataBytes)
+	decryptData, err = cipher.AesDePassword(models.Config.EncryptSeed, dataHex)
+	if err != nil {
+		err = fmt.Errorf("decrypt data failed: %s", err.Error())
+		return
+	}
+	return
+}
+
+// GetSeed 获取 seed
+func GetSeed(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	md5sum := cipher.Md5Encode(models.Config.EncryptSeed)
+	middleware.ReturnData(c, md5sum[0:16])
 	return
 }

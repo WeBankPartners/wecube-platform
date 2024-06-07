@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
+	"time"
+)
 
 const (
 	StatusDeleted    = "Deleted"
@@ -180,12 +183,15 @@ type UserRoleRsEntity struct {
 	CreatedTime time.Time `xorm:"'CREATED_TIME'"`
 	UpdatedTime time.Time `xorm:"'UPDATED_TIME'"`
 
-	Active   bool   `xorm:"'IS_ACTIVE'"`
-	Deleted  bool   `xorm:"'IS_DELETED'"`
-	UserId   string `xorm:"'USER_ID'"`
-	Username string `xorm:"'USERNAME'"`
-	RoleId   string `xorm:"'ROLE_ID'"`
-	RoleName string `xorm:"'ROLE_NAME'"`
+	Active      bool      `xorm:"'IS_ACTIVE'"`
+	Deleted     bool      `xorm:"'IS_DELETED'"`
+	UserId      string    `xorm:"'USER_ID'"`
+	Username    string    `xorm:"'USERNAME'"`
+	RoleId      string    `xorm:"'ROLE_ID'"`
+	RoleName    string    `xorm:"'ROLE_NAME'"`
+	ExpireTime  time.Time `xorm:"expire_time"`  // 角色过期时间,""表示永久生效
+	NotifyCount int       `xorm:"notify_count"` // 快要过期通知
+	RoleApply   *string   `xorm:"role_apply"`   // 角色申请ID
 }
 
 func (UserRoleRsEntity) TableName() string {
@@ -199,11 +205,58 @@ type RoleApplyEntity struct {
 	CreatedTime time.Time `json:"createdTime" xorm:"created_time"`
 	UpdatedTime time.Time `json:"updatedTime" xorm:"updated_time"`
 
-	EmailAddr string `json:"emailAddr" xorm:"email_addr"`
-	RoleId    string `json:"roleId" xorm:"role_id"`
-	Status    string `json:"status" xorm:"status"`
+	EmailAddr  string    `json:"emailAddr" xorm:"email_addr"`
+	RoleId     string    `json:"roleId" xorm:"role_id"`
+	Status     string    `json:"status" xorm:"status"`
+	ExpireTime time.Time `json:"expireTime" xorm:"expire_time"` //角色过期时间,""表示永久生效
 }
 
 func (RoleApplyEntity) TableName() string {
 	return "auth_sys_role_apply"
+}
+
+// CalcUserRolePermissionStatus  此处有个问题,useRole 的创建、更新时间可能为空,后续已经修复这个问题
+func CalcUserRolePermissionStatus(userRole *UserRoleRsEntity) string {
+	if userRole.ExpireTime.Unix() > 0 {
+		if userRole.CreatedTime.Unix() > 0 {
+			max := userRole.ExpireTime.Sub(userRole.CreatedTime).Seconds()
+			use := time.Now().Sub(userRole.CreatedTime).Seconds()
+			if (use/max)*100 >= 100 {
+				return string(constant.UserRolePermissionStatusExpire)
+			} else if (use/max)*100 >= Config.NotifyPercent {
+				return string(constant.UserRolePermissionStatusPreExpire)
+			}
+			return string(constant.UserRolePermissionStatusInEffect)
+		} else {
+			if userRole.ExpireTime.Before(time.Now()) {
+				return string(constant.UserRolePermissionStatusExpire)
+			} else {
+				return string(constant.UserRolePermissionStatusInEffect)
+			}
+		}
+	}
+	return string(constant.UserRolePermissionStatusForever)
+}
+
+func CalcUserRolePermissionStatusByApplyInfo(roleApply *RoleApplyDto) string {
+	if roleApply.ExpireTime != "" {
+		expireTime, err := time.ParseInLocation(constant.DateTimeFormat, roleApply.ExpireTime, time.Local)
+		if err != nil {
+			return RoleApplyStatusApprove
+		}
+		createdTime, _ := time.ParseInLocation(constant.DateTimeFormat, roleApply.CreatedTime, time.Local)
+		if err != nil {
+			return RoleApplyStatusApprove
+		}
+		max := expireTime.Sub(createdTime).Seconds()
+		use := time.Now().Sub(createdTime).Seconds()
+		if (use/max)*100 >= 100 {
+			return string(constant.UserRolePermissionStatusExpire)
+		} else if (use/max)*100 >= Config.NotifyPercent {
+			return string(constant.UserRolePermissionStatusPreExpire)
+		} else {
+			return string(constant.UserRolePermissionStatusInEffect)
+		}
+	}
+	return string(constant.UserRolePermissionStatusForever)
 }

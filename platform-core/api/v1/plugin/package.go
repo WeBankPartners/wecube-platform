@@ -239,7 +239,7 @@ func doPullPackageBackground(c *gin.Context, pullId, fileName string) {
 
 func doUploadPackage(c context.Context, archiveFilePath string) (pluginPkgId string, err error) {
 	tmpFileDir := fmt.Sprintf("/tmp/%d", time.Now().UnixNano())
-	if err = os.MkdirAll(tmpFileDir, 0777); err != nil {
+	if err = os.MkdirAll(tmpFileDir, 0700); err != nil {
 		err = fmt.Errorf("make tmp dir fail,%s ", err.Error())
 		return
 	}
@@ -601,29 +601,50 @@ func LaunchPlugin(c *gin.Context) {
 			middleware.ReturnError(c, resourceDbErr)
 			return
 		}
-		// 如果连纪录都没有，第一次要创建数据库
-		mysqlServer, resourceDbErr = database.GetResourceServer(c, "mysql", "")
-		if resourceDbErr != nil {
-			middleware.ReturnError(c, resourceDbErr)
-			return
-		}
-		if mysqlInstance == nil {
-			if dbPass, err := bash.CreatePluginDatabase(c, pluginPackageObj.Name, mysqlResource, mysqlServer); err != nil {
-				middleware.ReturnError(c, err)
-				return
-			} else {
+
+		// 判断有没有以插件名为类型的资源
+		mysqlServer, _ = database.GetResourceServer(c, "mysql", "", pluginPackageObj.Name)
+		if mysqlServer != nil {
+			if mysqlInstance == nil {
+				log.Logger.Info("use plugin resource mysql server", log.String("resourceServerId", mysqlServer.Id))
 				mysqlInstance = &models.PluginMysqlInstances{
 					Id:              "p_mysql_" + guid.CreateGuid(),
-					Password:        dbPass,
+					Password:        mysqlServer.LoginPassword,
 					PluginPackageId: pluginPackageId,
 					ResourceItemId:  mysqlResource.Id,
 					SchemaName:      mysqlResource.SchemaName,
-					Username:        pluginPackageObj.Name,
+					Username:        mysqlServer.LoginUsername,
 				}
-				log.Logger.Debug("database pwd", log.String("pass", dbPass))
-				if err = database.NewPluginMysqlInstance(c, mysqlServer, mysqlInstance, operator); err != nil {
+				if err := database.NewPluginMysqlInstance(c, mysqlServer, mysqlInstance, operator); err != nil {
 					middleware.ReturnError(c, err)
 					return
+				}
+			}
+		} else {
+			// 如果连纪录都没有，第一次要创建数据库
+			mysqlServer, resourceDbErr = database.GetResourceServer(c, "mysql", "", "")
+			if resourceDbErr != nil {
+				middleware.ReturnError(c, resourceDbErr)
+				return
+			}
+			if mysqlInstance == nil {
+				if dbPass, err := bash.CreatePluginDatabase(c, pluginPackageObj.Name, mysqlResource, mysqlServer); err != nil {
+					middleware.ReturnError(c, err)
+					return
+				} else {
+					mysqlInstance = &models.PluginMysqlInstances{
+						Id:              "p_mysql_" + guid.CreateGuid(),
+						Password:        dbPass,
+						PluginPackageId: pluginPackageId,
+						ResourceItemId:  mysqlResource.Id,
+						SchemaName:      mysqlResource.SchemaName,
+						Username:        pluginPackageObj.Name,
+					}
+					log.Logger.Debug("database pwd", log.String("pass", dbPass))
+					if err = database.NewPluginMysqlInstance(c, mysqlServer, mysqlInstance, operator); err != nil {
+						middleware.ReturnError(c, err)
+						return
+					}
 				}
 			}
 		}
@@ -667,7 +688,7 @@ func LaunchPlugin(c *gin.Context) {
 	}
 	dockerResource := resources.Docker[0]
 	pluginInstance.ContainerName = dockerResource.ContainerName
-	dockerServer, getDockerServerErr := database.GetResourceServer(c, "docker", hostIp)
+	dockerServer, getDockerServerErr := database.GetResourceServer(c, "docker", hostIp, "")
 	if getDockerServerErr != nil {
 		middleware.ReturnError(c, getDockerServerErr)
 		return

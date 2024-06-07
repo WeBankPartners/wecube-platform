@@ -145,16 +145,29 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 		err = getNodeDataErr
 		return
 	}
-	if procDefNode.DynamicBind {
+	if procDefNode.DynamicBind == 1 {
 		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
 		if err != nil {
-			err = fmt.Errorf("get dynamic bind data fail,%s ", err.Error())
+			err = fmt.Errorf("get node dynamic bind data fail,%s ", err.Error())
 			return
 		}
 		if len(dataBindings) > 0 {
 			err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
 			if err != nil {
 				err = fmt.Errorf("try to update dynamic node binding data fail,%s ", err.Error())
+				return
+			}
+		}
+	} else if procDefNode.DynamicBind == 2 {
+		dataBindings, err = dynamicBindNodeInRuntime(ctx, procInsNode, procDefNode)
+		if err != nil {
+			err = fmt.Errorf("get runtime dynamic bind data fail,%s ", err.Error())
+			return
+		}
+		if len(dataBindings) > 0 {
+			err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
+			if err != nil {
+				err = fmt.Errorf("try to update runtime dynamic node binding data fail,%s ", err.Error())
 				return
 			}
 		}
@@ -282,24 +295,34 @@ func DoWorkflowDataJob(ctx context.Context, procRunNodeId string, retryFlag bool
 			}
 		}
 		if len(createEntityIdList) > 0 {
-			rewriteList := []*models.RewriteEntityDataObj{}
-			createDataList := buildDataWriteObj(cacheDataList, createEntityIdList)
-			for _, createDataObj := range createDataList {
-				tmpDataOid := fmt.Sprintf("%s", createDataObj["id"])
+			for len(createEntityIdList) > 0 {
+				tmpDataOid, tmpDataId, newIdList, createDataObj, tmpErr := findDataWriteObj(cacheDataList, createEntityIdList)
+				if tmpErr != nil {
+					err = tmpErr
+					break
+				}
+				createEntityIdList = newIdList
 				createDataResult, createDataErr := remote.CreatePluginModelData(ctx, lastExprEntity.Package, lastExprEntity.Entity, remote.GetToken(), exprObj.Operation, []map[string]interface{}{createDataObj})
 				if createDataErr != nil {
 					err = fmt.Errorf("try to create plugin model data %s:%s %s fail,%s", lastExprEntity.Package, lastExprEntity.Entity, tmpDataOid, createDataErr.Error())
 					return
 				}
 				if len(createDataResult) > 0 {
-					rewriteList = append(rewriteList, &models.RewriteEntityDataObj{Oid: tmpDataOid, Nid: fmt.Sprintf("%s", createDataResult[0]["id"]), DisplayName: fmt.Sprintf("%s", createDataResult[0]["displayName"])})
+					rewriteObj := models.RewriteEntityDataObj{Oid: tmpDataOid, Nid: fmt.Sprintf("%s", createDataResult[0]["id"]), DisplayName: fmt.Sprintf("%s", createDataResult[0]["displayName"])}
+					for _, tmpCacheData := range cacheDataList {
+						if strings.Contains(tmpCacheData.DataValue, tmpDataId) {
+							tmpCacheData.DataValue = strings.ReplaceAll(tmpCacheData.DataValue, tmpDataId, rewriteObj.Nid)
+							rewriteObj.ProcDataCacheList = append(rewriteObj.ProcDataCacheList, tmpCacheData)
+						}
+					}
+					if err = database.RewriteProcInsEntityDataNew(ctx, procInsNode.ProcInsId, &rewriteObj); err != nil {
+						err = fmt.Errorf("try to rewrite new entity data %s to procIns:%s fail,%s ", rewriteObj.Oid, procInsNode.ProcInsId, err.Error())
+						return
+					}
 				}
 			}
-			if len(rewriteList) > 0 {
-				if err = database.RewriteProcInsEntityData(ctx, procInsNode.ProcInsId, rewriteList); err != nil {
-					err = fmt.Errorf("try to rewrite new entity data to procIns:%s fail,%s ", procInsNode.ProcInsId, err.Error())
-					return
-				}
+			if err != nil {
+				return
 			}
 		}
 		if len(updateEntityIdList) > 0 {
@@ -335,6 +358,62 @@ func buildDataWriteObj(cacheDataList []*models.ProcDataCache, ids []string) (dat
 	return
 }
 
+func findDataWriteObj(cacheDataList []*models.ProcDataCache, ids []string) (oid, tmpId string, newIds []string, dataObj map[string]interface{}, err error) {
+	var tmpIds []string
+	for _, dataId := range ids {
+		if strings.HasPrefix(dataId, models.NewOidDataPrefix) {
+			tmpIds = append(tmpIds, dataId[4:])
+		} else {
+			tmpIds = append(tmpIds, dataId)
+		}
+	}
+	for _, dataId := range ids {
+		for _, cacheData := range cacheDataList {
+			if cacheData.EntityDataId == dataId {
+				refId := ""
+				for _, targetId := range tmpIds {
+					if strings.Contains(cacheData.DataValue, targetId) {
+						refId = targetId
+						break
+					}
+				}
+				if refId == "" {
+					oid = dataId
+					if cacheData.DataValue == "" {
+						cacheData.DataValue = "{}"
+					}
+					dataObj = make(map[string]interface{})
+					if tmpErr := json.Unmarshal([]byte(cacheData.DataValue), &dataObj); tmpErr != nil {
+						err = fmt.Errorf("buildDataWriteObj json unmarshal data fail,cacheDataValue:%s err:%s ", cacheData.DataValue, tmpErr.Error())
+						return
+					}
+					dataObj["id"] = oid
+				}
+				break
+			}
+		}
+		if oid != "" {
+			break
+		}
+	}
+	if oid != "" {
+		for _, dataId := range ids {
+			if dataId == oid {
+				continue
+			}
+			newIds = append(newIds, dataId)
+		}
+		if strings.HasPrefix(oid, models.NewOidDataPrefix) {
+			tmpId = oid[4:]
+		} else {
+			tmpId = oid
+		}
+	} else {
+		err = fmt.Errorf("can not find write data job legal data to write")
+	}
+	return
+}
+
 func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag bool) (err error) {
 	ctx = context.WithValue(ctx, models.TransactionIdHeader, procRunNodeId)
 	if recoverFlag {
@@ -354,7 +433,7 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag b
 		err = getNodeDataErr
 		return
 	}
-	if procDefNode.DynamicBind {
+	if procDefNode.DynamicBind == 1 {
 		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
 		if err != nil {
 			err = fmt.Errorf("get dynamic bind data fail,%s ", err.Error())
@@ -912,5 +991,79 @@ func QueryProcPreviewNodeData(ctx context.Context, param *models.QueryExpression
 		exprList[exprLen-1].Filters = append(exprList[exprLen-1].Filters, lastEntityFilters...)
 	}
 	dataList, err = remote.QueryPluginFullData(ctx, exprList, param.Filters[0], rootEntityNode, remote.GetToken(), withEntityData)
+	return
+}
+
+func dynamicBindNodeInRuntime(ctx context.Context, procInsNode *models.ProcInsNode, procDefNode *models.ProcDefNode) (dataBinding []*models.ProcDataBinding, err error) {
+	interfaceFilters := []*models.Filter{}
+	if procDefNode.ServiceName != "" {
+		interfaceObj, getInterfaceErr := database.GetSimpleLastPluginInterface(ctx, procDefNode.ServiceName)
+		if getInterfaceErr != nil {
+			err = fmt.Errorf("get node plugin interface:%s fail,%s ", procDefNode.ServiceName, getInterfaceErr.Error())
+			return
+		}
+		if interfaceObj.FilterRule != "" {
+			if interfaceFilters, err = remote.AnalyzeExprFilters(interfaceObj.FilterRule); err != nil {
+				err = fmt.Errorf("analyze expr filters:%s fail,%s ", interfaceObj.FilterRule, err.Error())
+				return
+			}
+		}
+	}
+	var rootEntityDataId, rootExpr string
+	rootEntityDataId, _, rootExpr, err = database.GetProcInsRootEntityData(ctx, procInsNode.ProcInsId)
+	if err != nil {
+		return
+	}
+	nodeDataList := []*models.ProcPreviewEntityNode{}
+	nodeExpressionList := []string{procDefNode.RoutineExpression}
+	rootExprList, analyzeErr := remote.AnalyzeExpression(rootExpr)
+	if analyzeErr != nil {
+		err = analyzeErr
+		return
+	}
+	rootLastExprObj := rootExprList[len(rootExprList)-1]
+	rootFilter := models.QueryExpressionDataFilter{
+		Index:       len(rootExprList) - 1,
+		PackageName: rootLastExprObj.Package,
+		EntityName:  rootLastExprObj.Entity,
+		AttributeFilters: []*models.QueryExpressionDataAttrFilter{{
+			Name:     "id",
+			Operator: "eq",
+			Value:    rootEntityDataId,
+		}},
+	}
+	rootEntityNode := models.ProcPreviewEntityNode{DataId: rootEntityDataId, FullDataId: rootEntityDataId}
+	for _, nodeExpression := range nodeExpressionList {
+		tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: nodeExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
+		tmpNodeDataList, tmpErr := QueryProcPreviewNodeData(ctx, &tmpQueryDataParam, &rootEntityNode, false, interfaceFilters)
+		if tmpErr != nil {
+			err = tmpErr
+			break
+		}
+		nodeDataList = append(nodeDataList, tmpNodeDataList...)
+	}
+	if err != nil {
+		return
+	}
+	log.Logger.Debug("dynamicBindNodeInRuntime nodeData", log.String("node", procInsNode.Id), log.JsonObj("data", nodeDataList))
+	nowTime := time.Now()
+	for _, nodeDataObj := range nodeDataList {
+		if nodeDataObj.LastFlag {
+			tmpPreviewRow := models.ProcDataBinding{
+				EntityId:       nodeDataObj.DataId,
+				EntityDataId:   nodeDataObj.DataId,
+				EntityTypeId:   fmt.Sprintf("%s:%s", nodeDataObj.PackageName, nodeDataObj.EntityName),
+				ProcDefId:      procDefNode.ProcDefId,
+				BindType:       "taskNode",
+				BindFlag:       true,
+				EntityDataName: nodeDataObj.DisplayName,
+				FullDataId:     nodeDataObj.FullDataId,
+				ProcDefNodeId:  procDefNode.NodeId,
+				CreatedBy:      "system",
+				CreatedTime:    nowTime,
+			}
+			dataBinding = append(dataBinding, &tmpPreviewRow)
+		}
+	}
 	return
 }

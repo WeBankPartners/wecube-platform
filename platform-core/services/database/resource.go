@@ -111,7 +111,7 @@ func GetAvailableContainerHost() (availableHost []string, err error) {
 
 func GetResourceServerByIp(hostIp string) (resourceServer *models.ResourceServer, err error) {
 	var resourceServerRows []*models.ResourceServer
-	err = db.MysqlEngine.SQL("select id,is_allocated,login_password,login_username,login_mode,name,port,`type`,host from resource_server where host=?", hostIp).Find(&resourceServerRows)
+	err = db.MysqlEngine.SQL("select id,is_allocated,login_password,login_username,login_mode,name,port,`type`,host from resource_server where host=? and `type`='docker'", hostIp).Find(&resourceServerRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return

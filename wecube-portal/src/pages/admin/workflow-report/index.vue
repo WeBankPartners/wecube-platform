@@ -4,11 +4,11 @@
       <TabPane :label="$t('workflow_report_aspect')" name="workflowAspect">
         <WorkflowAspect></WorkflowAspect>
       </TabPane>
-      <TabPane :label="$t('workflow_plugin_aspect ')" name="pluginAspect">
-        <PluginAspect></PluginAspect>
-      </TabPane>
       <TabPane :label="$t('workflow_task_node_aspect')" name="tasknodeAspect">
         <TasknodeAspect></TasknodeAspect>
+      </TabPane>
+      <TabPane :label="$t('pluginService ')" name="pluginAspect">
+        <PluginAspect></PluginAspect>
       </TabPane>
     </Tabs>
   </div>

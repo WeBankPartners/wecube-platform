@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"reflect"
 	"strconv"
 	"strings"
@@ -238,11 +239,27 @@ func transFiltersToSQL(queryParam *model.QueryRequestParam, transParam *model.Tr
 				tmpSpecSql = "''"
 			}
 			if filter.Operator == "in" {
-				filterSql += fmt.Sprintf(" AND %s%s in (%s) ", transParam.Prefix, transParam.KeyMap[filter.Name], tmpSpecSql)
+				if len(inValueStringList) == 1 && filter.Name == "status" {
+					if inValueStringList[0] == string(constant.UserRolePermissionStatusInEffect) {
+						filterSql += " AND status='approve' AND (expire_time > ? or expire_time is null) AND EXISTS ( SELECT * from auth_sys_user_role WHERE role_apply = ap.id AND is_deleted = 0) "
+						param = append(param, time.Now().Format(constant.DateTimeFormat))
+					} else if inValueStringList[0] == string(constant.UserRolePermissionStatusExpire) {
+						filterSql += " AND status='approve' AND expire_time <= ?"
+						param = append(param, time.Now().Format(constant.DateTimeFormat))
+					} else if inValueStringList[0] == string(constant.UserRolePermissionStatusDeleted) {
+						filterSql += " AND status='approve' AND EXISTS ( SELECT * from auth_sys_user_role WHERE role_apply = ap.id AND is_deleted = 1) "
+					} else {
+						filterSql += fmt.Sprintf(" AND %s%s in (%s) ", transParam.Prefix, transParam.KeyMap[filter.Name], tmpSpecSql)
+						param = append(param, tmpListParams...)
+					}
+				} else {
+					filterSql += fmt.Sprintf(" AND %s%s in (%s) ", transParam.Prefix, transParam.KeyMap[filter.Name], tmpSpecSql)
+					param = append(param, tmpListParams...)
+				}
 			} else {
 				filterSql += fmt.Sprintf(" AND %s%s not in (%s) ", transParam.Prefix, transParam.KeyMap[filter.Name], tmpSpecSql)
+				param = append(param, tmpListParams...)
 			}
-			param = append(param, tmpListParams...)
 		} else if filter.Operator == "lte" {
 			filterSql += fmt.Sprintf(" AND %s%s<=? ", transParam.Prefix, transParam.KeyMap[filter.Name])
 			param = append(param, filter.Value)
