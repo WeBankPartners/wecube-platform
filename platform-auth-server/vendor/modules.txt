@@ -1,8 +1,8 @@
 # github.com/WeBankPartners/go-common-lib v1.0.38
 ## explicit; go 1.17
 github.com/WeBankPartners/go-common-lib/cipher
-github.com/WeBankPartners/go-common-lib/guid
 github.com/WeBankPartners/go-common-lib/logger
+github.com/WeBankPartners/go-common-lib/smtp
 # github.com/gin-contrib/sse v0.1.0
 ## explicit; go 1.12
 github.com/gin-contrib/sse

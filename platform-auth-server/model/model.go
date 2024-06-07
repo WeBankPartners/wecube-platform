@@ -79,9 +79,10 @@ type UmAuthContext struct {
 }
 
 type RoleApplyParam struct {
-	UserName  string   `json:"userName"`
-	EmailAddr string   `json:"emailAddr"`
-	RoleIds   []string `json:"roleIds"`
+	UserName   string   `json:"userName"`
+	EmailAddr  string   `json:"emailAddr"`
+	RoleIds    []string `json:"roleIds"`
+	ExpireTime string   `json:"expireTime"` //角色过期时间,""表示永久生效
 }
 
 type ListRoleApplyResponse struct {

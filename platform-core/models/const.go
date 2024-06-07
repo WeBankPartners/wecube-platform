@@ -54,6 +54,7 @@ const (
 	BatchExecErrorCodePending           = "2"
 	BatchExecErrorCodeDangerousBlock    = "3"
 	DefaultKeepBatchExecDays            = 365
+	BatchExecEncryptPrefix              = "encrypt "
 
 	// permission type
 	PermissionTypeMGMT = "MGMT"
