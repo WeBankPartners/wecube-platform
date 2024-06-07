@@ -1,5 +1,5 @@
 {
-  "server_address": "127.0.0.1",
+  "server_address": "",
   "server_port": "8080",
   "error_template_dir":"config/i18n",
   "error_detail_return": true,
@@ -14,11 +14,11 @@
     "compress": true
   },
   "database": {
-    "server": "106.52.160.142",
-    "port": "13306",
-    "user": "root",
-    "password": "mF8PnUQ6dK3ppmrKPmGa",
-    "database": "smoke2_auth_server",
+    "server": "",
+    "port": "",
+    "user": "",
+    "password": "",
+    "database": "",
     "maxOpen": 200,
     "maxIdle": 50,
     "timeout": 60
@@ -38,5 +38,12 @@
     "systemId": "[#um_permission_system_id]",
     "address": "[#um_permission_address]",
     "cron_express": "[#um_permission_cron_express]"
+  },
+  "mail": {
+    "sender_name": "",
+    "sender_mail": "",
+    "auth_server": "",
+    "auth_password": "",
+    "ssl": ""
   }
 }

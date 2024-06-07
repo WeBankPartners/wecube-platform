@@ -216,6 +216,7 @@ export default {
         endDate: this.searchConfig.params.endDate,
         startDate: this.searchConfig.params.startDate,
         status: type,
+        entityDataName: val.entityDataName,
         serviceId: val.serviceId,
         procDefId: val.procDefId,
         nodeDefId: val.nodeDefId,
