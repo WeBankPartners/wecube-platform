@@ -444,6 +444,7 @@ func handleOutputData(
 		var tmpResultOutputForEntity *OutputEntityRootData
 		tmpResultForPackageName := ""
 		tmpResultForEntityName := ""
+		defKeyMap := make(map[string]int)
 		for _, outputDef := range outputParamDefs {
 			procReqParamObj := models.ProcInsNodeReqParam{ParamDefId: outputDef.Id, ReqId: procInsNodeReq.Id, DataIndex: dataIndex, FromType: "output", Name: outputDef.Name, DataType: outputDef.DataType, MappingType: outputDef.MappingType}
 			if outputDef.SensitiveData == "Y" {
@@ -452,6 +453,7 @@ func handleOutputData(
 			if outputDef.Multiple == "Y" {
 				procReqParamObj.Multiple = true
 			}
+			defKeyMap[outputDef.Name] = 1
 			var tmpResultOutputForEntityBranch *OutputEntityBranchData
 			var entityKeyName string
 			var outputCalResult interface{}
@@ -557,6 +559,16 @@ func handleOutputData(
 			}
 			procReqParamObj.DataValue = fmt.Sprintf("%v", tmpResultOutput[outputDef.Name])
 			procInsNodeReq.Params = append(procInsNodeReq.Params, &procReqParamObj)
+		}
+		for outKey, outVal := range output {
+			if _, isDefOk := defKeyMap[outKey]; !isDefOk {
+				procReqParamObj := models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: dataIndex, FromType: "output", Name: outKey, DataType: "string", MappingType: "constant"}
+				procReqParamObj.DataValue = fmt.Sprintf("%v", outVal)
+				if v, ok := output[models.PluginCallResultPresetCallback]; ok {
+					procReqParamObj.CallbackId = fmt.Sprintf("%s", v)
+				}
+				procInsNodeReq.Params = append(procInsNodeReq.Params, &procReqParamObj)
+			}
 		}
 		tmpResult.Outputs = append(tmpResult.Outputs, tmpResultOutput)
 		if tmpResultForPackageName != "" && tmpResultForEntityName != "" {
