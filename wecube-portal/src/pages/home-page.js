@@ -9,8 +9,23 @@ export default {
   },
   created () {
     this.comps = window.homepageComponent.data
-    window.homepageComponent.on('change', v => {
-      this.comps = window.homepageComponent.data
+    // window.homepageComponent.on('change', v => {
+    //   this.comps = window.homepageComponent.data
+    // })
+    this.$eventBusP.$on('allMenus', menues => {
+      window.homepageComponent.on('change', () => {
+        this.comps = window.homepageComponent.data
+        // 首页根据菜单权限隐藏相关页面
+        this.comps.forEach(c => {
+          c.deleteFalg = false
+          for (let menu of menues) {
+            if (c.code === menu.code) {
+              c.deleteFalg = true
+            }
+          }
+        })
+        this.comps = this.comps.filter(i => !i.deleteFalg)
+      })
     })
   },
   render () {

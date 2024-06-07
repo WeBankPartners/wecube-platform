@@ -356,7 +356,7 @@ func ProcInsStart(c *gin.Context) {
 }
 
 func ProcInsList(c *gin.Context) {
-	result, err := database.ListProcInstance(c)
+	result, err := database.ListProcInstance(c, middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -426,6 +426,15 @@ func ProcInsOperation(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
+	permissionLegal, checkPermissionErr := database.CheckProcInsUserPermission(c, middleware.GetRequestRoles(c), param.ProcInstId)
+	if checkPermissionErr != nil {
+		middleware.ReturnError(c, checkPermissionErr)
+		return
+	}
+	if !permissionLegal {
+		middleware.ReturnError(c, exterror.New().DataPermissionDeny)
+		return
+	}
 	workflowId, nodeId, err := database.GetProcWorkByInsId(c, param.ProcInstId, param.NodeInstId)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -433,6 +442,34 @@ func ProcInsOperation(c *gin.Context) {
 	}
 	if param.Act == "skip" {
 		operationObj := models.ProcRunOperation{WorkflowId: workflowId, NodeId: nodeId, Operation: "ignore", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
+		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		go workflow.HandleProOperation(&operationObj)
+	} else if param.Act == "choose" {
+		if param.Message == "" {
+			middleware.ReturnError(c, fmt.Errorf("param message can not empty with choose action"))
+			return
+		}
+		operationObj := models.ProcRunOperation{WorkflowId: workflowId, NodeId: nodeId, Operation: "approve", Status: "wait", CreatedBy: middleware.GetRequestUser(c), Message: param.Message}
+		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		go workflow.HandleProOperation(&operationObj)
+	} else if param.Act == "stop" {
+		operationObj := models.ProcRunOperation{WorkflowId: workflowId, Operation: "stop", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
+		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		go workflow.HandleProOperation(&operationObj)
+	} else if param.Act == "recover" {
+		operationObj := models.ProcRunOperation{WorkflowId: workflowId, Operation: "continue", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
 		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
 		if err != nil {
 			middleware.ReturnError(c, err)
@@ -465,11 +502,29 @@ func ProcInsNodeRetry(c *gin.Context) {
 		middleware.ReturnError(c, exterror.New().RequestParamValidateError)
 		return
 	}
+	permissionLegal, checkPermissionErr := database.CheckProcInsUserPermission(c, middleware.GetRequestRoles(c), procInsId)
+	if checkPermissionErr != nil {
+		middleware.ReturnError(c, checkPermissionErr)
+		return
+	}
+	if !permissionLegal {
+		middleware.ReturnError(c, exterror.New().DataPermissionDeny)
+		return
+	}
 	procInsNodeId := c.Param("procInsNodeId")
+	procInsNodeObj, getProcInsNodeErr := database.GetSimpleProcInsNode(c, procInsNodeId, "")
+	if getProcInsNodeErr != nil {
+		middleware.ReturnError(c, getProcInsNodeErr)
+		return
+	}
 	operator := middleware.GetRequestUser(c)
 	err := database.UpdateProcInsNodeBindingData(c, param, procInsId, procInsNodeId, operator)
 	if err != nil {
 		middleware.ReturnError(c, err)
+		return
+	}
+	if procInsNodeObj.Status == models.JobStatusReady {
+		middleware.ReturnSuccess(c)
 		return
 	}
 	workflowId, nodeId, err := database.GetProcWorkByInsId(c, procInsId, procInsNodeId)
@@ -536,7 +591,7 @@ func QueryProcInsPageData(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	result, err := database.QueryProcInsPage(c, &param)
+	result, err := database.QueryProcInsPage(c, &param, middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -548,6 +603,15 @@ func ProcTermination(c *gin.Context) {
 	procInsId := c.Param("procInsId")
 	if procInsId == "" {
 		middleware.ReturnError(c, exterror.New().RequestParamValidateError)
+		return
+	}
+	permissionLegal, checkPermissionErr := database.CheckProcInsUserPermission(c, middleware.GetRequestRoles(c), procInsId)
+	if checkPermissionErr != nil {
+		middleware.ReturnError(c, checkPermissionErr)
+		return
+	}
+	if !permissionLegal {
+		middleware.ReturnError(c, exterror.New().DataPermissionDeny)
 		return
 	}
 	workflowId, _, err := database.GetProcWorkByInsId(c, procInsId, "")
@@ -593,5 +657,25 @@ func GetProcNodeAllowOptions(c *gin.Context) {
 		middleware.ReturnError(c, err)
 	} else {
 		middleware.ReturnData(c, options)
+	}
+}
+
+func GetProcNodeEndTime(c *gin.Context) {
+	procInsNodeId := c.Param("procInsNodeId")
+	result, err := database.GetProcNodeEndTime(c, procInsNodeId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func GetProcNodeNextChoose(c *gin.Context) {
+	procInsNodeId := c.Param("procInsNodeId")
+	result, err := database.GetProcNodeNextChoose(c, procInsNodeId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
 	}
 }

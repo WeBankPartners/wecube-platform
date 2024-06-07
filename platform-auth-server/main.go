@@ -34,7 +34,7 @@ func main() {
 		log.Logger.Error("Init db connection error", log.Error(initDbError))
 		return
 	}
-
+	go service.StartCornJob()
 	router := sw.NewRouter()
 	router.Run(":" + model.Config.ServerPort)
 

@@ -2,6 +2,9 @@ package api
 
 import (
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
+	"strings"
+	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/api/support"
@@ -222,6 +225,20 @@ func CreateRoleApply(c *gin.Context) {
 	}
 }
 
+func DeleteRoleApply(c *gin.Context) {
+	applyId := c.Query("applyId")
+	if strings.TrimSpace(applyId) == "" {
+		support.ReturnError(c, fmt.Errorf("applyId is empty"))
+		return
+	}
+	err := service.UserManagementServiceInstance.DeleteRoleApply(applyId)
+	if err != nil {
+		support.ReturnError(c, err)
+	} else {
+		support.ReturnSuccess(c)
+	}
+}
+
 func ListRoleApply(c *gin.Context) {
 	var param model.QueryRequestParam
 	if err := c.ShouldBindJSON(&param); err != nil {
@@ -256,16 +273,39 @@ func ListRoleApplyByApplier(c *gin.Context) {
 
 func UpdateRoleApply(c *gin.Context) {
 	var param []*model.RoleApplyDto
-	if err := c.ShouldBindJSON(&param); err != nil {
+	var err error
+	var expireTime time.Time
+	if err = c.ShouldBindJSON(&param); err != nil {
 		support.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, fmt.Errorf("invalid request: %s", err.Error())))
 		return
 	}
 
 	curUser := middleware.GetRequestUser(c)
-	err := service.UserManagementServiceInstance.UpdateRoleApply(param, curUser)
-	if err != nil {
-		support.ReturnError(c, err)
-	} else {
-		support.ReturnSuccess(c)
+	if len(param) == 0 {
+		support.ReturnError(c, fmt.Errorf("param is invalid"))
+		return
 	}
+	for _, dto := range param {
+		if strings.TrimSpace(dto.ID) == "" {
+			support.ReturnError(c, fmt.Errorf("param id is empty"))
+			return
+		}
+		if dto.Status == model.RoleApplyStatusApprove && dto.ExpireTime != "" {
+			expireTime, err = time.ParseInLocation(constant.DateTimeFormat, dto.ExpireTime, time.Local)
+			if err != nil {
+				support.ReturnError(c, fmt.Errorf("param expireTime is empty"))
+				return
+			}
+			// 审批时候,申请已过期
+			if time.Now().After(expireTime) {
+				support.ReturnError(c, fmt.Errorf("apply has expired"))
+				return
+			}
+		}
+	}
+	if err = service.UserManagementServiceInstance.UpdateRoleApply(param, curUser); err != nil {
+		support.ReturnError(c, err)
+		return
+	}
+	support.ReturnSuccess(c)
 }

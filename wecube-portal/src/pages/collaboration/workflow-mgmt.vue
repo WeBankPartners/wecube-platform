@@ -374,7 +374,7 @@ export default {
                   this.$refs.itemInfoNodeRef.showItemInfo(
                     model,
                     false,
-                    this.procDef.rootEntity,
+                    this.procDef.rootEntity.split('{')[0], // 禁止向节点传递过滤条件
                     this.editFlow,
                     this.permissionToRole
                   )
@@ -589,13 +589,12 @@ export default {
           }
         }
         // 异常节点只能连入
-        if (targertNodeType === 'decision') {
-          if (!['human'].includes(sourceNodeType)) {
-            // this.$Message.warning('判断节点只能被[人工节点]连入！')
-            this.$Message.warning(`${this.$t('decisionNodetip1')}`)
-            return
-          }
-        }
+        // if (targertNodeType === 'decision') {
+        //   if (!['human'].includes(sourceNodeType)) {
+        //     this.$Message.warning(`${this.$t('decisionNodetip1')}`)
+        //     return
+        //   }
+        // }
 
         if (['data', 'human', 'automatic', 'date', 'timeInterval'].includes(sourceNodeType)) {
           const outEdges = source.getOutEdges()
@@ -720,9 +719,10 @@ export default {
           procDefKey: this.procDef.key, // 对应编排信息
           timeout: 30, // 超时时间
           description: null, // 描述说明
-          dynamicBind: false, // 动态绑定
+          dynamicBind: 0, // 动态绑定 0(启动时绑定)|1->(绑定节点)|2->(运行时)
           bindNodeId: null, // 动态绑定关联节点id
           nodeType, // 节点类型，对应节点原始类型（start、end……
+          allowContinue: true, // 时间节点，是否允许继续
           routineExpression: this.procDef.rootEntity, // 对应节点中的定位规则
           routineRaw: null, // 还未知作用
           serviceName: null, // 选择的插件名称
@@ -754,7 +754,7 @@ export default {
         this.$refs.itemInfoNodeRef.showItemInfo(
           model,
           true,
-          this.procDef.rootEntity,
+          this.procDef.rootEntity.split('{')[0], // 禁止向节点传递过滤条件
           this.editFlow,
           this.permissionToRole
         )
@@ -871,6 +871,7 @@ export default {
     },
     // 保存节点信息
     async setNodeInfo (info, needAddFirst) {
+      info.selfAttrs.style.fill = 'white'
       const { status } = await flowNodeMgmt(info)
       if (status === 'OK') {
         if (!needAddFirst) {
@@ -924,7 +925,7 @@ export default {
           }
         })
       }
-      this.graph.refresh()
+      // this.graph.refresh()
     }
     // #endregion
   }

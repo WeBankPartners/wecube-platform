@@ -1,5 +1,10 @@
 package models
 
+import (
+	"encoding/json"
+	"strings"
+)
+
 type DataModel struct {
 	PluginPackageDataModel
 	Entities []*DataModelEntity `json:"entities"`
@@ -106,6 +111,32 @@ type Filter struct {
 	Name     string `json:"name"`
 	Operator string `json:"operator"`
 	Value    string `json:"value"`
+}
+
+func (f *Filter) GetValue() interface{} {
+	if f.Operator == "in" {
+		valueList := []string{}
+		if strings.HasPrefix(f.Value, "[") && strings.HasSuffix(f.Value, "]") {
+			tmpValue := strings.ReplaceAll(f.Value, "'", "\"")
+			if err := json.Unmarshal([]byte(tmpValue), &valueList); err == nil {
+				newValueList := []string{}
+				for _, v := range valueList {
+					if strings.HasPrefix(v, "@@") {
+						newValueList = append(newValueList, strings.Split(v[2:], "@@")[0])
+					}
+				}
+				valueList = newValueList
+			}
+		} else {
+			for _, v := range strings.Split(f.Value, ",") {
+				if v != "" {
+					valueList = append(valueList, v)
+				}
+			}
+		}
+		return valueList
+	}
+	return f.Value
 }
 
 type ExpressionEntitiesRespObj struct {

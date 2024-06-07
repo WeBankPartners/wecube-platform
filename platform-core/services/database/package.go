@@ -169,12 +169,15 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 			if httpMethod == "" {
 				httpMethod = "POST"
 			}
-			isAsyncProcessing := false
-			if pluginConfigInterface.IsAsyncProcessing == "Y" {
-				isAsyncProcessing = true
+			//isAsyncProcessing := false
+			if pluginConfigInterface.IsAsyncProcessing != "Y" {
+				pluginConfigInterface.IsAsyncProcessing = "N"
+			}
+			if pluginConfigInterface.Type == "" {
+				pluginConfigInterface.Type = "EXECUTION"
 			}
 			actions = append(actions, &db.ExecAction{Sql: "insert into plugin_config_interfaces (id,plugin_config_id,action,service_name,service_display_name,path,http_method,is_async_processing,type,filter_rule,description) values (?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-				pluginConfigInterfaceId, pluginConfigId, pluginConfigInterface.Action, serviceName, serviceName, pluginConfigInterface.Path, httpMethod, isAsyncProcessing, pluginConfigInterface.Type, pluginConfigInterface.FilterRule, pluginConfigInterface.Description,
+				pluginConfigInterfaceId, pluginConfigId, pluginConfigInterface.Action, serviceName, serviceName, pluginConfigInterface.Path, httpMethod, pluginConfigInterface.IsAsyncProcessing, pluginConfigInterface.Type, pluginConfigInterface.FilterRule, pluginConfigInterface.Description,
 			}})
 			for _, interfaceParam := range pluginConfigInterface.InputParameters.Parameter {
 				interfaceParamId := "p_conf_inf_param_" + guid.CreateGuid()
@@ -271,6 +274,17 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 				}})
 			}
 		}
+	} else if registerConfig.DataModel.IsDynamic == "true" {
+		maxVersion, getVersionErr := getMaxDataModelVersion(registerConfig.Name)
+		if getVersionErr != nil {
+			err = getVersionErr
+			return
+		}
+		maxVersion = maxVersion + 1
+		dmId := "p_model_" + guid.CreateGuid()
+		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_data_model (id,`version`,package_name,is_dynamic,update_path,update_method,update_source,updated_time,update_time) VALUES (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			dmId, maxVersion, registerConfig.Name, 1, "/data-model", "GET", "PLUGIN_PACKAGE", nowTime, nowTime.UnixMilli(),
+		}})
 	}
 	err = db.Transaction(actions, ctx)
 	if err != nil {
@@ -283,6 +297,9 @@ func getMaxDataModelVersion(packageName string) (maxV int, err error) {
 	queryResult, queryErr := db.MysqlEngine.QueryString("SELECT max(`version`) as ver FROM plugin_package_data_model WHERE package_name =? GROUP BY package_name", packageName)
 	if queryErr != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, fmt.Errorf("query data model max version fail,%s ", queryErr.Error()))
+		return
+	}
+	if len(queryResult) == 0 {
 		return
 	}
 	maxV, _ = strconv.Atoi(queryResult[0]["ver"])
@@ -375,10 +392,12 @@ func CheckPluginPackageDependence(ctx context.Context, pluginPackageId string) (
 	return
 }
 
-func GetResourceServer(ctx context.Context, serverType, serverIp string) (resourceServerObj *models.ResourceServer, err error) {
+func GetResourceServer(ctx context.Context, serverType, serverIp, name string) (resourceServerObj *models.ResourceServer, err error) {
 	var resourceServerRows []*models.ResourceServer
-	if serverIp == "" {
-		err = db.MysqlEngine.Context(ctx).SQL("select id,host,is_allocated,login_password,login_username,name,port,login_mode from resource_server where `type`=? and status='active'", serverType).Find(&resourceServerRows)
+	if name != "" {
+		err = db.MysqlEngine.Context(ctx).SQL("select id,host,is_allocated,login_password,login_username,name,port,login_mode from resource_server where `name`=? and `type`=? and status='active'", name, serverType).Find(&resourceServerRows)
+	} else if serverIp == "" {
+		err = db.MysqlEngine.Context(ctx).SQL("select id,host,is_allocated,login_password,login_username,name,port,login_mode from resource_server where `type`=? and status='active' order by created_date asc", serverType).Find(&resourceServerRows)
 	} else {
 		err = db.MysqlEngine.Context(ctx).SQL("select id,host,is_allocated,login_password,login_username,name,port,login_mode from resource_server where `type`=? and host=? and status='active'", serverType, serverIp).Find(&resourceServerRows)
 	}
@@ -388,11 +407,23 @@ func GetResourceServer(ctx context.Context, serverType, serverIp string) (resour
 		if len(resourceServerRows) == 0 {
 			err = fmt.Errorf("can not find resource server with type:%s ip:%s ", serverType, serverIp)
 		} else {
-			if serverType == "mysql" && len(resourceServerRows) > 1 {
-				err = fmt.Errorf("get more then one mysql resouerce server,please make sure one")
-				return
+			//if serverType == "mysql" && len(resourceServerRows) > 1 && name == "" {
+			//	err = fmt.Errorf("get more then one mysql resouerce server,please make sure one")
+			//	return
+			//}
+			if serverType == "mysql" && name == "" {
+				for _, row := range resourceServerRows {
+					if row.Name == "plugin" {
+						resourceServerObj = row
+						break
+					}
+				}
+				if resourceServerObj == nil {
+					resourceServerObj = resourceServerRows[0]
+				}
+			} else {
+				resourceServerObj = resourceServerRows[0]
 			}
-			resourceServerObj = resourceServerRows[0]
 			if strings.HasPrefix(resourceServerObj.LoginPassword, models.AESPrefix) {
 				resourceServerObj.LoginPassword = encrypt.DecryptWithAesECB(resourceServerObj.LoginPassword[5:], models.Config.Plugin.ResourcePasswordSeed, resourceServerObj.Name)
 			}
@@ -430,16 +461,20 @@ func GetPluginMysqlInstance(ctx context.Context, name string) (result *models.Pl
 }
 
 func NewPluginMysqlInstance(ctx context.Context, mysqlServer *models.ResourceServer, mysqlInstance *models.PluginMysqlInstances, operator string) (err error) {
+	instancePassword := mysqlInstance.Password
+	if !strings.HasPrefix(mysqlInstance.Password, models.AESPrefix) {
+		instancePassword = models.AESPrefix + encrypt.EncryptWithAesECB(mysqlInstance.Password, models.Config.Plugin.ResourcePasswordSeed, mysqlInstance.SchemaName)
+	}
 	var actions []*db.ExecAction
 	nowTime := time.Now()
-	properties := models.MysqlResourceItemProperties{Username: mysqlInstance.Username, Password: mysqlInstance.Password}
+	properties := models.MysqlResourceItemProperties{Username: mysqlInstance.Username, Password: instancePassword}
 	propertiesBytes, _ := json.Marshal(&properties)
 	resourceItemId := "rs_item_" + guid.CreateGuid()
 	actions = append(actions, &db.ExecAction{Sql: "INSERT INTO resource_item (id,additional_properties,created_by,created_date,is_allocated,name,purpose,resource_server_id,status,`type`,updated_by,updated_date) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 		resourceItemId, string(propertiesBytes), operator, nowTime, 1, mysqlInstance.SchemaName, fmt.Sprintf("Create MySQL database for plugin[%s]", mysqlInstance.SchemaName), mysqlServer.Id, "created", "mysql_database", operator, nowTime,
 	}})
 	actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_mysql_instances (id,password,plugun_package_id,plugin_package_id,resource_item_id,schema_name,status,username,pre_version,created_time) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-		mysqlInstance.Id, mysqlInstance.Password, mysqlInstance.PluginPackageId, mysqlInstance.PluginPackageId, resourceItemId, mysqlInstance.SchemaName, "active", mysqlInstance.Username, "", time.Now(),
+		mysqlInstance.Id, instancePassword, mysqlInstance.PluginPackageId, mysqlInstance.PluginPackageId, resourceItemId, mysqlInstance.SchemaName, "active", mysqlInstance.Username, "", time.Now(),
 	}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {

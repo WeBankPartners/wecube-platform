@@ -175,7 +175,7 @@ func QueryPluginData(ctx context.Context, exprList []*models.ExpressionObj, filt
 		tmpFilters := []*models.EntityQueryObj{}
 		if exprObj.Filters != nil {
 			for _, exprFilter := range exprObj.Filters {
-				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: exprFilter.Name, Op: exprFilter.Operator, Condition: exprFilter.Value})
+				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: exprFilter.Name, Op: exprFilter.Operator, Condition: exprFilter.GetValue()})
 			}
 		}
 		for _, filterObj := range filters {
@@ -222,11 +222,12 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 	nodePreviousMap := make(map[string][]string)
 	nodeSucceedingMap := make(map[string][]string)
 	exprLastIndex := len(exprList) - 1
+	resultNodeMap := make(map[string]*models.ProcPreviewEntityNode)
 	for i, exprObj := range exprList {
 		tmpFilters := []*models.EntityQueryObj{}
 		if exprObj.Filters != nil {
 			for _, exprFilter := range exprObj.Filters {
-				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: exprFilter.Name, Op: exprFilter.Operator, Condition: exprFilter.Value})
+				tmpFilters = append(tmpFilters, &models.EntityQueryObj{AttrName: exprFilter.Name, Op: exprFilter.Operator, Condition: exprFilter.GetValue()})
 			}
 		}
 		if rootFilter.Index == i {
@@ -270,12 +271,18 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 			err = lastErr
 			break
 		}
+		if i == exprLastIndex && rootFilter.Index == i && len(lastQueryResult) > 0 {
+			// 表达式与根表达式一样
+			log.Logger.Debug("QueryPluginFullData expr same with root", log.Int("index", i), log.Int("rootIndex", rootFilter.Index), log.JsonObj("lastQueryResult", lastQueryResult))
+			resultNodeList = append(resultNodeList, rootEntityNode)
+			continue
+		}
 		log.Logger.Debug("QueryPluginFullData expr", log.Int("index", i), log.Int("rootIndex", rootFilter.Index), log.JsonObj("tmpLeftDataMap", tmpLeftDataMap))
 		if i > rootFilter.Index && len(lastQueryResult) > 0 {
 			for _, rowData := range lastQueryResult {
 				rowDataId := rowData["id"].(string)
 				rowDataNode := &models.ProcPreviewEntityNode{}
-				if _, existFlag := dataFullIdMap[rowDataId]; !existFlag {
+				if existNode, existFlag := resultNodeMap[rowDataId]; !existFlag {
 					rowDataNode.Parse(exprObj.Package, exprObj.Entity, rowData)
 					if withEntityData {
 						rowDataNode.EntityData = rowData
@@ -284,6 +291,11 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 						rowDataNode.LastFlag = true
 					}
 					resultNodeList = append(resultNodeList, rowDataNode)
+					resultNodeMap[rowDataId] = rowDataNode
+				} else {
+					if i == exprLastIndex {
+						existNode.LastFlag = true
+					}
 				}
 				if exprObj.LeftJoinColumn != "" {
 					log.Logger.Debug("QueryPluginFullData handle row,LeftJoinColumn", log.String("id", rowDataId), log.String("LeftJoinColumn", exprObj.LeftJoinColumn))
@@ -358,14 +370,21 @@ func ExtractExpressionResultColumn(exprList []*models.ExpressionObj, exprResult 
 	for _, r := range exprResult {
 		if v, ok := r[expr.ResultColumn]; ok {
 			result = append(result, v)
-		} else {
-			result = append(result, nil)
 		}
+		//} else {
+		//	result = append(result, nil)
+		//}
 	}
 	return
 }
 
 func RequestPluginModelData(ctx context.Context, packageName, entity, token string, filters []*models.EntityQueryObj) (result []map[string]interface{}, err error) {
+	for _, v := range filters {
+		if v.Op == "in" && v.Condition == nil {
+			v.Condition = []interface{}{}
+			log.Logger.Info("RequestPluginModelData trans filter value to []interface{} ", log.String("name", v.AttrName), log.String("op", v.Op))
+		}
+	}
 	queryParam := models.EntityQueryParam{AdditionalFilters: filters}
 	postBytes, _ := json.Marshal(queryParam)
 	uri := fmt.Sprintf("%s/%s/entities/%s/query", models.Config.Gateway.Url, packageName, entity)
@@ -405,6 +424,10 @@ func RequestPluginModelData(ctx context.Context, packageName, entity, token stri
 			log.Logger.Info("End remote modelData request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(responseBodyBytes)))
 		}
 	}()
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("request plugin:%s model:%s data fail,statusCode:%d ", packageName, entity, resp.StatusCode)
+		return
+	}
 	var response models.EntityResponse
 	responseBodyBytes, err = io.ReadAll(resp.Body)
 	if err != nil {

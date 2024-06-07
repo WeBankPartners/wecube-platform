@@ -86,6 +86,7 @@
                       }
                     "
                     type="daterange"
+                    split-panels
                     placement="bottom-end"
                     format="yyyy-MM-dd"
                     :placeholder="i.label"
@@ -107,7 +108,7 @@
         </template>
       </Form>
     </div>
-    <div class="platform-base-search-button">
+    <div v-if="showBtn" class="platform-base-search-button">
       <Icon
         v-show="!expand"
         @click="handleExpand"
@@ -146,6 +147,10 @@ export default {
     showExpand: {
       type: Boolean,
       default: true
+    },
+    showBtn: {
+      type: Boolean,
+      default: true
     }
   },
   computed: {
@@ -160,7 +165,7 @@ export default {
         { label: this.$t('be_threeDays_recent'), value: 1 },
         { label: this.$t('be_oneWeek_recent'), value: 2 },
         { label: this.$t('be_oneMonth_recent'), value: 3 },
-        { label: this.$t('tw_auto'), value: 4 }
+        { label: this.$t('be_auto'), value: 4 }
       ]
     }
   },

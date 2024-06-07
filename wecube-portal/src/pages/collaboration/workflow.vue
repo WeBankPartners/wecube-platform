@@ -2,8 +2,7 @@
   <div class="root">
     <div>
       <Button type="success" class="btn-right" @click="create">
-        <Icon type="ios-add-circle-outline" size="16"></Icon>
-        {{ $t('create') }}
+        {{ $t('full_word_add') }}
       </Button>
       <Upload
         action="platform/v1/process/definitions/import"
@@ -136,6 +135,7 @@
             type="daterange"
             placement="bottom-end"
             format="yyyy-MM-dd"
+            split-panels
             placeholder=""
             style="width: 200px"
           />
@@ -252,10 +252,10 @@ export default {
       },
       dateType: 1, // 控制时间显示
       dateTypeList: [
-        { label: this.$t('tw_recent_three_month'), value: 1 },
-        { label: this.$t('tw_recent_half_year'), value: 2 },
-        { label: this.$t('tw_recent_one_year'), value: 3 },
-        { label: this.$t('tw_auto'), value: 4 }
+        { label: this.$t('be_recent_three_month'), value: 1 },
+        { label: this.$t('be_recent_half_year'), value: 2 },
+        { label: this.$t('be_recent_one_year'), value: 3 },
+        { label: this.$t('be_auto'), value: 4 }
       ],
       hideRoles: [], // 在此出现的角色index将被隐藏
       authPluginList: [], // 待授权插件列表
@@ -395,7 +395,7 @@ export default {
                 <Tooltip content={this.$t('view')} placement="top">
                   <Button
                     size="small"
-                    type="primary"
+                    type="info"
                     onClick={() => this.viewAction(params.row)}
                     style="margin-right:5px;"
                   >
@@ -407,7 +407,7 @@ export default {
                   <Tooltip content={this.$t('copy')} placement="top">
                     <Button
                       size="small"
-                      type="info"
+                      type="success"
                       onClick={() => this.copyAction(params.row)}
                       style="margin-right:5px;"
                     >
@@ -423,12 +423,12 @@ export default {
                   >
                     <Button
                       size="small"
-                      type="success"
+                      type="primary"
                       disabled={!params.row.enableCreated}
                       onClick={() => this.copyToEditAction(params.row)}
                       style="margin-right:5px;"
                     >
-                      <Icon type="ios-create-outline" size="16"></Icon>
+                      <Icon type="md-create" size="16"></Icon>
                     </Button>
                   </Tooltip>
                 )}
@@ -436,11 +436,11 @@ export default {
                   <Tooltip content={this.$t('edit')} placement="top">
                     <Button
                       size="small"
-                      type="success"
+                      type="primary"
                       onClick={() => this.editAction(params.row)}
                       style="margin-right:5px;"
                     >
-                      <Icon type="ios-create-outline" size="16"></Icon>
+                      <Icon type="md-create" size="16"></Icon>
                     </Button>
                   </Tooltip>
                 )}

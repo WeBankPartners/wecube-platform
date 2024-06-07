@@ -151,6 +151,7 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 	// 此时value可能是nil以外的任意值
 	var result interface{}
 	t := reflect.TypeOf(value)
+	log.Logger.Debug("normalizePluginInterfaceParamData", log.String("key", inputParamDef.Name), log.String("valueType", t.Kind().String()), log.String("value", fmt.Sprintf("%v", value)))
 	// value的kind可能是[]{int, string, float, object}, int, string, float, object
 	if t.Kind() == reflect.Slice {
 		if inputParamDef.Multiple == "Y" || inputParamDef.DataType == models.PluginParamDataTypeList {
@@ -161,8 +162,12 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 			if tv.Len() == 0 && inputParamDef.Required == "Y" {
 				return nil, fmt.Errorf("field:%s input data is empty list but required", inputParamDef.Name)
 			}
+			if tv.Len() == 0 {
+				result = nil
+				return result, nil
+			}
 			if tv.Len() != 1 {
-				return nil, fmt.Errorf("field:%s input data len=%d but trying to convert to single value", inputParamDef.Name, tv.Len())
+				return nil, fmt.Errorf("field:%s input data len=%d but trying to convert to single value,inputValue:%v ", inputParamDef.Name, tv.Len(), value)
 			}
 			// 列表转单值
 			valueToSingle := tv.Index(0).Interface()
@@ -196,9 +201,11 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 						result = []interface{}{convValue}
 					}
 				} else if inputParamDef.DataType == models.PluginParamDataTypeObject {
-					return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, tToSingle)
+					result = value
+					//return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, tToSingle)
 				} else if inputParamDef.DataType == models.PluginParamDataTypeList {
-					return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, tToSingle)
+					result = value
+					//return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, tToSingle)
 				}
 			}
 		}
@@ -239,9 +246,11 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 				result = []interface{}{convValue}
 			}
 		} else if inputParamDef.DataType == models.PluginParamDataTypeObject {
-			return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, t)
+			result = value
+			//return nil, fmt.Errorf("field:%s can not convert %v to object", inputParamDef.Name, t)
 		} else if inputParamDef.DataType == models.PluginParamDataTypeList {
-			return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, t)
+			result = value
+			//return nil, fmt.Errorf("field:%s can not convert %v to list", inputParamDef.Name, t)
 		}
 	}
 	return result, nil
@@ -424,11 +433,18 @@ func handleOutputData(
 	outputParamDefs []*models.PluginConfigInterfaceParameters, procInsNodeReq *models.ProcInsNodeReq) (result *models.PluginInterfaceApiResultData, err error) {
 	tmpResult := &models.PluginInterfaceApiResultData{Outputs: make([]map[string]interface{}, 0)}
 	tmpResultForEntity := &OutputEntityData{Data: make([]*OutputEntityRootData, 0)}
+	reqInputParamIndexMap := make(map[string]int)
+	for _, v := range procInsNodeReq.Params {
+		if v.FromType == "input" {
+			reqInputParamIndexMap[v.CallbackId] = v.DataIndex
+		}
+	}
 	for dataIndex, output := range outputs {
 		tmpResultOutput := make(map[string]interface{})
 		var tmpResultOutputForEntity *OutputEntityRootData
 		tmpResultForPackageName := ""
 		tmpResultForEntityName := ""
+		defKeyMap := make(map[string]int)
 		for _, outputDef := range outputParamDefs {
 			procReqParamObj := models.ProcInsNodeReqParam{ParamDefId: outputDef.Id, ReqId: procInsNodeReq.Id, DataIndex: dataIndex, FromType: "output", Name: outputDef.Name, DataType: outputDef.DataType, MappingType: outputDef.MappingType}
 			if outputDef.SensitiveData == "Y" {
@@ -437,6 +453,7 @@ func handleOutputData(
 			if outputDef.Multiple == "Y" {
 				procReqParamObj.Multiple = true
 			}
+			defKeyMap[outputDef.Name] = 1
 			var tmpResultOutputForEntityBranch *OutputEntityBranchData
 			var entityKeyName string
 			var outputCalResult interface{}
@@ -530,6 +547,9 @@ func handleOutputData(
 			if v, ok := output[models.PluginCallResultPresetCallback]; ok {
 				tmpResultOutput[models.PluginCallResultPresetCallback] = v
 				procReqParamObj.CallbackId = fmt.Sprintf("%s", v)
+				if outputIndex, matchOutputIndex := reqInputParamIndexMap[procReqParamObj.CallbackId]; matchOutputIndex {
+					procReqParamObj.DataIndex = outputIndex
+				}
 			}
 			if v, ok := output[models.PluginCallResultPresetErrorCode]; ok {
 				tmpResultOutput[models.PluginCallResultPresetErrorCode] = v
@@ -540,16 +560,34 @@ func handleOutputData(
 			procReqParamObj.DataValue = fmt.Sprintf("%v", tmpResultOutput[outputDef.Name])
 			procInsNodeReq.Params = append(procInsNodeReq.Params, &procReqParamObj)
 		}
+		for outKey, outVal := range output {
+			if _, isDefOk := defKeyMap[outKey]; !isDefOk {
+				procReqParamObj := models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: dataIndex, FromType: "output", Name: outKey, DataType: "string", MappingType: "constant"}
+				procReqParamObj.DataValue = fmt.Sprintf("%v", outVal)
+				if v, ok := output[models.PluginCallResultPresetCallback]; ok {
+					procReqParamObj.CallbackId = fmt.Sprintf("%s", v)
+				}
+				procInsNodeReq.Params = append(procInsNodeReq.Params, &procReqParamObj)
+			}
+		}
 		tmpResult.Outputs = append(tmpResult.Outputs, tmpResultOutput)
 		if tmpResultForPackageName != "" && tmpResultForEntityName != "" {
 			tmpResultForEntity.Package = tmpResultForPackageName
 			tmpResultForEntity.Entity = tmpResultForEntityName
 			if tmpResultOutputForEntity != nil {
 				if v, ok := tmpResultOutputForEntity.Data["id"]; ok {
-					tmpResultOutputForEntity.Id = v.(string)
+					if v != nil {
+						if reflect.TypeOf(v).String() == "string" {
+							tmpResultOutputForEntity.Id = v.(string)
+						}
+					}
 				} else {
 					if guidV, guidOk := tmpResultOutputForEntity.Data["guid"]; guidOk {
-						tmpResultOutputForEntity.Id = guidV.(string)
+						if guidV != nil {
+							if reflect.TypeOf(guidV).String() == "string" {
+								tmpResultOutputForEntity.Id = guidV.(string)
+							}
+						}
 					}
 				}
 				tmpResultForEntity.Data = append(tmpResultForEntity.Data, tmpResultOutputForEntity)
