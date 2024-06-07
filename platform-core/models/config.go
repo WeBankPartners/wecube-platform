@@ -86,6 +86,7 @@ type GlobalConfig struct {
 	PasswordPrivateKeyPath string                  `json:"password_private_key_path"`
 	HostIp                 string                  `json:"host_ip"`
 	HttpsEnable            string                  `json:"https_enable"`
+	EncryptSeed            string                  `json:"encrypt_seed"`
 	HttpServer             *HttpServerConfig       `json:"http_server"`
 	Log                    *LogConfig              `json:"log"`
 	Database               *DatabaseConfig         `json:"database"`
@@ -148,7 +149,7 @@ func InitConfig(configFile string) (errMessage string) {
 		}
 	}
 	if c.Plugin.PasswordPubKeyPath != "" {
-		publicBytes, readPubErr := os.ReadFile(c.PasswordPrivateKeyPath)
+		publicBytes, readPubErr := os.ReadFile(c.Plugin.PasswordPubKeyPath)
 		if readPubErr == nil {
 			c.Plugin.PasswordPubKeyContent = string(publicBytes)
 		} else {
