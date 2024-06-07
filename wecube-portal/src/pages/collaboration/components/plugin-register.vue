@@ -95,13 +95,17 @@
                 style="margin: 4px; padding: 4px; border-bottom: 1px solid #dcdee2"
                 :key="index + inter.action"
               >
-                <Tooltip :content="inter.description">
+                <Tooltip max-width="300">
+                  <div slot="content">
+                    <div>{{ $t('bc_name') }}: {{ inter.action }}</div>
+                    <div>{{ $t('description') }}: {{ inter.description }}</div>
+                  </div>
                   <Input
                     :value="inter.action"
                     :disabled="currentPluginObj.status === 'ENABLED'"
                     @on-blur="actionBlurHandler($event, inter)"
                     @click.stop.native="actionFocus($event)"
-                    style="width: 200px"
+                    style="width: 300px"
                     size="small"
                   />
                 </Tooltip>
@@ -194,7 +198,7 @@
               {{ $t('attribute_type') }}
             </strong>
           </Col>
-          <Col span="10" style="margin-left: 100px" offset="1">
+          <Col span="10" style="margin-left: 122px" offset="1">
             <strong style="font-size: 15px">{{ $t('attribute') }}</strong>
           </Col>
         </Row>
@@ -229,12 +233,7 @@
                   </Col>
                   <Col span="1" offset="0">
                     <FormItem :label-width="0">
-                      <Select
-                        v-model="param.multiple"
-                        filterable
-                        style="width: 50px"
-                        :disabled="currentPluginObj.status === 'ENABLED'"
-                      >
+                      <Select v-model="param.multiple" filterable style="width: 70px" disabled>
                         <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
                           item.label
                         }}</Option>
@@ -246,7 +245,7 @@
                       <Select
                         v-model="param.sensitiveData"
                         filterable
-                        style="width: 50px"
+                        style="width: 70px"
                         :disabled="currentPluginObj.status === 'ENABLED'"
                       >
                         <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
@@ -315,7 +314,7 @@
                         />
                       </span>
                       <span v-if="param.mappingType === 'entity'">
-                        <div style="width: 50%; display: inline-block; vertical-align: top">
+                        <div style="width: 100%; display: inline-block; vertical-align: top">
                           <FilterRulesRef
                             v-model="param.mappingEntityExpression"
                             :disabled="currentPluginObj.status === 'ENABLED'"
@@ -344,7 +343,6 @@
               <Col span="2">
                 <FormItem :label-width="0">
                   <span>{{ $t('output_params') }}</span>
-                  <Button @click="addOutputParams" size="small" icon="ios-add"></Button>
                 </FormItem>
               </Col>
               <Col span="22" offset="0">
@@ -376,12 +374,7 @@
                     </Col>
                     <Col span="1" offset="0">
                       <FormItem :label-width="0">
-                        <Select
-                          v-model="outPut.multiple"
-                          filterable
-                          style="width: 50px"
-                          :disabled="currentPluginObj.status === 'ENABLED'"
-                        >
+                        <Select v-model="outPut.multiple" filterable style="width: 70px" disabled>
                           <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
                             item.label
                           }}</Option>
@@ -393,7 +386,7 @@
                         <Select
                           filterable
                           v-model="outPut.sensitiveData"
-                          style="width: 50px"
+                          style="width: 70px"
                           :disabled="currentPluginObj.status === 'ENABLED'"
                         >
                           <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
@@ -427,14 +420,49 @@
                     </Col>
                   </template>
                   <template v-else>
-                    <Col span="5">
+                    <Col span="3">
                       <FormItem :label-width="0">
                         <span v-if="outPut.required === 'Y'" style="color: red; vertical-align: text-bottom">*</span>
-                        <!-- <Button @click="removeOutputParams(index)" size="small" icon="ios-trash"></Button> -->
-                        <Input v-model="outPut.name" placeholder="key" :disabled="outPut.id !== ''" />
+                        <Icon
+                          type="ios-remove-circle-outline"
+                          style="position: absolute; left: -30px; top: 8px; cursor: pointer"
+                          size="18"
+                          color="red"
+                          @click="removeOutputParams(index)"
+                          v-if="currentPluginObj.status !== 'ENABLED'"
+                        />
+                        <Input
+                          v-model="outPut.name"
+                          placeholder="key"
+                          style="width: 80%"
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                        />
                       </FormItem>
                     </Col>
-                    <Col span="6" offset="1">
+                    <Col span="2" offset="0">
+                      <FormItem :label-width="0">
+                        <span>{{ outPut.dataType }}</span>
+                      </FormItem>
+                    </Col>
+                    <Col span="1" offset="0">
+                      <FormItem :label-width="0">
+                        <Select v-model="outPut.multiple" filterable style="width: 70px" disabled>
+                          <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                            item.label
+                          }}</Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                    <Col span="1" offset="1">
+                      <FormItem :label-width="0">
+                        <Select filterable v-model="outPut.sensitiveData" style="width: 70px" disabled>
+                          <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                            item.label
+                          }}</Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                    <Col span="3" offset="1">
                       <FormItem :label-width="0">
                         <span v-if="outPut.required === 'Y'" style="color: red; vertical-align: text-bottom">*</span>
                         <Input
@@ -460,6 +488,16 @@
                     </Col>
                   </template>
                 </Row>
+                <Tooltip :content="$t('be_add_custom_parameters')" placement="bottom-end">
+                  <Icon
+                    type="ios-add-circle-outline"
+                    style="position: relative; right: 30px; cursor: pointer"
+                    size="18"
+                    color="green"
+                    @click="addOutputParams"
+                    v-if="currentPluginObj.status !== 'ENABLED'"
+                  />
+                </Tooltip>
               </Col>
             </Row>
           </Form>
@@ -778,7 +816,14 @@ export default {
       })
     },
     removeOutputParams (index) {
-      this.currentInter.outputParameters.splice(index, 1)
+      this.$Modal.confirm({
+        title: this.$t('confirm_to_delete'),
+        content: name,
+        onOk: async () => {
+          this.currentInter.outputParameters.splice(index, 1)
+        },
+        onCancel: () => {}
+      })
     },
     addOutputParams () {
       const assginOutput = this.currentInter.outputParameters.filter(item => item.mappingType === 'assign')
@@ -1297,5 +1342,10 @@ export default {
     background-color: rgb(226, 222, 222);
     margin-bottom: 5px;
   }
+}
+
+/* 隐藏 Tooltip 的箭头 */
+.ivu-tooltip-rel .ivu-tooltip-popper .ivu-tooltip-arrow {
+  display: none !important;
 }
 </style>
