@@ -374,7 +374,7 @@ export default {
                   this.$refs.itemInfoNodeRef.showItemInfo(
                     model,
                     false,
-                    this.procDef.rootEntity,
+                    this.procDef.rootEntity.split('{')[0], // 禁止向节点传递过滤条件
                     this.editFlow,
                     this.permissionToRole
                   )
@@ -589,13 +589,12 @@ export default {
           }
         }
         // 异常节点只能连入
-        if (targertNodeType === 'decision') {
-          if (!['human'].includes(sourceNodeType)) {
-            // this.$Message.warning('判断节点只能被[人工节点]连入！')
-            this.$Message.warning(`${this.$t('decisionNodetip1')}`)
-            return
-          }
-        }
+        // if (targertNodeType === 'decision') {
+        //   if (!['human'].includes(sourceNodeType)) {
+        //     this.$Message.warning(`${this.$t('decisionNodetip1')}`)
+        //     return
+        //   }
+        // }
 
         if (['data', 'human', 'automatic', 'date', 'timeInterval'].includes(sourceNodeType)) {
           const outEdges = source.getOutEdges()
@@ -755,7 +754,7 @@ export default {
         this.$refs.itemInfoNodeRef.showItemInfo(
           model,
           true,
-          this.procDef.rootEntity,
+          this.procDef.rootEntity.split('{')[0], // 禁止向节点传递过滤条件
           this.editFlow,
           this.permissionToRole
         )

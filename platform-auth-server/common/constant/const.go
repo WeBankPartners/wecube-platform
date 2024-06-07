@@ -17,6 +17,7 @@ const (
 	UriTaskLogin          = "/v1/api/taskLogin"
 	UriUsersRegister      = "/v1/users/register"
 	UriListApplyByApplier = "/v1/roles/apply/byapplier"
+	UriApplyByApplier     = "/v1/roles/apply/byhandler"
 	UriRoles              = "/v1/roles"
 	UriHealthCheck        = "/v1/health-check"
 
@@ -32,4 +33,15 @@ const (
 	DefaultJwtSigningKey = "Platform+Auth+Server+Secret"
 
 	DateTimeFormat = "2006-01-02 15:04:05"
+)
+
+// UserRolePermissionStatus 用户角色权限状态
+type UserRolePermissionStatus string
+
+const (
+	UserRolePermissionStatusExpire    UserRolePermissionStatus = "expire"     // 已过期
+	UserRolePermissionStatusForever   UserRolePermissionStatus = "forever"    // 永久
+	UserRolePermissionStatusPreExpire UserRolePermissionStatus = "preExpired" // 将要过期
+	UserRolePermissionStatusInEffect  UserRolePermissionStatus = "inEffect"   // 生效中
+	UserRolePermissionStatusDeleted   UserRolePermissionStatus = "deleted"    // 已删除
 )

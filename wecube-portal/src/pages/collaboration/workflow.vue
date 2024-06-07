@@ -2,8 +2,7 @@
   <div class="root">
     <div>
       <Button type="success" class="btn-right" @click="create">
-        <Icon type="ios-add-circle-outline" size="16"></Icon>
-        {{ $t('create') }}
+        {{ $t('full_word_add') }}
       </Button>
       <Upload
         action="platform/v1/process/definitions/import"
@@ -396,7 +395,7 @@ export default {
                 <Tooltip content={this.$t('view')} placement="top">
                   <Button
                     size="small"
-                    type="primary"
+                    type="info"
                     onClick={() => this.viewAction(params.row)}
                     style="margin-right:5px;"
                   >
@@ -408,7 +407,7 @@ export default {
                   <Tooltip content={this.$t('copy')} placement="top">
                     <Button
                       size="small"
-                      type="info"
+                      type="success"
                       onClick={() => this.copyAction(params.row)}
                       style="margin-right:5px;"
                     >
@@ -424,12 +423,12 @@ export default {
                   >
                     <Button
                       size="small"
-                      type="success"
+                      type="primary"
                       disabled={!params.row.enableCreated}
                       onClick={() => this.copyToEditAction(params.row)}
                       style="margin-right:5px;"
                     >
-                      <Icon type="ios-create-outline" size="16"></Icon>
+                      <Icon type="md-create" size="16"></Icon>
                     </Button>
                   </Tooltip>
                 )}
@@ -437,11 +436,11 @@ export default {
                   <Tooltip content={this.$t('edit')} placement="top">
                     <Button
                       size="small"
-                      type="success"
+                      type="primary"
                       onClick={() => this.editAction(params.row)}
                       style="margin-right:5px;"
                     >
-                      <Icon type="ios-create-outline" size="16"></Icon>
+                      <Icon type="md-create" size="16"></Icon>
                     </Button>
                   </Tooltip>
                 )}
