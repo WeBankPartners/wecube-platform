@@ -19,7 +19,7 @@ export default {
         this.comps.forEach(c => {
           c.deleteFalg = false
           for (let menu of menues) {
-            if (c.code === menu.code && menu.submenus.length === 0) {
+            if (c.code === menu.code) {
               c.deleteFalg = true
             }
           }
