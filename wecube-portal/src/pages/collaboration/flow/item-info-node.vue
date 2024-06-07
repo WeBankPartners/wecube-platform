@@ -146,9 +146,14 @@
                     }}</Option>
                   </Select>
                 </FormItem>
-                <FormItem v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)">
+                <FormItem
+                  v-if="
+                    ['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType) &&
+                    [1].includes(itemCustomInfo.customAttrs.dynamicBind)
+                  "
+                >
                   <label slot="label">
-                    <span style="color: red" v-if="itemCustomInfo.customAttrs.dynamicBind === 2">*</span>
+                    <span style="color: red" v-if="itemCustomInfo.customAttrs.dynamicBind === 1">*</span>
                     {{ $t('bind_node') }}
                   </label>
                   <Select
@@ -157,7 +162,7 @@
                     @on-open-change="getAssociatedNodes"
                     clearable
                     filterable
-                    :disabled="[0, 1].includes(itemCustomInfo.customAttrs.dynamicBind)"
+                    :disabled="[0, 2].includes(itemCustomInfo.customAttrs.dynamicBind)"
                   >
                     <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{
                       i.nodeName
@@ -165,7 +170,7 @@
                   </Select>
                   <span
                     v-if="
-                      [2].includes(itemCustomInfo.customAttrs.dynamicBind) &&
+                      [1].includes(itemCustomInfo.customAttrs.dynamicBind) &&
                       itemCustomInfo.customAttrs.bindNodeId === ''
                     "
                     style="color: red"
@@ -174,7 +179,7 @@
                 </FormItem>
                 <FormItem>
                   <label slot="label">
-                    <span style="color: red" v-if="!itemCustomInfo.customAttrs.dynamicBind">*</span>
+                    <span style="color: red">*</span>
                     {{ $t('locate_rules') }}
                   </label>
                   <template v-if="itemCustomInfo.customAttrs.routineExpression === ''">
@@ -185,7 +190,7 @@
                       :isBatch="itemCustomInfo.customAttrs.nodeType === 'data'"
                       ref="filterRulesGroupRef"
                       @filterRuleChanged="singleFilterRuleChanged"
-                      :disabled="[2].includes(itemCustomInfo.customAttrs.dynamicBind)"
+                      :disabled="[1].includes(itemCustomInfo.customAttrs.dynamicBind)"
                       :routineExpression="itemCustomInfo.customAttrs.routineExpression || currentSelectedEntity"
                       :allEntityType="allEntityType"
                       :currentSelectedEntity="currentSelectedEntity"
@@ -425,11 +430,11 @@ export default {
         },
         {
           label: this.$t('during_runtime'),
-          value: 1
+          value: 2
         },
         {
           label: this.$t('dynamic_bind'),
-          value: 2
+          value: 1
         }
       ]
     }
@@ -537,7 +542,7 @@ export default {
         }
       }
       if (['human', 'automatic'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
-        if (this.itemCustomInfo.customAttrs.dynamicBind === 2) {
+        if (this.itemCustomInfo.customAttrs.dynamicBind === 1) {
           if (this.itemCustomInfo.customAttrs.bindNodeId === '') {
             res = true
           }
