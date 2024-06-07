@@ -915,6 +915,7 @@ func (UserManagementService) RegisterUmUser(param *model.RoleApplyParam, curUser
 			roleApplyEntity := &model.RoleApplyEntity{
 				Id:          roleApply.Id,
 				UpdatedBy:   curUser,
+				CreatedTime: now,
 				UpdatedTime: now,
 			}
 			if param.ExpireTime != "" {
@@ -931,6 +932,7 @@ func (UserManagementService) RegisterUmUser(param *model.RoleApplyParam, curUser
 			Id:          utils.Uuid(),
 			CreatedBy:   param.UserName,
 			CreatedTime: now,
+			UpdatedTime: now,
 			EmailAddr:   param.EmailAddr,
 			RoleId:      roleId,
 			Status:      model.RoleApplyStatusInit,
@@ -950,7 +952,7 @@ func (UserManagementService) RegisterUmUser(param *model.RoleApplyParam, curUser
 				_, err = session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id})
 			} else {
 				// 过期时间传递为空,需要更新 db expire_time设置为空
-				_, err = session.Exec("update auth_sys_role_apply set created_time = ?,expire_time = null where id=?", roleApply.CreatedTime, roleApply.Id)
+				_, err = session.Exec("update auth_sys_role_apply set created_time = ?,updated_time=?,expire_time = null where id=?", now.Format(constant.DateTimeFormat), now.Format(constant.DateTimeFormat), roleApply.Id)
 			}
 			if err != nil {
 				return nil, err
@@ -1028,6 +1030,7 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 		} else {
 			roleApplyEntity := &model.RoleApplyEntity{
 				Id:          roleApply.Id,
+				CreatedTime: now,
 				UpdatedTime: now,
 				UpdatedBy:   curUser,
 			}
@@ -1045,6 +1048,7 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 			Id:          utils.Uuid(),
 			CreatedBy:   param.UserName,
 			CreatedTime: now,
+			UpdatedTime: now,
 			EmailAddr:   param.EmailAddr,
 			RoleId:      roleId,
 			Status:      model.RoleApplyStatusInit,
@@ -1064,7 +1068,7 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 				_, err = session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id})
 			} else {
 				// 过期时间传递为空,需要更新 db expire_time设置为空
-				_, err = session.Exec("update auth_sys_role_apply set created_time = ?,expire_time = null where id=?", roleApply.CreatedTime, roleApply.Id)
+				_, err = session.Exec("update auth_sys_role_apply set created_time = ?,updated_time=?,expire_time = null where id=?", now.Format(constant.DateTimeFormat), now.Format(constant.DateTimeFormat), roleApply.Id)
 			}
 			if err != nil {
 				return nil, err
