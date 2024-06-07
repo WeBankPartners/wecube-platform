@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
@@ -278,14 +279,17 @@ func (UserManagementService) ConfigureUserWithRoles(userId string, roleDtos []*m
 			continue
 		} else {
 			userRole := &model.UserRoleRsEntity{
-				Id:        utils.Uuid(),
-				CreatedBy: curUser,
-				UserId:    userId,
-				Username:  user.Username,
-				RoleId:    role.Id,
-				RoleName:  role.Name,
-				Active:    true,
-				Deleted:   false,
+				Id:          utils.Uuid(),
+				CreatedBy:   curUser,
+				UpdatedBy:   curUser,
+				UserId:      userId,
+				Username:    user.Username,
+				RoleId:      role.Id,
+				RoleName:    role.Name,
+				Active:      true,
+				Deleted:     false,
+				CreatedTime: time.Now(),
+				UpdatedTime: time.Now(),
 			}
 			affected, err := session.Insert(userRole)
 			if err != nil || affected == 0 {
@@ -439,16 +443,23 @@ func (UserManagementService) ConfigureRoleForUsers(roleId string, userDtos []*mo
 			continue
 		} else {
 			userRole = &model.UserRoleRsEntity{
-				Id:        utils.Uuid(),
-				CreatedBy: curUser,
-				UserId:    userDto.ID,
-				Username:  user.Username,
-				RoleId:    roleId,
-				RoleName:  role.Name,
-				Active:    true,
-				Deleted:   false,
+				Id:          utils.Uuid(),
+				CreatedBy:   curUser,
+				UpdatedBy:   curUser,
+				CreatedTime: time.Now(),
+				UpdatedTime: time.Now(),
+				Active:      true,
+				Deleted:     false,
+				UserId:      userDto.ID,
+				Username:    user.Username,
+				RoleId:      roleId,
+				RoleName:    role.Name,
+				NotifyCount: 0,
 			}
-
+			if strings.TrimSpace(userDto.ExpireTime) != "" {
+				expireTime, _ := time.ParseInLocation(constant.DateTimeFormat, userDto.ExpireTime, time.Local)
+				userRole.ExpireTime = expireTime
+			}
 			affected, err := session.Insert(userRole)
 			if err != nil || affected == 0 {
 				if err != nil {
@@ -572,6 +583,10 @@ func (UserManagementService) GetLocalUsersByRoleId(roleId string) ([]*model.Simp
 		}
 
 		userDto := convertToSimpleLocalUserDto(user, "")
+		userDto.Status = model.CalcUserRolePermissionStatus(userRole)
+		if userRole.ExpireTime.Unix() > 0 {
+			userDto.ExpireTime = userRole.ExpireTime.Format(constant.DateTimeFormat)
+		}
 		result = append(result, userDto)
 	}
 
@@ -897,10 +912,15 @@ func (UserManagementService) RegisterUmUser(param *model.RoleApplyParam, curUser
 		if roleApply, ok := existRoleApplyMap[roleId]; !ok {
 			insertRoleIds = append(insertRoleIds, roleId)
 		} else {
-			updateRoleApplys = append(updateRoleApplys, &model.RoleApplyEntity{
+			roleApplyEntity := &model.RoleApplyEntity{
 				Id:          roleApply.Id,
-				CreatedTime: now,
-			})
+				UpdatedBy:   curUser,
+				UpdatedTime: now,
+			}
+			if param.ExpireTime != "" {
+				roleApplyEntity.ExpireTime, _ = time.ParseInLocation(constant.DateTimeFormat, param.ExpireTime, time.Local)
+			}
+			updateRoleApplys = append(updateRoleApplys, roleApplyEntity)
 		}
 	}
 
@@ -915,6 +935,9 @@ func (UserManagementService) RegisterUmUser(param *model.RoleApplyParam, curUser
 			RoleId:      roleId,
 			Status:      model.RoleApplyStatusInit,
 		}
+		if param.ExpireTime != "" {
+			insertRoleApplys[i].ExpireTime, _ = time.ParseInLocation(constant.DateTimeFormat, param.ExpireTime, time.Local)
+		}
 	}
 
 	// 执行db操作
@@ -923,7 +946,13 @@ func (UserManagementService) RegisterUmUser(param *model.RoleApplyParam, curUser
 	}
 	_, err = db.Engine.Transaction(func(session *xorm.Session) (interface{}, error) {
 		for _, roleApply := range updateRoleApplys {
-			if _, err := session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id}); err != nil {
+			if param.ExpireTime != "" {
+				_, err = session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id})
+			} else {
+				// 过期时间传递为空,需要更新 db expire_time设置为空
+				_, err = session.Exec("update auth_sys_role_apply set created_time = ?,expire_time = null where id=?", roleApply.CreatedTime, roleApply.Id)
+			}
+			if err != nil {
 				return nil, err
 			}
 		}
@@ -974,9 +1003,16 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 		log.Logger.Warn("failed to FindAllByUserId for userRoleRs", log.String("userId", user.Id), log.Error(err))
 		return err
 	}
+	// 已有角色已过期,需要删除已有角色
 	existUserRoleMap := make(map[string]*model.UserRoleRsEntity)
 	for _, userRole := range userRoles {
-		existUserRoleMap[userRole.RoleId] = userRole
+		if userRole.ExpireTime.Unix() > 0 && userRole.ExpireTime.Before(time.Now()) {
+			if _, err = db.Engine.Exec("update auth_sys_user_role set is_deleted = 1,updated_time = ? where id = ?", time.Now().Format(constant.DateTimeFormat), userRole.Id); err != nil {
+				log.Logger.Error("update auth_sys_user_role error", log.Error(err))
+			}
+		} else {
+			existUserRoleMap[userRole.RoleId] = userRole
+		}
 	}
 
 	// 已申请的更新下时间
@@ -990,10 +1026,15 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 		if roleApply, ok := existRoleApplyMap[roleId]; !ok {
 			insertRoleIds = append(insertRoleIds, roleId)
 		} else {
-			updateRoleApplys = append(updateRoleApplys, &model.RoleApplyEntity{
+			roleApplyEntity := &model.RoleApplyEntity{
 				Id:          roleApply.Id,
-				CreatedTime: now,
-			})
+				UpdatedTime: now,
+				UpdatedBy:   curUser,
+			}
+			if param.ExpireTime != "" {
+				roleApplyEntity.ExpireTime, _ = time.ParseInLocation(constant.DateTimeFormat, param.ExpireTime, time.Local)
+			}
+			updateRoleApplys = append(updateRoleApplys, roleApplyEntity)
 		}
 	}
 
@@ -1008,6 +1049,9 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 			RoleId:      roleId,
 			Status:      model.RoleApplyStatusInit,
 		}
+		if param.ExpireTime != "" {
+			insertRoleApplys[i].ExpireTime, _ = time.ParseInLocation(constant.DateTimeFormat, param.ExpireTime, time.Local)
+		}
 	}
 
 	// 执行db操作
@@ -1016,12 +1060,18 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 	}
 	_, err = db.Engine.Transaction(func(session *xorm.Session) (interface{}, error) {
 		for _, roleApply := range updateRoleApplys {
-			if _, err := session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id}); err != nil {
+			if param.ExpireTime != "" {
+				_, err = session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id})
+			} else {
+				// 过期时间传递为空,需要更新 db expire_time设置为空
+				_, err = session.Exec("update auth_sys_role_apply set created_time = ?,expire_time = null where id=?", roleApply.CreatedTime, roleApply.Id)
+			}
+			if err != nil {
 				return nil, err
 			}
 		}
 		if len(insertRoleApplys) > 0 {
-			if _, err = db.Engine.Insert(insertRoleApplys); err != nil {
+			if _, err = session.Insert(insertRoleApplys); err != nil {
 				return nil, err
 			}
 		}
@@ -1092,6 +1142,9 @@ func (UserManagementService) ListRoleApply(ctx context.Context, param *model.Que
 				content.Role = convertToSimpleLocalRoleDto(role)
 			}
 		}
+		if content.Status == model.RoleApplyStatusApprove {
+			content.Status = model.CalcUserRolePermissionStatusByApplyInfo(content)
+		}
 	}
 	return result, err
 }
@@ -1125,6 +1178,13 @@ func (UserManagementService) ListRoleApplyByApplier(ctx context.Context, param *
 			}
 			if role != nil {
 				content.Role = convertToSimpleLocalRoleDto(role)
+			}
+		}
+		if content.Status == model.RoleApplyStatusApprove {
+			content.Status = model.CalcUserRolePermissionStatusByApplyInfo(content)
+			// 删除状态
+			if param.Ext == string(constant.UserRolePermissionStatusDeleted) {
+				content.Status = string(constant.UserRolePermissionStatusDeleted)
 			}
 		}
 	}
@@ -1242,11 +1302,13 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 							UpdatedBy:   curUser,
 							CreatedTime: now,
 							UpdatedTime: now,
+							Active:      true,
 							UserId:      userId,
 							Username:    roleApply.CreatedBy,
 							RoleId:      roleApply.RoleId,
 							RoleName:    role.Name,
-							Active:      true,
+							ExpireTime:  roleApply.ExpireTime,
+							RoleApply:   &roleApply.Id,
 						}
 						insertUserRoles = append(insertUserRoles, userRole)
 					}
@@ -1277,5 +1339,14 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 		}
 		return nil, nil
 	})
+	return err
+}
+
+func (UserManagementService) DeleteRoleApply(applyId string) error {
+	var err error
+	if _, err = db.Engine.Exec("update auth_sys_user_role set role_apply = null where role_apply = ?", applyId); err != nil {
+		return err
+	}
+	_, err = db.Engine.Exec("delete from auth_sys_role_apply where id = ?", applyId)
 	return err
 }
