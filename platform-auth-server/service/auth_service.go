@@ -418,7 +418,7 @@ func checkAuthentication(user *model.SysUser, credential *model.CredentialDto) e
 
 func GetUmAuthContext(username string) (string, error) {
 	// 生成token
-	accessToken, _, err := buildAccessToken(username, []string{}, []string{}, false)
+	accessToken, _, err := buildAccessToken(username, []string{}, []string{"ADMIN_SYSTEM_PARAMS"}, false)
 	if err != nil {
 		return "", err
 	}
