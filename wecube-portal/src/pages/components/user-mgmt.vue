@@ -75,14 +75,18 @@
                       v-model="pendingUser"
                       multiple
                       filterable
+                      filter-by-label
                       @on-open-change="getPendingUserOptions"
                       style="width: 250px"
                       :max-tag-count="2"
                       :placeholder="$t('user')"
                     >
-                      <Option v-for="item in pendingUserOptions" :value="item.id" :key="item.id">{{
-                        item.username
-                      }}</Option>
+                      <Option
+                        v-for="item in pendingUserOptions"
+                        :value="item.id"
+                        :key="item.id"
+                        :label="item.username"
+                      />
                     </Select>
                   </FormItem>
                   <FormItem>
@@ -221,8 +225,8 @@ export default {
           }
         },
         {
-          title: this.$t('be_application_time'),
-          key: 'createdTime'
+          title: this.$t('be_processing_time'),
+          key: 'updatedTime'
         },
         {
           title: this.$t('role_invalidDate'),
