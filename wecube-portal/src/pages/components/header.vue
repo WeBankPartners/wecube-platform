@@ -13,7 +13,7 @@
             </MenuItem>
 
             <Submenu v-else :name="menu.code">
-              <template slot="title" style="font-size: 16px">{{ menu.title }}</template>
+              <template slot="title">{{ menu.title }}</template>
               <router-link
                 v-for="submenu in menu.submenus"
                 :key="submenu.code"
