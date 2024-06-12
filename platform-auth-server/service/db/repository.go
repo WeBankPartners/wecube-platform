@@ -246,18 +246,15 @@ func (UserRoleRsRepository) FindOneByUserIdAndRoleId(userId string, roleId strin
 		session = Engine.NewSession()
 		defer session.Close()
 	}
-
-	userRoleRs := &model.UserRoleRsEntity{}
-	found, err := session.Where("user_id = ?", userId).And("role_id = ?", roleId).And("is_deleted = ?", false).Get(userRoleRs)
+	var list []*model.UserRoleRsEntity
+	err := session.Where("user_id = ?", userId).And("role_id = ?", roleId).And("is_deleted = ?", false).Find(&list)
 	if err != nil {
 		return nil, err
 	}
-
-	if found {
-		return userRoleRs, nil
-	} else {
-		return nil, nil
+	if len(list) > 0 {
+		return list[0], nil
 	}
+	return nil, nil
 }
 
 var RoleApplyRepositoryInstance RoleApplyRepository
