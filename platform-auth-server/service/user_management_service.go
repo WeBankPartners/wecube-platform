@@ -262,7 +262,6 @@ func (UserManagementService) ConfigureUserWithRoles(userId string, roleDtos []*m
 			continue
 		}
 		foundUserRoles := findFromUserRoles(existUserRoles, role.Id)
-		// remainUserRoles = append(remainUserRoles, foundUserRoles...)
 		for _, userRole := range foundUserRoles {
 			remainUserRoleMap[userRole.Id] = "1"
 		}
@@ -1243,7 +1242,6 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 		}
 		// 进行处理
 		if status, ok := statusMap[roleApply.Id]; ok {
-			deleteUserRoleMap[roleApply.RoleId] = roleApply.CreatedBy
 			// 审批
 			updateRoleApplys = append(updateRoleApplys, &model.RoleApplyEntity{
 				Id:          roleApply.Id,
@@ -1286,31 +1284,33 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 					if err != nil {
 						return err
 					}
-					if userRole == nil {
-						role, ok := cachedRolesMap[roleApply.RoleId]
-						if !ok {
-							role, err = db.RoleRepositoryInstance.FindNotDeletedRolesById(roleApply.RoleId)
-							if err != nil {
-								return err
-							}
-							cachedRolesMap[roleApply.RoleId] = role
-						}
-						userRole = &model.UserRoleRsEntity{
-							Id:          utils.Uuid(),
-							CreatedBy:   curUser,
-							UpdatedBy:   curUser,
-							CreatedTime: now,
-							UpdatedTime: now,
-							Active:      true,
-							UserId:      userId,
-							Username:    roleApply.CreatedBy,
-							RoleId:      roleApply.RoleId,
-							RoleName:    role.Name,
-							ExpireTime:  roleApply.ExpireTime,
-							RoleApply:   &roleApply.Id,
-						}
-						insertUserRoles = append(insertUserRoles, userRole)
+					if userRole != nil {
+						// 角色和用户已有绑定关系,需要删除已有绑定关系
+						deleteUserRoleMap[roleApply.RoleId] = userId
 					}
+					role, ok := cachedRolesMap[roleApply.RoleId]
+					if !ok {
+						role, err = db.RoleRepositoryInstance.FindNotDeletedRolesById(roleApply.RoleId)
+						if err != nil {
+							return err
+						}
+						cachedRolesMap[roleApply.RoleId] = role
+					}
+					userRole = &model.UserRoleRsEntity{
+						Id:          utils.Uuid(),
+						CreatedBy:   curUser,
+						UpdatedBy:   curUser,
+						CreatedTime: now,
+						UpdatedTime: now,
+						Active:      true,
+						UserId:      userId,
+						Username:    roleApply.CreatedBy,
+						RoleId:      roleApply.RoleId,
+						RoleName:    role.Name,
+						ExpireTime:  roleApply.ExpireTime,
+						RoleApply:   &roleApply.Id,
+					}
+					insertUserRoles = append(insertUserRoles, userRole)
 				}
 			}
 		}
