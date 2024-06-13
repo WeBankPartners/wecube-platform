@@ -1328,8 +1328,8 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 		}
 		// 更新 用户和角色历史关系,设置为失效
 		if len(deleteUserRoleMap) > 0 {
-			for roleId, username := range deleteUserRoleMap {
-				if _, err := session.Exec("update auth_sys_user_role set is_deleted = 1 where role_id = ? and username = ?", roleId, username); err != nil {
+			for roleId, userId := range deleteUserRoleMap {
+				if _, err := session.Exec("update auth_sys_user_role set is_deleted = 1 where role_id = ? and user_id = ?", roleId, userId); err != nil {
 					return nil, err
 				}
 			}
