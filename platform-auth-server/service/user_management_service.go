@@ -262,7 +262,6 @@ func (UserManagementService) ConfigureUserWithRoles(userId string, roleDtos []*m
 			continue
 		}
 		foundUserRoles := findFromUserRoles(existUserRoles, role.Id)
-		// remainUserRoles = append(remainUserRoles, foundUserRoles...)
 		for _, userRole := range foundUserRoles {
 			remainUserRoleMap[userRole.Id] = "1"
 		}
@@ -1006,14 +1005,11 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 		return err
 	}
 	// 已有角色已过期,需要删除已有角色
-	existUserRoleMap := make(map[string]*model.UserRoleRsEntity)
 	for _, userRole := range userRoles {
 		if userRole.ExpireTime.Unix() > 0 && userRole.ExpireTime.Before(time.Now()) {
 			if _, err = db.Engine.Exec("update auth_sys_user_role set is_deleted = 1,updated_time = ? where id = ?", time.Now().Format(constant.DateTimeFormat), userRole.Id); err != nil {
 				log.Logger.Error("update auth_sys_user_role error", log.Error(err))
 			}
-		} else {
-			existUserRoleMap[userRole.RoleId] = userRole
 		}
 	}
 
@@ -1022,9 +1018,6 @@ func (UserManagementService) CreateRoleApply(param *model.RoleApplyParam, curUse
 	insertRoleIds := make([]string, 0, len(param.RoleIds))
 	now := time.Now()
 	for _, roleId := range param.RoleIds {
-		if _, ok := existUserRoleMap[roleId]; ok {
-			return fmt.Errorf("you already have roleId: %s", roleId)
-		}
 		if roleApply, ok := existRoleApplyMap[roleId]; !ok {
 			insertRoleIds = append(insertRoleIds, roleId)
 		} else {
@@ -1237,6 +1230,7 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 	insertUsersMap := make(map[string]string)
 	insertUserRoles := make([]*model.UserRoleRsEntity, 0, len(roleApplys))
 	insertUserRolesMap := make(map[string]any)
+	deleteUserRoleMap := make(map[string]string)
 	cachedRolesMap := make(map[string]*model.SysRoleEntity)
 	now := time.Now()
 	for _, roleApply := range roleApplys {
@@ -1246,7 +1240,6 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 		if _, ok := adminRoleIdMap[roleApply.RoleId]; !ok {
 			return fmt.Errorf("apply %s role administrator not you", roleApply.Id)
 		}
-
 		// 进行处理
 		if status, ok := statusMap[roleApply.Id]; ok {
 			// 审批
@@ -1291,31 +1284,33 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 					if err != nil {
 						return err
 					}
-					if userRole == nil {
-						role, ok := cachedRolesMap[roleApply.RoleId]
-						if !ok {
-							role, err = db.RoleRepositoryInstance.FindNotDeletedRolesById(roleApply.RoleId)
-							if err != nil {
-								return err
-							}
-							cachedRolesMap[roleApply.RoleId] = role
-						}
-						userRole = &model.UserRoleRsEntity{
-							Id:          utils.Uuid(),
-							CreatedBy:   curUser,
-							UpdatedBy:   curUser,
-							CreatedTime: now,
-							UpdatedTime: now,
-							Active:      true,
-							UserId:      userId,
-							Username:    roleApply.CreatedBy,
-							RoleId:      roleApply.RoleId,
-							RoleName:    role.Name,
-							ExpireTime:  roleApply.ExpireTime,
-							RoleApply:   &roleApply.Id,
-						}
-						insertUserRoles = append(insertUserRoles, userRole)
+					if userRole != nil {
+						// 角色和用户已有绑定关系,需要删除已有绑定关系
+						deleteUserRoleMap[roleApply.RoleId] = userId
 					}
+					role, ok := cachedRolesMap[roleApply.RoleId]
+					if !ok {
+						role, err = db.RoleRepositoryInstance.FindNotDeletedRolesById(roleApply.RoleId)
+						if err != nil {
+							return err
+						}
+						cachedRolesMap[roleApply.RoleId] = role
+					}
+					userRole = &model.UserRoleRsEntity{
+						Id:          utils.Uuid(),
+						CreatedBy:   curUser,
+						UpdatedBy:   curUser,
+						CreatedTime: now,
+						UpdatedTime: now,
+						Active:      true,
+						UserId:      userId,
+						Username:    roleApply.CreatedBy,
+						RoleId:      roleApply.RoleId,
+						RoleName:    role.Name,
+						ExpireTime:  roleApply.ExpireTime,
+						RoleApply:   &roleApply.Id,
+					}
+					insertUserRoles = append(insertUserRoles, userRole)
 				}
 			}
 		}
@@ -1329,6 +1324,14 @@ func (UserManagementService) UpdateRoleApply(param []*model.RoleApplyDto, curUse
 		for _, roleApply := range updateRoleApplys {
 			if _, err := session.Update(roleApply, &model.RoleApplyEntity{Id: roleApply.Id}); err != nil {
 				return nil, err
+			}
+		}
+		// 更新 用户和角色历史关系,设置为失效
+		if len(deleteUserRoleMap) > 0 {
+			for roleId, userId := range deleteUserRoleMap {
+				if _, err := session.Exec("update auth_sys_user_role set is_deleted = 1 where role_id = ? and user_id = ?", roleId, userId); err != nil {
+					return nil, err
+				}
 			}
 		}
 		if len(insertUsers) > 0 {
