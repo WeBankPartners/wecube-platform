@@ -58,3 +58,10 @@ image_portal: build_portal
 push_portal: image_portal
 	docker tag  wecube-portal:$(version) $(tencent_cloud_docker_image_registry)/wecube-portal:$(version)
 	docker push $(tencent_cloud_docker_image_registry)/wecube-portal:$(version)
+
+image_db:
+	sh build/db/build-image.sh $(version)
+
+push_db: image_db
+	docker tag  wecube-db:$(version) $(tencent_cloud_docker_image_registry)/mysql:$(version)
+	docker push $(tencent_cloud_docker_image_registry)/mysql:$(version)
