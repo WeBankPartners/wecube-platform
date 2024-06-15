@@ -25,6 +25,10 @@ for i in `ls -1 ../../platform-auth-server/deploy/database/*.sql`; do
      CONTENTS=`cat $i`
      echo $CONTENTS >> ./database/000001_create_database.sql
 done
+for i in `ls -1 ../../platform-auth-server/deploy/db/upgrade/*.sql`; do
+     CONTENTS=`cat $i`
+     echo $CONTENTS >> ./database/000001_create_database.sql
+done
 
 docker build -t wecube-db:$VERSION .
 rm -rf database
