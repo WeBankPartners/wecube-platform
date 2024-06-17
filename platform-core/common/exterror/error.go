@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 )
@@ -134,6 +135,9 @@ func New() (et ErrorTemplate) {
 }
 
 func Catch(customErr CustomError, err error) CustomError {
+	if err != nil {
+		fmt.Printf("time:%s catch error:%s \n", time.Now().Format(time.RFC3339), err.Error())
+	}
 	customErr.DetailErr = err
 	return customErr
 }

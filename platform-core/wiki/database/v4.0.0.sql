@@ -51,7 +51,7 @@ CREATE TABLE `proc_def_node_param` (
        `param_id` varchar(64) DEFAULT NULL COMMENT '关联参数配置id',
        `name` varchar(255) NOT NULL COMMENT '参数名',
        `bind_type` varchar(16) DEFAULT NULL COMMENT '参数类型->context(上下文) | constant(静态值)',
-       `value` varchar(255) DEFAULT NULL COMMENT '参数值',
+       `value` varchar(1024) DEFAULT NULL COMMENT '参数值',
        `ctx_bind_node` varchar(64) DEFAULT NULL COMMENT '上下文节点',
        `ctx_bind_type` varchar(16) DEFAULT NULL COMMENT '上下文出入参->input(入参) | output(出参)',
        `ctx_bind_name` varchar(255) DEFAULT NULL COMMENT '上下文参数名',

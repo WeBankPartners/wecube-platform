@@ -210,6 +210,7 @@ func CreateProcPreview(ctx context.Context, previewRows []*models.ProcDataPrevie
 		}})
 	}
 	if err = db.Transaction(actions, ctx); err != nil {
+		log.Logger.Error("CreateProcPreview fail", log.Error(err))
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
@@ -432,6 +433,7 @@ func UpdateProcNodeBindingData(ctx context.Context, param []*models.TaskNodeBind
 		actions = append(actions, &db.ExecAction{Sql: "update proc_data_preview set is_bound=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{boundFlag, operator, nowTime, v.Id}})
 	}
 	if err = db.Transaction(actions, ctx); err != nil {
+		log.Logger.Error("UpdateProcNodeBindingData fail", log.Error(err))
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
@@ -459,6 +461,7 @@ func UpdateProcInsNodeBindingData(ctx context.Context, param []*models.TaskNodeB
 		actions = append(actions, &db.ExecAction{Sql: "update proc_data_binding set bind_flag=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{boundFlag, operator, nowTime, v.Id}})
 	}
 	if err = db.Transaction(actions, ctx); err != nil {
+		log.Logger.Error("UpdateProcInsNodeBindingData fail", log.Error(err))
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
@@ -699,6 +702,7 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 		workLinks = append(workLinks, &workLinkObj)
 	}
 	if err = db.Transaction(actions, ctx); err != nil {
+		log.Logger.Error("CreateProcInstance fail", log.Error(err))
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
@@ -828,6 +832,7 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 		workLinks = append(workLinks, &workLinkObj)
 	}
 	if err = db.Transaction(actions, ctx); err != nil {
+		log.Logger.Error("CreatePublicProcInstance fail", log.Error(err))
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
@@ -1056,6 +1061,9 @@ func UpdateDynamicNodeBindData(ctx context.Context, procInsId, procInsNodeId, pr
 		}})
 	}
 	err = db.Transaction(actions, ctx)
+	if err != nil {
+		log.Logger.Error("UpdateDynamicNodeBindData fail", log.Error(err))
+	}
 	return
 }
 
@@ -1088,6 +1096,7 @@ func AddProcCacheData(ctx context.Context, procInsId string, dataBinding []*mode
 	if len(actions) > 0 {
 		err = db.Transaction(actions, ctx)
 		if err != nil {
+			log.Logger.Error("AddProcCacheData fail", log.Error(err))
 			err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		}
 	}
@@ -1211,6 +1220,7 @@ func RecordProcCallReq(ctx context.Context, param *models.ProcInsNodeReq, inputF
 	}
 	err = db.Transaction(actions, ctx)
 	if err != nil {
+		log.Logger.Error("RecordProcCallReq fail", log.Error(err))
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
@@ -1461,6 +1471,7 @@ func UpdateProcCacheData(ctx context.Context, procInsId string, taskFormList []*
 	if len(actions) > 0 {
 		err = db.Transaction(actions, ctx)
 		if err != nil {
+			log.Logger.Error("UpdateProcCacheData fail", log.Error(err))
 			err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		}
 	}
@@ -1537,6 +1548,7 @@ func RewriteProcInsEntityDataNew(ctx context.Context, procInsId string, rewriteD
 	if len(actions) > 0 {
 		err = db.Transaction(actions, ctx)
 		if err != nil {
+			log.Logger.Error("RewriteProcInsEntityDataNew fail", log.Error(err))
 			err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		}
 	}
