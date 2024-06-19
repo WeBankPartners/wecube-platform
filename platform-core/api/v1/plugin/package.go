@@ -164,7 +164,7 @@ func UploadPackage(c *gin.Context) {
 				menuCodeList = append(menuCodeList, v.Code)
 			}
 			if len(menuCodeList) > 0 {
-				updateRoleErr := updateRoleMenuWithPackage(c.GetHeader(middleware.AcceptLanguageHeader), registerConfig.Authorities.Authority.SystemRoleName, menuCodeList)
+				updateRoleErr := updateRoleMenuWithPackage(c, registerConfig.Authorities.Authority.SystemRoleName, menuCodeList)
 				if updateRoleErr != nil {
 					log.Logger.Error("updateRoleMenuWithPackage fail", log.String("pluginPackageId", pluginPackageId), log.Error(updateRoleErr))
 				} else {
@@ -177,7 +177,8 @@ func UploadPackage(c *gin.Context) {
 	}
 }
 
-func updateRoleMenuWithPackage(language, roleName string, menuCodeList []string) (err error) {
+func updateRoleMenuWithPackage(ctx *gin.Context, roleName string, menuCodeList []string) (err error) {
+	language := ctx.GetHeader(middleware.AcceptLanguageHeader)
 	respData, getRolesErr := remote.RetrieveAllLocalRoles("Y", remote.GetToken(), language, false)
 	if getRolesErr != nil {
 		err = fmt.Errorf("get all roles fail,%s ", getRolesErr.Error())
@@ -201,6 +202,17 @@ func updateRoleMenuWithPackage(language, roleName string, menuCodeList []string)
 	err = remote.ConfigureRoleWithAuthoritiesById(roleId, remote.GetToken(), language, needAddAuthoritiesToGrantList)
 	if err != nil {
 		err = fmt.Errorf("ConfigureRoleWithAuthoritiesById fail,%s ", err.Error())
+	} else {
+		for _, code := range menuCodeList {
+			roleMenu := models.RoleMenu{
+				Id:       guid.CreateGuid(),
+				RoleName: roleName,
+				MenuCode: code,
+			}
+			if err = database.AddRoleMenu(ctx, roleMenu); err != nil {
+				break
+			}
+		}
 	}
 	return
 }
