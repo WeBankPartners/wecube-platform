@@ -69,7 +69,34 @@ let router = new Router({
         {
           path: '/implementation/workflow-execution',
           name: 'workflowExecution',
-          component: () => import('@/pages/implementation/workflow-execution')
+          redirect: '/implementation/workflow-execution/normal-template',
+          component: () => import('@/pages/implementation/workflow-execution/index'),
+          children: [
+            // 普通执行-模板选择
+            {
+              path: '/implementation/workflow-execution/normal-template',
+              name: 'template',
+              component: () => import('@/pages/implementation/workflow-execution/normal-execution/template')
+            },
+            // 普通执行-历史
+            {
+              path: '/implementation/workflow-execution/normal-history',
+              name: 'history',
+              component: () => import('@/pages/implementation/workflow-execution/normal-execution/history')
+            },
+            // 定时执行-新建
+            {
+              path: '/implementation/workflow-execution/time-create',
+              name: 'history',
+              component: () => import('@/pages/implementation/workflow-execution/time-execution/create')
+            },
+            // 定时执行-历史
+            {
+              path: '/implementation/workflow-execution/time-history',
+              name: 'history',
+              component: () => import('@/pages/implementation/workflow-execution/time-execution/history')
+            }
+          ]
         },
         {
           path: '/implementation/batch-execution',
