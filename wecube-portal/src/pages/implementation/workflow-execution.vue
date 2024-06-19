@@ -7,12 +7,15 @@
         <TabPane :label="$t('execution_history')" name="execution_history"></TabPane>
         <TabPane :label="$t('bc_history_record')" name="enquery_new_workflow_job"></TabPane>
       </Tabs>
+      <!--定时执行-->
       <template v-if="currentTab === 'timed_execution'">
         <TimedExecution @jumpToHistory="jumpToHistory"></TimedExecution>
       </template>
+      <!--执行记录-->
       <template v-else-if="currentTab === 'execution_history'">
         <HistoryExecution @jumpToHistory="jumpToHistory"></HistoryExecution>
       </template>
+      <!--新建执行和历史详情-->
       <template v-else>
         <Row>
           <Col span="24">
@@ -187,7 +190,7 @@
         :data="modelDataWithFlowNodes"
         :span-method="modelDataHandleSpan"
       >
-        <template slot-scope="{ row, index }" slot="nodeTitle">
+        <template slot-scope="{ row }" slot="nodeTitle">
           <div style="margin-bottom: 5px" v-for="title in row.nodeTitle.split(';')" :key="title">
             {{ title }}
           </div>
@@ -213,7 +216,7 @@
         @on-select-all="allFlowNodesSelectAll"
         :span-method="flowNodeDataHandleSpan"
       >
-        <template slot-scope="{ row, index }" slot="orderedNo">
+        <template slot-scope="{ row }" slot="orderedNo">
           <span>{{ row.orderedNo + ' ' + row.nodeName }}</span>
         </template>
       </Table>
@@ -337,7 +340,7 @@
         :columns="targetModelColums.filter(col => !col.disabled)"
         :data="tartetModels"
       >
-        <template slot-scope="{ row, index }" slot="action">
+        <template slot-scope="{ row }" slot="action">
           <Tooltip
             placement="bottom"
             theme="light"
