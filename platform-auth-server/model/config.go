@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 )
 
 type DatabaseConfig struct {
@@ -130,6 +131,7 @@ func InitConfig(configFile string) (errMessage string) {
 				errMessage = "decrypt database password config fail," + err.Error()
 				return
 			}
+			c.Database.Password = strings.ReplaceAll(c.Database.Password, "\n", "")
 		} else {
 			fmt.Printf("raed private key:%s fail:%s ", c.PasswordPrivateKeyPath, readPriErr.Error())
 		}
