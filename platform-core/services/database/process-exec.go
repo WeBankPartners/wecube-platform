@@ -14,7 +14,9 @@ import (
 	"time"
 )
 
-func ProcDefList(ctx context.Context, includeDraft, permission, tag, plugin string, userRoles []string) (result []*models.ProcDefListObj, err error) {
+// ProcDefList
+// subProc -> all(全部) | main(主编排) | sub(子编排)
+func ProcDefList(ctx context.Context, includeDraft, permission, tag, plugin, subProc string, userRoles []string) (result []*models.ProcDefListObj, err error) {
 	var procDefRows []*models.ProcDef
 	baseSql := "select * from proc_def"
 	var filterSqlList []string
@@ -37,6 +39,11 @@ func ProcDefList(ctx context.Context, includeDraft, permission, tag, plugin stri
 	if plugin != "" {
 		filterSqlList = append(filterSqlList, "for_plugin like ?")
 		filterParams = append(filterParams, fmt.Sprintf("%%%s%%", plugin))
+	}
+	if subProc == "main" {
+		filterSqlList = append(filterSqlList, "sub_proc=0")
+	} else if subProc == "sub" {
+		filterSqlList = append(filterSqlList, "sub_proc=1")
 	}
 	if len(filterSqlList) > 0 {
 		baseSql += " where " + strings.Join(filterSqlList, " and ")

@@ -623,9 +623,9 @@ func InsertProcDefNode(ctx context.Context, node *models.ProcDefNode) (err error
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node(id,node_id,proc_def_id,name,description,status,node_type,service_name," +
 		"dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,time_config,ordered_no,ui_style,created_by,created_time," +
-		"updated_by,updated_time,allow_continue) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{node.Id, node.NodeId, node.ProcDefId, node.Name, node.Description,
+		"updated_by,updated_time,allow_continue,sub_proc_def_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{node.Id, node.NodeId, node.ProcDefId, node.Name, node.Description,
 		node.Status, node.NodeType, node.ServiceName, node.DynamicBind, node.BindNodeId, node.RiskCheck, node.RoutineExpression, node.ContextParamNodes,
-		node.Timeout, node.TimeConfig, node.OrderedNo, node.UiStyle, node.CreatedBy, node.CreatedTime.Format(models.DateTimeFormat), node.UpdatedBy, node.UpdatedTime.Format(models.DateTimeFormat), node.AllowContinue}})
+		node.Timeout, node.TimeConfig, node.OrderedNo, node.UiStyle, node.CreatedBy, node.CreatedTime.Format(models.DateTimeFormat), node.UpdatedBy, node.UpdatedTime.Format(models.DateTimeFormat), node.AllowContinue, node.SubProcDefId}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -945,6 +945,10 @@ func transProcDefNodeUpdateConditionToSQL(procDefNode *models.ProcDefNode) (sql 
 		sql = sql + ",ui_style=?"
 		params = append(params, procDefNode.UiStyle)
 	}
+	if procDefNode.SubProcDefId != "" {
+		sql = sql + ",sub_proc_def_id=?"
+		params = append(params, procDefNode.SubProcDefId)
+	}
 	if procDefNode.UpdatedBy != "" {
 		sql = sql + ",updated_by=?"
 		params = append(params, procDefNode.UpdatedBy)
@@ -1012,6 +1016,11 @@ func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where
 	}
 	if param.Scene != "" {
 		where = where + " and scene like '%" + param.Scene + "%'"
+	}
+	if param.SubProc {
+		where = where + " and sub_proc=1 "
+	} else {
+		where = where + " and sub_proc=0 "
 	}
 	if len(param.UserRoles) > 0 {
 		userRolesFilterSql, userRolesFilterParam := createListParams(param.UserRoles, "")

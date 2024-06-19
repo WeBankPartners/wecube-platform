@@ -56,6 +56,7 @@ type ProcDef struct {
 	UpdatedBy     string    `json:"updatedBy" xorm:"updated_by"`         // 更新人
 	UpdatedTime   time.Time `json:"updatedTime" xorm:"updated_time"`     // 更新时间
 	ManageRole    string    `json:"manageRole" xorm:"-"`                 // 属主
+	SubProc       bool      `json:"subProc" xorm:"sub_proc"`             // 是否子编排
 }
 
 type ProcDefNode struct {
@@ -77,6 +78,7 @@ type ProcDefNode struct {
 	OrderedNo         int       `json:"orderedNo" xorm:"ordered_no"`                  // 节点顺序
 	UiStyle           string    `json:"uiStyle" xorm:"ui_style"`                      // 前端样式
 	AllowContinue     bool      `json:"allowContinue" xorm:"allow_continue"`          // 允许跳过
+	SubProcDefId      string    `json:"subProcDefId" xorm:"sub_proc_def_id"`          // 子编排定义id
 	CreatedBy         string    `json:"createdBy" xorm:"created_by"`                  // 创建人
 	CreatedTime       time.Time `json:"createdTime" xorm:"created_time"`              // 创建时间
 	UpdatedBy         string    `json:"updatedBy" xorm:"updated_by"`                  // 更新人
@@ -140,6 +142,7 @@ type ProcessDefinitionParam struct {
 	ConflictCheck    bool             `json:"conflictCheck"`    // 冲突检测
 	RootEntity       string           `json:"rootEntity"`       // 根节点
 	PermissionToRole PermissionToRole `json:"permissionToRole"` // 角色
+	SubProc          bool             `json:"subProc"`          // 是否子编排
 }
 
 type CheckProcDefNameParam struct {
@@ -164,6 +167,7 @@ type QueryProcessDefinitionParam struct {
 	Scene            string   `json:"scene"`            // 使用场景
 	UserRoles        []string // 用户角色
 	LastVersion      bool     `json:"lastVersion"`
+	SubProc          bool     `json:"subProc"` // 是否子编排
 }
 
 type BatchUpdateProcDefPermission struct {
@@ -231,6 +235,7 @@ type ProcDefNodeCustomAttrs struct {
 	UpdatedBy         string              `json:"updatedBy" `        // 更新人
 	UpdatedTime       string              `json:"updatedTime" `      // 更新时间
 	AllowContinue     bool                `json:"allowContinue"`     // 允许跳过
+	SubProcDefId      string              `json:"subProcDefId"`      // 子编排定义id
 }
 
 type ProcDefNodeCustomAttrsDto struct {
@@ -303,26 +308,35 @@ type ProcDefNodeLinkCustomAttrs struct {
 }
 
 type ProcDefDto struct {
-	Id               string   `json:"id"`               // 唯一标识
-	Key              string   `json:"key"`              // 编排key
-	Name             string   `json:"name"`             // 编排名称
-	Version          string   `json:"version"`          // 版本
-	RootEntity       string   `json:"rootEntity"`       // 根节点
-	Status           string   `json:"status"`           // 状态
-	Tags             string   `json:"tags"`             // 标签
-	AuthPlugins      []string `json:"authPlugins"`      // 授权插件
-	Scene            string   `json:"scene"`            // 使用场景
-	ConflictCheck    bool     `json:"conflictCheck"`    // 冲突检测
-	CreatedBy        string   `json:"createdBy"`        // 创建人
-	CreatedTime      string   `json:"createdTime"`      // 创建时间
-	UpdatedBy        string   `json:"updatedBy"`        // 更新人
-	UpdatedTime      string   `json:"updatedTime"`      // 更新时间
-	EnableCreated    bool     `json:"enableCreated"`    // 能否创建新版本
-	EnableModifyName bool     `json:"enableModifyName"` // 能否修改名称
-	UseRoles         []string `json:"userRoles"`        // 使用角色
-	UseRolesDisplay  []string `json:"userRolesDisplay"` // 使用角色-显示名
-	MgmtRoles        []string `json:"mgmtRoles"`        // 管理角色
-	MgmtRolesDisplay []string `json:"mgmtRolesDisplay"` // 管理角色-显示名
+	Id                string                   `json:"id"`                // 唯一标识
+	Key               string                   `json:"key"`               // 编排key
+	Name              string                   `json:"name"`              // 编排名称
+	Version           string                   `json:"version"`           // 版本
+	RootEntity        string                   `json:"rootEntity"`        // 根节点
+	Status            string                   `json:"status"`            // 状态
+	Tags              string                   `json:"tags"`              // 标签
+	AuthPlugins       []string                 `json:"authPlugins"`       // 授权插件
+	Scene             string                   `json:"scene"`             // 使用场景
+	ConflictCheck     bool                     `json:"conflictCheck"`     // 冲突检测
+	CreatedBy         string                   `json:"createdBy"`         // 创建人
+	CreatedTime       string                   `json:"createdTime"`       // 创建时间
+	UpdatedBy         string                   `json:"updatedBy"`         // 更新人
+	UpdatedTime       string                   `json:"updatedTime"`       // 更新时间
+	EnableCreated     bool                     `json:"enableCreated"`     // 能否创建新版本
+	EnableModifyName  bool                     `json:"enableModifyName"`  // 能否修改名称
+	UseRoles          []string                 `json:"userRoles"`         // 使用角色
+	UseRolesDisplay   []string                 `json:"userRolesDisplay"`  // 使用角色-显示名
+	MgmtRoles         []string                 `json:"mgmtRoles"`         // 管理角色
+	MgmtRolesDisplay  []string                 `json:"mgmtRolesDisplay"`  // 管理角色-显示名
+	ParentProcDefList []*ProcDefParentListItem `json:"parentProcDefList"` // 父编排列表
+}
+
+type ProcDefParentListItem struct {
+	Id      string `json:"id"`      // 唯一标识
+	Key     string `json:"key"`     // 编排key
+	Name    string `json:"name"`    // 编排名称
+	Version string `json:"version"` // 版本
+	Status  string `json:"status"`  // 状态
 }
 
 type TimeConfigDto struct {
@@ -752,6 +766,7 @@ func ConvertParam2ProcDefNode(user string, param ProcDefNodeRequestParam) *ProcD
 		UpdatedBy:         user,
 		UpdatedTime:       now,
 		AllowContinue:     procDefNodeAttr.AllowContinue,
+		SubProcDefId:      procDefNodeAttr.SubProcDefId,
 	}
 	return node
 }
