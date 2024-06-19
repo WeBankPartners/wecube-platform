@@ -158,9 +158,51 @@ func UploadPackage(c *gin.Context) {
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
+		if registerConfig.Authorities.Authority.SystemRoleName != "" {
+			var menuCodeList []string
+			for _, v := range registerConfig.Authorities.Authority.Menu {
+				menuCodeList = append(menuCodeList, v.Code)
+			}
+			if len(menuCodeList) > 0 {
+				updateRoleErr := updateRoleMenuWithPackage(c.GetHeader(middleware.AcceptLanguageHeader), registerConfig.Authorities.Authority.SystemRoleName, menuCodeList)
+				if updateRoleErr != nil {
+					log.Logger.Error("updateRoleMenuWithPackage fail", log.String("pluginPackageId", pluginPackageId), log.Error(updateRoleErr))
+				} else {
+					log.Logger.Info("updateRoleMenuWithPackage done", log.String("pluginPackageId", pluginPackageId), log.StringList("menuCodeList", menuCodeList))
+				}
+			}
+		}
 		resultData := models.PackageIdRespData{Id: pluginPackageId}
 		middleware.ReturnData(c, resultData)
 	}
+}
+
+func updateRoleMenuWithPackage(language, roleName string, menuCodeList []string) (err error) {
+	respData, getRolesErr := remote.RetrieveAllLocalRoles("Y", remote.GetToken(), language, false)
+	if getRolesErr != nil {
+		err = fmt.Errorf("get all roles fail,%s ", getRolesErr.Error())
+		return
+	}
+	var roleId string
+	for _, v := range respData.Data {
+		if v.Name == roleName {
+			roleId = v.ID
+			break
+		}
+	}
+	if roleId == "" {
+		err = fmt.Errorf("can not find role id with name:%s ", roleName)
+		return
+	}
+	var needAddAuthoritiesToGrantList []*models.SimpleAuthorityDto
+	for _, v := range menuCodeList {
+		needAddAuthoritiesToGrantList = append(needAddAuthoritiesToGrantList, &models.SimpleAuthorityDto{Code: v})
+	}
+	err = remote.ConfigureRoleWithAuthoritiesById(roleId, remote.GetToken(), language, needAddAuthoritiesToGrantList)
+	if err != nil {
+		err = fmt.Errorf("ConfigureRoleWithAuthoritiesById fail,%s ", err.Error())
+	}
+	return
 }
 
 // ListOnliePackage 获取在线插件列表
