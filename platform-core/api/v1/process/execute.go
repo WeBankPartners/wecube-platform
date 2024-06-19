@@ -22,14 +22,18 @@ func ProcDefList(c *gin.Context) {
 	permission := c.Query("permission")     // USE | MGMT
 	tag := c.Query("tag")
 	plugin := c.Query("plugin")
+	subProc := c.Query("subProc")
 	if includeDraft == "" {
 		includeDraft = "0"
 	}
 	if permission == "" {
 		permission = "USE"
 	}
+	if subProc == "" {
+		subProc = "main"
+	}
 	log.Logger.Debug("procDefList", log.String("includeDraft", includeDraft), log.String(permission, "permission"), log.String("tag", tag), log.StringList("roleList", middleware.GetRequestRoles(c)))
-	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, middleware.GetRequestRoles(c))
+	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, subProc, middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -42,14 +46,18 @@ func PublicProcDefList(c *gin.Context) {
 	tag := c.Query("tag")
 	plugin := c.Query("plugin")
 	withAll := c.Query("all")
+	subProc := c.Query("subProc")
 	if permission == "" {
 		permission = "USE"
 	}
 	if withAll == "" {
 		withAll = "N"
 	}
+	if subProc == "" {
+		subProc = "main"
+	}
 	log.Logger.Debug("public procDefList", log.String(permission, "permission"), log.String("tag", tag))
-	procList, err := database.ProcDefList(c, "0", permission, tag, plugin, middleware.GetRequestRoles(c))
+	procList, err := database.ProcDefList(c, "0", permission, tag, plugin, subProc, middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
