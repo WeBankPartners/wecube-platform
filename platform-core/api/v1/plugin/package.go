@@ -153,11 +153,13 @@ func UploadPackage(c *gin.Context) {
 	if registerConfig.Edition == "enterprise" {
 		enterprise = true
 	}
-	err = database.UploadPackage(c, &registerConfig, withUi, enterprise, "")
+	var pluginPackageId string
+	pluginPackageId, err = database.UploadPackage(c, &registerConfig, withUi, enterprise, "")
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
-		middleware.ReturnSuccess(c)
+		resultData := models.PackageIdRespData{Id: pluginPackageId}
+		middleware.ReturnData(c, resultData)
 	}
 }
 
@@ -333,7 +335,7 @@ func doUploadPackage(c context.Context, archiveFilePath string) (pluginPkgId str
 	}
 	// 写数据库
 	pkgId := "plugin_" + guid.CreateGuid()
-	err = database.UploadPackage(c, &registerConfig, withUi, false, pkgId)
+	_, err = database.UploadPackage(c, &registerConfig, withUi, false, pkgId)
 	if err != nil {
 		return
 	}
@@ -523,7 +525,7 @@ func RegisterPackage(c *gin.Context) {
 	if err = database.RegisterPlugin(c, pluginPackageObj.Name, pluginPackageObj.Version); err != nil {
 		middleware.ReturnError(c, err)
 	} else {
-		middleware.ReturnSuccess(c)
+		middleware.ReturnData(c, models.PackageIdRespData{Id: pluginPackageId})
 	}
 }
 
