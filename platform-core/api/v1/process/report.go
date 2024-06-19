@@ -24,14 +24,18 @@ func StatisticsProDefList(c *gin.Context) {
 	permission := c.Query("permission")     // USE | MGMT
 	tag := c.Query("tag")
 	plugin := c.Query("plugin")
+	subProc := c.Query("subProc")
 	if includeDraft == "" {
 		includeDraft = "0"
 	}
 	if permission == "" {
 		permission = "USE"
 	}
+	if subProc == "" {
+		subProc = "main"
+	}
 	log.Logger.Debug("procDefList", log.String("includeDraft", includeDraft), log.String("permission", permission), log.String("tag", tag), log.StringList("roleList", middleware.GetRequestRoles(c)))
-	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, middleware.GetRequestRoles(c))
+	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, subProc, middleware.GetRequestRoles(c))
 	mergeProcDefNameAndVersion(result)
 	if err != nil {
 		middleware.ReturnError(c, err)
