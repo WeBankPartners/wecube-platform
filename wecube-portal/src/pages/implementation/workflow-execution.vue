@@ -325,7 +325,6 @@
       :ok-text="$t('submit')"
       class="model_target"
       width="50"
-      @on-ok="targetModelConfirm"
     >
       <Input v-model="tableFilterParam" placeholder="displayName filter" style="width: 300px; margin-bottom: 8px" />
       {{ catchNodeTableList.length }}
@@ -361,7 +360,9 @@
           $t('be_dynamic_binding_warning')
         }}</span>
         <Button @click="targetModalVisible = false">{{ $t('cancel') }}</Button>
-        <Button type="primary" :disabled="isNodeCanBindData" @click="targetModelConfirm">{{ $t('submit') }}</Button>
+        <Button type="primary" :disabled="isNodeCanBindData" @click="targetModelConfirm(false)">{{
+          $t('submit')
+        }}</Button>
       </div>
     </Modal>
     <Modal v-model="showNodeDetail" :fullscreen="nodeDetailFullscreen" width="1000" :styles="{ top: '50px' }">
