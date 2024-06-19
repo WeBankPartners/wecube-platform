@@ -30,11 +30,12 @@
                 @on-open-change="getApplyRoles"
                 multiple
                 filterable
+                filter-by-label
                 :max-tag-count="3"
                 style="width: 300px; margin-right: 24px"
                 :placeholder="$t('be_apply_roles')"
               >
-                <Option v-for="role in roleList" :value="role.id" :key="role.id">{{ role.displayName }}</Option>
+                <Option v-for="role in roleList" :value="role.id" :key="role.id" :label="role.displayName" />
               </Select>
             </FormItem>
             <FormItem :label="$t('role_invalidDate')">
@@ -156,8 +157,8 @@ export default {
             return (
               <div style={this.getExpireStyle(params.row)}>
                 <span>{this.getExpireTips(params.row)}</span>
-                {['preExpired', 'expire'].includes(params.row.status) &&
-                  !['pending', 'deny', 'deleted'].includes(this.activeTab) && (
+                {['expire'].includes(params.row.status) &&
+                  !['pending', 'inEffect', 'deny', 'deleted'].includes(this.activeTab) && (
                   <Icon
                     type="md-time"
                     size="24"
