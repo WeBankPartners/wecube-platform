@@ -130,20 +130,24 @@ func InitConfig(configFile string) (errMessage string) {
 				errMessage = "decrypt database password config fail," + err.Error()
 				return
 			}
+			c.Database.Password = strings.ReplaceAll(c.Database.Password, "\n", "")
 			if c.S3.SecretKey, err = cipher.DecryptRsa(c.S3.SecretKey, string(privateBytes)); err != nil {
 				errMessage = "decrypt s3 secretKey config fail," + err.Error()
 				return
 			}
+			c.S3.SecretKey = strings.ReplaceAll(c.S3.SecretKey, "\n", "")
 			for i, staticResourceObj := range c.StaticResources {
 				if c.StaticResources[i].Password, err = cipher.DecryptRsa(staticResourceObj.Password, string(privateBytes)); err != nil {
 					errMessage = "decrypt static resource password config fail," + err.Error()
 					return
 				}
+				c.StaticResources[i].Password = strings.ReplaceAll(c.StaticResources[i].Password, "\n", "")
 			}
 			if c.Plugin.ResourcePasswordSeed, err = cipher.DecryptRsa(c.Plugin.ResourcePasswordSeed, string(privateBytes)); err != nil {
 				errMessage = "decrypt public resource password seed config fail," + err.Error()
 				return
 			}
+			c.Plugin.ResourcePasswordSeed = strings.ReplaceAll(c.Plugin.ResourcePasswordSeed, "\n", "")
 		} else {
 			fmt.Printf("raed private key:%s fail:%s ", c.PasswordPrivateKeyPath, readPriErr.Error())
 		}
