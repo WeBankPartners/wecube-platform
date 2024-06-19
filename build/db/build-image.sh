@@ -19,9 +19,13 @@ for i in `ls -1 ../../platform-core/wiki/database/*.sql`; do
 done
 
 echo "SET NAMES utf8;" > ./database/000001_create_database.sql
-echo "create database auth charset = utf8;" >> ./database/000001_create_database.sql
-echo "use auth;" >> ./database/000001_create_database.sql
+echo "create database auth_server charset = utf8;" >> ./database/000001_create_database.sql
+echo "use auth_server;" >> ./database/000001_create_database.sql
 for i in `ls -1 ../../platform-auth-server/deploy/database/*.sql`; do
+     CONTENTS=`cat $i`
+     echo $CONTENTS >> ./database/000001_create_database.sql
+done
+for i in `ls -1 ../../platform-auth-server/deploy/db/upgrade/*.sql`; do
      CONTENTS=`cat $i`
      echo $CONTENTS >> ./database/000001_create_database.sql
 done
