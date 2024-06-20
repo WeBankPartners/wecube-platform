@@ -116,6 +116,7 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 			ConflictCheck: param.ConflictCheck,
 			UpdatedBy:     middleware.GetRequestUser(c),
 			UpdatedTime:   time.Now(),
+			SubProc:       param.SubProc,
 		}
 		nodeList, err = database.GetProcDefNodeById(c, param.Id)
 		if err != nil {
