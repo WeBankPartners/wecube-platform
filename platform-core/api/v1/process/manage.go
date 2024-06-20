@@ -1580,3 +1580,18 @@ func checkRootEntityEquals(originEntity, targetEntity string) bool {
 	}
 	return origin == target
 }
+
+func GetProcDefParentList(c *gin.Context) {
+	procDefId := c.Param("proc-def-id")
+	var param models.PageInfo
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	result, err := database.GetProcDefParentList(c, procDefId, &param)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
