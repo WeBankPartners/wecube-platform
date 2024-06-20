@@ -15,7 +15,7 @@ func StartCornJob() {
 }
 
 func startNotifyCronJob() {
-	t := time.NewTicker(time.Hour).C
+	t := time.NewTicker(30 * time.Minute).C
 	for {
 		<-t
 		go notifyAction()
