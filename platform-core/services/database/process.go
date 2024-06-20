@@ -1038,9 +1038,9 @@ func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where
 	if param.Scene != "" {
 		where = where + " and scene like '%" + param.Scene + "%'"
 	}
-	if param.SubProc {
+	if param.SubProc == "main" {
 		where = where + " and sub_proc=1 "
-	} else {
+	} else if param.SubProc == "sub" {
 		where = where + " and sub_proc=0 "
 	}
 	if len(param.UserRoles) > 0 {
