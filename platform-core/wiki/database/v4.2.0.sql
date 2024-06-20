@@ -4,3 +4,12 @@ alter table proc_data_preview add column sub_session_id varchar(64) default null
 alter table proc_data_binding add column sub_proc_ins_id varchar(64) default null comment '子编排实例id';
 alter table proc_ins add column parent_ins_node_id varchar(64) default null comment '父编排实例节点id';
 alter table proc_run_workflow add column parent_run_node_id varchar(64) default null comment '父运行实例节点id';
+
+CREATE TABLE `proc_run_node_sub_proc` (
+      `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增id',
+      `proc_run_node_id` varchar(64) NOT NULL COMMENT '任务节点id',
+      `workflow_id` varchar(64) NOT NULL COMMENT '子工作流id',
+      `entity_type_id` varchar(64) NOT NULL COMMENT '绑定数据entity',
+      `entity_data_id` varchar(64) NOT NULL COMMENT '绑定数据id',
+      PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
