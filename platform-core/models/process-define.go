@@ -260,6 +260,7 @@ type ProcDefNodeCustomAttrsDto struct {
 	UpdatedBy         string              `json:"updatedBy" `        // 更新人
 	UpdatedTime       string              `json:"updatedTime" `      // 更新时间
 	AllowContinue     bool                `json:"allowContinue"`     // 允许跳过
+	SubProcDefId      string              `json:"subProcDefId"`      // 子编排定义id
 }
 
 type InterfaceParameterDto struct {
@@ -329,6 +330,7 @@ type ProcDefDto struct {
 	MgmtRoles         []string                 `json:"mgmtRoles"`         // 管理角色
 	MgmtRolesDisplay  []string                 `json:"mgmtRolesDisplay"`  // 管理角色-显示名
 	ParentProcDefList []*ProcDefParentListItem `json:"parentProcDefList"` // 父编排列表
+	SubProc           bool                     `json:"subProc"`           // 是否子编排
 }
 
 type ProcDefParentListItem struct {
@@ -502,6 +504,7 @@ func ConvertProcDef2Dto(procDef *ProcDef) *ProcDefDto {
 		CreatedTime:   procDef.CreatedTime.Format(DateTimeFormat),
 		UpdatedBy:     procDef.UpdatedBy,
 		UpdatedTime:   procDef.UpdatedTime.Format(DateTimeFormat),
+		SubProc:       procDef.SubProc,
 	}
 	return dto
 }
@@ -625,6 +628,7 @@ func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) 
 			UpdatedBy:         procDefNode.UpdatedBy,
 			UpdatedTime:       procDefNode.UpdatedTime.Format(DateTimeFormat),
 			AllowContinue:     procDefNode.AllowContinue,
+			SubProcDefId:      procDefNode.SubProcDefId,
 		},
 		NodeAttrs: procDefNode.UiStyle,
 	}
@@ -707,31 +711,35 @@ func BuildInterfaceParameterDto(p *PluginConfigInterfaceParameters) *InterfacePa
 	}
 }
 
-func BuildProcDefDto(procDef *ProcDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay []string, enableCreated bool) *ProcDefDto {
+func BuildProcDefDto(procDef *ProcDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay []string, enableCreated bool, parentProcList []*ProcDefParentListItem) *ProcDefDto {
 	var authPlugins = make([]string, 0)
 	if len(procDef.ForPlugin) > 0 {
 		authPlugins = strings.Split(procDef.ForPlugin, ",")
 	}
+	if len(parentProcList) == 0 {
+		parentProcList = []*ProcDefParentListItem{}
+	}
 	return &ProcDefDto{
-		Id:               procDef.Id,
-		Key:              procDef.Key,
-		Name:             procDef.Name,
-		Version:          procDef.Version,
-		RootEntity:       procDef.RootEntity,
-		Status:           procDef.Status,
-		Tags:             procDef.Tags,
-		AuthPlugins:      authPlugins,
-		Scene:            procDef.Scene,
-		ConflictCheck:    procDef.ConflictCheck,
-		CreatedBy:        procDef.CreatedBy,
-		CreatedTime:      procDef.CreatedTime.Format(DateTimeFormat),
-		UpdatedBy:        procDef.UpdatedBy,
-		UpdatedTime:      procDef.UpdatedTime.Format(DateTimeFormat),
-		EnableCreated:    enableCreated,
-		UseRoles:         userRoles,
-		UseRolesDisplay:  userRolesDisplay,
-		MgmtRoles:        manageRoles,
-		MgmtRolesDisplay: manageRolesDisplay,
+		Id:                procDef.Id,
+		Key:               procDef.Key,
+		Name:              procDef.Name,
+		Version:           procDef.Version,
+		RootEntity:        procDef.RootEntity,
+		Status:            procDef.Status,
+		Tags:              procDef.Tags,
+		AuthPlugins:       authPlugins,
+		Scene:             procDef.Scene,
+		ConflictCheck:     procDef.ConflictCheck,
+		CreatedBy:         procDef.CreatedBy,
+		CreatedTime:       procDef.CreatedTime.Format(DateTimeFormat),
+		UpdatedBy:         procDef.UpdatedBy,
+		UpdatedTime:       procDef.UpdatedTime.Format(DateTimeFormat),
+		EnableCreated:     enableCreated,
+		UseRoles:          userRoles,
+		UseRolesDisplay:   userRolesDisplay,
+		MgmtRoles:         manageRoles,
+		MgmtRolesDisplay:  manageRolesDisplay,
+		ParentProcDefList: parentProcList,
 	}
 }
 
