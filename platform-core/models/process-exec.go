@@ -19,6 +19,9 @@ type ProcDefListObj struct {
 	Tags           string             `json:"tags"`
 	ExcludeMode    string             `json:"excludeMode"`
 	CreatedTime    string             `json:"createdTime"`
+	UpdatedTime    string             `json:"updatedTime"`
+	CreateUser     string             `json:"createUser"`
+	UpdateUser     string             `json:"updateUser"`
 	Scene          string             `json:"scene"`
 	FlowNodes      []*ProcDefFlowNode `json:"flowNodes"`
 	NodeLinks      []*ProcDefNodeLink `json:"nodeLinks"`
@@ -38,6 +41,9 @@ func (p *ProcDefListObj) Parse(input *ProcDef) {
 	if input.ConflictCheck {
 		p.ExcludeMode = "Y"
 	}
+	p.UpdatedTime = input.UpdatedTime.Format(DateTimeFormat)
+	p.CreateUser = input.CreatedBy
+	p.UpdateUser = input.UpdatedBy
 }
 
 type ProcDefFlowNode struct {
