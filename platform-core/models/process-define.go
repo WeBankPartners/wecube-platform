@@ -309,28 +309,27 @@ type ProcDefNodeLinkCustomAttrs struct {
 }
 
 type ProcDefDto struct {
-	Id                string                   `json:"id"`                // 唯一标识
-	Key               string                   `json:"key"`               // 编排key
-	Name              string                   `json:"name"`              // 编排名称
-	Version           string                   `json:"version"`           // 版本
-	RootEntity        string                   `json:"rootEntity"`        // 根节点
-	Status            string                   `json:"status"`            // 状态
-	Tags              string                   `json:"tags"`              // 标签
-	AuthPlugins       []string                 `json:"authPlugins"`       // 授权插件
-	Scene             string                   `json:"scene"`             // 使用场景
-	ConflictCheck     bool                     `json:"conflictCheck"`     // 冲突检测
-	CreatedBy         string                   `json:"createdBy"`         // 创建人
-	CreatedTime       string                   `json:"createdTime"`       // 创建时间
-	UpdatedBy         string                   `json:"updatedBy"`         // 更新人
-	UpdatedTime       string                   `json:"updatedTime"`       // 更新时间
-	EnableCreated     bool                     `json:"enableCreated"`     // 能否创建新版本
-	EnableModifyName  bool                     `json:"enableModifyName"`  // 能否修改名称
-	UseRoles          []string                 `json:"userRoles"`         // 使用角色
-	UseRolesDisplay   []string                 `json:"userRolesDisplay"`  // 使用角色-显示名
-	MgmtRoles         []string                 `json:"mgmtRoles"`         // 管理角色
-	MgmtRolesDisplay  []string                 `json:"mgmtRolesDisplay"`  // 管理角色-显示名
-	ParentProcDefList []*ProcDefParentListItem `json:"parentProcDefList"` // 父编排列表
-	SubProc           bool                     `json:"subProc"`           // 是否子编排
+	Id               string   `json:"id"`               // 唯一标识
+	Key              string   `json:"key"`              // 编排key
+	Name             string   `json:"name"`             // 编排名称
+	Version          string   `json:"version"`          // 版本
+	RootEntity       string   `json:"rootEntity"`       // 根节点
+	Status           string   `json:"status"`           // 状态
+	Tags             string   `json:"tags"`             // 标签
+	AuthPlugins      []string `json:"authPlugins"`      // 授权插件
+	Scene            string   `json:"scene"`            // 使用场景
+	ConflictCheck    bool     `json:"conflictCheck"`    // 冲突检测
+	CreatedBy        string   `json:"createdBy"`        // 创建人
+	CreatedTime      string   `json:"createdTime"`      // 创建时间
+	UpdatedBy        string   `json:"updatedBy"`        // 更新人
+	UpdatedTime      string   `json:"updatedTime"`      // 更新时间
+	EnableCreated    bool     `json:"enableCreated"`    // 能否创建新版本
+	EnableModifyName bool     `json:"enableModifyName"` // 能否修改名称
+	UseRoles         []string `json:"userRoles"`        // 使用角色
+	UseRolesDisplay  []string `json:"userRolesDisplay"` // 使用角色-显示名
+	MgmtRoles        []string `json:"mgmtRoles"`        // 管理角色
+	MgmtRolesDisplay []string `json:"mgmtRolesDisplay"` // 管理角色-显示名
+	SubProc          bool     `json:"subProc"`          // 是否子编排
 }
 
 type ProcDefParentListItem struct {
@@ -711,35 +710,31 @@ func BuildInterfaceParameterDto(p *PluginConfigInterfaceParameters) *InterfacePa
 	}
 }
 
-func BuildProcDefDto(procDef *ProcDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay []string, enableCreated bool, parentProcList []*ProcDefParentListItem) *ProcDefDto {
+func BuildProcDefDto(procDef *ProcDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay []string, enableCreated bool) *ProcDefDto {
 	var authPlugins = make([]string, 0)
 	if len(procDef.ForPlugin) > 0 {
 		authPlugins = strings.Split(procDef.ForPlugin, ",")
 	}
-	if len(parentProcList) == 0 {
-		parentProcList = []*ProcDefParentListItem{}
-	}
 	return &ProcDefDto{
-		Id:                procDef.Id,
-		Key:               procDef.Key,
-		Name:              procDef.Name,
-		Version:           procDef.Version,
-		RootEntity:        procDef.RootEntity,
-		Status:            procDef.Status,
-		Tags:              procDef.Tags,
-		AuthPlugins:       authPlugins,
-		Scene:             procDef.Scene,
-		ConflictCheck:     procDef.ConflictCheck,
-		CreatedBy:         procDef.CreatedBy,
-		CreatedTime:       procDef.CreatedTime.Format(DateTimeFormat),
-		UpdatedBy:         procDef.UpdatedBy,
-		UpdatedTime:       procDef.UpdatedTime.Format(DateTimeFormat),
-		EnableCreated:     enableCreated,
-		UseRoles:          userRoles,
-		UseRolesDisplay:   userRolesDisplay,
-		MgmtRoles:         manageRoles,
-		MgmtRolesDisplay:  manageRolesDisplay,
-		ParentProcDefList: parentProcList,
+		Id:               procDef.Id,
+		Key:              procDef.Key,
+		Name:             procDef.Name,
+		Version:          procDef.Version,
+		RootEntity:       procDef.RootEntity,
+		Status:           procDef.Status,
+		Tags:             procDef.Tags,
+		AuthPlugins:      authPlugins,
+		Scene:            procDef.Scene,
+		ConflictCheck:    procDef.ConflictCheck,
+		CreatedBy:        procDef.CreatedBy,
+		CreatedTime:      procDef.CreatedTime.Format(DateTimeFormat),
+		UpdatedBy:        procDef.UpdatedBy,
+		UpdatedTime:      procDef.UpdatedTime.Format(DateTimeFormat),
+		EnableCreated:    enableCreated,
+		UseRoles:         userRoles,
+		UseRolesDisplay:  userRolesDisplay,
+		MgmtRoles:        manageRoles,
+		MgmtRolesDisplay: manageRolesDisplay,
 	}
 }
 
