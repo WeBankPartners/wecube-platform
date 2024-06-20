@@ -6,6 +6,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -70,27 +71,6 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 			}
 		}
 	}
-	parentProcMap, getErr := getProcDefNodeWithSubProcess(ctx)
-	if getErr != nil {
-		err = getErr
-		return
-	}
-	parentProcDefMap := make(map[string][]*models.ProcDefParentListItem)
-	if len(parentProcMap) > 0 {
-		procDefItemMap := make(map[string]*models.ProcDefParentListItem)
-		for _, procDef := range filterProcDefList {
-			procDefItemMap[procDef.Id] = &models.ProcDefParentListItem{Id: procDef.Id, Name: procDef.Name, Key: procDef.Key, Version: procDef.Version, Status: procDef.Status}
-		}
-		for k, procDefIds := range parentProcMap {
-			tmpItemList := []*models.ProcDefParentListItem{}
-			for _, v := range procDefIds {
-				if matchProcDefObj, ok := procDefItemMap[v]; ok {
-					tmpItemList = append(tmpItemList, matchProcDefObj)
-				}
-			}
-			parentProcDefMap[k] = tmpItemList
-		}
-	}
 	for _, procDef := range filterProcDefList {
 		if param.LastVersion {
 			if ver, ok := lastVersionMap[procDef.Key]; ok {
@@ -132,7 +112,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 				roleProcDefMap[manageRole] = make([]*models.ProcDefDto, 0)
 				allManageRoles = append(allManageRoles, manageRole)
 			}
-			roleProcDefMap[manageRole] = append(roleProcDefMap[manageRole], models.BuildProcDefDto(procDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay, enabledCreated, parentProcDefMap[procDef.Id]))
+			roleProcDefMap[manageRole] = append(roleProcDefMap[manageRole], models.BuildProcDefDto(procDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay, enabledCreated))
 		}
 	}
 	// 角色排序
@@ -1059,20 +1039,34 @@ func convertArray2Map(roles []string) map[string]bool {
 	return hashMap
 }
 
-func getProcDefNodeWithSubProcess(ctx context.Context) (parentProcDefMap map[string][]string, err error) {
-	parentProcDefMap = make(map[string][]string)
-	var procDefNodeRows []*models.ProcDefNode
-	err = db.MysqlEngine.Context(ctx).SQL("select proc_def_id,sub_proc_def_id from proc_def_node where sub_proc_def_id<>'' order by created_time desc").Find(&procDefNodeRows)
+func GetProcDefParentList(ctx context.Context, procDefId string, pageInfo *models.PageInfo) (parentProcDefList []*models.ProcDefParentListItem, err error) {
+	queryParam := []interface{}{procDefId}
+	countResultMap, countErr := db.MysqlEngine.Context(ctx).QueryString("select count(1) as num from proc_def where id in (select proc_def_id from proc_def_node where sub_proc_def_id=?)", procDefId)
+	if countErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, countErr)
+		return
+	}
+	if pageInfo.TotalRows, err = strconv.Atoi(countResultMap[0]["num"]); err != nil {
+		err = fmt.Errorf("count result:%v illegal", countResultMap)
+		return
+	}
+	pageSql, pageParam := transPageInfoToSQL(*pageInfo)
+	queryParam = append(queryParam, pageParam...)
+	var procDefRows []*models.ProcDef
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def where id in (select proc_def_id from proc_def_node where sub_proc_def_id=?) order by created_time desc "+pageSql, queryParam...).Find(&procDefRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
-	for _, row := range procDefNodeRows {
-		if existList, ok := parentProcDefMap[row.SubProcDefId]; ok {
-			parentProcDefMap[row.SubProcDefId] = append(existList, row.ProcDefId)
-		} else {
-			parentProcDefMap[row.SubProcDefId] = []string{row.ProcDefId}
-		}
+	parentProcDefList = []*models.ProcDefParentListItem{}
+	for _, row := range procDefRows {
+		parentProcDefList = append(parentProcDefList, &models.ProcDefParentListItem{
+			Id:      row.Id,
+			Key:     row.Key,
+			Name:    row.Name,
+			Version: row.Version,
+			Status:  row.Status,
+		})
 	}
 	return
 }
