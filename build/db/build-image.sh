@@ -7,38 +7,28 @@ fi
 cd `dirname $0`
 
 set -ex
-#cp -r ../../platform-core/src/main/resources/database  database
+
 mkdir -p database
-
-TEXT='use wecube;'
-
-cd database
-for i in `ls -1 ./*.wecube.*.sql`; do
-     CONTENTS=`cat $i`
-     echo "SET NAMES utf8;" > $i
-     echo $TEXT >> $i  
-     echo $CONTENTS >> $i
-done
-cd ../
 
 echo "SET NAMES utf8;" > ./database/000000_create_database.sql
 echo "create database wecube charset = utf8;" >> ./database/000000_create_database.sql
-
-# setup auth
-#cp ../../platform-auth-server/src/main/resources/database/*  database
-
-TEXT='use auth;'
-
-cd database
-for i in `ls -1 ./*.auth.*.sql`; do
+echo "use wecube;" >> ./database/000000_create_database.sql
+for i in `ls -1 ../../platform-core/wiki/database/*.sql`; do
      CONTENTS=`cat $i`
-     echo "SET NAMES utf8;" > $i
-     echo $TEXT >> $i  
-     echo $CONTENTS >> $i
+     echo $CONTENTS >> ./database/000000_create_database.sql
 done
-cd ../
 
-echo "create database auth charset = utf8;" >> ./database/000000_create_database.sql
+echo "SET NAMES utf8;" > ./database/000001_create_database.sql
+echo "create database auth_server charset = utf8;" >> ./database/000001_create_database.sql
+echo "use auth_server;" >> ./database/000001_create_database.sql
+for i in `ls -1 ../../platform-auth-server/deploy/database/*.sql`; do
+     CONTENTS=`cat $i`
+     echo $CONTENTS >> ./database/000001_create_database.sql
+done
+for i in `ls -1 ../../platform-auth-server/deploy/db/upgrade/*.sql`; do
+     CONTENTS=`cat $i`
+     echo $CONTENTS >> ./database/000001_create_database.sql
+done
 
 docker build -t wecube-db:$VERSION .
 rm -rf database

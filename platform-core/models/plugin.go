@@ -825,3 +825,7 @@ type PackagePluginsXML struct {
 		SystemParameter []SystemParameterXML `xml:"systemParameter" json:"systemParameter,omitempty"`
 	} `xml:"systemParameters" json:"systemParameters,omitempty"`
 }
+
+type PackageIdRespData struct {
+	Id string `json:"id"`
+}

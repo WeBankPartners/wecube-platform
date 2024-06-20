@@ -31,7 +31,7 @@ func (SubSystemInfoDataServiceImpl) retrieveSysSubSystemInfoWithSystemCode(syste
 		return nil, nil
 	}
 
-	grantedAuthorities := []string{constant.AuthoritySubsystem}
+	grantedAuthorities := []string{constant.AuthoritySubsystem, "ADMIN_SYSTEM_PARAMS"}
 
 	subSystemAuthorities, err := db.SubSystemAuthorityRsRepositoryInstance.FindAllBySubSystemId(subSystem.Id)
 	if err != nil {

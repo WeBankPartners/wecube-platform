@@ -145,11 +145,12 @@ func GetPluginRuntimeResources(ctx context.Context, pluginPackageId string) (res
 	return
 }
 
-func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, withUi, enterprise bool, pluginPackageId string) (err error) {
+func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, withUi, enterprise bool, pluginPackageId string) (resultPackageId string, err error) {
 	var actions []*db.ExecAction
 	if pluginPackageId == "" {
 		pluginPackageId = "plugin_" + guid.CreateGuid()
 	}
+	resultPackageId = pluginPackageId
 	nowTime := time.Now()
 	edition := models.PluginEditionCommunity
 	if enterprise {
