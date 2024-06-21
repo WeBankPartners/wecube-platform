@@ -452,6 +452,10 @@ func (n *WorkNode) start() {
 				log.Logger.Error("updateNodeInputData for decision job fail", log.Error(tmpErr))
 			}
 		}
+	case models.JobSubProcType:
+		n.Output, n.Err = n.doSubProcessJob(retryFlag)
+	case models.JobDecisionMergeType:
+		break
 	}
 	if n.Err == nil {
 		n.Status = models.JobStatusSuccess
@@ -594,6 +598,15 @@ func (n *WorkNode) doDateJob(recoverFlag bool) (output string, err error) {
 		case <-n.ContinueChan:
 			log.Logger.Info("date job continue before done", log.String("nodeId", n.Id))
 		}
+	}
+	return
+}
+
+func (n *WorkNode) doSubProcessJob(retry bool) (output string, err error) {
+	log.Logger.Info("do auto job", log.String("nodeId", n.Id), log.String("input", n.Input))
+	err = execution.DoWorkflowAutoJob(n.Ctx, n.Id, "", retry)
+	if err != nil {
+		log.Logger.Error("do auto job error", log.Error(err))
 	}
 	return
 }
