@@ -1592,6 +1592,7 @@ func GetProcDefParentList(c *gin.Context) {
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
-		middleware.ReturnData(c, result)
+		pageResult := models.ProcDefParentPageResult{Page: &param, Content: result}
+		middleware.ReturnData(c, pageResult)
 	}
 }
