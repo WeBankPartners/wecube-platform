@@ -61,6 +61,7 @@ type ProcDefFlowNode struct {
 	PreviousNodeIds   []string `json:"previousNodeIds"`
 	SucceedingNodeIds []string `json:"succeedingNodeIds"`
 	OrderedNo         string   `json:"orderedNo"`
+	SubProcDefId      string   `json:"subProcDefId"`
 }
 
 type ProcPreviewEntityNode struct {
