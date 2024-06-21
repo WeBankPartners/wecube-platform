@@ -114,7 +114,7 @@ func ProcDefOutline(ctx context.Context, procDefId string) (result *models.ProcD
 	result = &models.ProcDefListObj{}
 	result.Parse(procDefRows[0])
 	var procDefNodes []*models.ProcDefNode
-	err = db.MysqlEngine.Context(ctx).SQL("select id,node_id,proc_def_id,name,description,status,node_type,service_name,dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,ordered_no,time_config from proc_def_node where proc_def_id=? order by ordered_no", procDefId).Find(&procDefNodes)
+	err = db.MysqlEngine.Context(ctx).SQL("select id,node_id,proc_def_id,name,description,status,node_type,service_name,dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,ordered_no,time_config,sub_proc_def_id from proc_def_node where proc_def_id=? order by ordered_no", procDefId).Find(&procDefNodes)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -155,6 +155,7 @@ func ProcDefOutline(ctx context.Context, procDefId string) (result *models.ProcD
 			DynamicBind:       "N",
 			PreviousNodeIds:   []string{},
 			SucceedingNodeIds: []string{},
+			SubProcDefId:      node.SubProcDefId,
 		}
 		if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) {
 			nodeObj.OrderedNo = fmt.Sprintf("%d", orderIndex)
@@ -207,8 +208,8 @@ func GetSimpleProcInsRow(ctx context.Context, procInsId string) (result *models.
 func CreateProcPreview(ctx context.Context, previewRows []*models.ProcDataPreview, graphRows []*models.ProcInsGraphNode) (err error) {
 	var actions []*db.ExecAction
 	for _, v := range previewRows {
-		actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_preview(proc_def_id,proc_session_id,proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,ordered_no,bind_type,full_data_id,is_bound,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-			v.ProcDefId, v.ProcSessionId, v.ProcDefNodeId, v.EntityDataId, v.EntityDataName, v.EntityTypeId, v.OrderedNo, v.BindType, v.FullDataId, v.IsBound, v.CreatedBy, v.CreatedTime,
+		actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_preview(proc_def_id,proc_session_id,proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,ordered_no,bind_type,full_data_id,is_bound,created_by,created_time,sub_session_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			v.ProcDefId, v.ProcSessionId, v.ProcDefNodeId, v.EntityDataId, v.EntityDataName, v.EntityTypeId, v.OrderedNo, v.BindType, v.FullDataId, v.IsBound, v.CreatedBy, v.CreatedTime, v.SubSessionId,
 		}})
 	}
 	for _, v := range graphRows {
@@ -639,8 +640,8 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 	}
 	for _, row := range previewRows {
 		if row.BindType == "process" {
-			actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_binding(id,proc_def_id,proc_ins_id,entity_id,entity_data_id,entity_data_name,entity_type_id,bind_flag,bind_type,full_data_id,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-				fmt.Sprintf("p_bind_%d", row.Id), procDefObj.Id, procInsId, row.EntityDataId, row.EntityDataId, row.EntityDataName, row.EntityTypeId, row.IsBound, row.BindType, row.FullDataId, operator, nowTime,
+			actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_binding(id,proc_def_id,proc_ins_id,entity_id,entity_data_id,entity_data_name,entity_type_id,bind_flag,bind_type,full_data_id,sub_session_id,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+				fmt.Sprintf("p_bind_%d", row.Id), procDefObj.Id, procInsId, row.EntityDataId, row.EntityDataId, row.EntityDataName, row.EntityTypeId, row.IsBound, row.BindType, row.FullDataId, row.SubSessionId, operator, nowTime,
 			}})
 		}
 	}

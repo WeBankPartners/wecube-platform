@@ -168,6 +168,7 @@ type QueryProcessDefinitionParam struct {
 	UserRoles        []string // 用户角色
 	LastVersion      bool     `json:"lastVersion"`
 	SubProc          string   `json:"subProc"` // 是否子编排 -> all(全部编排) | main(主编排)  |  sub(子编排)
+	PermissionType   string   `json:"permissionType"`
 }
 
 type BatchUpdateProcDefPermission struct {
