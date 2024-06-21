@@ -884,7 +884,7 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 			continue
 		}
 		nodeExpressionList := []string{}
-		if node.NodeType == "data" {
+		if node.NodeType == models.JobDataType {
 			tmpExprObjList, tmpErr := database.GetProcDataNodeExpression(node.RoutineExpression)
 			if tmpErr != nil {
 				err = tmpErr
@@ -946,6 +946,15 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 					OrderedNo:      node.OrderedNo,
 					CreatedBy:      operator,
 					CreatedTime:    nowTime,
+				}
+				// 子编排试算
+				if node.NodeType == models.JobSubProcType && node.SubProcDefId != "" {
+					subPreviewResult, subPreviewErr := BuildProcPreviewData(c, node.SubProcDefId, tmpPreviewRow.EntityDataId, operator)
+					if subPreviewErr != nil {
+						err = fmt.Errorf("build sub process preview data fail,node:%s dataId:%s err:%s ", node.NodeName, tmpPreviewRow.EntityDataId, subPreviewErr.Error())
+						return
+					}
+					tmpPreviewRow.SubSessionId = subPreviewResult.ProcessSessionId
 				}
 				previewRows = append(previewRows, &tmpPreviewRow)
 			}
