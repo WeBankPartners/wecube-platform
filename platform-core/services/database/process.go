@@ -1019,14 +1019,18 @@ func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where
 		where = where + " and scene like '%" + param.Scene + "%'"
 	}
 	if param.SubProc == "main" {
-		where = where + " and sub_proc=1 "
-	} else if param.SubProc == "sub" {
 		where = where + " and sub_proc=0 "
+	} else if param.SubProc == "sub" {
+		where = where + " and sub_proc=1 "
 	}
 	if len(param.UserRoles) > 0 {
+		if param.PermissionType == "" {
+			param.PermissionType = "MGMT"
+		}
 		userRolesFilterSql, userRolesFilterParam := createListParams(param.UserRoles, "")
-		where = where + " and  id in (select proc_def_id from proc_def_permission where role_name in (" + userRolesFilterSql + ") and permission = 'MGMT')"
+		where = where + " and  id in (select proc_def_id from proc_def_permission where role_name in (" + userRolesFilterSql + ") and permission = ?)"
 		queryParam = append(queryParam, userRolesFilterParam...)
+		queryParam = append(queryParam, param.PermissionType)
 	}
 	return
 }
