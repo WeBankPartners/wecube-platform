@@ -781,3 +781,8 @@ func GenNodeId(nodeType string) string {
 	}
 	return fmt.Sprintf("pdn_%s_%s", nodeTypeShort, guid.CreateGuid())
 }
+
+type ProcDefParentPageResult struct {
+	Page    *PageInfo                `json:"page"`
+	Content []*ProcDefParentListItem `json:"content"`
+}
