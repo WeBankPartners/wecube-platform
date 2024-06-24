@@ -567,9 +567,10 @@
   "start": "Start",
   "end": "End",
   "abnormal": "Abnormal",
-  "decision": "Decision",
-  "forkNode": "Fork",
-  "merge": "Merge",
+  "decision": "Decision Start",
+  "decisionMerge": "Decision End",
+  "forkNode": "Parallel Start",
+  "merge": "Parallel End",
   "artificial": "Artificial",
   "automatic": "Automatic",
   "fixedTime": "Date",
@@ -770,5 +771,12 @@
   "role_invalidDate": "Role Expiration Time",
   "role_invalidDatePlaceholder": "Not set to permanent",
   "role_invalidDateValidate": "The permission expiration time cannot be earlier than the current time",
-  "be_expireTime": "Validity"
+  "be_expireTime": "Validity",
+  "workflow_type": "Flow Type",
+  "child_workflow": "Child Flow",
+  "main_workflow": "Main Flow",
+  "call_childFlow": "Call Child Flow",
+  "workflow_id": "Flow ID",
+  "parent_flowTitle": "Main Flow List",
+  "view_workFlow": "View Flow"
 }
