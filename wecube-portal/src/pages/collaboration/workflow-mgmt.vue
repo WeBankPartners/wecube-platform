@@ -66,6 +66,7 @@ export default {
       editFlow: true, // 在查看时隐藏按钮
       canRemovedId: '',
       demoFlowId: '',
+      isAdd: this.$route.query.isAdd || 'false',
       isShowGraph: false,
       itemInfoType: '', // canvas、node、edge
       mode: 'drag-shadow-node',
@@ -596,7 +597,7 @@ export default {
         //   }
         // }
 
-        if (['data', 'human', 'automatic', 'date', 'timeInterval'].includes(sourceNodeType)) {
+        if (['data', 'human', 'automatic', 'subProc', 'date', 'timeInterval'].includes(sourceNodeType)) {
           const outEdges = source.getOutEdges()
           if (outEdges.length === 1) {
             // this.$Message.warning('该节点只能有一个出口！')
@@ -605,7 +606,7 @@ export default {
           }
         }
 
-        if (['data', 'human', 'automatic', 'date', 'timeInterval'].includes(targertNodeType)) {
+        if (['data', 'human', 'automatic', 'subProc', 'date', 'timeInterval'].includes(targertNodeType)) {
           const inEdges = target.getInEdges()
           if (inEdges.length === 1) {
             this.$Message.warning(`${this.$t('saveFailed')}[${targertNodeName}]${this.$t('oneEntrance')}`)
@@ -627,7 +628,7 @@ export default {
           this.itemInfoType = 'edge'
           const find = this.graph.save().nodes.find(node => node.id === sourceId)
           let isNameRequired = false
-          if (find && find.customAttrs.nodeType === 'decision') {
+          if (find && ['decision', 'decisionMerge'].includes(find.customAttrs.nodeType)) {
             isNameRequired = true
           }
           this.$refs.itemInfoEdgeRef.showItemInfo(model, true, this.editFlow, isNameRequired)
@@ -659,7 +660,7 @@ export default {
           this.itemInfoType = 'edge'
           const find = this.graph.save().nodes.find(node => node.id === model.source)
           let isNameRequired = false
-          if (find && find.customAttrs.nodeType === 'decision') {
+          if (find && ['decision', 'decisionMerge'].includes(find.customAttrs.nodeType)) {
             isNameRequired = true
           }
           this.$refs.itemInfoEdgeRef.showItemInfo(model, false, this.editFlow, isNameRequired)
