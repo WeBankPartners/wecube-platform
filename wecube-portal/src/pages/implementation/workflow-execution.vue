@@ -1825,10 +1825,10 @@ export default {
               if (['timeInterval', 'date'].includes(_.nodeType) && _.status === 'InProgress') {
                 className = 'time-node'
               }
-              if (['decision'].includes(_.nodeType) && _.status === 'InProgress') {
+              if (['decision', 'decisionMerge'].includes(_.nodeType) && _.status === 'InProgress') {
                 className = 'decision-node'
               }
-              if (['decision'].includes(_.nodeType) && _.status === 'Faulted') {
+              if (['decision', 'decisionMerge'].includes(_.nodeType) && _.status === 'Faulted') {
                 className = ''
               }
               const isModelClick = this.currentModelNodeRefs.indexOf(_.orderedNo) > -1
@@ -1985,7 +1985,7 @@ export default {
       if (status === 'OK') {
         this.currentInstanceStatusForNodeOperation = data.status
         const inProcessNode = data.taskNodeInstances.find(
-          node => node.nodeType === 'decision' && node.status === 'InProgress'
+          node => ['decision', 'decisionMerge'].includes(node.nodeType) && node.status === 'InProgress'
         )
         // 正在执行分支为判断分支时，拉起分支选择
         if (this.currentInstanceStatusForNodeOperation !== 'Stop' && !this.hasExecuteBranchVisible && inProcessNode) {
