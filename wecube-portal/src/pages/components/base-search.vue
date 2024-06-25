@@ -53,7 +53,7 @@
                 v-else-if="i.component === 'switch'"
                 v-model="value[i.key]"
                 @on-change="$emit('search')"
-                style="margin-right: 32px"
+                style="margin-right: 10px"
               >
               </i-Switch>
               <!--标签组-->
@@ -61,7 +61,9 @@
                 v-else-if="i.component === 'radio-group'"
                 v-model="value[i.key]"
                 @on-change="$emit('search')"
-                style="margin-right: 32px"
+                type="button"
+                button-style="solid"
+                style="margin-right: 10px"
               >
                 <Radio v-for="(j, idx) in i.list" :label="j.value" :key="idx" border>{{ j.label }}</Radio>
               </RadioGroup>
