@@ -86,7 +86,7 @@ export default {
 }
 </script>
 
-<style lang="less">
+<style lang="scss">
 .workbench-menu {
   .ivu-menu-dark {
     background: #001529;
@@ -107,7 +107,7 @@ export default {
   }
 }
 </style>
-<style lang="less" scoped>
+<style lang="scss" scoped>
 .workbench-menu {
   position: fixed;
   left: 0;
