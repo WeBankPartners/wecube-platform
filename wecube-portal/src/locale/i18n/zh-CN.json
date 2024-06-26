@@ -566,9 +566,10 @@
   "start": "开始",
   "end": "结束",
   "abnormal": "异常",
-  "decision": "判断",
-  "forkNode": "分流",
-  "merge": "汇聚",
+  "decision": "判断开始",
+  "decisionMerge": "判断结束",
+  "forkNode": "并行开始",
+  "merge": "并行结束",
   "artificial": "人工",
   "automatic": "自动",
   "fixedTime": "固定时间",
@@ -769,5 +770,12 @@
   "role_invalidDate": "权限到期",
   "role_invalidDatePlaceholder": "不选为永久有效",
   "role_invalidDateValidate": "权限到期时间不能早于当前时间",
-  "be_expireTime": "有效期"
+  "be_expireTime": "有效期",
+  "workflow_type": "编排类型",
+  "child_workflow": "子编排",
+  "main_workflow": "主编排",
+  "call_childFlow": "调用子编排",
+  "workflow_id": "编排ID",
+  "parent_flowTitle": "被关联的主编排",
+  "view_workFlow": "查看编排"
 }

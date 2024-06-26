@@ -67,6 +67,23 @@ const nodeDefaultAttr = {
       [1, 0.5]
     ]
   },
+  decisionMerge: {
+    logoIcon: {
+      show: true,
+      x: -12,
+      y: -12,
+      img: 'decisionMerge',
+      width: 24,
+      height: 24,
+      offset: 0
+    },
+    anchorPoints: [
+      [0.5, 0],
+      [0, 0.5],
+      [0.5, 1],
+      [1, 0.5]
+    ]
+  },
   merge: {
     logoIcon: {
       show: true,
@@ -141,6 +158,23 @@ const nodeDefaultAttr = {
       x: -32,
       y: -16,
       img: 'data',
+      width: 24,
+      height: 24,
+      offset: 0
+    },
+    anchorPoints: [
+      // [0.5, 0],
+      [0, 0.5],
+      // [0.5, 1],
+      [1, 0.5]
+    ]
+  },
+  subProc: {
+    logoIcon: {
+      show: true,
+      x: -32,
+      y: -16,
+      img: 'subProc',
       width: 24,
       height: 24,
       offset: 0

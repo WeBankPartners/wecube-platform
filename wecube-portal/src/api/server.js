@@ -255,6 +255,8 @@ export const getMetaData = params => req.post(`platform/v1/plugins/configs/inter
 export const flowList = data => req.post(`platform/v1/process/definitions/list`, data)
 export const flowMgmt = data => req.post(`platform/v1/process/definitions`, data)
 export const getFlowById = id => req.get(`platform/v1/process/definitions/${id}`)
+export const getChildFlowList = params => req.get(`/platform/v1/process/definitions`, params)
+export const getParentFlowList = (id, data) => req.post(`/platform/v1/process/definitions/${id}/parent/get`, data)
 export const flowNodeMgmt = data => req.post(`platform/v1/process/definitions/tasknodes`, data)
 export const flowNodeDelete = (flowId, nodeId) =>
   req.delete(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)

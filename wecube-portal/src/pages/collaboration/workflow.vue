@@ -50,7 +50,7 @@
       </Button>
       <Button
         type="error"
-        v-if="['deployed'].includes(searchParams.status)"
+        v-if="['deployed'].includes(searchParams.status) && searchParams.subProc !== 'sub'"
         :disabled="!(['deployed'].includes(searchParams.status) && selectedParams.length > 0)"
         @click="batchChangeStatus('disabled')"
       >
@@ -67,93 +67,105 @@
         {{ $t('enable') }}
       </Button>
     </div>
-    <div>
-      <Input
-        v-model="searchParams.procDefName"
-        :placeholder="$t('flow_name')"
-        class="search-item"
-        clearable
-        @on-change="getFlowList"
-      ></Input>
-      <Input
-        v-model="searchParams.procDefId"
-        placeholder="ID"
-        class="search-item"
-        clearable
-        @on-change="getFlowList"
-      ></Input>
-      <Select
-        v-model="searchParams.plugins"
-        filterable
-        multiple
-        class="search-item"
-        :placeholder="$t('authPlugin')"
-        :max-tag-count="1"
-        @on-change="getFlowList"
-      >
-        <Option v-for="item in authPluginList" :value="item" :key="item">{{ item }} </Option>
-      </Select>
-      <Input
-        v-model="searchParams.scene"
-        :placeholder="$t('group')"
-        class="search-item"
-        clearable
-        @on-change="getFlowList"
-      ></Input>
-      <Input
-        v-model="searchParams.createdBy"
-        :placeholder="$t('createdBy')"
-        class="search-item"
-        clearable
-        @on-change="getFlowList"
-      ></Input>
-      <Input
-        v-model="searchParams.updatedBy"
-        :placeholder="$t('updatedBy')"
-        class="search-item"
-        clearable
-        @on-change="getFlowList"
-      ></Input>
-      <div style="display: inline; width: 100%" class="search-item">
-        <span>{{ $t('table_updated_date') }}:</span>
+    <div class="search">
+      <div class="search-form">
         <RadioGroup
-          v-if="dateType !== 4"
-          v-model="dateType"
+          v-model="searchParams.subProc"
           type="button"
-          size="small"
-          @on-change="handleDateTypeChange(dateType)"
+          button-style="solid"
+          @on-change="changeFlow"
+          style="margin-right: 5px"
         >
-          <Radio v-for="(j, idx) in dateTypeList" :label="j.value" :key="idx" border>{{ j.label }}</Radio>
+          <Radio label="main">{{ $t('main_workflow') }}</Radio>
+          <Radio label="sub">{{ $t('child_workflow') }}</Radio>
         </RadioGroup>
-        <template v-else>
-          <DatePicker
-            @on-change="
-              val => {
-                handleDateRange(val)
-              }
-            "
-            type="daterange"
-            placement="bottom-end"
-            format="yyyy-MM-dd"
-            split-panels
-            placeholder=""
-            style="width: 200px"
-          />
-          <Icon
-            size="18"
-            style="cursor: pointer"
-            type="md-close-circle"
-            @click="
-              dateType = 1
-              handleDateTypeChange(1)
-            "
-          />
-        </template>
+        <Input
+          v-model="searchParams.procDefName"
+          :placeholder="$t('flow_name')"
+          class="search-item"
+          clearable
+          @on-change="getFlowList"
+        ></Input>
+        <Input
+          v-model="searchParams.procDefId"
+          placeholder="ID"
+          class="search-item"
+          clearable
+          @on-change="getFlowList"
+        ></Input>
+        <Select
+          v-model="searchParams.plugins"
+          filterable
+          multiple
+          class="search-item"
+          :placeholder="$t('authPlugin')"
+          :max-tag-count="1"
+          @on-change="getFlowList"
+        >
+          <Option v-for="item in authPluginList" :value="item" :key="item">{{ item }} </Option>
+        </Select>
+        <Input
+          v-model="searchParams.scene"
+          :placeholder="$t('group')"
+          class="search-item"
+          clearable
+          @on-change="getFlowList"
+        ></Input>
+        <Input
+          v-model="searchParams.createdBy"
+          :placeholder="$t('createdBy')"
+          class="search-item"
+          clearable
+          @on-change="getFlowList"
+        ></Input>
+        <Input
+          v-model="searchParams.updatedBy"
+          :placeholder="$t('updatedBy')"
+          class="search-item"
+          clearable
+          @on-change="getFlowList"
+        ></Input>
+        <div style="display: inline; width: 100%" class="search-item">
+          <span>{{ $t('table_updated_date') }}:</span>
+          <RadioGroup
+            v-if="dateType !== 4"
+            v-model="dateType"
+            type="button"
+            size="small"
+            @on-change="handleDateTypeChange(dateType)"
+          >
+            <Radio v-for="(j, idx) in dateTypeList" :label="j.value" :key="idx" border>{{ j.label }}</Radio>
+          </RadioGroup>
+          <template v-else>
+            <DatePicker
+              @on-change="
+                val => {
+                  handleDateRange(val)
+                }
+              "
+              type="daterange"
+              placement="bottom-end"
+              format="yyyy-MM-dd"
+              split-panels
+              placeholder=""
+              style="width: 200px"
+            />
+            <Icon
+              size="18"
+              style="cursor: pointer"
+              type="md-close-circle"
+              @click="
+                dateType = 1
+                handleDateTypeChange(1)
+              "
+            />
+          </template>
+        </div>
       </div>
-      <span style="margin-top: 8px; float: right">
+      <div class="search-button">
         <Button @click="getFlowList" type="primary">{{ $t('search') }}</Button>
         <Button @click="handleReset" style="margin-left: 5px">{{ $t('reset') }}</Button>
-      </span>
+      </div>
     </div>
     <div>
       <Tabs :value="searchParams.status" @on-click="changeTab">
@@ -192,6 +204,7 @@
                 </div>
                 <div v-show="!hideRoles.includes(roleDataIndex)">
                   <Table
+                    ref="table"
                     size="small"
                     :columns="tableColumn"
                     :data="roleData.dataList"
@@ -214,6 +227,28 @@
       </div>
     </div>
     <FlowAuth ref="flowAuthRef" :useRolesRequired="true" @sendAuth="updateAuth"></FlowAuth>
+    <!--关联主编排弹框-->
+    <Modal
+      v-model="mainFlowVisible"
+      :title="$t('parent_flowTitle')"
+      :width="800"
+      footer-hide
+      @on-cancel="mainFlowVisible = false"
+    >
+      <Table :border="false" size="small" :loading="mainFlowLoading" :columns="mainFlowColumn" :data="mainFlowData">
+      </Table>
+      <div style="text-align: right; margin-top: 10px">
+        <Page
+          :total="pagination.total"
+          @on-change="changPage"
+          show-sizer
+          :current="pagination.currentPage"
+          :page-size="pagination.pageSize"
+          @on-page-size-change="changePageSize"
+          show-total
+        />
+      </div>
+    </Modal>
   </div>
 </template>
 
@@ -227,7 +262,8 @@ import {
   flowBatchAuth,
   flowBatchChangeStatus,
   flowCopy,
-  transferToMe
+  transferToMe,
+  getParentFlowList
 } from '@/api/server.js'
 import FlowAuth from '@/pages/components/auth.vue'
 import dayjs from 'dayjs'
@@ -248,7 +284,8 @@ export default {
         createdBy: '',
         updatedBy: '',
         scene: '', // 分组
-        status: 'deployed'
+        status: 'deployed',
+        subProc: 'main'
       },
       dateType: 1, // 控制时间显示
       dateTypeList: [
@@ -290,7 +327,7 @@ export default {
         },
         {
           title: 'ID',
-          width: 80,
+          width: 100,
           ellipsis: true,
           key: 'id',
           render: (h, params) => {
@@ -385,8 +422,8 @@ export default {
         {
           title: this.$t('table_action'),
           key: 'action',
-          width: 120,
-          align: 'left',
+          width: 150,
+          align: 'center',
           fixed: 'right',
           render: (h, params) => {
             const status = params.row.status
@@ -432,6 +469,18 @@ export default {
                     </Button>
                   </Tooltip>
                 )}
+                {['deployed'].includes(status) && this.searchParams.subProc === 'sub' && (
+                  <Tooltip content={this.$t('disable')} placement="left" max-width="200">
+                    <Button
+                      size="small"
+                      type="error"
+                      onClick={() => this.disabledSubFlow(params.row)}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="md-lock" size="16"></Icon>
+                    </Button>
+                  </Tooltip>
+                )}
                 {['draft'].includes(status) && this.username === params.row.updatedBy && (
                   <Tooltip content={this.$t('edit')} placement="top">
                     <Button
@@ -467,7 +516,81 @@ export default {
       ],
       selectedParams: [], // id,name,rowDataIndex
       headers: {},
-      username: window.localStorage.getItem('username')
+      username: window.localStorage.getItem('username'),
+      mainFlowVisible: false,
+      viewRow: {},
+      mainFlowColumn: [
+        {
+          title: this.$t('flow_name'),
+          key: 'name',
+          minWidth: 250,
+          render: (h, params) => {
+            return (
+              <span
+                style="cursor:pointer;"
+                onClick={() => {
+                  this.viewParentFlowGraph(params.row)
+                }}
+              >
+                {params.row.name}
+                <Tag style="margin-left:2px">{params.row.version}</Tag>
+              </span>
+            )
+          }
+        },
+        {
+          title: this.$t('enum_status'),
+          key: 'status',
+          minWidth: 90,
+          render: (h, params) => {
+            const list = [
+              { label: this.$t('deployed'), value: 'deployed', color: '#19be6b' },
+              { label: this.$t('draft'), value: 'draft', color: '#c5c8ce' },
+              { label: this.$t('disabled'), value: 'disabled', color: '#ed4014' }
+            ]
+            const item = list.find(i => i.value === params.row.status)
+            return item && <Tag color={item.color}>{item.label}</Tag>
+          }
+        }
+      ],
+      mainFlowData: [],
+      mainFlowLoading: false,
+      pagination: {
+        total: 0,
+        currentPage: 1,
+        pageSize: 10
+      }
+    }
+  },
+  watch: {
+    'searchParams.subProc': {
+      handler (val) {
+        if (val === 'sub') {
+          // 添加主编排列
+          this.tableColumn.splice(3, 0, {
+            title: this.$t('main_workflow'),
+            width: 100,
+            ellipsis: true,
+            key: 'mainFlow',
+            render: (h, params) => {
+              return (
+                <Button
+                  type="info"
+                  size="small"
+                  onClick={() => {
+                    this.viewMainFlow(params.row)
+                  }}
+                >
+                  {this.$t('view')}
+                </Button>
+              )
+            }
+          })
+        } else if (val === 'main') {
+          this.tableColumn = this.tableColumn.filter(i => i.key !== 'mainFlow')
+        }
+      },
+      immediate: true
     }
   },
   mounted () {
@@ -509,6 +632,21 @@ export default {
       this.selectedParams = this.selectedParams.filter(param => param.roleDataIndex !== roleDataIndex)
     },
     onSelect (selection, row, roleDataIndex) {
+      // if (this.searchParams.subProc === 'sub' && this.searchParams.status === 'deployed') {
+      //   this.$nextTick(() => {
+      //     // 实现单选效果，目前没找到更好的方法。。。
+      //     this.$refs.table.forEach(tableEl => {
+      //       for(let index in tableEl.objData) {
+      //         if (row.id === tableEl.objData[index].id) {
+      //           tableEl.objData[index]._isChecked = true
+      //         } else {
+      //           tableEl.objData[index]._isChecked = false
+      //         }
+      //       }
+      //     })
+      //   })
+      //   this.selectedParams = []
+      // }
       this.selectedParams.push({
         id: row.id,
         name: row.name,
@@ -541,6 +679,11 @@ export default {
       this.hideRoles = []
       this.getFlowList()
     },
+    // 切换主编排/子编排
+    changeFlow () {
+      this.selectedParams = []
+      this.handleReset()
+    },
     // 重置参数
     handleReset () {
       this.searchParams = {
@@ -552,7 +695,8 @@ export default {
         createdBy: '',
         updatedBy: '',
         scene: '', // 分组
-        status: 'deployed'
+        status: 'deployed',
+        subProc: this.searchParams.subProc
       }
       this.hideRoles = []
       this.dateType = 1
@@ -623,7 +767,10 @@ export default {
             title: 'Success',
             desc: message
           })
-          this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data.id, flowListTab: 'draft' } })
+          this.$router.push({
+            path: '/collaboration/workflow-mgmt',
+            query: { flowId: data.id, flowListTab: 'draft', isAdd: 'true' }
+          })
         }
       }
     },
@@ -734,7 +881,10 @@ export default {
           title: 'Success',
           desc: message + data
         })
-        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data, flowListTab: 'draft' } })
+        this.$router.push({
+          path: '/collaboration/workflow-mgmt',
+          query: { flowId: data, flowListTab: 'draft', isAdd: 'true' }
+        })
       }
     },
     viewAction (row) {
@@ -868,6 +1018,85 @@ export default {
         .catch(() => {
           this.$Message.warning('Error')
         })
+    },
+    // 查看主编排详情
+    viewParentFlowGraph (row) {
+      window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
+      const path = `${window.location.origin}/#/collaboration/workflow-mgmt?flowId=${row.id}&editFlow=false&flowListTab=deployed`
+      window.open(path, '_blank')
+    },
+    // 查看主编排
+    viewMainFlow (row) {
+      this.mainFlowVisible = true
+      this.viewRow = row
+      this.getMainFlowList()
+    },
+    changPage (val) {
+      this.pagination.currentPage = val
+      this.getMainFlowList()
+    },
+    changePageSize (val) {
+      this.pagination.currentPage = 1
+      this.pagination.pageSize = val
+      this.getMainFlowList()
+    },
+    async getMainFlowList () {
+      const params = {
+        startIndex: (this.pagination.currentPage - 1) * this.pagination.pageSize,
+        pageSize: this.pagination.pageSize
+      }
+      this.mainFlowLoading = true
+      const { status, data } = await getParentFlowList(this.viewRow.id, params)
+      this.mainFlowLoading = false
+      if (status === 'OK') {
+        this.mainFlowData = data.content
+      }
+    },
+    // 禁用子编排
+    async disabledSubFlow (row) {
+      const params = {
+        startIndex: 0,
+        pageSize: 1
+      }
+      const { status, data } = await getParentFlowList(row.id, params)
+      let total = 0
+      let firstRow
+      if (status === 'OK') {
+        total = data.page.totalRows || 0
+        firstRow = (data.content && data.content[0]) || {}
+      }
+      this.$Modal.confirm({
+        title: this.$t('disable'),
+        'z-index': 1000000,
+        width: 400,
+        loading: true,
+        render: () => {
+          if (!total) {
+            return <span>{`当前子编排暂未关联主编排，确认禁用吗？`}</span>
+          } else {
+            return <span>{`禁用当前子编排会影响【${firstRow.name || '-'}】等${total}个主编排，确认禁用吗？`}</span>
+          }
+        },
+        onOk: async () => {
+          this.$Modal.remove()
+          const data = {
+            procDefIds: [row.id],
+            status: 'disabled'
+          }
+          let { status, message } = await flowBatchChangeStatus(data)
+          if (status === 'OK') {
+            this.$Notice.success({
+              title: 'Success',
+              desc: message
+            })
+            this.$nextTick(() => {
+              this.searchParams.status = 'disabled'
+              this.getFlowList()
+            })
+          }
+        },
+        onCancel: () => {}
+      })
     }
   }
 }
@@ -880,10 +1109,36 @@ th.ivu-table-column-center div.ivu-table-cell-with-selection {
 .ivu-table-cell {
   padding: 0 4px !important;
 }
+.single-select-table {
+  th .ivu-table-cell-with-selection {
+    position: relative;
+  }
+  th .ivu-table-cell-with-selection::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: #f8f8f9;
+    z-index: 99;
+  }
+}
 </style>
 <style lang="scss" scoped>
+.search {
+  display: flex;
+  align-items: flex-start;
+  &-button {
+    width: fit-content;
+    margin-top: 8px;
+  }
+  &-form {
+    flex: 1;
+  }
+}
 .search-item {
-  width: 200px;
+  width: 195px;
   margin-right: 6px;
   margin: 8px 6px 8px 0;
 }
