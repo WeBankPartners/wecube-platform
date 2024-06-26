@@ -80,6 +80,7 @@
           <p>{{ $t('abnormalNodetip2') }}</p>
         </div>
       </Tooltip>
+      <!--判断开始-->
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
@@ -103,6 +104,31 @@
           <p>{{ $t('decisionNodetip2') }}</p>
         </div>
       </Tooltip>
+      <!--判断结束-->
+      <Tooltip :maxWidth="400" placement="right" :delay="1000">
+        <div
+          class="item-tool"
+          :draggable="editFlow"
+          node-type="decisionMerge"
+          :data-label="$t('decisionMerge')"
+          data-shape="diamond-node"
+          fill="white"
+          line-width="1"
+          stroke="#303030"
+        >
+          <div class="diamond-border">
+            <img src="./icon/descision-panel.svg" class="item-tool-icon" draggable="false" />
+          </div>
+          <div class="diamond-item-tool-name">{{ $t('decisionMerge') }}</div>
+        </div>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('decisionNodeFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('decisionNodetip1') }}</p>
+          <p>{{ $t('decisionNodetip2') }}</p>
+        </div>
+      </Tooltip>
+      <!--并行开始-->
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
@@ -126,6 +152,7 @@
           <p>{{ $t('forkNodetip3') }}</p>
         </div>
       </Tooltip>
+      <!--并行结束-->
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
@@ -152,7 +179,7 @@
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
-          :draggable="editFlow"
+          :draggable="editFlow && subProc === 0"
           node-type="human"
           :data-label="$t('artificial')"
           data-shape="rect-node"
@@ -229,6 +256,31 @@
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
+          :draggable="editFlow && subProc === 0"
+          node-type="subProc"
+          data-label="子编排"
+          data-shape="rect-node"
+          fill="white"
+          line-width="1"
+          stroke="#303030"
+        >
+          <img
+            src="./icon/subProc.svg"
+            style="border: 1px solid #303030; width: 37px; height: 28px"
+            class="item-tool-icon"
+            draggable="false"
+          />
+          <div class="item-tool-name">{{ '子编排' }}</div>
+        </div>
+        <div style="word-break: keep-all" slot="content">
+          <p>{{ $t('timeIntervalFunc') }}</p>
+          <p>{{ $t('usage') }}</p>
+          <p>{{ $t('timeIntervaltip1') }}</p>
+        </div>
+      </Tooltip>
+      <Tooltip :maxWidth="400" placement="right" :delay="1000">
+        <div
+          class="item-tool"
           :draggable="editFlow"
           node-type="date"
           :data-label="$t('fixedTime')"
@@ -286,7 +338,8 @@ export default {
   data () {
     return {
       itemVisible: false,
-      editFlow: true
+      editFlow: true,
+      subProc: 0 // 是否子编排
     }
   },
   mounted () {
@@ -324,6 +377,9 @@ export default {
       },
       false
     )
+    this.$eventBusP.$on('subProc', val => {
+      this.subProc = val
+    })
   },
   methods: {
     setEditFlowStatus (editFlow) {
