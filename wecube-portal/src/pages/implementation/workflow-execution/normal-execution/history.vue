@@ -425,7 +425,12 @@ export default {
         const detail = Array.isArray(data.contents) && data.contents[0]
         // 能获取到历史记录，跳转，否则给出提示
         if (detail && detail.id) {
-          return this.$emit('jumpToHistory', row.id)
+          return this.$router.push({
+            path: '/implementation/workflow-execution/view-execution',
+            query: {
+              id: row.id
+            }
+          })
         }
       }
       this.$Notice.warning({
