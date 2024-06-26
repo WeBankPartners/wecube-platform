@@ -234,7 +234,9 @@ export default {
   },
   methods: {
     // 选择模板新建执行
-    handleChooseTemplate (row) {},
+    handleChooseTemplate (row) {
+      this.$router.push('/implementation/workflow-execution/normal-create')
+    },
     handleSearch () {
       this.getTemplateList()
     },

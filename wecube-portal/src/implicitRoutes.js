@@ -20,6 +20,16 @@ export default {
       'zh-CN': '编排执行'
     }
   },
+  'implementation/workflow-execution/normal-create': {
+    childBreadcrumb: {
+      'en-US': 'Create',
+      'zh-CN': '新建'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Workflow Execution',
+      'zh-CN': '编排执行'
+    }
+  },
   'implementation/workflow-execution/normal-history': {
     childBreadcrumb: {
       'en-US': 'History',
@@ -44,6 +54,16 @@ export default {
     childBreadcrumb: {
       'en-US': 'History',
       'zh-CN': '历史'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Workflow Execution',
+      'zh-CN': '编排执行'
+    }
+  },
+  'implementation/workflow-execution/view-execution': {
+    childBreadcrumb: {
+      'en-US': 'Detail',
+      'zh-CN': '查看'
     },
     parentBreadcrumb: {
       'en-US': 'Workflow Execution',

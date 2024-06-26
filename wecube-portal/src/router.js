@@ -75,26 +75,38 @@ let router = new Router({
             // 普通执行-模板选择
             {
               path: '/implementation/workflow-execution/normal-template',
-              name: 'template',
+              name: 'normalTemplate',
               component: () => import('@/pages/implementation/workflow-execution/normal-execution/template')
+            },
+            // 普通执行-新建
+            {
+              path: '/implementation/workflow-execution/normal-create',
+              name: 'normalCreate',
+              component: () => import('@/pages/implementation/workflow-execution/execution')
             },
             // 普通执行-历史
             {
               path: '/implementation/workflow-execution/normal-history',
-              name: 'history',
+              name: 'normalHistory',
               component: () => import('@/pages/implementation/workflow-execution/normal-execution/history')
             },
             // 定时执行-新建
             {
               path: '/implementation/workflow-execution/time-create',
-              name: 'history',
+              name: 'timeCreate',
               component: () => import('@/pages/implementation/workflow-execution/time-execution/create')
             },
             // 定时执行-历史
             {
               path: '/implementation/workflow-execution/time-history',
-              name: 'history',
+              name: 'timeHistory',
               component: () => import('@/pages/implementation/workflow-execution/time-execution/history')
+            },
+            // 查看执行
+            {
+              path: '/implementation/workflow-execution/view-execution',
+              name: 'viewExecution',
+              component: () => import('@/pages/implementation/workflow-execution/execution')
             }
           ]
         },
