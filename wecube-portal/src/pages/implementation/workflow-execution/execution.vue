@@ -1,202 +1,158 @@
+<!--编排执行和查看页面-->
 <template>
-  <div>
-    <Card dis-hover>
-      <Tabs @on-click="tabChanged" :value="currentTab">
-        <TabPane :label="$t('be_new_execute')" name="create_new_workflow_job"></TabPane>
-        <TabPane :label="$t('timed_execution')" name="timed_execution"></TabPane>
-        <TabPane :label="$t('execution_history')" name="execution_history"></TabPane>
-        <TabPane :label="$t('bc_history_record')" name="enquery_new_workflow_job"></TabPane>
-      </Tabs>
-      <!--定时执行-->
-      <template v-if="currentTab === 'timed_execution'">
-        <TimedExecution @jumpToHistory="jumpToHistory"></TimedExecution>
-      </template>
-      <!--执行记录-->
-      <template v-else-if="currentTab === 'execution_history'">
-        <HistoryExecution @jumpToHistory="jumpToHistory"></HistoryExecution>
-      </template>
-      <!--新建执行和历史详情-->
-      <template v-else>
-        <Row>
-          <Col span="24">
-            <Form label-position="left">
-              <FormItem v-if="isEnqueryPage" :label-width="100" :label="$t('orchs')">
-                <Select
-                  v-model="selectedFlowInstance"
-                  style="width: 60%"
-                  filterable
-                  clearable
-                  @on-open-change="getProcessInstances(false)"
-                  @on-clear="clearHistoryOrch"
-                  @on-change="queryHandler"
-                >
-                  <Option
-                    v-for="item in allFlowInstances"
-                    :value="item.id"
-                    :key="item.id"
-                    :label="
-                      item.procInstName +
-                      '  ' +
-                      '[' +
-                      item.version +
-                      ']  ' +
-                      item.entityDisplayName +
-                      '  ' +
-                      (item.operator || 'operator') +
-                      '  ' +
-                      (item.createdTime || '0000-00-00 00:00:00') +
-                      '  ' +
-                      item.status
-                    "
-                  >
-                    <span>
-                      <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
-                      <span style="color: #515a6e">{{ '[' + item.version + '] ' }}</span>
-                      <span style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</span>
-                      <span style="color: #ccc; padding-left: 8px; float: right">{{ item.status }}</span>
-                      <span style="color: #ccc; float: right">{{
-                        (item.createdTime || '0000-00-00 00:00:00') + ' '
-                      }}</span>
-                      <span style="float: right; color: #515a6e; margin-right: 20px">{{
-                        item.operator || 'operator'
-                      }}</span>
-                    </span>
-                  </Option>
-                </Select>
-                <!-- <Button type="info" @click="queryHandler">{{ $t('query_orch') }}</Button> -->
-                <Button
-                  type="warning"
-                  @click="flowControlHandler('stop')"
-                  style="background-color: #826bea; border-color: #826bea"
-                  v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
-                  icon="md-pause"
-                  >{{ $t('be_pause') }}</Button
-                >
-                <Button
-                  type="success"
-                  @click="flowControlHandler('recover')"
-                  v-if="currentInstanceStatusForNodeOperation === 'Stop'"
-                  icon="md-play"
-                  >{{ $t('be_continue') }}</Button
-                >
-                <Button
-                  v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
-                  type="warning"
-                  @click="stopHandler"
-                  icon="md-square"
-                  >{{ $t('stop_orch') }}</Button
-                >
-                <!-- disabled="currentInstanceStatus || stopSuccess"  stop_orch -->
-                <Button
-                  v-if="currentInstanceStatusForNodeOperation === 'Completed'"
-                  type="primary"
-                  @click="setTimedExecution"
-                  icon="md-stopwatch"
-                  >{{ $t('timed_execution') }}</Button
-                >
-                <!-- :disabled="canAbleToSetting" timed_execution -->
-              </FormItem>
-              <Col v-if="!isEnqueryPage" span="7">
-                <FormItem :label-width="100" :label="$t('select_orch')">
-                  <Select
-                    label
-                    v-model="selectedFlow"
-                    :disabled="isEnqueryPage"
-                    @on-change="orchestrationSelectHandler"
-                    @on-open-change="getAllFlow"
-                    filterable
-                    clearable
-                    @on-clear="clearFlow"
-                  >
-                    <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId"
-                      >{{ item.procDefName }} [{{ item.procDefVersion }}] {{ item.createdTime }}</Option
-                    >
-                  </Select>
-                </FormItem>
-              </Col>
-              <Col v-if="!isEnqueryPage" span="12" offset="0">
-                <FormItem :label-width="100" :label="$t('target_object')">
-                  <Select
-                    style="width: 80%"
-                    label
-                    v-model="selectedTarget"
-                    :disabled="isEnqueryPage"
-                    @on-change="onTargetSelectHandler"
-                    @on-open-change="getTargetOptions"
-                    filterable
-                    clearable
-                    @on-clear="clearTarget"
-                  >
-                    <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.displayName }}</Option>
-                  </Select>
-                  <Button
-                    :disabled="
-                      isExecuteActive || !showExcution || !this.selectedTarget || !this.selectedFlow || !isShowExect
-                    "
-                    :loading="btnLoading"
-                    type="info"
-                    @click="excutionFlow"
-                    >{{ $t('execute') }}</Button
-                  >
-                </FormItem>
-              </Col>
-            </Form>
-          </Col>
-        </Row>
-        <Row>
-          <Row id="graphcontain">
-            <Col span="7" style="border-right: 1px solid #d3cece; text-align: center; height: 100%; position: relative">
-              <div class="graph-container" id="flow" style="height: 90%"></div>
-              <Button class="reset-button" size="small" @click="ResetFlow">ResetZoom</Button>
-              <Button
-                v-if="!isEnqueryPage && selectedFlow && selectedTarget"
-                style="left: 5px"
-                class="set-data-button"
-                icon="ios-grid"
-                size="small"
-                @click="setFlowDataForAllNodes"
-              ></Button>
-            </Col>
-            <Col span="17" style="text-align: center; text-align: center; height: 100%; position: relative">
-              <div class="graph-container" id="graph" style="height: 90%"></div>
-              <Button class="reset-button" size="small" @click="ResetModel">ResetZoom</Button>
-              <Button
-                v-if="selectedFlow && selectedTarget"
-                class="set-data-button"
-                icon="ios-grid"
-                size="small"
-                @click="showModelDataWithFlow"
-              ></Button>
-              <Spin size="large" fix v-show="isLoading">
-                <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-                <div>{{ $t('loading') }}</div>
-              </Spin>
-            </Col>
-          </Row>
-        </Row>
-      </template>
-    </Card>
-    <Modal
-      :title="$t('overview')"
-      v-model="targetWithFlowModalVisible"
-      :scrollable="true"
-      width="70"
-      :footer-hide="true"
-    >
-      <Table
-        border
-        :columns="targetWithFlowModelColums"
-        max-height="550"
-        :data="modelDataWithFlowNodes"
-        :span-method="modelDataHandleSpan"
-      >
-        <template slot-scope="{ row }" slot="nodeTitle">
-          <div style="margin-bottom: 5px" v-for="title in row.nodeTitle.split(';')" :key="title">
-            {{ title }}
-          </div>
-        </template>
-      </Table>
-    </Modal>
+  <div class="workflow-execution">
+    <Row class="workflow-execution-header">
+      <Form label-position="left">
+        <FormItem v-if="isEnqueryPage" :label-width="100" :label="$t('orchs')">
+          <Select
+            v-model="selectedFlowInstance"
+            style="width: 60%"
+            filterable
+            clearable
+            @on-open-change="getProcessInstances(false)"
+            @on-clear="clearHistoryOrch"
+            @on-change="queryHandler"
+          >
+            <Option
+              v-for="item in allFlowInstances"
+              :value="item.id"
+              :key="item.id"
+              :label="
+                item.procInstName +
+                '  ' +
+                '[' +
+                item.version +
+                ']  ' +
+                item.entityDisplayName +
+                '  ' +
+                (item.operator || 'operator') +
+                '  ' +
+                (item.createdTime || '0000-00-00 00:00:00') +
+                '  ' +
+                item.status
+              "
+            >
+              <span>
+                <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
+                <span style="color: #515a6e">{{ '[' + item.version + '] ' }}</span>
+                <span style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</span>
+                <span style="color: #ccc; padding-left: 8px; float: right">{{ item.status }}</span>
+                <span style="color: #ccc; float: right">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
+                <span style="float: right; color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
+              </span>
+            </Option>
+          </Select>
+          <!-- <Button type="info" @click="queryHandler">{{ $t('query_orch') }}</Button> -->
+          <!--暂停执行-->
+          <Button
+            type="warning"
+            @click="flowControlHandler('stop')"
+            style="background-color: #826bea; border-color: #826bea"
+            v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
+            icon="md-pause"
+            >{{ $t('be_pause') }}</Button
+          >
+          <!--继续执行-->
+          <Button
+            type="success"
+            @click="flowControlHandler('recover')"
+            v-if="currentInstanceStatusForNodeOperation === 'Stop'"
+            icon="md-play"
+            >{{ $t('be_continue') }}</Button
+          >
+          <!--终止执行-->
+          <Button
+            v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
+            type="warning"
+            @click="stopHandler"
+            icon="md-square"
+            >{{ $t('stop_orch') }}</Button
+          >
+          <!-- disabled="currentInstanceStatus || stopSuccess"  stop_orch -->
+          <!--定时执行-->
+          <Button
+            v-if="currentInstanceStatusForNodeOperation === 'Completed'"
+            type="primary"
+            @click="setTimedExecution"
+            icon="md-stopwatch"
+            >{{ $t('timed_execution') }}</Button
+          >
+          <!-- :disabled="canAbleToSetting" timed_execution -->
+        </FormItem>
+        <Col v-if="!isEnqueryPage" span="7">
+          <FormItem :label-width="100" :label="$t('select_orch')">
+            <Select
+              label
+              v-model="selectedFlow"
+              :disabled="isEnqueryPage"
+              @on-change="orchestrationSelectHandler"
+              @on-open-change="getAllFlow"
+              filterable
+              clearable
+              @on-clear="clearFlow"
+            >
+              <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId"
+                >{{ item.procDefName }} [{{ item.procDefVersion }}] {{ item.createdTime }}</Option
+              >
+            </Select>
+          </FormItem>
+        </Col>
+        <Col v-if="!isEnqueryPage" span="12" offset="0">
+          <FormItem :label-width="100" :label="$t('target_object')">
+            <Select
+              style="width: 80%"
+              label
+              v-model="selectedTarget"
+              :disabled="isEnqueryPage"
+              @on-change="onTargetSelectHandler"
+              @on-open-change="getTargetOptions"
+              filterable
+              clearable
+              @on-clear="clearTarget"
+            >
+              <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.displayName }}</Option>
+            </Select>
+            <Button
+              :disabled="isExecuteActive || !showExcution || !this.selectedTarget || !this.selectedFlow || !isShowExect"
+              :loading="btnLoading"
+              type="info"
+              @click="excutionFlow"
+              >{{ $t('execute') }}</Button
+            >
+          </FormItem>
+        </Col>
+      </Form>
+    </Row>
+    <Row id="graph-container">
+      <Col span="7" style="border-right: 1px solid #d3cece; text-align: center; height: 100%; position: relative">
+        <div class="graph-container" id="flow" style="height: 90%"></div>
+        <Button class="reset-button" size="small" @click="ResetFlow">ResetZoom</Button>
+        <Button
+          v-if="!isEnqueryPage && selectedFlow && selectedTarget"
+          style="left: 5px"
+          class="set-data-button"
+          icon="ios-grid"
+          size="small"
+          @click="setFlowDataForAllNodes"
+        ></Button>
+      </Col>
+      <Col span="17" style="text-align: center; text-align: center; height: 100%; position: relative">
+        <div class="graph-container" id="graph" style="height: 90%"></div>
+        <Button class="reset-button" size="small" @click="ResetModel">ResetZoom</Button>
+        <Button
+          v-if="selectedFlow && selectedTarget"
+          class="set-data-button"
+          icon="ios-grid"
+          size="small"
+          @click="showModelDataWithFlow"
+        ></Button>
+        <Spin size="large" fix v-show="isLoading">
+          <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+          <div>{{ $t('loading') }}</div>
+        </Spin>
+      </Col>
+    </Row>
+    <!--左侧预览弹窗(新建)-->
     <Modal
       :title="$t('overview')"
       v-model="flowNodesWithDataModalVisible"
@@ -221,6 +177,29 @@
         </template>
       </Table>
     </Modal>
+    <!--右侧预览弹窗(新建、查看)-->
+    <Modal
+      :title="$t('overview')"
+      v-model="targetWithFlowModalVisible"
+      :scrollable="true"
+      width="70"
+      :footer-hide="true"
+    >
+      <Table
+        border
+        :columns="targetWithFlowModelColums"
+        max-height="550"
+        :data="modelDataWithFlowNodes"
+        :span-method="modelDataHandleSpan"
+      >
+        <template slot-scope="{ row }" slot="nodeTitle">
+          <div style="margin-bottom: 5px" v-for="title in row.nodeTitle.split(';')" :key="title">
+            {{ title }}
+          </div>
+        </template>
+      </Table>
+    </Modal>
+    <!--节点选择操作弹窗(查看)-->
     <Modal
       :title="$t('select_an_operation')"
       v-model="workflowActionModalVisible"
@@ -278,6 +257,7 @@
         >
       </div>
     </Modal>
+    <!--节点重试/反选弹窗(查看)-->
     <Modal
       :title="currentNodeTitle"
       v-model="retryTargetModalVisible"
@@ -316,6 +296,7 @@
         }}</Button>
       </div>
     </Modal>
+    <!--左侧编排节点弹窗(新建)-->
     <Modal
       :title="currentNodeTitle"
       v-model="targetModalVisible"
@@ -365,6 +346,7 @@
         }}</Button>
       </div>
     </Modal>
+    <!--日志查看弹框(查看)-->
     <Modal v-model="showNodeDetail" :fullscreen="nodeDetailFullscreen" width="1000" :styles="{ top: '50px' }">
       <p slot="header">
         <span>{{ nodeTitle }}</span>
@@ -382,6 +364,7 @@
         <json-viewer :value="nodeDetail" :expand-depth="5"></json-viewer>
       </div>
     </Modal>
+    <!--高危确认二次弹框(查看)-->
     <Modal v-model="confirmModal.isShowConfirmModal" width="1000">
       <div>
         <Icon :size="28" :color="'#f90'" type="md-help-circle" />
@@ -400,6 +383,7 @@
         }}</Button>
       </div>
     </Modal>
+    <!--定时执行弹框(查看)-->
     <Modal v-model="timeConfig.isShow" :title="$t('timed_execution')">
       <Form :label-width="100" label-colon>
         <FormItem :label="$t('timing_type')">
@@ -460,7 +444,7 @@
         <Button type="primary" @click="saveTime">{{ $t('save') }}</Button>
       </div>
     </Modal>
-
+    <!--日志查看input列嵌套详情弹框(查看)-->
     <Modal v-model="attrValue.isShow" :title="attrValue.attr">
       <Form :label-width="120" label-colon>
         <FormItem :label="$t('attribute_type')">
@@ -474,7 +458,7 @@
         <Button type="primary" @click="attrValue.isShow = false">{{ $t('bc_cancel') }}</Button>
       </div>
     </Modal>
-    <!-- 手动跳过 -->
+    <!--手动跳过-->
     <Modal
       :title="$t('select_an_operation')"
       v-model="manualSkipVisible"
@@ -488,7 +472,6 @@
         <Button @click="confirmSkip" type="warning">{{ $t('be_manual_skip') }}</Button>
       </div>
     </Modal>
-
     <!-- 执行分支 -->
     <Modal
       :title="$t('select_an_operation')"
@@ -507,26 +490,6 @@
         }}</Button>
       </div>
     </Modal>
-
-    <!-- 执行分支 -->
-    <Modal
-      :title="$t('select_an_operation')"
-      v-model="executeBranchVisible"
-      :footer-hide="true"
-      :mask-closable="false"
-      :scrollable="true"
-    >
-      <div style="width: 120px; display: inline-block; text-align: right">{{ $t('be_decision_branch') }}：</div>
-      <Select v-model="manualSkipParams.message" style="width: 350px">
-        <Option v-for="item in manualSkipParams.branchOption" :value="item" :key="item">{{ item }}</Option>
-      </Select>
-      <div class="workflowActionModal-container" style="text-align: center; margin-top: 20px">
-        <Button type="warning" @click="confirmExecuteBranch" :disabled="!manualSkipParams.message">{{
-          $t('be_execute_branch')
-        }}</Button>
-      </div>
-    </Modal>
-
     <!-- 非本人编排提示 -->
     <Modal
       :title="$t('be_workflow_non_owner_title')"
@@ -579,10 +542,11 @@ import JsonViewer from 'vue-json-viewer'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-import { addEvent, removeEvent } from '../util/event.js'
-import TimedExecution from './timed-execution'
-import HistoryExecution from './history-execution'
+import { addEvent, removeEvent } from '@/pages/util/event.js'
 export default {
+  components: {
+    JsonViewer
+  },
   data () {
     return {
       // 属性值展示
@@ -951,7 +915,6 @@ export default {
       flowOwner: ''
     }
   },
-  components: { TimedExecution, JsonViewer, HistoryExecution },
   computed: {
     canAbleToSetting () {
       const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
@@ -1073,7 +1036,6 @@ export default {
       await this.getProcessInstances()
       this.selectedFlowInstance = id
       this.$nextTick(() => {
-        this.currentTab = 'enquery_new_workflow_job'
         this.queryHandler()
       })
     },
@@ -2116,8 +2078,10 @@ export default {
         return
       }
       if (type === 'showlog') {
+        // 查看日志
         this.flowGraphMouseenterHandler(this.currentFailedNodeID)
       } else if (type === 'skip') {
+        // 节点跳过
         this.$Modal.confirm({
           title: this.$t('confirm_to_skip'),
           'z-index': 100,
@@ -2147,6 +2111,7 @@ export default {
       } else if (type === 'retry') {
         this.executeRetry(found, type)
       } else if (type === 'risky') {
+        // 高危确认
         this.executeRisky(found)
       } else {
         const payload = {
@@ -2421,56 +2386,60 @@ export default {
 }
 </script>
 <style lang="scss">
-.ivu-select-dropdown {
-  max-height: 400px !important;
+.workflow-execution {
+  .ivu-select-dropdown {
+    max-height: 400px !important;
+  }
 }
 </style>
 <style lang="scss" scoped>
-body {
-  color: #e5f173; //#15a043;
-}
-.pages ::v-deep .ivu-select-dropdown {
-  height: 500px !important;
-}
-.header-icon {
-  margin: 3px 40px 0 0 !important;
-}
-#graphcontain {
-  border: 1px solid #d3cece;
-  border-radius: 3px;
-  padding: 5px;
-  height: calc(100vh - 220px);
-}
-.model_target .ivu-modal-content-drag {
-  right: 40px;
-}
-.pages ::v-deep .ivu-card-body {
-  padding: 8px;
-}
-.ivu-form-item {
-  margin-bottom: 0 !important;
-  padding-left: 15px;
-}
-.excution-serach {
-  margin: 5px 6px 0 0;
-}
-.graph-container {
-  overflow: auto;
-}
-.header-icon {
-  float: right;
-  margin: 3px 20px 0 0;
-}
-.reset-button {
-  position: absolute;
-  right: 20px;
-  bottom: 5px;
-  font-size: 12px;
-}
-.set-data-button {
-  position: absolute;
-  left: 10px;
-  top: 5px;
-  font-size: 12px;
+.workflow-execution {
+  body {
+    color: #e5f173; //#15a043;
+  }
+  .pages ::v-deep .ivu-select-dropdown {
+    height: 500px !important;
+  }
+  .header-icon {
+    margin: 3px 40px 0 0 !important;
+  }
+  #graph-container {
+    border: 1px solid #d3cece;
+    border-radius: 3px;
+    padding: 5px;
+    height: calc(100vh - 180px);
+  }
+  .model_target .ivu-modal-content-drag {
+    right: 40px;
+  }
+  .pages ::v-deep .ivu-card-body {
+    padding: 8px;
+  }
+  .ivu-form-item {
+    margin-bottom: 0 !important;
+    padding-left: 15px;
+  }
+  .excution-serach {
+    margin: 5px 6px 0 0;
+  }
+  .graph-container {
+    overflow: auto;
+  }
+  .header-icon {
+    float: right;
+    margin: 3px 20px 0 0;
+  }
+  .reset-button {
+    position: absolute;
+    right: 20px;
+    bottom: 5px;
+    font-size: 12px;
+  }
+  .set-data-button {
+    position: absolute;
+    left: 10px;
+    top: 5px;
+    font-size: 12px;
+  }
 }
 </style>
