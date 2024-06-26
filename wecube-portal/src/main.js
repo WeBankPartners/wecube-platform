@@ -124,7 +124,7 @@ const findPath = (routes, path) => {
   window.routers.concat(routes).forEach(route => {
     if (route.children) {
       route.children.forEach(child => {
-        if (child.path === path || child.redirect === path) {
+        if (child.path === path || child.redirect === path || findSideMenuPath(child)) {
           found = true
         }
       })
@@ -137,13 +137,13 @@ const findPath = (routes, path) => {
     }
   })
   // 适配平台侧边菜单栏，父路由配置有子路由，判断子路由权限
-  // function findSideMenuPath (child) {
-  //   if (Array.isArray(child.children) && child.children.length > 0) {
-  //     return child.children.some(item => item.path === path)
-  //   } else {
-  //     return false
-  //   }
-  // }
+  function findSideMenuPath (child) {
+    if (Array.isArray(child.children) && child.children.length > 0) {
+      return child.children.some(item => item.path === path)
+    } else {
+      return false
+    }
+  }
   return found
 }
 
@@ -156,7 +156,7 @@ router.beforeEach((to, from, next) => {
     if (window.myMenus) {
       let isHasPermission = []
         .concat(...window.myMenus.map(_ => _.submenus), window.childRouters)
-        .find(_ => to.path === _.link && _.active)
+        .find(_ => to.path.startsWith(_.link) && _.active)
       if (
         (isHasPermission && isHasPermission.active) ||
         ['/404', '/login', '/homepage', '/collaboration/workflow-mgmt'].includes(to.path)
