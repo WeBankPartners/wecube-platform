@@ -46,9 +46,14 @@ export default {
         },
         {
           key: 'time',
-          label: '执行时间',
-          dateType: 1,
-          initValue: [dayjs().subtract(3, 'day').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+          label: this.$t('execute_date'),
+          initDateType: 1,
+          dateRange: [
+            { label: this.$t('be_threeDays_recent'), type: 'day', value: 3, dateType: 1 },
+            { label: this.$t('be_oneWeek_recent'), type: 'day', value: 7, dateType: 2 },
+            { label: this.$t('be_oneMonth_recent'), type: 'month', value: 1, dateType: 3 },
+            { label: this.$t('be_auto'), dateType: 4 } // 自定义
+          ],
           labelWidth: 110,
           component: 'custom-time'
         },
@@ -279,7 +284,7 @@ export default {
       this.searchConfig.params.operator = tmp.operator || ''
       this.searchConfig.params.status = tmp.status || ''
     }
-    this.MODALHEIGHT = document.body.scrollHeight - 300
+    this.MODALHEIGHT = document.body.scrollHeight - 220
     this.getProcessInstances()
     this.getAllUsers()
   },
