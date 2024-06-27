@@ -66,6 +66,7 @@ let router = new Router({
           name: 'pluginManage',
           component: () => import('@/pages/collaboration/plugin-management')
         },
+        // 编排执行
         {
           path: '/implementation/workflow-execution',
           name: 'workflowExecution',
@@ -110,10 +111,44 @@ let router = new Router({
             }
           ]
         },
+        // 批量执行
         {
           path: '/implementation/batch-execution',
           name: 'batchExecution',
-          component: () => import('@/pages/implementation/batch-execution/index')
+          redirect: '/implementation/workflow-execution/choose-template',
+          component: () => import('@/pages/implementation/batch-execution/index'),
+          children: [
+            // 执行-模板选择
+            {
+              path: '/implementation/workflow-execution/choose-template',
+              name: 'chooseTemplate',
+              component: () => import('@/pages/implementation/batch-execution/execution/choose-template.vue')
+            },
+            // 执行-新建新建
+            {
+              path: '/implementation/workflow-execution/create-execution',
+              name: 'createExecution',
+              component: () => import('@/pages/implementation/batch-execution/execution/create.vue')
+            },
+            // 执行-执行历史
+            {
+              path: '/implementation/workflow-execution/execution-history',
+              name: 'executionHistory',
+              component: () => import('@/pages/implementation/batch-execution/execution/list.vue')
+            },
+            // 模板-新建模板
+            {
+              path: '/implementation/workflow-execution/template-create',
+              name: 'templateCreate',
+              component: () => import('@/pages/implementation/batch-execution/template/create.vue')
+            },
+            // 模板-模板管理
+            {
+              path: '/implementation/workflow-execution/template-list',
+              name: 'templateList',
+              component: () => import('@/pages/implementation/batch-execution/template/list.vue')
+            }
+          ]
         },
         {
           path: '/admin/system-data-model',

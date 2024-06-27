@@ -776,6 +776,7 @@
   "main_workflow": "主编排",
   "call_childFlow": "调用子编排",
   "workflow_id": "编排ID",
+  "child_flowId": "子编排ID",
   "parent_flowTitle": "被关联的主编排",
   "view_workFlow": "查看编排"
 }
