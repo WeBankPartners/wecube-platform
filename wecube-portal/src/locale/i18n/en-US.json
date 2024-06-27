@@ -777,6 +777,7 @@
   "main_workflow": "Main Flow",
   "call_childFlow": "Call Child Flow",
   "workflow_id": "Flow ID",
+  "child_flowId": "Child Flow ID",
   "parent_flowTitle": "Main Flow List",
   "view_workFlow": "View Flow"
 }
