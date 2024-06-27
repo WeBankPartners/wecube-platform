@@ -72,12 +72,12 @@
                 <RadioGroup
                   v-if="i.dateType !== 4"
                   v-model="i.dateType"
-                  @on-change="handleDateTypeChange(i.key, i.dateType)"
+                  @on-change="handleDateTypeChange(i.key, i.dateType, i.dateRange)"
                   type="button"
                   size="small"
                   style="margin-top: -2px"
                 >
-                  <Radio v-for="(j, idx) in dateTypeList" :label="j.value" :key="idx" border>{{ j.label }}</Radio>
+                  <Radio v-for="(j, idx) in i.dateRange" :label="j.dateType" :key="idx" border>{{ j.label }}</Radio>
                 </RadioGroup>
                 <div v-else>
                   <DatePicker
@@ -100,7 +100,7 @@
                     type="md-close-circle"
                     @click="
                       i.dateType = 1
-                      handleDateTypeChange(i.key, 1)
+                      handleDateTypeChange(i.key, 1, i.dateRange)
                     "
                   />
                 </div>
@@ -171,6 +171,13 @@ export default {
       ]
     }
   },
+  mounted () {
+    this.options.forEach(i => {
+      if (i.component === 'custom-time') {
+        this.$set(i, 'dateType', i.initDateType)
+      }
+    })
+  },
   methods: {
     handleExpand () {
       this.expand = !this.expand
@@ -192,10 +199,9 @@ export default {
       })
       // 处理时间类型默认值
       this.options.forEach(i => {
-        if (i.component === 'custom-time' && i.initValue) {
-          i.dateType = 1
-        } else {
-          i.dateType = 4
+        if (i.component === 'custom-time') {
+          this.$set(i, 'dateType', i.initDateType)
+          this.handleDateTypeChange(i.key, i.dateType, i.dateRange, false)
         }
       })
       // 点击清空按钮需要给默认值的表单选项
@@ -206,25 +212,34 @@ export default {
       this.$emit('input', this.formData)
       this.handleSearch()
     },
-    // 自定义时间控件转化时间格式值
-    handleDateTypeChange (key, dateType) {
+    /**
+     * 自定义时间控件转化时间格式值
+     * @params key
+     * @params dateType(1、2、3、4)按钮组key, 4代表自定义组
+     * @params dateRange 时间组集合
+      [
+        { label: '近一月', type: 'month', value: 1, dateType: 1 },
+        { label: '近半年', type: 'month', value: 6, dateType: 2 },
+        { label: '近一年', type: 'year', value: 1, dateType: 3 },
+        { label: this.$t('be_auto'), dateType: 4 }
+      ]
+     * @params remote 默认是否调用查询接口
+    */
+    handleDateTypeChange (key, dateType, dateRange, remote = true) {
       this.formData[key] = []
-      const cur = dayjs().format('YYYY-MM-DD')
-      if (dateType === 1) {
-        const pre = dayjs().subtract(3, 'day').format('YYYY-MM-DD')
-        this.formData[key] = [pre, cur]
-      } else if (dateType === 2) {
-        const pre = dayjs().subtract(7, 'day').format('YYYY-MM-DD')
-        this.formData[key] = [pre, cur]
-      } else if (dateType === 3) {
-        const pre = dayjs().subtract(1, 'month').format('YYYY-MM-DD')
-        this.formData[key] = [pre, cur]
-      } else if (dateType === 4) {
+      if (dateType === 4) {
         this.formData[key] = []
+      } else {
+        const { type, value } = dateRange.find(i => i.dateType === dateType)
+        const cur = dayjs().format('YYYY-MM-DD')
+        const pre = dayjs().subtract(value, type).format('YYYY-MM-DD')
+        this.formData[key] = [pre, cur]
       }
       // 同步更新父组件form数据
-      this.$emit('input', this.formData)
-      this.$emit('search')
+      if (remote) {
+        this.$emit('input', this.formData)
+        this.$emit('search')
+      }
     },
     handleDateRange (dateArr, key) {
       if (dateArr && dateArr[0] && dateArr[1]) {
