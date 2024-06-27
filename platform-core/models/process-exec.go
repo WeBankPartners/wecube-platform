@@ -178,6 +178,8 @@ type ProcInsStartParam struct {
 	ProcDefId         string                `json:"procDefId"`
 	ProcessSessionId  string                `json:"processSessionId"`
 	TaskNodeBinds     []*TaskNodeBindingObj `json:"taskNodeBinds"`
+	ParentInsNodeId   string                `json:"parentInsNodeId"`
+	ParentRunNodeId   string                `json:"parentRunNodeId"`
 }
 
 type ProcInsDetail struct {
