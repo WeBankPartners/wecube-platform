@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/execution"
 
 	"sync"
@@ -603,11 +604,96 @@ func (n *WorkNode) doDateJob(recoverFlag bool) (output string, err error) {
 }
 
 func (n *WorkNode) doSubProcessJob(retry bool) (output string, err error) {
-	log.Logger.Info("do auto job", log.String("nodeId", n.Id), log.String("input", n.Input))
-	err = execution.DoWorkflowAutoJob(n.Ctx, n.Id, "", retry)
-	if err != nil {
-		log.Logger.Error("do auto job error", log.Error(err))
+	log.Logger.Info("do sub process job", log.String("nodeId", n.Id), log.String("input", n.Input))
+	ctx := context.WithValue(n.Ctx, models.TransactionIdHeader, n.Id)
+	// 查proc def node定义和proc ins绑定数据
+	procInsNode, procDefNode, _, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, n.Id)
+	if getNodeDataErr != nil {
+		err = getNodeDataErr
+		return
 	}
+	if procDefNode.DynamicBind == 1 {
+		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
+		if err != nil {
+			err = fmt.Errorf("get node dynamic bind data fail,%s ", err.Error())
+			return
+		}
+		if len(dataBindings) > 0 {
+			err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
+			if err != nil {
+				err = fmt.Errorf("try to update dynamic node binding data fail,%s ", err.Error())
+				return
+			}
+		}
+	} else if procDefNode.DynamicBind == 2 {
+		dataBindings, err = execution.DynamicBindNodeInRuntime(ctx, procInsNode, procDefNode)
+		if err != nil {
+			err = fmt.Errorf("get runtime dynamic bind data fail,%s ", err.Error())
+			return
+		}
+		if len(dataBindings) > 0 {
+			err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
+			if err != nil {
+				err = fmt.Errorf("try to update runtime dynamic node binding data fail,%s ", err.Error())
+				return
+			}
+		}
+	}
+	if len(dataBindings) == 0 {
+		log.Logger.Warn("sub process job return with empty binding data", log.String("procIns", procInsNode.ProcInsId), log.String("procInsNode", procInsNode.Id))
+		// 无数据，空跑
+		return
+	}
+	operator := procInsNode.CreatedBy
+	if procInsNode.UpdatedBy != "" {
+		operator = procInsNode.UpdatedBy
+	}
+	var subWorkflowList []*Workflow
+	var subWorkNodeList [][]*models.ProcRunNode
+	var subProcWorkflowList []*models.ProcRunNodeSubProc
+	for i, dataRow := range dataBindings {
+		if dataRow.SubSessionId == "" {
+			continue
+		}
+		tmpCreateInsParam := models.ProcInsStartParam{
+			ProcessSessionId:  dataRow.SubSessionId,
+			EntityDataId:      dataRow.EntityDataId,
+			EntityDisplayName: dataRow.EntityDataName,
+			EntityTypeId:      dataRow.EntityTypeId,
+			ProcDefId:         procDefNode.ProcDefId,
+			ParentInsNodeId:   procInsNode.Id,
+			ParentRunNodeId:   n.Id,
+		}
+		// 新增 proc_ins,proc_ins_node,proc_data_binding 纪录
+		subProcInsId, subWorkflowRow, subWorkNodes, subWorkLinks, tmpCreateInsErr := database.CreateProcInstance(context.WithValue(n.Ctx, models.TransactionIdHeader, fmt.Sprintf("%s_%d", n.Id, i)), &tmpCreateInsParam, operator)
+		if tmpCreateInsErr != nil {
+			err = tmpCreateInsErr
+			return
+		}
+		// 初始化workflow并开始
+		workObj := Workflow{ProcRunWorkflow: *subWorkflowRow}
+		workObj.ProcInsId = subProcInsId
+		workObj.Links = subWorkLinks
+		subWorkflowList = append(subWorkflowList, &workObj)
+		subWorkNodeList = append(subWorkNodeList, subWorkNodes)
+		subProcWorkflowList = append(subProcWorkflowList, &models.ProcRunNodeSubProc{WorkflowId: subWorkflowRow.Id, EntityTypeId: dataRow.EntityTypeId, EntityDataId: dataRow.EntityDataId})
+	}
+	if err = database.UpdateProcRunNodeSubProc(ctx, n.Id, subProcWorkflowList); err != nil {
+		err = fmt.Errorf("UpdateProcRunNodeSubProc fail,%s ", err.Error())
+		return
+	}
+	wg := sync.WaitGroup{}
+	for i, workObj := range subWorkflowList {
+		wg.Add(1)
+		go func(wo *Workflow, nl []*models.ProcRunNode) {
+			wo.Init(context.Background(), nl, wo.Links)
+			wo.Start(&models.ProcOperation{CreatedBy: operator})
+			wg.Done()
+		}(workObj, subWorkNodeList[i])
+	}
+	wg.Wait()
+	// 获取子编排的结果
+
 	return
 }
 
