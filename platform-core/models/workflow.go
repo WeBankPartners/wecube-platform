@@ -123,9 +123,10 @@ type WorkProblemErrObj struct {
 }
 
 type ProcRunNodeSubProc struct {
-	Id            int    `json:"id" xorm:"id"`                          // 自增id
-	ProcRunNodeId string `json:"procRunNodeId" xorm:"proc_run_node_id"` // 任务节点id
-	WorkflowId    string `json:"workflowId" xorm:"workflow_id"`         // 子工作流id
-	EntityTypeId  string `json:"entityTypeId" xorm:"entity_type_id"`    // 绑定数据entity
-	EntityDataId  string `json:"entityDataId" xorm:"entity_data_id"`    // 绑定数据id
+	Id            int       `json:"id" xorm:"id"`                          // 自增id
+	ProcRunNodeId string    `json:"procRunNodeId" xorm:"proc_run_node_id"` // 任务节点id
+	WorkflowId    string    `json:"workflowId" xorm:"workflow_id"`         // 子工作流id
+	EntityTypeId  string    `json:"entityTypeId" xorm:"entity_type_id"`    // 绑定数据entity
+	EntityDataId  string    `json:"entityDataId" xorm:"entity_data_id"`    // 绑定数据id
+	CreatedTime   time.Time `json:"createdTime" xorm:"created_time"`       // 创建时间
 }

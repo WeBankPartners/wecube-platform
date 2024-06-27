@@ -622,10 +622,16 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,proc_session_id,created_by,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 		procInsId, procDefObj.Id, procDefObj.Key, procDefObj.Name, models.JobStatusReady, entityDataId, entityTypeId, entityDataName, procStartParam.ProcessSessionId, operator, nowTime, operator, nowTime,
 	}})
+	if procStartParam.ParentInsNodeId != "" {
+		actions = append(actions, &db.ExecAction{Sql: "update proc_ins set parent_ins_node_id=? where id=?", Param: []interface{}{procStartParam.ParentInsNodeId, procInsId}})
+	}
 	workflowRow = &models.ProcRunWorkflow{Id: "wf_" + guid.CreateGuid(), ProcInsId: procInsId, Name: procDefObj.Name, Status: models.JobStatusReady, CreatedTime: nowTime}
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_workflow(id,proc_ins_id,name,status,created_time) values (?,?,?,?,?)", Param: []interface{}{
 		workflowRow.Id, workflowRow.ProcInsId, workflowRow.Name, workflowRow.Status, workflowRow.CreatedTime,
 	}})
+	if procStartParam.ParentRunNodeId != "" {
+		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set parent_run_node_id=? where id=?", Param: []interface{}{procStartParam.ParentRunNodeId, workflowRow.Id}})
+	}
 	var procDefNodes []*models.ProcDefNode
 	err = db.MysqlEngine.Context(ctx).SQL("select id,node_id,proc_def_id,name,description,status,node_type,service_name,dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,ordered_no,time_config from proc_def_node where proc_def_id=? order by ordered_no", procStartParam.ProcDefId).Find(&procDefNodes)
 	if err != nil {
@@ -1765,4 +1771,24 @@ func CheckProcInsUserPermission(ctx context.Context, userRoleList []string, proc
 		}
 	}
 	return
+}
+
+func UpdateProcRunNodeSubProc(ctx context.Context, procRunNodeId string, subProcWorkflowList []*models.ProcRunNodeSubProc) (err error) {
+	var actions []*db.ExecAction
+	nowTime := time.Now()
+	actions = append(actions, &db.ExecAction{Sql: "delete from proc_run_node_sub_proc where proc_run_node_id=?", Param: []interface{}{procRunNodeId}})
+	for _, row := range subProcWorkflowList {
+		actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_node_sub_proc(proc_run_node_id,workflow_id,entity_type_id,entity_data_id,created_time) values (?,?,?,?,?)", Param: []interface{}{
+			procRunNodeId, row.WorkflowId, row.EntityTypeId, row.EntityDataId, nowTime,
+		}})
+	}
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		log.Logger.Error("UpdateProcRunNodeSubProc fail", log.Error(err))
+	}
+	return
+}
+
+func GetSubProcResult() {
+
 }
