@@ -1,8 +1,8 @@
-<!--编排普通执行-模板选择-->
+<!--批量执行-模板管理-->
 <template>
-  <div class="normal-execution-template">
+  <div class="batch-execution-template-list">
     <div class="search">
-      <Search :options="searchOptions" v-model="searchParams" @search="handleSearch"></Search>
+      <Search :options="searchOptions" v-model="form" @search="handleSearch"></Search>
     </div>
     <div class="template-card">
       <Card :bordered="false" dis-hover :padding="0">
@@ -11,7 +11,7 @@
             <div class="custom-header" slot="title">
               <Icon size="28" type="ios-people" />
               <div class="title">
-                {{ i.manageRoleDisplay }}
+                {{ i.role }}
                 <span class="underline"></span>
               </div>
               <Icon
@@ -24,7 +24,7 @@
               <Icon v-else size="28" type="md-arrow-dropright" style="cursor: pointer" @click="handleExpand(i)" />
             </div>
             <div v-show="i.expand">
-              <Table size="small" :columns="tableColumns" :data="i.dataList" />
+              <Table size="small" :columns="tableColumns" :data="i.data" @on-row-click="handleChooseTemplate" />
             </div>
           </Card>
         </template>
@@ -39,9 +39,8 @@
 
 <script>
 import Search from '@/pages/components/base-search.vue'
-import { debounce, deepClone } from '@/const/util'
-import { flowList } from '@/api/server'
-import dayjs from 'dayjs'
+import { getBatchExecuteTemplateList, collectBatchTemplate, uncollectBatchTemplate } from '@/api/server'
+import { debounce } from '@/const/util'
 export default {
   components: {
     Search
@@ -54,20 +53,17 @@ export default {
   },
   data () {
     return {
-      searchParams: {
-        procDefId: '',
-        procDefName: '',
-        plugins: [],
-        updatedTime: [dayjs().subtract(1, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
-        updatedTimeStart: '',
-        updatedTimeEnd: '',
-        createdBy: '',
-        updatedBy: '',
-        scene: '', // 分组
-        subProc: 'main',
-        isShowCollectTemplate: false
+      form: {
+        name: '',
+        pluginService: '',
+        operateObject: '',
+        isShowCollectTemplate: false, // 仅展示收藏模板
+        permissionType: 'USE' // 权限类型
       },
+      publishStatus: this.$route.query.status || 'published', // published已发布，draft草稿
       cardList: [], // 模板数据
+      tableColumns: [],
+      editRow: {},
       spinShow: false,
       searchOptions: [
         {
@@ -77,54 +73,37 @@ export default {
           initValue: false
         },
         {
-          key: 'subProc',
-          component: 'radio-group',
-          list: [
-            { label: this.$t('main_workflow'), value: 'main' },
-            { label: this.$t('child_workflow'), value: 'sub' }
-          ],
-          initValue: 'main'
-        },
-        {
-          key: 'updatedTime',
-          label: this.$t('table_updated_date'),
-          initDateType: 1,
-          dateRange: [
-            { label: '近一月', type: 'month', value: 1, dateType: 1 },
-            { label: '近半年', type: 'month', value: 6, dateType: 2 },
-            { label: '近一年', type: 'year', value: 1, dateType: 3 },
-            { label: this.$t('be_auto'), dateType: 4 } // 自定义
-          ],
-          labelWidth: 110,
-          component: 'custom-time'
-        },
-        {
-          key: 'procDefName',
-          placeholder: this.$t('flow_name'),
+          key: 'name',
+          placeholder: this.$t('be_template_name'),
           component: 'input'
         },
         {
-          key: 'procDefId',
-          placeholder: this.$t('workflow_id'),
+          key: 'id',
+          placeholder: this.$t('be_template_id'),
           component: 'input'
         },
         {
-          key: 'updatedBy',
-          placeholder: this.$t('updatedBy'),
+          key: 'pluginService',
+          placeholder: this.$t('pluginService'),
+          component: 'input'
+        },
+        {
+          key: 'operateObject',
+          placeholder: this.$t('be_instance_type'),
           component: 'input'
         }
       ],
-      tableColumns: [
-        {
-          title: this.$t('flow_name'),
+      baseColumns: {
+        name: {
+          title: this.$t('be_template_name'),
           key: 'name',
-          minWidth: 220,
+          minWidth: 140,
           render: (h, params) => {
             return (
               <div>
                 {
                   /* 收藏 */
-                  !params.row.isCollected && (
+                  params.row.isCollected === false && (
                     <Tooltip content={this.$t('bc_save')} placement="top-start">
                       <Icon
                         style="cursor:pointer;margin-right:5px;"
@@ -140,7 +119,7 @@ export default {
                 }
                 {
                   /* 取消收藏 */
-                  params.row.isCollected && (
+                  params.row.isCollected === true && (
                     <Tooltip content={this.$t('be_cancel_save')} placement="top-start">
                       <Icon
                         style="cursor:pointer;margin-right:5px;"
@@ -155,62 +134,33 @@ export default {
                     </Tooltip>
                   )
                 }
-                <span
-                  onClick={() => {
-                    this.handleChooseTemplate(params.row)
-                  }}
-                >
-                  {params.row.name}
-                  <Tag style="margin-left:2px">{params.row.version}</Tag>
-                </span>
+                <span style="margin-right:2px">{params.row.name}</span>
               </div>
             )
           }
         },
-        {
-          title: this.$t('workflow_id'),
-          minWidth: 180,
-          ellipsis: true,
+        id: {
+          title: this.$t('be_template_id'),
           key: 'id',
-          render: (h, params) => {
-            return (
-              <div>
-                <Tooltip content={params.row.id} placement="top">
-                  <span>{params.row.id}</span>
-                </Tooltip>
-              </div>
-            )
-          }
+          minWidth: 100
         },
-        {
+        pluginService: {
+          title: this.$t('pluginService'),
+          key: 'pluginService',
+          minWidth: 140
+        },
+        operateObject: {
           title: this.$t('be_instance_type'),
-          key: 'rootEntity',
-          minWidth: 200,
+          key: 'operateObject',
+          minWidth: 120,
           render: (h, params) => {
-            if (params.row.rootEntity !== '') {
-              return <Tag color="default">{params.row.rootEntity}</Tag>
-            } else {
-              return <span>-</span>
-            }
+            return params.row.operateObject && <Tag color="default">{params.row.operateObject}</Tag>
           }
         },
-        {
-          title: this.$t('be_createby_role'),
-          key: 'createdBy',
-          minWidth: 180,
-          render: (h, params) => {
-            return (
-              <div style="display:flex;flex-direction:column">
-                <span>{params.row.createdBy}</span>
-                <span>{params.row.mgmtRolesDisplay && params.row.mgmtRolesDisplay[0]}</span>
-              </div>
-            )
-          }
-        },
-        {
+        status: {
           title: this.$t('be_use_status'),
           key: 'status',
-          minWidth: 120,
+          minWidth: 90,
           render: (h, params) => {
             const list = [
               { label: this.$t('be_status_use'), value: 'available', color: '#19be6b' },
@@ -221,48 +171,115 @@ export default {
             return item && <Tag color={item.color}>{item.label}</Tag>
           }
         },
-        {
-          title: this.$t('updatedBy'),
-          key: 'updatedBy',
-          minWidth: 90
-        },
-        {
+        createdTime: {
           title: this.$t('table_updated_date'),
           key: 'updatedTime',
-          minWidth: 150
+          minWidth: 120
         }
-      ]
+      }
     }
   },
   mounted () {
+    // 新建执行页面
+    this.tableColumns = [
+      this.baseColumns.name,
+      this.baseColumns.id,
+      this.baseColumns.pluginService,
+      this.baseColumns.operateObject,
+      {
+        title: this.$t('be_createby_role'),
+        key: 'createdBy',
+        minWidth: 90,
+        render: (h, params) => {
+          return (
+            <div style="display:flex;flex-direction:column">
+              <span>{params.row.createdBy}</span>
+              <span>
+                {params.row.permissionToRole.MGMTDisplayName && params.row.permissionToRole.MGMTDisplayName[0]}
+              </span>
+            </div>
+          )
+        }
+      },
+      this.baseColumns.status,
+      this.baseColumns.createdTime
+    ]
     this.getTemplateList()
   },
   methods: {
     // 选择模板新建执行
     handleChooseTemplate (row) {
-      this.$router.push('/implementation/workflow-execution/normal-create')
+      if (row.status === 'unauthorized') {
+        return this.$Notice.warning({
+          title: this.$t('warning'),
+          desc: this.$t('be_template_role_tips')
+        })
+      }
+      this.$router.push({
+        path: '/implementation/workflow-execution/create-execution',
+        query: {
+          id: row.id,
+          from: 'template'
+        }
+      })
     },
     handleSearch () {
       this.getTemplateList()
     },
-    // 选择编排名称后过滤
-    copyNameToSearch (procDefName) {
-      this.searchParams.procDefName = procDefName
-      this.getTemplateList()
-    },
     async getTemplateList () {
-      const params = deepClone(this.searchParams)
-      params.updatedTimeStart = params.updatedTime[0] ? params.updatedTime[0] + ' 00:00:00' : ''
-      params.updatedTimeEnd = params.updatedTime[1] ? params.updatedTime[1] + ' 23:59:59' : ''
-      params.permissionType = 'USE'
-      params.status = 'deployed'
-      delete params.updatedTime
+      const params = {
+        filters: [],
+        paging: true,
+        pageable: {
+          startIndex: 0,
+          pageSize: 1000
+        },
+        sorting: [
+          {
+            asc: false,
+            field: 'updatedTimeT'
+          }
+        ]
+      }
+      Object.keys(this.form).forEach(key => {
+        if (this.form[key] || typeof this.form[key] === 'boolean') {
+          params.filters.push({
+            name: key,
+            operator: ['isShowCollectTemplate', 'permissionType'].includes(key) ? 'eq' : 'contains',
+            value: this.form[key]
+          })
+        }
+      })
+      params.filters.push({
+        name: 'publishStatus',
+        operator: 'eq',
+        value: this.publishStatus
+      })
       this.spinShow = true
-      let { data, status } = await flowList(params)
+      const { status, data } = await getBatchExecuteTemplateList(params)
       this.spinShow = false
       if (status === 'OK') {
-        this.cardList = data.map(item => {
-          return { ...item, expand: true }
+        let useGroup = []
+        data.contents.forEach(item => {
+          if (item.permissionToRole.USEDisplayName && item.permissionToRole.USEDisplayName.length > 0) {
+            item.permissionToRole.USEDisplayName.forEach(role => {
+              useGroup.push(role)
+            })
+          }
+        })
+        useGroup = Array.from(new Set(useGroup))
+        this.cardList = useGroup.map(role => {
+          const group = {
+            expand: true,
+            data: [],
+            role: role
+          }
+          data.contents.forEach(item => {
+            if (item.permissionToRole.USEDisplayName && item.permissionToRole.USEDisplayName.includes(role)) {
+              group.data.push(item)
+            }
+          })
+          return group
         })
       }
     },
@@ -272,25 +289,25 @@ export default {
     },
     // 收藏or取消收藏
     handleStar: debounce(async function ({ id, isCollected }) {
-      // const method = isCollected ? uncollectBatchTemplate : collectBatchTemplate
-      // const params = {
-      //   batchExecutionTemplateId: id
-      // }
-      // const { status } = await method(params)
-      // if (status === 'OK') {
-      //   this.$Notice.success({
-      //     title: this.$t('successful'),
-      //     desc: this.$t('successful')
-      //   })
-      //   this.getTemplateList()
-      // }
+      const method = isCollected ? uncollectBatchTemplate : collectBatchTemplate
+      const params = {
+        batchExecutionTemplateId: id
+      }
+      const { status } = await method(params)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: this.$t('successful'),
+          desc: this.$t('successful')
+        })
+        this.getTemplateList()
+      }
     }, 300)
   }
 }
 </script>
 
 <style lang="scss" scoped>
-.normal-execution-template {
+.batch-execution-template-list {
   width: 100%;
   .search {
     display: flex;
@@ -338,7 +355,7 @@ export default {
 }
 </style>
 <style lang="scss">
-.normal-execution-template {
+.batch-execution-template-list {
   .ivu-tooltip {
     width: auto !important;
   }

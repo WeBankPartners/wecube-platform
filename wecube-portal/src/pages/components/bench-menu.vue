@@ -39,15 +39,13 @@
 export default {
   props: {
     menuList: Array
-    // openNames: Array,
-    // defaultMenu: String
   },
   data () {
     return {
       scrollTop: 0,
       expand: true,
       activeName: '',
-      openNames: []
+      openNames: [] // 由于每次点击菜单栏，组件都会重新渲染，暂时做不到菜单栏按照用户点击依次展开
     }
   },
   created () {
@@ -55,7 +53,7 @@ export default {
       for (let j of i.children) {
         if (j.path === this.$route.fullPath) {
           this.activeName = j.name
-          this.openNames = [i.name]
+          this.openNames.push(i.name)
         }
       }
     })
@@ -63,9 +61,6 @@ export default {
   mounted () {
     this.$eventBusP.$emit('expand-menu', true)
     window.addEventListener('scroll', this.getScrollTop)
-    // if (!this.activeName) {
-    //   this.activeName = this.defaultMenu
-    // }
   },
   beforeDestroy () {
     this.$eventBusP.$emit('expand-menu', false)

@@ -4,12 +4,10 @@
     <div class="search">
       <Search :options="searchOptions" v-model="form" @search="handleSearch"></Search>
       <!--新建模板-->
-      <Button v-if="from === 'template'" type="success" class="create-template" @click="handleCreateTemplate">{{
-        $t('be_new_template')
-      }}</Button>
+      <Button type="success" class="create-template" @click="handleCreateTemplate">{{ $t('be_new_template') }}</Button>
     </div>
     <div class="template-card">
-      <Tabs v-if="from === 'template'" v-model="publishStatus" @on-click="handleSearch">
+      <Tabs v-model="publishStatus" @on-click="handleSearch">
         <!--已发布-->
         <TabPane :label="$t('deployed')" name="published"></TabPane>
         <!--我的草稿-->
@@ -34,7 +32,7 @@
               <Icon v-else size="28" type="md-arrow-dropright" style="cursor: pointer" @click="handleExpand(i)" />
             </div>
             <div v-show="i.expand">
-              <Table size="small" :columns="tableColumns" :data="i.data" @on-row-click="handleChooseTemplate" />
+              <Table size="small" :columns="tableColumns" :data="i.data" />
             </div>
           </Card>
         </template>
@@ -51,7 +49,7 @@
 
 <script>
 import Search from '@/pages/components/base-search.vue'
-import AuthDialog from '../../components/auth.vue'
+import AuthDialog from '@/pages/components/auth.vue'
 import {
   getBatchExecuteTemplateList,
   updateExecuteTemplateRole,
@@ -65,12 +63,6 @@ export default {
     Search,
     AuthDialog
   },
-  props: {
-    from: {
-      type: String,
-      default: 'template'
-    }
-  },
   data () {
     return {
       form: {
@@ -78,7 +70,7 @@ export default {
         pluginService: '',
         operateObject: '',
         isShowCollectTemplate: false, // 仅展示收藏模板
-        permissionType: this.from === 'template' ? 'MGMT' : 'USE' // 权限类型
+        permissionType: 'MGMT'
       },
       publishStatus: this.$route.query.status || 'published', // published已发布，draft草稿
       cardList: [], // 模板数据
@@ -299,74 +291,38 @@ export default {
     }
   },
   mounted () {
-    if (this.from === 'template') {
-      // 模板管理页面
-      this.tableColumns = [
-        this.baseColumns.name,
-        this.baseColumns.id,
-        this.baseColumns.pluginService,
-        this.baseColumns.operateObject,
-        {
-          title: this.$t('use_role'),
-          key: 'useRole',
-          minWidth: 120,
-          render: (h, params) => {
-            return (
-              <div>
-                {params.row.permissionToRole.USEDisplayName &&
-                  params.row.permissionToRole.USEDisplayName.map(item => {
-                    return <Tag color="default">{item}</Tag>
-                  })}
-              </div>
-            )
-          }
-        },
-        this.baseColumns.status,
-        this.baseColumns.createdTime,
-        this.baseColumns.action
-      ]
-    } else if (this.from === 'execute') {
-      // 新建执行页面
-      this.tableColumns = [
-        this.baseColumns.name,
-        this.baseColumns.id,
-        this.baseColumns.pluginService,
-        this.baseColumns.operateObject,
-        {
-          title: this.$t('be_createby_role'),
-          key: 'createdBy',
-          minWidth: 90,
-          render: (h, params) => {
-            return (
-              <div style="display:flex;flex-direction:column">
-                <span>{params.row.createdBy}</span>
-                <span>
-                  {params.row.permissionToRole.MGMTDisplayName && params.row.permissionToRole.MGMTDisplayName[0]}
-                </span>
-              </div>
-            )
-          }
-        },
-        this.baseColumns.status,
-        this.baseColumns.createdTime
-      ]
-    }
+    // 模板管理页面
+    this.tableColumns = [
+      this.baseColumns.name,
+      this.baseColumns.id,
+      this.baseColumns.pluginService,
+      this.baseColumns.operateObject,
+      {
+        title: this.$t('use_role'),
+        key: 'useRole',
+        minWidth: 120,
+        render: (h, params) => {
+          return (
+            <div>
+              {params.row.permissionToRole.USEDisplayName &&
+                params.row.permissionToRole.USEDisplayName.map(item => {
+                  return <Tag color="default">{item}</Tag>
+                })}
+            </div>
+          )
+        }
+      },
+      this.baseColumns.status,
+      this.baseColumns.createdTime,
+      this.baseColumns.action
+    ]
     this.getTemplateList()
   },
   methods: {
     handleCreateTemplate () {
-      this.$eventBusP.$emit('change-menu', 'templateCreate')
-    },
-    // 选择模板新建执行
-    handleChooseTemplate (row) {
-      if (this.from === 'template') return
-      if (row.status === 'unauthorized') {
-        return this.$Notice.warning({
-          title: this.$t('warning'),
-          desc: this.$t('be_template_role_tips')
-        })
-      }
-      this.$emit('select', row)
+      this.$router.push({
+        path: '/implementation/workflow-execution/template-create'
+      })
     },
     handleSearch () {
       this.getTemplateList()
@@ -405,54 +361,28 @@ export default {
       this.spinShow = false
       if (status === 'OK') {
         // 模板列表页按属主角色分组展示
-        if (this.from === 'template') {
-          let mgmtGroup = []
-          data.contents.forEach(item => {
-            if (item.permissionToRole.MGMTDisplayName && item.permissionToRole.MGMTDisplayName.length > 0) {
-              item.permissionToRole.MGMTDisplayName.forEach(role => {
-                mgmtGroup.push(role)
-              })
-            }
-          })
-          mgmtGroup = Array.from(new Set(mgmtGroup))
-          this.cardList = mgmtGroup.map(role => {
-            const group = {
-              expand: true,
-              data: [],
-              role: role
-            }
-            data.contents.forEach(item => {
-              if (item.permissionToRole.MGMTDisplayName && item.permissionToRole.MGMTDisplayName.includes(role)) {
-                group.data.push(item)
-              }
+        let mgmtGroup = []
+        data.contents.forEach(item => {
+          if (item.permissionToRole.MGMTDisplayName && item.permissionToRole.MGMTDisplayName.length > 0) {
+            item.permissionToRole.MGMTDisplayName.forEach(role => {
+              mgmtGroup.push(role)
             })
-            return group
-          })
-          // 执行选择模板页按使用角色分组展示
-        } else if (this.from === 'execute') {
-          let useGroup = []
+          }
+        })
+        mgmtGroup = Array.from(new Set(mgmtGroup))
+        this.cardList = mgmtGroup.map(role => {
+          const group = {
+            expand: true,
+            data: [],
+            role: role
+          }
           data.contents.forEach(item => {
-            if (item.permissionToRole.USEDisplayName && item.permissionToRole.USEDisplayName.length > 0) {
-              item.permissionToRole.USEDisplayName.forEach(role => {
-                useGroup.push(role)
-              })
+            if (item.permissionToRole.MGMTDisplayName && item.permissionToRole.MGMTDisplayName.includes(role)) {
+              group.data.push(item)
             }
           })
-          useGroup = Array.from(new Set(useGroup))
-          this.cardList = useGroup.map(role => {
-            const group = {
-              expand: true,
-              data: [],
-              role: role
-            }
-            data.contents.forEach(item => {
-              if (item.permissionToRole.USEDisplayName && item.permissionToRole.USEDisplayName.includes(role)) {
-                group.data.push(item)
-              }
-            })
-            return group
-          })
-        }
+          return group
+        })
       }
     },
     // 展开收缩卡片
@@ -476,11 +406,9 @@ export default {
     }, 300),
     // 查看
     handleView (row) {
-      this.$eventBusP.$emit('change-menu', 'templateCreate')
-      this.$router.replace({
-        name: this.$route.name,
+      this.$router.push({
+        path: '/implementation/workflow-execution/template-create',
         query: {
-          // 更新的参数
           id: row.id,
           type: 'view'
         }
@@ -488,11 +416,9 @@ export default {
     },
     // 复制
     handleCopy (row) {
-      this.$eventBusP.$emit('change-menu', 'templateCreate')
-      this.$router.replace({
-        name: this.$route.name,
+      this.$router.push({
+        path: '/implementation/workflow-execution/template-create',
         query: {
-          // 更新的参数
           id: row.id,
           type: 'copy'
         }
@@ -500,11 +426,9 @@ export default {
     },
     // 编辑草稿
     handleEdit (row) {
-      this.$eventBusP.$emit('change-menu', 'templateCreate')
-      this.$router.replace({
-        name: this.$route.name,
+      this.$router.push({
+        path: '/implementation/workflow-execution/template-create',
         query: {
-          // 更新的参数
           id: row.id,
           type: 'edit'
         }

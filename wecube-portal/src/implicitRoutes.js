@@ -69,5 +69,55 @@ export default {
       'en-US': 'Workflow Execution',
       'zh-CN': '编排执行'
     }
+  },
+  'implementation/workflow-execution/choose-template': {
+    childBreadcrumb: {
+      'en-US': 'Choose Template',
+      'zh-CN': '模板选择'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Batch Execution',
+      'zh-CN': '批量执行'
+    }
+  },
+  'implementation/workflow-execution/create-execution': {
+    childBreadcrumb: {
+      'en-US': 'Create Execution',
+      'zh-CN': '新建执行'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Batch Execution',
+      'zh-CN': '批量执行'
+    }
+  },
+  'implementation/workflow-execution/execution-history': {
+    childBreadcrumb: {
+      'en-US': 'Execution History',
+      'zh-CN': '执行历史'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Batch Execution',
+      'zh-CN': '批量执行'
+    }
+  },
+  'implementation/workflow-execution/template-create': {
+    childBreadcrumb: {
+      'en-US': 'Create Template',
+      'zh-CN': '新建模板'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Batch Execution',
+      'zh-CN': '批量执行'
+    }
+  },
+  'implementation/workflow-execution/template-list': {
+    childBreadcrumb: {
+      'en-US': 'Template Management',
+      'zh-CN': '模板管理'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Batch Execution',
+      'zh-CN': '批量执行'
+    }
   }
 }

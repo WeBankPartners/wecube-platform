@@ -1,31 +1,27 @@
 <template>
   <div class="batch-execute-create">
-    <ChooseTemplate v-if="step === 1" from="execute" @select="handleChooseTemplate"></ChooseTemplate>
-    <template v-if="step === 2">
-      <BaseForm ref="form" :type="type" :from="from" :data="detailData" @back="handleBack" />
-      <div v-if="type !== 'view'" class="footer-button">
-        <!--执行-->
-        <Button type="primary" @click="saveExcute">{{ $t('execute') }}</Button>
-      </div>
-      <div v-else class="footer-button">
-        <!--重新执行-->
-        <Button type="primary" @click="relaunch">{{ $t('be_re_execute') }}</Button>
-      </div>
-    </template>
+    <BaseForm ref="form" :type="type" from="execute" :data="detailData" @back="handleBack" />
+    <div v-if="type === 'view'" class="footer-button">
+      <!--执行-->
+      <Button type="primary" @click="saveExcute">{{ $t('execute') }}</Button>
+    </div>
+    <div v-else class="footer-button">
+      <!--重新执行-->
+      <Button type="primary" @click="relaunch">{{ $t('be_re_execute') }}</Button>
+    </div>
     <!--高危检测弹框-->
     <DangerousModal
       :visible.sync="confirmModal.isShowConfirmModal"
       :data="confirmModal"
-      @success="$eventBusP.$emit('change-menu', 'executeList')"
+      @success="forwardToList"
     ></DangerousModal>
   </div>
 </template>
 
 <script>
 import CryptoJS from 'crypto-js'
-import ChooseTemplate from './template.vue'
-import BaseForm from './base-form.vue'
-import DangerousModal from './components/dangerous-modal.vue'
+import BaseForm from '../base-form.vue'
+import DangerousModal from '../components/dangerous-modal.vue'
 import { debounce } from '@/const/util'
 import {
   getBatchExecuteTemplateDetail,
@@ -35,16 +31,14 @@ import {
 } from '@/api/server.js'
 export default {
   components: {
-    ChooseTemplate,
     BaseForm,
     DangerousModal
   },
   data () {
     return {
-      step: '',
-      from: 'execute', // 模板，执行
       id: this.$route.query.id || '', // 批量执行id
       type: this.$route.query.type || 'add', // 新增，查看
+      from: this.$route.query.from || '', // template代表从选择模板页进入
       detailData: {},
       confirmModal: {
         continueToken: '',
@@ -56,20 +50,20 @@ export default {
     }
   },
   mounted () {
-    if (this.id) {
-      this.step = 2
-      this.getExecuteDetail()
-    } else {
-      this.step = 1
+    if (this.$route.query.id) {
+      if (this.$route.query.from === 'template') {
+        this.handleChooseTemplate() // 选择模板创建执行
+      } else {
+        this.getExecuteDetail() // 获取执行详情
+      }
     }
   },
   methods: {
     handleBack () {
-      if (this.id) {
-        this.$eventBusP.$emit('change-menu', 'executeList')
-      } else {
-        this.step = 1
-      }
+      this.$router.back()
+    },
+    forwardToList () {
+      this.$router.push('/implementation/workflow-execution/execution-history')
     },
     async getInputParamsEncryptKey () {
       const { status, data } = await getInputParamsEncryptKey()
@@ -78,10 +72,9 @@ export default {
       }
     },
     // 选择模板创建
-    async handleChooseTemplate (row) {
-      this.step = 2
+    async handleChooseTemplate () {
       // 选择模板创建的时候，使用模板ID调用模板详情接口，获取详情信息
-      const { status, data } = await getBatchExecuteTemplateDetail(row.id)
+      const { status, data } = await getBatchExecuteTemplateDetail(this.id)
       if (status === 'OK') {
         this.detailData = { ...data, templateData: data }
         this.detailData.name = `${this.detailData.name}${new Date().getTime()}`
@@ -221,7 +214,7 @@ export default {
           title: this.$t('successful'),
           desc: this.$t('successful')
         })
-        this.$eventBusP.$emit('change-menu', 'executeList')
+        this.$router.push('/implementation/workflow-execution/execution-history')
       } else if (status === 'CONFIRM') {
         // 高危检测命中，则弹窗让用户手动确认是否继续执行，若继续，则带id和continueToken再执行一次
         if (data.dangerousCheckResult) {

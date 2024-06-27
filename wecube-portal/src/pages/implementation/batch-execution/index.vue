@@ -1,43 +1,63 @@
 <template>
-  <div class="batch-execution-container">
-    <div :style="workbenchStyle">
-      <TemplateList v-if="showMenu.templateList"></TemplateList>
-      <TemplateCreate v-if="showMenu.templateCreate"></TemplateCreate>
-      <ExecuteList v-if="showMenu.executeList"></ExecuteList>
-      <ExecuteCreate v-if="showMenu.executeCreate"></ExecuteCreate>
-      <SideMenu @select="handleMenuChange" :active="active"></SideMenu>
+  <div id="batch-execution">
+    <div :style="benchStyle">
+      <transition name="fade" mode="out-in">
+        <router-view></router-view>
+      </transition>
+      <BenchMenu :menuList="menuList"></BenchMenu>
     </div>
   </div>
 </template>
 
 <script>
-import SideMenu from './components/side-menu.vue'
-import TemplateCreate from './template-create.vue'
-import TemplateList from './template.vue'
-import ExecuteList from './execute.vue'
-import ExecuteCreate from './execute-create.vue'
+import BenchMenu from '@/pages/components/bench-menu'
 export default {
   components: {
-    SideMenu,
-    TemplateCreate,
-    TemplateList,
-    ExecuteList,
-    ExecuteCreate
+    BenchMenu
   },
   data () {
     return {
       expand: true,
-      active: 'executeCreate',
-      showMenu: {
-        templateList: false,
-        templateCreate: false,
-        executeList: false,
-        executeCreate: true
-      }
+      menuList: [
+        {
+          title: this.$t('execute'),
+          icon: 'md-hammer',
+          name: '1',
+          children: [
+            {
+              title: this.$t('be_new_execute'),
+              path: '/implementation/workflow-execution/choose-template',
+              name: '1-1'
+            },
+            {
+              title: this.$t('be_execute_history'),
+              path: '/implementation/workflow-execution/execution-history',
+              name: '1-2'
+            }
+          ]
+        },
+        {
+          title: this.$t('template'),
+          icon: 'md-document',
+          name: '2',
+          children: [
+            {
+              title: this.$t('be_new_template'),
+              path: '/implementation/workflow-execution/template-create',
+              name: '2-1'
+            },
+            {
+              title: this.$t('be_template_manage'),
+              path: '/implementation/workflow-execution/template-list',
+              name: '2-2'
+            }
+          ]
+        }
+      ]
     }
   },
   computed: {
-    workbenchStyle () {
+    benchStyle () {
       return {
         paddingLeft: this.expand ? '140px' : '0px'
       }
@@ -47,32 +67,7 @@ export default {
     this.$eventBusP.$on('expand-menu', val => {
       this.expand = val
     })
-    this.$eventBusP.$on('change-menu', name => {
-      this.handleMenuChange(name)
-      this.active = name
-    })
   },
-  methods: {
-    // 切换页面组件
-    handleMenuChange (name) {
-      if (!['templateCreate', 'executeCreate'].includes(name)) {
-        this.$router.replace({
-          name: this.$route.name,
-          query: {}
-        })
-      }
-      Object.keys(this.showMenu).forEach(key => {
-        this.showMenu[key] = false
-      })
-      this.showMenu[name] = true
-      this.active = name
-    }
-  }
+  methods: {}
 }
 </script>
-
-<style lang="scss" scoped>
-.batch-execution-container {
-  height: calc(100% - 50px);
-}
-</style>

@@ -368,7 +368,7 @@
                   >
                 </FormItem>
                 <template v-if="itemCustomInfo.customAttrs.subProcDefId">
-                  <FormItem :label="$t('workflow_id')">
+                  <FormItem :label="$t('child_flowId')">
                     <span>{{ subProcItem.procDefId || '-' }}</span>
                     <Button type="info" size="small" @click="viewParentFlowGraph">{{ $t('view_workFlow') }}</Button>
                   </FormItem>
