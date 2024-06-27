@@ -21,7 +21,7 @@ export default {
       menuList: [
         {
           title: '普通执行',
-          icon: 'ios-albums',
+          icon: 'ios-hammer',
           name: '1',
           children: [
             { title: '新建', path: '/implementation/workflow-execution/normal-template', name: '1-1' },
