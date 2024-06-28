@@ -1044,7 +1044,7 @@ func GetSimpleProcInsNode(ctx context.Context, procInsNodeId, procRunNodeId stri
 
 func GetSimpleProcDefNode(ctx context.Context, procDefNodeId string) (procDefNode *models.ProcDefNode, err error) {
 	var procDefNodeRows []*models.ProcDefNode
-	err = db.MysqlEngine.Context(ctx).SQL("select id,node_id,proc_def_id,name,node_type,service_name,dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout from proc_def_node where id=?", procDefNodeId).Find(&procDefNodeRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select id,node_id,proc_def_id,name,node_type,service_name,dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,sub_proc_def_id from proc_def_node where id=?", procDefNodeId).Find(&procDefNodeRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -1608,6 +1608,11 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 		filterSqlList = append(filterSqlList, "created_time<=?")
 		filterParams = append(filterParams, param.EndTime)
 	}
+	if param.SubProc == "main" {
+		filterSqlList = append(filterSqlList, "proc_def_id in (select id from proc_def where sub_proc=0)")
+	} else if param.SubProc == "sub" {
+		filterSqlList = append(filterSqlList, "proc_def_id in (select id from proc_def where sub_proc=1)")
+	}
 	filterSqlList = append(filterSqlList, "proc_def_id in (select proc_def_id from proc_def_permission where permission=? and role_id in ('"+strings.Join(userRoles, "','")+"'))")
 	filterParams = append(filterParams, models.PermissionTypeUSE)
 
@@ -1791,5 +1796,20 @@ func UpdateProcRunNodeSubProc(ctx context.Context, procRunNodeId string, subProc
 
 func GetSubProcResult(ctx context.Context, procRunNodeId string) (resultRows []*models.ProcSubProcQueryRow, err error) {
 	err = db.MysqlEngine.Context(ctx).SQL("select t1.proc_run_node_id,t1.workflow_id,t1.entity_type_id,t1.entity_data_id,t2.status,t2.error_message,t2.proc_ins_id from proc_run_node_sub_proc t1 left join proc_run_workflow t2 on t1.workflow_id=t2.id where t1.proc_run_node_id=?", procRunNodeId).Find(&resultRows)
+	return
+}
+
+func CheckSubProcStart(ctx context.Context, sessionId string) (isSubProcSession bool, err error) {
+	if sessionId == "" {
+		return
+	}
+	queryResult, queryErr := db.MysqlEngine.Context(ctx).QueryString("select proc_def_id from proc_data_preview where sub_session_id=?", sessionId)
+	if queryErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, queryErr)
+		return
+	}
+	if len(queryResult) > 0 {
+		isSubProcSession = true
+	}
 	return
 }

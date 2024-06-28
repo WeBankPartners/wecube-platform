@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
@@ -464,6 +465,11 @@ func (n *WorkNode) start() {
 	} else {
 		n.Status = models.JobStatusFail
 		n.ErrorMessage = n.Err.Error()
+		if customErr, ok := n.Err.(exterror.CustomError); ok {
+			if customErr.DetailErr != nil {
+				n.ErrorMessage = fmt.Sprintf("%s (%s)", customErr.Error(), customErr.DetailErr.Error())
+			}
+		}
 		updateNodeDB(&n.ProcRunNode)
 	}
 	n.DoneChan <- 1
@@ -664,6 +670,7 @@ func (n *WorkNode) doSubProcessJob(retry bool) (output string, err error) {
 			ParentInsNodeId:   procInsNode.Id,
 			ParentRunNodeId:   n.Id,
 		}
+		log.Logger.Debug("doSubProcessJob", log.Int("i", i), log.JsonObj("tmpCreateInsParam", tmpCreateInsParam))
 		// 新增 proc_ins,proc_ins_node,proc_data_binding 纪录
 		subProcInsId, subWorkflowRow, subWorkNodes, subWorkLinks, tmpCreateInsErr := database.CreateProcInstance(context.WithValue(n.Ctx, models.TransactionIdHeader, fmt.Sprintf("%s_%d", n.Id, i)), &tmpCreateInsParam, operator)
 		if tmpCreateInsErr != nil {
