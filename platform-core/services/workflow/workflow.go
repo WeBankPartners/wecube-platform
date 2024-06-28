@@ -660,7 +660,7 @@ func (n *WorkNode) doSubProcessJob(retry bool) (output string, err error) {
 			EntityDataId:      dataRow.EntityDataId,
 			EntityDisplayName: dataRow.EntityDataName,
 			EntityTypeId:      dataRow.EntityTypeId,
-			ProcDefId:         procDefNode.ProcDefId,
+			ProcDefId:         procDefNode.SubProcDefId,
 			ParentInsNodeId:   procInsNode.Id,
 			ParentRunNodeId:   n.Id,
 		}
@@ -693,7 +693,20 @@ func (n *WorkNode) doSubProcessJob(retry bool) (output string, err error) {
 	}
 	wg.Wait()
 	// 获取子编排的结果
-
+	subProcResultList, subProcQueryErr := database.GetSubProcResult(ctx, n.Id)
+	if subProcQueryErr != nil {
+		err = fmt.Errorf("Query sub process running result fail,%s ", subProcQueryErr)
+		return
+	}
+	var errorMessage string
+	for _, subResult := range subProcResultList {
+		if subResult.Status != models.JobStatusSuccess {
+			errorMessage += fmt.Sprintf("dataId:%s:%s procInsId:%s error:%s ;", subResult.EntityTypeId, subResult.EntityDataId, subResult.ProcInsId, subResult.ErrorMessage)
+		}
+	}
+	if errorMessage != "" {
+		err = fmt.Errorf(errorMessage)
+	}
 	return
 }
 

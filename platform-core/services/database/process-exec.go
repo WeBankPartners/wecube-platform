@@ -157,7 +157,7 @@ func ProcDefOutline(ctx context.Context, procDefId string) (result *models.ProcD
 			SucceedingNodeIds: []string{},
 			SubProcDefId:      node.SubProcDefId,
 		}
-		if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) {
+		if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) || node.NodeType == models.JobSubProcType {
 			nodeObj.OrderedNo = fmt.Sprintf("%d", orderIndex)
 			orderIndex += 1
 		}
@@ -676,8 +676,8 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 		// data bind
 		for _, row := range previewRows {
 			if row.ProcDefNodeId == node.Id {
-				actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_binding(id,proc_def_id,proc_ins_id,proc_def_node_id,proc_ins_node_id,entity_id,entity_data_id,entity_data_name,entity_type_id,bind_flag,bind_type,full_data_id,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-					fmt.Sprintf("p_bind_%d", row.Id), procDefObj.Id, procInsId, node.Id, tmpProcInsNodeId, row.EntityDataId, row.EntityDataId, row.EntityDataName, row.EntityTypeId, row.IsBound, row.BindType, row.FullDataId, operator, nowTime,
+				actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_binding(id,proc_def_id,proc_ins_id,proc_def_node_id,proc_ins_node_id,entity_id,entity_data_id,entity_data_name,entity_type_id,bind_flag,bind_type,full_data_id,sub_session_id,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+					fmt.Sprintf("p_bind_%d", row.Id), procDefObj.Id, procInsId, node.Id, tmpProcInsNodeId, row.EntityDataId, row.EntityDataId, row.EntityDataName, row.EntityTypeId, row.IsBound, row.BindType, row.FullDataId, row.SubSessionId, operator, nowTime,
 				}})
 			}
 		}
@@ -1789,6 +1789,7 @@ func UpdateProcRunNodeSubProc(ctx context.Context, procRunNodeId string, subProc
 	return
 }
 
-func GetSubProcResult() {
-
+func GetSubProcResult(ctx context.Context, procRunNodeId string) (resultRows []*models.ProcSubProcQueryRow, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select t1.proc_run_node_id,t1.workflow_id,t1.entity_type_id,t1.entity_data_id,t2.status,t2.error_message,t2.proc_ins_id from proc_run_node_sub_proc t1 left join proc_run_workflow t2 on t1.workflow_id=t2.id where t1.proc_run_node_id=?", procRunNodeId).Find(&resultRows)
+	return
 }
