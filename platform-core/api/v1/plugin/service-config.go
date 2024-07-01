@@ -501,3 +501,17 @@ func tryCalculateConfigurableParameters(refObjectMeta *models.CoreObjectMetaDto)
 	}
 	return objectConfigParamDtoList
 }
+
+func QueryPluginInterfaceParam(c *gin.Context) {
+	var param models.PluginInterfaceParamQueryParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	result, err := database.QueryPluginInterfaceParam(c, &param)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
