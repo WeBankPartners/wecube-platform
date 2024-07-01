@@ -27,17 +27,19 @@ const (
 type ProcDefNodeType string
 
 const (
-	ProcDefNodeTypeStart        ProcDefNodeType = "start"        //开始
-	ProcDefNodeTypeEnd          ProcDefNodeType = "end"          //结束
-	ProcDefNodeTypeAbnormal     ProcDefNodeType = "abnormal"     //异常
-	ProcDefNodeTypeDecision     ProcDefNodeType = "decision"     //判断
-	ProcDefNodeTypeFork         ProcDefNodeType = "fork"         //分流
-	ProcDefNodeTypeMerge        ProcDefNodeType = "merge"        //汇聚
-	ProcDefNodeTypeHuman        ProcDefNodeType = "human"        //人工节点
-	ProcDefNodeTypeAutomatic    ProcDefNodeType = "automatic"    //自动节点
-	ProcDefNodeTypeData         ProcDefNodeType = "data"         //数据节点
-	ProcDefNodeTypeDate         ProcDefNodeType = "date"         //时间节点
-	ProcDefNodeTypeTimeInterval ProcDefNodeType = "timeInterval" //时间间隔
+	ProcDefNodeTypeStart        ProcDefNodeType = "start"         //开始
+	ProcDefNodeTypeEnd          ProcDefNodeType = "end"           //结束
+	ProcDefNodeTypeAbnormal     ProcDefNodeType = "abnormal"      //异常
+	ProcDefNodeTypeDecision     ProcDefNodeType = "decision"      //判断
+	ProcDefNodeTypeFork         ProcDefNodeType = "fork"          //分流
+	ProcDefNodeTypeMerge        ProcDefNodeType = "merge"         //汇聚
+	ProcDefNodeTypeHuman        ProcDefNodeType = "human"         //人工节点
+	ProcDefNodeTypeAutomatic    ProcDefNodeType = "automatic"     //自动节点
+	ProcDefNodeTypeData         ProcDefNodeType = "data"          //数据节点
+	ProcDefNodeTypeDate         ProcDefNodeType = "date"          //时间节点
+	ProcDefNodeTypeTimeInterval ProcDefNodeType = "timeInterval"  //时间间隔
+	ProcDefNodeSubProcess       ProcDefNodeType = "subProc"       // 子编排
+	ProcDefNodeDecisionMerge    ProcDefNodeType = "decisionMerge" // 判断汇聚
 )
 
 type ProcDef struct {
@@ -786,4 +788,18 @@ func GenNodeId(nodeType string) string {
 type ProcDefParentPageResult struct {
 	Page    *PageInfo                `json:"page"`
 	Content []*ProcDefParentListItem `json:"content"`
+}
+
+type ProcDefSortNodes []*ProcDefNode
+
+func (p ProcDefSortNodes) Len() int {
+	return len(p)
+}
+
+func (p ProcDefSortNodes) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
+}
+
+func (p ProcDefSortNodes) Less(i, j int) bool {
+	return p[i].OrderedNo < p[j].OrderedNo
 }
