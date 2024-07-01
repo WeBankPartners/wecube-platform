@@ -1714,6 +1714,8 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 			CreatedTime:       row.CreatedTime.Format(models.DateTimeFormat),
 			Version:           procDefVersionMap[row.ProcDefId],
 			ParentProcInsId:   procInsParentMap[row.Id],
+			UpdatedBy:         row.UpdatedBy,
+			UpdatedTime:       row.UpdatedTime.Format(models.DateTimeFormat),
 		})
 	}
 	return
