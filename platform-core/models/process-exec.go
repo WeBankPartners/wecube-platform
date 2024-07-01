@@ -200,6 +200,8 @@ type ProcInsDetail struct {
 	Version           string               `json:"version"`
 	NodeLinks         []*ProcDefNodeLink   `json:"nodeLinks"`
 	ParentProcInsId   string               `json:"parentProcInsId"`
+	UpdatedBy         string               `json:"updatedBy"`
+	UpdatedTime       string               `json:"updatedTime"`
 }
 
 type ProcInsNodeDetail struct {
