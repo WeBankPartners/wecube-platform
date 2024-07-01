@@ -159,6 +159,16 @@ func ProcDefRootEntities(c *gin.Context) {
 func ProcDefPreview(c *gin.Context) {
 	procDefId := c.Param("proc-def-id")
 	entityDataId := c.Param("entityDataId")
+	sessionId := c.Query("sessionId")
+	if sessionId != "" {
+		result, err := database.GetProcPreviewBySession(c, sessionId)
+		if err != nil {
+			middleware.ReturnError(c, err)
+		} else {
+			middleware.ReturnData(c, result)
+		}
+		return
+	}
 	result, err := execution.BuildProcPreviewData(c, procDefId, entityDataId, middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
