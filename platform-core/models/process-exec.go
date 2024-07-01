@@ -158,17 +158,19 @@ func (p *ProcPreviewData) AnalyzeRefIds() {
 }
 
 type TaskNodeBindingObj struct {
-	Bound             string `json:"bound"`
-	EntityDataId      string `json:"entityDataId"`
-	EntityTypeId      string `json:"entityTypeId"`
-	NodeDefId         string `json:"nodeDefId"`
-	OrderedNo         string `json:"orderedNo"`
-	Id                string `json:"id"`
-	PackageName       string `json:"packageName"`
-	EntityName        string `json:"entityName"`
-	EntityDisplayName string `json:"entityDisplayName"`
-	NodeInstId        string `json:"nodeInstId"`
-	ProcInstId        string `json:"procInstId"`
+	Bound               string `json:"bound"`
+	EntityDataId        string `json:"entityDataId"`
+	EntityTypeId        string `json:"entityTypeId"`
+	NodeDefId           string `json:"nodeDefId"`
+	OrderedNo           string `json:"orderedNo"`
+	Id                  string `json:"id"`
+	PackageName         string `json:"packageName"`
+	EntityName          string `json:"entityName"`
+	EntityDisplayName   string `json:"entityDisplayName"`
+	NodeInstId          string `json:"nodeInstId"`
+	ProcInstId          string `json:"procInstId"`
+	SubPreviewSessionId string `json:"subPreviewSessionId"`
+	SubProcDefId        string `json:"subProcDefId"`
 }
 
 type ProcInsStartParam struct {
@@ -197,6 +199,7 @@ type ProcInsDetail struct {
 	TaskNodeInstances []*ProcInsNodeDetail `json:"taskNodeInstances"`
 	Version           string               `json:"version"`
 	NodeLinks         []*ProcDefNodeLink   `json:"nodeLinks"`
+	ParentProcInsId   string               `json:"parentProcInsId"`
 }
 
 type ProcInsNodeDetail struct {
@@ -548,4 +551,13 @@ type ProcStartEventResultData struct {
 	ProcInstId        string                      `json:"procInstId"`
 	Status            string                      `json:"status"`
 	TaskNodeInstances []*ProcStartEventResultData `json:"taskNodeInstances"`
+}
+
+type ProcContextSubProcRow struct {
+	EntityTypeId string    `xorm:"entity_type_id"`
+	EntityDataId string    `xorm:"entity_data_id"`
+	ProcInsId    string    `xorm:"proc_ins_id"`
+	ProcDefId    string    `xorm:"proc_def_id"`
+	ProcDefName  string    `xorm:"proc_def_name"`
+	CreatedTime  time.Time `xorm:"created_time"`
 }
