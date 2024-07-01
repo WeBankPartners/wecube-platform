@@ -829,3 +829,8 @@ type PackagePluginsXML struct {
 type PackageIdRespData struct {
 	Id string `json:"id"`
 }
+
+type PluginInterfaceParamQueryParam struct {
+	ParamName string `json:"paramName"`
+	ServiceId string `json:"serviceId"`
+}
