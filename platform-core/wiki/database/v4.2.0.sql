@@ -19,3 +19,5 @@ CREATE TABLE `proc_run_node_sub_proc` (
 alter table plugin_packages add column register_done tinyint(8) default 1 comment '是否完成注册';
 alter table plugin_packages add column updated_by varchar(64) default null comment '更新人';
 alter table plugin_packages add column updated_time datetime default null comment '更新时间';
+
+alter table proc_def_collect modify column `role_id` varchar(64) DEFAULT NULL COMMENT '角色id';

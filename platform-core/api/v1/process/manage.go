@@ -237,6 +237,7 @@ func QueryProcessDefinitionList(c *gin.Context) {
 		return
 	}
 	param.UserRoles = middleware.GetRequestRoles(c)
+	param.Operator = middleware.GetRequestUser(c)
 	list, err = database.QueryProcessDefinitionList(c, param, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
 	if err != nil {
 		middleware.ReturnError(c, err)
