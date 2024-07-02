@@ -1624,3 +1624,31 @@ func GetProcDefParentList(c *gin.Context) {
 		middleware.ReturnData(c, pageResult)
 	}
 }
+
+func AddProcDefCollect(c *gin.Context) {
+	var param models.ProcDefCollect
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	err := database.AddProcDefCollect(c, param.ProcDefId, middleware.GetRequestUser(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}
+
+func DelProcDefCollect(c *gin.Context) {
+	var param models.ProcDefCollect
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	err := database.DelProcDefCollect(c, param.ProcDefId, middleware.GetRequestUser(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}

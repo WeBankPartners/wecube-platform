@@ -119,12 +119,12 @@ type ProcDefPermission struct {
 }
 
 type ProcDefCollect struct {
-	Id          string    `json:"id" xorm:"id"`                    // 唯一标识
-	ProcDefId   string    `json:"procDefId" xorm:"proc_def_id"`    // 编排id
-	RoleId      string    `json:"roleId" xorm:"role_id"`           // 角色id
-	UserId      string    `json:"userId" xorm:"user_id"`           // 用户id
-	CreatedTime time.Time `json:"createdTime" xorm:"created_time"` // 创建时间
-	UpdatedTime time.Time `json:"updatedTime" xorm:"updated_time"` // 更新时间
+	Id          string    `json:"id" xorm:"id"`                                    // 唯一标识
+	ProcDefId   string    `json:"procDefId" xorm:"proc_def_id" binding:"required"` // 编排id
+	RoleId      string    `json:"roleId" xorm:"role_id"`                           // 角色id
+	UserId      string    `json:"userId" xorm:"user_id"`                           // 用户id
+	CreatedTime time.Time `json:"createdTime" xorm:"created_time"`                 // 创建时间
+	UpdatedTime time.Time `json:"updatedTime" xorm:"updated_time"`                 // 更新时间
 }
 
 type SyncUseRoleParam struct {
