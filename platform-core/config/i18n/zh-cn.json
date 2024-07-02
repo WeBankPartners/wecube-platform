@@ -147,5 +147,9 @@
   "add_role_exist_error": {
     "code": 20000032,
     "message": "添加失败:当前角色已存在,请修改后重新添加"
+  },
+  "proc_def_decision_merge_error": {
+    "code": 20000033,
+    "message": "发布失败:判断汇聚节点找不到对应的判断开始节点"
   }
 }
