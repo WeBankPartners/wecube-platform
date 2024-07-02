@@ -105,6 +105,97 @@ func GetPluginConfigs(ctx context.Context, pluginPackageId string, roles []strin
 	return
 }
 
+func QueryPluginConfigInfo(ctx context.Context, pluginConfigIds []string) (result []*models.PluginConfigs, err error) {
+	result = []*models.PluginConfigs{}
+	if len(pluginConfigIds) == 0 {
+		return
+	}
+
+	pluginCfgFilter, pluginCfgParams := db.CreateListParams(pluginConfigIds, "")
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_configs where id in ("+pluginCfgFilter+") ", pluginCfgParams...).Find(&result)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(result) == 0 {
+		return
+	}
+
+	// query plugin package
+	pluginPackageIdsMap := make(map[string]struct{})
+	for _, pluginCfgInfo := range result {
+		pluginPackageIdsMap[pluginCfgInfo.PluginPackageId] = struct{}{}
+	}
+
+	var pluginPackageIds []string
+	for packageId := range pluginPackageIdsMap {
+		pluginPackageIds = append(pluginPackageIds, packageId)
+	}
+	if len(pluginPackageIds) == 0 {
+		return
+	}
+
+	var pluginPackageRows []*models.PluginPackages
+	pluginPackageFilter, pluginPackageParams := db.CreateListParams(pluginPackageIds, "")
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_packages where id in ("+pluginPackageFilter+") ", pluginPackageParams...).Find(&pluginPackageRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(pluginPackageRows) == 0 {
+		return
+	}
+
+	pluginPackageIdMapInfo := make(map[string]*models.PluginPackages)
+	for i, packageInfo := range pluginPackageRows {
+		pluginPackageIdMapInfo[packageInfo.Id] = pluginPackageRows[i]
+	}
+
+	for i, pluginCfgInfo := range result {
+		if _, isExisted := pluginPackageIdMapInfo[pluginCfgInfo.PluginPackageId]; isExisted {
+			result[i].PluginPackages = pluginPackageIdMapInfo[pluginCfgInfo.PluginPackageId]
+		}
+	}
+
+	return
+}
+
+func QueryCoreObjectMeta(ctx context.Context, packageName, objectName string, configId string) *models.CoreObjectMeta {
+	objectMetaEntity, err := getOnePluginObjectMetaByCondition(ctx, packageName, objectName, configId)
+	if err != nil {
+		log.Logger.Error("getOnePluginObjectMetaByCondition err", log.Error(err))
+		return nil
+	}
+	if objectMetaEntity == nil {
+		return nil
+	}
+	objectMetaEntity.MappingEntityExpression = objectMetaEntity.MapExpr
+
+	propertyMetaEntities, err := getPluginObjectPropertyMetaListByObjectMeta(ctx, objectMetaEntity.Id)
+	if err != nil {
+		return nil
+	}
+	if len(propertyMetaEntities) == 0 {
+		return nil
+	}
+	for _, propertyMetaEntity := range propertyMetaEntities {
+		if propertyMetaEntity == nil {
+			continue
+		}
+		propertyMetaEntity.SensitiveData = "N"
+		if propertyMetaEntity.Sensitive {
+			propertyMetaEntity.SensitiveData = "Y"
+		}
+		propertyMetaEntity.MappingEntityExpression = propertyMetaEntity.MapExpr
+		if propertyMetaEntity.DataType == models.PluginParamDataTypeObject {
+			refObjectMetaEntity := QueryCoreObjectMeta(ctx, packageName, propertyMetaEntity.RefObjectName, configId)
+			propertyMetaEntity.RefObjectMeta = refObjectMetaEntity
+		}
+	}
+	objectMetaEntity.PropertyMetas = propertyMetaEntities
+	return objectMetaEntity
+}
+
 func GetConfigInterfaces(ctx context.Context, pluginConfigId string) (result []*models.PluginInterfaceQueryObj, err error) {
 	var interfaceRows []*models.PluginConfigInterfaces
 	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_config_interfaces where plugin_config_id=?", pluginConfigId).Find(&interfaceRows)
@@ -117,10 +208,40 @@ func GetConfigInterfaces(ctx context.Context, pluginConfigId string) (result []*
 		return
 	}
 	var interfaceIds []string
+	pluginConfigIdsMap := make(map[string]struct{})
 	for _, v := range interfaceRows {
 		interfaceIds = append(interfaceIds, v.Id)
+		pluginConfigIdsMap[v.PluginConfigId] = struct{}{}
 		result = append(result, &models.PluginInterfaceQueryObj{PluginConfigInterfaces: *v, InputParameters: []*models.PluginConfigInterfaceParameters{}, OutputParameters: []*models.PluginConfigInterfaceParameters{}})
 	}
+
+	var pluginConfigIds []string
+	for cfgId := range pluginConfigIdsMap {
+		pluginConfigIds = append(pluginConfigIds, cfgId)
+	}
+	pluginConfigList, err := QueryPluginConfigInfo(ctx, pluginConfigIds)
+	if err != nil {
+		err = fmt.Errorf("QueryPluginConfigInfo failed: %s", err.Error())
+		return
+	}
+	pluginConfigIdMapInfo := make(map[string]*models.PluginConfigs)
+	for i, pluginConfigInfo := range pluginConfigList {
+		pluginConfigIdMapInfo[pluginConfigInfo.Id] = pluginConfigList[i]
+	}
+
+	interfaceIdMapPackageName := make(map[string]string)
+	interfaceIdMapPluginCfgId := make(map[string]string)
+	for i := range result {
+		if pluginConfigInfo, isExisted := pluginConfigIdMapInfo[result[i].PluginConfigId]; isExisted {
+			result[i].PluginConfig = pluginConfigInfo
+			interfaceIdMapPluginCfgId[result[i].Id] = result[i].PluginConfigId
+
+			if result[i].PluginConfig.PluginPackages != nil {
+				interfaceIdMapPackageName[result[i].Id] = result[i].PluginConfig.PluginPackages.Name
+			}
+		}
+	}
+
 	interfaceFilter, interfaceParams := db.CreateListParams(interfaceIds, "")
 	var interfaceParamRows []*models.PluginConfigInterfaceParameters
 	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_config_interface_parameters where plugin_config_interface_id in ("+interfaceFilter+") order by name", interfaceParams...).Find(&interfaceParamRows)
@@ -142,6 +263,13 @@ func GetConfigInterfaces(ctx context.Context, pluginConfigId string) (result []*
 				outputMap[row.PluginConfigInterfaceId] = append(v, row)
 			} else {
 				outputMap[row.PluginConfigInterfaceId] = []*models.PluginConfigInterfaceParameters{row}
+			}
+		}
+
+		if row.DataType == models.PluginParamDataTypeObject {
+			if packageName, isExisted := interfaceIdMapPackageName[row.PluginConfigInterfaceId]; isExisted {
+				configId := interfaceIdMapPluginCfgId[row.PluginConfigInterfaceId]
+				row.RefObjectMeta = QueryCoreObjectMeta(ctx, packageName, row.RefObjectName, configId)
 			}
 		}
 	}
