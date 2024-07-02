@@ -12,5 +12,10 @@ CREATE TABLE `proc_run_node_sub_proc` (
       `workflow_id` varchar(64) NOT NULL COMMENT '子工作流id',
       `entity_type_id` varchar(64) NOT NULL COMMENT '绑定数据entity',
       `entity_data_id` varchar(64) NOT NULL COMMENT '绑定数据id',
+      `created_time` datetime DEFAULT NULL COMMENT '创建时间',
       PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+alter table plugin_packages add column register_done tinyint(8) default 1 comment '是否完成注册';
+alter table plugin_packages add column updated_by varchar(64) default null comment '更新人';
+alter table plugin_packages add column updated_time datetime default null comment '更新时间';
