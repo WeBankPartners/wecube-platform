@@ -398,6 +398,7 @@ type PluginConfigInterfaceParameters struct {
 	RefObjectName             string                  `json:"refObjectName" xorm:"ref_object_name"`                          // 关联对象名
 	PluginConfigInterface     *PluginConfigInterfaces `json:"pluginConfigInterface" xorm:"-"`
 	ObjectMeta                *CoreObjectMeta         `json:"objectMeta" xorm:"-"`
+	RefObjectMeta             *CoreObjectMeta         `json:"refObjectMeta" xorm:"-"`
 }
 
 type PluginPackageDataModel struct {
@@ -455,40 +456,43 @@ type PluginConfigRoles struct {
 }
 
 type CoreObjectMeta struct {
-	Id            string                    `json:"id" xorm:"id"`
-	Name          string                    `json:"name" xorm:"name"`
-	PackageName   string                    `json:"packageName" xorm:"package_name"`
-	Source        string                    `json:"source" xorm:"source"`
-	LatestSource  string                    `json:"latestSource" xorm:"latest_source"`
-	CreatedBy     string                    `json:"createdBy" xorm:"created_by"`
-	CreatedTime   time.Time                 `json:"createdTime" xorm:"created_time"`
-	UpdatedBy     string                    `json:"updatedBy" xorm:"updated_by"`
-	UpdatedTime   time.Time                 `json:"updatedTime" xorm:"updated_time"`
-	ConfigId      string                    `json:"configId" xorm:"config_id"`
-	MapExpr       string                    `json:"mapExpr" xorm:"map_expr"`
-	PropertyMetas []*CoreObjectPropertyMeta `json:"propertyMetas" xorm:"-"`
+	Id                      string                    `json:"id" xorm:"id"`
+	Name                    string                    `json:"name" xorm:"name"`
+	PackageName             string                    `json:"packageName" xorm:"package_name"`
+	Source                  string                    `json:"source" xorm:"source"`
+	LatestSource            string                    `json:"latestSource" xorm:"latest_source"`
+	CreatedBy               string                    `json:"createdBy" xorm:"created_by"`
+	CreatedTime             time.Time                 `json:"createdTime" xorm:"created_time"`
+	UpdatedBy               string                    `json:"updatedBy" xorm:"updated_by"`
+	UpdatedTime             time.Time                 `json:"updatedTime" xorm:"updated_time"`
+	ConfigId                string                    `json:"configId" xorm:"config_id"`
+	MapExpr                 string                    `json:"mapExpr" xorm:"map_expr"`
+	MappingEntityExpression string                    `json:"mappingEntityExpression" xorm:"-"`
+	PropertyMetas           []*CoreObjectPropertyMeta `json:"propertyMetas" xorm:"-"`
 }
 
 type CoreObjectPropertyMeta struct {
-	Id            string          `json:"id" xorm:"id"`
-	Name          string          `json:"name" xorm:"name"`
-	DataType      string          `json:"dataType" xorm:"data_type"`
-	Multiple      string          `json:"multiple" xorm:"multiple"`
-	RefObjectName string          `json:"refObjectName" xorm:"ref_object_name"`
-	MappingType   string          `json:"mappingType" xorm:"mapping_type"`
-	MapExpr       string          `json:"mapExpr" xorm:"map_expr"`
-	ObjectMetaId  string          `json:"objectMetaId" xorm:"object_meta_id"`
-	ObjectName    string          `json:"objectName" xorm:"object_name"`
-	PackageName   string          `json:"packageName" xorm:"package_name"`
-	Source        string          `json:"source" xorm:"source"`
-	CreatedBy     string          `json:"createdBy" xorm:"created_by"`
-	CreatedTime   time.Time       `json:"createdTime" xorm:"created_time"`
-	UpdatedBy     string          `json:"updatedBy" xorm:"updated_by"`
-	UpdatedTime   time.Time       `json:"updatedTime" xorm:"updated_time"`
-	Sensitive     bool            `json:"sensitive" xorm:"is_sensitive"`
-	ConfigId      string          `json:"configId" xorm:"config_id"`
-	ObjectMeta    *CoreObjectMeta `json:"objectMeta" xorm:"-"`
-	RefObjectMeta *CoreObjectMeta `json:"refObjectMeta" xorm:"-"`
+	Id                      string          `json:"id" xorm:"id"`
+	Name                    string          `json:"name" xorm:"name"`
+	DataType                string          `json:"dataType" xorm:"data_type"`
+	Multiple                string          `json:"multiple" xorm:"multiple"`
+	RefObjectName           string          `json:"refObjectName" xorm:"ref_object_name"`
+	MappingType             string          `json:"mappingType" xorm:"mapping_type"`
+	MapExpr                 string          `json:"mapExpr" xorm:"map_expr"`
+	ObjectMetaId            string          `json:"objectMetaId" xorm:"object_meta_id"`
+	ObjectName              string          `json:"objectName" xorm:"object_name"`
+	PackageName             string          `json:"packageName" xorm:"package_name"`
+	Source                  string          `json:"source" xorm:"source"`
+	CreatedBy               string          `json:"createdBy" xorm:"created_by"`
+	CreatedTime             time.Time       `json:"createdTime" xorm:"created_time"`
+	UpdatedBy               string          `json:"updatedBy" xorm:"updated_by"`
+	UpdatedTime             time.Time       `json:"updatedTime" xorm:"updated_time"`
+	Sensitive               bool            `json:"sensitive" xorm:"is_sensitive"`
+	ConfigId                string          `json:"configId" xorm:"config_id"`
+	SensitiveData           string          `json:"sensitiveData" xorm:"-"`
+	MappingEntityExpression string          `json:"mappingEntityExpression" xorm:"-"`
+	ObjectMeta              *CoreObjectMeta `json:"objectMeta" xorm:"-"`
+	RefObjectMeta           *CoreObjectMeta `json:"refObjectMeta" xorm:"-"`
 }
 
 // TargetEntityFilterRuleDto 目标对象过滤
