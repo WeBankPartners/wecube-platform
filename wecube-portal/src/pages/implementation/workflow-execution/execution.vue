@@ -9,6 +9,7 @@
             style="width: 60%"
             filterable
             clearable
+            :placeholder="$t('fe_flowname_placeholder')"
             @on-open-change="getProcessInstances(false)"
             @on-clear="clearHistoryOrch"
             @on-change="queryHandler"
@@ -29,17 +30,23 @@
                 '  ' +
                 (item.createdTime || '0000-00-00 00:00:00') +
                 '  ' +
-                item.status
+                getStatusStyleAndName(item.status, 'label')
               "
             >
-              <span>
-                <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
-                <span style="color: #515a6e">{{ '[' + item.version + '] ' }}</span>
-                <span style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</span>
-                <span style="color: #ccc; padding-left: 8px; float: right">{{ item.status }}</span>
-                <span style="color: #ccc; float: right">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
-                <span style="float: right; color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
-              </span>
+              <div style="display:flex;justify-content:space-between;">
+                <div>
+                  <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
+                  <span style="color: #515a6e">{{ '[' + item.version + '] ' }}</span>
+                  <span style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</span>
+                </div>
+                <div style="display:flex;align-items:center;">
+                  <span style="color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
+                  <span style="color: #ccc;">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
+                  <div style="width:100px;">
+                    <span :style="getStatusStyleAndName(item.status, 'style')">{{ getStatusStyleAndName(item.status, 'label') }}</span>
+                  </div>
+                </div>
+              </div>
             </Option>
           </Select>
           <!-- <Button type="info" @click="queryHandler">{{ $t('query_orch') }}</Button> -->
@@ -62,7 +69,7 @@
           >
           <!--终止执行-->
           <Button
-            v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
+            v-if="currentInstanceStatusForNodeOperation === 'InProgress' && subProc !== 'sub'"
             type="warning"
             @click="stopHandler"
             icon="md-square"
@@ -84,7 +91,7 @@
             <Select
               label
               v-model="selectedFlow"
-              :disabled="isEnqueryPage"
+              :disabled="Boolean(subProcId)"
               @on-change="orchestrationSelectHandler"
               @on-open-change="getAllFlow"
               filterable
@@ -98,12 +105,12 @@
           </FormItem>
         </Col>
         <Col v-if="!isEnqueryPage" span="12" offset="0">
-          <FormItem :label-width="100" :label="$t('target_object')">
+          <FormItem required :label-width="100" :label="$t('target_object')">
             <Select
               style="width: 80%"
               label
               v-model="selectedTarget"
-              :disabled="isEnqueryPage"
+              :disabled="Boolean(subProcId)"
               @on-change="onTargetSelectHandler"
               @on-open-change="getTargetOptions"
               filterable
@@ -113,7 +120,7 @@
               <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.displayName }}</Option>
             </Select>
             <Button
-              :disabled="isExecuteActive || !showExcution || !this.selectedTarget || !this.selectedFlow || !isShowExect"
+              :disabled="isExecuteActive || !showExcution || !this.selectedTarget || !this.selectedFlow || !isShowExect || Boolean(subProcId)"
               :loading="btnLoading"
               type="info"
               @click="excutionFlow"
@@ -307,7 +314,7 @@
       class="model_target"
       width="50"
     >
-      <Input v-model="tableFilterParam" placeholder="displayName filter" style="width: 300px; margin-bottom: 8px" />
+      <Input v-model="tableFilterParam" :placeholder="$t('please_input') + $t('object')" style="width: 400px; margin-bottom: 8px" />
       {{ catchNodeTableList.length }}
       <Table
         border
@@ -321,19 +328,28 @@
         :data="tartetModels"
       >
         <template slot-scope="{ row }" slot="action">
-          <Tooltip
-            placement="bottom"
-            theme="light"
-            trigger="click"
-            @on-popper-show="getDetail(row)"
-            :delay="500"
-            max-width="500"
-          >
-            <Button type="warning" size="small">View</Button>
-            <div slot="content">
-              <pre style="max-height: 500px"><span>{{rowContent}}</span></pre>
-            </div>
-          </Tooltip>
+          <div style="display:flex;justify-content:space-around;">
+            <Tooltip
+              placement="bottom"
+              theme="light"
+              @on-popper-show="getDetail(row)"
+              :delay="500"
+              :max-width="600"
+            >
+              <Button type="info" size="small">{{$t('view') + $t('object')}}</Button>
+              <div slot="content" style="max-height: 500px;overflow-y:scroll;">
+                <!-- <pre style="max-height: 500px"><span>{{rowContent}}</span></pre> -->
+                <json-viewer :value="rowContent || ''" :expand-depth="5"></json-viewer>
+              </div>
+            </Tooltip>
+            <Button
+              v-if="row.nodeType === 'subProc'"
+              type="default"
+              size="small"
+              style="margin-left:5px;"
+              @click="viewSubProcExecution(row)"
+            >{{ $t('fe_view_childFlow') }}</Button>
+          </div>
         </template>
       </Table>
       <div slot="footer">
@@ -587,8 +603,6 @@ export default {
       allTarget: [],
       currentFlowNodeId: '',
       selectedFlowInstance: '',
-      querySelectedFlowInstanceId: '',
-      querySelectedFlowInstanceRow: null,
       selectedFlow: '',
       selectedTarget: '',
       showExcution: true,
@@ -603,8 +617,9 @@ export default {
       retryTartetModels: [],
       catchTartetModels: [],
       flowNodesWithModelDataColums: [
+        // 节点名
         {
-          title: 'NodeName',
+          title: this.$t('fe_nodeName'),
           slot: 'orderedNo',
           width: 240
         },
@@ -613,83 +628,79 @@ export default {
           width: 60,
           align: 'center'
         },
+        // 数据类型
         {
-          title: 'Entity',
+          title: this.$t('data_type'),
           key: 'entity',
           width: 270
         },
+        // 对象
         {
-          title: 'DisplayName',
+          title: this.$t('object'),
           key: 'displayName'
         },
         {
-          title: 'Action',
+          title: this.$t('table_action'),
           key: 'action',
           width: 150,
           align: 'center',
           render: (h, params) => {
-            return h('div', [
-              h(
-                'Button',
-                {
-                  props: {
-                    type: 'primary',
-                    size: 'small'
-                  },
-                  style: {
-                    marginRight: '5px'
-                  },
-                  on: {
-                    click: () => {
-                      this.modelGraphMouseenterHandler(params.row)
-                    }
-                  }
-                },
-                'View'
-              )
-            ])
+            return <div>
+              <Button
+                type="info"
+                size="small"
+                onClick={() => {
+                  this.modelGraphMouseenterHandler(params.row)
+                }}>
+                  {`${this.$t('view')}${this.$t('object')}`}
+              </Button>
+              {
+                params.row.nodeType === 'subProc' && <Button
+                  color="#808695"
+                  size="small"
+                  onClick={() => {
+                    this.viewSubProcExecution(params.row)
+                  }}>
+                    { this.$t('fe_view_childFlow') }
+                </Button>
+              }
+            </div>
           }
         }
       ],
       targetWithFlowModelColums: [
+        // 数据类型
         {
-          title: 'Entity',
+          title: this.$t('data_type'),
           key: 'entity'
         },
+        // 对象
         {
-          title: 'DisplayName',
+          title: this.$t('object'),
           key: 'displayName'
         },
+        // 节点名
         {
-          title: 'NodeName',
+          title: this.$t('fe_nodeName'),
           slot: 'nodeTitle'
         },
         {
-          title: 'Action',
+          title: this.$t('table_action'),
           key: 'action',
           width: 150,
           align: 'center',
           render: (h, params) => {
-            return h('div', [
-              h(
-                'Button',
-                {
-                  props: {
-                    type: 'primary',
-                    size: 'small'
-                  },
-                  style: {
-                    marginRight: '5px'
-                  },
-                  on: {
-                    click: () => {
-                      this.modelGraphMouseenterHandler(params.row)
-                    }
-                  }
-                },
-                'View'
-              )
-            ])
+            return (
+              <Button
+                type="info"
+                size="small"
+                onClick={() => {
+                  this.modelGraphMouseenterHandler(params.row)
+                }}
+              >
+                {`${this.$t('view')}${this.$t('object')}`}
+              </Button>
+            )
           }
         }
       ],
@@ -743,21 +754,21 @@ export default {
           disabled: true
         },
         {
-          title: 'PackageName',
+          title: this.$t('package_name'),
           key: 'packageName'
         },
         {
-          title: 'EntityName',
+          title: this.$t('entity_name'),
           key: 'entityName'
         },
         {
-          title: 'DisplayName',
+          title: this.$t('object'),
           key: 'displayName'
         },
         {
-          title: 'Action',
+          title: this.$t('table_action'),
           slot: 'action',
-          width: 100,
+          width: 195,
           align: 'center'
         }
       ],
@@ -912,7 +923,9 @@ export default {
         branchOption: [] // 可执行分支
       },
       isShowNonOwnerModal: false, // 查询非本人用户编排提示
-      flowOwner: ''
+      flowOwner: '',
+      subProcId: '', // 新建执行预览子编排从链接上传过来的子编排ID
+      subProc: this.$route.query.subProc || '' // 查看执行链接传参 main主编排 sub子编排
     }
   },
   computed: {
@@ -932,6 +945,36 @@ export default {
         return found.status
       } else {
         return ''
+      }
+    },
+    getStatusStyleAndName () {
+      return function(status, type) {
+        const list = [
+          { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
+          { label: this.$t('fe_inProgressFaulted'), value: 'InProgress(Faulted)', color: '#ed4014' },
+          { label: this.$t('fe_inProgressTimeouted'), value: 'InProgress(Timeouted)', color: '#ed4014' },
+          { label: this.$t('fe_stop'), value: 'Stop', color: '#ed4014' },
+          { label: this.$t('fe_inProgress'), value: 'InProgress', color: '#1990ff' },
+          { label: this.$t('fe_completed'), value: 'Completed', color: '#7ac756' },
+          { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
+          { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
+        ]
+        const findObj = list.find(i => i.value === status)
+        if (type === 'style') {
+          return {
+            display: 'inline-block',
+            backgroundColor: findObj.color,
+            padding: '4px 10px',
+            width: 'fit-content',
+            color: '#fff',
+            borderRadius: '4px',
+            float: 'right',
+            fontSize: '12px',
+            marginLeft: '5px'
+          }
+        } else {
+          return findObj.label
+        }
       }
     }
   },
@@ -990,8 +1033,26 @@ export default {
   },
   mounted () {
     const id = this.$route.query.id || ''
+    const templateId = this.$route.query.templateId || ''
+    this.subProcId = this.$route.query.subProcId || ''
+    // 查看执行历史
     if (id) {
       this.jumpToHistory(id)
+    }
+    // 选择模板新建执行
+    if (templateId) {
+      this.selectedFlow = templateId
+      this.getAllFlow()
+      this.orchestrationSelectHandler()
+    }
+    // 查看子编排执行(新建执行的时候点击子编排节点跳转进来)
+    if (this.subProcId) {
+      this.selectedFlow = this.subProcId
+      this.orchestrationSelectHandler()
+      this.getAllFlow()
+      this.selectedTarget = this.$route.query.entityDataId || ''
+      this.getTargetOptions()
+      this.onTargetSelectHandler()
     }
     // this.getProcessInstances()
     // this.getAllFlow()
@@ -1002,6 +1063,12 @@ export default {
     localStorage.removeItem('history-execution-search-params')
   },
   methods: {
+    // 子编排节点支持跳转预览子编排
+    viewSubProcExecution (row) {
+      window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
+      const path = `${window.location.origin}/#/implementation/workflow-execution/normal-create?subProcId=${row.subProcDefId}&entityDataId=${row.entityDataId}&sessionId=${row.subPreviewSessionId}`
+      window.open(path, '_blank')
+    },
     async handleClick (key, value) {
       this.attrValue.attr = key
       const params = {
@@ -1297,7 +1364,8 @@ export default {
                 ...found,
                 entity: found.packageName + ':' + found.entityName,
                 nodeName: flowNode.nodeName,
-                nodeDefId: flowNode.nodeDefId
+                nodeDefId: flowNode.nodeDefId,
+                nodeType: flowNode.nodeType
               }
               if (d.bound === 'Y') {
                 this.selectedFlowNodesModelData.push(res)
@@ -1404,26 +1472,24 @@ export default {
     },
     async getProcessInstances (isAfterCreate = false, createResponse = undefined) {
       this.currentInstanceStatusForNodeOperation = ''
-      if (this.querySelectedFlowInstanceId) {
-        const params = {
-          id: this.querySelectedFlowInstanceId,
-          pageable: {
-            startIndex: 1,
-            pageSize: 500
-          }
-        }
-        let { status, data } = await instancesWithPaging(params)
-        if (status === 'OK') {
-          this.querySelectedFlowInstanceRow = Array.isArray(data.contents) && data.contents[0]
-        }
-      }
       let { status, data } = await getProcessInstances()
       if (status === 'OK') {
         this.allFlowInstances = data
-        const flag = this.allFlowInstances.some(i => i.id === this.querySelectedFlowInstanceId)
+        let routeFlowInstanceId = this.$route.query.id || ''
+        const flag = this.allFlowInstances.some(i => i.id === routeFlowInstanceId)
         // 如果传入的id不在500条数据之内，插入该条数据
-        if (!flag && this.querySelectedFlowInstanceRow) {
-          this.allFlowInstances.unshift(this.querySelectedFlowInstanceRow)
+        if (!flag) {
+          const params = {
+            id: routeFlowInstanceId,
+            pageable: {
+              startIndex: 1,
+              pageSize: 500
+            }
+          }
+          let { status, data } = await instancesWithPaging(params)
+          if (status === 'OK' && Array.isArray(data.contents) && data.contents.length > 0) {
+            this.allFlowInstances.unshift(data.contents[0])
+          }
         }
         if (isAfterCreate) {
           this.selectedFlowInstance = createResponse.id
@@ -1584,7 +1650,7 @@ export default {
       this.isLoading = true
       let { status, data } = this.isEnqueryPage
         ? await getPreviewEntitiesByInstancesId(this.selectedFlowInstance)
-        : await getTreePreviewData(this.selectedFlow, this.selectedTarget)
+        : await getTreePreviewData(this.selectedFlow, this.selectedTarget, this.$route.query.sessionId || '')
       this.isLoading = false
       if (!this.selectedTarget && !this.isEnqueryPage) return
       if (status === 'OK') {
@@ -1626,6 +1692,7 @@ export default {
         })
       })
     },
+    // 绘制数据模型图
     renderModelGraph () {
       let nodes = this.modelData.map((_, index) => {
         const nodeId = _.id
@@ -1728,6 +1795,7 @@ export default {
         }
       }
     },
+    // 查看对象弹框
     modelGraphMouseenterHandler (row) {
       clearTimeout(this.modelDetailTimer)
       this.modelDetailTimer = setTimeout(async () => {
@@ -1748,7 +1816,7 @@ export default {
         this.showNodeDetail = true
         this.nodeDetailFullscreen = false
         this.tableMaxHeight = 250
-      }, 1300)
+      }, 0)
     },
     ResetFlow () {
       if (this.flowGraph.graphviz) {
@@ -1760,6 +1828,7 @@ export default {
         this.graph.graphviz.resetZoom()
       }
     },
+    // 绘制编排流程图
     renderFlowGraph (excution) {
       const statusColor = {
         Completed: '#5DB400',
@@ -1776,21 +1845,38 @@ export default {
         this.flowData.flowNodes
           .filter(i => i.status !== 'predeploy')
           .map((_, index) => {
+            const shapeMap = {
+              'start': 'circle', // 开始
+              'end': 'doublecircle', // 结束
+              'abnormal': 'doublecircle', // 异常
+              'decision': 'diamond', // 判断开始
+              'decisionMerge': 'diamond', // 判断结束
+              'fork': 'Mdiamond', // 并行开始
+              'merge': 'Mdiamond', // 并行结束
+              'human': 'ellipse', // 人工
+              'automatic': 'rect', // 自动
+              'data': 'cylinder', // 数据
+              'subProc': 'doubleoctagon', // 子编排
+              'date': 'cds', // 固定时间
+              'timeInterval': 'cds' // 时间间隔
+            }
             if (['start', 'end', 'abnormal'].includes(_.nodeType)) {
               const defaultLabel = _.nodeType
-              return `${_.nodeId} [label="${_.nodeName || defaultLabel}", fontsize="10", class="flow",style="${
+              return `${_.nodeId} [label="${_.nodeName || defaultLabel}", fontsize="10", width="0.5", class="flow", style="${
                 excution ? 'filled' : 'none'
-              }" color="${excution ? statusColor[_.status] : '#7F8A96'}" shape="circle", id="${_.nodeId}"]`
+              }" color="${excution ? statusColor[_.status] : '#7F8A96'}" shape="${shapeMap[_.nodeType]}", id="${_.nodeId}"]`
             } else {
               // const className = _.status === 'Faulted' || _.status === 'Timeouted' ? 'retry' : 'normal'
               let className = 'retry'
+              // 【时间节点】手动跳过功能
               if (['timeInterval', 'date'].includes(_.nodeType) && _.status === 'InProgress') {
                 className = 'time-node'
               }
-              if (['decision', 'decisionMerge'].includes(_.nodeType) && _.status === 'InProgress') {
+              // 【判断开始】节点可以执行分支选择功能
+              if (['decision'].includes(_.nodeType) && _.status === 'InProgress') {
                 className = 'decision-node'
               }
-              if (['decision', 'decisionMerge'].includes(_.nodeType) && _.status === 'Faulted') {
+              if (['decision'].includes(_.nodeType) && _.status === 'Faulted') {
                 className = ''
               }
               const isModelClick = this.currentModelNodeRefs.indexOf(_.orderedNo) > -1
@@ -1804,7 +1890,7 @@ export default {
                     : _.nodeId === this.currentFlowNodeId
                       ? '#5DB400'
                       : '#7F8A96'
-              }"  shape="box" id="${_.nodeId}" ]`
+              }"  shape="${shapeMap[_.nodeType]}" id="${_.nodeId}" ]`
             }
           })
       let genEdge = () => {
@@ -1947,7 +2033,7 @@ export default {
       if (status === 'OK') {
         this.currentInstanceStatusForNodeOperation = data.status
         const inProcessNode = data.taskNodeInstances.find(
-          node => ['decision', 'decisionMerge'].includes(node.nodeType) && node.status === 'InProgress'
+          node => ['decision'].includes(node.nodeType) && node.status === 'InProgress'
         )
         // 正在执行分支为判断分支时，拉起分支选择
         if (this.currentInstanceStatusForNodeOperation !== 'Stop' && !this.hasExecuteBranchVisible && inProcessNode) {
@@ -2283,9 +2369,11 @@ export default {
         let { status, data } = await getDataByNodeDefIdAndProcessSessionId(nodeDefId, this.processSessionId)
         if (status === 'OK') {
           this.tartetModels = data.map(_ => {
+            const { nodeType } = this.flowData.flowNodes.find(i => i.nodeId === _.nodeDefId) || { nodeType: '' }
             return {
               ..._,
-              ...this.modelData.find(j => j.dataId === _.entityDataId)
+              ...this.modelData.find(j => j.dataId === _.entityDataId),
+              nodeType
             }
           })
         } else {
