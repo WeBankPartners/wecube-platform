@@ -414,7 +414,12 @@ export default {
   }
 }
 </script>
-
+<style lang="scss">
+.menus .ivu-menu-horizontal .ivu-menu-submenu .ivu-select-dropdown {
+  max-height: none !important;
+  overflow: visible !important;
+}
+</style>
 <style lang="scss" scoped>
 .img-logo {
   height: 20px;

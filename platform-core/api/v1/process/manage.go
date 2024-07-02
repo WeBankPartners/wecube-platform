@@ -1401,6 +1401,8 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 	var nodeIdKeymap = make(map[string]*models.ProcDefNode)
 	var startNodeNameList, endNodeNameList, sortNodeIds []string
 	var sortLinks [][]string
+	var sortNodes models.ProcDefSortNodes
+	var withDecisionMerge bool
 	list, err = database.GetProcDefNodeById(ctx, procDefId)
 	if err != nil {
 		return err
@@ -1420,6 +1422,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 		linkList = make([]*models.ProcDefNodeLink, 0)
 	}
 	for _, node := range list {
+		sortNodes = append(sortNodes, node)
 		inCount = 0
 		outCount = 0
 		nodeMap[node.Id] = node
@@ -1445,6 +1448,12 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 			}
 		case models.ProcDefNodeTypeMerge:
 			// 汇聚必须多进单出
+			if !(inCount > 1 && outCount == 1) {
+				return exterror.New().ProcDefNode20000005Error.WithParam(node.Name)
+			}
+		case models.ProcDefNodeDecisionMerge:
+			// 判断汇聚必须多进单出
+			withDecisionMerge = true
 			if !(inCount > 1 && outCount == 1) {
 				return exterror.New().ProcDefNode20000005Error.WithParam(node.Name)
 			}
@@ -1508,6 +1517,25 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 	sortNodeIdMap, isLoop := tools.ProcNodeSort(sortNodeIds, sortLinks)
 	if isLoop {
 		return exterror.New().ProcDefLoopCheckError
+	}
+	if withDecisionMerge {
+		// 判断汇聚是否有成对的判断开始
+		for _, v := range sortNodes {
+			v.OrderedNo = sortNodeIdMap[v.Id]
+		}
+		sort.Sort(sortNodes)
+		decisionCount := 0
+		for _, v := range sortNodes {
+			if v.NodeType == models.JobDecisionType {
+				decisionCount = decisionCount + 1
+			}
+			if v.NodeType == models.JobDecisionMergeType {
+				decisionCount = decisionCount - 1
+			}
+			if decisionCount < 0 {
+				return exterror.New().ProcDefDecisionMergeError
+			}
+		}
 	}
 	return database.UpdateProcDefNodeOrder(ctx, sortNodeIdMap)
 }
@@ -1594,5 +1622,33 @@ func GetProcDefParentList(c *gin.Context) {
 	} else {
 		pageResult := models.ProcDefParentPageResult{Page: &param, Content: result}
 		middleware.ReturnData(c, pageResult)
+	}
+}
+
+func AddProcDefCollect(c *gin.Context) {
+	var param models.ProcDefCollect
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	err := database.AddProcDefCollect(c, param.ProcDefId, middleware.GetRequestUser(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}
+
+func DelProcDefCollect(c *gin.Context) {
+	var param models.ProcDefCollect
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	err := database.DelProcDefCollect(c, param.ProcDefId, middleware.GetRequestUser(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
 	}
 }

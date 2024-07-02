@@ -1074,3 +1074,13 @@ func GetProcDefParentList(ctx context.Context, procDefId string, pageInfo *model
 	}
 	return
 }
+
+func AddProcDefCollect(ctx context.Context, procDefId, operator string) (err error) {
+
+	return
+}
+
+func DelProcDefCollect(ctx context.Context, procDefId, operator string) (err error) {
+
+	return
+}
