@@ -33,17 +33,19 @@
                 getStatusStyleAndName(item.status, 'label')
               "
             >
-              <div style="display:flex;justify-content:space-between;">
+              <div style="display: flex; justify-content: space-between">
                 <div>
                   <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
                   <span style="color: #515a6e">{{ '[' + item.version + '] ' }}</span>
                   <span style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</span>
                 </div>
-                <div style="display:flex;align-items:center;">
+                <div style="display: flex; align-items: center">
                   <span style="color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
-                  <span style="color: #ccc;">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
-                  <div style="width:100px;">
-                    <span :style="getStatusStyleAndName(item.status, 'style')">{{ getStatusStyleAndName(item.status, 'label') }}</span>
+                  <span style="color: #ccc">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
+                  <div style="width: 100px">
+                    <span :style="getStatusStyleAndName(item.status, 'style')">{{
+                      getStatusStyleAndName(item.status, 'label')
+                    }}</span>
                   </div>
                 </div>
               </div>
@@ -120,7 +122,14 @@
               <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.displayName }}</Option>
             </Select>
             <Button
-              :disabled="isExecuteActive || !showExcution || !this.selectedTarget || !this.selectedFlow || !isShowExect || Boolean(subProcId)"
+              :disabled="
+                isExecuteActive ||
+                !showExcution ||
+                !this.selectedTarget ||
+                !this.selectedFlow ||
+                !isShowExect ||
+                Boolean(subProcId)
+              "
               :loading="btnLoading"
               type="info"
               @click="excutionFlow"
@@ -314,7 +323,11 @@
       class="model_target"
       width="50"
     >
-      <Input v-model="tableFilterParam" :placeholder="$t('please_input') + $t('object')" style="width: 400px; margin-bottom: 8px" />
+      <Input
+        v-model="tableFilterParam"
+        :placeholder="$t('please_input') + $t('object')"
+        style="width: 400px; margin-bottom: 8px"
+      />
       {{ catchNodeTableList.length }}
       <Table
         border
@@ -328,16 +341,10 @@
         :data="tartetModels"
       >
         <template slot-scope="{ row }" slot="action">
-          <div style="display:flex;justify-content:space-around;">
-            <Tooltip
-              placement="bottom"
-              theme="light"
-              @on-popper-show="getDetail(row)"
-              :delay="500"
-              :max-width="600"
-            >
-              <Button type="info" size="small">{{$t('view') + $t('object')}}</Button>
-              <div slot="content" style="max-height: 500px;overflow-y:scroll;">
+          <div style="display: flex; justify-content: space-around">
+            <Tooltip placement="bottom" theme="light" @on-popper-show="getDetail(row)" :delay="500" :max-width="600">
+              <Button type="info" size="small">{{ $t('view') + $t('object') }}</Button>
+              <div slot="content" style="max-height: 500px; overflow-y: scroll">
                 <!-- <pre style="max-height: 500px"><span>{{rowContent}}</span></pre> -->
                 <json-viewer :value="rowContent || ''" :expand-depth="5"></json-viewer>
               </div>
@@ -346,9 +353,10 @@
               v-if="row.nodeType === 'subProc'"
               type="default"
               size="small"
-              style="margin-left:5px;"
+              style="margin-left: 5px"
               @click="viewSubProcExecution(row)"
-            >{{ $t('fe_view_childFlow') }}</Button>
+              >{{ $t('fe_view_childFlow') }}</Button
+            >
           </div>
         </template>
       </Table>
@@ -645,26 +653,30 @@ export default {
           width: 150,
           align: 'center',
           render: (h, params) => {
-            return <div>
-              <Button
-                type="info"
-                size="small"
-                onClick={() => {
-                  this.modelGraphMouseenterHandler(params.row)
-                }}>
-                  {`${this.$t('view')}${this.$t('object')}`}
-              </Button>
-              {
-                params.row.nodeType === 'subProc' && <Button
-                  color="#808695"
+            return (
+              <div>
+                <Button
+                  type="info"
                   size="small"
                   onClick={() => {
-                    this.viewSubProcExecution(params.row)
-                  }}>
-                    { this.$t('fe_view_childFlow') }
+                    this.modelGraphMouseenterHandler(params.row)
+                  }}
+                >
+                  {`${this.$t('view')}${this.$t('object')}`}
                 </Button>
-              }
-            </div>
+                {params.row.nodeType === 'subProc' && (
+                  <Button
+                    color="#808695"
+                    size="small"
+                    onClick={() => {
+                      this.viewSubProcExecution(params.row)
+                    }}
+                  >
+                    {this.$t('fe_view_childFlow')}
+                  </Button>
+                )}
+              </div>
+            )
           }
         }
       ],
@@ -948,7 +960,7 @@ export default {
       }
     },
     getStatusStyleAndName () {
-      return function(status, type) {
+      return function (status, type) {
         const list = [
           { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
           { label: this.$t('fe_inProgressFaulted'), value: 'InProgress(Faulted)', color: '#ed4014' },
@@ -1846,25 +1858,27 @@ export default {
           .filter(i => i.status !== 'predeploy')
           .map((_, index) => {
             const shapeMap = {
-              'start': 'circle', // 开始
-              'end': 'doublecircle', // 结束
-              'abnormal': 'doublecircle', // 异常
-              'decision': 'diamond', // 判断开始
-              'decisionMerge': 'diamond', // 判断结束
-              'fork': 'Mdiamond', // 并行开始
-              'merge': 'Mdiamond', // 并行结束
-              'human': 'ellipse', // 人工
-              'automatic': 'rect', // 自动
-              'data': 'cylinder', // 数据
-              'subProc': 'doubleoctagon', // 子编排
-              'date': 'cds', // 固定时间
-              'timeInterval': 'cds' // 时间间隔
+              start: 'circle', // 开始
+              end: 'doublecircle', // 结束
+              abnormal: 'doublecircle', // 异常
+              decision: 'diamond', // 判断开始
+              decisionMerge: 'diamond', // 判断结束
+              fork: 'Mdiamond', // 并行开始
+              merge: 'Mdiamond', // 并行结束
+              human: 'ellipse', // 人工
+              automatic: 'rect', // 自动
+              data: 'cylinder', // 数据
+              subProc: 'doubleoctagon', // 子编排
+              date: 'cds', // 固定时间
+              timeInterval: 'cds' // 时间间隔
             }
             if (['start', 'end', 'abnormal'].includes(_.nodeType)) {
               const defaultLabel = _.nodeType
-              return `${_.nodeId} [label="${_.nodeName || defaultLabel}", fontsize="10", width="0.5", class="flow", style="${
-                excution ? 'filled' : 'none'
-              }" color="${excution ? statusColor[_.status] : '#7F8A96'}" shape="${shapeMap[_.nodeType]}", id="${_.nodeId}"]`
+              return `${_.nodeId} [label="${
+                _.nodeName || defaultLabel
+              }", fontsize="10", width="0.5", class="flow", style="${excution ? 'filled' : 'none'}" color="${
+                excution ? statusColor[_.status] : '#7F8A96'
+              }" shape="${shapeMap[_.nodeType]}", id="${_.nodeId}"]`
             } else {
               // const className = _.status === 'Faulted' || _.status === 'Timeouted' ? 'retry' : 'normal'
               let className = 'retry'
