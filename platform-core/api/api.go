@@ -151,6 +151,8 @@ func init() {
 		&handlerFuncObj{Url: "/public/process/definitions/syncUseRole", Method: "POST", HandlerFunc: process.SyncUseRole, ApiCode: "public-sync-user-role"},
 		&handlerFuncObj{Url: "/process/definitions/handler/update", Method: "POST", HandlerFunc: process.UpdateProcDefHandler, ApiCode: "update-process-definition-handler"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/parent/get", Method: "POST", HandlerFunc: process.GetProcDefParentList, ApiCode: "get-process-definition-parent"},
+		&handlerFuncObj{Url: "/process/definitions/collect/add", Method: "POST", HandlerFunc: process.AddProcDefCollect, ApiCode: "add-proc-collect"},
+		&handlerFuncObj{Url: "/process/definitions/collect/del", Method: "POST", HandlerFunc: process.DelProcDefCollect, ApiCode: "del-proc-collect"},
 
 		// process runtime
 		&handlerFuncObj{Url: "/process/definitions", Method: "GET", HandlerFunc: process.ProcDefList, ApiCode: "list-process-def"},
