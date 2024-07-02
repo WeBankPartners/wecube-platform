@@ -1023,6 +1023,10 @@ func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where
 	} else if param.SubProc == "sub" {
 		where = where + " and sub_proc=1 "
 	}
+	if param.OnlyCollect {
+		where = where + " and id in (select proc_def_id from proc_def_collect where user_id=?) "
+		queryParam = append(queryParam, param.Operator)
+	}
 	if len(param.UserRoles) > 0 {
 		if param.PermissionType == "" {
 			param.PermissionType = "MGMT"
@@ -1076,11 +1080,17 @@ func GetProcDefParentList(ctx context.Context, procDefId string, pageInfo *model
 }
 
 func AddProcDefCollect(ctx context.Context, procDefId, operator string) (err error) {
-
+	_, err = db.MysqlEngine.Context(ctx).Exec("insert into proc_def_collect(id,proc_def_id,user_id,created_time) values (?,?,?,?)", "pdc_"+guid.CreateGuid(), procDefId, operator, time.Now())
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
 	return
 }
 
 func DelProcDefCollect(ctx context.Context, procDefId, operator string) (err error) {
-
+	_, err = db.MysqlEngine.Context(ctx).Exec("delete from proc_def_collect where proc_def_id=? and user_id=?", procDefId, operator)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
 	return
 }

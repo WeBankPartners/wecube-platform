@@ -1645,6 +1645,12 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 		filterParams = append(filterParams, param.ProcDefId)
 	}
 	if param.Status != "" {
+		if strings.HasPrefix(param.Status, "InProgress(") {
+			nodeStatus := param.Status[11 : len(param.Status)-1]
+			param.Status = models.JobStatusRunning
+			filterSqlList = append(filterSqlList, "id in (select proc_ins_id from proc_ins_node where status in (?))")
+			filterParams = append(filterParams, nodeStatus)
+		}
 		filterSqlList = append(filterSqlList, "status=?")
 		filterParams = append(filterParams, param.Status)
 	}
@@ -1683,10 +1689,13 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
-	var procDefList, procInsIdList []string
+	var procDefList, procInsIdList, procInProgressIdList []string
 	for _, row := range procInsRows {
 		procDefList = append(procDefList, row.ProcDefId)
 		procInsIdList = append(procInsIdList, row.Id)
+		if row.Status == models.JobStatusRunning {
+			procInProgressIdList = append(procInProgressIdList, row.Id)
+		}
 	}
 	procDefVersionMap, getVersionErr := getProcInsVersionMap(ctx, procDefList)
 	if getVersionErr != nil {
@@ -1700,7 +1709,12 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 			return
 		}
 	}
+	procInsNodeStatusMap := make(map[string]string)
+	procInsNodeStatusMap, err = getProcInsNodeStatus(ctx, procInProgressIdList)
 	for _, row := range procInsRows {
+		if nodeStatus, ok := procInsNodeStatusMap[row.Id]; ok {
+			row.Status = fmt.Sprintf("%s(%s)", row.Status, nodeStatus)
+		}
 		result.Contents = append(result.Contents, &models.ProcInsDetail{
 			Id:                row.Id,
 			EntityDataId:      row.EntityDataId,
@@ -1891,6 +1905,33 @@ func getProcInsParentMap(ctx context.Context, procInsIdList []string) (procInsPa
 	}
 	for _, row := range procInsNodeRows {
 		procInsParentMap[row.Id] = row.ProcInsId
+	}
+	return
+}
+
+func getProcInsNodeStatus(ctx context.Context, procInsIdList []string) (procInsNodeStatusMap map[string]string, err error) {
+	procInsNodeStatusMap = make(map[string]string)
+	if len(procInsIdList) == 0 {
+		return
+	}
+	filterSql, filterParam := db.CreateListParams(procInsIdList, "")
+	var procInsNodeRows []*models.ProcInsNode
+	err = db.MysqlEngine.Context(ctx).SQL("select proc_ins_id,status from proc_ins_node where proc_ins_id in ("+filterSql+") and status in ('Faulted','Timeouted')", filterParam...).Find(&procInsNodeRows)
+	if err != nil {
+		err = fmt.Errorf("query proc def version fail,%s ", err.Error())
+		return
+	}
+	for _, row := range procInsNodeRows {
+		if row.Status == models.JobStatusFail {
+			procInsNodeStatusMap[row.ProcInsId] = row.Status
+			continue
+		}
+		if row.Status == models.JobStatusTimeout {
+			if procInsNodeStatusMap[row.ProcInsId] == models.JobStatusFail {
+				continue
+			}
+			procInsNodeStatusMap[row.ProcInsId] = row.Status
+		}
 	}
 	return
 }
