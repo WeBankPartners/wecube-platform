@@ -159,7 +159,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 			}
 		}
 	} else if procDefNode.DynamicBind == 2 {
-		dataBindings, err = dynamicBindNodeInRuntime(ctx, procInsNode, procDefNode)
+		dataBindings, err = DynamicBindNodeInRuntime(ctx, procInsNode, procDefNode)
 		if err != nil {
 			err = fmt.Errorf("get runtime dynamic bind data fail,%s ", err.Error())
 			return
@@ -1003,7 +1003,7 @@ func QueryProcPreviewNodeData(ctx context.Context, param *models.QueryExpression
 	return
 }
 
-func dynamicBindNodeInRuntime(ctx context.Context, procInsNode *models.ProcInsNode, procDefNode *models.ProcDefNode) (dataBinding []*models.ProcDataBinding, err error) {
+func DynamicBindNodeInRuntime(ctx context.Context, procInsNode *models.ProcInsNode, procDefNode *models.ProcDefNode) (dataBinding []*models.ProcDataBinding, err error) {
 	interfaceFilters := []*models.Filter{}
 	if procDefNode.ServiceName != "" {
 		interfaceObj, getInterfaceErr := database.GetSimpleLastPluginInterface(ctx, procDefNode.ServiceName)
