@@ -57,6 +57,7 @@ type ProcDataBinding struct {
 	UpdatedBy      string    `json:"updatedBy" xorm:"updated_by"`            // 更新人
 	UpdatedTime    time.Time `json:"updatedTime" xorm:"updated_time"`        // 更新时间
 	SubProcInsId   string    `json:"subProcInsId" xorm:"sub_proc_ins_id"`    // 子编排实例id
+	SubSessionId   string    `json:"subSessionId" xorm:"sub_session_id"`     // 子试算session
 }
 
 type ProcIns struct {
