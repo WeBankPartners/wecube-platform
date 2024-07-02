@@ -366,7 +366,9 @@
                   <span v-if="itemCustomInfo.customAttrs.subProcDefId === ''" style="color: red"
                     >{{ $t('child_workflow') }} {{ $t('cannotBeEmpty') }}</span
                   >
-                  <span v-if="itemCustomInfo.customAttrs.subProcDefId && subProcItem && !subProcItem.procDefId" style="color: red"
+                  <span
+                    v-if="itemCustomInfo.customAttrs.subProcDefId && subProcItem && !subProcItem.procDefId"
+                    style="color: red"
                     >{{ '子编排权限被移除或者被禁用' }}</span
                   >
                 </FormItem>

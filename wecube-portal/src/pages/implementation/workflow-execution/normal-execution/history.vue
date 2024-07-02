@@ -283,7 +283,16 @@ export default {
               minWidth: 180,
               key: 'parentProcInsId',
               render: (h, params) => {
-                return <span style="cursor:pointer;color:#5cadff;" onClick={() => {this.viewParentFlowGraph(params.row)}}>{params.row.parentProcInsId || '-'}</span>
+                return (
+                  <span
+                    style="cursor:pointer;color:#5cadff;"
+                    onClick={() => {
+                      this.viewParentFlowGraph(params.row)
+                    }}
+                  >
+                    {params.row.parentProcInsId || '-'}
+                  </span>
+                )
               }
             })
           }
