@@ -48,6 +48,7 @@
             @change="onEntitySelect"
             v-model="itemCustomInfo.rootEntity"
             :allDataModelsWithAttrs="allEntityType"
+            :rootOnly="true"
             style="width: 100%"
           ></FilterRules>
           <span class="custom-error-tag" v-if="itemCustomInfo.rootEntity === ''" style="color: red"
@@ -92,7 +93,7 @@
   </div>
 </template>
 <script>
-import FilterRules from '@/pages/components/filter-rules.vue'
+import FilterRules from './item-filter-rules.vue'
 import { getAllDataModels, getPluginList } from '@/api/server.js'
 export default {
   components: {

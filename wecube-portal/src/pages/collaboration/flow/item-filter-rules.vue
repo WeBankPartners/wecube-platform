@@ -49,21 +49,23 @@
             </li>
           </ul>
           <hr style="margin-top: 5px" />
-          <div style="max-height: 145px; overflow: auto; margin-top: 5px">
-            <ul
-              v-if="!needNativeAttr"
-              v-for="opt in filterCurrentLeafOptiongs"
-              :key="opt.pathExp + Math.random() * 1000"
-            >
-              <li style="color: rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
-            </ul>
-            <ul v-for="opt in filterCurrentRefOptiongs" :key="opt.pathExp + Math.random() * 1000">
-              <li style="color: rgb(64, 141, 218)" @click="optClickHandler(opt, 'up')">{{ opt.pathExp }}</li>
-            </ul>
-            <ul v-for="opt in filterCurrentOptiongs" :key="opt.pathExp + Math.random() * 1000">
-              <li style="color: rgb(211, 82, 32)" @click="optClickHandler(opt, 'down')">{{ opt.pathExp }}</li>
-            </ul>
-          </div>
+          <template v-if="(rootOnly && pathList.length === 0) || (!rootOnly && pathList.length > 0)">
+            <div style="max-height: 145px; overflow: auto; margin-top: 5px">
+              <ul
+                v-if="!needNativeAttr"
+                v-for="opt in filterCurrentLeafOptiongs"
+                :key="opt.pathExp + Math.random() * 1000"
+              >
+                <li style="color: rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
+              </ul>
+              <ul v-for="opt in filterCurrentRefOptiongs" :key="opt.pathExp + Math.random() * 1000">
+                <li style="color: rgb(64, 141, 218)" @click="optClickHandler(opt, 'up')">{{ opt.pathExp }}</li>
+              </ul>
+              <ul v-for="opt in filterCurrentOptiongs" :key="opt.pathExp + Math.random() * 1000">
+                <li style="color: rgb(211, 82, 32)" @click="optClickHandler(opt, 'down')">{{ opt.pathExp }}</li>
+              </ul>
+            </div>
+          </template>
         </div>
       </div>
     </Poptip>
@@ -132,6 +134,12 @@ export default {
     }
   },
   props: {
+    rootOnly: {
+      // 是否只显示根节点,在编排设计的画布属性中设置
+      type: Boolean,
+      required: false,
+      default: false
+    },
     rootEntity: {
       required: false
     },
