@@ -62,7 +62,15 @@
               >
                 <template v-for="(j, idx) in i.list">
                   <Option :key="idx" :value="j.value" :label="j.label">
-                    <div :style="{backgroundColor: j.color, padding: '4px 15px', width: 'fit-content', color: '#fff', borderRadius: '4px'}">
+                    <div
+                      :style="{
+                        backgroundColor: j.color,
+                        padding: '4px 15px',
+                        width: 'fit-content',
+                        color: '#fff',
+                        borderRadius: '4px'
+                      }"
+                    >
                       {{ j.label }}
                     </div>
                   </Option>
