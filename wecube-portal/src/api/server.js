@@ -39,8 +39,8 @@ export const getTargetOptions = (pkgName, entityName) =>
   req.post(`/${pkgName}/entities/${entityName}/query`, {
     additionalFilters: []
   })
-export const getTreePreviewData = (flowId, targetId) =>
-  req.get(`platform/v1/process/definitions/${flowId}/preview/entities/${targetId}`)
+export const getTreePreviewData = (flowId, targetId, sessionId) =>
+  req.get(`platform/v1/process/definitions/${flowId}/preview/entities/${targetId}?sessionId=${sessionId}`)
 export const createFlowInstance = data => req.post(`platform/v1/process/instances`, data)
 export const instancesWithPaging = data => req.post(`platform/v1/process/instancesWithPaging`, data)
 export const getProcessInstances = () => req.get(`platform/v1/process/instances`)

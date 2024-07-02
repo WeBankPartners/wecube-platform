@@ -779,5 +779,17 @@
   "workflow_id": "Flow ID",
   "child_flowId": "Child Flow ID",
   "parent_flowTitle": "Main Flow List",
-  "view_workFlow": "View Flow"
+  "view_workFlow": "View Flow",
+  "fe_nodeName": "Tag Name",
+  "fe_view_childFlow": "Preview Child Flow",
+  "fe_task_name": "Task Name",
+  "fe_notStart": "Not Start",
+  "fe_inProgressFaulted": "InProgress Faulted",
+  "fe_inProgressTimeouted": "InProgress Timeouted",
+  "fe_stop": "Stop",
+  "fe_inProgress": "InProgress",
+  "fe_completed": "Completed",
+  "fe_faulted": "Faulted",
+  "fe_internallyTerminated": "InternallyTerminated",
+  "fe_flowname_placeholder": "Please enter flow name search"
 }

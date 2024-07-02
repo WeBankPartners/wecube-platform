@@ -366,10 +366,13 @@
                   <span v-if="itemCustomInfo.customAttrs.subProcDefId === ''" style="color: red"
                     >{{ $t('child_workflow') }} {{ $t('cannotBeEmpty') }}</span
                   >
+                  <span v-if="itemCustomInfo.customAttrs.subProcDefId && subProcItem && !subProcItem.procDefId" style="color: red"
+                    >{{ '子编排权限被移除或者被禁用' }}</span
+                  >
                 </FormItem>
-                <template v-if="itemCustomInfo.customAttrs.subProcDefId">
+                <template v-if="itemCustomInfo.customAttrs.subProcDefId && subProcItem">
                   <FormItem :label="$t('child_flowId')">
-                    <span>{{ subProcItem.procDefId || '-' }}</span>
+                    <span>{{ subProcItem.procDefId || itemCustomInfo.customAttrs.subProcDefId || '-' }}</span>
                     <Button type="info" size="small" @click="viewParentFlowGraph">{{ $t('view_workFlow') }}</Button>
                   </FormItem>
                   <FormItem :label="$t('instance_type')">
@@ -465,7 +468,7 @@ export default {
       allEntityType: [], // 所有模型
       filteredPlugins: [], // 可选择的插件函数，根据定位规则获取
       subProcList: [], // 子编排列表
-      subProcItem: {}, // 选中的子编排
+      subProcItem: null, // 选中的子编排
       unitOptions: ['sec', 'min', 'hour', 'day'],
       date: '',
       nodeList: [], // 编排中的所有节点，供上下文中绑定使用

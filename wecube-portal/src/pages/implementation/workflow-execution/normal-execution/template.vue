@@ -155,6 +155,12 @@ export default {
                     </Tooltip>
                   )
                 }
+                <Icon
+                  type="ios-funnel-outline"
+                  size="12"
+                  style="cursor: pointer;margin-right:4px"
+                  onClick={() => this.copyNameToSearch(params.row.name)}
+                />
                 <span
                   onClick={() => {
                     this.handleChooseTemplate(params.row)
@@ -213,9 +219,9 @@ export default {
           minWidth: 120,
           render: (h, params) => {
             const list = [
-              { label: this.$t('be_status_use'), value: 'available', color: '#19be6b' },
-              { label: this.$t('be_status_draft'), value: 'draft', color: '#c5c8ce' },
-              { label: this.$t('be_status_role'), value: 'unauthorized', color: '#ed4014' }
+              { label: this.$t('deployed'), value: 'deployed', color: '#19be6b' },
+              { label: this.$t('draft'), value: 'draft', color: '#c5c8ce' },
+              { label: this.$t('disabled'), value: 'disabled', color: '#ed4014' }
             ]
             const item = list.find(i => i.value === params.row.status)
             return item && <Tag color={item.color}>{item.label}</Tag>
@@ -240,7 +246,13 @@ export default {
   methods: {
     // 选择模板新建执行
     handleChooseTemplate (row) {
-      this.$router.push('/implementation/workflow-execution/normal-create')
+      this.$router.push({
+        path: '/implementation/workflow-execution/normal-create',
+        query: {
+          templateId: row.id,
+          type: this.searchParams.subProc
+        }
+      })
     },
     handleSearch () {
       this.getTemplateList()

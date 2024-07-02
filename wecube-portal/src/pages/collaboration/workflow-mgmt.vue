@@ -521,6 +521,43 @@ export default {
             )
             return
           }
+          // 分流节点不能直连汇聚节点
+          if (targertNodeType === 'merge') {
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
+            return
+          }
+        }
+
+        // 汇聚节点不能直连分流节点
+        if (sourceNodeType === 'merge') {
+          if (targertNodeType === 'fork') {
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
+            return
+          }
+        }
+
+        // 判断开始不能直连判断结束节点
+        if (sourceNodeType === 'decision') {
+          if (targertNodeType === 'decisionMerge') {
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
+            return
+          }
+        }
+
+        // 判断结束不能直连判断开始节点
+        if (sourceNodeType === 'decisionMerge') {
+          if (targertNodeType === 'decision') {
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
+            return
+          }
         }
 
         if (sourceNodeType === 'start') {
@@ -529,6 +566,14 @@ export default {
           if (outEdges.length > 0) {
             // this.$Message.warning('开始节点只能有一个出口！')
             this.$Message.warning(`${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('oneExit')}`)
+            return
+          }
+          // 开始节点不能直连判断结束节点
+          if (targertNodeType === 'decisionMerge') {
+            // this.$Message.warning('开始节点不能直连判断结束节点！')
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
             return
           }
           // 开始节点不能直连汇聚节点
@@ -589,6 +634,7 @@ export default {
             return
           }
         }
+
         // 异常节点只能连入
         // if (targertNodeType === 'decision') {
         //   if (!['human'].includes(sourceNodeType)) {
@@ -597,6 +643,7 @@ export default {
         //   }
         // }
 
+        // 只能有一个出口
         if (['data', 'human', 'automatic', 'subProc', 'date', 'timeInterval'].includes(sourceNodeType)) {
           const outEdges = source.getOutEdges()
           if (outEdges.length === 1) {
@@ -606,6 +653,7 @@ export default {
           }
         }
 
+        // 只能有一个入口
         if (['data', 'human', 'automatic', 'subProc', 'date', 'timeInterval'].includes(targertNodeType)) {
           const inEdges = target.getInEdges()
           if (inEdges.length === 1) {

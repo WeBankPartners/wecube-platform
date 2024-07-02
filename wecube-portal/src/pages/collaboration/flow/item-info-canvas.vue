@@ -35,8 +35,8 @@
         </FormItem>
         <FormItem :label="$t('workflow_type')" prop="subProc">
           <RadioGroup v-model="itemCustomInfo.subProc" @on-change="paramsChanged">
-            <Radio :disabled="$parent.isAdd !== 'true'" :label="0">{{ $t('main_workflow') }}</Radio>
-            <Radio :disabled="$parent.isAdd !== 'true'" :label="1">{{ $t('child_workflow') }}</Radio>
+            <Radio :disabled="itemCustomInfo.status !== 'draft'" :label="0">{{ $t('main_workflow') }}</Radio>
+            <Radio :disabled="itemCustomInfo.status !== 'draft'" :label="1">{{ $t('child_workflow') }}</Radio>
           </RadioGroup>
         </FormItem>
         <FormItem>

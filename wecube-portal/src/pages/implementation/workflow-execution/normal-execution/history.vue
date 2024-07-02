@@ -35,6 +35,7 @@ export default {
     return {
       MODALHEIGHT: 0,
       searchOptions: [
+        // 是否子编排
         {
           key: 'subProc',
           component: 'radio-group',
@@ -44,6 +45,7 @@ export default {
           ],
           initValue: 'main'
         },
+        // 执行时间
         {
           key: 'time',
           label: this.$t('execute_date'),
@@ -57,39 +59,45 @@ export default {
           labelWidth: 110,
           component: 'custom-time'
         },
+        // 编排名称
         {
           key: 'procDefId',
-          placeholder: '编排名称',
+          placeholder: this.$t('flow_name'),
           component: 'select',
           list: []
         },
+        // 编排ID
         {
           key: 'id',
           placeholder: this.$t('workflow_id'),
           component: 'input'
         },
+        // 状态
         {
           key: 'status',
-          placeholder: '状态',
-          component: 'select',
+          placeholder: this.$t('flow_status'),
+          component: 'tag-select',
           list: [
-            { label: 'NotStarted', value: 'NotStarted' },
-            { label: 'InProgress', value: 'InProgress' },
-            { label: 'Completed', value: 'Completed' },
-            { label: 'Faulted', value: 'Faulted' },
-            { label: 'Timeouted', value: 'Timeouted' },
-            { label: 'InternallyTerminated', value: 'InternallyTerminated' },
-            { label: 'Stop', value: 'Stop' }
+            { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
+            { label: this.$t('fe_inProgressFaulted'), value: 'InProgress(Faulted)', color: '#ed4014' },
+            { label: this.$t('fe_inProgressTimeouted'), value: 'InProgress(Timeouted)', color: '#ed4014' },
+            { label: this.$t('fe_stop'), value: 'Stop', color: '#ed4014' },
+            { label: this.$t('fe_inProgress'), value: 'InProgress', color: '#1990ff' },
+            { label: this.$t('fe_completed'), value: 'Completed', color: '#7ac756' },
+            { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
+            { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
           ]
         },
+        // 操作对象类型
         {
           key: 'entityDisplayName',
-          placeholder: '目标对象',
+          placeholder: this.$t('be_instance_type'),
           component: 'input'
         },
+        // 执行人
         {
           key: 'operator',
-          placeholder: '执行人',
+          placeholder: this.$t('executor'),
           component: 'select',
           list: []
         }
@@ -123,7 +131,7 @@ export default {
         },
         {
           title: this.$t('flow_name'),
-          minWidth: 200,
+          minWidth: 180,
           key: 'procInstName',
           render: (h, params) => {
             return (
@@ -138,13 +146,27 @@ export default {
         },
         {
           title: this.$t('workflow_id'),
-          minWidth: 200,
+          minWidth: 180,
           key: 'id'
         },
         {
           title: this.$t('flow_status'),
           key: 'status',
-          minWidth: 120
+          minWidth: 120,
+          render: (h, params) => {
+            const list = [
+              { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
+              { label: this.$t('fe_inProgressFaulted'), value: 'InProgress(Faulted)', color: '#ed4014' },
+              { label: this.$t('fe_inProgressTimeouted'), value: 'InProgress(Timeouted)', color: '#ed4014' },
+              { label: this.$t('fe_stop'), value: 'Stop', color: '#ed4014' },
+              { label: this.$t('fe_inProgress'), value: 'InProgress', color: '#1990ff' },
+              { label: this.$t('fe_completed'), value: 'Completed', color: '#7ac756' },
+              { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
+              { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
+            ]
+            const findObj = list.find(item => item.value === params.row.status) || {}
+            return <Tag color={findObj.color}>{findObj.label}</Tag>
+          }
         },
         {
           title: this.$t('be_instance_type'),
@@ -213,7 +235,7 @@ export default {
                     </Button>
                   </Tooltip>
                 )}
-                {params.row.status === 'InProgress' && (
+                {params.row.status === 'InProgress' && this.searchConfig.params.subProc === 'main' && (
                   <Tooltip content={this.$t('stop_orch')} placement="top">
                     <Button
                       size="small"
@@ -254,45 +276,37 @@ export default {
       handler (val) {
         if (val === 'sub') {
           // 添加主编排列
-          this.tableColumns.splice(3, 0, {
-            title: this.$t('main_workflow'),
-            width: 100,
-            ellipsis: true,
-            key: 'mainFlow',
-            render: (h, params) => {
-              return <span>{params.row.mainFlow || '-'}</span>
-            }
-          })
+          const hasFlag = this.tableColumns.some(i => i.key === 'parentProcInsId')
+          if (!hasFlag) {
+            this.tableColumns.splice(3, 0, {
+              title: this.$t('main_workflow'),
+              minWidth: 180,
+              key: 'parentProcInsId',
+              render: (h, params) => {
+                return <span style="cursor:pointer;color:#5cadff;" onClick={() => {this.viewParentFlowGraph(params.row)}}>{params.row.parentProcInsId || '-'}</span>
+              }
+            })
+          }
         } else if (val === 'main') {
-          this.tableColumns = this.tableColumns.filter(i => i.key !== 'mainFlow')
+          this.tableColumns = this.tableColumns.filter(i => i.key !== 'parentProcInsId')
         }
       },
       immediate: true
     }
   },
   async mounted () {
-    const cacheParams = localStorage.getItem('history-execution-search-params')
-    if (cacheParams) {
-      await this.getFlows()
-      const tmp = JSON.parse(cacheParams)
-      // this.searchConfig.params.time = [tmp.startTime || '', tmp.endTime || '']
-      this.searchConfig.params.id = tmp.id || ''
-      // this.searchConfig.params.startTime = tmp.startTime || ''
-      // this.searchConfig.params.endTime = tmp.endTime || ''
-      this.searchConfig.params.procDefId = tmp.procDefId || ''
-      this.searchConfig.params.entityDisplayName = tmp.entityDisplayName || ''
-      this.searchConfig.params.operator = tmp.operator || ''
-      this.searchConfig.params.status = tmp.status || ''
-    }
     this.MODALHEIGHT = document.body.scrollHeight - 220
+    this.getFlows()
     this.getProcessInstances()
     this.getAllUsers()
   },
-  beforeDestroy () {
-    const selectParams = JSON.stringify(this.searchConfig.params)
-    localStorage.setItem('history-execution-search-params', selectParams)
-  },
   methods: {
+    // 查看主编排
+    viewParentFlowGraph (row) {
+      window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
+      const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${row.parentProcInsId}`
+      window.open(path, '_blank')
+    },
     handleQuery () {
       this.getProcessInstances()
     },
@@ -433,7 +447,8 @@ export default {
           return this.$router.push({
             path: '/implementation/workflow-execution/view-execution',
             query: {
-              id: row.id
+              id: row.id,
+              subProc: this.searchConfig.params.subProc
             }
           })
         }
