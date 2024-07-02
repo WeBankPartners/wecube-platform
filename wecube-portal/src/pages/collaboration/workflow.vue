@@ -1072,7 +1072,7 @@ export default {
         loading: true,
         render: () => {
           if (!total) {
-            return <span>{`当前子编排暂未关联主编排，确认禁用吗？`}</span>
+            return <span>{`确认禁用当前编排？${this.$t('confirmBatchDisableWarn')}`}</span>
           } else {
             return <span>{`禁用当前子编排会影响【${firstRow.name || '-'}】等${total}个主编排，确认禁用吗？`}</span>
           }

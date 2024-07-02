@@ -35,6 +35,7 @@ export default {
     return {
       MODALHEIGHT: 0,
       searchOptions: [
+        // 执行时间
         {
           key: 'time',
           label: this.$t('execute_date'),
@@ -48,46 +49,46 @@ export default {
           labelWidth: 110,
           component: 'custom-time'
         },
+        // 任务名
         {
           key: 'name',
-          placeholder: '任务名',
+          placeholder: this.$t('fe_task_name'),
           component: 'input'
         },
+        // 编排名称
         {
           key: 'procDefId',
-          placeholder: '编排名称',
+          placeholder: this.$t('flow_name'),
           component: 'select',
           list: []
         },
+        // 编排ID
         {
           key: 'id',
           placeholder: this.$t('workflow_id'),
           component: 'input'
         },
+        // 状态
         {
           key: 'status',
-          placeholder: '状态',
-          component: 'select',
+          placeholder: this.$t('flow_status'),
+          component: 'tag-select',
           list: [
-            { label: 'NotStarted', value: 'NotStarted' },
-            { label: 'InProgress', value: 'InProgress' },
-            { label: 'Completed', value: 'Completed' },
-            { label: 'Faulted', value: 'Faulted' },
-            { label: 'Timeouted', value: 'Timeouted' },
-            { label: 'InternallyTerminated', value: 'InternallyTerminated' },
-            { label: 'Stop', value: 'Stop' }
+            { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
+            { label: this.$t('fe_inProgressFaulted'), value: 'InProgress(Faulted)', color: '#ed4014' },
+            { label: this.$t('fe_inProgressTimeouted'), value: 'InProgress(Timeouted)', color: '#ed4014' },
+            { label: this.$t('fe_stop'), value: 'Stop', color: '#ed4014' },
+            { label: this.$t('fe_inProgress'), value: 'InProgress', color: '#1990ff' },
+            { label: this.$t('fe_completed'), value: 'Completed', color: '#7ac756' },
+            { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
+            { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
           ]
         },
+        // 操作对象类型
         {
           key: 'entityDisplayName',
-          placeholder: '目标对象',
+          placeholder: this.$t('be_instance_type'),
           component: 'input'
-        },
-        {
-          key: 'operator',
-          placeholder: '执行人',
-          component: 'select',
-          list: []
         }
       ],
       searchConfig: {
@@ -99,7 +100,7 @@ export default {
           endTime: '',
           procDefId: '',
           entityDisplayName: '',
-          operator: '',
+          operator: 'systemCron',
           status: ''
         }
       },
@@ -145,7 +146,21 @@ export default {
         {
           title: this.$t('flow_status'),
           key: 'status',
-          minWidth: 120
+          minWidth: 120,
+          render: (h, params) => {
+            const list = [
+              { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
+              { label: this.$t('fe_inProgressFaulted'), value: 'InProgress(Faulted)', color: '#ed4014' },
+              { label: this.$t('fe_inProgressTimeouted'), value: 'InProgress(Timeouted)', color: '#ed4014' },
+              { label: this.$t('fe_stop'), value: 'Stop', color: '#ed4014' },
+              { label: this.$t('fe_inProgress'), value: 'InProgress', color: '#1990ff' },
+              { label: this.$t('fe_completed'), value: 'Completed', color: '#7ac756' },
+              { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
+              { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
+            ]
+            const findObj = list.find(item => item.value === params.row.status) || {}
+            return <Tag color={findObj.color}>{findObj.label}</Tag>
+          }
         },
         {
           title: this.$t('be_instance_type'),
@@ -251,26 +266,9 @@ export default {
     }
   },
   async mounted () {
-    const cacheParams = localStorage.getItem('history-execution-search-params')
-    if (cacheParams) {
-      await this.getFlows()
-      const tmp = JSON.parse(cacheParams)
-      // this.searchConfig.params.time = [tmp.startTime || '', tmp.endTime || '']
-      this.searchConfig.params.id = tmp.id || ''
-      // this.searchConfig.params.startTime = tmp.startTime || ''
-      // this.searchConfig.params.endTime = tmp.endTime || ''
-      this.searchConfig.params.procDefId = tmp.procDefId || ''
-      this.searchConfig.params.entityDisplayName = tmp.entityDisplayName || ''
-      this.searchConfig.params.operator = tmp.operator || ''
-      this.searchConfig.params.status = tmp.status || ''
-    }
     this.MODALHEIGHT = document.body.scrollHeight - 220
+    this.getFlows()
     this.getProcessInstances()
-    this.getAllUsers()
-  },
-  beforeDestroy () {
-    const selectParams = JSON.stringify(this.searchConfig.params)
-    localStorage.setItem('history-execution-search-params', selectParams)
   },
   methods: {
     handleQuery () {
@@ -344,22 +342,6 @@ export default {
         this.searchOptions.forEach(item => {
           if (item.key === 'procDefId') {
             item.list = this.allFlows
-          }
-        })
-      }
-    },
-    async getAllUsers () {
-      let { status, data } = await getUserList()
-      if (status === 'OK') {
-        this.users = data.map(item => {
-          return {
-            label: item.username,
-            value: item.username
-          }
-        })
-        this.searchOptions.forEach(item => {
-          if (item.key === 'operator') {
-            item.list = this.users
           }
         })
       }
