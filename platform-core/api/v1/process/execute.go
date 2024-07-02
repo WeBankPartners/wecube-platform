@@ -30,7 +30,7 @@ func ProcDefList(c *gin.Context) {
 		permission = "USE"
 	}
 	if subProc == "" {
-		subProc = "main"
+		subProc = "all"
 	}
 	log.Logger.Debug("procDefList", log.String("includeDraft", includeDraft), log.String(permission, "permission"), log.String("tag", tag), log.StringList("roleList", middleware.GetRequestRoles(c)))
 	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, subProc, middleware.GetRequestRoles(c))
@@ -159,6 +159,16 @@ func ProcDefRootEntities(c *gin.Context) {
 func ProcDefPreview(c *gin.Context) {
 	procDefId := c.Param("proc-def-id")
 	entityDataId := c.Param("entityDataId")
+	sessionId := c.Query("sessionId")
+	if sessionId != "" {
+		result, err := database.GetProcPreviewBySession(c, sessionId)
+		if err != nil {
+			middleware.ReturnError(c, err)
+		} else {
+			middleware.ReturnData(c, result)
+		}
+		return
+	}
 	result, err := execution.BuildProcPreviewData(c, procDefId, entityDataId, middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -343,6 +353,16 @@ func ProcInsStart(c *gin.Context) {
 		return
 	}
 	operator := middleware.GetRequestUser(c)
+	// 检测是不是子编排
+	isSubSession, queryErr := database.CheckSubProcStart(c, param.ProcessSessionId)
+	if queryErr != nil {
+		middleware.ReturnError(c, queryErr)
+		return
+	}
+	if isSubSession {
+		middleware.ReturnError(c, fmt.Errorf("subProcess can not start"))
+		return
+	}
 	// 新增 proc_ins,proc_ins_node,proc_data_binding 纪录
 	procInsId, workflowRow, workNodes, workLinks, err := database.CreateProcInstance(c, &param, operator)
 	if err != nil {

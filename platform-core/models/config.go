@@ -123,43 +123,6 @@ func InitConfig(configFile string) (errMessage string) {
 		errMessage = "parse file to json fail," + err.Error()
 		return
 	}
-	if c.PasswordPrivateKeyPath != "" {
-		privateBytes, readPriErr := os.ReadFile(c.PasswordPrivateKeyPath)
-		if readPriErr == nil {
-			if c.Database.Password, err = cipher.DecryptRsa(c.Database.Password, string(privateBytes)); err != nil {
-				errMessage = "decrypt database password config fail," + err.Error()
-				return
-			}
-			c.Database.Password = strings.ReplaceAll(c.Database.Password, "\n", "")
-			if c.S3.SecretKey, err = cipher.DecryptRsa(c.S3.SecretKey, string(privateBytes)); err != nil {
-				errMessage = "decrypt s3 secretKey config fail," + err.Error()
-				return
-			}
-			c.S3.SecretKey = strings.ReplaceAll(c.S3.SecretKey, "\n", "")
-			for i, staticResourceObj := range c.StaticResources {
-				if c.StaticResources[i].Password, err = cipher.DecryptRsa(staticResourceObj.Password, string(privateBytes)); err != nil {
-					errMessage = "decrypt static resource password config fail," + err.Error()
-					return
-				}
-				c.StaticResources[i].Password = strings.ReplaceAll(c.StaticResources[i].Password, "\n", "")
-			}
-			if c.Plugin.ResourcePasswordSeed, err = cipher.DecryptRsa(c.Plugin.ResourcePasswordSeed, string(privateBytes)); err != nil {
-				errMessage = "decrypt public resource password seed config fail," + err.Error()
-				return
-			}
-			c.Plugin.ResourcePasswordSeed = strings.ReplaceAll(c.Plugin.ResourcePasswordSeed, "\n", "")
-		} else {
-			fmt.Printf("raed private key:%s fail:%s ", c.PasswordPrivateKeyPath, readPriErr.Error())
-		}
-	}
-	if c.Plugin.PasswordPubKeyPath != "" {
-		publicBytes, readPubErr := os.ReadFile(c.Plugin.PasswordPubKeyPath)
-		if readPubErr == nil {
-			c.Plugin.PasswordPubKeyContent = string(publicBytes)
-		} else {
-			fmt.Printf("raed public public key:%s fail:%s ", c.Plugin.PasswordPubKeyPath, readPubErr.Error())
-		}
-	}
 	if len(c.StaticResources) > 0 {
 		firstStaticResourceObj := c.StaticResources[0]
 		if strings.Contains(firstStaticResourceObj.Server, ",") {
@@ -195,6 +158,43 @@ func InitConfig(configFile string) (errMessage string) {
 				})
 			}
 			c.StaticResources = newStaticResourceList
+		}
+	}
+	if c.PasswordPrivateKeyPath != "" {
+		privateBytes, readPriErr := os.ReadFile(c.PasswordPrivateKeyPath)
+		if readPriErr == nil {
+			if c.Database.Password, err = cipher.DecryptRsa(c.Database.Password, string(privateBytes)); err != nil {
+				errMessage = "decrypt database password config fail," + err.Error()
+				return
+			}
+			c.Database.Password = strings.ReplaceAll(c.Database.Password, "\n", "")
+			if c.S3.SecretKey, err = cipher.DecryptRsa(c.S3.SecretKey, string(privateBytes)); err != nil {
+				errMessage = "decrypt s3 secretKey config fail," + err.Error()
+				return
+			}
+			c.S3.SecretKey = strings.ReplaceAll(c.S3.SecretKey, "\n", "")
+			for i, staticResourceObj := range c.StaticResources {
+				if c.StaticResources[i].Password, err = cipher.DecryptRsa(staticResourceObj.Password, string(privateBytes)); err != nil {
+					errMessage = "decrypt static resource password config fail," + err.Error()
+					return
+				}
+				c.StaticResources[i].Password = strings.ReplaceAll(c.StaticResources[i].Password, "\n", "")
+			}
+			if c.Plugin.ResourcePasswordSeed, err = cipher.DecryptRsa(c.Plugin.ResourcePasswordSeed, string(privateBytes)); err != nil {
+				errMessage = "decrypt public resource password seed config fail," + err.Error()
+				return
+			}
+			c.Plugin.ResourcePasswordSeed = strings.ReplaceAll(c.Plugin.ResourcePasswordSeed, "\n", "")
+		} else {
+			fmt.Printf("raed private key:%s fail:%s ", c.PasswordPrivateKeyPath, readPriErr.Error())
+		}
+	}
+	if c.Plugin.PasswordPubKeyPath != "" {
+		publicBytes, readPubErr := os.ReadFile(c.Plugin.PasswordPubKeyPath)
+		if readPubErr == nil {
+			c.Plugin.PasswordPubKeyContent = string(publicBytes)
+		} else {
+			fmt.Printf("raed public public key:%s fail:%s ", c.Plugin.PasswordPubKeyPath, readPubErr.Error())
 		}
 	}
 	if c.Auth.SubSystemPrivateKey == "" {
