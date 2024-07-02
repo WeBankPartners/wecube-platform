@@ -317,7 +317,7 @@
   "orchs": "任务编排",
   "query_orch": "查询",
   "create_orch": "新建",
-  "select_orch": "选择编排",
+  "select_orch": "执行编排",
   "target_object": "目标对象",
   "workflow_exec_empty_tip": "请选择编排及目标对象",
   "create_job": "构建任务",
@@ -778,5 +778,17 @@
   "workflow_id": "编排ID",
   "child_flowId": "子编排ID",
   "parent_flowTitle": "被关联的主编排",
-  "view_workFlow": "查看编排"
+  "view_workFlow": "查看编排",
+  "fe_nodeName": "节点名",
+  "fe_view_childFlow": "预览子编排",
+  "fe_task_name": "任务名",
+  "fe_notStart": "未执行",
+  "fe_inProgressFaulted": "节点报错",
+  "fe_inProgressTimeouted": "节点超时",
+  "fe_stop": "暂停中",
+  "fe_inProgress": "执行中",
+  "fe_completed": "成功",
+  "fe_faulted": "自动退出",
+  "fe_internallyTerminated": "手动终止",
+  "fe_flowname_placeholder": "请输入编排名称搜索"
 }
