@@ -94,6 +94,7 @@ func init() {
 		&handlerFuncObj{Url: "/plugin-artifacts", Method: "GET", HandlerFunc: plugin.ListOnliePackage, ApiCode: "list-online-packages"},
 		&handlerFuncObj{Url: "/plugin-artifacts/pull-requests", Method: "POST", HandlerFunc: plugin.PullOnliePackage, ApiCode: "pull-online-package"},
 		&handlerFuncObj{Url: "/plugin-artifacts/pull-requests/:pullId", Method: "GET", HandlerFunc: plugin.PullOnliePackageStatus, ApiCode: "pull-online-package-status"},
+		&handlerFuncObj{Url: "/plugins/configs/interfaces/param/metadata/query", Method: "POST", HandlerFunc: plugin.QueryPluginInterfaceParam, ApiCode: "query-plugin-interface-param"},
 
 		// model
 		&handlerFuncObj{Url: "/models", Method: "GET", HandlerFunc: plugin.GetAllModels, ApiCode: "get-all-models"},
