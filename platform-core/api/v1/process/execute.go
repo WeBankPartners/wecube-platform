@@ -566,6 +566,9 @@ func ProcInsNodeRetry(c *gin.Context) {
 		middleware.ReturnSuccess(c)
 		return
 	}
+	if procInsNodeObj.NodeType == models.JobSubProcType {
+		killSubProc(c, procInsId, procInsNodeId, operator)
+	}
 	workflowId, nodeId, err := database.GetProcWorkByInsId(c, procInsId, procInsNodeId)
 	if err != nil {
 		middleware.ReturnError(c, err)
