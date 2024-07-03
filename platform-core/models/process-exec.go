@@ -199,7 +199,7 @@ type ProcInsDetail struct {
 	TaskNodeInstances []*ProcInsNodeDetail `json:"taskNodeInstances"`
 	Version           string               `json:"version"`
 	NodeLinks         []*ProcDefNodeLink   `json:"nodeLinks"`
-	ParentProcInsId   string               `json:"parentProcInsId"`
+	ParentProcIns     *ParentProcInsObj    `json:"parentProcIns"`
 	UpdatedBy         string               `json:"updatedBy"`
 	UpdatedTime       string               `json:"updatedTime"`
 }
@@ -569,4 +569,11 @@ type ProcContextSubProcRow struct {
 
 type SubProcDefListParam struct {
 	EntityExpr string `json:"entityExpr"`
+}
+
+type ParentProcInsObj struct {
+	Id          string `json:"-" xorm:"id"`
+	ProcInsId   string `json:"procInsId" xorm:"proc_ins_id"`
+	ProcDefName string `json:"procDefName" xorm:"proc_def_name"`
+	Version     string `json:"version" xorm:"version"`
 }
