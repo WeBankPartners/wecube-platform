@@ -154,6 +154,7 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/parent/get", Method: "POST", HandlerFunc: process.GetProcDefParentList, ApiCode: "get-process-definition-parent"},
 		&handlerFuncObj{Url: "/process/definitions/collect/add", Method: "POST", HandlerFunc: process.AddProcDefCollect, ApiCode: "add-proc-collect"},
 		&handlerFuncObj{Url: "/process/definitions/collect/del", Method: "POST", HandlerFunc: process.DelProcDefCollect, ApiCode: "del-proc-collect"},
+		&handlerFuncObj{Url: "/process/definitions/sub/list", Method: "POST", HandlerFunc: process.SubProcDefList, ApiCode: "sub-proc-list"},
 
 		// process runtime
 		&handlerFuncObj{Url: "/process/definitions", Method: "GET", HandlerFunc: process.ProcDefList, ApiCode: "list-process-def"},

@@ -288,9 +288,9 @@ func execCopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, nod
 	var actions []*db.ExecAction
 	// 插入编排
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_def (id,`key`,name,root_entity,status,tags,for_plugin,scene," +
-		"conflict_check,created_by,version,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{newProcDefId,
+		"conflict_check,created_by,version,sub_proc,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{newProcDefId,
 		procDef.Key, procDef.Name, procDef.RootEntity, models.Draft, procDef.Tags, procDef.ForPlugin, procDef.Scene,
-		procDef.ConflictCheck, operator, procDef.Version, currTime, operator, currTime}})
+		procDef.ConflictCheck, operator, procDef.Version, procDef.SubProc, currTime, operator, currTime}})
 
 	// 插入权限
 	if len(permissionList) > 0 {

@@ -562,4 +562,11 @@ type ProcContextSubProcRow struct {
 	ProcDefId    string    `xorm:"proc_def_id"`
 	ProcDefName  string    `xorm:"proc_def_name"`
 	CreatedTime  time.Time `xorm:"created_time"`
+	Version      string    `xorm:"version"`
+	Status       string    `xorm:"status"`
+	ErrorMessage string    `xorm:"error_message"`
+}
+
+type SubProcDefListParam struct {
+	EntityExpr string `json:"entityExpr"`
 }
