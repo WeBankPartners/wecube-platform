@@ -515,3 +515,20 @@ func QueryPluginInterfaceParam(c *gin.Context) {
 		middleware.ReturnData(c, result)
 	}
 }
+
+// GetObjectMetas 服务注册 - 查询 object 类型的 interface parameters
+func GetObjectMetas(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	objectMetaId := c.Param("objectMetaId")
+	result, err := database.GetObjectMetas(c, objectMetaId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
