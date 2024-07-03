@@ -674,7 +674,7 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 	for _, row := range previewRows {
 		if row.BindType == "process" {
 			actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_binding(id,proc_def_id,proc_ins_id,entity_id,entity_data_id,entity_data_name,entity_type_id,bind_flag,bind_type,full_data_id,sub_session_id,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-				fmt.Sprintf("p_bind_%d", row.Id), procDefObj.Id, procInsId, row.EntityDataId, row.EntityDataId, row.EntityDataName, row.EntityTypeId, row.IsBound, row.BindType, row.FullDataId, row.SubSessionId, operator, nowTime,
+				fmt.Sprintf("p_bind_%d_%d", row.Id, nowTime.Unix()), procDefObj.Id, procInsId, row.EntityDataId, row.EntityDataId, row.EntityDataName, row.EntityTypeId, row.IsBound, row.BindType, row.FullDataId, row.SubSessionId, operator, nowTime,
 			}})
 		}
 	}
@@ -704,7 +704,7 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 		for _, row := range previewRows {
 			if row.ProcDefNodeId == node.Id {
 				actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_binding(id,proc_def_id,proc_ins_id,proc_def_node_id,proc_ins_node_id,entity_id,entity_data_id,entity_data_name,entity_type_id,bind_flag,bind_type,full_data_id,sub_session_id,created_by,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-					fmt.Sprintf("p_bind_%d", row.Id), procDefObj.Id, procInsId, node.Id, tmpProcInsNodeId, row.EntityDataId, row.EntityDataId, row.EntityDataName, row.EntityTypeId, row.IsBound, row.BindType, row.FullDataId, row.SubSessionId, operator, nowTime,
+					fmt.Sprintf("p_bind_%d_%d", row.Id, nowTime.Unix()), procDefObj.Id, procInsId, node.Id, tmpProcInsNodeId, row.EntityDataId, row.EntityDataId, row.EntityDataName, row.EntityTypeId, row.IsBound, row.BindType, row.FullDataId, row.SubSessionId, operator, nowTime,
 				}})
 			}
 		}
@@ -1717,7 +1717,7 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 		err = getVersionErr
 		return
 	}
-	procInsParentMap := make(map[string]string)
+	procInsParentMap := make(map[string]*models.ParentProcInsObj)
 	if param.SubProc == "sub" {
 		procInsParentMap, err = getProcInsParentMap(ctx, procInsIdList)
 		if err != nil {
@@ -1742,7 +1742,7 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 			Status:            row.Status,
 			CreatedTime:       row.CreatedTime.Format(models.DateTimeFormat),
 			Version:           procDefVersionMap[row.ProcDefId],
-			ParentProcInsId:   procInsParentMap[row.Id],
+			ParentProcIns:     procInsParentMap[row.Id],
 			UpdatedBy:         row.UpdatedBy,
 			UpdatedTime:       row.UpdatedTime.Format(models.DateTimeFormat),
 		})
@@ -1911,20 +1911,20 @@ func CheckSubProcStart(ctx context.Context, sessionId string) (isSubProcSession 
 	return
 }
 
-func getProcInsParentMap(ctx context.Context, procInsIdList []string) (procInsParentMap map[string]string, err error) {
-	procInsParentMap = make(map[string]string)
+func getProcInsParentMap(ctx context.Context, procInsIdList []string) (procInsParentMap map[string]*models.ParentProcInsObj, err error) {
+	procInsParentMap = make(map[string]*models.ParentProcInsObj)
 	if len(procInsIdList) == 0 {
 		return
 	}
 	filterSql, filterParam := db.CreateListParams(procInsIdList, "")
-	var procInsNodeRows []*models.ProcInsNode
-	err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t2.proc_ins_id from proc_ins t1 left join proc_ins_node t2 on t1.parent_ins_node_id=t2.id where t1.id in ("+filterSql+")", filterParam...).Find(&procInsNodeRows)
+	var procInsNodeRows []*models.ParentProcInsObj
+	err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t2.proc_ins_id,t3.proc_def_name,t4.`version` from proc_ins t1 left join proc_ins_node t2 on t1.parent_ins_node_id=t2.id left join proc_ins t3 on t2.proc_ins_id=t3.id left join proc_def t4 on t3.proc_def_id=t4.id where t1.id in ("+filterSql+")", filterParam...).Find(&procInsNodeRows)
 	if err != nil {
 		err = fmt.Errorf("query proc def version fail,%s ", err.Error())
 		return
 	}
 	for _, row := range procInsNodeRows {
-		procInsParentMap[row.Id] = row.ProcInsId
+		procInsParentMap[row.Id] = row
 	}
 	return
 }
