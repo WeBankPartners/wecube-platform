@@ -17,7 +17,7 @@ import (
 )
 
 // QueryProcessDefinitionList 查询编排列表
-func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDefinitionParam, userToken, language string) (list []*models.ProcDefQueryDto, err error) {
+func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDefinitionParam, userToken, language, operator string) (list []*models.ProcDefQueryDto, err error) {
 	var procDefList, pList, filterProcDefList []*models.ProcDef
 	var permissionList []*models.ProcDefPermission
 	var roleProcDefMap = make(map[string][]*models.ProcDefDto)
@@ -52,6 +52,10 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	}
 	response, err = remote.RetrieveAllLocalRoles("Y", userToken, language, false)
 	if err != nil {
+		return
+	}
+	collectProcDefMap := make(map[string]string)
+	if collectProcDefMap, err = getUserProcDefCollectMap(ctx, operator); err != nil {
 		return
 	}
 	if len(response.Data) > 0 {
@@ -112,7 +116,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 				roleProcDefMap[manageRole] = make([]*models.ProcDefDto, 0)
 				allManageRoles = append(allManageRoles, manageRole)
 			}
-			roleProcDefMap[manageRole] = append(roleProcDefMap[manageRole], models.BuildProcDefDto(procDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay, enabledCreated))
+			roleProcDefMap[manageRole] = append(roleProcDefMap[manageRole], models.BuildProcDefDto(procDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay, enabledCreated, collectProcDefMap))
 		}
 	}
 	// 角色排序
@@ -1091,6 +1095,19 @@ func DelProcDefCollect(ctx context.Context, procDefId, operator string) (err err
 	_, err = db.MysqlEngine.Context(ctx).Exec("delete from proc_def_collect where proc_def_id=? and user_id=?", procDefId, operator)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func getUserProcDefCollectMap(ctx context.Context, userId string) (procDefMap map[string]string, err error) {
+	var collectRows []*models.ProcDefCollect
+	err = db.MysqlEngine.Context(ctx).SQL("select proc_def_id from proc_def_collect where user_id=?", userId).Find(&collectRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	procDefMap = make(map[string]string)
+	for _, row := range collectRows {
+		procDefMap[row.ProcDefId] = row.ProcDefId
 	}
 	return
 }
