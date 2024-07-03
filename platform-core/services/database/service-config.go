@@ -1451,3 +1451,55 @@ func ExportPluginConfigs(c *gin.Context, pluginPackageId string) (result *models
 	result.SystemParameters.SystemParameter = systemParamsXMLList
 	return
 }
+
+func GetPluginObjectMetaById(ctx context.Context, objectMetaId string) (result *models.CoreObjectMeta, err error) {
+	var objectMetaList []*models.CoreObjectMeta
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_object_meta where id=?", objectMetaId).Find(&objectMetaList)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(objectMetaList) > 0 {
+		result = objectMetaList[0]
+	}
+	return
+}
+
+func GetObjectMetas(ctx context.Context, objectMetaId string) (objectMetaEntity *models.CoreObjectMeta, err error) {
+	objectMetaEntity, err = GetPluginObjectMetaById(ctx, objectMetaId)
+	if err != nil {
+		err = fmt.Errorf("get plugin object meta by id: %s failed: %s", objectMetaId, err.Error())
+		return
+	}
+	if objectMetaEntity == nil {
+		err = fmt.Errorf("get plugin object meta by id: %s empty", objectMetaId)
+		return
+	}
+	objectMetaEntity.MappingEntityExpression = objectMetaEntity.MapExpr
+
+	propertyMetaEntities, err := getPluginObjectPropertyMetaListByObjectMeta(ctx, objectMetaEntity.Id)
+	if err != nil {
+		err = fmt.Errorf("get plugin object property meta list by object meta id: %s failed: %s", objectMetaEntity.Id, err.Error())
+		return
+	}
+	if len(propertyMetaEntities) == 0 {
+		return
+	}
+
+	for _, propertyMetaEntity := range propertyMetaEntities {
+		if propertyMetaEntity == nil {
+			continue
+		}
+		propertyMetaEntity.SensitiveData = "N"
+		if propertyMetaEntity.Sensitive {
+			propertyMetaEntity.SensitiveData = "Y"
+		}
+		propertyMetaEntity.MappingEntityExpression = propertyMetaEntity.MapExpr
+		if propertyMetaEntity.DataType == models.PluginParamDataTypeObject {
+			refObjectMetaEntity := QueryCoreObjectMeta(ctx, propertyMetaEntity.PackageName, propertyMetaEntity.RefObjectName, propertyMetaEntity.ConfigId)
+			propertyMetaEntity.RefObjectMeta = refObjectMetaEntity
+		}
+	}
+	objectMetaEntity.PropertyMetas = propertyMetaEntities
+	return
+}
