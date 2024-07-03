@@ -468,6 +468,14 @@ func ProcInsOperation(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	nodeObj := &models.ProcInsNode{}
+	if param.NodeInstId != "" {
+		nodeObj, err = database.GetSimpleProcInsNode(c, param.NodeInstId, "")
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+	}
 	if param.Act == "skip" {
 		operationObj := models.ProcRunOperation{WorkflowId: workflowId, NodeId: nodeId, Operation: "ignore", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
 		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
@@ -476,6 +484,9 @@ func ProcInsOperation(c *gin.Context) {
 			return
 		}
 		go workflow.HandleProOperation(&operationObj)
+		if nodeObj.NodeType == models.JobSubProcType {
+			killSubProc(c, param.ProcInstId, param.NodeInstId, middleware.GetRequestUser(c))
+		}
 	} else if param.Act == "choose" {
 		if param.Message == "" {
 			middleware.ReturnError(c, fmt.Errorf("param message can not empty with choose action"))
@@ -654,7 +665,31 @@ func ProcTermination(c *gin.Context) {
 		return
 	}
 	go workflow.HandleProOperation(&operationObj)
+	killSubProc(c, procInsId, "", middleware.GetRequestUser(c))
 	middleware.ReturnSuccess(c)
+}
+
+func killSubProc(ctx context.Context, mainProcInsId, procNodeId, operator string) {
+	var err error
+	var subWorkflowIdList []string
+	subWorkflowIdList, err = database.GetRunningProcInsSubWorkflow(ctx, mainProcInsId, procNodeId)
+	if err != nil {
+		log.Logger.Error("Try to kill sub proc fail with query sub workflow list", log.String("mainProcIns", mainProcInsId), log.Error(err))
+		return
+	}
+	if len(subWorkflowIdList) == 0 {
+		return
+	}
+	for _, subWorkflowId := range subWorkflowIdList {
+		subOperationObj := models.ProcRunOperation{WorkflowId: subWorkflowId, Operation: "kill", Status: "wait", CreatedBy: operator}
+		subOperationObj.Id, err = database.AddWorkflowOperation(ctx, &subOperationObj)
+		if err != nil {
+			log.Logger.Error("Try to kill sub proc fail", log.String("mainProcIns", mainProcInsId), log.String("subWorkflowId", subWorkflowId), log.Error(err))
+		} else {
+			go workflow.HandleProOperation(&subOperationObj)
+		}
+	}
+	return
 }
 
 func ProcStartEvents(c *gin.Context) {
@@ -706,4 +741,40 @@ func GetProcNodeNextChoose(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, result)
 	}
+}
+
+func SubProcDefList(c *gin.Context) {
+	var param models.SubProcDefListParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	result, err := database.ProcDefList(c, "0", "USE", "", "", "sub", middleware.GetRequestRoles(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if param.EntityExpr != "" {
+		exprList, analyzeErr := remote.AnalyzeExpression(param.EntityExpr)
+		if analyzeErr != nil {
+			middleware.ReturnError(c, analyzeErr)
+			return
+		}
+		if len(exprList) > 0 {
+			lastExpr := exprList[len(exprList)-1]
+			matchRootEntity := fmt.Sprintf("%s:%s", lastExpr.Package, lastExpr.Entity)
+			newResultList := []*models.ProcDefListObj{}
+			for _, v := range result {
+				tmpRootEntity := v.RootEntity
+				if filterIndex := strings.Index(v.RootEntity, "{"); filterIndex > 0 {
+					tmpRootEntity = v.RootEntity[:filterIndex]
+				}
+				if tmpRootEntity == matchRootEntity {
+					newResultList = append(newResultList, v)
+				}
+			}
+			result = newResultList
+		}
+	}
+	middleware.ReturnData(c, result)
 }
