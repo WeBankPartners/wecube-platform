@@ -276,7 +276,7 @@ func ProcInsTaskNodeBindings(ctx context.Context, sessionId, taskNodeId string) 
 					nodeBindDataMap[bindRow.ProcDefNodeId] = []*models.ProcDataBinding{bindRow}
 				}
 			}
-			log.Logger.Debug("nodeBinding", log.JsonObj("notStartNodeMap", notStartNodeMap), log.JsonObj("nodeBindDataMap", nodeBindDataMap))
+			//log.Logger.Debug("nodeBinding", log.JsonObj("notStartNodeMap", notStartNodeMap), log.JsonObj("nodeBindDataMap", nodeBindDataMap))
 		}
 		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_preview where proc_session_id=?", sessionId).Find(&previewRows)
 	} else {
@@ -656,6 +656,7 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 		workflowRow.Id, workflowRow.ProcInsId, workflowRow.Name, workflowRow.Status, workflowRow.CreatedTime,
 	}})
 	if procStartParam.ParentRunNodeId != "" {
+		workflowRow.ParentRunNodeId = procStartParam.ParentRunNodeId
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set parent_run_node_id=? where id=?", Param: []interface{}{procStartParam.ParentRunNodeId, workflowRow.Id}})
 	}
 	var procDefNodes []*models.ProcDefNode
@@ -1298,7 +1299,7 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 	if queryObj.NodeType == models.JobSubProcType {
 		// 子编排的节点处理信息
 		var sucProcRows []*models.ProcContextSubProcRow
-		err = db.MysqlEngine.Context(ctx).SQL("select t1.entity_type_id,t1.entity_data_id,t3.proc_ins_id,t3.created_time,t4.proc_def_id,t4.proc_def_name from proc_run_node_sub_proc t1 left join proc_run_node t2 on t1.proc_run_node_id=t2.id left join proc_run_workflow t3 on t1.workflow_id=t3.id left join proc_ins t4 on t3.proc_ins_id=t4.id where t2.proc_ins_node_id=?", queryObj.Id).Find(&sucProcRows)
+		err = db.MysqlEngine.Context(ctx).SQL("select t1.entity_type_id,t1.entity_data_id,t3.proc_ins_id,t3.created_time,t4.proc_def_id,t4.proc_def_name,t4.status,t3.error_message,t5.`version` from proc_run_node_sub_proc t1 left join proc_run_node t2 on t1.proc_run_node_id=t2.id left join proc_run_workflow t3 on t1.workflow_id=t3.id left join proc_ins t4 on t3.proc_ins_id=t4.id left join proc_def t5 on t4.proc_def_id=t5.id where t2.proc_ins_node_id=?", queryObj.Id).Find(&sucProcRows)
 		if err != nil {
 			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 			return
@@ -1306,15 +1307,29 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 		if len(sucProcRows) == 0 {
 			return
 		}
+		var subProcInsIdList []string
+		for _, row := range sucProcRows {
+			subProcInsIdList = append(subProcInsIdList, row.ProcInsId)
+		}
+		procInsNodeStatusMap := make(map[string]string)
+		if procInsNodeStatusMap, err = getProcInsNodeStatus(ctx, subProcInsIdList); err != nil {
+			return
+		}
 		for _, row := range sucProcRows {
 			tmpReqObject := models.ProcNodeContextReqObject{CallbackParameter: fmt.Sprintf("%s:%s", row.EntityTypeId, row.EntityDataId)}
 			inputMap := make(map[string]interface{})
 			outputMap := make(map[string]interface{})
+			if subNodeStatus, ok := procInsNodeStatusMap[row.ProcInsId]; ok {
+				row.Status = fmt.Sprintf("%s(%s)", row.Status, subNodeStatus)
+			}
 			inputMap["entityTypeId"] = row.EntityTypeId
 			inputMap["entityDataId"] = row.EntityDataId
 			outputMap["procDefId"] = row.ProcDefId
 			outputMap["procDefName"] = row.ProcDefName
 			outputMap["procInsId"] = row.ProcInsId
+			outputMap["version"] = row.Version
+			outputMap["status"] = row.Status
+			outputMap["errorMessage"] = row.ErrorMessage
 			outputMap["createdTime"] = row.CreatedTime.Format(models.DateTimeFormat)
 			tmpReqObject.Inputs = append(tmpReqObject.Inputs, inputMap)
 			tmpReqObject.Outputs = append(tmpReqObject.Outputs, outputMap)
@@ -1855,7 +1870,7 @@ func CheckProcInsUserPermission(ctx context.Context, userRoleList []string, proc
 	return
 }
 
-func UpdateProcRunNodeSubProc(ctx context.Context, procRunNodeId string, subProcWorkflowList []*models.ProcRunNodeSubProc) (err error) {
+func UpdateProcRunNodeSubProc(ctx context.Context, procRunNodeId string, subProcWorkflowList []*models.ProcRunNodeSubProc, dataBinding []*models.ProcDataBinding) (err error) {
 	var actions []*db.ExecAction
 	nowTime := time.Now()
 	actions = append(actions, &db.ExecAction{Sql: "delete from proc_run_node_sub_proc where proc_run_node_id=?", Param: []interface{}{procRunNodeId}})
@@ -1863,6 +1878,11 @@ func UpdateProcRunNodeSubProc(ctx context.Context, procRunNodeId string, subProc
 		actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_node_sub_proc(proc_run_node_id,workflow_id,entity_type_id,entity_data_id,created_time) values (?,?,?,?,?)", Param: []interface{}{
 			procRunNodeId, row.WorkflowId, row.EntityTypeId, row.EntityDataId, nowTime,
 		}})
+	}
+	for _, dataBind := range dataBinding {
+		if dataBind.SubProcInsId != "" {
+			actions = append(actions, &db.ExecAction{Sql: "update proc_data_binding set sub_proc_ins_id=? where id=?", Param: []interface{}{dataBind.SubProcInsId, dataBind.Id}})
+		}
 	}
 	err = db.Transaction(actions, ctx)
 	if err != nil {
@@ -1932,6 +1952,23 @@ func getProcInsNodeStatus(ctx context.Context, procInsIdList []string) (procInsN
 			}
 			procInsNodeStatusMap[row.ProcInsId] = row.Status
 		}
+	}
+	return
+}
+
+func GetRunningProcInsSubWorkflow(ctx context.Context, procInsId, procNodeId string) (workflowIdList []string, err error) {
+	var workflowRows []*models.ProcRunWorkflow
+	if procNodeId != "" {
+		err = db.MysqlEngine.Context(ctx).SQL("select id from proc_run_workflow where status='InProgress' and proc_ins_id in (select sub_proc_ins_id from proc_data_binding where proc_ins_id=? and proc_ins_node_id=? and sub_proc_ins_id<>'')", procInsId, procNodeId).Find(&workflowRows)
+	} else {
+		err = db.MysqlEngine.Context(ctx).SQL("select id from proc_run_workflow where status='InProgress' and proc_ins_id in (select sub_proc_ins_id from proc_data_binding where proc_ins_id=? and sub_proc_ins_id<>'')", procInsId).Find(&workflowRows)
+	}
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	for _, row := range workflowRows {
+		workflowIdList = append(workflowIdList, row.Id)
 	}
 	return
 }
