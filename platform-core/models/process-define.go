@@ -335,6 +335,7 @@ type ProcDefDto struct {
 	MgmtRoles        []string `json:"mgmtRoles"`        // 管理角色
 	MgmtRolesDisplay []string `json:"mgmtRolesDisplay"` // 管理角色-显示名
 	SubProc          bool     `json:"subProc"`          // 是否子编排
+	Collected        bool     `json:"collected"`        // 是否收藏
 }
 
 type ProcDefParentListItem struct {
@@ -715,10 +716,14 @@ func BuildInterfaceParameterDto(p *PluginConfigInterfaceParameters) *InterfacePa
 	}
 }
 
-func BuildProcDefDto(procDef *ProcDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay []string, enableCreated bool) *ProcDefDto {
+func BuildProcDefDto(procDef *ProcDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay []string, enableCreated bool, collectProcDefMap map[string]string) *ProcDefDto {
 	var authPlugins = make([]string, 0)
 	if len(procDef.ForPlugin) > 0 {
 		authPlugins = strings.Split(procDef.ForPlugin, ",")
+	}
+	collected := false
+	if _, ok := collectProcDefMap[procDef.Id]; ok {
+		collected = true
 	}
 	return &ProcDefDto{
 		Id:               procDef.Id,
@@ -740,6 +745,7 @@ func BuildProcDefDto(procDef *ProcDef, userRoles, manageRoles, userRolesDisplay,
 		UseRolesDisplay:  userRolesDisplay,
 		MgmtRoles:        manageRoles,
 		MgmtRolesDisplay: manageRolesDisplay,
+		Collected:        collected,
 	}
 }
 
