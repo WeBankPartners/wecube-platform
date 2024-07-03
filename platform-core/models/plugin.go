@@ -477,7 +477,7 @@ type CoreObjectPropertyMeta struct {
 	DataType                string          `json:"dataType" xorm:"data_type"`
 	Multiple                string          `json:"multiple" xorm:"multiple"`
 	RefObjectName           string          `json:"refObjectName" xorm:"ref_object_name"`
-	MappingType             string          `json:"mappingType" xorm:"mapping_type"`
+	MappingType             string          `json:"mappingType" xorm:"map_type"`
 	MapExpr                 string          `json:"mapExpr" xorm:"map_expr"`
 	ObjectMetaId            string          `json:"objectMetaId" xorm:"object_meta_id"`
 	ObjectName              string          `json:"objectName" xorm:"object_name"`
