@@ -2,6 +2,7 @@
   <div class="platform-base-search">
     <div class="platform-base-search-form" :style="{ maxHeight: expand ? '200px' : '40px' }">
       <Form :inline="true" :model="value" label-position="right">
+        <slot name="prepend"></slot>
         <template v-for="(i, index) in options">
           <FormItem v-if="!i.hidden" :prop="i.key" :key="index">
             <div style="display: flex; align-items: center">
@@ -12,7 +13,7 @@
                 v-model="value[i.key]"
                 :placeholder="i.placeholder"
                 clearable
-                :style="{ width: i.width || 200 + 'px' }"
+                :style="{ width: i.width || 195 + 'px' }"
                 @on-change="handleInputChange"
               ></Input>
               <!--下拉选择-->
@@ -81,7 +82,7 @@
                 v-else-if="i.component === 'switch'"
                 v-model="value[i.key]"
                 @on-change="$emit('search')"
-                style="margin-right: 10px"
+                style="margin-right: 5px"
               >
               </i-Switch>
               <!--标签组-->
@@ -91,7 +92,7 @@
                 @on-change="$emit('search')"
                 type="button"
                 button-style="solid"
-                style="margin-right: 10px"
+                style="margin-right: 5px"
               >
                 <Radio v-for="(j, idx) in i.list" :label="j.value" :key="idx" border>{{ j.label }}</Radio>
               </RadioGroup>
@@ -325,11 +326,11 @@ export default {
     height: 30px !important;
     line-height: 30px !important;
     font-size: 12px !important;
-    color: #000;
+    // color: #000;
   }
   .ivu-radio-wrapper-checked.ivu-radio-border {
-    border-color: #2d8cf0;
-    color: #2d8cf0;
+    background-color: #2d8cf0;
+    color: #fff;
   }
   .ivu-select-multiple .ivu-tag {
     max-width: 90px;
