@@ -578,7 +578,7 @@ func RegisterPackage(c *gin.Context) {
 		}
 		if len(resourceFileList) > 0 {
 			log.Logger.Debug("register plugin,start update plugin static resource file data", log.JsonObj("resourceFileList", resourceFileList))
-			if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, resourceFileList); err != nil {
+			if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, pluginPackageObj.Name, resourceFileList); err != nil {
 				middleware.ReturnError(c, err)
 				return
 			}
@@ -1017,5 +1017,146 @@ func GetPluginS3Files(c *gin.Context) {
 			}
 		}
 		middleware.ReturnData(c, result)
+	}
+}
+
+// UIRegisterPackage 插件配置 - 注册插件包UI资源
+func UIRegisterPackage(c *gin.Context) {
+	var param models.PluginPackages
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	pluginPackageId := param.Id
+	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
+	if err := database.GetSimplePluginPackage(c, &pluginPackageObj, true); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	var err error
+	if !pluginPackageObj.UiPackageIncluded {
+		middleware.ReturnSuccess(c)
+		return
+	}
+	if len(models.Config.StaticResources) == 0 {
+		middleware.ReturnError(c, fmt.Errorf("static resource config empty"))
+		return
+	}
+	// 把s3上的ui.zip下下来放到本地
+	log.Logger.Debug("register plugin,start download ui.zip")
+	var uiFileLocalPath, uiDir string
+	if uiFileLocalPath, err = bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/ui.zip", pluginPackageObj.Name, pluginPackageObj.Version)); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	log.Logger.Debug("register plugin,start decompress ui.zip", log.String("uiFileLocalPath", uiFileLocalPath))
+	// 本地解压ui.zip
+	if uiDir, err = bash.DecompressFile(uiFileLocalPath, ""); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	// 把ui.zip用ssh传到静态资源服务器上并解压，如果有两台服务器，则每台都要上传与解压
+	for _, staticResourceObj := range models.Config.StaticResources {
+		targetPath := fmt.Sprintf("%s/%s/%s/ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
+		unzipCmd := fmt.Sprintf("cd %s/%s/%s && unzip -o ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
+		log.Logger.Debug("register plugin,start scp ui.zip to remote host", log.String("server", staticResourceObj.Server), log.String("targetPath", targetPath))
+		if err = bash.RemoteSCP(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, uiFileLocalPath, targetPath); err != nil {
+			break
+		}
+		log.Logger.Debug("register plugin,start unzip ui.zip in remote host", log.String("server", staticResourceObj.Server), log.String("unzipCmd", unzipCmd))
+		if err = bash.RemoteSSHCommand(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, unzipCmd); err != nil {
+			break
+		}
+	}
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	// 把ui.zip里的静态文件读出来
+	var fileNameList []string
+	indexPath, matchIndexFlag, findErr := bash.GetDirIndexPath(uiDir)
+	if findErr != nil {
+		middleware.ReturnError(c, findErr)
+		return
+	}
+	if !matchIndexFlag {
+		middleware.ReturnError(c, fmt.Errorf("can not find index.html in ui package"))
+		return
+	}
+	log.Logger.Debug("match index path", log.String("indexPath", indexPath))
+	indexPath = strings.TrimSuffix(indexPath, "/")
+	dirPrefix := uiDir
+	if indexPath != "" {
+		dirPrefix = uiDir + "/" + indexPath
+	}
+	fileNameList, err = bash.ListDirAllFiles(dirPrefix)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	uiStaticPath := models.Config.StaticResources[0].Path
+	if pathIndex := strings.LastIndex(uiStaticPath, "/"); pathIndex >= 0 {
+		uiStaticPath = uiStaticPath[pathIndex:]
+	}
+	uiStaticPath = fmt.Sprintf("%s/%s/%s", uiStaticPath, pluginPackageObj.Name, pluginPackageObj.Version)
+	if indexPath != "" {
+		uiStaticPath = uiStaticPath + "/" + indexPath
+	}
+	resourceFileList := []*models.PluginPackageResourceFiles{}
+	for _, v := range fileNameList {
+		tmpResourceObj := models.PluginPackageResourceFiles{PluginPackageId: pluginPackageId, PackageName: pluginPackageObj.Name, PackageVersion: pluginPackageObj.Version, Source: "ui.zip", RelatedPath: strings.ReplaceAll(v, dirPrefix, uiStaticPath)}
+		resourceFileList = append(resourceFileList, &tmpResourceObj)
+	}
+	if len(resourceFileList) > 0 {
+		log.Logger.Debug("register plugin,start update plugin static resource file data", log.JsonObj("resourceFileList", resourceFileList))
+		if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, pluginPackageObj.Name, resourceFileList); err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+	}
+	middleware.ReturnSuccess(c)
+}
+
+// RegisterPackageDone 插件配置 - 完成注册插件包
+func RegisterPackageDone(c *gin.Context) {
+	var param models.PluginPackages
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	err := database.SetPluginPackageRegisterDone(c, param.Id, middleware.GetRequestUser(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}
+
+func GetPluginConfigVersionList(c *gin.Context) {
+	pluginPackageId := c.Query("id")
+	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
+	if err := database.GetSimplePluginPackage(c, &pluginPackageObj, true); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	result, err := database.GetPluginConfigVersionList(c, pluginPackageId, pluginPackageObj.Name)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func InheritPluginConfig(c *gin.Context) {
+	var param models.InheritPluginConfigParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	err := database.InheritPluginConfig(c, &param, middleware.GetRequestUser(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
 	}
 }
