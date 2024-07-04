@@ -76,6 +76,11 @@ func init() {
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/instances", Method: "GET", HandlerFunc: plugin.GetPluginRunningInstances, ApiCode: "get-plugin-running-instance"},
 		&handlerFuncObj{Url: "/packages/name/list", Method: "GET", HandlerFunc: plugin.GetPackageNames, ApiCode: "get-package-names"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/resources/s3/files", Method: "GET", HandlerFunc: plugin.GetPluginS3Files, ApiCode: "get-plugin-s3-files"},
+		&handlerFuncObj{Url: "/packages/ui/register", Method: "POST", HandlerFunc: plugin.UIRegisterPackage, ApiCode: "ui-register-package"},
+		&handlerFuncObj{Url: "/packages/register-done", Method: "POST", HandlerFunc: plugin.RegisterPackageDone, ApiCode: "register-package-done"},
+		&handlerFuncObj{Url: "/packages/version/get", Method: "GET", HandlerFunc: plugin.GetPluginConfigVersionList, ApiCode: "get-package-config-version"},
+		&handlerFuncObj{Url: "/packages/version/inherit", Method: "POST", HandlerFunc: plugin.InheritPluginConfig, ApiCode: "inherit-package-config"},
+
 		// plugin-config
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugin-configs", Method: "GET", HandlerFunc: plugin.GetPluginConfigs, ApiCode: "get-plugin-configs"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugins", Method: "GET", HandlerFunc: plugin.GetPluginConfigsWithInterfaces, ApiCode: "get-plugin-configs-with-interfaces"},
