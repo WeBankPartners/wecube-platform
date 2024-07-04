@@ -790,5 +790,8 @@
   "fe_completed": "成功",
   "fe_faulted": "自动退出",
   "fe_internallyTerminated": "手动终止",
-  "fe_flowname_placeholder": "请输入编排名称搜索"
+  "fe_flowname_placeholder": "请输入编排名称搜索",
+  "fe_execute_frequence": "执行频率",
+  "fe_can_not_be_empty": " 不能为空",
+  "fe_launcher": "发起人"
 }

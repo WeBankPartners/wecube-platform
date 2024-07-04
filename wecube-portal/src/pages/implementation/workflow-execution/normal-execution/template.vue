@@ -40,7 +40,7 @@
 <script>
 import Search from '@/pages/components/base-search.vue'
 import { debounce, deepClone } from '@/const/util'
-import { flowList } from '@/api/server'
+import { flowList, collectFlow, unCollectFlow } from '@/api/server'
 import dayjs from 'dayjs'
 export default {
   components: {
@@ -58,20 +58,20 @@ export default {
         procDefId: '',
         procDefName: '',
         plugins: [],
-        updatedTime: [dayjs().subtract(1, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+        updatedTime: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
         updatedTimeStart: '',
         updatedTimeEnd: '',
         createdBy: '',
         updatedBy: '',
         scene: '', // 分组
         subProc: 'main',
-        isShowCollectTemplate: false
+        onlyCollect: false
       },
       cardList: [], // 模板数据
       spinShow: false,
       searchOptions: [
         {
-          key: 'isShowCollectTemplate',
+          key: 'onlyCollect',
           label: this.$t('be_only_show_collect'),
           component: 'switch',
           initValue: false
@@ -90,7 +90,7 @@ export default {
           label: this.$t('table_updated_date'),
           initDateType: 1,
           dateRange: [
-            { label: '近一月', type: 'month', value: 1, dateType: 1 },
+            { label: '近3个月', type: 'month', value: 3, dateType: 1 },
             { label: '近半年', type: 'month', value: 6, dateType: 2 },
             { label: '近一年', type: 'year', value: 1, dateType: 3 },
             { label: this.$t('be_auto'), dateType: 4 } // 自定义
@@ -124,7 +124,7 @@ export default {
               <div>
                 {
                   /* 收藏 */
-                  !params.row.isCollected && (
+                  !params.row.collected && (
                     <Tooltip content={this.$t('bc_save')} placement="top-start">
                       <Icon
                         style="cursor:pointer;margin-right:5px;"
@@ -140,7 +140,7 @@ export default {
                 }
                 {
                   /* 取消收藏 */
-                  params.row.isCollected && (
+                  params.row.collected && (
                     <Tooltip content={this.$t('be_cancel_save')} placement="top-start">
                       <Icon
                         style="cursor:pointer;margin-right:5px;"
@@ -283,19 +283,19 @@ export default {
       item.expand = !item.expand
     },
     // 收藏or取消收藏
-    handleStar: debounce(async function ({ id, isCollected }) {
-      // const method = isCollected ? uncollectBatchTemplate : collectBatchTemplate
-      // const params = {
-      //   batchExecutionTemplateId: id
-      // }
-      // const { status } = await method(params)
-      // if (status === 'OK') {
-      //   this.$Notice.success({
-      //     title: this.$t('successful'),
-      //     desc: this.$t('successful')
-      //   })
-      //   this.getTemplateList()
-      // }
+    handleStar: debounce(async function ({ id, collected }) {
+      const method = collected ? unCollectFlow : collectFlow
+      const params = {
+        procDefId: id
+      }
+      const { status } = await method(params)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: this.$t('successful'),
+          desc: this.$t('successful')
+        })
+        this.getTemplateList()
+      }
     }, 300)
   }
 }

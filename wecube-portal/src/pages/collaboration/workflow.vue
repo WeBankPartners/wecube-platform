@@ -1,7 +1,8 @@
 <template>
-  <div class="root">
+  <div class="workflow-design">
     <div>
       <Button type="success" class="btn-right" @click="create">
+        <Icon type="md-add" :size="18" />
         {{ $t('full_word_add') }}
       </Button>
       <Upload
@@ -68,104 +69,26 @@
       </Button>
     </div>
     <div class="search">
-      <div class="search-form">
-        <RadioGroup
-          v-model="searchParams.subProc"
-          type="button"
-          button-style="solid"
-          @on-change="changeFlow"
-          style="margin-right: 5px"
-        >
-          <Radio label="main">{{ $t('main_workflow') }}</Radio>
-          <Radio label="sub">{{ $t('child_workflow') }}</Radio>
-        </RadioGroup>
-        <Input
-          v-model="searchParams.procDefName"
-          :placeholder="$t('flow_name')"
-          class="search-item"
-          clearable
-          @on-change="getFlowList"
-        ></Input>
-        <Input
-          v-model="searchParams.procDefId"
-          placeholder="ID"
-          class="search-item"
-          clearable
-          @on-change="getFlowList"
-        ></Input>
-        <Select
-          v-model="searchParams.plugins"
-          filterable
-          multiple
-          class="search-item"
-          :placeholder="$t('authPlugin')"
-          :max-tag-count="1"
-          @on-change="getFlowList"
-        >
-          <Option v-for="item in authPluginList" :value="item" :key="item">{{ item }} </Option>
-        </Select>
-        <Input
-          v-model="searchParams.scene"
-          :placeholder="$t('group')"
-          class="search-item"
-          clearable
-          @on-change="getFlowList"
-        ></Input>
-        <Input
-          v-model="searchParams.createdBy"
-          :placeholder="$t('createdBy')"
-          class="search-item"
-          clearable
-          @on-change="getFlowList"
-        ></Input>
-        <Input
-          v-model="searchParams.updatedBy"
-          :placeholder="$t('updatedBy')"
-          class="search-item"
-          clearable
-          @on-change="getFlowList"
-        ></Input>
-        <div style="display: inline; width: 100%" class="search-item">
-          <span>{{ $t('table_updated_date') }}:</span>
+      <Search
+        ref="search"
+        :options="searchOptions"
+        v-model="searchParams"
+        @search="getFlowList"
+        style="margin-top: 10px"
+      >
+        <template slot="prepend">
           <RadioGroup
-            v-if="dateType !== 4"
-            v-model="dateType"
+            v-model="searchParams.subProc"
             type="button"
-            size="small"
-            @on-change="handleDateTypeChange(dateType)"
+            button-style="solid"
+            @on-change="changeFlow"
+            style="margin-right: 5px"
           >
-            <Radio v-for="(j, idx) in dateTypeList" :label="j.value" :key="idx" border>{{ j.label }}</Radio>
+            <Radio label="main">{{ $t('main_workflow') }}</Radio>
+            <Radio label="sub">{{ $t('child_workflow') }}</Radio>
           </RadioGroup>
-          <template v-else>
-            <DatePicker
-              @on-change="
-                val => {
-                  handleDateRange(val)
-                }
-              "
-              type="daterange"
-              placement="bottom-end"
-              format="yyyy-MM-dd"
-              split-panels
-              placeholder=""
-              style="width: 200px"
-            />
-            <Icon
-              size="18"
-              style="cursor: pointer"
-              type="md-close-circle"
-              @click="
-                dateType = 1
-                handleDateTypeChange(1)
-              "
-            />
-          </template>
-        </div>
-      </div>
-      <div class="search-button">
-        <Button @click="getFlowList" type="primary">{{ $t('search') }}</Button>
-        <Button @click="handleReset" style="margin-left: 5px">{{ $t('reset') }}</Button>
-      </div>
+        </template>
+      </Search>
     </div>
     <div>
       <Tabs :value="searchParams.status" @on-click="changeTab">
@@ -266,10 +189,12 @@ import {
   getParentFlowList
 } from '@/api/server.js'
 import FlowAuth from '@/pages/components/auth.vue'
+import Search from '@/pages/components/base-search.vue'
 import dayjs from 'dayjs'
 export default {
   components: {
-    FlowAuth
+    FlowAuth,
+    Search
   },
   data () {
     return {
@@ -279,6 +204,7 @@ export default {
         procDefId: '',
         procDefName: '',
         plugins: [],
+        updatedTime: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
         updatedTimeStart: '',
         updatedTimeEnd: '',
         createdBy: '',
@@ -287,6 +213,53 @@ export default {
         status: 'deployed',
         subProc: 'main'
       },
+      searchOptions: [
+        {
+          key: 'procDefName',
+          placeholder: this.$t('flow_name'),
+          component: 'input'
+        },
+        {
+          key: 'procDefId',
+          placeholder: this.$t('workflow_id'),
+          component: 'input'
+        },
+        {
+          key: 'plugins',
+          placeholder: this.$t('authPlugin'),
+          component: 'select',
+          multiple: true,
+          list: []
+        },
+        {
+          key: 'scene',
+          placeholder: this.$t('group'),
+          component: 'input'
+        },
+        {
+          key: 'createdBy',
+          placeholder: this.$t('createdBy'),
+          component: 'input'
+        },
+        {
+          key: 'updatedBy',
+          placeholder: this.$t('updatedBy'),
+          component: 'input'
+        },
+        {
+          key: 'updatedTime',
+          label: this.$t('table_updated_date'),
+          initDateType: 1,
+          dateRange: [
+            { label: '近3个月', type: 'month', value: 3, dateType: 1 },
+            { label: '近半年', type: 'month', value: 6, dateType: 2 },
+            { label: '近一年', type: 'year', value: 1, dateType: 3 },
+            { label: this.$t('be_auto'), dateType: 4 } // 自定义
+          ],
+          labelWidth: 110,
+          component: 'custom-time'
+        }
+      ],
       dateType: 1, // 控制时间显示
       dateTypeList: [
         { label: this.$t('be_recent_three_month'), value: 1 },
@@ -422,7 +395,7 @@ export default {
         {
           title: this.$t('table_action'),
           key: 'action',
-          width: 150,
+          width: 170,
           align: 'center',
           fixed: 'right',
           render: (h, params) => {
@@ -527,7 +500,7 @@ export default {
           render: (h, params) => {
             return (
               <span
-                style="cursor:pointer;"
+                style="cursor:pointer;color:#5cadff;"
                 onClick={() => {
                   this.viewParentFlowGraph(params.row)
                 }}
@@ -597,9 +570,10 @@ export default {
     if (this.$route.query.flowListTab) {
       this.searchParams.status = this.$route.query.flowListTab
     }
-
+    if (this.$route.query.subProc === 'true') {
+      this.searchParams.subProc = 'sub'
+    }
     this.setHeaders()
-    this.handleDateTypeChange(1)
     this.getFlowList()
     this.pluginList()
   },
@@ -670,6 +644,13 @@ export default {
       let { data, status } = await getPluginList()
       if (status === 'OK') {
         this.authPluginList = data
+        this.searchOptions.forEach(i => {
+          if (i.key === 'plugins') {
+            i.list = this.authPluginList.map(i => {
+              return { label: i, value: i }
+            })
+          }
+        })
       }
     },
     // 切换tab修改数据
@@ -682,30 +663,16 @@ export default {
     // 切换主编排/子编排
     changeFlow () {
       this.selectedParams = []
-      this.handleReset()
-    },
-    // 重置参数
-    handleReset () {
-      this.searchParams = {
-        procDefId: '',
-        procDefName: '',
-        plugins: [],
-        updatedTimeStart: '',
-        updatedTimeEnd: '',
-        createdBy: '',
-        updatedBy: '',
-        scene: '', // 分组
-        status: 'deployed',
-        subProc: this.searchParams.subProc
-      }
-      this.hideRoles = []
-      this.dateType = 1
-      this.getFlowList()
+      this.$refs.search.handleReset()
     },
     // 获取编排列表
     async getFlowList () {
       this.spinShow = true
-      let { data, status } = await flowList(this.searchParams)
+      const params = JSON.parse(JSON.stringify(this.searchParams))
+      params.updatedTimeStart = params.updatedTime[0] ? params.updatedTime[0] + ' 00:00:00' : ''
+      params.updatedTimeEnd = params.updatedTime[1] ? params.updatedTime[1] + ' 23:59:59' : ''
+      delete params.updatedTime
+      let { data, status } = await flowList(params)
       this.spinShow = false
       if (status === 'OK') {
         this.data = data
@@ -893,35 +860,6 @@ export default {
         query: { flowId: row.id, editFlow: 'false', flowListTab: this.searchParams.status }
       })
     },
-
-    // #endregion
-    // 自定义时间控件转化时间格式值
-    handleDateTypeChange (dateType) {
-      this.dateType = dateType
-      const cur = dayjs().format('YYYY-MM-DD')
-      if (dateType === 1) {
-        const pre = dayjs().subtract(3, 'month').format('YYYY-MM-DD')
-        this.searchParams.updatedTimeStart = pre + ' 00:00:00'
-        this.searchParams.updatedTimeEnd = cur + ' 23:59:59'
-      } else if (dateType === 2) {
-        const pre = dayjs().subtract(6, 'month').format('YYYY-MM-DD')
-        this.searchParams.updatedTimeStart = pre + ' 00:00:00'
-        this.searchParams.updatedTimeEnd = cur + ' 23:59:59'
-      } else if (dateType === 3) {
-        const pre = dayjs().subtract(1, 'year').format('YYYY-MM-DD')
-        this.searchParams.updatedTimeStart = pre + ' 00:00:00'
-        this.searchParams.updatedTimeEnd = cur + ' 23:59:59'
-      } else if (dateType === 4) {
-        this.searchParams.updatedTimeStart = ''
-        this.searchParams.updatedTimeEnd = ''
-      }
-      this.getFlowList()
-    },
-    handleDateRange (dateArr) {
-      this.searchParams.updatedTimeStart = dateArr[0] + ' 00:00:00'
-      this.searchParams.updatedTimeEnd = dateArr[1] + ' 23:59:59'
-      this.getFlowList()
-    },
     // 控制角色下table的显示
     changeRoleTableStatus (index, type) {
       if (type === 'in') {
@@ -1049,6 +987,7 @@ export default {
       const { status, data } = await getParentFlowList(this.viewRow.id, params)
       this.mainFlowLoading = false
       if (status === 'OK') {
+        this.pagination.total = data.page.totalRows
         this.mainFlowData = data.content
       }
     },
@@ -1109,20 +1048,9 @@ th.ivu-table-column-center div.ivu-table-cell-with-selection {
 .ivu-table-cell {
   padding: 0 4px !important;
 }
-.single-select-table {
-  th .ivu-table-cell-with-selection {
-    position: relative;
-  }
-  th .ivu-table-cell-with-selection::after {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    background: #f8f8f9;
-    z-index: 99;
-  }
+.workflow-design .ivu-radio-wrapper-checked {
+  background-color: #2d8cf0 !important;
+  color: #fff !important;
 }
 </style>
 <style lang="scss" scoped>

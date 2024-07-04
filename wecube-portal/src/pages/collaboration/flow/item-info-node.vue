@@ -360,7 +360,7 @@
                   </label>
                   <Select v-model="itemCustomInfo.customAttrs.subProcDefId" @on-change="changeSubProc" filterable>
                     <Option v-for="item in subProcList" :value="item.procDefId" :key="item.procDefId">{{
-                      item.procDefName
+                      `${item.procDefName}【${item.procDefVersion}】`
                     }}</Option>
                   </Select>
                   <span v-if="itemCustomInfo.customAttrs.subProcDefId === ''" style="color: red"
@@ -413,7 +413,7 @@ import {
   getSourceNode,
   getNodeDetailById,
   getRoleList,
-  getChildFlowList
+  getChildFlowListNew
 } from '@/api/server.js'
 import ItemFilterRulesGroup from './item-filter-rules-group.vue'
 export default {
@@ -686,6 +686,9 @@ export default {
       } else {
         this.itemCustomInfo.customAttrs.routineExpression = val
         this.getPlugin()
+        // this.itemCustomInfo.customAttrs.subProcDefId = ''
+        // this.subProcItem =  null
+        this.getSubProcList()
         this.paramsChanged()
       }
     },
@@ -863,10 +866,10 @@ export default {
     async getSubProcList () {
       const params = {
         params: {
-          subProc: 'sub'
+          entityExpr: this.itemCustomInfo.customAttrs.routineExpression
         }
       }
-      const { status, data } = await getChildFlowList(params)
+      const { status, data } = await getChildFlowListNew(params)
       if (status === 'OK') {
         this.subProcList = data || []
         if (this.itemCustomInfo.customAttrs.subProcDefId) {
