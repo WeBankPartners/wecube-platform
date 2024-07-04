@@ -30,6 +30,89 @@ func GetPackages(ctx context.Context, allFlag bool) (result []*models.PluginPack
 	return
 }
 
+func QueryPluginPackages(ctx context.Context, param *models.PluginPackageQueryParam) (result []*models.PluginPackageQueryObj, err error) {
+	var packageRows []*models.PluginPackages
+	var filterSql []string
+	var filterParam []interface{}
+	if param.Id != "" {
+		filterSql = append(filterSql, "id=?")
+		filterParam = append(filterParam, param.Id)
+	}
+	if param.UpdatedBy != "" {
+		filterSql = append(filterSql, "updated_by like ?")
+		filterParam = append(filterParam, fmt.Sprintf("%%%s%%", param.UpdatedBy))
+	}
+	if param.Name != "" {
+		filterSql = append(filterSql, "name like ?")
+		filterParam = append(filterParam, fmt.Sprintf("%%%s%%", param.Name))
+	}
+	if !param.WithDelete {
+		filterSql = append(filterSql, "status in ('UNREGISTERED','REGISTERED')")
+	}
+	if param.WithRunningInstance == "yes" {
+		filterSql = append(filterSql, "id in (select package_id from plugin_instances)")
+	} else if param.WithRunningInstance == "no" {
+		filterSql = append(filterSql, "id not in (select package_id from plugin_instances)")
+	}
+	var queryFilterSql string
+	if len(filterSql) > 0 {
+		queryFilterSql = "where " + strings.Join(filterSql, " and ")
+	}
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_packages "+queryFilterSql+" order by name,`version`", filterParam...).Find(&packageRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(packageRows) == 0 {
+		return
+	}
+	var packageIdList []string
+	for _, row := range packageRows {
+		packageIdList = append(packageIdList, row.Id)
+	}
+	idListFilter, idListParam := db.CreateListParams(packageIdList, "")
+	var packageMenuRows []*models.PluginPackageMenus
+	err = db.MysqlEngine.Context(ctx).SQL("select plugin_package_id,code,display_name,local_display_name from plugin_package_menus where plugin_package_id in ("+idListFilter+") order by code", idListParam...).Find(&packageMenuRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	var instanceRows []*models.PluginInstances
+	err = db.MysqlEngine.Context(ctx).SQL("select id,host,port,package_id from plugin_instances").Find(&instanceRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	menuMap := make(map[string][]string)
+	instanceMap := make(map[string][]*models.PluginPackageInstanceObj)
+	for _, row := range packageMenuRows {
+		if existMenuList, ok := menuMap[row.PluginPackageId]; ok {
+			menuMap[row.PluginPackageId] = append(existMenuList, row.LocalDisplayName)
+		} else {
+			menuMap[row.PluginPackageId] = []string{row.LocalDisplayName}
+		}
+	}
+	for _, row := range instanceRows {
+		address := fmt.Sprintf("%s:%d", row.Host, row.Port)
+		if existInstanceList, ok := instanceMap[row.PackageId]; ok {
+			instanceMap[row.PackageId] = append(existInstanceList, &models.PluginPackageInstanceObj{Id: row.Id, Address: address})
+		} else {
+			instanceMap[row.PackageId] = []*models.PluginPackageInstanceObj{{Id: row.Id, Address: address}}
+		}
+	}
+	for _, row := range packageRows {
+		resultObj := models.PluginPackageQueryObj{PluginPackages: *row, Menus: []string{}, Instances: []*models.PluginPackageInstanceObj{}}
+		if menuList, ok := menuMap[row.Id]; ok {
+			resultObj.Menus = menuList
+		}
+		if instanceList, ok := instanceMap[row.Id]; ok {
+			resultObj.Instances = instanceList
+		}
+		result = append(result, &resultObj)
+	}
+	return
+}
+
 func GetPluginDependencies(ctx context.Context, pluginPackageId string) (result *models.PluginPackageDepObj, err error) {
 	var pluginPackageRows []*models.PluginPackages
 	err = db.MysqlEngine.Context(ctx).SQL("select name,`version` from plugin_packages where id=?", pluginPackageId).Find(&pluginPackageRows)
