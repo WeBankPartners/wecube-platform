@@ -28,9 +28,10 @@ func CreateProcSchedule(ctx context.Context, param *models.CreateProcSchedulePar
 		CreatedTime:    time.Now(),
 		Role:           param.Role,
 		MailMode:       param.MailMode,
+		Name:           param.Name,
 	}
-	_, err = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_config(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,schedule_mode,schedule_expr,cron_expr,exec_times,created_by,created_time,`role`,mail_mode) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-		result.Id, result.ProcDefId, result.ProcDefKey, result.ProcDefName, result.Status, result.EntityDataId, result.EntityTypeId, result.EntityDataName, result.ScheduleMode, result.ScheduleExpr, result.CronExpr, 0, result.CreatedBy, result.CreatedTime, param.Role, param.MailMode)
+	_, err = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_config(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,schedule_mode,schedule_expr,cron_expr,exec_times,created_by,created_time,`role`,mail_mode,name) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		result.Id, result.ProcDefId, result.ProcDefKey, result.ProcDefName, result.Status, result.EntityDataId, result.EntityTypeId, result.EntityDataName, result.ScheduleMode, result.ScheduleExpr, result.CronExpr, 0, result.CreatedBy, result.CreatedTime, param.Role, param.MailMode, param.Name)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
@@ -241,6 +242,14 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 		filterSqlList = append(filterSqlList, "created_by=?")
 		filterParams = append(filterParams, param.Owner)
 	}
+	if param.Name != "" {
+		filterSqlList = append(filterSqlList, "name like ?")
+		filterParams = append(filterParams, fmt.Sprintf("%%%s%%", param.Name))
+	}
+	if param.ProcDefId != "" {
+		filterSqlList = append(filterSqlList, "proc_def_id=?")
+		filterParams = append(filterParams, param.ProcDefId)
+	}
 	//if param.StartTime != "" {
 	//	filterSqlList = append(filterSqlList, "created_time>=?")
 	//	filterParams = append(filterParams, param.StartTime)
@@ -321,6 +330,7 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 			Role:                     row.Role,
 			MailMode:                 row.MailMode,
 			Version:                  procDefVersionMap[row.ProcDefId],
+			Name:                     row.Name,
 		}
 		result = append(result, &resultObj)
 	}

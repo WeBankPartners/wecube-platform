@@ -19,5 +19,9 @@ CREATE TABLE `proc_run_node_sub_proc` (
 alter table plugin_packages add column register_done tinyint(8) default 0 comment '是否完成注册';
 alter table plugin_packages add column updated_by varchar(64) default null comment '更新人';
 alter table plugin_packages add column updated_time datetime default null comment '更新时间';
+alter table plugin_packages add column ui_active tinyint(4) default 0 comment '前端资源包是否生效';
 
 alter table proc_def_collect modify column `role_id` varchar(64) DEFAULT NULL COMMENT '角色id';
+alter table proc_schedule_config add column name varchar(64) default null comment '任务名';
+
+alter table plugin_package_runtime_resources_docker modify column volume_bindings varchar(4096) default null;

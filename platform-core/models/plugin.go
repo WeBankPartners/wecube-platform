@@ -52,6 +52,7 @@ type PluginPackages struct {
 	UiPackageIncluded bool      `json:"uiPackageIncluded" xorm:"ui_package_included"` // 是否有ui->0(无)|1(有)
 	Edition           string    `json:"edition" xorm:"edition"`                       // 发行版本->0(community社区版)|1(enterprise企业版)
 	RegisterDone      bool      `json:"registerDone" xorm:"register_done"`            // 是否完成注册
+	UiActive          bool      `json:"uiActive" xorm:"ui_active"`                    // 前端资源包是否生效
 	UpdatedBy         string    `json:"updatedBy" xorm:"updated_by"`                  // 更新人
 	UpdatedTime       time.Time `json:"updatedTime" xorm:"updated_time"`              // 更新时间
 }
@@ -859,4 +860,15 @@ type PluginPackageQueryObj struct {
 type PluginPackageInstanceObj struct {
 	Id      string `json:"id"`
 	Address string `json:"address"`
+}
+
+type PluginVersionListObj struct {
+	PluginPackageId string `json:"pluginPackageId"`
+	Name            string `json:"name"`
+	Version         string `json:"version"`
+}
+
+type InheritPluginConfigParam struct {
+	PluginPackageId  string `json:"pluginPackageId" binding:"required"`
+	InheritPackageId string `json:"inheritPackageId" binding:"required"`
 }
