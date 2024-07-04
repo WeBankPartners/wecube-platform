@@ -51,7 +51,7 @@ type PluginPackages struct {
 	UploadTimestamp   time.Time `json:"uploadTimestamp" xorm:"upload_timestamp"`      // 上传时间
 	UiPackageIncluded bool      `json:"uiPackageIncluded" xorm:"ui_package_included"` // 是否有ui->0(无)|1(有)
 	Edition           string    `json:"edition" xorm:"edition"`                       // 发行版本->0(community社区版)|1(enterprise企业版)
-	RegisterDone      int       `json:"registerDone" xorm:"register_done"`            // 是否完成注册
+	RegisterDone      bool      `json:"registerDone" xorm:"register_done"`            // 是否完成注册
 	UpdatedBy         string    `json:"updatedBy" xorm:"updated_by"`                  // 更新人
 	UpdatedTime       time.Time `json:"updatedTime" xorm:"updated_time"`              // 更新时间
 }
@@ -842,8 +842,21 @@ type PluginInterfaceParamQueryParam struct {
 	ServiceId string `json:"serviceId"`
 }
 
+type PluginPackageQueryParam struct {
+	Id                  string `json:"id"`
+	Name                string `json:"name"`
+	WithRunningInstance string `json:"withRunningInstance"`
+	WithDelete          bool   `json:"withDelete"`
+	UpdatedBy           string `json:"updatedBy"`
+}
+
 type PluginPackageQueryObj struct {
 	PluginPackages
-	Menus     []string `json:"menus"`
-	Instances []string `json:"instances"`
+	Menus     []string                    `json:"menus"`
+	Instances []*PluginPackageInstanceObj `json:"instances"`
+}
+
+type PluginPackageInstanceObj struct {
+	Id      string `json:"id"`
+	Address string `json:"address"`
 }

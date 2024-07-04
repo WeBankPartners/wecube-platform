@@ -28,12 +28,21 @@ import (
 
 // GetPackages 插件列表查询
 func GetPackages(c *gin.Context) {
-	allPackageFlag := strings.ToLower(c.Query("all"))
-	allFlag := false
-	if allPackageFlag == "yes" || allPackageFlag == "y" || allPackageFlag == "true" {
-		allFlag = true
+	//allPackageFlag := strings.ToLower(c.Query("all"))
+	//allFlag := false
+	//if allPackageFlag == "yes" || allPackageFlag == "y" || allPackageFlag == "true" {
+	//	allFlag = true
+	//}
+	//result, err := database.GetPackages(c, allFlag)
+	queryParam := models.PluginPackageQueryParam{}
+	queryParam.Id = c.Query("id")
+	queryParam.Name = c.Query("name")
+	queryParam.UpdatedBy = c.Query("updatedBy")
+	queryParam.WithRunningInstance = strings.ToLower(c.Query("running"))
+	if c.Query("withDelete") == "yes" {
+		queryParam.WithDelete = true
 	}
-	result, err := database.GetPackages(c, allFlag)
+	result, err := database.QueryPluginPackages(c, &queryParam)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
