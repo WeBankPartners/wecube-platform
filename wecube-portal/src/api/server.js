@@ -252,10 +252,17 @@ export const getScheduledTasksByStatus = data =>
 
 export const getMetaData = params => req.post(`platform/v1/plugins/configs/interfaces/param/metadata/query`, params)
 
+// 编排列表
 export const flowList = data => req.post(`platform/v1/process/definitions/list`, data)
+// 收藏编排
+export const collectFlow = data => req.post(`platform/v1/process/definitions/collect/add`, data)
+// 取消收藏编排
+export const unCollectFlow = data => req.post(`platform/v1/process/definitions/collect/del`, data)
 export const flowMgmt = data => req.post(`platform/v1/process/definitions`, data)
 export const getFlowById = id => req.get(`platform/v1/process/definitions/${id}`)
 export const getChildFlowList = params => req.get(`/platform/v1/process/definitions`, params)
+// 获取子编排列表
+export const getChildFlowListNew = data => req.post(`/platform/v1/process/definitions/sub/list`, data)
 export const getParentFlowList = (id, data) => req.post(`/platform/v1/process/definitions/${id}/parent/get`, data)
 export const flowNodeMgmt = data => req.post(`platform/v1/process/definitions/tasknodes`, data)
 export const flowNodeDelete = (flowId, nodeId) =>
