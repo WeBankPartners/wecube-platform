@@ -773,7 +773,7 @@ func GetPackageNames(ctx context.Context) (result []string, err error) {
 	return
 }
 
-func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId string, inputs []*models.PluginPackageResourceFiles) (err error) {
+func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId, pluginPackageName string, inputs []*models.PluginPackageResourceFiles) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "delete from plugin_package_resource_files where plugin_package_id=?", Param: []interface{}{pluginPackageId}})
 	for _, v := range inputs {
@@ -781,6 +781,8 @@ func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId string
 			"p_ui_" + guid.CreateGuid(), v.PluginPackageId, v.PackageName, v.PackageVersion, v.Source, v.RelatedPath,
 		}})
 	}
+	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set ui_active=0 where name=? and ui_active=1", Param: []interface{}{pluginPackageName}})
+	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set ui_active=1 where id=?", Param: []interface{}{pluginPackageId}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -967,5 +969,40 @@ func DecommissionPluginPackage(ctx context.Context, pluginPackageId string) (err
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		return
 	}
+	return
+}
+
+func SetPluginPackageRegisterDone(ctx context.Context, pluginPackageId, operator string) (err error) {
+	execResult, execErr := db.MysqlEngine.Context(ctx).Exec("update plugin_packages set register_done=1,updated_by=?,updated_time=? where id=?", operator, time.Now(), pluginPackageId)
+	if execErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	if affectNum, _ := execResult.RowsAffected(); affectNum <= 0 {
+		err = fmt.Errorf("can not find plugin packages with id=%s ", pluginPackageId)
+	}
+	return
+}
+
+func GetPluginConfigVersionList(ctx context.Context, pluginPackageId, pluginPackageName string) (result []*models.PluginVersionListObj, err error) {
+	var packageRows []*models.PluginPackages
+	err = db.MysqlEngine.Context(ctx).SQL("select id,name,`version` from plugin_packages where status!='DECOMMISSIONED' and name=? and id!=?", pluginPackageName, pluginPackageId).Find(&packageRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	result = []*models.PluginVersionListObj{}
+	for _, row := range packageRows {
+		result = append(result, &models.PluginVersionListObj{
+			PluginPackageId: row.Id,
+			Name:            row.Name,
+			Version:         row.Version,
+		})
+	}
+	return
+}
+
+func InheritPluginConfig(ctx context.Context, param *models.InheritPluginConfigParam, operator string) (err error) {
+
 	return
 }
