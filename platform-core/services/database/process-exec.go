@@ -16,7 +16,7 @@ import (
 
 // ProcDefList
 // subProc -> all(全部) | main(主编排) | sub(子编排)
-func ProcDefList(ctx context.Context, includeDraft, permission, tag, plugin, subProc string, userRoles []string) (result []*models.ProcDefListObj, err error) {
+func ProcDefList(ctx context.Context, includeDraft, permission, tag, plugin, subProc, operator string, userRoles []string) (result []*models.ProcDefListObj, err error) {
 	var procDefRows []*models.ProcDef
 	baseSql := "select * from proc_def"
 	var filterSqlList []string
@@ -54,9 +54,16 @@ func ProcDefList(ctx context.Context, includeDraft, permission, tag, plugin, sub
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
+	collectProcDefMap := make(map[string]string)
+	if collectProcDefMap, err = getUserProcDefCollectMap(ctx, operator); err != nil {
+		return
+	}
 	for _, row := range procDefRows {
 		resultObj := models.ProcDefListObj{}
 		resultObj.Parse(row)
+		if _, ok := collectProcDefMap[row.Id]; ok {
+			resultObj.Collected = true
+		}
 		result = append(result, &resultObj)
 	}
 	return
