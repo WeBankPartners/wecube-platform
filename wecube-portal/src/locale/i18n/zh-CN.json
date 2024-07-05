@@ -701,7 +701,7 @@
   "be_pre_execute": "预执行",
   "be_save_draft": "保存草稿",
   "be_publish_template": "发布模板",
-  "be_only_show_collect": "仅展示收藏模板",
+  "be_only_show_collect": "仅展示收藏",
   "be_cancel_save": "取消收藏",
   "be_use_status": "使用状态",
   "be_createby_role": "创建人/属主角色",

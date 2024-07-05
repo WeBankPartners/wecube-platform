@@ -860,6 +860,7 @@ export default {
     },
     // 选择子编排
     changeSubProc (val) {
+      this.paramsChanged()
       this.subProcItem = this.subProcList.find(i => i.procDefId === val) || {}
     },
     // 获取子编排列表
