@@ -2642,7 +2642,7 @@ body {
 .drawer {
   .content {
     min-height: 500px;
-    padding: 0px;
+    padding: 0px 10px;
     overflow-y: auto;
   }
   .drawer-footer {
