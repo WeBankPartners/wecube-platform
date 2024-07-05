@@ -40,8 +40,8 @@
                 <div style="display: flex; justify-content: space-between">
                   <div>
                     <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
-                    <span style="color: #515a6e">{{ '[' + item.version + '] ' }}</span>
-                    <span style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</span>
+                    <span style="color: #2b85e4">{{ '[' + item.version + '] ' }}</span>
+                    <Tag style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</Tag>
                   </div>
                   <div style="display: flex; align-items: center">
                     <span style="color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
@@ -141,32 +141,51 @@
               >
             </FormItem>
           </Col>
+          <!--模板收藏功能-->
+          <Col v-if="!isEnqueryPage && selectedFlow" span="5" style="text-align: right">
+            <Tooltip :content="selectedFlowObj.collected ? $t('be_cancel_save') : $t('bc_save')" placement="left">
+              <Icon
+                style="cursor: pointer; margin-right: 10px"
+                :size="28"
+                :color="selectedFlowObj.collected ? '#ebac42' : ''"
+                :type="selectedFlowObj.collected ? 'ios-star' : 'ios-star-outline'"
+                @click="handleStar(selectedFlowObj)"
+              />
+            </Tooltip>
+          </Col>
         </Form>
       </div>
     </div>
     <Row id="graph-container">
       <Col span="7" style="border-right: 1px solid #d3cece; text-align: center; height: 100%; position: relative">
         <div class="graph-container" id="flow" style="height: 90%"></div>
+        <!--重置-->
         <Button class="reset-button" size="small" @click="ResetFlow">ResetZoom</Button>
+        <span class="set-data-title">{{ $t('fe_view_flow') }}</span>
+        <!--预览数据-->
         <Button
           v-if="!isEnqueryPage && selectedFlow && selectedTarget"
-          style="left: 5px"
           class="set-data-button"
-          icon="ios-grid"
           size="small"
+          type="primary"
           @click="setFlowDataForAllNodes"
-        ></Button>
+          >{{ $t('fe_node_datalist') }}</Button
+        >
       </Col>
       <Col span="17" style="text-align: center; text-align: center; height: 100%; position: relative">
         <div class="graph-container" id="graph" style="height: 90%"></div>
+        <!--重置-->
         <Button class="reset-button" size="small" @click="ResetModel">ResetZoom</Button>
+        <span class="set-data-title">{{ $t('fe_preview_using_data') }}</span>
+        <!--预览数据-->
         <Button
           v-if="selectedFlow && selectedTarget"
           class="set-data-button"
-          icon="ios-grid"
           size="small"
+          type="primary"
           @click="showModelDataWithFlow"
-        ></Button>
+          >{{ $t('fe_data_nodelist') }}</Button
+        >
         <Spin size="large" fix v-show="isLoading">
           <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
           <div>{{ $t('loading') }}</div>
@@ -174,18 +193,12 @@
       </Col>
     </Row>
     <!--左侧预览弹窗(新建)-->
-    <Drawer
-      :title="$t('overview')"
-      v-model="flowNodesWithDataModalVisible"
-      :scrollable="true"
-      width="70%"
-      class="drawer"
-    >
-      <div class="content" :style="{ maxHeight: maxHeight + 'px' }">
+    <BaseDrawer :title="$t('overview')" :visible.sync="flowNodesWithDataModalVisible" width="70%" :scrollable="true">
+      <template slot-scope="{ maxHeight }" slot="content">
         <Table
           border
           :columns="flowNodesWithModelDataColums"
-          :max-height="maxHeight - 80"
+          :max-height="maxHeight"
           :data="allFlowNodesModelData"
           @on-select="allFlowNodesSingleSelect"
           @on-select-cancel="allFlowNodesSingleCancel"
@@ -197,19 +210,19 @@
             <span>{{ row.orderedNo + ' ' + row.nodeName }}</span>
           </template>
         </Table>
-      </div>
-      <div class="drawer-footer">
+      </template>
+      <template slot="footer">
         <Button type="default" @click="flowNodesWithDataModalVisible = false">{{ $t('bc_cancel') }}</Button>
         <Button type="primary" @click="flowNodesTargetModelConfirm">{{ $t('submit') }}</Button>
-      </div>
-    </Drawer>
+      </template>
+    </BaseDrawer>
     <!--右侧预览弹窗(新建、查看)-->
-    <Drawer :title="$t('overview')" v-model="targetWithFlowModalVisible" :scrollable="true" width="70%" class="drawer">
-      <div class="content" :style="{ maxHeight: maxHeight + 'px' }">
+    <BaseDrawer :title="$t('overview')" :visible.sync="targetWithFlowModalVisible" width="70%" :scrollable="true">
+      <template slot-scope="{ maxHeight }" slot="content">
         <Table
           border
           :columns="targetWithFlowModelColums"
-          :max-height="maxHeight - 80"
+          :max-height="maxHeight"
           :data="modelDataWithFlowNodes"
           :span-method="modelDataHandleSpan"
         >
@@ -219,24 +232,22 @@
             </div>
           </template>
         </Table>
-      </div>
-    </Drawer>
+      </template>
+    </BaseDrawer>
     <!--节点选择操作弹窗(查看)-->
-    <Drawer
+    <BaseDrawer
       :title="$t('select_an_operation')"
-      v-model="workflowActionModalVisible"
-      :footer-hide="true"
-      :mask-closable="true"
-      :scrollable="true"
+      :visible.sync="workflowActionModalVisible"
       width="70%"
+      :scrollable="true"
       class="json-viewer"
     >
-      <div class="content">
+      <template slot="content">
         <HeaderTitle title="节点操作">
-          <div style="padding-left: 20px">
+          <div ref="action" style="padding-left: 20px">
             <Button
               style="background-color: #bf22e0; color: white"
-              v-show="
+              v-if="
                 ['Risky'].includes(currentNodeStatus) && currentInstanceStatusForNodeOperation != 'InternallyTerminated'
               "
               @click="workFlowActionHandler('risky')"
@@ -245,7 +256,7 @@
             >
             <Button
               type="primary"
-              v-show="
+              v-if="
                 ['NotStarted', 'Risky'].includes(currentNodeStatus) &&
                 currentInstanceStatusForNodeOperation != 'InternallyTerminated'
               "
@@ -255,7 +266,7 @@
             >
             <Button
               type="primary"
-              v-show="
+              v-if="
                 ['Faulted', 'Timeouted'].includes(currentNodeStatus) &&
                 currentInstanceStatusForNodeOperation != 'InternallyTerminated'
               "
@@ -265,7 +276,7 @@
             >
             <Button
               type="warning"
-              v-show="
+              v-if="
                 ['Faulted', 'Timeouted', 'Risky'].includes(currentNodeStatus) &&
                 currentInstanceStatusForNodeOperation != 'InternallyTerminated'
               "
@@ -274,13 +285,7 @@
               style="margin-left: 10px"
               >{{ $t('skip') }}</Button
             >
-            <!-- <Button
-              type="info"
-              v-show="['InProgress', 'Faulted', 'Timeouted', 'Completed', 'Risky'].includes(currentNodeStatus)"
-              @click="workFlowActionHandler('showlog')"
-              style="margin-left: 10px"
-              >{{ $t('show_log') }}</Button
-            > -->
+            <div v-if="noActionFlag" class="no-data">暂无操作</div>
           </div>
         </HeaderTitle>
         <HeaderTitle title="节点信息">
@@ -290,10 +295,10 @@
           <div v-else class="no-data">暂无数据</div>
         </HeaderTitle>
         <HeaderTitle title="API调用">
-          <Table :columns="nodeDetailColumns" :max-height="tableMaxHeight" tooltip="true" :data="nodeDetailIO"> </Table>
+          <Table :columns="nodeDetailColumns" tooltip="true" :data="nodeDetailIO"> </Table>
         </HeaderTitle>
-      </div>
-    </Drawer>
+      </template>
+    </BaseDrawer>
     <!--节点重试/反选数据弹窗(查看)-->
     <Modal
       :title="currentNodeTitle"
@@ -332,18 +337,18 @@
       </div>
     </Modal>
     <!--左侧编排节点弹窗(新建)-->
-    <Drawer :title="currentNodeTitle" v-model="targetModalVisible" :scrollable="true" class="drawer" width="70%">
-      <div class="content" :style="{ maxHeight: maxHeight + 'px' }">
+    <BaseDrawer :title="currentNodeTitle" :visible.sync="targetModalVisible" width="70%" :scrollable="true">
+      <template slot-scope="{ maxHeight }" slot="content">
         <Input
           v-model="tableFilterParam"
           :placeholder="$t('please_input') + $t('object')"
           style="width: 400px; margin-bottom: 8px"
         />
-        {{ catchNodeTableList.length }}
+        <!-- {{ catchNodeTableList.length }} -->
         <Table
           border
           ref="selection"
-          :max-height="maxHeight - 120"
+          :max-height="maxHeight - 100"
           @on-select="singleSelect"
           @on-select-cancel="singleCancel"
           @on-select-all-cancel="selectAllCancel"
@@ -356,12 +361,6 @@
               <Button type="info" size="small" @click="modelGraphMouseenterHandler(row)">{{
                 $t('view') + $t('object')
               }}</Button>
-              <!-- <Tooltip placement="bottom" theme="light" @on-popper-show="getDetail(row)" :delay="500" :max-width="600">
-                <Button type="info" size="small" @click="modelGraphMouseenterHandler(params.row)">{{ $t('view') + $t('object') }}</Button>
-                <div slot="content" style="max-height: 500px; overflow-y: scroll">
-                  <json-viewer :value="rowContent || ''" :expand-depth="5"></json-viewer>
-                </div>
-              </Tooltip> -->
               <Button
                 v-if="row.nodeType === 'subProc'"
                 type="default"
@@ -376,14 +375,14 @@
         <span v-if="isNodeCanBindData" style="font-size: 12px; color: red; margin-right: 8px">{{
           $t('be_dynamic_binding_warning')
         }}</span>
-      </div>
-      <div class="drawer-footer">
+      </template>
+      <template slot="footer">
         <Button @click="targetModalVisible = false">{{ $t('cancel') }}</Button>
         <Button type="primary" :disabled="isNodeCanBindData" @click="targetModelConfirm(false)">{{
           $t('submit')
         }}</Button>
-      </div>
-    </Drawer>
+      </template>
+    </BaseDrawer>
     <!--对象查看弹框-->
     <Modal v-model="showNodeDetail" :fullscreen="nodeDetailFullscreen" width="1000" :styles="{ top: '50px' }">
       <p slot="header">
@@ -567,10 +566,13 @@ import {
   getBranchByNodeId,
   executeBranch,
   pauseAndContinueFlow,
-  getCurrentUserRoles
+  getCurrentUserRoles,
+  collectFlow,
+  unCollectFlow
 } from '@/api/server'
 import JsonViewer from 'vue-json-viewer'
 import HeaderTitle from '@/pages/components/header-title.vue'
+import BaseDrawer from '@/pages/components/base-drawer.vue'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
@@ -579,7 +581,8 @@ import { debounce } from '@/const/util'
 export default {
   components: {
     JsonViewer,
-    HeaderTitle
+    HeaderTitle,
+    BaseDrawer
   },
   data () {
     return {
@@ -619,8 +622,9 @@ export default {
       allFlows: [],
       allTarget: [],
       currentFlowNodeId: '',
-      selectedFlowInstance: '',
-      selectedFlow: '',
+      selectedFlowInstance: '', // 选择的编排任务
+      selectedFlow: '', // 选的的编排
+      selectedFlowObj: {},
       selectedTarget: '',
       showExcution: true,
       isExecuteActive: false,
@@ -802,24 +806,22 @@ export default {
             const jsonData = params.row.inputs
             return (
               <div style="white-space: nowrap; overflow: auto;">
-                [
                 {jsonData.map((data, index) => (
-                  <div key={index}>
+                  <div key={index} style="margin-left:5px;">
                     {'{'}
                     {Object.entries(data).map(([key, value]) => (
-                      <div>
+                      <div style="margin-left:5px;">
                         <Icon
                           type="md-search"
                           onClick={() => this.handleClick(key, value)}
                           style="cursor:pointer;color:#2d8cf0"
                         />
-                        {key}: {value}
+                        {key}: <span style="color:#42b983;">{value}</span>
                       </div>
                     ))}
-                    {'},'}
+                    {'}'}
                   </div>
                 ))}
-                ]
               </div>
             )
           }
@@ -828,17 +830,27 @@ export default {
           title: 'outputs',
           key: 'outputs',
           render: (h, params) => {
-            const strOutput = JSON.stringify(params.row.outputs).split(',').join(',<br/>')
-            return h(
-              'div',
-              {
-                domProps: {
-                  innerHTML: `<pre>${strOutput}</pre>`
-                }
-              },
-              []
-            )
-            // return <JsonViewer value={params.row.outputs} expand-depth={5}></JsonViewer>
+            const strOutput = params.row.outputs
+            const noData = strOutput.every(i => i && Object.keys(i).length === 0)
+            if (noData) {
+              return <span>-</span>
+            } else {
+              return (
+                <div style="white-space: nowrap; overflow: auto;">
+                  {strOutput.map((data, index) => (
+                    <div key={index} style="margin-left:5px;">
+                      {'{'}
+                      {Object.entries(data).map(([key, value]) => (
+                        <div style="margin-left:5px;">
+                          {key}: <span style="color:#42b983;">{value}</span>
+                        </div>
+                      ))}
+                      {'}'}
+                    </div>
+                  ))}
+                </div>
+              )
+            }
           }
         }
       ],
@@ -949,7 +961,7 @@ export default {
       flowOwner: '',
       subProcId: '', // 新建执行预览子编排从链接上传过来的子编排ID
       subProc: this.$route.query.subProc || '', // 执行详情是否为子编排 main主编排 sub子编排
-      maxHeight: 500
+      noActionFlag: false
     }
   },
   computed: {
@@ -1061,6 +1073,12 @@ export default {
         this.nodeDetailResponseHeader = null
         this.nodeDetailIO = []
         this.flowGraphMouseenterHandler(this.currentFailedNodeID)
+        this.noActionFlag = false
+        this.$nextTick(() => {
+          if (this.$refs.action.children.length === 0) {
+            this.noActionFlag = true
+          }
+        })
       }
     }
   },
@@ -1087,13 +1105,6 @@ export default {
       this.getTargetOptions()
       this.onTargetSelectHandler()
     }
-    this.maxHeight = document.body.clientHeight - 150
-    window.addEventListener(
-      'resize',
-      debounce(() => {
-        this.maxHeight = document.body.clientHeight - 150
-      }, 100)
-    )
     // this.getProcessInstances()
     // this.getAllFlow()
     // this.createHandler()
@@ -1106,6 +1117,21 @@ export default {
     handleBack () {
       this.$router.back()
     },
+    // 收藏or取消收藏
+    handleStar: debounce(async function ({ procDefId, collected }) {
+      const method = collected ? unCollectFlow : collectFlow
+      const params = {
+        procDefId: procDefId
+      }
+      const { status } = await method(params)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: this.$t('successful'),
+          desc: this.$t('successful')
+        })
+        this.selectedFlowObj.collected = !collected
+      }
+    }, 300),
     // 【新建执行】子编排节点支持跳转预览子编排详情
     viewSubProcExecution (row) {
       window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
@@ -1563,6 +1589,7 @@ export default {
           if (s > t) return -1
           if (s < t) return 1
         })
+        this.selectedFlowObj = this.allFlows.find(i => i.procDefId === this.selectedFlow) || {}
       }
     },
     clearFlow () {
@@ -1573,6 +1600,7 @@ export default {
       this.currentFlowNodeId = ''
       this.currentModelNodeRefs = []
       this.getFlowOutlineData(this.selectedFlow)
+      this.selectedFlowObj = this.allFlows.find(i => i.procDefId === this.selectedFlow) || {}
       if (this.selectedFlow && this.isEnqueryPage === false) {
         this.showExcution = true
         this.selectedTarget = ''
@@ -2552,7 +2580,7 @@ export default {
 }
 </script>
 <style lang="scss">
-.json-viewer .jv-container .jv-code {
+.platform-base-drawer .jv-container .jv-code {
   overflow: hidden;
   padding: 0px 20px;
 }
@@ -2630,30 +2658,19 @@ body {
   bottom: 5px;
   font-size: 12px;
 }
-.set-data-button {
+.set-data-title {
   position: absolute;
   left: 10px;
+  top: 5px;
+  font-size: 14px;
+}
+.set-data-button {
+  position: absolute;
+  right: 10px;
   top: 5px;
   font-size: 12px;
 }
 .no-data {
-  padding: 20px 30px;
-}
-.drawer {
-  .content {
-    min-height: 500px;
-    padding: 0px 10px;
-    overflow-y: auto;
-  }
-  .drawer-footer {
-    width: 100%;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    border-top: 1px solid #e8e8e8;
-    padding: 10px 16px;
-    text-align: center;
-    background: #fff;
-  }
+  padding: 10px;
 }
 </style>
