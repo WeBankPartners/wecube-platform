@@ -25,6 +25,7 @@ type ProcDefListObj struct {
 	Scene          string             `json:"scene"`
 	FlowNodes      []*ProcDefFlowNode `json:"flowNodes"`
 	NodeLinks      []*ProcDefNodeLink `json:"nodeLinks"`
+	Collected      bool               `json:"collected"`
 }
 
 func (p *ProcDefListObj) Parse(input *ProcDef) {

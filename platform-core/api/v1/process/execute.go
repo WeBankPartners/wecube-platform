@@ -33,7 +33,7 @@ func ProcDefList(c *gin.Context) {
 		subProc = "all"
 	}
 	log.Logger.Debug("procDefList", log.String("includeDraft", includeDraft), log.String(permission, "permission"), log.String("tag", tag), log.StringList("roleList", middleware.GetRequestRoles(c)))
-	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, subProc, middleware.GetRequestRoles(c))
+	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, subProc, middleware.GetRequestUser(c), middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -57,7 +57,7 @@ func PublicProcDefList(c *gin.Context) {
 		subProc = "main"
 	}
 	log.Logger.Debug("public procDefList", log.String(permission, "permission"), log.String("tag", tag))
-	procList, err := database.ProcDefList(c, "0", permission, tag, plugin, subProc, middleware.GetRequestRoles(c))
+	procList, err := database.ProcDefList(c, "0", permission, tag, plugin, subProc, middleware.GetRequestUser(c), middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -752,7 +752,7 @@ func SubProcDefList(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	result, err := database.ProcDefList(c, "0", "USE", "", "", "sub", middleware.GetRequestRoles(c))
+	result, err := database.ProcDefList(c, "0", "USE", "", "", "sub", middleware.GetRequestUser(c), middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return

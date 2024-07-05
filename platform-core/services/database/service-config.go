@@ -1296,7 +1296,7 @@ func getImportPluginConfigData(pluginPackageId string, packagePluginsXmlData *mo
 	return
 }
 
-func ExportPluginConfigs(c *gin.Context, pluginPackageId string) (result *models.PackagePluginsXML, err error) {
+func ExportPluginConfigs(c *gin.Context, pluginPackageId string, exportConfigList []*models.PluginConfigsBatchEnable) (result *models.PackagePluginsXML, err error) {
 	// validate pluginPackageId
 	pluginPackageData := &models.PluginPackages{}
 	var exists bool
@@ -1320,7 +1320,14 @@ func ExportPluginConfigs(c *gin.Context, pluginPackageId string) (result *models
 		Name:    pluginPackageData.Name,
 		Version: pluginPackageData.Version,
 	}
-
+	ignorePluginConfigMap := make(map[string]int)
+	for _, configNameObj := range exportConfigList {
+		for _, configObj := range configNameObj.PluginConfigs {
+			if !configObj.Checked {
+				ignorePluginConfigMap[configObj.Id] = 1
+			}
+		}
+	}
 	// query pluginConfigs by pluginPackageId
 	pluginConfigQueryObjList, err := GetPluginConfigsWithInterfaces(c, pluginPackageId, middleware.GetRequestRoles(c), "")
 	if err != nil {
@@ -1333,6 +1340,10 @@ func ExportPluginConfigs(c *gin.Context, pluginPackageId string) (result *models
 			// 忽略根节点
 			if pluginCfgDto.TargetPackage == "" && pluginCfgDto.TargetEntity == "" &&
 				pluginCfgDto.TargetEntityFilterRule == "" && pluginCfgDto.RegisterName == "" {
+				continue
+			}
+			// 导出选择过滤
+			if _, ignoreOk := ignorePluginConfigMap[pluginCfgDto.Id]; ignoreOk {
 				continue
 			}
 			// handle pluginConfig
