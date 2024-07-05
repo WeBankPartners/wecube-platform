@@ -702,7 +702,7 @@
   "be_pre_execute": "Pre execution",
   "be_save_draft": "Save Draft",
   "be_publish_template": "Publish Template",
-  "be_only_show_collect": "Show only favorite templates",
+  "be_only_show_collect": "Show only favorite",
   "be_cancel_save": "Cancel Favorite",
   "be_use_status": "Usage status",
   "be_createby_role": "Creator/Owner Role",
