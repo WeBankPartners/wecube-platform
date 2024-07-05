@@ -10,7 +10,7 @@
               <span v-if="i.label">{{ i.label }}：</span>
               <Input
                 v-if="i.component === 'input'"
-                v-model="value[i.key]"
+                v-model.trim="value[i.key]"
                 :placeholder="i.placeholder"
                 clearable
                 :style="{ width: i.width || 195 + 'px' }"

@@ -19,34 +19,15 @@
       </div>
     </div>
     <Table size="small" ref="table" :columns="tableColumns" :max-height="MODALHEIGHT" :data="tableData"></Table>
-    <Modal v-model="showModal" :fullscreen="fullscreen" width="1000" footer-hide>
-      <p slot="header">
-        <span>{{ $t('be_details') }}</span>
-        <Icon
-          v-if="!fullscreen"
-          @click="fullscreen = true"
-          style="float: right; margin: 3px 40px 0 0 !important"
-          type="ios-expand"
-        />
-        <Icon
-          v-else
-          @click="fullscreen = false"
-          style="float: right; margin: 3px 40px 0 0 !important"
-          type="ios-contract"
-        />
-      </p>
-      <Table :columns="detailTableColums" size="small" :max-height="MODALHEIGHT" :data="detailTableData"></Table>
-    </Modal>
+    <!--查看详情-->
+    <BaseDrawer :title="$t('be_details')" :visible.sync="showModal" width="70%">
+      <template slot-scope="{ maxHeight }" slot="content">
+        <Table :columns="detailTableColums" size="small" :max-height="maxHeight" :data="detailTableData"></Table>
+      </template>
+    </BaseDrawer>
     <!--新增定时执行-->
-    <Drawer
-      :title="$t('full_word_add') + $t('timed_execution')"
-      v-model="timeConfig.isShow"
-      :mask-closable="true"
-      :scrollable="true"
-      :width="900"
-      class="time-execution-drawer"
-    >
-      <div class="content">
+    <BaseDrawer :title="$t('full_word_add') + $t('timed_execution')" :visible.sync="timeConfig.isShow" :width="1000">
+      <template slot="content">
         <Form :label-width="100" label-colon>
           <!--任务名-->
           <FormItem :label="$t('fe_task_name')" required>
@@ -72,8 +53,8 @@
                 <div style="display: flex; justify-content: space-between">
                   <div>
                     <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
-                    <span style="color: #515a6e">{{ '[' + item.version + '] ' }}</span>
-                    <span style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</span>
+                    <span style="color: #2b85e4">{{ '[' + item.version + '] ' }}</span>
+                    <Tag style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</Tag>
                   </div>
                   <div style="display: flex; align-items: center">
                     <span style="color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
@@ -138,17 +119,18 @@
             </Select>
           </FormItem>
         </Form>
-      </div>
-      <div class="drawer-footer">
+      </template>
+      <template slot="footer">
         <Button type="default" @click="timeConfig.isShow = false">{{ $t('bc_cancel') }}</Button>
         <Button type="primary" @click="saveTime">{{ $t('save') }}</Button>
-      </div>
-    </Drawer>
+      </template>
+    </BaseDrawer>
   </div>
 </template>
 
 <script>
 import Search from '@/pages/components/base-search.vue'
+import BaseDrawer from '@/pages/components/base-drawer.vue'
 import {
   getUserScheduledTasks,
   deleteUserScheduledTasks,
@@ -163,7 +145,8 @@ import {
 import dayjs from 'dayjs'
 export default {
   components: {
-    Search
+    Search,
+    BaseDrawer
   },
   data () {
     return {
@@ -183,6 +166,20 @@ export default {
         }
       },
       searchOptions: [
+        // 创建时间
+        {
+          key: 'time',
+          label: this.$t('table_created_date'),
+          initDateType: 1,
+          dateRange: [
+            { label: '近3个月', type: 'month', value: 3, dateType: 1 },
+            { label: '近半年', type: 'month', value: 6, dateType: 2 },
+            { label: '近一年', type: 'year', value: 1, dateType: 3 },
+            { label: this.$t('be_auto'), dateType: 4 } // 自定义
+          ],
+          labelWidth: 110,
+          component: 'custom-time'
+        },
         // 任务名
         {
           key: 'name',
@@ -201,20 +198,6 @@ export default {
           key: 'owner',
           placeholder: this.$t('createdBy'),
           component: 'input'
-        },
-        // 创建时间
-        {
-          key: 'time',
-          label: this.$t('table_created_date'),
-          initDateType: 1,
-          dateRange: [
-            { label: '近3个月', type: 'month', value: 3, dateType: 1 },
-            { label: '近半年', type: 'month', value: 6, dateType: 2 },
-            { label: '近一年', type: 'year', value: 1, dateType: 3 },
-            { label: this.$t('be_auto'), dateType: 4 } // 自定义
-          ],
-          labelWidth: 110,
-          component: 'custom-time'
         },
         // 定时类型
         {
@@ -737,7 +720,7 @@ export default {
     },
     async setTimedExecution () {
       this.getProcessInstances()
-      this.timeConfig.params.name = ''
+      this.timeConfig.params.name = `定时任务${new Date().getTime()}`
       this.timeConfig.params.selectedFlowInstance = ''
       this.timeConfig.params.scheduleMode = 'Monthly'
       this.timeConfig.params.time = '00:00:00'
@@ -875,23 +858,6 @@ export default {
   .item {
     width: 21%;
     margin: 8px;
-  }
-}
-.time-execution-drawer {
-  .content {
-    min-height: 500px;
-    padding: 0px 10px;
-    overflow-y: auto;
-  }
-  .drawer-footer {
-    width: 100%;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    border-top: 1px solid #e8e8e8;
-    padding: 10px 16px;
-    text-align: center;
-    background: #fff;
   }
 }
 </style>
