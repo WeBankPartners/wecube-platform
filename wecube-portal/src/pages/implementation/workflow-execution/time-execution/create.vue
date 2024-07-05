@@ -41,7 +41,7 @@
     <Drawer
       :title="$t('full_word_add') + $t('timed_execution')"
       v-model="timeConfig.isShow"
-      :mask-closable="false"
+      :mask-closable="true"
       :scrollable="true"
       :width="900"
       class="time-execution-drawer"
@@ -758,7 +758,12 @@ export default {
       })
     },
     jumpToHistory (row) {
-      this.$emit('jumpToHistory', row.procInstId)
+      this.$router.push({
+        path: '/implementation/workflow-execution/view-execution',
+        query: {
+          id: row.procInstId
+        }
+      })
     },
     async getDetails (row, rowStatus) {
       const params = {
@@ -875,7 +880,7 @@ export default {
 .time-execution-drawer {
   .content {
     min-height: 500px;
-    padding: 0px;
+    padding: 0px 10px;
     overflow-y: auto;
   }
   .drawer-footer {

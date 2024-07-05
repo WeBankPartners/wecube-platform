@@ -12,8 +12,8 @@ export default {
   // 适配平台侧边菜单栏面包屑显示
   'implementation/workflow-execution/normal-template': {
     childBreadcrumb: {
-      'en-US': 'Select Template',
-      'zh-CN': '模板选择'
+      'en-US': 'Create',
+      'zh-CN': '新建'
     },
     parentBreadcrumb: {
       'en-US': 'Workflow Execution',
@@ -70,17 +70,7 @@ export default {
       'zh-CN': '编排执行'
     }
   },
-  'implementation/workflow-execution/choose-template': {
-    childBreadcrumb: {
-      'en-US': 'Choose Template',
-      'zh-CN': '模板选择'
-    },
-    parentBreadcrumb: {
-      'en-US': 'Batch Execution',
-      'zh-CN': '批量执行'
-    }
-  },
-  'implementation/workflow-execution/create-execution': {
+  'implementation/batch-execution/choose-template': {
     childBreadcrumb: {
       'en-US': 'Create Execution',
       'zh-CN': '新建执行'
@@ -90,7 +80,17 @@ export default {
       'zh-CN': '批量执行'
     }
   },
-  'implementation/workflow-execution/execution-history': {
+  'implementation/batch-execution/create-execution': {
+    childBreadcrumb: {
+      'en-US': 'Create Execution',
+      'zh-CN': '新建执行'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Batch Execution',
+      'zh-CN': '批量执行'
+    }
+  },
+  'implementation/batch-execution/execution-history': {
     childBreadcrumb: {
       'en-US': 'Execution History',
       'zh-CN': '执行历史'
@@ -100,7 +100,7 @@ export default {
       'zh-CN': '批量执行'
     }
   },
-  'implementation/workflow-execution/template-create': {
+  'implementation/batch-execution/template-create': {
     childBreadcrumb: {
       'en-US': 'Create Template',
       'zh-CN': '新建模板'
@@ -110,7 +110,7 @@ export default {
       'zh-CN': '批量执行'
     }
   },
-  'implementation/workflow-execution/template-list': {
+  'implementation/batch-execution/template-list': {
     childBreadcrumb: {
       'en-US': 'Template Management',
       'zh-CN': '模板管理'
