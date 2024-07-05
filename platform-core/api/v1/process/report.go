@@ -35,7 +35,7 @@ func StatisticsProDefList(c *gin.Context) {
 		subProc = "main"
 	}
 	log.Logger.Debug("procDefList", log.String("includeDraft", includeDraft), log.String("permission", permission), log.String("tag", tag), log.StringList("roleList", middleware.GetRequestRoles(c)))
-	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, subProc, middleware.GetRequestRoles(c))
+	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, subProc, middleware.GetRequestUser(c), middleware.GetRequestRoles(c))
 	mergeProcDefNameAndVersion(result)
 	if err != nil {
 		middleware.ReturnError(c, err)
