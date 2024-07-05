@@ -215,6 +215,19 @@ export default {
       },
       searchOptions: [
         {
+          key: 'updatedTime',
+          label: this.$t('table_updated_date'),
+          initDateType: 1,
+          dateRange: [
+            { label: '近3个月', type: 'month', value: 3, dateType: 1 },
+            { label: '近半年', type: 'month', value: 6, dateType: 2 },
+            { label: '近一年', type: 'year', value: 1, dateType: 3 },
+            { label: this.$t('be_auto'), dateType: 4 } // 自定义
+          ],
+          labelWidth: 110,
+          component: 'custom-time'
+        },
+        {
           key: 'procDefName',
           placeholder: this.$t('flow_name'),
           component: 'input'
@@ -245,19 +258,6 @@ export default {
           key: 'updatedBy',
           placeholder: this.$t('updatedBy'),
           component: 'input'
-        },
-        {
-          key: 'updatedTime',
-          label: this.$t('table_updated_date'),
-          initDateType: 1,
-          dateRange: [
-            { label: '近3个月', type: 'month', value: 3, dateType: 1 },
-            { label: '近半年', type: 'month', value: 6, dateType: 2 },
-            { label: '近一年', type: 'year', value: 1, dateType: 3 },
-            { label: this.$t('be_auto'), dateType: 4 } // 自定义
-          ],
-          labelWidth: 110,
-          component: 'custom-time'
         }
       ],
       dateType: 1, // 控制时间显示

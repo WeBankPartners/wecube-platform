@@ -794,5 +794,9 @@
   "fe_flowname_placeholder": "Please enter flow name search",
   "fe_execute_frequence": "Execution Frequency",
   "fe_can_not_be_empty": " Can Not Be Empty",
-  "fe_launcher": "Launcher"
+  "fe_launcher": "Launcher",
+  "fe_view_flow": "Preview Orchestration",
+  "fe_preview_using_data": "Preview Usage Data",
+  "fe_node_datalist": "Node - Data list",
+  "fe_data_nodelist": "Data - Nodes list"
 }
