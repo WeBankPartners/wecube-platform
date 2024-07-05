@@ -54,9 +54,16 @@ export default {
         if (j.path === this.$route.fullPath) {
           this.activeName = j.name
           this.openNames.push(i.name)
+          window.localStorage.setItem('sub_menu_active_name', j.name)
+          window.localStorage.setItem('sub_menu_open_name', i.name)
         }
       }
     })
+    if (!this.activeName) {
+      this.activeName = window.localStorage.getItem('sub_menu_active_name') || ''
+      const openName = window.localStorage.getItem('sub_menu_open_name') || ''
+      openName && this.openNames.push(openName)
+    }
   },
   mounted () {
     this.$eventBusP.$emit('expand-menu', true)
