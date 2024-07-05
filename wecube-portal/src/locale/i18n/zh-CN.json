@@ -793,5 +793,9 @@
   "fe_flowname_placeholder": "请输入编排名称搜索",
   "fe_execute_frequence": "执行频率",
   "fe_can_not_be_empty": " 不能为空",
-  "fe_launcher": "发起人"
+  "fe_launcher": "发起人",
+  "fe_view_flow": "预览编排",
+  "fe_preview_using_data": "预览使用数据",
+  "fe_node_datalist": "节点-数据列表",
+  "fe_data_nodelist": "数据-节点列表"
 }
