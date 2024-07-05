@@ -62,7 +62,6 @@ export default {
         updatedTimeStart: '',
         updatedTimeEnd: '',
         createdBy: '',
-        updatedBy: '',
         scene: '', // 分组
         subProc: 'main',
         onlyCollect: false
@@ -109,8 +108,8 @@ export default {
           component: 'input'
         },
         {
-          key: 'updatedBy',
-          placeholder: this.$t('updatedBy'),
+          key: 'createdBy',
+          placeholder: this.$t('createdBy'),
           component: 'input'
         }
       ],
