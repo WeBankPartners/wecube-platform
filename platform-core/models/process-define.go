@@ -163,6 +163,8 @@ type QueryProcessDefinitionParam struct {
 	Plugins          []string `json:"plugins"`          // 授权插件
 	UpdatedTimeStart string   `json:"updatedTimeStart"` // 更新时间开始
 	UpdatedTimeEnd   string   `json:"updatedTimeEnd"`   // 更新时间结束
+	CreatedTimeStart string   `json:"createdTimeStart"` // 创建时间开始
+	CreatedTimeEnd   string   `json:"createdTimeEnd"`   // 更新时间结束
 	Status           string   `json:"status"`           // disabled 禁用 draft草稿 deployed 发布状态
 	CreatedBy        string   `json:"createdBy"`        // 创建人
 	UpdatedBy        string   `json:"updatedBy"`        // 更新人
