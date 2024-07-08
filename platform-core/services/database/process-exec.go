@@ -1672,6 +1672,8 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 			param.Status = models.JobStatusRunning
 			filterSqlList = append(filterSqlList, "id in (select proc_ins_id from proc_ins_node where status in (?))")
 			filterParams = append(filterParams, nodeStatus)
+		} else if param.Status == models.JobStatusRunning {
+			filterSqlList = append(filterSqlList, "id not in (select proc_ins_id from proc_ins_node where status in ('Faulted','Timeouted'))")
 		}
 		filterSqlList = append(filterSqlList, "status=?")
 		filterParams = append(filterParams, param.Status)
