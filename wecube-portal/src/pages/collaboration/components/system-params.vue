@@ -36,8 +36,8 @@ export default {
   },
   watch: {
     pkgId: {
-      handler: () => {
-        this.getData()
+      handler: function (val) {
+        val && this.getData(val)
       }
     }
   },
@@ -46,12 +46,12 @@ export default {
       required: true
     }
   },
-  created () {
-    this.getData()
+  mounted () {
+    this.getData(this.pkgId)
   },
   methods: {
-    async getData () {
-      let { status, data } = await getSysParams(this.pkgId)
+    async getData (pkgId) {
+      let { status, data } = await getSysParams(pkgId)
       if (status === 'OK') {
         this.tableData = data
       }
