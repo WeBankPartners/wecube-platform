@@ -228,7 +228,7 @@
         >
           <template slot-scope="{ row }" slot="nodeTitle">
             <div style="margin-bottom: 5px" v-for="title in row.nodeTitle.split(';')" :key="title">
-              {{ title }}
+              {{ title || '-' }}
             </div>
           </template>
         </Table>
@@ -695,6 +695,12 @@ export default {
         }
       ],
       targetWithFlowModelColums: [
+        // 节点名
+        {
+          title: this.$t('fe_nodeName'),
+          slot: 'nodeTitle',
+          width: 240
+        },
         // 数据类型
         {
           title: this.$t('data_type'),
@@ -704,11 +710,6 @@ export default {
         {
           title: this.$t('object'),
           key: 'displayName'
-        },
-        // 节点名
-        {
-          title: this.$t('fe_nodeName'),
-          slot: 'nodeTitle'
         },
         {
           title: this.$t('table_action'),
@@ -1116,6 +1117,9 @@ export default {
   methods: {
     handleBack () {
       this.$router.back()
+      // this.$router.push({
+      //   path: '/implementation/workflow-execution/normal-template'
+      // })
     },
     // 收藏or取消收藏
     handleStar: debounce(async function ({ procDefId, collected }) {
