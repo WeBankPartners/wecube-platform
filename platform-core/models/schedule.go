@@ -44,12 +44,14 @@ type ProcScheduleJob struct {
 }
 
 type ProcScheduleQueryParam struct {
-	ScheduleMode string `json:"scheduleMode"`
-	Owner        string `json:"owner"`
-	StartTime    string `json:"startTime"`
-	EndTime      string `json:"endTime"`
-	Name         string `json:"name"`
-	ProcDefId    string `json:"procDefId"`
+	ScheduleMode        string `json:"scheduleMode"`
+	Owner               string `json:"owner"`
+	StartTime           string `json:"startTime"`
+	EndTime             string `json:"endTime"`
+	Name                string `json:"name"`
+	ProcDefId           string `json:"procDefId"`
+	JobCreatedStartTime string `json:"jobCreatedStartTime"`
+	JobCreatedEndTime   string `json:"jobCreatedEndTime"`
 }
 
 type ProcScheduleQueryRow struct {
