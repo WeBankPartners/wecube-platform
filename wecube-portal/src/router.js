@@ -37,6 +37,12 @@ let router = new Router({
           props: true
         },
         {
+          path: '/collaboration/registrationDetail',
+          name: 'registrationDetail',
+          component: () => import('@/pages/collaboration/plugin-registration-detail'),
+          props: true
+        },
+        {
           path: '/admin/system-params',
           name: 'systemParams',
           component: () => import('@/pages/admin/system-params')
@@ -64,7 +70,8 @@ let router = new Router({
         {
           path: '/collaboration/plugin-management',
           name: 'pluginManage',
-          component: () => import('@/pages/collaboration/plugin-management')
+          // component: () => import('@/pages/collaboration/plugin-management')
+          component: () => import('@/pages/collaboration/plugin-registration-list')
         },
         // 编排执行
         {
@@ -115,36 +122,36 @@ let router = new Router({
         {
           path: '/implementation/batch-execution',
           name: 'batchExecution',
-          redirect: '/implementation/workflow-execution/choose-template',
+          redirect: '/implementation/batch-execution/choose-template',
           component: () => import('@/pages/implementation/batch-execution/index'),
           children: [
             // 执行-模板选择
             {
-              path: '/implementation/workflow-execution/choose-template',
+              path: '/implementation/batch-execution/choose-template',
               name: 'chooseTemplate',
               component: () => import('@/pages/implementation/batch-execution/execution/choose-template.vue')
             },
             // 执行-新建新建
             {
-              path: '/implementation/workflow-execution/create-execution',
+              path: '/implementation/batch-execution/create-execution',
               name: 'createExecution',
               component: () => import('@/pages/implementation/batch-execution/execution/create.vue')
             },
             // 执行-执行历史
             {
-              path: '/implementation/workflow-execution/execution-history',
+              path: '/implementation/batch-execution/execution-history',
               name: 'executionHistory',
               component: () => import('@/pages/implementation/batch-execution/execution/list.vue')
             },
             // 模板-新建模板
             {
-              path: '/implementation/workflow-execution/template-create',
+              path: '/implementation/batch-execution/template-create',
               name: 'templateCreate',
               component: () => import('@/pages/implementation/batch-execution/template/create.vue')
             },
             // 模板-模板管理
             {
-              path: '/implementation/workflow-execution/template-list',
+              path: '/implementation/batch-execution/template-list',
               name: 'templateList',
               component: () => import('@/pages/implementation/batch-execution/template/list.vue')
             }

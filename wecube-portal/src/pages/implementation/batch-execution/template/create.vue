@@ -66,7 +66,7 @@ export default {
   methods: {
     handleBack () {
       this.$router.push({
-        path: '/implementation/workflow-execution/template-list',
+        path: '/implementation/batch-execution/template-list',
         query: {
           status: this.type === 'edit' ? 'draft' : ''
         }
@@ -350,7 +350,7 @@ export default {
         })
         this.saveTemplateId = data.id
         this.$router.push({
-          path: '/implementation/workflow-execution/template-list',
+          path: '/implementation/batch-execution/template-list',
           query: {
             status: this.type === 'edit' ? 'draft' : ''
           }
