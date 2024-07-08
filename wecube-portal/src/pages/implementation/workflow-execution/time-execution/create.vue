@@ -1,22 +1,17 @@
 <template>
   <div class="time-execution-create">
+    <div class="button-group">
+      <Button type="success" class="btn-right" @click="setTimedExecution">
+        <Icon type="md-add" :size="18" />
+        {{ $t('full_word_add') }}
+      </Button>
+      <Button type="info" @click="exportData" style="margin-left: 5px">
+        <img src="../../../../assets/icon/export.png" class="btn-img" alt="" />
+        {{ $t('export_flow') }}
+      </Button>
+    </div>
     <div class="search">
-      <Search
-        :options="searchOptions"
-        v-model="searchConfig.params"
-        @search="getUserScheduledTasks"
-        :showBtn="false"
-      ></Search>
-      <div class="button-group">
-        <Button type="success" class="btn-right" @click="setTimedExecution">
-          <Icon type="md-add" :size="18" />
-          {{ $t('full_word_add') }}
-        </Button>
-        <Button type="info" @click="exportData">
-          <img src="../../../../assets/icon/export.png" class="btn-img" alt="" />
-          {{ $t('export_flow') }}
-        </Button>
-      </div>
+      <Search :options="searchOptions" v-model="searchConfig.params" @search="getUserScheduledTasks"></Search>
     </div>
     <Table
       size="small"
@@ -165,9 +160,10 @@ export default {
         params: {
           name: '',
           procDefId: '',
-          time: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+          jobCreatedTime: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
           jobCreatedStartTime: '',
           jobCreatedEndTime: '',
+          time: [],
           startTime: '',
           endTime: '',
           owner: '',
@@ -177,7 +173,7 @@ export default {
       searchOptions: [
         // 创建时间
         {
-          key: 'time',
+          key: 'jobCreatedTime',
           label: this.$t('table_created_date'),
           initDateType: 1,
           dateRange: [
@@ -219,6 +215,20 @@ export default {
             { label: this.$t('Weekly'), value: 'Weekly' },
             { label: this.$t('Monthly'), value: 'Monthly' }
           ]
+        },
+        // 执行时间
+        {
+          key: 'time',
+          label: this.$t('execute_date'),
+          initDateType: 4,
+          dateRange: [
+            { label: '近3个月', type: 'month', value: 3, dateType: 1 },
+            { label: '近半年', type: 'month', value: 6, dateType: 2 },
+            { label: '近一年', type: 'year', value: 1, dateType: 3 },
+            { label: this.$t('be_auto'), dateType: 4 } // 自定义
+          ],
+          labelWidth: 110,
+          component: 'custom-time'
         }
       ],
       tableData: [],
@@ -262,14 +272,25 @@ export default {
           key: 'scheduleMode',
           width: 120,
           render: (h, params) => {
+            let schedule = ''
+            if (['Weekly', 'Monthly'].includes(params.row.scheduleMode)) {
+              schedule = params.row.scheduleExpr.split(' ')[0]
+            }
             const find = this.timeConfig.scheduleModeOptions.find(item => item.value === params.row.scheduleMode)
-            return <div>{find.label}</div>
+            return <div>{`${find.label}${schedule}${params.row.scheduleMode === 'Monthly' ? '号' : ''}`}</div>
           }
         },
         {
           title: this.$t('schedule_expr'),
           key: 'scheduleExpr',
-          width: 150
+          width: 150,
+          render: (h, params) => {
+            let scheduleExpr = params.row.scheduleExpr
+            if (['Weekly', 'Monthly'].includes(params.row.scheduleMode)) {
+              scheduleExpr = params.row.scheduleExpr.split(' ')[1]
+            }
+            return <span>{scheduleExpr || '-'}</span>
+          }
         },
         // 执行频率
         {
@@ -823,14 +844,14 @@ export default {
     },
     async getUserScheduledTasks () {
       await this.getCurrentUserRoles()
-      const { name, procDefId, time, owner, scheduleMode } = this.searchConfig.params
+      const { name, procDefId, jobCreatedTime, time, owner, scheduleMode } = this.searchConfig.params
       const params = {
         name,
         procDefId,
-        jobCreatedStartTime: time[0] ? time[0] + ' 00:00:00' : '',
-        jobCreatedEndTime: time[1] ? time[1] + ' 23:59:59' : '',
-        startTime: '',
-        endTime: '',
+        jobCreatedStartTime: jobCreatedTime[0] ? jobCreatedTime[0] + ' 00:00:00' : '',
+        jobCreatedEndTime: jobCreatedTime[1] ? jobCreatedTime[1] + ' 23:59:59' : '',
+        startTime: time[0] ? time[0] + ' 00:00:00' : '',
+        endTime: time[1] ? time[1] + ' 23:59:59' : '',
         owner,
         scheduleMode
       }
@@ -860,6 +881,7 @@ export default {
 <style scoped lang="scss">
 .time-execution-create {
   .search {
+    margin-top: 8px;
     display: flex;
     .button-group {
       width: 220px;
