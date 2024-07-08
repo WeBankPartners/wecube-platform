@@ -24,7 +24,7 @@
         </div>
         <div>
           <Form :label-width="100" inline>
-            <FormItem :label="$t('manageRole')" required>
+            <FormItem :label="$t('p_manageRole')" required>
               <Select
                 v-model="selectedRole"
                 @on-open-change="getApplyRoles"

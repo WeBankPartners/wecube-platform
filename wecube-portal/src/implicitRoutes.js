@@ -119,5 +119,15 @@ export default {
       'en-US': 'Batch Execution',
       'zh-CN': '批量执行'
     }
+  },
+  'collaboration/registrationDetail': {
+    childBreadcrumb: {
+      'en-US': 'Plugin Install',
+      'zh-CN': '插件安装'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Conjoin',
+      'zh-CN': '协同'
+    }
   }
 }

@@ -2,7 +2,7 @@
   <div class="plugin-register-page">
     <Row>
       <Col span="7" style="border-right: 1px solid #e8eaec">
-        <div style="height: calc(100vh - 180px); overflow-y: auto">
+        <div style="height: calc(100vh - 350px); overflow-y: auto">
           <div v-if="plugins.length < 1">{{ $t('no_plugin') }}</div>
           <div style="">
             <Menu theme="light" :active-name="currentPlugin" @on-select="selectPlugin" style="width: 100%; z-index: 10">
@@ -56,7 +56,7 @@
             </Menu>
           </div>
         </div>
-        <div style="padding-right: 20px; margin-top: 10px">
+        <div v-if="batchRegistButtonShow" style="padding-right: 20px; margin-top: 10px">
           <Button type="info" long ghost @click="batchRegist">{{ $t('batch_regist') }}</Button>
         </div>
       </Col>
@@ -88,7 +88,7 @@
               </FormItem>
             </Col>
           </Row>
-          <div style="height: calc(100vh - 300px); overflow: auto" id="paramsContainer">
+          <div style="height: calc(100vh - 500px); overflow: auto" id="paramsContainer">
             <div style="background: #f7f7f7">
               <div
                 v-for="(inter, index) in currentPluginObj.interfaces"
@@ -693,6 +693,10 @@ export default {
     },
     pkgName: {
       required: true
+    },
+    batchRegistButtonShow: {
+      type: Boolean,
+      default: true
     }
   },
   watch: {
@@ -904,10 +908,12 @@ export default {
           title: 'Success',
           desc: 'Success'
         })
+        this.$emit('success')
       }
     },
     closeTreeModal () {
       this.configTreeManageModal = false
+      this.$emit('success')
     },
     batchRegist () {
       this.getConfigByPkgId()
@@ -1293,14 +1299,17 @@ export default {
           }
         })
       }
+    },
+    startRegister () {
+      this.getRoleList()
+      this.getAllPluginByPkgId()
+      this.getAllDataModels()
+      this.retrieveSystemVariables()
+      this.getRolesByCurrentUser()
     }
   },
   created () {
-    this.getRoleList()
-    this.getAllPluginByPkgId()
-    this.getAllDataModels()
-    this.retrieveSystemVariables()
-    this.getRolesByCurrentUser()
+    this.startRegister()
   }
 }
 </script>

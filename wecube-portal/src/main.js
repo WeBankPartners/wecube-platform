@@ -159,7 +159,9 @@ router.beforeEach((to, from, next) => {
         .find(_ => to.path.startsWith(_.link) && _.active)
       if (
         (isHasPermission && isHasPermission.active) ||
-        ['/404', '/login', '/homepage', '/collaboration/workflow-mgmt'].includes(to.path)
+        ['/404', '/login', '/homepage', '/collaboration/workflow-mgmt', '/collaboration/registrationDetail'].includes(
+          to.path
+        )
       ) {
         /* has permission */
         window.sessionStorage.setItem(
