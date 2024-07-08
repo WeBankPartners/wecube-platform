@@ -1503,3 +1503,35 @@ func GetObjectMetas(ctx context.Context, objectMetaId string) (objectMetaEntity 
 	objectMetaEntity.PropertyMetas = propertyMetaEntities
 	return
 }
+
+func UpdateObjectMetas(c *gin.Context, reqParam *models.CoreObjectMeta) (err error) {
+	now := time.Now()
+	reqUser := middleware.GetRequestUser(c)
+	var actions []*db.ExecAction
+	action := &db.ExecAction{
+		Sql: db.CombineDBSql("update ", models.TableNamePluginObjectMeta,
+			" set `name`=?,`package_name`=?,`source`=?,`latest_source`=?,`updated_by`=?,`updated_time`=?,`config_id`=?,`map_expr`=? where `id`=?"),
+		Param: []interface{}{reqParam.Name, reqParam.PackageName, reqParam.Source, reqParam.LatestSource, reqUser, now, reqParam.ConfigId, reqParam.MappingEntityExpression, reqParam.Id},
+	}
+	actions = append(actions, action)
+
+	for _, propertyMetaInfo := range reqParam.PropertyMetas {
+		isSensitive := false
+		if propertyMetaInfo.SensitiveData == "Y" {
+			isSensitive = true
+		}
+		action := &db.ExecAction{
+			Sql: db.CombineDBSql("update ", models.TableNamePluginObjectPropertyMeta,
+				" set `name`=?,`data_type`=?,`map_type`=?,`map_expr`=?,`source`=?,`updated_by`=?,`updated_time`=?,`is_sensitive`=?,`multiple`=? where `id`=?"),
+			Param: []interface{}{propertyMetaInfo.Name, propertyMetaInfo.DataType, propertyMetaInfo.MappingType, propertyMetaInfo.MappingEntityExpression, propertyMetaInfo.Source, reqUser, now, isSensitive, propertyMetaInfo.Multiple, propertyMetaInfo.Id},
+		}
+		actions = append(actions, action)
+	}
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
