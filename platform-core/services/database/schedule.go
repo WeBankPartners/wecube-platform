@@ -250,6 +250,10 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 		filterSqlList = append(filterSqlList, "proc_def_id=?")
 		filterParams = append(filterParams, param.ProcDefId)
 	}
+	if param.JobCreatedStartTime != "" && param.JobCreatedEndTime != "" {
+		filterSqlList = append(filterSqlList, "created_time >= ? and created_time <= ?")
+		filterParams = append(filterParams, []interface{}{param.JobCreatedStartTime, param.JobCreatedEndTime}...)
+	}
 	//if param.StartTime != "" {
 	//	filterSqlList = append(filterSqlList, "created_time>=?")
 	//	filterParams = append(filterParams, param.StartTime)
