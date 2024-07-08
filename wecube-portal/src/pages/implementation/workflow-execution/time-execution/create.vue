@@ -18,7 +18,14 @@
         </Button>
       </div>
     </div>
-    <Table size="small" ref="table" :columns="tableColumns" :max-height="MODALHEIGHT" :data="tableData"></Table>
+    <Table
+      size="small"
+      ref="table"
+      :columns="tableColumns"
+      :max-height="MODALHEIGHT"
+      :data="tableData"
+      :loading="loading"
+    ></Table>
     <!--查看详情-->
     <BaseDrawer :title="$t('be_details')" :visible.sync="showModal" width="70%">
       <template slot-scope="{ maxHeight }" slot="content">
@@ -158,7 +165,9 @@ export default {
         params: {
           name: '',
           procDefId: '',
-          time: [dayjs().subtract(3, 'day').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+          time: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+          jobCreatedStartTime: '',
+          jobCreatedEndTime: '',
           startTime: '',
           endTime: '',
           owner: '',
@@ -213,6 +222,7 @@ export default {
         }
       ],
       tableData: [],
+      loading: false,
       tableColumns: [
         {
           type: 'index',
@@ -817,8 +827,10 @@ export default {
       const params = {
         name,
         procDefId,
-        startTime: time[0] ? time[0] + ' 00:00:00' : '',
-        endTime: time[1] ? time[1] + ' 23:59:59' : '',
+        jobCreatedStartTime: time[0] ? time[0] + ' 00:00:00' : '',
+        jobCreatedEndTime: time[1] ? time[1] + ' 23:59:59' : '',
+        startTime: '',
+        endTime: '',
         owner,
         scheduleMode
       }
@@ -828,7 +840,9 @@ export default {
           delete params[key]
         }
       })
+      this.loading = true
       const { status, data } = await getUserScheduledTasks(params)
+      this.loading = false
       if (status === 'OK') {
         this.tableData = data
       }
