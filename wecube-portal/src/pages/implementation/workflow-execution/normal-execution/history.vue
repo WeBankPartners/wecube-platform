@@ -136,7 +136,12 @@ export default {
           render: (h, params) => {
             return (
               <div>
-                <span>
+                <span
+                  style="cursor:pointer;"
+                  onClick={() => {
+                    this.jumpToHistory(params.row)
+                  }}
+                >
                   {params.row.procInstName}
                   <Tag style="margin-left:2px">{params.row.version}</Tag>
                 </span>

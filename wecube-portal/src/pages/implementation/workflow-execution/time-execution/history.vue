@@ -122,7 +122,16 @@ export default {
           minWidth: 160,
           key: 'name',
           render: (h, params) => {
-            return <span>{params.row.name || '-'}</span>
+            return (
+              <span
+                style="cursor:pointer;"
+                onClick={() => {
+                  this.jumpToHistory(params.row)
+                }}
+              >
+                {params.row.name || '-'}
+              </span>
+            )
           }
         },
         {
