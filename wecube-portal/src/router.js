@@ -37,6 +37,12 @@ let router = new Router({
           props: true
         },
         {
+          path: '/collaboration/registrationDetail',
+          name: 'registrationDetail',
+          component: () => import('@/pages/collaboration/plugin-registration-detail'),
+          props: true
+        },
+        {
           path: '/admin/system-params',
           name: 'systemParams',
           component: () => import('@/pages/admin/system-params')
@@ -64,7 +70,8 @@ let router = new Router({
         {
           path: '/collaboration/plugin-management',
           name: 'pluginManage',
-          component: () => import('@/pages/collaboration/plugin-management')
+          // component: () => import('@/pages/collaboration/plugin-management')
+          component: () => import('@/pages/collaboration/plugin-registration-list')
         },
         // 编排执行
         {
