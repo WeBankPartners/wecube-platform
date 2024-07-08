@@ -637,7 +637,7 @@ export default {
 }
 </script>
 
-<style scoped lang="less">
+<style scoped lang="scss">
 .search-top {
   display: flex;
   align-items: center;
@@ -770,7 +770,7 @@ export default {
 }
 </style>
 
-<style lang="less">
+<style lang="scss">
 .search-top-right {
   .ivu-btn-primary {
     background-color: #a6adb2;
