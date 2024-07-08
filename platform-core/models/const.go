@@ -43,6 +43,8 @@ const (
 	TableNamePluginConfigInterfaces          = "plugin_config_interfaces"
 	TableNamePluginConfigInterfaceParameters = "plugin_config_interface_parameters"
 	TableNameSystemVariables                 = "system_variables"
+	TableNamePluginObjectMeta                = "plugin_object_meta"
+	TableNamePluginObjectPropertyMeta        = "plugin_object_property_meta"
 
 	// batch execution
 	BatchExecTemplateStatusAvailable    = "available"
