@@ -21,7 +21,6 @@
 import Search from '@/pages/components/base-search.vue'
 import {
   instancesWithPaging,
-  getUserList,
   getAllFlow,
   createWorkflowInstanceTerminationRequest,
   pauseAndContinueFlow
@@ -119,9 +118,12 @@ export default {
           align: 'center'
         },
         {
-          title: '任务名',
+          title: this.$t('fe_task_name'),
           minWidth: 160,
-          key: 'name'
+          key: 'name',
+          render: (h, params) => {
+            return <span>{params.row.name || '-'}</span>
+          }
         },
         {
           title: this.$t('flow_name'),
@@ -175,7 +177,7 @@ export default {
           }
         },
         {
-          title: this.$t('executor'),
+          title: this.$t('fe_launcher'),
           key: 'operator',
           minWidth: 120
         },
@@ -272,6 +274,7 @@ export default {
   },
   methods: {
     handleQuery () {
+      this.pageable.current = 1
       this.getProcessInstances()
     },
     // #region 暂停、继续编排
@@ -347,6 +350,7 @@ export default {
       }
     },
     changePageSize (pageSize) {
+      this.pageable.current = 1
       this.pageable.pageSize = pageSize
       this.getProcessInstances()
     },

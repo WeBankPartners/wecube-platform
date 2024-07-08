@@ -27,6 +27,7 @@ type ProcScheduleConfig struct {
 	CreatedTime    time.Time `json:"createdTime" xorm:"created_time"`        // 创建时间
 	UpdatedBy      string    `json:"updatedBy" xorm:"updated_by"`            // 更新人
 	UpdatedTime    time.Time `json:"updatedTime" xorm:"updated_time"`        // 更新时间
+	Name           string    `json:"name" xorm:"name"`                       // 任务名
 }
 
 type ProcScheduleJob struct {
@@ -43,10 +44,14 @@ type ProcScheduleJob struct {
 }
 
 type ProcScheduleQueryParam struct {
-	ScheduleMode string `json:"scheduleMode"`
-	Owner        string `json:"owner"`
-	StartTime    string `json:"startTime"`
-	EndTime      string `json:"endTime"`
+	ScheduleMode        string `json:"scheduleMode"`
+	Owner               string `json:"owner"`
+	StartTime           string `json:"startTime"`
+	EndTime             string `json:"endTime"`
+	Name                string `json:"name"`
+	ProcDefId           string `json:"procDefId"`
+	JobCreatedStartTime string `json:"jobCreatedStartTime"`
+	JobCreatedEndTime   string `json:"jobCreatedEndTime"`
 }
 
 type ProcScheduleQueryRow struct {
@@ -66,6 +71,7 @@ type CreateProcScheduleParam struct {
 	MailMode       string `json:"mailMode" binding:"required"` // 邮件发送模式->role(角色邮箱) | user(用户邮箱) | none(不发送)
 	CronExpr       string `json:"-"`
 	Operator       string `json:"-"`
+	Name           string `json:"name"`
 }
 
 type ProcScheduleConfigObj struct {
@@ -87,6 +93,7 @@ type ProcScheduleConfigObj struct {
 	Role                     string `json:"role" xorm:"role"`          // 管理角色
 	MailMode                 string `json:"mailMode" xorm:"mail_mode"` // 邮件发送模式->role(角色邮箱) | user(用户邮箱) | none(不发送)
 	Version                  string `json:"version"`
+	Name                     string `json:"name"`
 }
 
 type ProcScheduleOperationParam struct {
