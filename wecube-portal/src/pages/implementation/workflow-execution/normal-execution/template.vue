@@ -58,9 +58,9 @@ export default {
         procDefId: '',
         procDefName: '',
         plugins: [],
-        updatedTime: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
-        updatedTimeStart: '',
-        updatedTimeEnd: '',
+        createdTime: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+        createdTimeStart: '',
+        createdTimeEnd: '',
         createdBy: '',
         scene: '', // 分组
         subProc: 'main',
@@ -85,8 +85,8 @@ export default {
           initValue: 'main'
         },
         {
-          key: 'updatedTime',
-          label: this.$t('table_updated_date'),
+          key: 'createdTime',
+          label: this.$t('table_created_date'),
           initDateType: 1,
           dateRange: [
             { label: '近3个月', type: 'month', value: 3, dateType: 1 },
@@ -263,11 +263,11 @@ export default {
     },
     async getTemplateList () {
       const params = deepClone(this.searchParams)
-      params.updatedTimeStart = params.updatedTime[0] ? params.updatedTime[0] + ' 00:00:00' : ''
-      params.updatedTimeEnd = params.updatedTime[1] ? params.updatedTime[1] + ' 23:59:59' : ''
+      params.createdTimeStart = params.createdTime[0] ? params.createdTime[0] + ' 00:00:00' : ''
+      params.createdTimeEnd = params.createdTime[1] ? params.createdTime[1] + ' 23:59:59' : ''
       params.permissionType = 'USE'
       params.status = 'deployed'
-      delete params.updatedTime
+      delete params.createdTime
       this.spinShow = true
       let { data, status } = await flowList(params)
       this.spinShow = false
