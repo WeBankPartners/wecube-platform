@@ -1013,6 +1013,10 @@ func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where
 		where = where + " and updated_time >= ? and updated_time <= ?"
 		queryParam = append(queryParam, []interface{}{param.UpdatedTimeStart, param.UpdatedTimeEnd}...)
 	}
+	if param.CreatedTimeStart != "" && param.CreatedTimeEnd != "" {
+		where = where + " and created_time >= ? and created_time <= ?"
+		queryParam = append(queryParam, []interface{}{param.CreatedTimeStart, param.CreatedTimeEnd}...)
+	}
 	if param.CreatedBy != "" {
 		where = where + " and  created_by like '%" + param.CreatedBy + "%'"
 	}
