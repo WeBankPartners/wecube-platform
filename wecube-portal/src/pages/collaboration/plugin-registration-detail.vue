@@ -617,7 +617,7 @@ export default {
 }
 </script>
 
-<style scoped lang="less">
+<style scoped lang="scss">
 .all-page {
   .register-content {
     display: flex;
@@ -700,7 +700,7 @@ export default {
 }
 </style>
 
-<style lang="less">
+<style lang="scss">
 .footer-button {
   .ivu-btn-success {
     background-color: #b088f1;
