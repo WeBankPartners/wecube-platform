@@ -163,6 +163,8 @@ type QueryProcessDefinitionParam struct {
 	Plugins          []string `json:"plugins"`          // 授权插件
 	UpdatedTimeStart string   `json:"updatedTimeStart"` // 更新时间开始
 	UpdatedTimeEnd   string   `json:"updatedTimeEnd"`   // 更新时间结束
+	CreatedTimeStart string   `json:"createdTimeStart"` // 创建时间开始
+	CreatedTimeEnd   string   `json:"createdTimeEnd"`   // 创建时间结束
 	Status           string   `json:"status"`           // disabled 禁用 draft草稿 deployed 发布状态
 	CreatedBy        string   `json:"createdBy"`        // 创建人
 	UpdatedBy        string   `json:"updatedBy"`        // 更新人
@@ -335,6 +337,7 @@ type ProcDefDto struct {
 	MgmtRoles        []string `json:"mgmtRoles"`        // 管理角色
 	MgmtRolesDisplay []string `json:"mgmtRolesDisplay"` // 管理角色-显示名
 	SubProc          bool     `json:"subProc"`          // 是否子编排
+	Collected        bool     `json:"collected"`        // 是否收藏
 }
 
 type ProcDefParentListItem struct {
@@ -715,10 +718,14 @@ func BuildInterfaceParameterDto(p *PluginConfigInterfaceParameters) *InterfacePa
 	}
 }
 
-func BuildProcDefDto(procDef *ProcDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay []string, enableCreated bool) *ProcDefDto {
+func BuildProcDefDto(procDef *ProcDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay []string, enableCreated bool, collectProcDefMap map[string]string) *ProcDefDto {
 	var authPlugins = make([]string, 0)
 	if len(procDef.ForPlugin) > 0 {
 		authPlugins = strings.Split(procDef.ForPlugin, ",")
+	}
+	collected := false
+	if _, ok := collectProcDefMap[procDef.Id]; ok {
+		collected = true
 	}
 	return &ProcDefDto{
 		Id:               procDef.Id,
@@ -740,6 +747,7 @@ func BuildProcDefDto(procDef *ProcDef, userRoles, manageRoles, userRolesDisplay,
 		UseRolesDisplay:  userRolesDisplay,
 		MgmtRoles:        manageRoles,
 		MgmtRolesDisplay: manageRolesDisplay,
+		Collected:        collected,
 	}
 }
 
