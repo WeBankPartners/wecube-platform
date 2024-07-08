@@ -471,6 +471,9 @@ func (n *WorkNode) start() {
 			}
 		}
 		updateNodeDB(&n.ProcRunNode)
+		if n.workflow.ParentRunNodeId != "" {
+			updateNodeDB(&models.ProcRunNode{Id: n.workflow.ParentRunNodeId, Status: models.JobStatusFail, ErrorMessage: n.ErrorMessage})
+		}
 	}
 	n.DoneChan <- 1
 }
@@ -680,15 +683,17 @@ func (n *WorkNode) doSubProcessJob(retry bool) (output string, err error) {
 		// 初始化workflow并开始
 		workObj := Workflow{ProcRunWorkflow: *subWorkflowRow}
 		workObj.ProcInsId = subProcInsId
+		dataRow.SubProcInsId = subProcInsId
 		workObj.Links = subWorkLinks
 		subWorkflowList = append(subWorkflowList, &workObj)
 		subWorkNodeList = append(subWorkNodeList, subWorkNodes)
 		subProcWorkflowList = append(subProcWorkflowList, &models.ProcRunNodeSubProc{WorkflowId: subWorkflowRow.Id, EntityTypeId: dataRow.EntityTypeId, EntityDataId: dataRow.EntityDataId})
 	}
-	if err = database.UpdateProcRunNodeSubProc(ctx, n.Id, subProcWorkflowList); err != nil {
+	if err = database.UpdateProcRunNodeSubProc(ctx, n.Id, subProcWorkflowList, dataBindings); err != nil {
 		err = fmt.Errorf("UpdateProcRunNodeSubProc fail,%s ", err.Error())
 		return
 	}
+	log.Logger.Debug("start sub proc")
 	wg := sync.WaitGroup{}
 	for i, workObj := range subWorkflowList {
 		wg.Add(1)
@@ -696,9 +701,11 @@ func (n *WorkNode) doSubProcessJob(retry bool) (output string, err error) {
 			wo.Init(context.Background(), nl, wo.Links)
 			wo.Start(&models.ProcOperation{CreatedBy: operator})
 			wg.Done()
+			log.Logger.Debug("sub proc done", log.String("subWorkflowId", wo.Id))
 		}(workObj, subWorkNodeList[i])
 	}
 	wg.Wait()
+	log.Logger.Debug("sub proc wait done")
 	// 获取子编排的结果
 	subProcResultList, subProcQueryErr := database.GetSubProcResult(ctx, n.Id)
 	if subProcQueryErr != nil {
@@ -743,7 +750,7 @@ func updateWorkflowDB(w *models.ProcRunWorkflow, op *models.ProcOperation) {
 	} else {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_workflow set status=?,updated_time=? where id=?", Param: []interface{}{w.Status, nowTime, w.Id}})
 	}
-	actions = append(actions, &db.ExecAction{Sql: "update proc_ins set status=?,updated_time=? where id=?", Param: []interface{}{w.Status, nowTime, w.ProcInsId}})
+	actions = append(actions, &db.ExecAction{Sql: "update proc_ins set status=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{w.Status, op.CreatedBy, nowTime, w.ProcInsId}})
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_work_record(workflow_id,host,`action`,message,created_by,created_time) values (?,?,?,?,?,?)", Param: []interface{}{w.Id, instanceHost, w.Status, op.Message, op.CreatedBy, nowTime}})
 	if err := db.Transaction(actions, op.Ctx); err != nil {
 		log.Logger.Error("record workflow state fail", log.String("workflowId", w.Id), log.Error(err))
@@ -754,6 +761,15 @@ func updateNodeDB(n *models.ProcRunNode) {
 	var err error
 	var actions []*db.ExecAction
 	nowTime := time.Now()
+	if n.Id != "" && n.ProcInsNodeId == "" {
+		if runNode, getErr := getRunNodeRow(n.Id); getErr != nil {
+			log.Logger.Error("record node try to get procInsNodeId fail", log.String("nodeId", n.Id), log.Error(getErr))
+		} else {
+			if runNode != nil {
+				n.ProcInsNodeId = runNode.ProcInsNodeId
+			}
+		}
+	}
 	if n.Status == models.JobStatusRunning {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,start_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.StartTime, nowTime, n.Id}})
 		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, n.ProcInsNodeId}})
@@ -789,6 +805,21 @@ func getWorkflowRow(workflowId string) (result *models.ProcRunWorkflow, err erro
 			err = fmt.Errorf("can not find workflow with id:%s ", workflowId)
 		} else {
 			result = workflowRows[0]
+		}
+	}
+	return
+}
+
+func getRunNodeRow(procRunNodeId string) (result *models.ProcRunNode, err error) {
+	var runNodeRows []*models.ProcRunNode
+	err = db.MysqlEngine.SQL("select id,workflow_id,proc_ins_node_id,name,job_type,status,`input`,`output`,error_message from proc_run_node where id=?", procRunNodeId).Find(&runNodeRows)
+	if err != nil {
+		err = fmt.Errorf("query proc run node table fail,%s ", err.Error())
+	} else {
+		if len(runNodeRows) == 0 {
+			err = fmt.Errorf("can not find proc run node with id:%s ", procRunNodeId)
+		} else {
+			result = runNodeRows[0]
 		}
 	}
 	return
