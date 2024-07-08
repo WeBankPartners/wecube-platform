@@ -321,7 +321,7 @@ export default {
   methods: {
     handleCreateTemplate () {
       this.$router.push({
-        path: '/implementation/workflow-execution/template-create'
+        path: '/implementation/batch-execution/template-create'
       })
     },
     handleSearch () {
@@ -407,7 +407,7 @@ export default {
     // 查看
     handleView (row) {
       this.$router.push({
-        path: '/implementation/workflow-execution/template-create',
+        path: '/implementation/batch-execution/template-create',
         query: {
           id: row.id,
           type: 'view'
@@ -417,7 +417,7 @@ export default {
     // 复制
     handleCopy (row) {
       this.$router.push({
-        path: '/implementation/workflow-execution/template-create',
+        path: '/implementation/batch-execution/template-create',
         query: {
           id: row.id,
           type: 'copy'
@@ -427,7 +427,7 @@ export default {
     // 编辑草稿
     handleEdit (row) {
       this.$router.push({
-        path: '/implementation/workflow-execution/template-create',
+        path: '/implementation/batch-execution/template-create',
         query: {
           id: row.id,
           type: 'edit'
