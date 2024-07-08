@@ -1,167 +1,191 @@
 <!--编排执行和查看页面-->
 <template>
   <div class="workflow-execution">
-    <Row class="workflow-execution-header">
-      <Form label-position="left">
-        <FormItem v-if="isEnqueryPage" :label-width="100" :label="$t('orchs')">
-          <Select
-            v-model="selectedFlowInstance"
-            style="width: 60%"
-            filterable
-            clearable
-            :placeholder="$t('fe_flowname_placeholder')"
-            @on-open-change="getProcessInstances(false)"
-            @on-clear="clearHistoryOrch"
-            @on-change="queryHandler"
-          >
-            <Option
-              v-for="item in allFlowInstances"
-              :value="item.id"
-              :key="item.id"
-              :label="
-                item.procInstName +
-                '  ' +
-                '[' +
-                item.version +
-                ']  ' +
-                item.entityDisplayName +
-                '  ' +
-                (item.operator || 'operator') +
-                '  ' +
-                (item.createdTime || '0000-00-00 00:00:00') +
-                '  ' +
-                getStatusStyleAndName(item.status, 'label')
-              "
+    <div class="workflow-execution-header">
+      <div class="back-header">
+        <Icon size="22" type="md-arrow-back" class="icon" @click="handleBack" />
+      </div>
+      <div class="form">
+        <Form label-position="left">
+          <FormItem v-if="isEnqueryPage" :label-width="100" :label="$t('orchs')">
+            <Select
+              v-model="selectedFlowInstance"
+              style="width: 60%"
+              filterable
+              clearable
+              :placeholder="$t('fe_flowname_placeholder')"
+              @on-open-change="getProcessInstances(false)"
+              @on-clear="clearHistoryOrch"
+              @on-change="queryHandler"
             >
-              <div style="display: flex; justify-content: space-between">
-                <div>
-                  <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
-                  <span style="color: #515a6e">{{ '[' + item.version + '] ' }}</span>
-                  <span style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</span>
-                </div>
-                <div style="display: flex; align-items: center">
-                  <span style="color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
-                  <span style="color: #ccc">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
-                  <div style="width: 100px">
-                    <span :style="getStatusStyleAndName(item.status, 'style')">{{
-                      getStatusStyleAndName(item.status, 'label')
-                    }}</span>
+              <Option
+                v-for="item in allFlowInstances"
+                :value="item.id"
+                :key="item.id"
+                :label="
+                  item.procInstName +
+                  '  ' +
+                  '[' +
+                  item.version +
+                  ']  ' +
+                  item.entityDisplayName +
+                  '  ' +
+                  (item.operator || 'operator') +
+                  '  ' +
+                  (item.createdTime || '0000-00-00 00:00:00') +
+                  '  ' +
+                  getStatusStyleAndName(item.status, 'label')
+                "
+              >
+                <div style="display: flex; justify-content: space-between">
+                  <div>
+                    <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
+                    <span style="color: #2b85e4">{{ '[' + item.version + '] ' }}</span>
+                    <Tag style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</Tag>
+                  </div>
+                  <div style="display: flex; align-items: center">
+                    <span style="color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
+                    <span style="color: #ccc">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
+                    <div style="width: 100px">
+                      <span :style="getStatusStyleAndName(item.status, 'style')">{{
+                        getStatusStyleAndName(item.status, 'label')
+                      }}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Option>
-          </Select>
-          <!-- <Button type="info" @click="queryHandler">{{ $t('query_orch') }}</Button> -->
-          <!--暂停执行-->
-          <Button
-            type="warning"
-            @click="flowControlHandler('stop')"
-            style="background-color: #826bea; border-color: #826bea"
-            v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
-            icon="md-pause"
-            >{{ $t('be_pause') }}</Button
-          >
-          <!--继续执行-->
-          <Button
-            type="success"
-            @click="flowControlHandler('recover')"
-            v-if="currentInstanceStatusForNodeOperation === 'Stop'"
-            icon="md-play"
-            >{{ $t('be_continue') }}</Button
-          >
-          <!--终止执行-->
-          <Button
-            v-if="currentInstanceStatusForNodeOperation === 'InProgress' && subProc !== 'sub'"
-            type="warning"
-            @click="stopHandler"
-            icon="md-square"
-            >{{ $t('stop_orch') }}</Button
-          >
-          <!-- disabled="currentInstanceStatus || stopSuccess"  stop_orch -->
-          <!--定时执行-->
-          <Button
-            v-if="currentInstanceStatusForNodeOperation === 'Completed'"
-            type="primary"
-            @click="setTimedExecution"
-            icon="md-stopwatch"
-            >{{ $t('timed_execution') }}</Button
-          >
-          <!-- :disabled="canAbleToSetting" timed_execution -->
-        </FormItem>
-        <Col v-if="!isEnqueryPage" span="7">
-          <FormItem :label-width="100" :label="$t('select_orch')">
-            <Select
-              label
-              v-model="selectedFlow"
-              :disabled="Boolean(subProcId)"
-              @on-change="orchestrationSelectHandler"
-              @on-open-change="getAllFlow"
-              filterable
-              clearable
-              @on-clear="clearFlow"
-            >
-              <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId"
-                >{{ item.procDefName }} [{{ item.procDefVersion }}] {{ item.createdTime }}</Option
-              >
+              </Option>
             </Select>
-          </FormItem>
-        </Col>
-        <Col v-if="!isEnqueryPage" span="12" offset="0">
-          <FormItem required :label-width="100" :label="$t('target_object')">
-            <Select
-              style="width: 80%"
-              label
-              v-model="selectedTarget"
-              :disabled="Boolean(subProcId)"
-              @on-change="onTargetSelectHandler"
-              @on-open-change="getTargetOptions"
-              filterable
-              clearable
-              @on-clear="clearTarget"
-            >
-              <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.displayName }}</Option>
-            </Select>
+            <!-- <Button type="info" @click="queryHandler">{{ $t('query_orch') }}</Button> -->
+            <!--暂停执行-->
             <Button
-              :disabled="
-                isExecuteActive ||
-                !showExcution ||
-                !this.selectedTarget ||
-                !this.selectedFlow ||
-                !isShowExect ||
-                Boolean(subProcId)
-              "
-              :loading="btnLoading"
-              type="info"
-              @click="excutionFlow"
-              >{{ $t('execute') }}</Button
+              type="warning"
+              @click="flowControlHandler('stop')"
+              style="background-color: #826bea; border-color: #826bea"
+              v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
+              icon="md-pause"
+              >{{ $t('be_pause') }}</Button
             >
+            <!--继续执行-->
+            <Button
+              type="success"
+              @click="flowControlHandler('recover')"
+              v-if="currentInstanceStatusForNodeOperation === 'Stop'"
+              icon="md-play"
+              >{{ $t('be_continue') }}</Button
+            >
+            <!--终止执行-->
+            <Button
+              v-if="currentInstanceStatusForNodeOperation === 'InProgress' && subProc !== 'sub'"
+              type="warning"
+              @click="stopHandler"
+              icon="md-square"
+              >{{ $t('stop_orch') }}</Button
+            >
+            <!-- disabled="currentInstanceStatus || stopSuccess"  stop_orch -->
+            <!--定时执行-->
+            <Button
+              v-if="currentInstanceStatusForNodeOperation === 'Completed'"
+              type="primary"
+              @click="setTimedExecution"
+              icon="md-stopwatch"
+              >{{ $t('timed_execution') }}</Button
+            >
+            <!-- :disabled="canAbleToSetting" timed_execution -->
           </FormItem>
-        </Col>
-      </Form>
-    </Row>
+          <Col v-if="!isEnqueryPage" span="7">
+            <FormItem :label-width="100" :label="$t('select_orch')">
+              <Select
+                label
+                v-model="selectedFlow"
+                :disabled="Boolean(subProcId)"
+                @on-change="orchestrationSelectHandler"
+                @on-open-change="getAllFlow"
+                filterable
+                clearable
+                @on-clear="clearFlow"
+              >
+                <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId"
+                  >{{ item.procDefName }} [{{ item.procDefVersion }}] {{ item.createdTime }}</Option
+                >
+              </Select>
+            </FormItem>
+          </Col>
+          <Col v-if="!isEnqueryPage" span="12" offset="0">
+            <FormItem required :label-width="100" :label="$t('target_object')">
+              <Select
+                style="width: 80%"
+                label
+                v-model="selectedTarget"
+                :disabled="Boolean(subProcId)"
+                @on-change="onTargetSelectHandler"
+                @on-open-change="getTargetOptions"
+                filterable
+                clearable
+                @on-clear="clearTarget"
+              >
+                <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.displayName }}</Option>
+              </Select>
+              <Button
+                :disabled="
+                  isExecuteActive ||
+                  !showExcution ||
+                  !this.selectedTarget ||
+                  !this.selectedFlow ||
+                  !isShowExect ||
+                  Boolean(subProcId)
+                "
+                :loading="btnLoading"
+                type="info"
+                @click="excutionFlow"
+                >{{ $t('execute') }}</Button
+              >
+            </FormItem>
+          </Col>
+          <!--模板收藏功能-->
+          <Col v-if="!isEnqueryPage && selectedFlow" span="5" style="text-align: right">
+            <Tooltip :content="selectedFlowObj.collected ? $t('be_cancel_save') : $t('bc_save')" placement="left">
+              <Icon
+                style="cursor: pointer; margin-right: 10px"
+                :size="28"
+                :color="selectedFlowObj.collected ? '#ebac42' : ''"
+                :type="selectedFlowObj.collected ? 'ios-star' : 'ios-star-outline'"
+                @click="handleStar(selectedFlowObj)"
+              />
+            </Tooltip>
+          </Col>
+        </Form>
+      </div>
+    </div>
     <Row id="graph-container">
       <Col span="7" style="border-right: 1px solid #d3cece; text-align: center; height: 100%; position: relative">
         <div class="graph-container" id="flow" style="height: 90%"></div>
+        <!--重置-->
         <Button class="reset-button" size="small" @click="ResetFlow">ResetZoom</Button>
+        <span class="set-data-title">{{ $t('fe_view_flow') }}</span>
+        <!--预览数据-->
         <Button
           v-if="!isEnqueryPage && selectedFlow && selectedTarget"
-          style="left: 5px"
           class="set-data-button"
-          icon="ios-grid"
           size="small"
+          type="primary"
           @click="setFlowDataForAllNodes"
-        ></Button>
+          >{{ $t('fe_node_datalist') }}</Button
+        >
       </Col>
       <Col span="17" style="text-align: center; text-align: center; height: 100%; position: relative">
         <div class="graph-container" id="graph" style="height: 90%"></div>
+        <!--重置-->
         <Button class="reset-button" size="small" @click="ResetModel">ResetZoom</Button>
+        <span class="set-data-title">{{ $t('fe_preview_using_data') }}</span>
+        <!--预览数据-->
         <Button
           v-if="selectedFlow && selectedTarget"
           class="set-data-button"
-          icon="ios-grid"
           size="small"
+          type="primary"
           @click="showModelDataWithFlow"
-        ></Button>
+          >{{ $t('fe_data_nodelist') }}</Button
+        >
         <Spin size="large" fix v-show="isLoading">
           <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
           <div>{{ $t('loading') }}</div>
@@ -169,120 +193,120 @@
       </Col>
     </Row>
     <!--左侧预览弹窗(新建)-->
-    <Modal
-      :title="$t('overview')"
-      v-model="flowNodesWithDataModalVisible"
-      :scrollable="true"
-      width="70"
-      @on-ok="flowNodesTargetModelConfirm"
-      :ok-text="$t('submit')"
-    >
-      <Table
-        border
-        :columns="flowNodesWithModelDataColums"
-        max-height="550"
-        :data="allFlowNodesModelData"
-        @on-select="allFlowNodesSingleSelect"
-        @on-select-cancel="allFlowNodesSingleCancel"
-        @on-select-all-cancel="allFlowNodesSelectAllCancel"
-        @on-select-all="allFlowNodesSelectAll"
-        :span-method="flowNodeDataHandleSpan"
-      >
-        <template slot-scope="{ row }" slot="orderedNo">
-          <span>{{ row.orderedNo + ' ' + row.nodeName }}</span>
-        </template>
-      </Table>
-    </Modal>
+    <BaseDrawer :title="$t('overview')" :visible.sync="flowNodesWithDataModalVisible" width="70%" :scrollable="true">
+      <template slot-scope="{ maxHeight }" slot="content">
+        <Table
+          border
+          :columns="flowNodesWithModelDataColums"
+          :max-height="maxHeight"
+          :data="allFlowNodesModelData"
+          @on-select="allFlowNodesSingleSelect"
+          @on-select-cancel="allFlowNodesSingleCancel"
+          @on-select-all-cancel="allFlowNodesSelectAllCancel"
+          @on-select-all="allFlowNodesSelectAll"
+          :span-method="flowNodeDataHandleSpan"
+        >
+          <template slot-scope="{ row }" slot="orderedNo">
+            <span>{{ row.orderedNo + ' ' + row.nodeName }}</span>
+          </template>
+        </Table>
+      </template>
+      <template slot="footer">
+        <Button type="default" @click="flowNodesWithDataModalVisible = false">{{ $t('bc_cancel') }}</Button>
+        <Button type="primary" @click="flowNodesTargetModelConfirm">{{ $t('submit') }}</Button>
+      </template>
+    </BaseDrawer>
     <!--右侧预览弹窗(新建、查看)-->
-    <Modal
-      :title="$t('overview')"
-      v-model="targetWithFlowModalVisible"
-      :scrollable="true"
-      width="70"
-      :footer-hide="true"
-    >
-      <Table
-        border
-        :columns="targetWithFlowModelColums"
-        max-height="550"
-        :data="modelDataWithFlowNodes"
-        :span-method="modelDataHandleSpan"
-      >
-        <template slot-scope="{ row }" slot="nodeTitle">
-          <div style="margin-bottom: 5px" v-for="title in row.nodeTitle.split(';')" :key="title">
-            {{ title }}
-          </div>
-        </template>
-      </Table>
-    </Modal>
+    <BaseDrawer :title="$t('overview')" :visible.sync="targetWithFlowModalVisible" width="70%" :scrollable="true">
+      <template slot-scope="{ maxHeight }" slot="content">
+        <Table
+          border
+          :columns="targetWithFlowModelColums"
+          :max-height="maxHeight"
+          :data="modelDataWithFlowNodes"
+          :span-method="modelDataHandleSpan"
+        >
+          <template slot-scope="{ row }" slot="nodeTitle">
+            <div style="margin-bottom: 5px" v-for="title in row.nodeTitle.split(';')" :key="title">
+              {{ title }}
+            </div>
+          </template>
+        </Table>
+      </template>
+    </BaseDrawer>
     <!--节点选择操作弹窗(查看)-->
-    <Modal
+    <BaseDrawer
       :title="$t('select_an_operation')"
-      v-model="workflowActionModalVisible"
-      :footer-hide="true"
-      :mask-closable="false"
+      :visible.sync="workflowActionModalVisible"
+      width="70%"
       :scrollable="true"
+      class="json-viewer"
     >
-      <div class="workflowActionModal-container" style="text-align: center; margin-top: 20px">
-        <Button
-          style="background-color: #bf22e0; color: white"
-          v-show="
-            ['Risky'].includes(currentNodeStatus) && currentInstanceStatusForNodeOperation != 'InternallyTerminated'
-          "
-          @click="workFlowActionHandler('risky')"
-          :loading="btnLoading"
-          >{{ $t('dangerous_confirm') }}</Button
-        >
-        <Button
-          type="primary"
-          v-show="
-            ['NotStarted', 'Risky'].includes(currentNodeStatus) &&
-            currentInstanceStatusForNodeOperation != 'InternallyTerminated'
-          "
-          @click="workFlowActionHandler('dataSelection')"
-          :loading="btnLoading"
-          >{{ $t('data_selection') }}</Button
-        >
-        <Button
-          type="primary"
-          v-show="
-            ['Faulted', 'Timeouted'].includes(currentNodeStatus) &&
-            currentInstanceStatusForNodeOperation != 'InternallyTerminated'
-          "
-          @click="workFlowActionHandler('partialRetry')"
-          :loading="btnLoading"
-          >{{ $t('partial_retry') }}</Button
-        >
-        <Button
-          type="warning"
-          v-show="
-            ['Faulted', 'Timeouted', 'Risky'].includes(currentNodeStatus) &&
-            currentInstanceStatusForNodeOperation != 'InternallyTerminated'
-          "
-          @click="workFlowActionHandler('skip')"
-          :loading="btnLoading"
-          style="margin-left: 10px"
-          >{{ $t('skip') }}</Button
-        >
-        <Button
-          type="info"
-          v-show="['InProgress', 'Faulted', 'Timeouted', 'Completed', 'Risky'].includes(currentNodeStatus)"
-          @click="workFlowActionHandler('showlog')"
-          style="margin-left: 10px"
-          >{{ $t('show_log') }}</Button
-        >
-      </div>
-    </Modal>
-    <!--节点重试/反选弹窗(查看)-->
+      <template slot="content">
+        <HeaderTitle title="节点操作">
+          <div ref="action" style="padding-left: 20px">
+            <Button
+              style="background-color: #bf22e0; color: white"
+              v-if="
+                ['Risky'].includes(currentNodeStatus) && currentInstanceStatusForNodeOperation != 'InternallyTerminated'
+              "
+              @click="workFlowActionHandler('risky')"
+              :loading="btnLoading"
+              >{{ $t('dangerous_confirm') }}</Button
+            >
+            <Button
+              type="primary"
+              v-if="
+                ['NotStarted', 'Risky'].includes(currentNodeStatus) &&
+                currentInstanceStatusForNodeOperation != 'InternallyTerminated'
+              "
+              @click="workFlowActionHandler('dataSelection')"
+              :loading="btnLoading"
+              >{{ $t('data_selection') }}</Button
+            >
+            <Button
+              type="primary"
+              v-if="
+                ['Faulted', 'Timeouted'].includes(currentNodeStatus) &&
+                currentInstanceStatusForNodeOperation != 'InternallyTerminated'
+              "
+              @click="workFlowActionHandler('partialRetry')"
+              :loading="btnLoading"
+              >{{ $t('partial_retry') }}</Button
+            >
+            <Button
+              type="warning"
+              v-if="
+                ['Faulted', 'Timeouted', 'Risky'].includes(currentNodeStatus) &&
+                currentInstanceStatusForNodeOperation != 'InternallyTerminated'
+              "
+              @click="workFlowActionHandler('skip')"
+              :loading="btnLoading"
+              style="margin-left: 10px"
+              >{{ $t('skip') }}</Button
+            >
+            <div v-if="noActionFlag" class="no-data">暂无操作</div>
+          </div>
+        </HeaderTitle>
+        <HeaderTitle title="节点信息">
+          <template v-if="nodeDetailResponseHeader && Object.keys(nodeDetailResponseHeader).length > 0">
+            <json-viewer :value="nodeDetailResponseHeader" :expand-depth="5"></json-viewer>
+          </template>
+          <div v-else class="no-data">暂无数据</div>
+        </HeaderTitle>
+        <HeaderTitle title="API调用">
+          <Table :columns="nodeDetailColumns" tooltip="true" :data="nodeDetailIO"> </Table>
+        </HeaderTitle>
+      </template>
+    </BaseDrawer>
+    <!--节点重试/反选数据弹窗(查看)-->
     <Modal
       :title="currentNodeTitle"
       v-model="retryTargetModalVisible"
       :scrollable="true"
-      :mask="false"
-      :mask-closable="false"
       :ok-text="$t('submit')"
       class="model_target"
-      width="50"
+      :width="1100"
       @on-ok="retryTargetModelConfirm"
     >
       <Input
@@ -293,7 +317,7 @@
       <Table
         border
         ref="selection"
-        max-height="350"
+        max-height="500"
         @on-select="retrySingleSelect"
         @on-select-cancel="retrySingleCancel"
         @on-select-all-cancel="retrySelectAllCancel"
@@ -313,79 +337,61 @@
       </div>
     </Modal>
     <!--左侧编排节点弹窗(新建)-->
-    <Modal
-      :title="currentNodeTitle"
-      v-model="targetModalVisible"
-      :scrollable="true"
-      :mask="false"
-      :mask-closable="false"
-      :ok-text="$t('submit')"
-      class="model_target"
-      width="50"
-    >
-      <Input
-        v-model="tableFilterParam"
-        :placeholder="$t('please_input') + $t('object')"
-        style="width: 400px; margin-bottom: 8px"
-      />
-      {{ catchNodeTableList.length }}
-      <Table
-        border
-        ref="selection"
-        max-height="350"
-        @on-select="singleSelect"
-        @on-select-cancel="singleCancel"
-        @on-select-all-cancel="selectAllCancel"
-        @on-select-all="selectAll"
-        :columns="targetModelColums.filter(col => !col.disabled)"
-        :data="tartetModels"
-      >
-        <template slot-scope="{ row }" slot="action">
-          <div style="display: flex; justify-content: space-around">
-            <Tooltip placement="bottom" theme="light" @on-popper-show="getDetail(row)" :delay="500" :max-width="600">
-              <Button type="info" size="small">{{ $t('view') + $t('object') }}</Button>
-              <div slot="content" style="max-height: 500px; overflow-y: scroll">
-                <!-- <pre style="max-height: 500px"><span>{{rowContent}}</span></pre> -->
-                <json-viewer :value="rowContent || ''" :expand-depth="5"></json-viewer>
-              </div>
-            </Tooltip>
-            <Button
-              v-if="row.nodeType === 'subProc'"
-              type="default"
-              size="small"
-              style="margin-left: 5px"
-              @click="viewSubProcExecution(row)"
-              >{{ $t('fe_view_childFlow') }}</Button
-            >
-          </div>
-        </template>
-      </Table>
-      <div slot="footer">
+    <BaseDrawer :title="currentNodeTitle" :visible.sync="targetModalVisible" width="70%" :scrollable="true">
+      <template slot-scope="{ maxHeight }" slot="content">
+        <Input
+          v-model="tableFilterParam"
+          :placeholder="$t('please_input') + $t('object')"
+          style="width: 400px; margin-bottom: 8px"
+        />
+        <!-- {{ catchNodeTableList.length }} -->
+        <Table
+          border
+          ref="selection"
+          :max-height="maxHeight - 100"
+          @on-select="singleSelect"
+          @on-select-cancel="singleCancel"
+          @on-select-all-cancel="selectAllCancel"
+          @on-select-all="selectAll"
+          :columns="targetModelColums.filter(col => !col.disabled)"
+          :data="tartetModels"
+        >
+          <template slot-scope="{ row }" slot="action">
+            <div style="display: flex; justify-content: space-around">
+              <Button type="info" size="small" @click="modelGraphMouseenterHandler(row)">{{
+                $t('view') + $t('object')
+              }}</Button>
+              <Button
+                v-if="row.nodeType === 'subProc'"
+                type="default"
+                size="small"
+                style="margin-left: 5px"
+                @click="viewSubProcExecution(row)"
+                >{{ $t('fe_view_childFlow') }}</Button
+              >
+            </div>
+          </template>
+        </Table>
         <span v-if="isNodeCanBindData" style="font-size: 12px; color: red; margin-right: 8px">{{
           $t('be_dynamic_binding_warning')
         }}</span>
+      </template>
+      <template slot="footer">
         <Button @click="targetModalVisible = false">{{ $t('cancel') }}</Button>
         <Button type="primary" :disabled="isNodeCanBindData" @click="targetModelConfirm(false)">{{
           $t('submit')
         }}</Button>
-      </div>
-    </Modal>
-    <!--日志查看弹框(查看)-->
+      </template>
+    </BaseDrawer>
+    <!--对象查看弹框-->
     <Modal v-model="showNodeDetail" :fullscreen="nodeDetailFullscreen" width="1000" :styles="{ top: '50px' }">
       <p slot="header">
         <span>{{ nodeTitle }}</span>
         <Icon v-if="!nodeDetailFullscreen" @click="zoomModal" class="header-icon" type="ios-expand" />
         <Icon v-else @click="nodeDetailFullscreen = false" class="header-icon" type="ios-contract" />
       </p>
-      <div v-if="!isTargetNodeDetail" :style="[{ overflow: 'auto' }, fullscreenModalContentStyle]">
-        <h5>Data:</h5>
-        <pre style="margin: 0 6px 6px" v-html="nodeDetailResponseHeader"></pre>
-        <h5>requestObjects:</h5>
-        <Table :columns="nodeDetailColumns" :max-height="tableMaxHeight" tooltip="true" :data="nodeDetailIO"> </Table>
-      </div>
-      <div v-else :style="[{ overflow: 'auto', margin: '0 6px 6px' }, fullscreenModalContentStyle]">
-        <!-- v-html="nodeDetail" -->
-        <json-viewer :value="nodeDetail" :expand-depth="5"></json-viewer>
+      <div :style="[{ overflow: 'auto', margin: '0 6px 6px' }, fullscreenModalContentStyle]">
+        <json-viewer :value="nodeDetail || {}" :expand-depth="5"></json-viewer>
       </div>
     </Modal>
     <!--高危确认二次弹框(查看)-->
@@ -560,16 +566,23 @@ import {
   getBranchByNodeId,
   executeBranch,
   pauseAndContinueFlow,
-  getCurrentUserRoles
+  getCurrentUserRoles,
+  collectFlow,
+  unCollectFlow
 } from '@/api/server'
 import JsonViewer from 'vue-json-viewer'
+import HeaderTitle from '@/pages/components/header-title.vue'
+import BaseDrawer from '@/pages/components/base-drawer.vue'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
 import { addEvent, removeEvent } from '@/pages/util/event.js'
+import { debounce } from '@/const/util'
 export default {
   components: {
-    JsonViewer
+    JsonViewer,
+    HeaderTitle,
+    BaseDrawer
   },
   data () {
     return {
@@ -594,10 +607,9 @@ export default {
       btnLoading: false,
       currentModelNodeRefs: [],
       showNodeDetail: false,
-      isTargetNodeDetail: false,
       nodeDetailFullscreen: false,
-      fullscreenModalContentStyle: { 'max-height': '400px' },
-      tableMaxHeight: 250,
+      fullscreenModalContentStyle: { 'max-height': '500px' },
+      tableMaxHeight: 400,
       nodeTitle: null,
       nodeDetail: null,
       graph: {},
@@ -610,8 +622,9 @@ export default {
       allFlows: [],
       allTarget: [],
       currentFlowNodeId: '',
-      selectedFlowInstance: '',
-      selectedFlow: '',
+      selectedFlowInstance: '', // 选择的编排任务
+      selectedFlow: '', // 选的的编排
+      selectedFlowObj: {},
       selectedTarget: '',
       showExcution: true,
       isExecuteActive: false,
@@ -650,7 +663,7 @@ export default {
         {
           title: this.$t('table_action'),
           key: 'action',
-          width: 150,
+          width: 200,
           align: 'center',
           render: (h, params) => {
             return (
@@ -668,6 +681,7 @@ export default {
                   <Button
                     color="#808695"
                     size="small"
+                    style="margin-left:5px;"
                     onClick={() => {
                       this.viewSubProcExecution(params.row)
                     }}
@@ -792,24 +806,22 @@ export default {
             const jsonData = params.row.inputs
             return (
               <div style="white-space: nowrap; overflow: auto;">
-                [
                 {jsonData.map((data, index) => (
-                  <div key={index}>
+                  <div key={index} style="margin-left:5px;">
                     {'{'}
                     {Object.entries(data).map(([key, value]) => (
-                      <div>
+                      <div style="margin-left:5px;">
                         <Icon
                           type="md-search"
                           onClick={() => this.handleClick(key, value)}
                           style="cursor:pointer;color:#2d8cf0"
                         />
-                        {key}: {value}
+                        {key}: <span style="color:#42b983;">{value}</span>
                       </div>
                     ))}
-                    {'},'}
+                    {'}'}
                   </div>
                 ))}
-                ]
               </div>
             )
           }
@@ -818,16 +830,27 @@ export default {
           title: 'outputs',
           key: 'outputs',
           render: (h, params) => {
-            const strOutput = JSON.stringify(params.row.outputs).split(',').join(',<br/>')
-            return h(
-              'div',
-              {
-                domProps: {
-                  innerHTML: `<pre>${strOutput}</pre>`
-                }
-              },
-              []
-            )
+            const strOutput = params.row.outputs
+            const noData = strOutput.every(i => i && Object.keys(i).length === 0)
+            if (noData) {
+              return <span>-</span>
+            } else {
+              return (
+                <div style="white-space: nowrap; overflow: auto;">
+                  {strOutput.map((data, index) => (
+                    <div key={index} style="margin-left:5px;">
+                      {'{'}
+                      {Object.entries(data).map(([key, value]) => (
+                        <div style="margin-left:5px;">
+                          {key}: <span style="color:#42b983;">{value}</span>
+                        </div>
+                      ))}
+                      {'}'}
+                    </div>
+                  ))}
+                </div>
+              )
+            }
           }
         }
       ],
@@ -937,7 +960,8 @@ export default {
       isShowNonOwnerModal: false, // 查询非本人用户编排提示
       flowOwner: '',
       subProcId: '', // 新建执行预览子编排从链接上传过来的子编排ID
-      subProc: this.$route.query.subProc || '' // 查看执行链接传参 main主编排 sub子编排
+      subProc: this.$route.query.subProc || '', // 执行详情是否为子编排 main主编排 sub子编排
+      noActionFlag: false
     }
   },
   computed: {
@@ -1040,7 +1064,22 @@ export default {
       })
     },
     nodeDetailFullscreen: function (tag) {
-      tag ? (this.fullscreenModalContentStyle = {}) : (this.fullscreenModalContentStyle['max-height'] = '400px')
+      tag ? (this.fullscreenModalContentStyle = {}) : (this.fullscreenModalContentStyle['max-height'] = '500px')
+    },
+    // 节点操作弹窗打开，直接查看日志信息
+    workflowActionModalVisible (val) {
+      if (val === true) {
+        this.pluginInfo = ''
+        this.nodeDetailResponseHeader = null
+        this.nodeDetailIO = []
+        this.flowGraphMouseenterHandler(this.currentFailedNodeID)
+        this.noActionFlag = false
+        this.$nextTick(() => {
+          if (this.$refs.action.children.length === 0) {
+            this.noActionFlag = true
+          }
+        })
+      }
     }
   },
   mounted () {
@@ -1075,12 +1114,37 @@ export default {
     localStorage.removeItem('history-execution-search-params')
   },
   methods: {
-    // 子编排节点支持跳转预览子编排
+    handleBack () {
+      this.$router.back()
+    },
+    // 收藏or取消收藏
+    handleStar: debounce(async function ({ procDefId, collected }) {
+      const method = collected ? unCollectFlow : collectFlow
+      const params = {
+        procDefId: procDefId
+      }
+      const { status } = await method(params)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: this.$t('successful'),
+          desc: this.$t('successful')
+        })
+        this.selectedFlowObj.collected = !collected
+      }
+    }, 300),
+    // 【新建执行】子编排节点支持跳转预览子编排详情
     viewSubProcExecution (row) {
       window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
       const path = `${window.location.origin}/#/implementation/workflow-execution/normal-create?subProcId=${row.subProcDefId}&entityDataId=${row.entityDataId}&sessionId=${row.subPreviewSessionId}`
       window.open(path, '_blank')
     },
+    // 【执行详情】子编排调用API列表支持跳转预览子编排详情
+    viewSubProcExecutionDetail (id) {
+      window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
+      const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${id}&subProc=sub`
+      window.open(path, '_blank')
+    },
+    // 查看日志调用API详情
     async handleClick (key, value) {
       this.attrValue.attr = key
       const params = {
@@ -1494,7 +1558,7 @@ export default {
           const params = {
             id: routeFlowInstanceId,
             pageable: {
-              startIndex: 1,
+              startIndex: 0,
               pageSize: 500
             }
           }
@@ -1525,6 +1589,7 @@ export default {
           if (s > t) return -1
           if (s < t) return 1
         })
+        this.selectedFlowObj = this.allFlows.find(i => i.procDefId === this.selectedFlow) || {}
       }
     },
     clearFlow () {
@@ -1535,6 +1600,7 @@ export default {
       this.currentFlowNodeId = ''
       this.currentModelNodeRefs = []
       this.getFlowOutlineData(this.selectedFlow)
+      this.selectedFlowObj = this.allFlows.find(i => i.procDefId === this.selectedFlow) || {}
       if (this.selectedFlow && this.isEnqueryPage === false) {
         this.showExcution = true
         this.selectedTarget = ''
@@ -1823,11 +1889,9 @@ export default {
           //   .join(',<br/>')
           this.nodeDetail = data
         }
-        this.isTargetNodeDetail = true
         this.nodeDetailFullscreen = false
         this.showNodeDetail = true
         this.nodeDetailFullscreen = false
-        this.tableMaxHeight = 250
       }, 0)
     },
     ResetFlow () {
@@ -2169,6 +2233,7 @@ export default {
         })
       }
     },
+    // 暂时屏蔽了，没起作用
     normalHandler (e) {
       this.flowGraphMouseenterHandler(e.target.parentNode.getAttribute('id'))
     },
@@ -2329,32 +2394,59 @@ export default {
         removeEvent('.flow', 'click', this.flowNodesClickHandler)
       }
     },
+    // 查看日志
     flowGraphMouseenterHandler (id) {
-      // Task_0f9a25l
       clearTimeout(this.flowDetailTimer)
       this.flowDetailTimer = setTimeout(async () => {
         const found = this.flowData.flowNodes.find(_ => _.nodeId === id)
         this.nodeTitle = (found.orderedNo ? found.orderedNo + '、' : '') + found.nodeName
         const { status, data } = await getNodeContext(found.procInstId, found.id)
         if (status === 'OK') {
-          this.workflowActionModalVisible = false
           this.nodeDetailResponseHeader = JSON.parse(JSON.stringify(data))
           this.pluginInfo = this.nodeDetailResponseHeader.pluginInfo
           delete this.nodeDetailResponseHeader.requestObjects
-          this.nodeDetailResponseHeader = JSON.stringify(this.replaceParams(this.nodeDetailResponseHeader))
-            .split(',')
-            .join(',<br/>')
           this.nodeDetailIO = data.requestObjects.map(ro => {
             ro['inputs'] = this.replaceParams(ro['inputs'])
             ro['outputs'] = this.replaceParams(ro['outputs'])
             return ro
           })
+          // 日志input output表格添加子编排查看按钮
+          if (this.nodeDetailResponseHeader && this.nodeDetailResponseHeader.nodeType === 'subProc') {
+            const hasFlag = this.nodeDetailColumns.some(i => i.key === 'procDefId')
+            if (!hasFlag) {
+              this.nodeDetailColumns.push({
+                title: this.$t('child_workflow'),
+                key: 'procDefId',
+                width: 200,
+                render: (h, params) => {
+                  let procDefName = ''
+                  let procInsId = ''
+                  let version = ''
+                  if (Array.isArray(params.row.outputs) && params.row.outputs.length > 0) {
+                    procDefName = params.row.outputs[0].procDefName || '-'
+                    procInsId = params.row.outputs[0].procInsId || ''
+                    version = params.row.outputs[0].version || ''
+                  }
+                  return (
+                    <span
+                      style="cursor:pointer;color:#5cadff;"
+                      onClick={() => {
+                        this.viewSubProcExecutionDetail(procInsId)
+                      }}
+                    >
+                      {procDefName}
+                      <Tag style="margin-left:2px">{version}</Tag>
+                    </span>
+                  )
+                }
+              })
+            }
+          } else {
+            this.nodeDetailColumns = this.nodeDetailColumns.filter(i => i.key !== 'procDefId')
+          }
         }
-        this.nodeDetailFullscreen = false
-        this.isTargetNodeDetail = false
-        this.showNodeDetail = true
-        this.tableMaxHeight = 250
-      }, 0)
+        this.tableMaxHeight = 400
+      }, 200)
     },
     replaceParams (obj) {
       let placeholder = new Array(16).fill('&nbsp;')
@@ -2488,60 +2580,97 @@ export default {
 }
 </script>
 <style lang="scss">
-.workflow-execution {
-  .ivu-select-dropdown {
-    max-height: 400px !important;
-  }
+.platform-base-drawer .jv-container .jv-code {
+  overflow: hidden;
+  padding: 0px 20px;
 }
 </style>
 <style lang="scss" scoped>
 .workflow-execution {
-  body {
-    color: #e5f173; //#15a043;
+  &-header {
+    display: flex;
   }
-  .pages ::v-deep .ivu-select-dropdown {
-    height: 500px !important;
+  .back-header {
+    width: 30px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    .icon {
+      cursor: pointer;
+      width: 28px;
+      height: 24px;
+      color: #fff;
+      border-radius: 2px;
+      background: #2d8cf0;
+    }
+    .name {
+      font-size: 16px;
+      margin-left: 16px;
+      display: flex;
+      align-items: center;
+    }
   }
-  .header-icon {
-    margin: 3px 40px 0 0 !important;
+  .form {
+    flex: 1;
   }
-  #graph-container {
-    border: 1px solid #d3cece;
-    border-radius: 3px;
-    padding: 5px;
-    height: calc(100vh - 180px);
-  }
-  .model_target .ivu-modal-content-drag {
-    right: 40px;
-  }
-  .pages ::v-deep .ivu-card-body {
-    padding: 8px;
-  }
-  .ivu-form-item {
-    margin-bottom: 0 !important;
-    padding-left: 15px;
-  }
-  .excution-serach {
-    margin: 5px 6px 0 0;
-  }
-  .graph-container {
-    overflow: auto;
-  }
-  .header-icon {
-    float: right;
-    margin: 3px 20px 0 0;
-  }
-  .reset-button {
-    position: absolute;
-    right: 20px;
-    bottom: 5px;
-    font-size: 12px;
-  }
-  .set-data-button {
-    position: absolute;
-    left: 10px;
-    top: 5px;
-    font-size: 12px;
-  }
+}
+body {
+  color: #e5f173; //#15a043;
+}
+.pages ::v-deep .ivu-select-dropdown {
+  height: 500px !important;
+}
+::v-deep .jv-code {
+  padding: 10px 10px !important;
+}
+.header-icon {
+  margin: 3px 40px 0 0 !important;
+}
+#graph-container {
+  border: 1px solid #d3cece;
+  border-radius: 3px;
+  padding: 5px;
+  height: calc(100vh - 180px);
+}
+.model_target .ivu-modal-content-drag {
+  right: 40px;
+}
+.pages ::v-deep .ivu-card-body {
+  padding: 8px;
+}
+.ivu-form-item {
+  margin-bottom: 0 !important;
+  padding-left: 15px;
+}
+.excution-serach {
+  margin: 5px 6px 0 0;
+}
+.graph-container {
+  overflow: auto;
+}
+.header-icon {
+  float: right;
+  margin: 3px 20px 0 0;
+}
+.reset-button {
+  position: absolute;
+  right: 20px;
+  bottom: 5px;
+  font-size: 12px;
+}
+.set-data-title {
+  position: absolute;
+  left: 10px;
+  top: 5px;
+  font-size: 14px;
+}
+.set-data-button {
+  position: absolute;
+  right: 10px;
+  top: 5px;
+  font-size: 12px;
+}
+.no-data {
+  padding: 10px;
 }
 </style>

@@ -276,28 +276,33 @@ export default {
       handler (val) {
         if (val === 'sub') {
           // 添加主编排列
-          const hasFlag = this.tableColumns.some(i => i.key === 'parentProcInsId')
+          const hasFlag = this.tableColumns.some(i => i.key === 'parentProcIns')
           if (!hasFlag) {
             this.tableColumns.splice(3, 0, {
               title: this.$t('main_workflow'),
               minWidth: 180,
-              key: 'parentProcInsId',
+              key: 'parentProcIns',
               render: (h, params) => {
-                return (
-                  <span
-                    style="cursor:pointer;color:#5cadff;"
-                    onClick={() => {
-                      this.viewParentFlowGraph(params.row)
-                    }}
-                  >
-                    {params.row.parentProcInsId || '-'}
-                  </span>
-                )
+                if (params.row.parentProcIns.procDefName) {
+                  return (
+                    <span
+                      style="cursor:pointer;color:#5cadff;"
+                      onClick={() => {
+                        this.viewParentFlowGraph(params.row)
+                      }}
+                    >
+                      {params.row.parentProcIns.procDefName}
+                      <Tag style="margin-left:2px">{params.row.parentProcIns.version}</Tag>
+                    </span>
+                  )
+                } else {
+                  return <span>-</span>
+                }
               }
             })
           }
         } else if (val === 'main') {
-          this.tableColumns = this.tableColumns.filter(i => i.key !== 'parentProcInsId')
+          this.tableColumns = this.tableColumns.filter(i => i.key !== 'parentProcIns')
         }
       },
       immediate: true
@@ -313,10 +318,11 @@ export default {
     // 查看主编排
     viewParentFlowGraph (row) {
       window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
-      const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${row.parentProcInsId}`
+      const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${row.parentProcIns.procInsId}`
       window.open(path, '_blank')
     },
     handleQuery () {
+      this.pageable.current = 1
       this.getProcessInstances()
     },
     // #region 暂停、继续编排
@@ -408,6 +414,7 @@ export default {
       }
     },
     changePageSize (pageSize) {
+      this.pageable.current = 1
       this.pageable.pageSize = pageSize
       this.getProcessInstances()
     },
