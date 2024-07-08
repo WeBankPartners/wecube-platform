@@ -58,7 +58,8 @@ export default {
   data () {
     return {
       nodeHasAlert: false,
-      flowListTab: '',
+      flowListTab: '', // 对应编排列表状态tab
+      subProc: '', // 对应编排列表是否主编排tab
       editFlow: true, // 在查看时隐藏按钮
       itemCustomInfo: {}
     }
@@ -68,6 +69,7 @@ export default {
       this.nodeHasAlert = false
       this.editFlow = editFlow
       this.flowListTab = flowListTab
+      this.subProc = data.subProc
       const defaultNode = {
         id: '',
         label: '', // 编排名称
@@ -109,7 +111,10 @@ export default {
       const { status } = await flowRelease(this.itemCustomInfo.id)
       if (status === 'OK') {
         this.$Message.success(this.$t('release_flow') + this.$t('action_successful'))
-        this.$router.push({ path: '/collaboration/workflow', query: { flowListTab: 'deployed' } })
+        this.$router.push({
+          path: '/collaboration/workflow',
+          query: { flowListTab: 'deployed', subProc: this.subProc }
+        })
       }
     },
     async changeStatus (statusCode, actionTip) {
@@ -188,7 +193,10 @@ export default {
         })
     },
     backToFlowList () {
-      this.$router.push({ path: '/collaboration/workflow', query: { flowListTab: this.flowListTab } })
+      this.$router.push({
+        path: '/collaboration/workflow',
+        query: { flowListTab: this.flowListTab, subProc: this.subProc }
+      })
     },
     hideReleaseBtn () {
       this.nodeHasAlert = true

@@ -76,6 +76,11 @@ func init() {
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/instances", Method: "GET", HandlerFunc: plugin.GetPluginRunningInstances, ApiCode: "get-plugin-running-instance"},
 		&handlerFuncObj{Url: "/packages/name/list", Method: "GET", HandlerFunc: plugin.GetPackageNames, ApiCode: "get-package-names"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/resources/s3/files", Method: "GET", HandlerFunc: plugin.GetPluginS3Files, ApiCode: "get-plugin-s3-files"},
+		&handlerFuncObj{Url: "/packages/ui/register", Method: "POST", HandlerFunc: plugin.UIRegisterPackage, ApiCode: "ui-register-package"},
+		&handlerFuncObj{Url: "/packages/register-done", Method: "POST", HandlerFunc: plugin.RegisterPackageDone, ApiCode: "register-package-done"},
+		&handlerFuncObj{Url: "/plugins/packages/version/get", Method: "GET", HandlerFunc: plugin.GetPluginConfigVersionList, ApiCode: "get-package-config-version"},
+		&handlerFuncObj{Url: "/plugins/packages/version/inherit", Method: "POST", HandlerFunc: plugin.InheritPluginConfig, ApiCode: "inherit-package-config"},
+
 		// plugin-config
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugin-configs", Method: "GET", HandlerFunc: plugin.GetPluginConfigs, ApiCode: "get-plugin-configs"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugins", Method: "GET", HandlerFunc: plugin.GetPluginConfigsWithInterfaces, ApiCode: "get-plugin-configs-with-interfaces"},
@@ -88,6 +93,7 @@ func init() {
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugin-config-outlines", Method: "GET", HandlerFunc: plugin.GetBatchPluginConfigs, ApiCode: "get-batch-plugin-configs"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugin-configs/enable-in-batch", Method: "POST", HandlerFunc: plugin.BatchEnablePluginConfig, ApiCode: "batch-enable-plugin-configs"},
 		&handlerFuncObj{Url: "/plugins/packages/export/:pluginPackageId", Method: "GET", HandlerFunc: plugin.ExportPluginConfigs, ApiCode: "export-plugin-configs"},
+		&handlerFuncObj{Url: "/plugins/packages/export-choose/:pluginPackageId", Method: "POST", HandlerFunc: plugin.ExportPluginConfigs, ApiCode: "export-choose-plugin-configs"},
 		&handlerFuncObj{Url: "/plugins/packages/import/:pluginPackageId", Method: "POST", HandlerFunc: plugin.ImportPluginConfigs, ApiCode: "import-plugin-configs"},
 		&handlerFuncObj{Url: "/packages/decommission/:pluginPackageId", Method: "POST", HandlerFunc: plugin.DeletePlugin, ApiCode: "delete-plugin"},
 		&handlerFuncObj{Url: "/plugins/query-by-target-entity", Method: "POST", HandlerFunc: plugin.QueryPluginByTargetEntity, ApiCode: "query-plugin-by-target-entity"},
@@ -155,6 +161,7 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/parent/get", Method: "POST", HandlerFunc: process.GetProcDefParentList, ApiCode: "get-process-definition-parent"},
 		&handlerFuncObj{Url: "/process/definitions/collect/add", Method: "POST", HandlerFunc: process.AddProcDefCollect, ApiCode: "add-proc-collect"},
 		&handlerFuncObj{Url: "/process/definitions/collect/del", Method: "POST", HandlerFunc: process.DelProcDefCollect, ApiCode: "del-proc-collect"},
+		&handlerFuncObj{Url: "/process/definitions/sub/list", Method: "POST", HandlerFunc: process.SubProcDefList, ApiCode: "sub-proc-list"},
 
 		// process runtime
 		&handlerFuncObj{Url: "/process/definitions", Method: "GET", HandlerFunc: process.ProcDefList, ApiCode: "list-process-def"},

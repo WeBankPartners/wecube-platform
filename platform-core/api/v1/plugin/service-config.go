@@ -266,7 +266,15 @@ func ExportPluginConfigs(c *gin.Context) {
 		return
 	}
 
-	retData, err := database.ExportPluginConfigs(c, pluginPackageId)
+	var reqParam []*models.PluginConfigsBatchEnable
+	if c.Request.Method == http.MethodPost {
+		if err = c.ShouldBindJSON(&reqParam); err != nil {
+			middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+			return
+		}
+	}
+
+	retData, err := database.ExportPluginConfigs(c, pluginPackageId, reqParam)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return

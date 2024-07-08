@@ -216,7 +216,7 @@ export default {
         })
       }
       this.$router.push({
-        path: '/implementation/workflow-execution/create-execution',
+        path: '/implementation/batch-execution/create-execution',
         query: {
           id: row.id,
           from: 'template'

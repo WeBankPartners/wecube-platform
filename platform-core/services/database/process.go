@@ -17,7 +17,7 @@ import (
 )
 
 // QueryProcessDefinitionList 查询编排列表
-func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDefinitionParam, userToken, language string) (list []*models.ProcDefQueryDto, err error) {
+func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDefinitionParam, userToken, language, operator string) (list []*models.ProcDefQueryDto, err error) {
 	var procDefList, pList, filterProcDefList []*models.ProcDef
 	var permissionList []*models.ProcDefPermission
 	var roleProcDefMap = make(map[string][]*models.ProcDefDto)
@@ -52,6 +52,10 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	}
 	response, err = remote.RetrieveAllLocalRoles("Y", userToken, language, false)
 	if err != nil {
+		return
+	}
+	collectProcDefMap := make(map[string]string)
+	if collectProcDefMap, err = getUserProcDefCollectMap(ctx, operator); err != nil {
 		return
 	}
 	if len(response.Data) > 0 {
@@ -112,7 +116,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 				roleProcDefMap[manageRole] = make([]*models.ProcDefDto, 0)
 				allManageRoles = append(allManageRoles, manageRole)
 			}
-			roleProcDefMap[manageRole] = append(roleProcDefMap[manageRole], models.BuildProcDefDto(procDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay, enabledCreated))
+			roleProcDefMap[manageRole] = append(roleProcDefMap[manageRole], models.BuildProcDefDto(procDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay, enabledCreated, collectProcDefMap))
 		}
 	}
 	// 角色排序
@@ -288,9 +292,9 @@ func execCopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, nod
 	var actions []*db.ExecAction
 	// 插入编排
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_def (id,`key`,name,root_entity,status,tags,for_plugin,scene," +
-		"conflict_check,created_by,version,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{newProcDefId,
+		"conflict_check,created_by,version,sub_proc,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{newProcDefId,
 		procDef.Key, procDef.Name, procDef.RootEntity, models.Draft, procDef.Tags, procDef.ForPlugin, procDef.Scene,
-		procDef.ConflictCheck, operator, procDef.Version, currTime, operator, currTime}})
+		procDef.ConflictCheck, operator, procDef.Version, procDef.SubProc, currTime, operator, currTime}})
 
 	// 插入权限
 	if len(permissionList) > 0 {
@@ -1009,6 +1013,10 @@ func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where
 		where = where + " and updated_time >= ? and updated_time <= ?"
 		queryParam = append(queryParam, []interface{}{param.UpdatedTimeStart, param.UpdatedTimeEnd}...)
 	}
+	if param.CreatedTimeStart != "" && param.CreatedTimeEnd != "" {
+		where = where + " and created_time >= ? and created_time <= ?"
+		queryParam = append(queryParam, []interface{}{param.CreatedTimeStart, param.CreatedTimeEnd}...)
+	}
 	if param.CreatedBy != "" {
 		where = where + " and  created_by like '%" + param.CreatedBy + "%'"
 	}
@@ -1091,6 +1099,19 @@ func DelProcDefCollect(ctx context.Context, procDefId, operator string) (err err
 	_, err = db.MysqlEngine.Context(ctx).Exec("delete from proc_def_collect where proc_def_id=? and user_id=?", procDefId, operator)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func getUserProcDefCollectMap(ctx context.Context, userId string) (procDefMap map[string]string, err error) {
+	var collectRows []*models.ProcDefCollect
+	err = db.MysqlEngine.Context(ctx).SQL("select proc_def_id from proc_def_collect where user_id=?", userId).Find(&collectRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	procDefMap = make(map[string]string)
+	for _, row := range collectRows {
+		procDefMap[row.ProcDefId] = row.ProcDefId
 	}
 	return
 }

@@ -176,10 +176,12 @@
           <p>{{ $t('forkNodetip2') }}</p>
         </div>
       </Tooltip>
+      <!--人工-->
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
           :draggable="editFlow && subProc === 0"
+          :style="{ cursor: subProc === 1 ? 'not-allowed' : 'move' }"
           node-type="human"
           :data-label="$t('artificial')"
           data-shape="rect-node"
@@ -253,9 +255,11 @@
           <p>{{ $t('dataNodetip1') }}</p>
         </div>
       </Tooltip>
+      <!--子编排-->
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
+          :style="{ cursor: subProc === 1 ? 'not-allowed' : 'move' }"
           :draggable="editFlow && subProc === 0"
           node-type="subProc"
           data-label="子编排"

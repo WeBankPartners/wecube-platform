@@ -25,6 +25,7 @@ type ProcDefListObj struct {
 	Scene          string             `json:"scene"`
 	FlowNodes      []*ProcDefFlowNode `json:"flowNodes"`
 	NodeLinks      []*ProcDefNodeLink `json:"nodeLinks"`
+	Collected      bool               `json:"collected"`
 }
 
 func (p *ProcDefListObj) Parse(input *ProcDef) {
@@ -199,7 +200,7 @@ type ProcInsDetail struct {
 	TaskNodeInstances []*ProcInsNodeDetail `json:"taskNodeInstances"`
 	Version           string               `json:"version"`
 	NodeLinks         []*ProcDefNodeLink   `json:"nodeLinks"`
-	ParentProcInsId   string               `json:"parentProcInsId"`
+	ParentProcIns     *ParentProcInsObj    `json:"parentProcIns"`
 	UpdatedBy         string               `json:"updatedBy"`
 	UpdatedTime       string               `json:"updatedTime"`
 }
@@ -562,4 +563,18 @@ type ProcContextSubProcRow struct {
 	ProcDefId    string    `xorm:"proc_def_id"`
 	ProcDefName  string    `xorm:"proc_def_name"`
 	CreatedTime  time.Time `xorm:"created_time"`
+	Version      string    `xorm:"version"`
+	Status       string    `xorm:"status"`
+	ErrorMessage string    `xorm:"error_message"`
+}
+
+type SubProcDefListParam struct {
+	EntityExpr string `json:"entityExpr"`
+}
+
+type ParentProcInsObj struct {
+	Id          string `json:"-" xorm:"id"`
+	ProcInsId   string `json:"procInsId" xorm:"proc_ins_id"`
+	ProcDefName string `json:"procDefName" xorm:"proc_def_name"`
+	Version     string `json:"version" xorm:"version"`
 }

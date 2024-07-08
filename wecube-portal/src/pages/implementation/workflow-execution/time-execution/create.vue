@@ -9,6 +9,7 @@
       ></Search>
       <div class="button-group">
         <Button type="success" class="btn-right" @click="setTimedExecution">
+          <Icon type="md-add" :size="18" />
           {{ $t('full_word_add') }}
         </Button>
         <Button type="info" @click="exportData">
@@ -17,112 +18,126 @@
         </Button>
       </div>
     </div>
-    <Table size="small" ref="table" :columns="tableColumns" :max-height="MODALHEIGHT" :data="tableData"></Table>
-    <Modal v-model="showModal" :fullscreen="fullscreen" width="1000" footer-hide>
-      <p slot="header">
-        <span>{{ $t('be_details') }}</span>
-        <Icon
-          v-if="!fullscreen"
-          @click="fullscreen = true"
-          style="float: right; margin: 3px 40px 0 0 !important"
-          type="ios-expand"
-        />
-        <Icon
-          v-else
-          @click="fullscreen = false"
-          style="float: right; margin: 3px 40px 0 0 !important"
-          type="ios-contract"
-        />
-      </p>
-      <Table :columns="detailTableColums" size="small" :max-height="MODALHEIGHT" :data="detailTableData"></Table>
-    </Modal>
-    <Modal v-model="timeConfig.isShow" width="650" :title="$t('timed_execution')">
-      <Form :label-width="100" label-colon>
-        <FormItem :label="$t('flow_name')">
-          <Select v-model="timeConfig.params.selectedFlowInstance" filterable>
-            <Option
-              v-for="item in timeConfig.allFlowInstances"
-              :value="item.id"
-              :key="item.id"
-              :label="
-                item.procInstName +
-                ' ' +
-                item.entityDisplayName +
-                ' ' +
-                (item.createdTime || '0000-00-00 00:00:00') +
-                ' ' +
-                (item.operator || 'operator')
+    <Table
+      size="small"
+      ref="table"
+      :columns="tableColumns"
+      :max-height="MODALHEIGHT"
+      :data="tableData"
+      :loading="loading"
+    ></Table>
+    <!--查看详情-->
+    <BaseDrawer :title="$t('be_details')" :visible.sync="showModal" width="70%">
+      <template slot-scope="{ maxHeight }" slot="content">
+        <Table :columns="detailTableColums" size="small" :max-height="maxHeight" :data="detailTableData"></Table>
+      </template>
+    </BaseDrawer>
+    <!--新增定时执行-->
+    <BaseDrawer :title="$t('full_word_add') + $t('timed_execution')" :visible.sync="timeConfig.isShow" :width="1000">
+      <template slot="content">
+        <Form :label-width="100" label-colon>
+          <!--任务名-->
+          <FormItem :label="$t('fe_task_name')" required>
+            <Input v-model="timeConfig.params.name" :maxlength="50" show-word-limit :placeholder="$t('fe_task_name')" />
+          </FormItem>
+          <!--执行记录-->
+          <FormItem :label="$t('execution_history')" required>
+            <Select v-model="timeConfig.params.selectedFlowInstance" filterable>
+              <Option
+                v-for="item in timeConfig.allFlowInstances"
+                :value="item.id"
+                :key="item.id"
+                :label="
+                  item.procInstName +
+                  ' ' +
+                  item.entityDisplayName +
+                  ' ' +
+                  (item.createdTime || '0000-00-00 00:00:00') +
+                  ' ' +
+                  getStatusStyleAndName(item.status, 'label')
+                "
+              >
+                <div style="display: flex; justify-content: space-between">
+                  <div>
+                    <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
+                    <span style="color: #2b85e4">{{ '[' + item.version + '] ' }}</span>
+                    <Tag style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</Tag>
+                  </div>
+                  <div style="display: flex; align-items: center">
+                    <span style="color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
+                    <span style="color: #ccc">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
+                    <div style="width: 100px">
+                      <span :style="getStatusStyleAndName(item.status, 'style')">{{
+                        getStatusStyleAndName(item.status, 'label')
+                      }}</span>
+                    </div>
+                  </div>
+                </div>
+              </Option>
+            </Select>
+          </FormItem>
+          <FormItem :label="$t('timing_type')" required>
+            <Select v-model="timeConfig.params.scheduleMode" @on-change="timeConfig.params.time = '00:00:00'">
+              <Option v-for="item in timeConfig.scheduleModeOptions" :key="item.value" :value="item.value">{{
+                item.label
+              }}</Option>
+            </Select>
+          </FormItem>
+          <FormItem
+            v-if="['Monthly', 'Weekly'].includes(timeConfig.params.scheduleMode)"
+            :label="timeConfig.params.scheduleMode === 'Monthly' ? $t('day') : $t('week')"
+            required
+          >
+            <Select v-model="timeConfig.params.cycle">
+              <Option
+                v-for="item in timeConfig.modeToValue[timeConfig.params.scheduleMode]"
+                :key="item.value"
+                :value="item.value"
+                >{{ item.label }}</Option
+              >
+            </Select>
+          </FormItem>
+          <FormItem :label="$t('execute_date')" required>
+            <TimePicker
+              :value="timeConfig.params.time"
+              @on-change="changeTimePicker"
+              style="width: 100%"
+              :disabled-hours="
+                timeConfig.params.scheduleMode === 'Hourly'
+                  ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+                  : []
               "
-            >
-              <span>
-                <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
-                <span style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</span>
-                <span style="color: #ccc; padding-left: 8px; float: right">{{ item.status }}</span>
-                <span style="color: #ccc; float: right">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
-                <span style="float: right; color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
-              </span>
-            </Option>
-          </Select>
-        </FormItem>
-        <FormItem :label="$t('timing_type')">
-          <Select v-model="timeConfig.params.scheduleMode" @on-change="timeConfig.params.time = '00:00:00'">
-            <Option v-for="item in timeConfig.scheduleModeOptions" :key="item.value" :value="item.value">{{
-              item.label
-            }}</Option>
-          </Select>
-        </FormItem>
-        <FormItem
-          v-if="['Monthly', 'Weekly'].includes(timeConfig.params.scheduleMode)"
-          :label="timeConfig.params.scheduleMode === 'Monthly' ? $t('day') : $t('week')"
-        >
-          <Select v-model="timeConfig.params.cycle">
-            <Option
-              v-for="item in timeConfig.modeToValue[timeConfig.params.scheduleMode]"
-              :key="item.value"
-              :value="item.value"
-              >{{ item.label }}</Option
-            >
-          </Select>
-        </FormItem>
-        <FormItem :label="$t('execute_date')">
-          <TimePicker
-            :value="timeConfig.params.time"
-            @on-change="changeTimePicker"
-            style="width: 100%"
-            :disabled-hours="
-              timeConfig.params.scheduleMode === 'Hourly'
-                ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
-                : []
-            "
-            :clearable="false"
-            format="HH:mm:ss"
-          ></TimePicker>
-        </FormItem>
-        <FormItem :label="$t('be_mgmt_role')">
-          <Select v-model="timeConfig.params.role">
-            <Option v-for="item in timeConfig.currentUserRoles" :key="item.name" :value="item.name">{{
-              item.displayName
-            }}</Option>
-          </Select>
-        </FormItem>
-        <FormItem :label="$t('be_email_push')">
-          <Select v-model="timeConfig.params.mailMode">
-            <Option v-for="item in timeConfig.mailModeOptions" :key="item.value" :value="item.value">{{
-              item.label
-            }}</Option>
-          </Select>
-        </FormItem>
-      </Form>
-      <div slot="footer">
-        <Button type="text" @click="timeConfig.isShow = false">{{ $t('bc_cancel') }}</Button>
+              :clearable="false"
+              format="HH:mm:ss"
+            ></TimePicker>
+          </FormItem>
+          <FormItem :label="$t('be_mgmt_role')" required>
+            <Select v-model="timeConfig.params.role">
+              <Option v-for="item in timeConfig.currentUserRoles" :key="item.name" :value="item.name">{{
+                item.displayName
+              }}</Option>
+            </Select>
+          </FormItem>
+          <FormItem :label="$t('be_email_push')" required>
+            <Select v-model="timeConfig.params.mailMode">
+              <Option v-for="item in timeConfig.mailModeOptions" :key="item.value" :value="item.value">{{
+                item.label
+              }}</Option>
+            </Select>
+          </FormItem>
+        </Form>
+      </template>
+      <template slot="footer">
+        <Button type="default" @click="timeConfig.isShow = false">{{ $t('bc_cancel') }}</Button>
         <Button type="primary" @click="saveTime">{{ $t('save') }}</Button>
-      </div>
-    </Modal>
+      </template>
+    </BaseDrawer>
   </div>
 </template>
 
 <script>
 import Search from '@/pages/components/base-search.vue'
+import BaseDrawer from '@/pages/components/base-drawer.vue'
 import {
   getUserScheduledTasks,
   deleteUserScheduledTasks,
@@ -131,21 +146,28 @@ import {
   getProcessInstances,
   setUserScheduledTasks,
   stopUserScheduledTasks,
-  getCurrentUserRoles
+  getCurrentUserRoles,
+  getAllFlow
 } from '@/api/server'
 import dayjs from 'dayjs'
 export default {
   components: {
-    Search
+    Search,
+    BaseDrawer
   },
   data () {
     return {
       showModal: false,
       fullscreen: false,
       MODALHEIGHT: 0,
+      allFlows: [],
       searchConfig: {
         params: {
-          time: [dayjs().subtract(3, 'day').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+          name: '',
+          procDefId: '',
+          time: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+          jobCreatedStartTime: '',
+          jobCreatedEndTime: '',
           startTime: '',
           endTime: '',
           owner: '',
@@ -153,27 +175,43 @@ export default {
         }
       },
       searchOptions: [
+        // 创建时间
         {
           key: 'time',
-          label: this.$t('datetime_range'),
+          label: this.$t('table_created_date'),
           initDateType: 1,
           dateRange: [
-            { label: this.$t('be_threeDays_recent'), type: 'day', value: 3, dateType: 1 },
-            { label: this.$t('be_oneWeek_recent'), type: 'day', value: 7, dateType: 2 },
-            { label: this.$t('be_oneMonth_recent'), type: 'month', value: 1, dateType: 3 },
+            { label: '近3个月', type: 'month', value: 3, dateType: 1 },
+            { label: '近半年', type: 'month', value: 6, dateType: 2 },
+            { label: '近一年', type: 'year', value: 1, dateType: 3 },
             { label: this.$t('be_auto'), dateType: 4 } // 自定义
           ],
           labelWidth: 110,
           component: 'custom-time'
         },
+        // 任务名
         {
-          key: 'owner',
-          placeholder: '设置人',
+          key: 'name',
+          placeholder: this.$t('fe_task_name'),
           component: 'input'
         },
+        // 编排名称
+        {
+          key: 'procDefId',
+          placeholder: this.$t('flow_name'),
+          component: 'select',
+          list: []
+        },
+        // 创建人
+        {
+          key: 'owner',
+          placeholder: this.$t('createdBy'),
+          component: 'input'
+        },
+        // 定时类型
         {
           key: 'scheduleMode',
-          placeholder: '定时类型',
+          placeholder: this.$t('timing_type'),
           component: 'select',
           list: [
             { label: this.$t('Hourly'), value: 'Hourly' },
@@ -184,11 +222,20 @@ export default {
         }
       ],
       tableData: [],
+      loading: false,
       tableColumns: [
         {
           type: 'index',
           width: 60,
           align: 'center'
+        },
+        {
+          title: this.$t('fe_task_name'),
+          key: 'name',
+          width: 200,
+          render: (h, params) => {
+            return <span>{params.row.name || '-'}</span>
+          }
         },
         {
           title: this.$t('flow_name'),
@@ -211,16 +258,6 @@ export default {
           width: 200
         },
         {
-          title: this.$t('table_created_date'),
-          key: 'createdTime',
-          width: 200
-        },
-        {
-          title: this.$t('set_up_person'),
-          key: 'owner',
-          width: 120
-        },
-        {
           title: this.$t('timing_type'),
           key: 'scheduleMode',
           width: 120,
@@ -232,10 +269,11 @@ export default {
         {
           title: this.$t('schedule_expr'),
           key: 'scheduleExpr',
-          width: 200
+          width: 150
         },
+        // 执行频率
         {
-          title: this.$t('status'),
+          title: this.$t('fe_execute_frequence'),
           key: 'status',
           width: 110,
           render: (h, params) => {
@@ -243,10 +281,11 @@ export default {
             return <div>{find.label}</div>
           }
         },
+        // 管理角色
         {
-          title: this.$t('role'),
+          title: this.$t('be_mgmt_role'),
           key: 'role',
-          width: 100,
+          width: 130,
           render: (h, params) => {
             const role = params.row.role || ''
             const find = this.timeConfig.currentUserRoles.find(item => item.name === role)
@@ -382,9 +421,19 @@ export default {
           }
         },
         {
+          title: this.$t('createdBy'),
+          key: 'owner',
+          width: 120
+        },
+        {
+          title: this.$t('table_created_date'),
+          key: 'createdTime',
+          width: 200
+        },
+        {
           title: this.$t('table_action'),
           key: 'action',
-          width: 130,
+          width: 140,
           align: 'center',
           fixed: 'right',
           render: (h, params) => {
@@ -450,6 +499,7 @@ export default {
       timeConfig: {
         isShow: false,
         params: {
+          name: '',
           selectedFlowInstance: '',
           scheduleMode: 'Monthly',
           time: '00:00:00',
@@ -557,25 +607,66 @@ export default {
       ]
     }
   },
-  mounted () {
-    const catchParams = localStorage.getItem('timed-execution-search-params')
-    if (catchParams) {
-      const tmp = JSON.parse(catchParams)
-      // this.time = [tmp.startTime || '', tmp.endTime || '']
-      // this.searchConfig.params.startTime = tmp.startTime || ''
-      // this.searchConfig.params.endTime = tmp.endTime || ''
-
-      this.searchConfig.params.scheduleMode = tmp.scheduleMode || ''
-      this.searchConfig.params.owner = tmp.owner || ''
+  computed: {
+    getStatusStyleAndName () {
+      return function (status, type) {
+        const list = [
+          { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
+          { label: this.$t('fe_inProgressFaulted'), value: 'InProgress(Faulted)', color: '#ed4014' },
+          { label: this.$t('fe_inProgressTimeouted'), value: 'InProgress(Timeouted)', color: '#ed4014' },
+          { label: this.$t('fe_stop'), value: 'Stop', color: '#ed4014' },
+          { label: this.$t('fe_inProgress'), value: 'InProgress', color: '#1990ff' },
+          { label: this.$t('fe_completed'), value: 'Completed', color: '#7ac756' },
+          { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
+          { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
+        ]
+        const findObj = list.find(i => i.value === status)
+        if (type === 'style') {
+          return {
+            display: 'inline-block',
+            backgroundColor: findObj.color,
+            padding: '4px 10px',
+            width: 'fit-content',
+            color: '#fff',
+            borderRadius: '4px',
+            float: 'right',
+            fontSize: '12px',
+            marginLeft: '5px'
+          }
+        } else {
+          return findObj.label
+        }
+      }
     }
+  },
+  mounted () {
     this.MODALHEIGHT = document.body.scrollHeight - 220
+    this.getFlows()
     this.getUserScheduledTasks()
   },
-  beforeDestroy () {
-    const selectParams = JSON.stringify(this.searchConfig.params)
-    localStorage.setItem('timed-execution-search-params', selectParams)
-  },
   methods: {
+    async getFlows () {
+      let { status, data } = await getAllFlow(false)
+      if (status === 'OK') {
+        this.allFlows = data.sort((a, b) => {
+          let s = a.createdTime.toLowerCase()
+          let t = b.createdTime.toLowerCase()
+          if (s > t) return -1
+          if (s < t) return 1
+        })
+        this.allFlows = this.allFlows.map(item => {
+          return {
+            label: `${item.procDefName} [${item.procDefVersion}]`,
+            value: item.procDefId
+          }
+        })
+        this.searchOptions.forEach(item => {
+          if (item.key === 'procDefId') {
+            item.list = this.allFlows
+          }
+        })
+      }
+    },
     async getProcessInstances () {
       let { status, data } = await getProcessInstances()
       if (status === 'OK') {
@@ -586,6 +677,25 @@ export default {
       this.timeConfig.params.time = time
     },
     async saveTime () {
+      if (!this.timeConfig.params.name) {
+        this.$Message.warning(this.$t('fe_task_name') + this.$t('fe_can_not_be_empty'))
+        return
+      }
+      if (!this.timeConfig.params.selectedFlowInstance) {
+        this.$Message.warning(this.$t('execution_history') + this.$t('fe_can_not_be_empty'))
+        return
+      }
+      if (!this.timeConfig.params.cycle && ['Monthly', 'Weekly'].includes(this.timeConfig.params.scheduleMode)) {
+        this.$Message.warning(
+          (this.timeConfig.params.scheduleMode === 'Monthly' ? this.$t('day') : this.$t('week')) +
+            this.$t('fe_can_not_be_empty')
+        )
+        return
+      }
+      if (!this.timeConfig.params.role) {
+        this.$Message.warning(this.$t('be_mgmt_role') + this.$t('fe_can_not_be_empty'))
+        return
+      }
       const found = this.timeConfig.allFlowInstances.find(_ => _.id === this.timeConfig.params.selectedFlowInstance)
       if (!found) return
       let scheduleExpr = ''
@@ -598,6 +708,7 @@ export default {
         scheduleExpr = this.timeConfig.params.cycle + ' ' + this.timeConfig.params.time
       }
       let params = {
+        name: this.timeConfig.params.name,
         scheduleMode: this.timeConfig.params.scheduleMode,
         scheduleExpr: scheduleExpr,
         procDefName: found.procInstName,
@@ -619,6 +730,7 @@ export default {
     },
     async setTimedExecution () {
       this.getProcessInstances()
+      this.timeConfig.params.name = `定时任务${new Date().getTime()}`
       this.timeConfig.params.selectedFlowInstance = ''
       this.timeConfig.params.scheduleMode = 'Monthly'
       this.timeConfig.params.time = '00:00:00'
@@ -639,7 +751,12 @@ export default {
       })
     },
     jumpToHistory (row) {
-      this.$emit('jumpToHistory', row.procInstId)
+      this.$router.push({
+        path: '/implementation/workflow-execution/view-execution',
+        query: {
+          id: row.procInstId
+        }
+      })
     },
     async getDetails (row, rowStatus) {
       const params = {
@@ -706,10 +823,14 @@ export default {
     },
     async getUserScheduledTasks () {
       await this.getCurrentUserRoles()
-      const { time, owner, scheduleMode } = this.searchConfig.params
+      const { name, procDefId, time, owner, scheduleMode } = this.searchConfig.params
       const params = {
-        startTime: time[0] ? time[0] + ' 00:00:00' : '',
-        endTime: time[1] ? time[1] + ' 23:59:59' : '',
+        name,
+        procDefId,
+        jobCreatedStartTime: time[0] ? time[0] + ' 00:00:00' : '',
+        jobCreatedEndTime: time[1] ? time[1] + ' 23:59:59' : '',
+        startTime: '',
+        endTime: '',
         owner,
         scheduleMode
       }
@@ -719,14 +840,12 @@ export default {
           delete params[key]
         }
       })
+      this.loading = true
       const { status, data } = await getUserScheduledTasks(params)
+      this.loading = false
       if (status === 'OK') {
         this.tableData = data
       }
-    },
-    getDate (dateRange) {
-      this.searchConfig.params.startTime = dateRange[0]
-      this.searchConfig.params.endTime = dateRange[1]
     }
   }
 }
@@ -734,7 +853,7 @@ export default {
 <style lang="scss">
 .time-execution-create {
   .ivu-table-cell {
-    padding: 0 4px !important;
+    padding: 0 6px !important;
   }
 }
 </style>
@@ -743,7 +862,7 @@ export default {
   .search {
     display: flex;
     .button-group {
-      width: 180px;
+      width: 220px;
       text-align: right;
     }
   }

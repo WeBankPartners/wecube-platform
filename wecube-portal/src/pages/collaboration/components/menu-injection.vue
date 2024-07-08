@@ -32,8 +32,8 @@ export default {
   },
   watch: {
     pkgId: {
-      handler: () => {
-        this.getData()
+      handler: function (val) {
+        val && this.getData(val)
       }
     }
   },
@@ -42,12 +42,12 @@ export default {
       required: true
     }
   },
-  created () {
-    this.getData()
+  mounted () {
+    this.getData(this.pkgId)
   },
   methods: {
-    async getData () {
-      let { status, data } = await getMenuInjection(this.pkgId)
+    async getData (pkgId) {
+      let { status, data } = await getMenuInjection(pkgId)
       if (status === 'OK') {
         let allCats = []
         data.forEach((_, index) => {

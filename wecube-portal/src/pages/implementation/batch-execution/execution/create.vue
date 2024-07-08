@@ -63,7 +63,7 @@ export default {
       this.$router.back()
     },
     forwardToList () {
-      this.$router.push('/implementation/workflow-execution/execution-history')
+      this.$router.push('/implementation/batch-execution/execution-history')
     },
     async getInputParamsEncryptKey () {
       const { status, data } = await getInputParamsEncryptKey()
@@ -214,7 +214,7 @@ export default {
           title: this.$t('successful'),
           desc: this.$t('successful')
         })
-        this.$router.push('/implementation/workflow-execution/execution-history')
+        this.$router.push('/implementation/batch-execution/execution-history')
       } else if (status === 'CONFIRM') {
         // 高危检测命中，则弹窗让用户手动确认是否继续执行，若继续，则带id和continueToken再执行一次
         if (data.dangerousCheckResult) {
