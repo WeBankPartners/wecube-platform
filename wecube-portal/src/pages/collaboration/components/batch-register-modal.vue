@@ -2,7 +2,7 @@
   <Modal
     v-model="configTreeManageModal"
     width="700"
-    :title="$t('p_batch_configuration')"
+    :title="$t('p_batch_export')"
     :mask-closable="false"
     @on-ok="setConfigTreeHandler"
     @on-cancel="closeTreeModal"
