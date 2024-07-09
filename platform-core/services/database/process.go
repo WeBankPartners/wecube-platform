@@ -111,12 +111,22 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 				userRolesDisplay = append(userRolesDisplay, roleDisplayNameMap[permission.RoleName])
 			}
 		}
-		for _, manageRole := range manageRoles {
-			if _, ok := roleProcDefMap[manageRole]; !ok {
-				roleProcDefMap[manageRole] = make([]*models.ProcDefDto, 0)
-				allManageRoles = append(allManageRoles, manageRole)
+		if param.DisplayPermission == "MGMT" {
+			for _, manageRole := range manageRoles {
+				if _, ok := roleProcDefMap[manageRole]; !ok {
+					roleProcDefMap[manageRole] = make([]*models.ProcDefDto, 0)
+					allManageRoles = append(allManageRoles, manageRole)
+				}
+				roleProcDefMap[manageRole] = append(roleProcDefMap[manageRole], models.BuildProcDefDto(procDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay, enabledCreated, collectProcDefMap))
 			}
-			roleProcDefMap[manageRole] = append(roleProcDefMap[manageRole], models.BuildProcDefDto(procDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay, enabledCreated, collectProcDefMap))
+		} else {
+			for _, userRole := range userRoles {
+				if _, ok := roleProcDefMap[userRole]; !ok {
+					roleProcDefMap[userRole] = make([]*models.ProcDefDto, 0)
+					allManageRoles = append(allManageRoles, userRole)
+				}
+				roleProcDefMap[userRole] = append(roleProcDefMap[userRole], models.BuildProcDefDto(procDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay, enabledCreated, collectProcDefMap))
+			}
 		}
 	}
 	// 角色排序

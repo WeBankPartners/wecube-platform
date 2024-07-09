@@ -25,3 +25,4 @@ alter table proc_def_collect modify column `role_id` varchar(64) DEFAULT NULL CO
 alter table proc_schedule_config add column name varchar(64) default null comment '任务名';
 
 alter table plugin_package_runtime_resources_docker modify column volume_bindings varchar(4096) default null;
+alter table proc_schedule_job add column created_by varchar(64) default null;
