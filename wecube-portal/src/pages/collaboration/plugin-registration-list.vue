@@ -4,7 +4,7 @@
       <div class="search-top-left">
         <RadioGroup
           v-model="searchForm.running"
-          style="width: 20%"
+          style="width: 140px"
           type="button"
           button-style="solid"
           @on-change="onFilterConditionChange"
@@ -13,25 +13,28 @@
             item.label
           }}</Radio>
         </RadioGroup>
-        <Input
+        <Select
           v-model="searchForm.name"
           style="width: 30%"
           class="mr-2"
-          type="text"
           :placeholder="$t('p_enter_plugin_name')"
+          filterable
           clearable
           @on-change="onFilterConditionChange"
         >
-        </Input>
-        <Input
+          <Option v-for="name in searchNameOptionList" :value="name" :key="name">{{ name }}</Option>
+        </Select>
+        <Select
           v-model="searchForm.updatedBy"
           style="width: 30%"
-          type="text"
+          class="mr-2"
           :placeholder="$t('p_enter_updater')"
+          filterable
           clearable
           @on-change="onFilterConditionChange"
         >
-        </Input>
+          <Option v-for="name in updatedByOptionList" :value="name" :key="name">{{ name }}</Option>
+        </Select>
       </div>
       <div class="search-top-right">
         <Button type="primary" class="mr-2" @click="showDeletedPlugin">{{ $t('p_deleted_plugin') }}</Button>
@@ -62,36 +65,46 @@
         <Col v-for="(item, index) in dataList" :span="8" :key="index" class="panal-list">
           <Card class="panal-list-card">
             <div slot="title" class="panal-title">
-              <div class="panal-title-text">{{ item.name + '_' + item.version }}</div>
-              <Tag v-if="item.instances.length === 0">{{ $t('p_no_instance') }}</Tag>
-              <Tag v-else color="green">{{ $t('p_running') }}</Tag>
+              <div class="panal-title-text">
+                <h6>{{ item.name + '_' + item.version }}</h6>
+              </div>
+              <div>
+                <Tag color="green" v-if="item.uiActive">{{ $t('p_menu_in_effect') }}</Tag>
+                <Tag style="color: red !important" v-else>{{ $t('p_menu_not_working') }}</Tag>
+                <Tag v-if="item.instances.length === 0">{{ $t('p_no_instance') }}</Tag>
+                <Tag v-else color="green">{{ $t('p_running') }}</Tag>
+              </div>
             </div>
             <div class="card-item-content mb-2">
               <div class="card-content-list mb-1" v-for="(keyItem, index) in cardContentList" :key="index">
                 <span style="min-width: 80px">{{ $t(keyItem.label) }}: </span>
-                <div v-if="keyItem.key === 'menus'" class="card-menu-content">
-                  {{ item[keyItem.key].join(';') }}
-                </div>
-                <div v-else-if="keyItem.key === 'instances'">
-                  <div v-for="(instanceItem, index) in item[keyItem.key]" :key="index" class="instance-list">
-                    <span class="mr-2">{{ instanceItem.address }}</span>
-                    <!-- <Poptip
-                        confirm
-                        :title="$t('p_delConfirm_tip')"
-                        placement="left-end"
-                        @on-ok="destroyInstance(instanceItem.id)">
-                        <Button size="small" type="info" class="destroy-instance-button">{{$t('ternmiante')}}</Button>
-                      </Poptip> -->
+                <Tooltip
+                  v-if="keyItem.key === 'menus'"
+                  max-width="450"
+                  :content="item[keyItem.key].length ? item[keyItem.key].join(';') : '-'"
+                  placement="left"
+                >
+                  <div class="card-menu-content">
+                    {{ item[keyItem.key].length ? item[keyItem.key].join(';') : '-' }}
                   </div>
+                </Tooltip>
+                <div v-else-if="keyItem.key === 'instances'">
+                  <div v-if="item[keyItem.key].length">
+                    <div v-for="(instanceItem, index) in item[keyItem.key]" :key="index" class="instance-list">
+                      <span class="mr-2">{{ instanceItem.address }}</span>
+                    </div>
+                  </div>
+                  <div v-else>-</div>
                 </div>
-                <div v-else>{{ item[keyItem.key] }}</div>
-                <Tooltip class="card-action-button" max-width="650" placement="left">
+                <div v-else>{{ item[keyItem.key] ? item[keyItem.key] : '-' }}</div>
+                <Tooltip class="card-action-button" max-width="650" placement="bottom">
                   <template #content>
                     <p>{{ $t('regist_plugin_tip1') }}</p>
                     <p>{{ $t('regist_plugin_tip2') }}</p>
                   </template>
                   <Button
                     :disabled="!item.registerDone || isPluginRegistering"
+                    size="small"
                     v-if="keyItem.buttonText && keyItem.key === 'menus'"
                     :type="!item.registerDone ? 'default' : keyItem.buttonType"
                     @click="registPlugin(item.id)"
@@ -105,23 +118,34 @@
                 </Tooltip>
                 <Button
                   :disabled="!item.registerDone"
+                  size="small"
                   @click="onCreateInstanceButtonClick(item)"
                   v-if="keyItem.buttonText && keyItem.key !== 'menus'"
                   class="card-action-button"
                   :type="!item.registerDone ? 'default' : keyItem.buttonType"
                 >
-                  {{ $t(keyItem.buttonText) }}
+                  <span v-html="$t(keyItem.buttonText)"></span>
                 </Button>
               </div>
             </div>
             <div class="card-divider mb-2"></div>
             <div class="card-content-footer">
-              <Button @click="startInstallPlugin(item.id)" size="small" v-if="!item.registerDone" type="success">
-                <Icon type="ios-play" />
-              </Button>
-              <Button type="primary" size="small" :disabled="!item.registerDone" @click="enterSettingPage(item.id, 1)">
-                <Icon type="ios-settings" />
-              </Button>
+              <Tooltip :content="$t('p_continue_installation')" placement="top">
+                <Button @click="startInstallPlugin(item.id)" size="small" v-if="!item.registerDone" type="success">
+                  <Icon type="ios-play" />
+                </Button>
+              </Tooltip>
+              <Tooltip :content="$t('plugin_config_check')" placement="top">
+                <Button
+                  type="primary"
+                  size="small"
+                  :disabled="!item.registerDone"
+                  @click="enterSettingPage(item.id, 1)"
+                >
+                  <Icon type="ios-settings" />
+                </Button>
+              </Tooltip>
+
               <Upload
                 ref="importXML"
                 :action="'platform/v1/plugins/packages/import/' + item.id"
@@ -132,20 +156,33 @@
                 :on-error="onError"
                 accept=".xml"
               >
-                <Button type="info" size="small" :disabled="!item.registerDone">
-                  <Icon type="md-cloud-download" />
-                </Button>
+                <Tooltip :content="$t('p_import_service')" placement="top">
+                  <Button type="info" size="small" :disabled="!item.registerDone">
+                    <Icon type="md-cloud-download" />
+                  </Button>
+                </Tooltip>
               </Upload>
-              <Button type="info" size="small" @click.stop="exportPluginFile(item.id)" :disabled="!item.registerDone">
-                <Icon type="md-cloud-upload" />
-              </Button>
-              <Button type="warning" size="small" :disabled="!item.registerDone" @click="enterSettingPage(item.id, 2)">
-                <Icon type="md-cube" />
-              </Button>
-              <Poptip confirm :title="$t('p_delConfirm_tip')" placement="left-end" @on-ok="onDeleteCardConfirm(item)">
-                <Button type="error" size="small">
-                  <Icon type="md-trash" />
+              <Tooltip :content="$t('p_export_service')" placement="top">
+                <Button type="info" size="small" @click.stop="exportPluginFile(item.id)" :disabled="!item.registerDone">
+                  <Icon type="md-cloud-upload" />
                 </Button>
+              </Tooltip>
+              <Tooltip :content="$t('p_services_list')" placement="top">
+                <Button
+                  type="warning"
+                  size="small"
+                  :disabled="!item.registerDone"
+                  @click="enterSettingPage(item.id, 2)"
+                >
+                  <Icon type="md-cube" />
+                </Button>
+              </Tooltip>
+              <Poptip confirm :title="$t('p_delConfirm_tip')" placement="left-end" @on-ok="onDeleteCardConfirm(item)">
+                <Tooltip :content="$t('p_delete_plugin')" placement="top">
+                  <Button type="error" :disabled="item.instances.length !== 0" size="small">
+                    <Icon type="md-trash" />
+                  </Button>
+                </Tooltip>
               </Poptip>
             </div>
           </Card>
@@ -207,26 +244,26 @@
     <Modal
       v-model="isDeletedPluginModalShow"
       :title="$t('p_deleted_plugin')"
+      :width="50"
       cancel-text=""
       :ok-text="$t('p_finish')"
       @on-ok="onDeletePluginModalChange(false)"
       @on-visible-change="onDeletePluginModalChange"
     >
       <div class="delete-plugin-list">
-        <Input
+        <Select
           v-model="searchForm.deleteSearchName"
-          style="width: 50%"
-          type="text"
+          class="mb-3"
+          style="width: 50%; height: 80%"
           :placeholder="$t('p_enter_plugin_name')"
+          filterable
           clearable
           @on-change="onFilterConditionChange"
         >
-        </Input>
-        <div class="plugin-text-all">
-          <div v-for="(item, index) in deletedPluginList" class="delete-plugin-item" :key="index">
-            {{ item.name + '_' + item.version + (item.edition === 'enterprise' ? ' [ enterprise ]' : '') }}
-          </div>
-        </div>
+          <Option v-for="name in searchNameOptionList" :value="name" :key="name">{{ name }}</Option>
+        </Select>
+
+        <Table :columns="deletedPluginTableColumns" :data="deletedPluginList" :max-height="500"> </Table>
       </div>
     </Modal>
     <!-- 选择在线插件 -->
@@ -261,6 +298,7 @@
 <script>
 import debounce from 'lodash/debounce'
 import cloneDeep from 'lodash/cloneDeep'
+import isEmpty from 'lodash/isEmpty'
 import { getCookie } from '@/pages/util/cookie'
 import req from '@/api/base'
 import {
@@ -277,7 +315,7 @@ import {
 import BatchRegistModal from './components/batch-register-modal.vue'
 
 const initSearchForm = {
-  running: 'all',
+  running: 'yes',
   name: '',
   updatedBy: '',
   withDelete: 'no', // 枚举值，yes是删除列表，no是未删除
@@ -307,9 +345,10 @@ export default {
       cardContentList: [
         {
           key: 'menus',
-          label: 'menus',
+          label: 'p_running_menus',
           buttonText: function (val) {
-            return val === 'UNREGISTERED' ? 'regist' : 'p_register_again'
+            // return val === 'UNREGISTERED' ? 'regist' : 'p_register_again'
+            return 'regist'
           },
           buttonType: 'primary'
         },
@@ -347,38 +386,79 @@ export default {
         Authorization: 'Bearer ' + getCookie('accessToken')
       },
       isBatchModalShow: false,
-      allRunningInstances: []
+      allRunningInstances: [],
+      searchNameOptionList: [],
+      updatedByOptionList: [],
+      deletedPluginTableColumns: [
+        {
+          title: this.$t('p_plugin_name'),
+          width: 200,
+          key: 'name'
+        },
+        {
+          title: this.$t('updatedBy'),
+          width: 150,
+          key: 'updatedBy'
+        },
+        {
+          title: this.$t('table_updated_date'),
+          key: 'updatedTime'
+        }
+      ]
     }
   },
   computed: {},
-  mounted () {
-    this.getViewList()
+  async mounted () {
+    await this.getViewList()
+    this.getUpdatedByOptionList()
   },
   methods: {
-    onFilterConditionChange: debounce(function () {
-      this.getViewList()
+    onFilterConditionChange: debounce(async function () {
+      await this.getViewList()
     }, 300),
     async getViewList () {
-      const api = '/platform/v1/packages'
-      const params = cloneDeep(this.searchForm)
-      if (this.pluginListType === 'isDeleted') {
-        params.withDelete = 'yes'
-        params.name = params.deleteSearchName
+      return new Promise(resolve => {
+        const api = '/platform/v1/packages'
+        const params = cloneDeep(this.searchForm)
+        if (this.pluginListType === 'isDeleted') {
+          params.withDelete = 'yes'
+          params.running = 'all'
+          params.name = params.deleteSearchName
+        } else {
+          params.withDelete = 'no'
+        }
+        delete params.deleteSearchName
+        req.get(api, { params }).then(res => {
+          this.processOptionList(res.data, this.searchNameOptionList, 'name')
+          if (this.pluginListType === 'isDeleted') {
+            this.deletedPluginList = res.data || []
+          } else {
+            this.dataList = res.data || []
+          }
+          resolve(res.data)
+        })
+      })
+    },
+    async getUpdatedByOptionList () {
+      const api = '/platform/v1/users/retrieve'
+      const { data } = await req.get(api)
+      this.processOptionList(data, this.updatedByOptionList, 'username')
+    },
+    processOptionList (data = [], needFillArray = [], key = 'name') {
+      if (!isEmpty(data)) {
+        data.forEach(item => {
+          if (!needFillArray.includes(item[key])) {
+            needFillArray.push(item[key])
+          }
+        })
       } else {
-        params.withDelete = 'no'
-      }
-      delete params.deleteSearchName
-      const { data } = await req.get(api, { params })
-      if (this.pluginListType === 'isDeleted') {
-        this.deletedPluginList = data || []
-      } else {
-        this.dataList = data || []
+        needFillArray = []
       }
     },
-    showDeletedPlugin () {
+    async showDeletedPlugin () {
       this.resetDeletePluginModal()
       this.pluginListType = 'isDeleted'
-      this.getViewList()
+      await this.getViewList()
       this.isDeletedPluginModalShow = true
     },
     async onSuccess (response) {
@@ -387,7 +467,7 @@ export default {
           title: 'Success',
           desc: response.message || ''
         })
-        this.getAllPluginPkgs()
+        this.startInstallPlugin(response.data.id)
       } else {
         this.$Notice.warning({
           title: 'Warning',
@@ -411,7 +491,7 @@ export default {
     async onDeleteCardConfirm (item) {
       let { status } = await deletePluginPkg(item.id)
       if (status === 'OK') {
-        this.getViewList()
+        await this.getViewList()
       }
     },
     async onCreateInstanceButtonClick (item) {
@@ -431,9 +511,9 @@ export default {
       this.allowCreationIpPort = []
       this.allRunningInstances = []
     },
-    onAddInstanceModalChange (state) {
+    async onAddInstanceModalChange (state) {
       if (!state) {
-        this.getViewList()
+        await this.getViewList()
         this.resetAddInstanceForm()
       }
     },
@@ -494,7 +574,7 @@ export default {
       this.isPluginRegistering = false
       if (status === 'OK') {
         this.$Message.success(this.$t('action_successful'))
-        this.getViewList()
+        await this.getViewList()
       } else {
         this.$Message.error(this.$t('p_execute_fail'))
       }
@@ -505,10 +585,10 @@ export default {
       this.pluginListType = ''
       this.searchForm = cloneDeep(initSearchForm)
     },
-    onDeletePluginModalChange (state) {
+    async onDeletePluginModalChange (state) {
       if (!state) {
         this.resetDeletePluginModal()
-        this.getViewList()
+        await this.getViewList()
       }
     },
     async showOnlinePluginSelect () {
@@ -582,13 +662,13 @@ export default {
         this.resetOnlinePluginSelectModal()
       }
     },
-    onImportSuccess (response) {
+    async onImportSuccess (response) {
       if (response.status === 'OK') {
         this.$Notice.success({
           title: 'Success',
           desc: response.message
         })
-        this.getViewList()
+        await this.getViewList()
       } else {
         this.$Notice.warning({
           title: 'Warning',
@@ -598,8 +678,6 @@ export default {
       this.$refs.importXML.clearFiles()
     },
     exportPluginFile (pluginId) {
-      debugger
-      debugger
       this.currentPluginId = pluginId
       this.isBatchModalShow = true
     },
@@ -696,8 +774,8 @@ export default {
               margin-left: auto;
             }
             .card-menu-content {
-              max-height: 63px;
-              overflow: scroll;
+              max-height: 21px;
+              overflow: hidden;
             }
           }
         }
@@ -710,7 +788,7 @@ export default {
           background-color: #e8eaec;
         }
         .card-content-footer {
-          margin-right: -10px;
+          margin-right: -5px;
           display: flex;
           flex-direction: row;
           justify-content: flex-end;
@@ -797,6 +875,20 @@ export default {
 .delete-plugin-list {
   .ivu-input-wrapper {
     margin-bottom: 10px;
+  }
+}
+
+.card-content-footer {
+  .ivu-upload-list {
+    display: none;
+  }
+}
+
+.panal-title {
+  .ivu-tag-default {
+    .ivu-tag-text {
+      // color: #e8eaec
+    }
   }
 }
 </style>
