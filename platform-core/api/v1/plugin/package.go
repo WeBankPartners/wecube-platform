@@ -1124,6 +1124,15 @@ func RegisterPackageDone(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
+	pluginPackageObj := models.PluginPackages{Id: param.Id}
+	if err := database.GetSimplePluginPackage(c, &pluginPackageObj, true); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if pluginPackageObj.Status != "REGISTERED" {
+		middleware.ReturnError(c, fmt.Errorf("pluginPackage status:%s illegal", pluginPackageObj.Status))
+		return
+	}
 	err := database.SetPluginPackageRegisterDone(c, param.Id, middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
