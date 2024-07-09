@@ -596,6 +596,13 @@ export default {
           ''
         )
       }
+      // 定位规则操作必填校验
+      if (['data'].includes(this.itemCustomInfo.customAttrs.nodeType) && this.needAddFirst === false) {
+        const routineExpressionItem =
+          (this.$refs.filterRulesGroupRef && this.$refs.filterRulesGroupRef.routineExpressionItem) || []
+        const operateFlag = routineExpressionItem.every(i => i.operate !== '')
+        if (!operateFlag) return this.$Message.warning('定位规则操作均必填')
+      }
       // 插件服务校验
       if (['human', 'automatic'].includes(this.itemCustomInfo.customAttrs.nodeType) && this.checkParamsInfo()) return
       const tmpData = JSON.parse(JSON.stringify(this.itemCustomInfo))
@@ -875,11 +882,11 @@ export default {
           this.subProcItem =
             this.subProcList.find(i => i.procDefId === this.itemCustomInfo.customAttrs.subProcDefId) || {}
           // 编辑操作，匹配不到对应子编排，删除子编排
-          if (!this.subProcItem.id && this.editFlow !== 'false') {
+          if (!this.subProcItem.procDefId && this.editFlow !== 'false') {
             this.itemCustomInfo.customAttrs.subProcDefId = ''
           }
           // 查看编排，匹配不到对应数据，给出提示
-          if (!this.subProcItem.id && this.editFlow === 'false') {
+          if (!this.subProcItem.procDefId && this.editFlow === 'false') {
             this.subProcRemoveFlag = true
           }
         }

@@ -129,7 +129,7 @@ export default {
                   this.jumpToHistory(params.row)
                 }}
               >
-                {params.row.name || '-'}
+                {params.row.scheduleJobName || '-'}
               </span>
             )
           }
