@@ -442,24 +442,24 @@ export default {
                     </Button>
                   </Tooltip>
                 )}
-                {['deployed'].includes(status) && this.searchParams.subProc === 'sub' && (
+                {['deployed'].includes(status) && (
                   <Tooltip content={this.$t('disable')} placement="left" max-width="200">
                     <Button
                       size="small"
                       type="error"
-                      onClick={() => this.disabledSubFlow(params.row)}
+                      onClick={() => this.disabledSingleFlow(params.row)}
                       style="margin-right:5px;"
                     >
                       <Icon type="md-lock" size="16"></Icon>
                     </Button>
                   </Tooltip>
                 )}
-                {['disabled'].includes(status) && this.searchParams.subProc === 'sub' && (
+                {['disabled'].includes(status) && (
                   <Tooltip content={this.$t('enable')} placement="left" max-width="200">
                     <Button
                       size="small"
                       type="success"
-                      onClick={() => this.enabledSubFlow(params.row)}
+                      onClick={() => this.enabledSingleFlow(params.row)}
                       style="margin-right:5px;"
                     >
                       <Icon type="md-unlock" size="16"></Icon>
@@ -1010,19 +1010,17 @@ export default {
         this.mainFlowData = data.content
       }
     },
-    // 禁用子编排
-    async disabledSubFlow (row) {
-      const params = {
-        startIndex: 0,
-        pageSize: 20
-      }
-      const { status, data } = await getParentFlowList(row.id, params)
+    // 禁用单个编排
+    async disabledSingleFlow (row) {
       let total = 0
       let nameStr = ''
-      if (status === 'OK') {
-        total = data.page.totalRows || 0
-        const arr = data.content && data.content.map(i => i.name)
-        nameStr = arr.join('，')
+      if (row.subProc === true) {
+        const { status, data } = await getParentFlowList(row.id, { startIndex: 0, pageSize: 20 })
+        if (status === 'OK') {
+          total = data.page.totalRows || 0
+          const arr = data.content && data.content.map(i => i.name)
+          nameStr = arr.join('，')
+        }
       }
       this.$Modal.confirm({
         title: this.$t('disable'),
@@ -1057,15 +1055,15 @@ export default {
         onCancel: () => {}
       })
     },
-    // 单个启用子编排
-    enabledSubFlow (row) {
+    // 启用单个编排
+    enabledSingleFlow (row) {
       this.$Modal.confirm({
         title: this.$t('enable'),
         content: '确认启用该编排？',
         onOk: async () => {
           const data = {
             procDefIds: [row.id],
-            status: 'enable'
+            status: 'enabled'
           }
           let { status, message } = await flowBatchChangeStatus(data)
           if (status === 'OK') {

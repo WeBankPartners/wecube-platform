@@ -970,7 +970,8 @@ export default {
       if (this.canRemovedId) {
         this.graph.updateItem(this.canRemovedId, {
           style: {
-            fill: 'white' // 更新后的节点背景色
+            // fill: '#000' // 更新后的节点背景色
+            fill: '' // 清除背景色，避免选中连线后，线条区域内会出现白色背景
           }
         })
       }
