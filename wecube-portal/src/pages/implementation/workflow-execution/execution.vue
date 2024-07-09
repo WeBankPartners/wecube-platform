@@ -663,11 +663,11 @@ export default {
         {
           title: this.$t('table_action'),
           key: 'action',
-          width: 200,
+          width: 210,
           align: 'center',
           render: (h, params) => {
             return (
-              <div>
+              <div style="display: flex; justify-content: space-around">
                 <Button
                   type="info"
                   size="small"
@@ -681,7 +681,6 @@ export default {
                   <Button
                     color="#808695"
                     size="small"
-                    style="margin-left:5px;"
                     onClick={() => {
                       this.viewSubProcExecution(params.row)
                     }}
@@ -2288,7 +2287,7 @@ export default {
           procInstId: found.procInstId
         }
         this.currentAction = type
-        this.currentNodeTitle = `${found.orderedNo}、${found.nodeName}`
+        this.currentNodeTitle = `${found.orderedNo}${found.orderedNo ? '、' : ''}${found.nodeName}`
         this.getTaskNodeInstanceExecBindings(payload)
         this.retryTargetModalVisible = true
       }
@@ -2470,7 +2469,7 @@ export default {
       const currentNode = this.flowData.flowNodes.find(_ => {
         return _.nodeId === this.currentFlowNodeId
       })
-      this.currentNodeTitle = `${currentNode.orderedNo}、${currentNode.nodeName}`
+      this.currentNodeTitle = `${currentNode.orderedNo}${currentNode.orderedNo ? '、' : ''}${currentNode.nodeName}`
       this.highlightModel(g.id, currentNode.nodeDefId)
       this.renderFlowGraph()
     },
