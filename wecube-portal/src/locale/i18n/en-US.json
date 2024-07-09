@@ -838,5 +838,19 @@
   "p_manage": "Manage",
   "p_delConfirm_tip": "Deleted data cannot be restored, confirm execution?",
   "be_expireReset_tips": "ExpireReset Tips",
-  "p_manageRole": "ManageRole"
+  "p_manageRole": "ManageRole",
+  "p_use_version": "Use Version",
+  "p_confirm_next_step": "confirm Next Step",
+  "p_no_use_warning": "The Current Plugin Has Not Registered The Service, Which May Cause It To Not Work Properly",
+  "p_no_use_action": "Please Click [Inherit Version] or [Import New Configuration] to import the service list.",
+  "p_skip": "Skip",
+  "p_continue_installation": "Continue Installation",
+  "p_import_service": "Import Service",
+  "p_export_service": "Export Service",
+  "p_delete_plugin": "Delete Plugin",
+  "p_running_menus": "Running Menus",
+  "p_plugin_name": "Plugin Name",
+  "p_batch_export": "Batch Export",
+  "p_menu_in_effect": "Menu In Effect",
+  "p_menu_not_working": "Menu Not Working"
 }

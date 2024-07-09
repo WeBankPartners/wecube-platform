@@ -144,47 +144,11 @@
           </Tabs>
 
           <div v-if="currentStep === 2">
-            <div class="service-list-top">
-              <span>{{ $t('p_inherit_version_configuration') }}</span>
-              <div>
-                <Dropdown placement="bottom-start" @on-click="onInheritedVersionSelected">
-                  <Button type="success" class="mr-2">
-                    {{ $t('p_inherited_version') }}
-                    <Icon type="ios-arrow-down"></Icon>
-                  </Button>
-                  <template #list>
-                    <DropdownMenu>
-                      <DropdownItem
-                        v-for="(item, index) in inheritedVersionOptionList"
-                        :name="JSON.stringify(item)"
-                        :key="index"
-                      >
-                        {{ item.name + '_' + item.version }}
-                      </DropdownItem>
-                    </DropdownMenu>
-                  </template>
-                </Dropdown>
-                <span style="display: inline-block; width: 200px" v-if="inheritedVersion">{{
-                  $t('p_version_number') + ':' + inheritedVersion
-                }}</span>
-              </div>
-            </div>
-            <div class="service-list-top">
-              <span>{{ $t('p_importing_configuration') }}</span>
-              <Upload
-                ref="importXML"
-                :action="'platform/v1/plugins/packages/import/' + pluginId"
-                name="xml-file"
-                with-credentials
-                :headers="uploadHeaders"
-                :on-success="onImportSuccess"
-                :on-error="onError"
-                accept=".xml"
-              >
-                <Button type="success" style="margin-right: 258px">
-                  <Icon type="md-cloud-download" />{{ $t('import_flow') }}
-                </Button>
-              </Upload>
+            <div style="margin-left: 5px">
+              {{ $t('p_use_version') }}
+              <span style="color: #1e3fec; margin-left: 12px">{{
+                $t('p_version_number') + ': ' + inheritedVersion
+              }}</span>
             </div>
             <PluginRegister
               style="height: 40%"
@@ -193,26 +157,79 @@
               :pkgId="pluginId"
               :pkgName="pluginItemDetail.name"
               :batchRegistButtonShow="false"
+              @get-service-list="onServiceListGet"
             ></PluginRegister>
           </div>
         </div>
       </div>
     </div>
-    <div v-if="!isJustShowRightContent" class="footer-button">
-      <Button
-        v-for="(item, index) in footerButtonMap[currentStep]"
-        :key="index"
-        :type="item.buttonType"
-        :disabled="item.disabled"
-        class="mt-3 mr-3"
-        @click="onFooterButtonClick(item.key)"
-        >{{ item.label }}
+    <div class="footer-button">
+      <Dropdown placement="bottom-start" @on-click="onInheritedVersionSelected">
+        <Button v-if="currentStep === 2" type="info" class="mr-3" :disabled="!isServiceListNotEmpty">
+          {{ $t('p_inherited_version') }}
+          <Icon type="ios-arrow-down"></Icon>
+        </Button>
+        <template #list>
+          <DropdownMenu>
+            <DropdownItem v-for="(item, index) in inheritedVersionOptionList" :name="JSON.stringify(item)" :key="index">
+              {{ item.name + '_' + item.version }}
+            </DropdownItem>
+          </DropdownMenu>
+        </template>
+      </Dropdown>
+      <Upload
+        ref="importXML"
+        :action="'platform/v1/plugins/packages/import/' + pluginId"
+        name="xml-file"
+        with-credentials
+        :headers="uploadHeaders"
+        :on-success="onImportSuccess"
+        :on-error="onError"
+        accept=".xml"
+      >
+        <Button v-if="currentStep === 2" class="mr-3" type="info" :disabled="!isServiceListNotEmpty">
+          {{ $t('p_importing_configuration') }}
+        </Button>
+      </Upload>
+      <Button v-if="currentStep === 2 && isJustShowRightContent" @click="() => batchRegist()" type="warning">
+        {{ $t('batch_regist') }}
       </Button>
+      <div v-else>
+        <Poptip
+          v-if="currentStep === 2 && isServiceListNotEmpty && inheritedVersion === initInheritedVersion"
+          confirm
+          placement="left-end"
+          word-wrap
+          :ok-text="$t('p_skip')"
+          :cancel-text="$t('return')"
+          @on-ok="enterNextStep"
+        >
+          <div slot="title">
+            <h6 class="mb-1">{{ $t('p_confirm_next_step') }}</h6>
+            <div>{{ $t('p_no_use_warning') }}</div>
+            <div>{{ $t('p_no_use_action') }}</div>
+          </div>
+          <Button type="primary">
+            {{ $t('next_step') }}
+          </Button>
+        </Poptip>
+        <Button
+          v-else
+          v-for="(item, index) in footerButtonMap[currentStep]"
+          :key="index"
+          :type="item.buttonType"
+          :disabled="typeof item.disabled === 'function' ? item.disabled() : item.disabled"
+          class="mr-3"
+          @click="onFooterButtonClick(item.key)"
+          >{{ item.label }}
+        </Button>
+      </div>
     </div>
   </div>
 </template>
 <script>
 import hasIn from 'lodash/hasIn'
+import isEmpty from 'lodash/isEmpty'
 import DependencyAnalysis from './components/dependency-analysis.vue'
 import MenuInjection from './components/menu-injection.vue'
 import DataModel from './components/data-model.vue'
@@ -275,7 +292,7 @@ export default {
           content: this.$t('p_sixth_step_content')
         }
       ],
-      currentTabName: '1',
+      currentTabName: '0',
       footerButtonMap: {
         1: [
           {
@@ -306,7 +323,9 @@ export default {
             label: this.$t('p_sixth_step_title'),
             buttonType: 'primary',
             key: 'finish',
-            disabled: false
+            disabled: () => {
+              return this.allInstances.length === 0
+            }
           }
         ]
       },
@@ -320,7 +339,8 @@ export default {
       uploadHeaders: {
         Authorization: 'Bearer ' + getCookie('accessToken')
       },
-      inheritedVersion: '-',
+      inheritedVersion: '',
+      initInheritedVersion: '',
       selectedIp: [],
       availableHostList: [],
       allowCreationIpPort: [],
@@ -358,7 +378,8 @@ export default {
         3: this.$t('plugin_config_check'),
         4: this.$t('p_fifth_step_title')
       },
-      isJustShowRightContent: false
+      isJustShowRightContent: false,
+      isServiceListNotEmpty: false
     }
   },
   created () {
@@ -387,6 +408,8 @@ export default {
       const { data, status } = await req.get(api, { params })
       if (status === 'OK') {
         this.pluginItemDetail = data[0]
+        this.inheritedVersion = this.pluginItemDetail.version
+        this.initInheritedVersion = this.pluginItemDetail.version
       } else {
         this.$Message.error(this.$t('p_request_fail'))
       }
@@ -612,6 +635,13 @@ export default {
         this.$Message.success(this.$t('p_sixth_step_title'))
         this.returnPreviousPage()
       }
+    },
+    onServiceListGet (data) {
+      if (!isEmpty(data)) {
+        this.isServiceListNotEmpty = true
+      } else {
+        this.isServiceListNotEmpty = false
+      }
     }
   }
 }
@@ -622,7 +652,7 @@ export default {
   .register-content {
     display: flex;
     flex-direction: column;
-    height: 80vh;
+    height: calc(100vh - 150px);
     .content-header {
       display: flex;
       .arrow-back {
@@ -696,6 +726,7 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-top: 10px;
   }
 }
 </style>
@@ -710,8 +741,16 @@ export default {
     background-color: #b088f1;
     border-color: #b088f1;
   }
+  .ivu-btn-warning {
+    background-color: #70babc;
+    border-color: #70babc;
+  }
+  .ivu-btn-warning:hover {
+    background-color: #70babc;
+    border-color: #70babc;
+  }
 }
-.service-list-top {
+.footer-button {
   .ivu-upload-list {
     display: none;
   }
