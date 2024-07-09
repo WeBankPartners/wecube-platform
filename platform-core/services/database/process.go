@@ -106,7 +106,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 			if permission.Permission == "MGMT" && userRolesMap[permission.RoleName] {
 				manageRoles = append(manageRoles, permission.RoleName)
 				manageRolesDisplay = append(manageRolesDisplay, roleDisplayNameMap[permission.RoleName])
-			} else if permission.Permission == "USE" {
+			} else if permission.Permission == "USE" && userRolesMap[permission.RoleName] {
 				userRoles = append(userRoles, permission.RoleName)
 				userRolesDisplay = append(userRolesDisplay, roleDisplayNameMap[permission.RoleName])
 			}
