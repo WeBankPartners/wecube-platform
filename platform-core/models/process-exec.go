@@ -203,6 +203,7 @@ type ProcInsDetail struct {
 	ParentProcIns     *ParentProcInsObj    `json:"parentProcIns"`
 	UpdatedBy         string               `json:"updatedBy"`
 	UpdatedTime       string               `json:"updatedTime"`
+	ScheduleJobName   string               `json:"scheduleJobName"`
 }
 
 type ProcInsNodeDetail struct {
