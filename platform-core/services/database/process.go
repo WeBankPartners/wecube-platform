@@ -111,7 +111,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 				userRolesDisplay = append(userRolesDisplay, roleDisplayNameMap[permission.RoleName])
 			}
 		}
-		if param.DisplayPermission == "MGMT" {
+		if param.PermissionType == "MGMT" {
 			for _, manageRole := range manageRoles {
 				if _, ok := roleProcDefMap[manageRole]; !ok {
 					roleProcDefMap[manageRole] = make([]*models.ProcDefDto, 0)
