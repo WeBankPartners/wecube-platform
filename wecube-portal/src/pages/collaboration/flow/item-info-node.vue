@@ -27,7 +27,7 @@
                     <span style="color: red">*</span>
                     {{ $t('name') }}
                   </label>
-                  <Input v-model="itemCustomInfo.customAttrs.name" @on-change="paramsChanged"></Input>
+                  <Input v-model.trim="itemCustomInfo.customAttrs.name" @on-change="paramsChanged"></Input>
                   <span style="position: absolute; left: 310px; top: 2px; line-height: 30px; background: #ffffff"
                     >{{ (itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length) || 0 }}/30</span
                   >
@@ -366,16 +366,14 @@
                   <span v-if="itemCustomInfo.customAttrs.subProcDefId === ''" style="color: red"
                     >{{ $t('child_workflow') }} {{ $t('cannotBeEmpty') }}</span
                   >
-                  <span
-                    v-if="itemCustomInfo.customAttrs.subProcDefId && subProcItem && !subProcItem.procDefId"
-                    style="color: red"
-                    >{{ '子编排权限被移除或者被禁用' }}</span
-                  >
+                  <span v-if="subProcRemoveFlag" style="color: red">{{ '子编排权限被移除或者被禁用' }}</span>
                 </FormItem>
                 <template v-if="itemCustomInfo.customAttrs.subProcDefId && subProcItem">
                   <FormItem :label="$t('child_flowId')">
                     <span>{{ subProcItem.procDefId || itemCustomInfo.customAttrs.subProcDefId || '-' }}</span>
-                    <Button type="info" size="small" @click="viewParentFlowGraph">{{ $t('view_workFlow') }}</Button>
+                    <Button :disabled="subProcRemoveFlag" type="info" size="small" @click="viewParentFlowGraph">{{
+                      $t('view_workFlow')
+                    }}</Button>
                   </FormItem>
                   <FormItem :label="$t('instance_type')">
                     <span>{{ subProcItem.rootEntity || '-' }}</span>
@@ -470,7 +468,8 @@ export default {
       allEntityType: [], // 所有模型
       filteredPlugins: [], // 可选择的插件函数，根据定位规则获取
       subProcList: [], // 子编排列表
-      subProcItem: null, // 选中的子编排
+      subProcItem: {}, // 选中的子编排
+      subProcRemoveFlag: false, // 子编排权限被移除或者禁用
       unitOptions: ['sec', 'min', 'hour', 'day'],
       date: '',
       nodeList: [], // 编排中的所有节点，供上下文中绑定使用
@@ -520,11 +519,13 @@ export default {
           res = true
         }
       }
+      // 插件服务必填校验
       if (['human', 'automatic'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
         if (!this.itemCustomInfo.customAttrs.serviceName) {
           res = true
         }
       }
+      // 子编排必填校验
       if (['subProc'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
         if (!this.itemCustomInfo.customAttrs.subProcDefId) {
           res = true
@@ -686,8 +687,6 @@ export default {
       } else {
         this.itemCustomInfo.customAttrs.routineExpression = val
         this.getPlugin()
-        // this.itemCustomInfo.customAttrs.subProcDefId = ''
-        // this.subProcItem =  null
         this.getSubProcList()
         this.paramsChanged()
       }
@@ -866,16 +865,23 @@ export default {
     // 获取子编排列表
     async getSubProcList () {
       const params = {
-        params: {
-          entityExpr: this.itemCustomInfo.customAttrs.routineExpression
-        }
+        entityExpr: this.itemCustomInfo.customAttrs.routineExpression
       }
       const { status, data } = await getChildFlowListNew(params)
       if (status === 'OK') {
+        this.subProcRemoveFlag = false
         this.subProcList = data || []
         if (this.itemCustomInfo.customAttrs.subProcDefId) {
           this.subProcItem =
             this.subProcList.find(i => i.procDefId === this.itemCustomInfo.customAttrs.subProcDefId) || {}
+          // 编辑操作，匹配不到对应子编排，删除子编排
+          if (!this.subProcItem.id && this.editFlow !== 'false') {
+            this.itemCustomInfo.customAttrs.subProcDefId = ''
+          }
+          // 查看编排，匹配不到对应数据，给出提示
+          if (!this.subProcItem.id && this.editFlow === 'false') {
+            this.subProcRemoveFlag = true
+          }
         }
       }
     },
