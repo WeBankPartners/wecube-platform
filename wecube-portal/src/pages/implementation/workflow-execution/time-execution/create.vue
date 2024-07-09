@@ -33,7 +33,12 @@
         <Form :label-width="100" label-colon>
           <!--任务名-->
           <FormItem :label="$t('fe_task_name')" required>
-            <Input v-model="timeConfig.params.name" :maxlength="50" show-word-limit :placeholder="$t('fe_task_name')" />
+            <Input
+              v-model.trim="timeConfig.params.name"
+              :maxlength="50"
+              show-word-limit
+              :placeholder="$t('fe_task_name')"
+            />
           </FormItem>
           <!--执行记录-->
           <FormItem :label="$t('execution_history')" required>

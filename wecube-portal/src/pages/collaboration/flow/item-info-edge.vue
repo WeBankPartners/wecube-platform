@@ -15,7 +15,7 @@
               <span style="color: red" v-if="isNameRequired">*</span>
               {{ $t('name') }}
             </label>
-            <Input v-model="itemCustomInfo.name" @on-change="paramsChanged"></Input>
+            <Input v-model.trim="itemCustomInfo.name" @on-change="paramsChanged"></Input>
             <span style="position: absolute; left: 320px; top: 2px; line-height: 30px; background: white"
               >{{ (itemCustomInfo.name && itemCustomInfo.name.length) || 0 }}/30</span
             >
