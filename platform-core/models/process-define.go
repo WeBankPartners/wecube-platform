@@ -158,24 +158,23 @@ type BatchUpdateProcDefStatusParam struct {
 }
 
 type QueryProcessDefinitionParam struct {
-	ProcDefId         string   `json:"procDefId"`        // 编排Id
-	ProcDefName       string   `json:"procDefName"`      // 编排名称
-	Plugins           []string `json:"plugins"`          // 授权插件
-	UpdatedTimeStart  string   `json:"updatedTimeStart"` // 更新时间开始
-	UpdatedTimeEnd    string   `json:"updatedTimeEnd"`   // 更新时间结束
-	CreatedTimeStart  string   `json:"createdTimeStart"` // 创建时间开始
-	CreatedTimeEnd    string   `json:"createdTimeEnd"`   // 创建时间结束
-	Status            string   `json:"status"`           // disabled 禁用 draft草稿 deployed 发布状态
-	CreatedBy         string   `json:"createdBy"`        // 创建人
-	UpdatedBy         string   `json:"updatedBy"`        // 更新人
-	Scene             string   `json:"scene"`            // 使用场景
-	UserRoles         []string // 用户角色
-	LastVersion       bool     `json:"lastVersion"`
-	SubProc           string   `json:"subProc"` // 是否子编排 -> all(全部编排) | main(主编排)  |  sub(子编排)
-	PermissionType    string   `json:"permissionType"`
-	OnlyCollect       bool     `json:"onlyCollect"`
-	Operator          string   `json:"operator"`
-	DisplayPermission string   `json:"displayPermission"`
+	ProcDefId        string   `json:"procDefId"`        // 编排Id
+	ProcDefName      string   `json:"procDefName"`      // 编排名称
+	Plugins          []string `json:"plugins"`          // 授权插件
+	UpdatedTimeStart string   `json:"updatedTimeStart"` // 更新时间开始
+	UpdatedTimeEnd   string   `json:"updatedTimeEnd"`   // 更新时间结束
+	CreatedTimeStart string   `json:"createdTimeStart"` // 创建时间开始
+	CreatedTimeEnd   string   `json:"createdTimeEnd"`   // 创建时间结束
+	Status           string   `json:"status"`           // disabled 禁用 draft草稿 deployed 发布状态
+	CreatedBy        string   `json:"createdBy"`        // 创建人
+	UpdatedBy        string   `json:"updatedBy"`        // 更新人
+	Scene            string   `json:"scene"`            // 使用场景
+	UserRoles        []string // 用户角色
+	LastVersion      bool     `json:"lastVersion"`
+	SubProc          string   `json:"subProc"` // 是否子编排 -> all(全部编排) | main(主编排)  |  sub(子编排)
+	PermissionType   string   `json:"permissionType"`
+	OnlyCollect      bool     `json:"onlyCollect"`
+	Operator         string   `json:"operator"`
 }
 
 type BatchUpdateProcDefPermission struct {
