@@ -29,9 +29,11 @@ func CreateProcSchedule(ctx context.Context, param *models.CreateProcSchedulePar
 		Role:           param.Role,
 		MailMode:       param.MailMode,
 		Name:           param.Name,
+		UpdatedBy:      param.Operator,
+		UpdatedTime:    time.Now(),
 	}
-	_, err = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_config(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,schedule_mode,schedule_expr,cron_expr,exec_times,created_by,created_time,`role`,mail_mode,name) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-		result.Id, result.ProcDefId, result.ProcDefKey, result.ProcDefName, result.Status, result.EntityDataId, result.EntityTypeId, result.EntityDataName, result.ScheduleMode, result.ScheduleExpr, result.CronExpr, 0, result.CreatedBy, result.CreatedTime, param.Role, param.MailMode, param.Name)
+	_, err = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_config(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,schedule_mode,schedule_expr,cron_expr,exec_times,created_by,created_time,updated_by,updated_time,`role`,mail_mode,name) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		result.Id, result.ProcDefId, result.ProcDefKey, result.ProcDefName, result.Status, result.EntityDataId, result.EntityTypeId, result.EntityDataName, result.ScheduleMode, result.ScheduleExpr, result.CronExpr, 0, result.CreatedBy, result.CreatedTime, result.UpdatedBy, result.UpdatedTime, param.Role, param.MailMode, param.Name)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
@@ -107,11 +109,11 @@ func GetProcScheduleConfigStatus(ctx context.Context, id string) (status string)
 func NewProcScheduleJob(ctx context.Context, psConfig *models.ProcScheduleConfig, newId string) (duplicateRow bool, err error) {
 	var insertErr error
 	if psConfig.MailMode == "none" || psConfig.MailMode == "" {
-		_, insertErr = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_job(id,schedule_config_id,status,handle_by,created_time) values (?,?,?,?,?)",
-			newId, psConfig.Id, "ready", models.Config.HostIp, time.Now())
+		_, insertErr = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_job(id,schedule_config_id,status,handle_by,created_time,created_by) values (?,?,?,?,?,?)",
+			newId, psConfig.Id, "ready", models.Config.HostIp, time.Now(), psConfig.UpdatedBy)
 	} else {
-		_, insertErr = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_job(id,schedule_config_id,status,handle_by,mail_status,created_time) values (?,?,?,?,?,?)",
-			newId, psConfig.Id, "ready", models.Config.HostIp, "wait", time.Now())
+		_, insertErr = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_job(id,schedule_config_id,status,handle_by,mail_status,created_time,created_by) values (?,?,?,?,?,?,?)",
+			newId, psConfig.Id, "ready", models.Config.HostIp, "wait", time.Now(), psConfig.UpdatedBy)
 	}
 	if insertErr != nil {
 		if strings.Contains(strings.ToLower(insertErr.Error()), "duplicate") {

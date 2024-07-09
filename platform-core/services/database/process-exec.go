@@ -1650,6 +1650,7 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 	baseSql := "select * from proc_ins"
 	var filterSqlList []string
 	var filterParams []interface{}
+	var scheduleInsFlag bool
 	if param.Id != "" {
 		filterSqlList = append(filterSqlList, "id=?")
 		filterParams = append(filterParams, param.Id)
@@ -1681,6 +1682,9 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 	if param.Operator != "" {
 		filterSqlList = append(filterSqlList, "created_by=?")
 		filterParams = append(filterParams, param.Operator)
+		if param.Operator == "systemCron" {
+			scheduleInsFlag = true
+		}
 	}
 	if param.StartTime != "" {
 		filterSqlList = append(filterSqlList, "created_time>=?")
@@ -1735,11 +1739,15 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 	}
 	procInsNodeStatusMap := make(map[string]string)
 	procInsNodeStatusMap, err = getProcInsNodeStatus(ctx, procInProgressIdList)
+	scheduleConfigNameMap := make(map[string]*models.ScheduleInsQueryRow)
+	if scheduleInsFlag {
+		scheduleConfigNameMap, err = getScheduleProcInsConfigMap(ctx, procInsIdList)
+	}
 	for _, row := range procInsRows {
 		if nodeStatus, ok := procInsNodeStatusMap[row.Id]; ok {
 			row.Status = fmt.Sprintf("%s(%s)", row.Status, nodeStatus)
 		}
-		result.Contents = append(result.Contents, &models.ProcInsDetail{
+		resultObj := models.ProcInsDetail{
 			Id:                row.Id,
 			EntityDataId:      row.EntityDataId,
 			EntityTypeId:      row.EntityTypeId,
@@ -1754,7 +1762,14 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 			ParentProcIns:     procInsParentMap[row.Id],
 			UpdatedBy:         row.UpdatedBy,
 			UpdatedTime:       row.UpdatedTime.Format(models.DateTimeFormat),
-		})
+		}
+		if scheduleInsFlag {
+			if scheduleMsg, ok := scheduleConfigNameMap[row.Id]; ok {
+				resultObj.Operator = scheduleMsg.CreatedBy
+				resultObj.ScheduleJobName = scheduleMsg.Name
+			}
+		}
+		result.Contents = append(result.Contents, &resultObj)
 	}
 	return
 }
@@ -1978,6 +1993,24 @@ func GetRunningProcInsSubWorkflow(ctx context.Context, procInsId, procNodeId str
 	}
 	for _, row := range workflowRows {
 		workflowIdList = append(workflowIdList, row.Id)
+	}
+	return
+}
+
+func getScheduleProcInsConfigMap(ctx context.Context, procInsIdList []string) (scheduleConfigNameMap map[string]*models.ScheduleInsQueryRow, err error) {
+	scheduleConfigNameMap = make(map[string]*models.ScheduleInsQueryRow)
+	if len(procInsIdList) == 0 {
+		return
+	}
+	filterSql, filterParam := db.CreateListParams(procInsIdList, "")
+	var procInsNodeRows []*models.ScheduleInsQueryRow
+	err = db.MysqlEngine.Context(ctx).SQL("select t1.proc_ins_id,t1.created_by,t2.name from proc_schedule_job t1 left join proc_schedule_config t2 on t1.schedule_config_id=t2.id where t1.proc_ins_id in ("+filterSql+")", filterParam...).Find(&procInsNodeRows)
+	if err != nil {
+		err = fmt.Errorf("query proc def version fail,%s ", err.Error())
+		return
+	}
+	for _, row := range procInsNodeRows {
+		scheduleConfigNameMap[row.ProcInsId] = row
 	}
 	return
 }
