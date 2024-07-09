@@ -1215,6 +1215,7 @@ export default {
       const { data, status } = await getPluginConfigsByPackageId(this.pkgId)
       if (status === 'OK') {
         this.plugins = data
+        this.$emit('get-service-list', this.plugins)
       }
     },
     async copyPluginConfigDto (id) {
