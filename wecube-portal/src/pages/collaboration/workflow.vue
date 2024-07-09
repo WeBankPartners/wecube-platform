@@ -454,6 +454,18 @@ export default {
                     </Button>
                   </Tooltip>
                 )}
+                {['disabled'].includes(status) && this.searchParams.subProc === 'sub' && (
+                  <Tooltip content={this.$t('enable')} placement="left" max-width="200">
+                    <Button
+                      size="small"
+                      type="success"
+                      onClick={() => this.enabledSubFlow(params.row)}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="md-unlock" size="16"></Icon>
+                    </Button>
+                  </Tooltip>
+                )}
                 {['draft'].includes(status) && this.username === params.row.updatedBy && (
                   <Tooltip content={this.$t('edit')} placement="top">
                     <Button
@@ -564,6 +576,15 @@ export default {
         }
       },
       immediate: true
+    },
+    'searchParams.status': {
+      handler (val) {
+        if (val) {
+          this.selectedParams = []
+          this.hideRoles = []
+        }
+      },
+      immediate: true
     }
   },
   mounted () {
@@ -656,8 +677,6 @@ export default {
     // 切换tab修改数据
     changeTab (name) {
       this.searchParams.status = name
-      this.selectedParams = []
-      this.hideRoles = []
       this.getFlowList()
     },
     // 切换主编排/子编排
@@ -995,14 +1014,15 @@ export default {
     async disabledSubFlow (row) {
       const params = {
         startIndex: 0,
-        pageSize: 1
+        pageSize: 20
       }
       const { status, data } = await getParentFlowList(row.id, params)
       let total = 0
-      let firstRow
+      let nameStr = ''
       if (status === 'OK') {
         total = data.page.totalRows || 0
-        firstRow = (data.content && data.content[0]) || {}
+        const arr = data.content && data.content.map(i => i.name)
+        nameStr = arr.join('，')
       }
       this.$Modal.confirm({
         title: this.$t('disable'),
@@ -1013,7 +1033,7 @@ export default {
           if (!total) {
             return <span>{`确认禁用当前编排？${this.$t('confirmBatchDisableWarn')}`}</span>
           } else {
-            return <span>{`禁用当前子编排会影响【${firstRow.name || '-'}】等${total}个主编排，确认禁用吗？`}</span>
+            return <span>{`禁用当前子编排会影响【${nameStr}】等${total}个主编排，确认禁用吗？`}</span>
           }
         },
         onOk: async () => {
@@ -1030,6 +1050,31 @@ export default {
             })
             this.$nextTick(() => {
               this.searchParams.status = 'disabled'
+              this.getFlowList()
+            })
+          }
+        },
+        onCancel: () => {}
+      })
+    },
+    // 单个启用子编排
+    enabledSubFlow (row) {
+      this.$Modal.confirm({
+        title: this.$t('enable'),
+        content: '确认启用该编排？',
+        onOk: async () => {
+          const data = {
+            procDefIds: [row.id],
+            status: 'enable'
+          }
+          let { status, message } = await flowBatchChangeStatus(data)
+          if (status === 'OK') {
+            this.$Notice.success({
+              title: 'Success',
+              desc: message
+            })
+            this.$nextTick(() => {
+              this.searchParams.status = 'deployed'
               this.getFlowList()
             })
           }
