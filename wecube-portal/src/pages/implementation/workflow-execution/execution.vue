@@ -603,7 +603,6 @@ export default {
       flowNodesWithDataModalVisible: false,
       indexArray: [0],
       flowIndexArray: [0],
-      currentTab: 'create_new_workflow_job',
       btnLoading: false,
       currentModelNodeRefs: [],
       showNodeDetail: false,
@@ -877,7 +876,6 @@ export default {
       },
       currentInstanceStatusForNodeOperation: '', // 流程状态
       currentInstanceStatus: true,
-
       timeConfig: {
         isShow: false,
         params: {
@@ -961,7 +959,7 @@ export default {
       flowOwner: '',
       subProcId: '', // 新建执行预览子编排从链接上传过来的子编排ID
       subProc: this.$route.query.subProc || '', // 执行详情是否为子编排 main主编排 sub子编排
-      noActionFlag: false
+      noActionFlag: false // 节点无操作按钮标识
     }
   },
   computed: {
@@ -1082,13 +1080,16 @@ export default {
       }
     }
   },
-  mounted () {
+  async mounted () {
     const id = this.$route.query.id || ''
     const templateId = this.$route.query.templateId || ''
     this.subProcId = this.$route.query.subProcId || ''
     // 查看执行历史
     if (id) {
-      this.jumpToHistory(id)
+      this.querySelectedFlowInstanceId = id
+      await this.getProcessInstances()
+      this.selectedFlowInstance = id
+      this.queryHandler()
     }
     // 选择模板新建执行
     if (templateId) {
@@ -1115,10 +1116,25 @@ export default {
   },
   methods: {
     handleBack () {
+      // 从新增页跳转到查看详情页，返回到历史列表
+      if (this.isEnqueryPage && this.$route.query.from === 'create') {
+        return this.$router.push({
+          path: '/implementation/workflow-execution/normal-history',
+          query: {
+            subProc: this.subProc
+          }
+        })
+      }
+      // 预览子编排，返回到新建选择页面
+      if (!this.isEnqueryPage && this.subProcId) {
+        return this.$router.push({
+          path: '/implementation/workflow-execution/normal-template',
+          query: {
+            subProc: this.subProc
+          }
+        })
+      }
       this.$router.back()
-      // this.$router.push({
-      //   path: '/implementation/workflow-execution/normal-template'
-      // })
     },
     // 收藏or取消收藏
     handleStar: debounce(async function ({ procDefId, collected }) {
@@ -1176,15 +1192,6 @@ export default {
         this.attrValue.isShow = true
       }
     },
-    async jumpToHistory (id) {
-      // await this.queryHistory()
-      this.querySelectedFlowInstanceId = id
-      await this.getProcessInstances()
-      this.selectedFlowInstance = id
-      this.$nextTick(() => {
-        this.queryHandler()
-      })
-    },
     changeTimePicker (time) {
       this.timeConfig.params.time = time
     },
@@ -1216,7 +1223,6 @@ export default {
           desc: 'Success'
         })
         this.timeConfig.isShow = false
-        this.currentTab = 'timed_execution'
       }
     },
     async setTimedExecution () {
@@ -1257,21 +1263,6 @@ export default {
         },
         onCancel: () => {}
       })
-    },
-    tabChanged (v) {
-      this.selectedFlowInstance = ''
-      this.currentInstanceStatusForNodeOperation = ''
-      // create_new_workflow_job   enquery_new_workflow_job
-      this.currentTab = v
-      if (v === 'create_new_workflow_job') {
-        this.createHandler()
-      }
-      if (v === 'enquery_new_workflow_job') {
-        this.queryHistory()
-      }
-      if (v === 'timed_execution') {
-        // this.queryHistory()
-      }
     },
     async getDetail (row) {
       if (!row.packageName || !row.entityName || !row.dataId) return
@@ -1909,6 +1900,7 @@ export default {
     },
     // 绘制编排流程图
     renderFlowGraph (excution) {
+      // 节点颜色
       const statusColor = {
         Completed: '#5DB400',
         deployed: '#7F8A96',
@@ -1916,7 +1908,8 @@ export default {
         Faulted: '#FF6262',
         Risky: '#BF22E0',
         Timeouted: '#F7B500',
-        NotStarted: '#7F8A96'
+        NotStarted: '#7F8A96',
+        wait: '#7F8A96'
       }
       let nodes =
         this.flowData &&
@@ -2083,13 +2076,16 @@ export default {
         }, 5000)
         let { status, data } = await createFlowInstance(payload)
         this.btnLoading = false
+        this.isExecuteActive = false
         if (status === 'OK') {
-          this.processSessionId = ''
-          this.getProcessInstances(true, data)
-          this.isExecuteActive = false
-          this.showExcution = false
-          this.isEnqueryPage = true
-          this.currentTab = 'enquery_new_workflow_job'
+          this.$router.push({
+            path: '/implementation/workflow-execution/view-execution',
+            query: {
+              id: data.id,
+              subProc: data.subProc === true ? 'sub' : 'main',
+              from: 'create' // 详情页来源create新增页, history历史列表
+            }
+          })
         }
       }
     },

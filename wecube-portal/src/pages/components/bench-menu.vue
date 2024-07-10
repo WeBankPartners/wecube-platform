@@ -48,23 +48,40 @@ export default {
       openNames: [] // 由于每次点击菜单栏，组件都会重新渲染，暂时做不到菜单栏按照用户点击依次展开
     }
   },
-  created () {
-    this.menuList.forEach(i => {
-      for (let j of i.children) {
-        if (j.path === this.$route.fullPath) {
-          this.activeName = j.name
-          this.openNames.push(i.name)
-          window.localStorage.setItem('sub_menu_active_name', j.name)
-          window.localStorage.setItem('sub_menu_open_name', i.name)
+  watch: {
+    '$route.path': {
+      handler (val) {
+        if (val) {
+          this.menuList.forEach(i => {
+            for (let j of i.children) {
+              if (j.path === this.$route.path) {
+                this.activeName = j.name
+                this.openNames.push(i.name)
+              }
+            }
+          })
         }
-      }
-    })
-    if (!this.activeName) {
-      this.activeName = window.localStorage.getItem('sub_menu_active_name') || ''
-      const openName = window.localStorage.getItem('sub_menu_open_name') || ''
-      openName && this.openNames.push(openName)
+      },
+      immediate: true
     }
   },
+  // created () {
+  //   this.menuList.forEach(i => {
+  //     for (let j of i.children) {
+  //       if (j.path === this.$route.fullPath) {
+  //         this.activeName = j.name
+  //         this.openNames.push(i.name)
+  //         window.localStorage.setItem('sub_menu_active_name', j.name)
+  //         window.localStorage.setItem('sub_menu_open_name', i.name)
+  //       }
+  //     }
+  //   })
+  //   if (!this.activeName) {
+  //     this.activeName = window.localStorage.getItem('sub_menu_active_name') || ''
+  //     const openName = window.localStorage.getItem('sub_menu_open_name') || ''
+  //     openName && this.openNames.push(openName)
+  //   }
+  // },
   mounted () {
     this.$eventBusP.$emit('expand-menu', true)
     window.addEventListener('scroll', this.getScrollTop)
