@@ -942,6 +942,11 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 		return
 	}
 	procInsObj := procInsRows[0]
+	procDefObj, getProcDefErr := GetSimpleProcDefRow(ctx, procInsObj.ProcDefId)
+	if getProcDefErr != nil {
+		err = getProcDefErr
+		return
+	}
 	result = &models.ProcInsDetail{
 		Id:                procInsObj.Id,
 		ProcDefId:         procInsObj.ProcDefId,
@@ -954,6 +959,7 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 		EntityTypeId:      procInsObj.EntityTypeId,
 		EntityDisplayName: procInsObj.EntityDataName,
 		CreatedTime:       procInsObj.CreatedTime.Format(models.DateTimeFormat),
+		SubProc:           procDefObj.SubProc,
 	}
 	//if transStatus, ok := models.ProcStatusTransMap[result.Status]; ok {
 	//	result.Status = transStatus
