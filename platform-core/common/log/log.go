@@ -10,10 +10,12 @@ import (
 )
 
 var (
-	Logger         *zap.Logger
-	AccessLogger   *zap.Logger
-	DatabaseLogger *zap.Logger
-	DebugEnable    bool
+	Logger                 *zap.Logger
+	AccessLogger           *zap.Logger
+	DatabaseLogger         *zap.Logger
+	WorkflowLogger         *zap.Logger
+	WorkflowDatabaseLogger *zap.Logger
+	DebugEnable            bool
 )
 
 func InitLogger() {
@@ -58,7 +60,27 @@ func InitLogger() {
 			Compress:         models.Config.Log.Compress,
 			FormatJson:       models.Config.Log.FormatJson,
 		})
+		WorkflowDatabaseLogger = logger.InitArchiveZapLogger(logger.LogConfig{
+			Name:             "workflow-database",
+			FilePath:         fmt.Sprintf("%s/%s-workflow-db.log", baseLogDir, models.GlobalProjectName),
+			LogLevel:         models.Config.Log.Level,
+			ArchiveMaxSize:   models.Config.Log.ArchiveMaxSize,
+			ArchiveMaxBackup: models.Config.Log.ArchiveMaxBackup,
+			ArchiveMaxDay:    models.Config.Log.ArchiveMaxDay,
+			Compress:         models.Config.Log.Compress,
+			FormatJson:       models.Config.Log.FormatJson,
+		})
 	}
+	WorkflowLogger = logger.InitArchiveZapLogger(logger.LogConfig{
+		Name:             "workflow",
+		FilePath:         fmt.Sprintf("%s/%s-workflow.log", baseLogDir, models.GlobalProjectName),
+		LogLevel:         models.Config.Log.Level,
+		ArchiveMaxSize:   models.Config.Log.ArchiveMaxSize,
+		ArchiveMaxBackup: models.Config.Log.ArchiveMaxBackup,
+		ArchiveMaxDay:    models.Config.Log.ArchiveMaxDay,
+		Compress:         models.Config.Log.Compress,
+		FormatJson:       models.Config.Log.FormatJson,
+	})
 }
 
 func Error(err error) zap.Field {
