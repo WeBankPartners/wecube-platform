@@ -86,6 +86,8 @@ const (
 	ProcEventStatusPending = "pending"
 	ProcEventStatusDone    = "done"
 	ProcEventStatusFail    = "fail"
+
+	SensitiveDisplay = "******"
 )
 
 var (
