@@ -2,7 +2,7 @@
   <div id="workflow-execution">
     <div :style="benchStyle">
       <transition name="fade" mode="out-in">
-        <router-view></router-view>
+        <router-view class="pages" :key="$route.name"></router-view>
       </transition>
       <BenchMenu :menuList="menuList"></BenchMenu>
     </div>
