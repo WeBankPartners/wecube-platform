@@ -1380,9 +1380,9 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 			tmpOutputMap = make(map[string]interface{})
 		}
 		if row.FromType == "input" {
-			tmpInputMap[row.Name] = getInterfaceDataByDataType(row.DataValue, row.DataType, row.Name, row.Multiple)
+			tmpInputMap[row.Name] = getInterfaceDataByDataType(row.DataValue, row.DataType, row.Name, row.Multiple, row.IsSensitive)
 		} else {
-			tmpOutputMap[row.Name] = getInterfaceDataByDataType(row.DataValue, row.DataType, row.Name, row.Multiple)
+			tmpOutputMap[row.Name] = getInterfaceDataByDataType(row.DataValue, row.DataType, row.Name, row.Multiple, row.IsSensitive)
 		}
 	}
 	curReqObj.Inputs = []map[string]interface{}{tmpInputMap}
@@ -1404,7 +1404,11 @@ func getProcNodeOperator(ctx context.Context, procInsNodeId string) (operator st
 	return
 }
 
-func getInterfaceDataByDataType(valueString, dataType, name string, multiple bool) (output interface{}) {
+func getInterfaceDataByDataType(valueString, dataType, name string, multiple, isSensitive bool) (output interface{}) {
+	if isSensitive {
+		output = models.SensitiveDisplay
+		return
+	}
 	var err error
 	if dataType == "string" {
 		if multiple {
