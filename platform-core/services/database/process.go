@@ -22,7 +22,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	var permissionList []*models.ProcDefPermission
 	var roleProcDefMap = make(map[string][]*models.ProcDefDto)
 	var userRolesMap = convertArray2Map(param.UserRoles)
-	var manageRoles, userRoles, allManageRoles, manageRolesDisplay, userRolesDisplay []string
+	var manageRoles, userRoles, allManageRoles, manageRolesDisplay, userRolesDisplay, userPermissionRoles []string
 	var response models.QueryRolesResponse
 	var roleDisplayNameMap = make(map[string]string)
 	var enabledCreated bool
@@ -86,6 +86,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 		enabledCreated = false
 		manageRoles = []string{}
 		userRoles = []string{}
+		userPermissionRoles = []string{}
 		manageRolesDisplay = []string{}
 		userRolesDisplay = []string{}
 		permissionList, err = GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id})
@@ -106,9 +107,12 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 			if permission.Permission == "MGMT" && userRolesMap[permission.RoleName] {
 				manageRoles = append(manageRoles, permission.RoleName)
 				manageRolesDisplay = append(manageRolesDisplay, roleDisplayNameMap[permission.RoleName])
-			} else if permission.Permission == "USE" && userRolesMap[permission.RoleName] {
+			} else if permission.Permission == "USE" {
 				userRoles = append(userRoles, permission.RoleName)
 				userRolesDisplay = append(userRolesDisplay, roleDisplayNameMap[permission.RoleName])
+			}
+			if permission.Permission == "USE" && userRolesMap[permission.RoleName] {
+				userPermissionRoles = append(userPermissionRoles, permission.RoleName)
 			}
 		}
 		if param.PermissionType == "MGMT" {
@@ -120,7 +124,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 				roleProcDefMap[manageRole] = append(roleProcDefMap[manageRole], models.BuildProcDefDto(procDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay, enabledCreated, collectProcDefMap))
 			}
 		} else {
-			for _, userRole := range userRoles {
+			for _, userRole := range userPermissionRoles {
 				if _, ok := roleProcDefMap[userRole]; !ok {
 					roleProcDefMap[userRole] = make([]*models.ProcDefDto, 0)
 					allManageRoles = append(allManageRoles, userRole)
@@ -321,9 +325,9 @@ func execCopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, nod
 			newNodeId := models.GenNodeId(node.NodeType)
 			actions = append(actions, &db.ExecAction{Sql: "insert into  proc_def_node(id,node_id,proc_def_id,name,description,status,node_type,service_name," +
 				"dynamic_bind,bind_node_id,risk_check,routine_expression,context_param_nodes,timeout,time_config,ordered_no,ui_style,created_by,created_time," +
-				"updated_by,updated_time,allow_continue) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{newNodeId, node.NodeId, newProcDefId, node.Name, node.Description,
+				"updated_by,updated_time,allow_continue,sub_proc_def_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{newNodeId, node.NodeId, newProcDefId, node.Name, node.Description,
 				models.Draft, node.NodeType, node.ServiceName, node.DynamicBind, node.BindNodeId, node.RiskCheck, node.RoutineExpression, node.ContextParamNodes,
-				node.Timeout, node.TimeConfig, node.OrderedNo, node.UiStyle, operator, currTime, node.UpdatedBy, currTime, node.AllowContinue}})
+				node.Timeout, node.TimeConfig, node.OrderedNo, node.UiStyle, operator, currTime, node.UpdatedBy, currTime, node.AllowContinue, node.SubProcDefId}})
 			for _, nodeParam := range nodeParamList {
 				if nodeParam.ProcDefNodeId == node.NodeId {
 					curNodeParamList = append(curNodeParamList, nodeParam)
