@@ -204,6 +204,7 @@ type ProcInsDetail struct {
 	UpdatedBy         string               `json:"updatedBy"`
 	UpdatedTime       string               `json:"updatedTime"`
 	ScheduleJobName   string               `json:"scheduleJobName"`
+	SubProc           bool                 `json:"subProc"`
 }
 
 type ProcInsNodeDetail struct {
