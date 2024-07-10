@@ -80,6 +80,7 @@ const (
 	SysVarMailPassword = "PLATFORM_MAIL_PWD"
 	SysVarMailSSL      = "PLATFORM_MAIL_SSL"
 	SysVarSystemSource = "system"
+	SysVarEncryptSeed  = "ENCRYPT_SEED"
 
 	// proc event status
 	ProcEventStatusCreated = "created"
