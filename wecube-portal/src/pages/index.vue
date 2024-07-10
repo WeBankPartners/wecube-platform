@@ -11,7 +11,7 @@
         <BreadcrumbItem>{{ parentBreadcrumb }}</BreadcrumbItem>
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
       </Breadcrumb>
-      <router-view class="pages" style="padding: 0" :key="$route.name"></router-view>
+      <router-view class="pages" style="padding: 0"></router-view>
     </div>
     <BackTop :height="100" :bottom="100" />
   </div>
