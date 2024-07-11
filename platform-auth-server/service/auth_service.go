@@ -5,9 +5,11 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/cipher"
 	"io/ioutil"
 	"math/big"
 	"strconv"
@@ -68,6 +70,16 @@ func (AuthService) Login(credential *model.CredentialDto, taskLogin bool) (*mode
 		}
 
 	} else {
+		if pwdBytes, pwdErr := base64.StdEncoding.DecodeString(credential.Password); pwdErr == nil {
+			credential.Password = hex.EncodeToString(pwdBytes)
+			if decodePwd, decodeErr := cipher.AesDePassword(GetLoginSeed(), credential.Password); decodeErr == nil {
+				credential.Password = decodePwd
+			} else {
+				log.Logger.Info("try to decode pwd with aes fail")
+			}
+		} else {
+			log.Logger.Info("try to decode pwd with base64 fail")
+		}
 		if authResp, err := authenticateUser(credential, taskLogin); err != nil {
 			return nil, err
 		} else {
@@ -458,4 +470,14 @@ func checkUmUserExists(credential *model.CredentialDto) (bool, error) {
 		return false, err
 	}
 	return umExist, nil
+}
+
+func GetLoginSeed() (output string) {
+	sourceSeed := model.Config.Auth.EncryptSeed
+	if sourceSeed == "" {
+		sourceSeed = model.Config.Auth.SigningKey
+	}
+	md5sum := cipher.Md5Encode(sourceSeed)
+	output = md5sum[0:16]
+	return
 }
