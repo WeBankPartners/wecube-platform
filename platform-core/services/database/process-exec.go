@@ -724,11 +724,24 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 			return
 		}
+		// 如果是子编排，要不与父编排冲突
+		var parentProcInsId string
+		if procStartParam.ParentInsNodeId != "" {
+			parentInsNodeObj, getParentInsErr := GetSimpleProcInsNode(ctx, procStartParam.ParentInsNodeId, "")
+			if getParentInsErr != nil {
+				err = getParentInsErr
+				return
+			}
+			parentProcInsId = parentInsNodeObj.ProcInsId
+		}
 		for _, previewRow := range previewRows {
 			if !previewRow.IsBound {
 				continue
 			}
 			for _, v := range existBindingRows {
+				if v.ProcInsId == parentProcInsId {
+					continue
+				}
 				if previewRow.EntityTypeId == v.EntityTypeId && previewRow.EntityDataId == v.EntityDataId {
 					err = fmt.Errorf("rowData conflict check fail,data->%s:%s is using by procInsId:%s", v.EntityTypeId, v.EntityDataId, v.ProcInsId)
 					break
