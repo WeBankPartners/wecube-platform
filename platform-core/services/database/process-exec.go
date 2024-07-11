@@ -996,7 +996,7 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 			displayStatus = row.Status
 		}
 	}
-	if displayStatus != "" {
+	if displayStatus != "" && procInsObj.Status == models.JobStatusRunning {
 		result.Status = displayStatus
 	}
 	var procDefLinks []*models.ProcDefNodeLink
