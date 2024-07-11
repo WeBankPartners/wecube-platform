@@ -64,3 +64,8 @@ func RefreshToken(c *gin.Context) {
 	}
 
 }
+
+func GetLoginSeed(c *gin.Context) {
+	seed := service.GetLoginSeed()
+	support.ReturnData(c, seed)
+}
