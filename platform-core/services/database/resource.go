@@ -2,7 +2,10 @@ package database
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/cipher"
 	"strings"
 	"time"
 
@@ -58,6 +61,10 @@ func CreateResourceServer(ctx context.Context, params []*models.ResourceServer) 
 	var actions []*db.ExecAction
 	nowTime := time.Now()
 	for _, v := range params {
+		v.LoginPassword, err = DecodeUIPassword(ctx, v.LoginPassword)
+		if err != nil {
+			return
+		}
 		v.Id = "rs_ser_" + guid.CreateGuid()
 		if !strings.HasPrefix(v.LoginPassword, models.AESPrefix) {
 			enPwd := encrypt.EncryptWithAesECB(v.LoginPassword, models.Config.Plugin.ResourcePasswordSeed, v.Name)
@@ -75,6 +82,10 @@ func UpdateResourceServer(ctx context.Context, params []*models.ResourceServer) 
 	var actions []*db.ExecAction
 	nowTime := time.Now()
 	for _, v := range params {
+		v.LoginPassword, err = DecodeUIPassword(ctx, v.LoginPassword)
+		if err != nil {
+			return
+		}
 		if !strings.HasPrefix(v.LoginPassword, models.AESPrefix) {
 			enPwd := encrypt.EncryptWithAesECB(v.LoginPassword, models.Config.Plugin.ResourcePasswordSeed, v.Name)
 			v.LoginPassword = models.AESPrefix + enPwd
@@ -141,6 +152,37 @@ func GetResourceServerById(resId string) (resourceServer *models.ResourceServer,
 	resourceServer = resourceServerRows[0]
 	if strings.HasPrefix(resourceServer.LoginPassword, models.AESPrefix) {
 		resourceServer.LoginPassword = encrypt.DecryptWithAesECB(resourceServer.LoginPassword[5:], models.Config.Plugin.ResourcePasswordSeed, resourceServer.Name)
+	}
+	return
+}
+
+func DecodeUIPassword(ctx context.Context, inputValue string) (output string, err error) {
+	if inputValue == "" {
+		return
+	}
+	var seed string
+	if seed, err = GetEncryptSeed(ctx); err != nil {
+		return
+	}
+	if pwdBytes, pwdErr := base64.StdEncoding.DecodeString(inputValue); pwdErr == nil {
+		inputValue = hex.EncodeToString(pwdBytes)
+	} else {
+		err = fmt.Errorf("base64 decode input data fail,%s ", pwdErr.Error())
+		return
+	}
+	output, err = decodeUIAesPassword(seed, inputValue)
+	return
+}
+
+func decodeUIAesPassword(seed, password string) (decodePwd string, err error) {
+	unixTime := time.Now().Unix() / 100
+	decodePwd, err = cipher.AesDePasswordWithIV(seed, password, fmt.Sprintf("%d", unixTime*100000000))
+	if err != nil {
+		unixTime = unixTime - 1
+		decodePwd, err = cipher.AesDePasswordWithIV(seed, password, fmt.Sprintf("%d", unixTime*100000000))
+	}
+	if err != nil {
+		err = fmt.Errorf("aes decode with iv fail,%s ", err.Error())
 	}
 	return
 }
