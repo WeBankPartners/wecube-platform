@@ -983,6 +983,22 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
+	var displayStatus string
+	for _, row := range procInsNodeRows {
+		if row.Status == models.JobStatusFail {
+			displayStatus = row.Status
+			continue
+		}
+		if row.Status == models.JobStatusTimeout {
+			if displayStatus == models.JobStatusFail {
+				continue
+			}
+			displayStatus = row.Status
+		}
+	}
+	if displayStatus != "" {
+		result.Status = displayStatus
+	}
 	var procDefLinks []*models.ProcDefNodeLink
 	err = db.MysqlEngine.Context(ctx).SQL("select id,link_id,proc_def_id,source,target,name from proc_def_node_link where proc_def_id=?", result.ProcDefId).Find(&procDefLinks)
 	if err != nil {
