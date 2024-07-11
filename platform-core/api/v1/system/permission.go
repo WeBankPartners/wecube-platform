@@ -285,9 +285,20 @@ func ChangeUserPassword(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	response, err := remote.ModifyLocalUserPassword(param, middleware.GetRequestUser(c), c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
+	var err error
+	param.NewPassword, err = database.DecodeUIPassword(c, param.NewPassword)
 	if err != nil {
-		middleware.ReturnError(c, err)
+		middleware.ReturnError(c, fmt.Errorf("deocde param newPassword fail,%s ", err.Error()))
+		return
+	}
+	param.OriginalPassword, err = database.DecodeUIPassword(c, param.OriginalPassword)
+	if err != nil {
+		middleware.ReturnError(c, fmt.Errorf("deocde param originalPassword fail,%s ", err.Error()))
+		return
+	}
+	response, modifyErr := remote.ModifyLocalUserPassword(param, middleware.GetRequestUser(c), c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
+	if modifyErr != nil {
+		middleware.ReturnError(c, modifyErr)
 		return
 	}
 	middleware.Return(c, response)
