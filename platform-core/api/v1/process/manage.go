@@ -1476,6 +1476,11 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 					tempLinkNameMap[link.Name] = true
 				}
 			}
+		case models.ProcDefNodeTypeData:
+			// 判断定位规则有没有带operation
+			if _, err = database.GetProcDataNodeExpression(node.RoutineExpression); err != nil {
+				return exterror.Catch(exterror.New().ProcDefDataNodeError, err)
+			}
 		default:
 			// 任务三种节点,插件服务不能为空
 			if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) {

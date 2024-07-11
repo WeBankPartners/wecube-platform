@@ -151,5 +151,9 @@
   "proc_def_decision_merge_error": {
     "code": 20000033,
     "message": "发布失败:判断汇聚节点找不到对应的判断开始节点"
+  },
+  "proc_def_data_node_error": {
+    "code": 20000034,
+    "message": "发布失败:数据节点表达式校验错误"
   }
 }
