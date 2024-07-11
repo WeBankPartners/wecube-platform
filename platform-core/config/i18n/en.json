@@ -151,5 +151,9 @@
   "proc_def_decision_merge_error": {
     "code": 20000033,
     "message": "Publish Failed: Decision merge node can not match suitable decision node"
+  },
+  "proc_def_data_node_error": {
+    "code": 20000034,
+    "message": "Publish Failed: Data node expression validate fail"
   }
 }
