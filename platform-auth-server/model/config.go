@@ -49,6 +49,7 @@ type Auth struct {
 	RefreshTokenMins  int    `json:"refresh_token_mins"`
 	WebPrivateKeyPath string `json:"web_private_key_path"`
 	WebPublicKeyPath  string `json:"web_public_key_path"`
+	EncryptSeed       string `json:"encrypt_seed"`
 }
 
 type UmAuth struct {
