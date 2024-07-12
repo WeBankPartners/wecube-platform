@@ -54,7 +54,8 @@ type PluginPackages struct {
 	RegisterDone      bool      `json:"registerDone" xorm:"register_done"`            // 是否完成注册
 	UiActive          bool      `json:"uiActive" xorm:"ui_active"`                    // 前端资源包是否生效
 	UpdatedBy         string    `json:"updatedBy" xorm:"updated_by"`                  // 更新人
-	UpdatedTime       time.Time `json:"updatedTime" xorm:"updated_time"`              // 更新时间
+	UpdatedTime       time.Time `json:"-" xorm:"updated_time"`                        // 更新时间
+	UpdatedTimeString string    `json:"updatedTime" xorm:"-"`                         // 更新时间,格式化后
 }
 
 type PluginInstances struct {
