@@ -919,6 +919,7 @@ func ListProcInstance(ctx context.Context, userRoles []string) (result []*models
 		return
 	}
 	result = []*models.ProcInsDetail{}
+	var procInProgressIdList []string
 	for _, procInsObj := range procInsRows {
 		tmpInsObj := &models.ProcInsDetail{
 			Id:                procInsObj.Id,
@@ -934,11 +935,22 @@ func ListProcInstance(ctx context.Context, userRoles []string) (result []*models
 			CreatedTime:       procInsObj.CreatedTime.Format(models.DateTimeFormat),
 			Version:           procInsObj.Version,
 			SubProc:           procInsObj.SubProc,
+			DisplayStatus:     procInsObj.Status,
+		}
+		if procInsObj.Status == models.JobStatusRunning {
+			procInProgressIdList = append(procInProgressIdList, procInsObj.Id)
 		}
 		//if transStatus, ok := models.ProcStatusTransMap[tmpInsObj.Status]; ok {
 		//	tmpInsObj.Status = transStatus
 		//}
 		result = append(result, tmpInsObj)
+	}
+	procInsNodeStatusMap := make(map[string]string)
+	procInsNodeStatusMap, err = getProcInsNodeStatus(ctx, procInProgressIdList)
+	for _, row := range result {
+		if nodeStatus, ok := procInsNodeStatusMap[row.Id]; ok {
+			row.DisplayStatus = fmt.Sprintf("%s(%s)", row.Status, nodeStatus)
+		}
 	}
 	return
 }
@@ -978,6 +990,16 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 	//if transStatus, ok := models.ProcStatusTransMap[result.Status]; ok {
 	//	result.Status = transStatus
 	//}
+	if procInsObj.ParentInsNodeId != "" {
+		procInsParentMap := make(map[string]*models.ParentProcInsObj)
+		procInsParentMap, err = getProcInsParentMap(ctx, []string{procInsObj.Id})
+		if err != nil {
+			return
+		}
+		if v, ok := procInsParentMap[procInsObj.Id]; ok {
+			result.ParentProcIns = v
+		}
+	}
 	var procInsNodeRows []*models.ProcInsNode
 	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins_node where proc_ins_id=? order by ordered_no", procInsId).Find(&procInsNodeRows)
 	if err != nil {
