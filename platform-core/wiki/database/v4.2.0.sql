@@ -26,3 +26,5 @@ alter table proc_schedule_config add column name varchar(64) default null commen
 
 alter table plugin_package_runtime_resources_docker modify column volume_bindings varchar(4096) default null;
 alter table proc_schedule_job add column created_by varchar(64) default null;
+
+update plugin_packages set updated_time=upload_timestamp where updated_time is null;
