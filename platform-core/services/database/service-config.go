@@ -1134,16 +1134,35 @@ func ImportPluginConfigs(c *gin.Context, pluginPackageId string, packagePluginsX
 
 	// handle system parameters
 	systemVariablesList := getImportSystemVariablesData(packagePluginsXmlData)
+	updateSystemVarActions, buildActionErr := getPluginSystemVariableUpdateActions(systemVariablesList, pluginPackageData.Name, pluginPackageData.Version)
+	if buildActionErr != nil {
+		err = buildActionErr
+		return
+	}
+	actions = append(actions, updateSystemVarActions...)
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	return
+}
+
+func getPluginSystemVariableUpdateActions(systemVariablesList []*models.SystemVariables, packageName, packageVersion string) (actions []*db.ExecAction, err error) {
 	systemVarDelActions := []*db.ExecAction{}
 	systemVarCreationActions := []*db.ExecAction{}
+	inactiveOtherVarActions := []*db.ExecAction{}
 	for i, sysVar := range systemVariablesList {
-		sysVar.Source = fmt.Sprintf("%s__%s", pluginPackageData.Name, pluginPackageData.Version)
+		sysVar.Source = fmt.Sprintf("%s__%s", packageName, packageVersion)
 		curDelAction := &db.ExecAction{
 			Sql:   db.CombineDBSql("DELETE FROM ", models.TableNameSystemVariables, " WHERE name=? AND source=?"),
 			Param: []interface{}{sysVar.Name, sysVar.Source},
 		}
 		systemVarDelActions = append(systemVarDelActions, curDelAction)
-
+		inactiveOtherVarActions = append(inactiveOtherVarActions, &db.ExecAction{Sql: "update system_variables set status='inactive' where name=? and status='active'", Param: []interface{}{sysVar.Name}})
+		sysVar.Status = "active"
+		sysVar.Id = "sys_var_" + guid.CreateGuid()
 		curCreationAction, tmpErr := db.GetInsertTableExecAction(models.TableNameSystemVariables, *systemVariablesList[i], nil)
 		if tmpErr != nil {
 			err = fmt.Errorf("get create system variables actions failed: %s", tmpErr.Error())
@@ -1152,13 +1171,8 @@ func ImportPluginConfigs(c *gin.Context, pluginPackageId string, packagePluginsX
 		systemVarCreationActions = append(systemVarCreationActions, curCreationAction)
 	}
 	actions = append(actions, systemVarDelActions...)
+	actions = append(actions, inactiveOtherVarActions...)
 	actions = append(actions, systemVarCreationActions...)
-
-	err = db.Transaction(actions, c)
-	if err != nil {
-		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
-		return
-	}
 	return
 }
 
@@ -1544,5 +1558,13 @@ func UpdateObjectMetas(c *gin.Context, reqParam *models.CoreObjectMeta) (err err
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		return
 	}
+	return
+}
+
+func getPluginConfigDeleteActions(pluginPackageId string) (actions []*db.ExecAction) {
+	actions = append(actions, &db.ExecAction{Sql: "delete from plugin_config_roles where plugin_cfg_id in (select id from plugin_configs where plugin_package_id=? and register_name!='')", Param: []interface{}{pluginPackageId}})
+	actions = append(actions, &db.ExecAction{Sql: "delete from plugin_config_interface_parameters where plugin_config_interface_id in (select id from plugin_config_interfaces where plugin_config_id in (select id from plugin_configs where plugin_package_id=? and register_name!=''))", Param: []interface{}{pluginPackageId}})
+	actions = append(actions, &db.ExecAction{Sql: "delete from plugin_config_interfaces where plugin_config_id in (select id from plugin_configs where plugin_package_id=? and register_name!='')", Param: []interface{}{pluginPackageId}})
+	actions = append(actions, &db.ExecAction{Sql: "delete from plugin_configs where plugin_package_id=? and register_name!=''", Param: []interface{}{pluginPackageId}})
 	return
 }
