@@ -506,7 +506,7 @@ func DeployProcessDefinition(c *gin.Context) {
 		return
 	}
 	// 检查节点的合法性
-	if err = checkDeployedProcDef(c, procDefId); err != nil {
+	if err = checkDeployedProcDef(c, procDefId, procDef); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
@@ -1396,7 +1396,7 @@ checkDeployedProcDefNode
 6. 开始结束节点都不超过一个
 7. 判断节点出的线,必须有名字并且同一个判断节点的所有线的名字不能相同
 */
-func checkDeployedProcDef(ctx context.Context, procDefId string) error {
+func checkDeployedProcDef(ctx context.Context, procDefId string, procDef *models.ProcDef) error {
 	var inCount, outCount int
 	var list []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
@@ -1406,7 +1406,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 	var startNodeNameList, endNodeNameList, sortNodeIds []string
 	var sortLinks [][]string
 	var sortNodes models.ProcDefSortNodes
-	var withDecisionMerge bool
+	var withDecisionMerge, withMerge bool
 	list, err = database.GetProcDefNodeById(ctx, procDefId)
 	if err != nil {
 		return err
@@ -1452,6 +1452,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 			}
 		case models.ProcDefNodeTypeMerge:
 			// 汇聚必须多进单出
+			withMerge = true
 			if !(inCount > 1 && outCount == 1) {
 				return exterror.New().ProcDefNode20000005Error.WithParam(node.Name)
 			}
@@ -1481,12 +1482,22 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 			if _, err = database.GetProcDataNodeExpression(node.RoutineExpression); err != nil {
 				return exterror.Catch(exterror.New().ProcDefDataNodeError, err)
 			}
+		case models.ProcDefNodeSubProcess:
+			if procDef.SubProc {
+				return exterror.New().ProcDefSubProcCheckError
+			}
+			if node.SubProcDefId == "" {
+				return exterror.New().ProcDefNodeSubProcEmptyError.WithParam(node.Name)
+			}
 		default:
 			// 任务三种节点,插件服务不能为空
 			if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) {
 				if strings.TrimSpace(node.ServiceName) == "" {
 					return exterror.New().ProcDefNodeServiceNameEmptyError.WithParam(node.Name)
 				}
+			}
+			if node.NodeType == string(models.ProcDefNodeTypeHuman) && procDef.SubProc {
+				return exterror.New().ProcDefSubProcCheckError
 			}
 			// 时间节点,日期不能为空
 			if node.NodeType == string(models.ProcDefNodeTypeDate) && node.TimeConfig != "" {
@@ -1542,7 +1553,26 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 				decisionCount = decisionCount - 1
 			}
 			if decisionCount < 0 {
-				return exterror.New().ProcDefDecisionMergeError
+				return exterror.New().ProcDefDecisionMergeError.WithParam(v.Name)
+			}
+		}
+	}
+	if withMerge {
+		// 汇聚是否有成对的分流
+		for _, v := range sortNodes {
+			v.OrderedNo = sortNodeIdMap[v.Id]
+		}
+		sort.Sort(sortNodes)
+		mergeCount := 0
+		for _, v := range sortNodes {
+			if v.NodeType == models.JobForkType {
+				mergeCount = mergeCount + 1
+			}
+			if v.NodeType == models.JobMergeType {
+				mergeCount = mergeCount - 1
+			}
+			if mergeCount < 0 {
+				return exterror.New().ProcDefMergeError.WithParam(v.Name)
 			}
 		}
 	}
