@@ -1,7 +1,7 @@
 <template>
   <div class="batch-execute-create">
     <BaseForm ref="form" :type="type" from="execute" :data="detailData" @back="handleBack" />
-    <div v-if="type === 'view'" class="footer-button">
+    <div v-if="type !== 'view'" class="footer-button">
       <!--执行-->
       <Button type="primary" @click="saveExcute">{{ $t('execute') }}</Button>
     </div>
