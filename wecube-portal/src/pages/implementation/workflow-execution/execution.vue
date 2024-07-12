@@ -42,7 +42,19 @@
                   <div>
                     <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
                     <span style="color: #2b85e4">{{ '[' + item.version + '] ' }}</span>
-                    <Tag style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</Tag>
+                    <div
+                      :style="{
+                        backgroundColor: '#c5c8ce',
+                        padding: '4px 15px',
+                        width: 'fit-content',
+                        color: '#fff',
+                        borderRadius: '4px',
+                        display: 'inline-block',
+                        marginLeft: '10px'
+                      }"
+                    >
+                      {{ item.entityDisplayName + ' ' }}
+                    </div>
                   </div>
                   <div style="display: flex; align-items: center">
                     <span style="color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
@@ -215,7 +227,12 @@
       </template>
     </BaseDrawer>
     <!--右侧预览弹窗(新建、查看)-->
-    <BaseDrawer :title="$t('overview')" :visible.sync="targetWithFlowModalVisible" width="70%" :scrollable="true">
+    <BaseDrawer
+      :title="targetWithFlowModalVisibleSingleTag ? targetWithFlowModalSingleTagTitle : $t('overview')"
+      :visible.sync="targetWithFlowModalVisible"
+      width="70%"
+      :scrollable="true"
+    >
       <template slot-scope="{ maxHeight }" slot="content">
         <Table
           border
@@ -592,7 +609,9 @@ export default {
       allFlowNodesModelData: [],
       selectedFlowNodesModelData: [],
       modelDataWithFlowNodes: [],
-      targetWithFlowModalVisible: false,
+      targetWithFlowModalVisible: false, // 数据模型总览弹框
+      targetWithFlowModalVisibleSingleTag: false, // 数据模型单节点预览弹框
+      targetWithFlowModalSingleTagTitle: this.$t('view'),
       flowNodesWithDataModalVisible: false,
       indexArray: [0],
       flowIndexArray: [0],
@@ -1247,12 +1266,21 @@ export default {
       }
     },
     async stopHandler () {
+      const instance = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
       this.$Modal.confirm({
-        title: this.$t('bc_confirm') + ' ' + this.$t('stop_orch'),
+        title:
+          localStorage.getItem('username') !== instance.operator
+            ? this.$t('be_workflow_non_owner_title')
+            : this.$t('bc_confirm') + ' ' + this.$t('stop_orch'),
+        content:
+          localStorage.getItem('username') !== instance.operator
+            ? `${this.$t('be_workflow_non_owner_list_tip1')}[${instance.operator}]${this.$t(
+              'be_workflow_non_owner_list_tip2'
+            )}`
+            : '',
         'z-index': 10,
         onOk: async () => {
           // createWorkflowInstanceTerminationRequest
-          const instance = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
           const payload = {
             procInstId: this.selectedFlowInstance,
             procInstKey: instance.procInstKey
@@ -1501,6 +1529,7 @@ export default {
               : ''
         }
       })
+      this.targetWithFlowModalVisibleSingleTag = false
       this.targetWithFlowModalVisible = true
       let start = 0
       for (let i = 0; i < this.modelDataWithFlowNodes.length; i++) {
@@ -1865,16 +1894,43 @@ export default {
         this.renderFlowGraph()
       }
     },
+    // 点击数据模型节点事件
     modelGraphClickHandler (e) {
       e.preventDefault()
       e.stopPropagation()
       if (!this.isEnqueryPage) {
         const refEle = e.target.parentNode.children[3]
         if (refEle) {
+          // 有关联节点时，高亮左边编排图
           this.currentModelNodeRefs = refEle.innerHTML.trim().split('/')
+          this.renderFlowGraph()
+        } else {
+          // 没有关联节点时，左边编排图取消高亮效果
+          this.currentModelNodeRefs = []
           this.renderFlowGraph()
         }
       }
+      // 弹出节点数据弹框
+      this.modelDataWithFlowNodes = this.modelData.map(_ => {
+        return {
+          ..._,
+          entity: _.packageName + ':' + _.entityName,
+          nodeTitle:
+            _.refFlowNodeIds.length > 0
+              ? _.refFlowNodeIds
+                .map(id => {
+                  const found = this.flowData.flowNodes.find(n => n.orderedNo === id)
+                  return found.orderedNo + ' ' + found.nodeName
+                })
+                .join(';')
+              : ''
+        }
+      })
+      this.modelDataWithFlowNodes = this.modelDataWithFlowNodes.filter(
+        i => i.id === e.target.__data__.parent.attributes.id
+      )
+      this.targetWithFlowModalVisibleSingleTag = true
+      this.targetWithFlowModalVisible = true
     },
     // 查看对象弹框
     modelGraphMouseenterHandler (row) {
@@ -2568,19 +2624,36 @@ export default {
     },
     // #region 暂停、继续编排
     async flowControlHandler (operateType) {
-      let payload = {
-        procInstId: this.selectedFlowInstance,
-        act: operateType
-      }
-      const { status } = await pauseAndContinueFlow(payload)
-      if (status === 'OK') {
-        this.$Notice.success({
-          title: 'Success',
-          desc: 'Success'
-        })
-        this.currentInstanceStatusForNodeOperation = operateType === 'stop' ? 'Stop' : 'InProgress'
-        this.getProcessInstances()
-      }
+      const instance = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
+      this.$Modal.confirm({
+        title:
+          localStorage.getItem('username') !== instance.operator
+            ? this.$t('be_workflow_non_owner_title')
+            : this.$t('bc_confirm') + ' ' + (operateType === 'stop' ? this.$t('pause') : this.$t('bc_continue')),
+        content:
+          localStorage.getItem('username') !== instance.operator
+            ? `${this.$t('be_workflow_non_owner_list_tip1')}[${instance.operator}]${this.$t(
+              'be_workflow_non_owner_list_tip2'
+            )}`
+            : '',
+        'z-index': 10,
+        onOk: async () => {
+          let payload = {
+            procInstId: this.selectedFlowInstance,
+            act: operateType
+          }
+          const { status } = await pauseAndContinueFlow(payload)
+          if (status === 'OK') {
+            this.$Notice.success({
+              title: 'Success',
+              desc: 'Success'
+            })
+            this.currentInstanceStatusForNodeOperation = operateType === 'stop' ? 'Stop' : 'InProgress'
+            this.getProcessInstances()
+          }
+        },
+        onCancel: () => {}
+      })
     }
     // #endregion
   }
