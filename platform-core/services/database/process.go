@@ -238,6 +238,18 @@ func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefi
 	if len(procDef.ProcDefNodeExtend.Nodes) > 0 {
 		for _, node := range procDef.ProcDefNodeExtend.Nodes {
 			if node != nil {
+				if node.ProcDefNodeCustomAttrs.SubProcDefName != "" && node.ProcDefNodeCustomAttrs.SubProcDefVersion != "" {
+					subProcDefList, tmpErr := GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Name: node.ProcDefNodeCustomAttrs.SubProcDefName, Version: node.ProcDefNodeCustomAttrs.SubProcDefVersion})
+					if tmpErr != nil {
+						err = tmpErr
+						return
+					}
+					if len(subProcDefList) == 0 {
+						err = fmt.Errorf("Can not find sub process with name:version -> %s:%s ", node.ProcDefNodeCustomAttrs.SubProcDefName, node.ProcDefNodeCustomAttrs.SubProcDefVersion)
+						return
+					}
+					node.ProcDefNodeCustomAttrs.SubProcDefId = subProcDefList[0].Id
+				}
 				nodeModel, nodeParams := models.ConvertProcDefNodeResultDto2Model(node)
 				if nodeModel != nil {
 					nodeModel.CreatedBy = operator
@@ -427,6 +439,10 @@ func GetProcessDefinitionByCondition(ctx context.Context, condition models.ProcD
 		sql = sql + " and status = ?"
 		param = append(param, condition.Status)
 	}
+	if condition.Version != "" {
+		sql = sql + " and `version` = ?"
+		param = append(param, condition.Version)
+	}
 	err = db.MysqlEngine.Context(ctx).SQL(sql, param...).Find(&list)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
@@ -579,6 +595,7 @@ func GetProcDefNodeByProcDefId(ctx context.Context, procDefId string) (list []*m
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
+	var subProcDefIdList []string
 	for _, procDefNode := range list {
 		var nodeParamList []*models.ProcDefNodeParam
 		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_param where proc_def_node_id = ?", procDefNode.Id).Find(&nodeParamList)
@@ -587,6 +604,28 @@ func GetProcDefNodeByProcDefId(ctx context.Context, procDefId string) (list []*m
 			return
 		}
 		result = append(result, models.ConvertProcDefNode2Dto(procDefNode, nodeParamList))
+		if procDefNode.SubProcDefId != "" {
+			subProcDefIdList = append(subProcDefIdList, procDefNode.SubProcDefId)
+		}
+	}
+	if len(subProcDefIdList) > 0 {
+		var subProcDefRows []*models.ProcDef
+		filterSql, filterParam := db.CreateListParams(subProcDefIdList, "")
+		err = db.MysqlEngine.Context(ctx).SQL("select id,`key`,name,`version` from proc_def where id in ("+filterSql+")", filterParam...).Find(&subProcDefRows)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		sucProcMap := make(map[string]*models.ProcDef)
+		for _, row := range subProcDefRows {
+			sucProcMap[row.Id] = row
+		}
+		for _, resultObj := range result {
+			if subProcObj, ok := sucProcMap[resultObj.ProcDefNodeCustomAttrs.SubProcDefId]; ok {
+				resultObj.ProcDefNodeCustomAttrs.SubProcDefName = subProcObj.Name
+				resultObj.ProcDefNodeCustomAttrs.SubProcDefVersion = subProcObj.Version
+			}
+		}
 	}
 	return
 }

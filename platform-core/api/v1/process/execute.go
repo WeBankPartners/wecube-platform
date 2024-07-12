@@ -656,6 +656,15 @@ func ProcTermination(c *gin.Context) {
 		middleware.ReturnError(c, exterror.New().DataPermissionDeny)
 		return
 	}
+	procInsObj, getErr := database.GetSimpleProcInsRow(c, procInsId)
+	if getErr != nil {
+		middleware.ReturnError(c, getErr)
+		return
+	}
+	if procInsObj.Status == models.JobStatusFail || procInsObj.Status == models.JobStatusSuccess {
+		middleware.ReturnError(c, fmt.Errorf("procIns:%s[%s] status is %s ,can not termination", procInsObj.ProcDefName, procInsObj.Id, procInsObj.Status))
+		return
+	}
 	workflowId, _, err := database.GetProcWorkByInsId(c, procInsId, "")
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -669,6 +678,50 @@ func ProcTermination(c *gin.Context) {
 	}
 	go workflow.HandleProOperation(&operationObj)
 	killSubProc(c, procInsId, "", middleware.GetRequestUser(c))
+	middleware.ReturnSuccess(c)
+}
+
+func BatchProcTermination(c *gin.Context) {
+	var procInsList []*models.ProcIns
+	if err := c.ShouldBindJSON(&procInsList); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	for _, procInsParam := range procInsList {
+		permissionLegal, checkPermissionErr := database.CheckProcInsUserPermission(c, middleware.GetRequestRoles(c), procInsParam.Id)
+		if checkPermissionErr != nil {
+			middleware.ReturnError(c, checkPermissionErr)
+			return
+		}
+		if !permissionLegal {
+			middleware.ReturnError(c, exterror.New().DataPermissionDeny)
+			return
+		}
+		procInsObj, getErr := database.GetSimpleProcInsRow(c, procInsParam.Id)
+		if getErr != nil {
+			middleware.ReturnError(c, getErr)
+			return
+		}
+		if procInsObj.Status == models.JobStatusFail || procInsObj.Status == models.JobStatusSuccess {
+			middleware.ReturnError(c, fmt.Errorf("procIns:%s[%s] status is %s ,can not termination", procInsObj.ProcDefName, procInsObj.Id, procInsObj.Status))
+			return
+		}
+	}
+	for _, procInsParam := range procInsList {
+		workflowId, _, err := database.GetProcWorkByInsId(c, procInsParam.Id, "")
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		operationObj := models.ProcRunOperation{WorkflowId: workflowId, Operation: "kill", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
+		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		go workflow.HandleProOperation(&operationObj)
+		killSubProc(c, procInsParam.Id, "", middleware.GetRequestUser(c))
+	}
 	middleware.ReturnSuccess(c)
 }
 

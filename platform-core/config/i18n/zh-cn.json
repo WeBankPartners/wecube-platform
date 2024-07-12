@@ -150,10 +150,22 @@
   },
   "proc_def_decision_merge_error": {
     "code": 20000033,
-    "message": "发布失败:判断汇聚节点找不到对应的判断开始节点"
+    "message": "发布失败:判断汇聚节点 %s 找不到对应的判断开始节点"
   },
   "proc_def_data_node_error": {
     "code": 20000034,
     "message": "发布失败:数据节点表达式校验错误"
+  },
+  "proc_def_sub_proc_check_error": {
+    "code": 20000035,
+    "message": "发布失败:子编排不能有人工节点或子编排节点"
+  },
+  "proc_def_node_sub_proc_empty_error": {
+    "code": 20000036,
+    "message": "发布失败:子编排节点: %s 子编排参数不能为空"
+  },
+  "proc_def_merge_error": {
+    "code": 20000037,
+    "message": "发布失败:汇聚节点 %s 找不到对应的分流节点"
   }
 }
