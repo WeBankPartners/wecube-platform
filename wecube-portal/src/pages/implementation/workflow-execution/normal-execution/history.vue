@@ -3,7 +3,14 @@
     <div class="search">
       <Search :options="searchOptions" v-model="searchConfig.params" @search="handleQuery"></Search>
     </div>
-    <Table size="small" ref="table" :columns="tableColumns" :max-height="MODALHEIGHT" :data="tableData"></Table>
+    <Table
+      size="small"
+      ref="table"
+      :columns="tableColumns"
+      :max-height="MODALHEIGHT"
+      :data="tableData"
+      :loading="loading"
+    ></Table>
     <Page
       style="float: right; margin-top: 16px"
       :total="pageable.total"
@@ -69,7 +76,7 @@ export default {
         // 编排ID
         {
           key: 'id',
-          placeholder: this.$t('workflow_id'),
+          placeholder: this.$t('fe_flowInstanceId'),
           component: 'input'
         },
         // 状态
@@ -123,6 +130,7 @@ export default {
       },
       allFlows: [],
       tableData: [],
+      loading: false,
       tableColumns: [
         {
           type: 'index',
@@ -150,7 +158,7 @@ export default {
           }
         },
         {
-          title: this.$t('workflow_id'),
+          title: this.$t('fe_flowInstanceId'),
           minWidth: 180,
           key: 'id'
         },
@@ -240,7 +248,7 @@ export default {
                     </Button>
                   </Tooltip>
                 )}
-                {params.row.status === 'InProgress' && this.searchConfig.params.subProc === 'main' && (
+                {params.row.status === 'InProgress' && params.row.parentProcIns && params.row.parentProcIns.procInsId && (
                   <Tooltip content={this.$t('stop_orch')} placement="top">
                     <Button
                       size="small"
@@ -323,7 +331,7 @@ export default {
     // 查看主编排
     viewParentFlowGraph (row) {
       window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
-      const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${row.parentProcIns.procInsId}`
+      const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${row.parentProcIns.procInsId}&from=main`
       window.open(path, '_blank')
     },
     handleQuery () {
@@ -444,7 +452,9 @@ export default {
         }
       }
       this.tableData = []
+      this.loading = true
       let { status, data } = await instancesWithPaging(params)
+      this.loading = false
       if (status === 'OK') {
         this.tableData = data.contents
         this.pageable.total = data.pageInfo.totalRows
@@ -469,7 +479,8 @@ export default {
             path: '/implementation/workflow-execution/view-execution',
             query: {
               id: row.id,
-              subProc: this.searchConfig.params.subProc
+              subProc: this.searchConfig.params.subProc,
+              from: 'history'
             }
           })
         }

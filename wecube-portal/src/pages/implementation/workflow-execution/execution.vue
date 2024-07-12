@@ -17,6 +17,7 @@
               @on-open-change="getProcessInstances(false)"
               @on-clear="clearHistoryOrch"
               @on-change="queryHandler"
+              :disabled="['main', 'sub'].includes(from)"
             >
               <Option
                 v-for="item in allFlowInstances"
@@ -34,7 +35,7 @@
                   '  ' +
                   (item.createdTime || '0000-00-00 00:00:00') +
                   '  ' +
-                  getStatusStyleAndName(item.status, 'label')
+                  getStatusStyleAndName(item.displayStatus, 'label')
                 "
               >
                 <div style="display: flex; justify-content: space-between">
@@ -47,8 +48,8 @@
                     <span style="color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
                     <span style="color: #ccc">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
                     <div style="width: 100px">
-                      <span :style="getStatusStyleAndName(item.status, 'style')">{{
-                        getStatusStyleAndName(item.status, 'label')
+                      <span :style="getStatusStyleAndName(item.displayStatus, 'style')">{{
+                        getStatusStyleAndName(item.displayStatus, 'label')
                       }}</span>
                     </div>
                   </div>
@@ -75,7 +76,7 @@
             >
             <!--终止执行-->
             <Button
-              v-if="currentInstanceStatusForNodeOperation === 'InProgress' && subProc !== 'sub'"
+              v-if="currentInstanceStatusForNodeOperation === 'InProgress' && !subProcBindParentFlag"
               type="warning"
               @click="stopHandler"
               icon="md-square"
@@ -83,13 +84,13 @@
             >
             <!-- disabled="currentInstanceStatus || stopSuccess"  stop_orch -->
             <!--定时执行-->
-            <Button
+            <!-- <Button
               v-if="currentInstanceStatusForNodeOperation === 'Completed'"
               type="primary"
               @click="setTimedExecution"
               icon="md-stopwatch"
               >{{ $t('timed_execution') }}</Button
-            >
+            > -->
             <!-- :disabled="canAbleToSetting" timed_execution -->
           </FormItem>
           <Col v-if="!isEnqueryPage" span="7">
@@ -206,9 +207,6 @@
           @on-select-all="allFlowNodesSelectAll"
           :span-method="flowNodeDataHandleSpan"
         >
-          <template slot-scope="{ row }" slot="orderedNo">
-            <span>{{ row.orderedNo + ' ' + row.nodeName }}</span>
-          </template>
         </Table>
       </template>
       <template slot="footer">
@@ -226,11 +224,6 @@
           :data="modelDataWithFlowNodes"
           :span-method="modelDataHandleSpan"
         >
-          <template slot-scope="{ row }" slot="nodeTitle">
-            <div style="margin-bottom: 5px" v-for="title in row.nodeTitle.split(';')" :key="title">
-              {{ title || '-' }}
-            </div>
-          </template>
         </Table>
       </template>
     </BaseDrawer>
@@ -311,7 +304,7 @@
     >
       <Input
         v-model="retryTableFilterParam"
-        placeholder="displayName filter"
+        :placeholder="$t('bc_execution_instance')"
         style="width: 300px; margin-bottom: 8px"
       />
       <Table
@@ -640,23 +633,26 @@ export default {
         // 节点名
         {
           title: this.$t('fe_nodeName'),
-          slot: 'orderedNo',
-          width: 240
+          key: 'orderedNo',
+          width: 240,
+          render: (h, params) => {
+            return <span>{params.row.orderedNo + ' ' + params.row.nodeName}</span>
+          }
         },
         {
           type: 'selection',
           width: 60,
           align: 'center'
         },
-        // 数据类型
+        // 操作对象类型
         {
-          title: this.$t('data_type'),
+          title: this.$t('be_instance_type'),
           key: 'entity',
           width: 270
         },
-        // 对象
+        // 操作对象
         {
-          title: this.$t('object'),
+          title: this.$t('bc_execution_instance'),
           key: 'displayName'
         },
         {
@@ -693,21 +689,35 @@ export default {
         }
       ],
       targetWithFlowModelColums: [
-        // 节点名
+        // 操作对象类型
         {
-          title: this.$t('fe_nodeName'),
-          slot: 'nodeTitle',
-          width: 240
-        },
-        // 数据类型
-        {
-          title: this.$t('data_type'),
+          title: this.$t('be_instance_type'),
           key: 'entity'
         },
-        // 对象
+        // 操作对象
         {
-          title: this.$t('object'),
+          title: this.$t('bc_execution_instance'),
           key: 'displayName'
+        },
+        // 任务节点
+        {
+          title: this.$t('task_node'),
+          key: 'nodeTitle',
+          width: 240,
+          render: (h, params) => {
+            const nodes = params.row.nodeTitle.split(';')
+            return (
+              <div>
+                {nodes.map((item, index) => {
+                  return (
+                    <div style="margin-bottom:5px" key={index}>
+                      {item || '-'}
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          }
         },
         {
           title: this.$t('table_action'),
@@ -735,24 +745,25 @@ export default {
           width: 60,
           align: 'center'
         },
+        // 操作对象类型
         {
-          title: 'PackageName',
-          key: 'packageName'
+          title: this.$t('be_instance_type'),
+          key: 'packageName',
+          render: (h, params) => {
+            return <span>{params.row.packageName + ':' + params.row.entityName}</span>
+          }
         },
+        // 操作对象
         {
-          title: 'EntityName',
-          key: 'entityName'
-        },
-        {
-          title: 'DisplayName',
+          title: this.$t('bc_execution_instance'),
           key: 'entityDisplayName'
         },
         {
-          title: 'Status',
+          title: this.$t('status'),
           key: 'status'
         },
         {
-          title: 'Message',
+          title: this.$t('fe_info'),
           key: 'message',
           render: (h, params) => {
             let data = {
@@ -775,19 +786,19 @@ export default {
         {
           type: 'selection',
           width: 60,
-          align: 'center',
-          disabled: true
+          align: 'center'
         },
+        // 操作对象类型
         {
-          title: this.$t('package_name'),
-          key: 'packageName'
+          title: this.$t('be_instance_type'),
+          key: 'packageName',
+          render: (h, params) => {
+            return <span>{params.row.packageName + ':' + params.row.entityName}</span>
+          }
         },
+        // 操作对象
         {
-          title: this.$t('entity_name'),
-          key: 'entityName'
-        },
-        {
-          title: this.$t('object'),
+          title: this.$t('bc_execution_instance'),
           key: 'displayName'
         },
         {
@@ -799,7 +810,7 @@ export default {
       ],
       nodeDetailColumns: [
         {
-          title: 'inputs',
+          title: this.$t('fe_inputs'),
           key: 'inputs',
           render: (h, params) => {
             const jsonData = params.row.inputs
@@ -826,7 +837,7 @@ export default {
           }
         },
         {
-          title: 'outputs',
+          title: this.$t('fe_outputs'),
           key: 'outputs',
           render: (h, params) => {
             const strOutput = params.row.outputs
@@ -958,8 +969,9 @@ export default {
       isShowNonOwnerModal: false, // 查询非本人用户编排提示
       flowOwner: '',
       subProcId: '', // 新建执行预览子编排从链接上传过来的子编排ID
-      subProc: this.$route.query.subProc || '', // 执行详情是否为子编排 main主编排 sub子编排
-      noActionFlag: false // 节点无操作按钮标识
+      noActionFlag: false, // 节点无操作按钮标识
+      subProcBindParentFlag: false, // 子编排是否绑定主编排标识
+      from: this.$route.query.from // 查看页面来源(create新增页 sub子编排预览 main主编排预览 history列表查看)
     }
   },
   computed: {
@@ -993,7 +1005,7 @@ export default {
           { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
           { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
         ]
-        const findObj = list.find(i => i.value === status)
+        const findObj = list.find(i => i.value === status) || {}
         if (type === 'style') {
           return {
             display: 'inline-block',
@@ -1119,19 +1131,13 @@ export default {
       // 从新增页跳转到查看详情页，返回到历史列表
       if (this.isEnqueryPage && this.$route.query.from === 'create') {
         return this.$router.push({
-          path: '/implementation/workflow-execution/normal-history',
-          query: {
-            subProc: this.subProc
-          }
+          path: '/implementation/workflow-execution/normal-history'
         })
       }
       // 预览子编排，返回到新建选择页面
       if (!this.isEnqueryPage && this.subProcId) {
         return this.$router.push({
-          path: '/implementation/workflow-execution/normal-template',
-          query: {
-            subProc: this.subProc
-          }
+          path: '/implementation/workflow-execution/normal-template'
         })
       }
       this.$router.back()
@@ -1160,7 +1166,7 @@ export default {
     // 【执行详情】子编排调用API列表支持跳转预览子编排详情
     viewSubProcExecutionDetail (id) {
       window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
-      const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${id}&subProc=sub`
+      const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${id}&from=sub`
       window.open(path, '_blank')
     },
     // 查看日志调用API详情
@@ -1517,6 +1523,8 @@ export default {
       })
       let promiseArray = []
       Object.keys(obj).forEach(key => {
+        // 解决有些勾上的数据bound为N的bug
+        obj[key].forEach(item => (item.bound = 'Y'))
         promiseArray.push(setDataByNodeDefIdAndProcessSessionId(key, this.processSessionId, obj[key]))
       })
       await Promise.all(promiseArray)
@@ -1658,6 +1666,7 @@ export default {
           this.nodesCannotBindData = data.taskNodeInstances
             .filter(d => [1, 2].includes(d.dynamicBind) && d.status === 'NotStarted')
             .map(d => d.nodeId)
+          this.subProcBindParentFlag = Boolean(data.parentProcIns && data.parentProcIns.procInsId)
         }
         this.getModelData()
         this.tipForNonOwner(found)
@@ -1937,7 +1946,7 @@ export default {
               return `${_.nodeId} [label="${
                 _.nodeName || defaultLabel
               }", fontsize="10", width="0.5", class="flow", style="${excution ? 'filled' : 'none'}" color="${
-                excution ? statusColor[_.status] : '#7F8A96'
+                excution ? statusColor[_.status] || '#7F8A96' : '#7F8A96'
               }" shape="${shapeMap[_.nodeType]}", id="${_.nodeId}"]`
             } else {
               // const className = _.status === 'Faulted' || _.status === 'Timeouted' ? 'retry' : 'normal'
@@ -1958,7 +1967,7 @@ export default {
                 (_.orderedNo ? _.orderedNo + ' ' : '') + _.nodeName
               }" class="flow ${className}" style="${excution || isModelClick ? 'filled' : 'none'}" color="${
                 excution
-                  ? statusColor[_.status]
+                  ? statusColor[_.status] || '#7F8A96'
                   : isModelClick
                     ? '#ff9900'
                     : _.nodeId === this.currentFlowNodeId
@@ -1986,7 +1995,7 @@ export default {
                   '"' +
                   ' -> ' +
                   `${'"' + to + '"'} [label="${lineName[_.nodeId + to]}" color="${
-                    excution ? statusColor[_.status] : 'black'
+                    excution ? statusColor[_.status] || '#7F8A96' : 'black'
                   }"]`
                 )
               })
@@ -2082,8 +2091,7 @@ export default {
             path: '/implementation/workflow-execution/view-execution',
             query: {
               id: data.id,
-              subProc: data.subProc === true ? 'sub' : 'main',
-              from: 'create' // 详情页来源create新增页, history历史列表
+              from: 'create'
             }
           })
         }
