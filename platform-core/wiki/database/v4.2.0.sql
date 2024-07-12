@@ -16,7 +16,7 @@ CREATE TABLE `proc_run_node_sub_proc` (
       PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-alter table plugin_packages add column register_done tinyint(8) default 0 comment '是否完成注册';
+alter table plugin_packages add column register_done tinyint(8) default 1 comment '是否完成注册';
 alter table plugin_packages add column updated_by varchar(64) default null comment '更新人';
 alter table plugin_packages add column updated_time datetime default null comment '更新时间';
 alter table plugin_packages add column ui_active tinyint(4) default 0 comment '前端资源包是否生效';
@@ -26,3 +26,5 @@ alter table proc_schedule_config add column name varchar(64) default null commen
 
 alter table plugin_package_runtime_resources_docker modify column volume_bindings varchar(4096) default null;
 alter table proc_schedule_job add column created_by varchar(64) default null;
+
+update plugin_packages set updated_time=upload_timestamp where updated_time is null;

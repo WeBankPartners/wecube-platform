@@ -163,7 +163,7 @@ func UploadPackage(c *gin.Context) {
 		enterprise = true
 	}
 	var pluginPackageId string
-	pluginPackageId, err = database.UploadPackage(c, &registerConfig, withUi, enterprise, "")
+	pluginPackageId, err = database.UploadPackage(c, &registerConfig, withUi, enterprise, "", middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -286,7 +286,7 @@ func doPullPackageBackground(c *gin.Context, pullId, fileName string) {
 		return
 	}
 	archiveFilePath := tmpFile.Name()
-	pkgId, err := doUploadPackage(c, archiveFilePath)
+	pkgId, err := doUploadPackage(c, archiveFilePath, middleware.GetRequestUser(c))
 	if err != nil {
 		// update failed
 		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", err.Error(), "", tmpFileSize)
@@ -302,7 +302,7 @@ func doPullPackageBackground(c *gin.Context, pullId, fileName string) {
 	log.Logger.Debug("pull plugin package,clean up plugin package tmp file", log.JsonObj("fileName", fileName), log.JsonObj("archiveFilePath", archiveFilePath))
 }
 
-func doUploadPackage(c context.Context, archiveFilePath string) (pluginPkgId string, err error) {
+func doUploadPackage(c context.Context, archiveFilePath, operator string) (pluginPkgId string, err error) {
 	tmpFileDir := fmt.Sprintf("/tmp/%d", time.Now().UnixNano())
 	if err = os.MkdirAll(tmpFileDir, 0700); err != nil {
 		err = fmt.Errorf("make tmp dir fail,%s ", err.Error())
@@ -398,7 +398,7 @@ func doUploadPackage(c context.Context, archiveFilePath string) (pluginPkgId str
 	}
 	// 写数据库
 	pkgId := "plugin_" + guid.CreateGuid()
-	_, err = database.UploadPackage(c, &registerConfig, withUi, false, pkgId)
+	_, err = database.UploadPackage(c, &registerConfig, withUi, false, pkgId, operator)
 	if err != nil {
 		return
 	}
@@ -527,7 +527,7 @@ func RegisterPackage(c *gin.Context) {
 		// 把ui.zip用ssh传到静态资源服务器上并解压，如果有两台服务器，则每台都要上传与解压
 		for _, staticResourceObj := range models.Config.StaticResources {
 			targetPath := fmt.Sprintf("%s/%s/%s/ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
-			unzipCmd := fmt.Sprintf("cd %s/%s/%s && unzip -o ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
+			unzipCmd := fmt.Sprintf("cd %s/%s/%s && unzip -o ui.zip && rm -f ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
 			log.Logger.Debug("register plugin,start scp ui.zip to remote host", log.String("server", staticResourceObj.Server), log.String("targetPath", targetPath))
 			if err = bash.RemoteSCP(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, uiFileLocalPath, targetPath); err != nil {
 				break
@@ -578,7 +578,7 @@ func RegisterPackage(c *gin.Context) {
 		}
 		if len(resourceFileList) > 0 {
 			log.Logger.Debug("register plugin,start update plugin static resource file data", log.JsonObj("resourceFileList", resourceFileList))
-			if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, pluginPackageObj.Name, resourceFileList); err != nil {
+			if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, pluginPackageObj.Name, resourceFileList, middleware.GetRequestUser(c)); err != nil {
 				middleware.ReturnError(c, err)
 				return
 			}
@@ -842,6 +842,7 @@ func LaunchPlugin(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	time.Sleep(1 * time.Second)
 	// 去目标机器上docker run起来，或使用docker-compose
 	dockerCmd := fmt.Sprintf("docker run -d --name %s ", dockerResource.ContainerName)
 	for _, v := range volumeBindList {
@@ -882,7 +883,7 @@ func LaunchPlugin(c *gin.Context) {
 		Name:                 dockerResource.ContainerName,
 	}
 	pluginInstance.DockerInstanceResourceId = resourceItem.Id
-	err = database.LaunchPlugin(c, &pluginInstance, &resourceItem)
+	err = database.LaunchPlugin(c, &pluginInstance, &resourceItem, middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -1109,7 +1110,7 @@ func UIRegisterPackage(c *gin.Context) {
 	}
 	if len(resourceFileList) > 0 {
 		log.Logger.Debug("register plugin,start update plugin static resource file data", log.JsonObj("resourceFileList", resourceFileList))
-		if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, pluginPackageObj.Name, resourceFileList); err != nil {
+		if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, pluginPackageObj.Name, resourceFileList, middleware.GetRequestUser(c)); err != nil {
 			middleware.ReturnError(c, err)
 			return
 		}

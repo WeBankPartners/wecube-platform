@@ -69,8 +69,10 @@
                 <h6>{{ item.name + '_' + item.version }}</h6>
               </div>
               <div>
-                <Tag color="green" v-if="item.uiActive">{{ $t('p_menu_in_effect') }}</Tag>
-                <Tag style="color: red !important" v-else>{{ $t('p_menu_not_working') }}</Tag>
+                <span v-if="item.menus && item.menus.length">
+                  <Tag color="green" v-if="item.uiActive">{{ $t('p_menu_in_effect') }}</Tag>
+                  <Tag v-else>{{ $t('p_menu_not_working') }}</Tag>
+                </span>
                 <Tag v-if="item.instances.length === 0">{{ $t('p_no_instance') }}</Tag>
                 <Tag v-else color="green">{{ $t('p_running') }}</Tag>
               </div>
@@ -158,13 +160,13 @@
               >
                 <Tooltip :content="$t('p_import_service')" placement="top">
                   <Button type="info" size="small" :disabled="!item.registerDone">
-                    <Icon type="md-cloud-download" />
+                    <Icon type="md-cloud-upload" />
                   </Button>
                 </Tooltip>
               </Upload>
               <Tooltip :content="$t('p_export_service')" placement="top">
                 <Button type="info" size="small" @click.stop="exportPluginFile(item.id)" :disabled="!item.registerDone">
-                  <Icon type="md-cloud-upload" />
+                  <Icon type="md-cloud-download" />
                 </Button>
               </Tooltip>
               <Tooltip :content="$t('p_services_list')" placement="top">
