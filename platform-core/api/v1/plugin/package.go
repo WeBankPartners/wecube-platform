@@ -163,7 +163,7 @@ func UploadPackage(c *gin.Context) {
 		enterprise = true
 	}
 	var pluginPackageId string
-	pluginPackageId, err = database.UploadPackage(c, &registerConfig, withUi, enterprise, "")
+	pluginPackageId, err = database.UploadPackage(c, &registerConfig, withUi, enterprise, "", middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -286,7 +286,7 @@ func doPullPackageBackground(c *gin.Context, pullId, fileName string) {
 		return
 	}
 	archiveFilePath := tmpFile.Name()
-	pkgId, err := doUploadPackage(c, archiveFilePath)
+	pkgId, err := doUploadPackage(c, archiveFilePath, middleware.GetRequestUser(c))
 	if err != nil {
 		// update failed
 		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", err.Error(), "", tmpFileSize)
@@ -302,7 +302,7 @@ func doPullPackageBackground(c *gin.Context, pullId, fileName string) {
 	log.Logger.Debug("pull plugin package,clean up plugin package tmp file", log.JsonObj("fileName", fileName), log.JsonObj("archiveFilePath", archiveFilePath))
 }
 
-func doUploadPackage(c context.Context, archiveFilePath string) (pluginPkgId string, err error) {
+func doUploadPackage(c context.Context, archiveFilePath, operator string) (pluginPkgId string, err error) {
 	tmpFileDir := fmt.Sprintf("/tmp/%d", time.Now().UnixNano())
 	if err = os.MkdirAll(tmpFileDir, 0700); err != nil {
 		err = fmt.Errorf("make tmp dir fail,%s ", err.Error())
@@ -398,7 +398,7 @@ func doUploadPackage(c context.Context, archiveFilePath string) (pluginPkgId str
 	}
 	// 写数据库
 	pkgId := "plugin_" + guid.CreateGuid()
-	_, err = database.UploadPackage(c, &registerConfig, withUi, false, pkgId)
+	_, err = database.UploadPackage(c, &registerConfig, withUi, false, pkgId, operator)
 	if err != nil {
 		return
 	}
@@ -578,7 +578,7 @@ func RegisterPackage(c *gin.Context) {
 		}
 		if len(resourceFileList) > 0 {
 			log.Logger.Debug("register plugin,start update plugin static resource file data", log.JsonObj("resourceFileList", resourceFileList))
-			if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, pluginPackageObj.Name, resourceFileList); err != nil {
+			if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, pluginPackageObj.Name, resourceFileList, middleware.GetRequestUser(c)); err != nil {
 				middleware.ReturnError(c, err)
 				return
 			}
@@ -882,7 +882,7 @@ func LaunchPlugin(c *gin.Context) {
 		Name:                 dockerResource.ContainerName,
 	}
 	pluginInstance.DockerInstanceResourceId = resourceItem.Id
-	err = database.LaunchPlugin(c, &pluginInstance, &resourceItem)
+	err = database.LaunchPlugin(c, &pluginInstance, &resourceItem, middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -1109,7 +1109,7 @@ func UIRegisterPackage(c *gin.Context) {
 	}
 	if len(resourceFileList) > 0 {
 		log.Logger.Debug("register plugin,start update plugin static resource file data", log.JsonObj("resourceFileList", resourceFileList))
-		if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, pluginPackageObj.Name, resourceFileList); err != nil {
+		if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, pluginPackageObj.Name, resourceFileList, middleware.GetRequestUser(c)); err != nil {
 			middleware.ReturnError(c, err)
 			return
 		}

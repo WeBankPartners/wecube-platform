@@ -101,6 +101,7 @@ func QueryPluginPackages(ctx context.Context, param *models.PluginPackageQueryPa
 		}
 	}
 	for _, row := range packageRows {
+		row.UpdatedTimeString = row.UpdatedTime.Format(models.DateTimeFormat)
 		resultObj := models.PluginPackageQueryObj{PluginPackages: *row, Menus: []string{}, Instances: []*models.PluginPackageInstanceObj{}}
 		if menuList, ok := menuMap[row.Id]; ok {
 			resultObj.Menus = menuList
@@ -228,7 +229,7 @@ func GetPluginRuntimeResources(ctx context.Context, pluginPackageId string) (res
 	return
 }
 
-func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, withUi, enterprise bool, pluginPackageId string) (resultPackageId string, err error) {
+func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, withUi, enterprise bool, pluginPackageId, operator string) (resultPackageId string, err error) {
 	var actions []*db.ExecAction
 	if pluginPackageId == "" {
 		pluginPackageId = "plugin_" + guid.CreateGuid()
@@ -239,8 +240,8 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 	if enterprise {
 		edition = models.PluginEditionEnterprise
 	}
-	actions = append(actions, &db.ExecAction{Sql: "insert into plugin_packages ( id,name,`version`,status,upload_timestamp,ui_package_included,`edition` ) values (?,?,?,?,?,?,?)", Param: []interface{}{
-		pluginPackageId, registerConfig.Name, registerConfig.Version, models.PluginStatusUnRegistered, nowTime, withUi, edition}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into plugin_packages ( id,name,`version`,status,upload_timestamp,ui_package_included,`edition`,register_done,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		pluginPackageId, registerConfig.Name, registerConfig.Version, models.PluginStatusUnRegistered, nowTime, withUi, edition, 0, operator, nowTime}})
 	for _, pluginConfig := range registerConfig.Plugins.Plugin {
 		pluginConfigId := "p_config_" + guid.CreateGuid()
 		actions = append(actions, &db.ExecAction{Sql: "insert into plugin_configs (id,plugin_package_id,name,target_package,target_entity,target_entity_filter_rule,register_name) values (?,?,?,?,?,?,?)", Param: []interface{}{
@@ -622,7 +623,7 @@ func BuildDockerEnvMap(ctx context.Context, envMap map[string]string) (replaceMa
 	return
 }
 
-func LaunchPlugin(ctx context.Context, pluginInstance *models.PluginInstances, resourceItem *models.ResourceItem) (err error) {
+func LaunchPlugin(ctx context.Context, pluginInstance *models.PluginInstances, resourceItem *models.ResourceItem, operator string) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "INSERT INTO resource_item (id,additional_properties,created_by,created_date,is_allocated,name,purpose,resource_server_id,status,`type`,updated_by,updated_date) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 		resourceItem.Id, resourceItem.AdditionalProperties, resourceItem.CreatedBy, resourceItem.CreatedDate, 1, resourceItem.Name, resourceItem.Purpose, resourceItem.ResourceServerId, "created", "docker_container", resourceItem.CreatedBy, resourceItem.CreatedDate,
@@ -645,6 +646,7 @@ func LaunchPlugin(ctx context.Context, pluginInstance *models.PluginInstances, r
 	//	pluginInstance.Id, pluginInstance.Host, pluginInstance.ContainerName, pluginInstance.Port, pluginInstance.ContainerStatus, pluginInstance.PackageId, pluginInstance.DockerInstanceResourceId, pluginInstance.InstanceName, pluginInstance.PluginMysqlInstanceResourceId, pluginInstance.S3bucketResourceId,
 	//}})
 	actions = append(actions, &db.ExecAction{Sql: "update plugin_package_menus set active=1 where plugin_package_id=?", Param: []interface{}{pluginInstance.PackageId}})
+	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set updated_by=?,updated_time=? where id=?", Param: []interface{}{operator, time.Now(), pluginInstance.PackageId}})
 	if err = db.Transaction(actions, ctx); err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
@@ -773,7 +775,7 @@ func GetPackageNames(ctx context.Context) (result []string, err error) {
 	return
 }
 
-func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId, pluginPackageName string, inputs []*models.PluginPackageResourceFiles) (err error) {
+func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId, pluginPackageName string, inputs []*models.PluginPackageResourceFiles, operator string) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "delete from plugin_package_resource_files where plugin_package_id=?", Param: []interface{}{pluginPackageId}})
 	for _, v := range inputs {
@@ -782,7 +784,7 @@ func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId, plugi
 		}})
 	}
 	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set ui_active=0 where name=? and ui_active=1", Param: []interface{}{pluginPackageName}})
-	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set ui_active=1 where id=?", Param: []interface{}{pluginPackageId}})
+	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set ui_active=1,updated_by=?,updated_time=? where id=?", Param: []interface{}{pluginPackageId, operator, time.Now()}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
