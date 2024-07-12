@@ -184,6 +184,7 @@ func init() {
 		&handlerFuncObj{Url: "/process/instances/:procInsId/tasknode-bindings", Method: "GET", HandlerFunc: process.GetInstanceTaskNodeBindings, ApiCode: "get-process-ins-binding"},
 		&handlerFuncObj{Url: "/process/instances/:procInsId/preview/entities", Method: "GET", HandlerFunc: process.GetProcInsPreview, ApiCode: "get-ins-preview"},
 		&handlerFuncObj{Url: "/public/process/instances/:procInsId/terminations", Method: "POST", HandlerFunc: process.ProcTermination, ApiCode: "process-ins-terminations"},
+		&handlerFuncObj{Url: "/public/process/instances/batch-terminations", Method: "POST", HandlerFunc: process.BatchProcTermination, ApiCode: "batch-ins-terminations"},
 		&handlerFuncObj{Url: "/process/instances/proceed", Method: "POST", HandlerFunc: process.ProcInsOperation, ApiCode: "proc-ins-operation"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/entities/:entityName/query", Method: "POST", HandlerFunc: process.ProcEntityDataQuery, ApiCode: "proc-ins-operation"},
 		&handlerFuncObj{Url: "/process/instances/callback", Method: "POST", HandlerFunc: process.ProcInstanceCallback, ApiCode: "proc-ins-callback"},
