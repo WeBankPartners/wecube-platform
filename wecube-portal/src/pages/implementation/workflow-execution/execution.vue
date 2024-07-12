@@ -2000,6 +2000,7 @@ export default {
       let nodesString =
         'digraph G {' +
         'bgcolor="transparent";' +
+        'splines="polyline"' +
         'Node [fontname=Arial, width=1.8, height=0.45, color="#505a68", fontsize=12]' +
         'Edge [fontname=Arial, color="#505a68", fontsize=10];' +
         nodesToString +
