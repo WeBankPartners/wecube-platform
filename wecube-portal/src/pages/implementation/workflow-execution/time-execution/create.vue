@@ -268,7 +268,7 @@ export default {
           }
         },
         {
-          title: this.$t('target_object'),
+          title: this.$t('be_instance_type'),
           key: 'entityDataName',
           width: 200
         },
@@ -780,7 +780,8 @@ export default {
       this.$router.push({
         path: '/implementation/workflow-execution/view-execution',
         query: {
-          id: row.procInstId
+          id: row.procInstId,
+          from: 'history'
         }
       })
     },
