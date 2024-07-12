@@ -150,10 +150,22 @@
   },
   "proc_def_decision_merge_error": {
     "code": 20000033,
-    "message": "Publish Failed: Decision merge node can not match suitable decision node"
+    "message": "Publish Failed: Decision merge node %s can not match suitable decision node"
   },
   "proc_def_data_node_error": {
     "code": 20000034,
     "message": "Publish Failed: Data node expression validate fail"
+  },
+  "proc_def_sub_proc_check_error": {
+    "code": 20000035,
+    "message": "Publish Failed: Sub process can not contain data node or sub process node"
+  },
+  "proc_def_node_sub_proc_empty_error": {
+    "code": 20000036,
+    "message": "Publish Failed: [subProc nodes]:%s sub process param cannot be empty"
+  },
+  "proc_def_merge_error": {
+    "code": 20000037,
+    "message": "Publish Failed: Merge node %s can not match suitable fork node"
   }
 }
