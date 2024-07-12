@@ -842,6 +842,7 @@ func LaunchPlugin(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	time.Sleep(1 * time.Second)
 	// 去目标机器上docker run起来，或使用docker-compose
 	dockerCmd := fmt.Sprintf("docker run -d --name %s ", dockerResource.ContainerName)
 	for _, v := range volumeBindList {
