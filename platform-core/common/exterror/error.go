@@ -68,6 +68,9 @@ type ErrorTemplate struct {
 	ProcDefRootEntityEmptyError       CustomError `json:"proc_def_root_entity_empty_error"`
 	ProcDefDecisionMergeError         CustomError `json:"proc_def_decision_merge_error"`
 	ProcDefDataNodeError              CustomError `json:"proc_def_data_node_error"`
+	ProcDefSubProcCheckError          CustomError `json:"proc_def_sub_proc_check_error"`
+	ProcDefNodeSubProcEmptyError      CustomError `json:"proc_def_node_sub_proc_empty_error"`
+	ProcDefMergeError                 CustomError `json:"proc_def_merge_error"`
 	DeleteUserError                   CustomError `json:"delete_user_error"`
 	BatchExecPluginAuthError          CustomError `json:"batch_exec_plugin_auth_error"`
 	BatchExecPluginApiError           CustomError `json:"batch_exec_plugin_api_error"`
