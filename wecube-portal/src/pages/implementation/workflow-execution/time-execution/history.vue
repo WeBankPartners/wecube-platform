@@ -3,7 +3,14 @@
     <div class="search">
       <Search :options="searchOptions" v-model="searchConfig.params" @search="handleQuery"></Search>
     </div>
-    <Table size="small" ref="table" :columns="tableColumns" :max-height="MODALHEIGHT" :data="tableData"></Table>
+    <Table
+      size="small"
+      ref="table"
+      :columns="tableColumns"
+      :max-height="MODALHEIGHT"
+      :data="tableData"
+      :loading="loading"
+    ></Table>
     <Page
       style="float: right; margin-top: 16px"
       :total="pageable.total"
@@ -64,7 +71,7 @@ export default {
         // 编排ID
         {
           key: 'id',
-          placeholder: this.$t('workflow_id'),
+          placeholder: this.$t('fe_flowInstanceId'),
           component: 'input'
         },
         // 状态
@@ -111,6 +118,7 @@ export default {
       },
       allFlows: [],
       tableData: [],
+      loading: false,
       tableColumns: [
         {
           type: 'index',
@@ -150,7 +158,7 @@ export default {
           }
         },
         {
-          title: this.$t('workflow_id'),
+          title: this.$t('fe_flowInstanceId'),
           minWidth: 200,
           key: 'id'
         },
@@ -384,7 +392,9 @@ export default {
         }
       }
       this.tableData = []
+      this.loading = true
       let { status, data } = await instancesWithPaging(params)
+      this.loading = false
       if (status === 'OK') {
         this.tableData = data.contents
         this.pageable.total = data.pageInfo.totalRows
@@ -408,7 +418,8 @@ export default {
           return this.$router.push({
             path: '/implementation/workflow-execution/view-execution',
             query: {
-              id: row.id
+              id: row.id,
+              from: 'history'
             }
           })
         }

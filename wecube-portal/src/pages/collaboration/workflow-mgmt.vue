@@ -503,7 +503,7 @@ export default {
           return
         }
 
-        // 分流节点不能连出
+        // 分流节点连出校验
         if (sourceNodeType === 'fork') {
           // 分流节点不能直连异常节点
           if (targertNodeType === 'abnormal') {
@@ -579,14 +579,6 @@ export default {
           // 开始节点不能直连汇聚节点
           if (targertNodeType === 'merge') {
             // this.$Message.warning('开始节点不能直连汇聚节点！')
-            this.$Message.warning(
-              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
-            )
-            return
-          }
-          // 开始节点不能直连分流节点
-          if (targertNodeType === 'fork') {
-            // this.$Message.warning('开始节点不能直连分流节点！')
             this.$Message.warning(
               `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
             )
