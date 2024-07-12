@@ -48,6 +48,8 @@ func QueryPluginPackages(ctx context.Context, param *models.PluginPackageQueryPa
 	}
 	if !param.WithDelete {
 		filterSql = append(filterSql, "status in ('UNREGISTERED','REGISTERED')")
+	} else {
+		filterSql = append(filterSql, "status='DECOMMISSIONED'")
 	}
 	if param.WithRunningInstance == "yes" {
 		filterSql = append(filterSql, "id in (select package_id from plugin_instances)")
