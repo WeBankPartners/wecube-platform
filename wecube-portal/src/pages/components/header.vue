@@ -534,7 +534,7 @@ export default {
 
   .plugin-load {
     right: 30px;
-    z-index: 10;
+    z-index: 100;
     position: absolute;
     top: 70px;
     padding: 16px;
