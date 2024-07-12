@@ -550,7 +550,7 @@ export default {
         const index = this.allowCreationIpPort.findIndex(item => item.port === port)
         this.allowCreationIpPort.splice(index, 1)
         this.getAvailableInstances(this.pluginId)
-        this.reloadPage()
+        // this.reloadPage()
       }
     },
     async getAvailableInstances (id) {
