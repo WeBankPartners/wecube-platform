@@ -268,6 +268,8 @@ type ProcDefNodeCustomAttrsDto struct {
 	UpdatedTime       string              `json:"updatedTime" `      // 更新时间
 	AllowContinue     bool                `json:"allowContinue"`     // 允许跳过
 	SubProcDefId      string              `json:"subProcDefId"`      // 子编排定义id
+	SubProcDefName    string              `json:"subProcDefName"`    // 子编排定义名称
+	SubProcDefVersion string              `json:"subProcDefVersion"` // 子编排定义版本
 }
 
 type InterfaceParameterDto struct {
@@ -543,6 +545,7 @@ func ConvertProcDefDto2Model(dto *ProcDefDto) *ProcDef {
 		CreatedTime:   createTime,
 		UpdatedBy:     dto.UpdatedBy,
 		UpdatedTime:   updateTime,
+		SubProc:       dto.SubProc,
 	}
 }
 
@@ -590,6 +593,7 @@ func ConvertProcDefNodeResultDto2Model(dto *ProcDefNodeResultDto) (node *ProcDef
 			UpdatedBy:         attr.UpdatedBy,
 			UpdatedTime:       updateTime,
 			AllowContinue:     attr.AllowContinue,
+			SubProcDefId:      attr.SubProcDefId,
 		}
 		if dto.ProcDefNodeCustomAttrs != nil {
 			list = dto.ProcDefNodeCustomAttrs.ParamInfos
