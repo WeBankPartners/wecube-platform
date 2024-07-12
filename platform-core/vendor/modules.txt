@@ -1,4 +1,4 @@
-# github.com/WeBankPartners/go-common-lib v1.1.3
+# github.com/WeBankPartners/go-common-lib v1.1.5
 ## explicit; go 1.17
 github.com/WeBankPartners/go-common-lib/cipher
 github.com/WeBankPartners/go-common-lib/guid
