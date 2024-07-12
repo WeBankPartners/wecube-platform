@@ -1934,10 +1934,10 @@ export default {
               decisionMerge: 'diamond', // 判断结束
               fork: 'Mdiamond', // 并行开始
               merge: 'Mdiamond', // 并行结束
-              human: 'ellipse', // 人工
+              human: 'tab', // 人工
               automatic: 'rect', // 自动
               data: 'cylinder', // 数据
-              subProc: 'doubleoctagon', // 子编排
+              subProc: 'component', // 子编排
               date: 'Mcircle', // 固定时间
               timeInterval: 'Mcircle' // 时间间隔
             }
