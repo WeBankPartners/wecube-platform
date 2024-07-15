@@ -54,21 +54,34 @@
                   ' ' +
                   (item.createdTime || '0000-00-00 00:00:00') +
                   ' ' +
-                  getStatusStyleAndName(item.status, 'label')
+                  getStatusStyleAndName(item.displayStatus, 'label')
                 "
               >
                 <div style="display: flex; justify-content: space-between">
                   <div>
                     <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
                     <span style="color: #2b85e4">{{ '[' + item.version + '] ' }}</span>
-                    <Tag style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</Tag>
+                    <!-- <Tag style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</Tag> -->
+                    <div
+                      :style="{
+                        backgroundColor: '#c5c8ce',
+                        padding: '4px 15px',
+                        width: 'fit-content',
+                        color: '#fff',
+                        borderRadius: '4px',
+                        display: 'inline-block',
+                        marginLeft: '10px'
+                      }"
+                    >
+                      {{ item.entityDisplayName + ' ' }}
+                    </div>
                   </div>
                   <div style="display: flex; align-items: center">
                     <span style="color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
                     <span style="color: #ccc">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
                     <div style="width: 100px">
-                      <span :style="getStatusStyleAndName(item.status, 'style')">{{
-                        getStatusStyleAndName(item.status, 'label')
+                      <span :style="getStatusStyleAndName(item.displayStatus, 'style')">{{
+                        getStatusStyleAndName(item.displayStatus, 'label')
                       }}</span>
                     </div>
                   </div>
@@ -277,12 +290,25 @@ export default {
           key: 'scheduleMode',
           width: 120,
           render: (h, params) => {
+            const weekMap = {
+              1: this.$t('fe_monday'),
+              2: this.$t('fe_tuesday'),
+              3: this.$t('fe_wednesday'),
+              4: this.$t('fe_thursday'),
+              5: this.$t('fe_friday'),
+              6: this.$t('fe_saturday'),
+              7: this.$t('fe_sunday')
+            }
             let schedule = ''
             if (['Weekly', 'Monthly'].includes(params.row.scheduleMode)) {
               schedule = params.row.scheduleExpr.split(' ')[0]
             }
             const find = this.timeConfig.scheduleModeOptions.find(item => item.value === params.row.scheduleMode)
-            return <div>{`${find.label}${schedule}${params.row.scheduleMode === 'Monthly' ? '号' : ''}`}</div>
+            return (
+              <div>{`${find.label}${params.row.scheduleMode === 'Weekly' ? weekMap[schedule] : schedule}${
+                params.row.scheduleMode === 'Monthly' ? '号' : ''
+              }`}</div>
+            )
           }
         },
         {
