@@ -72,7 +72,7 @@ type CreateProcScheduleParam struct {
 	MailMode       string `json:"mailMode" binding:"required"` // 邮件发送模式->role(角色邮箱) | user(用户邮箱) | none(不发送)
 	CronExpr       string `json:"-"`
 	Operator       string `json:"-"`
-	Name           string `json:"name"`
+	Name           string `json:"name" binding:"required"`
 }
 
 type ProcScheduleConfigObj struct {
@@ -112,6 +112,7 @@ type ProcScheduleInstQueryObj struct {
 	ExecTime    string `json:"execTime"`
 	ProcDefId   string `json:"procDefId"`
 	ProcDefName string `json:"procDefName"`
+	ErrorMsg    string `json:"errorMsg"`
 }
 
 type SendMailTarget struct {
@@ -143,4 +144,22 @@ type ScheduleInsQueryRow struct {
 	ProcInsId string `xorm:"proc_ins_id"`
 	Name      string `xorm:"name"`
 	CreatedBy string `xorm:"created_by"`
+}
+
+type ScheduleProcInsQueryRow struct {
+	Id              string    `json:"id" xorm:"id"`                              // 唯一标识
+	ProcDefId       string    `json:"procDefId" xorm:"proc_def_id"`              // 编排定义id
+	ProcDefKey      string    `json:"procDefKey" xorm:"proc_def_key"`            // 编排定义key
+	ProcDefName     string    `json:"procDefName" xorm:"proc_def_name"`          // 编排定义名称
+	Status          string    `json:"status" xorm:"status"`                      // 状态->ready(初始化
+	EntityDataId    string    `json:"entityDataId" xorm:"entity_data_id"`        // 根数据id
+	EntityTypeId    string    `json:"entityTypeId" xorm:"entity_type_id"`        // 根数据类型
+	EntityDataName  string    `json:"entityDataName" xorm:"entity_data_name"`    // 根数据名称
+	ProcSessionId   string    `json:"procSessionId" xorm:"proc_session_id"`      // 试算session
+	CreatedBy       string    `json:"createdBy" xorm:"created_by"`               // 创建人
+	CreatedTime     time.Time `json:"createdTime" xorm:"created_time"`           // 创建时间
+	UpdatedBy       string    `json:"updatedBy" xorm:"updated_by"`               // 更新人
+	UpdatedTime     time.Time `json:"updatedTime" xorm:"updated_time"`           // 更新时间
+	ParentInsNodeId string    `json:"parentInsNodeId" xorm:"parent_ins_node_id"` // 父编排实例节点id
+	ErrorMsg        string    `json:"errorMsg" xorm:"error_msg"`
 }

@@ -477,7 +477,6 @@ func GetLoginSeed() (output string) {
 	if sourceSeed == "" {
 		sourceSeed = model.Config.Auth.SigningKey
 	}
-	md5sum := cipher.Md5Encode(sourceSeed)
-	output = md5sum[0:16]
+	output = sourceSeed
 	return
 }

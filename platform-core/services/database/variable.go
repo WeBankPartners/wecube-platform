@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"fmt"
-	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
@@ -162,7 +161,5 @@ func GetEncryptSeed(ctx context.Context) (encryptSeed string, err error) {
 	if encryptSeed == "" {
 		encryptSeed = models.Config.EncryptSeed
 	}
-	md5sum := cipher.Md5Encode(encryptSeed)
-	encryptSeed = md5sum[0:16]
 	return
 }
