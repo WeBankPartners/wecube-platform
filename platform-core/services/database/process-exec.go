@@ -199,7 +199,7 @@ func GetSimpleProcDefRow(ctx context.Context, procDefId string) (result *models.
 
 func GetSimpleProcInsRow(ctx context.Context, procInsId string) (result *models.ProcIns, err error) {
 	var procInsRows []*models.ProcIns
-	err = db.MysqlEngine.Context(ctx).SQL("select id,proc_def_id,proc_def_key,proc_def_name,entity_data_id,entity_type_id,proc_session_id,entity_data_name from proc_ins where id=?", procInsId).Find(&procInsRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins where id=?", procInsId).Find(&procInsRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -910,10 +910,27 @@ func getReplaceOidMap(inputList []string, oidMap map[string]string) (outputList 
 	return
 }
 
-func ListProcInstance(ctx context.Context, userRoles []string) (result []*models.ProcInsDetail, err error) {
+func ListProcInstance(ctx context.Context, userRoles []string, withCronIns, withSubProc, mgmtRole, search string) (result []*models.ProcInsDetail, err error) {
 	var procInsRows []*models.ProcInsWithVersion
-	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t2.`version`,t2.sub_proc from proc_ins t1 join proc_def t2 on t1.proc_def_id=t2.id and t1.proc_def_id" +
-		" in (select proc_def_id from proc_def_permission where permission='" + string(models.USE) + "' and role_id in ('" + strings.Join(userRoles, "','") + "')) order by t1.created_time desc limit 500").Find(&procInsRows)
+	var filterSql string
+	filterParam := []interface{}{}
+	if withCronIns == "yes" {
+		filterSql += " and t1.created_by='systemCron' "
+	} else if withCronIns == "no" {
+		filterSql += " and t1.created_by!='systemCron' "
+	}
+	if withSubProc == "no" {
+		filterSql += " and t2.sub_proc=0 "
+	}
+	if search != "" {
+		filterSql += " and (t1.proc_def_name like ? or t1.entity_data_name like ?) "
+		filterParam = append(filterParam, fmt.Sprintf("%%%s%%", search), fmt.Sprintf("%%%s%%", search))
+	}
+	if mgmtRole != "" {
+		userRoles = []string{mgmtRole}
+	}
+	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t2.`version`,t2.sub_proc from proc_ins t1 join proc_def t2 on t1.proc_def_id=t2.id and t1.proc_def_id"+
+		" in (select proc_def_id from proc_def_permission where permission='"+string(models.USE)+"' and role_id in ('"+strings.Join(userRoles, "','")+"')) "+filterSql+" order by t1.created_time desc limit 20", filterParam...).Find(&procInsRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
