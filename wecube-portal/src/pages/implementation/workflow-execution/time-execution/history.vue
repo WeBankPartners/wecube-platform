@@ -297,10 +297,16 @@ export default {
     // #region 暂停、继续编排
     async flowControlHandler (operateType, row) {
       this.$Modal.confirm({
-        title: this.$t('be_workflow_non_owner_title'),
-        content: `${this.$t('be_workflow_non_owner_list_tip1')}[${row.operator}]${this.$t(
-          'be_workflow_non_owner_list_tip2'
-        )}`,
+        title:
+          localStorage.getItem('username') !== row.operator
+            ? this.$t('be_workflow_non_owner_title')
+            : this.$t('bc_confirm') + ' ' + (operateType === 'stop' ? this.$t('pause') : this.$t('bc_continue')),
+        content:
+          localStorage.getItem('username') !== row.operator
+            ? `${this.$t('be_workflow_non_owner_list_tip1')}[${row.operator}]${this.$t(
+              'be_workflow_non_owner_list_tip2'
+            )}`
+            : '',
         'z-index': 1000000,
         onOk: async () => {
           let payload = {
@@ -322,10 +328,16 @@ export default {
     // 终止任务
     stopTask (row) {
       this.$Modal.confirm({
-        title: this.$t('be_workflow_non_owner_title'),
-        content: `${this.$t('be_workflow_non_owner_list_tip1')}[${row.operator}]${this.$t(
-          'be_workflow_non_owner_list_tip2'
-        )}`,
+        title:
+          localStorage.getItem('username') !== row.operator
+            ? this.$t('be_workflow_non_owner_title')
+            : this.$t('bc_confirm') + ' ' + this.$t('stop_orch'),
+        content:
+          localStorage.getItem('username') !== row.operator
+            ? `${this.$t('be_workflow_non_owner_list_tip1')}[${row.operator}]${this.$t(
+              'be_workflow_non_owner_list_tip2'
+            )}`
+            : '',
         'z-index': 1000000,
         onOk: async () => {
           const payload = {
