@@ -1942,19 +1942,22 @@ export default {
               timeInterval: 'Mcircle' // 时间间隔
             }
             if (['start', 'end', 'abnormal', 'date', 'timeInterval'].includes(_.nodeType)) {
-              const defaultLabel = _.nodeType
-              return `${_.nodeId} [label="${
-                _.nodeName || defaultLabel
-              }", width="0.8", class="flow", fixedsize=true, style="${excution ? 'filled' : 'none'}" fillcolor="${
-                excution ? statusColor[_.status] || '#7F8A96' : '#7F8A96'
-              }" shape="${shapeMap[_.nodeType]}", id="${_.nodeId}"]`
-            } else {
-              // const className = _.status === 'Faulted' || _.status === 'Timeouted' ? 'retry' : 'normal'
               let className = 'retry'
               // 【时间节点】手动跳过功能
               if (['timeInterval', 'date'].includes(_.nodeType) && _.status === 'InProgress') {
                 className = 'time-node'
               }
+              const defaultLabel = _.nodeType
+              return `${_.nodeId} [label="${
+                _.nodeName || defaultLabel
+              }", width="0.8", class="flow ${className}", fixedsize=true, style="${
+                excution ? 'filled' : 'none'
+              }" fillcolor="${excution ? statusColor[_.status] || '#7F8A96' : '#7F8A96'}" shape="${
+                shapeMap[_.nodeType]
+              }", id="${_.nodeId}"]`
+            } else {
+              // const className = _.status === 'Faulted' || _.status === 'Timeouted' ? 'retry' : 'normal'
+              let className = 'retry'
               // 【判断开始】节点可以执行分支选择功能
               if (['decision'].includes(_.nodeType) && _.status === 'InProgress') {
                 className = 'decision-node'
