@@ -154,7 +154,7 @@
   },
   "proc_def_data_node_error": {
     "code": 20000034,
-    "message": "Publish Failed: Data node expression validate fail"
+    "message": "Publish Failed: [Data node]:%s expression validate fail"
   },
   "proc_def_sub_proc_check_error": {
     "code": 20000035,

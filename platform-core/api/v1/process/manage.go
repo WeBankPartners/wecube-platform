@@ -1480,7 +1480,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string, procDef *models
 		case models.ProcDefNodeTypeData:
 			// 判断定位规则有没有带operation
 			if _, err = database.GetProcDataNodeExpression(node.RoutineExpression); err != nil {
-				return exterror.Catch(exterror.New().ProcDefDataNodeError, err)
+				return exterror.New().ProcDefDataNodeError.WithParam(node.Name)
 			}
 		case models.ProcDefNodeSubProcess:
 			if procDef.SubProc {

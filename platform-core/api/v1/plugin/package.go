@@ -428,6 +428,7 @@ func PullOnliePackageStatus(c *gin.Context) {
 			data["state"] = result.State
 			data["requestId"] = pullId
 			data["errorMessage"] = result.ErrMsg
+			data["pluginPackageId"] = result.PkgId
 		}
 		middleware.ReturnData(c, data)
 	}
