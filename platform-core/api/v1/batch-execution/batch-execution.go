@@ -590,6 +590,8 @@ func GetSeed(c *gin.Context) {
 		log.Logger.Error(e.(string))
 	})
 	result, err := database.GetEncryptSeed(c)
+	md5sum := cipher.Md5Encode(result)
+	result = md5sum[0:16]
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
