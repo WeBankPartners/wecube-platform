@@ -60,7 +60,7 @@ func QueryPluginPackages(ctx context.Context, param *models.PluginPackageQueryPa
 	if len(filterSql) > 0 {
 		queryFilterSql = "where " + strings.Join(filterSql, " and ")
 	}
-	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_packages "+queryFilterSql+" order by name,`version`", filterParam...).Find(&packageRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_packages "+queryFilterSql+" order by name,`version` desc", filterParam...).Find(&packageRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -655,14 +655,22 @@ func LaunchPlugin(ctx context.Context, pluginInstance *models.PluginInstances, r
 	return
 }
 
-func GetPluginInstance(pluginInstanceId string) (pluginInstance *models.PluginInstances, err error) {
+func GetPluginInstance(pluginInstanceId, instanceName, host string, forceCheck bool) (pluginInstance *models.PluginInstances, err error) {
 	var instanceRows []*models.PluginInstances
-	err = db.MysqlEngine.SQL("select * from plugin_instances where id=?", pluginInstanceId).Find(&instanceRows)
+	if pluginInstanceId != "" {
+		err = db.MysqlEngine.SQL("select * from plugin_instances where id=?", pluginInstanceId).Find(&instanceRows)
+	} else {
+		err = db.MysqlEngine.SQL("select * from plugin_instances where container_name=? and host=?", instanceName, host).Find(&instanceRows)
+	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	} else {
 		if len(instanceRows) == 0 {
-			err = fmt.Errorf("can not find plugin instance with id:%s ", pluginInstanceId)
+			if forceCheck {
+				err = fmt.Errorf("can not find plugin instance with id:%s ", pluginInstanceId)
+			} else {
+				pluginInstance = &models.PluginInstances{}
+			}
 		} else {
 			pluginInstance = instanceRows[0]
 		}
@@ -786,7 +794,7 @@ func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId, plugi
 		}})
 	}
 	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set ui_active=0 where name=? and ui_active=1", Param: []interface{}{pluginPackageName}})
-	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set ui_active=1,updated_by=?,updated_time=? where id=?", Param: []interface{}{pluginPackageId, operator, time.Now()}})
+	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set ui_active=1,updated_by=?,updated_time=? where id=?", Param: []interface{}{operator, time.Now(), pluginPackageId}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -1091,5 +1099,17 @@ func InheritPluginConfig(ctx context.Context, param *models.InheritPluginConfigP
 		actions = append(actions, updateSysVarActions...)
 	}
 	err = db.Transaction(actions, ctx)
+	return
+}
+
+func GetPluginPackageNum(ctx context.Context, name string) (registerNum int, err error) {
+	queryRow, queryErr := db.MysqlEngine.Context(ctx).QueryString("select count(1) as num from plugin_packages where name=? and status!='DECOMMISSIONED'", name)
+	if queryErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(queryRow) > 0 {
+		registerNum, _ = strconv.Atoi(queryRow[0]["num"])
+	}
 	return
 }
