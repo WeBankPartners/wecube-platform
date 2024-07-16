@@ -281,7 +281,7 @@ export default {
           }
         },
         {
-          title: this.$t('be_instance_type'),
+          title: this.$t('bc_execution_instance'),
           key: 'entityDataName',
           width: 200
         },
@@ -634,7 +634,21 @@ export default {
         },
         {
           title: this.$t('status'),
-          key: 'status'
+          key: 'status',
+          render: (h, params) => {
+            const list = [
+              { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
+              { label: this.$t('fe_inProgressFaulted'), value: 'InProgress(Faulted)', color: '#ed4014' },
+              { label: this.$t('fe_inProgressTimeouted'), value: 'InProgress(Timeouted)', color: '#ed4014' },
+              { label: this.$t('fe_stop'), value: 'Stop', color: '#ed4014' },
+              { label: this.$t('fe_inProgress'), value: 'InProgress', color: '#1990ff' },
+              { label: this.$t('fe_completed'), value: 'Completed', color: '#7ac756' },
+              { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
+              { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
+            ]
+            const findObj = list.find(item => item.value === params.row.status) || {}
+            return <Tag color={findObj.color}>{findObj.label}</Tag>
+          }
         },
         {
           title: this.$t('table_action'),

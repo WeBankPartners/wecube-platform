@@ -213,16 +213,19 @@
             {{ $t('next_step') }}
           </Button>
         </Poptip>
-        <Button
-          v-else
-          v-for="(item, index) in footerButtonMap[currentStep]"
-          :key="index"
-          :type="item.buttonType"
-          :disabled="typeof item.disabled === 'function' ? item.disabled() : item.disabled"
-          class="mr-3"
-          @click="onFooterButtonClick(item.key)"
-          >{{ item.label }}
-        </Button>
+        <div v-else>
+          <div v-if="!isJustShowRightContent">
+            <Button
+              v-for="(item, index) in footerButtonMap[currentStep]"
+              :key="index"
+              :type="item.buttonType"
+              :disabled="typeof item.disabled === 'function' ? item.disabled() : item.disabled"
+              class="mr-3"
+              @click="onFooterButtonClick(item.key)"
+              >{{ item.label }}
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -519,6 +522,7 @@ export default {
       })
       if (status === 'OK') {
         this.$Message.success(this.$t('action_successful'))
+        this.getAvailableInstances(this.pluginId)
         this.enterNextStep()
       } else {
         this.$Message.error(this.$t('p_execute_fail'))
@@ -550,7 +554,6 @@ export default {
         const index = this.allowCreationIpPort.findIndex(item => item.port === port)
         this.allowCreationIpPort.splice(index, 1)
         this.getAvailableInstances(this.pluginId)
-        // this.reloadPage()
       }
     },
     async getAvailableInstances (id) {
@@ -567,15 +570,6 @@ export default {
           }
         })
       }
-    },
-    reloadPage () {
-      this.$Notice.info({
-        title: this.$t('notify'),
-        desc: this.$t('reload_notify')
-      })
-      setTimeout(() => {
-        document.location.reload()
-      }, 3000)
     },
     async removePlugin (instanceId) {
       let { status, message } = await removePluginInstance(instanceId)
@@ -634,7 +628,11 @@ export default {
       if (status === 'OK') {
         this.$Message.success(this.$t('p_sixth_step_title'))
         this.returnPreviousPage()
+        this.reloadPage()
       }
+    },
+    reloadPage () {
+      document.location.reload()
     },
     onServiceListGet (data) {
       if (!isEmpty(data)) {
