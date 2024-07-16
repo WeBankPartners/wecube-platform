@@ -19,6 +19,8 @@
 <script>
 import Header from './components/header'
 import { MENUS } from '../const/menus.js'
+import { watermark } from '@/const/watermark'
+import dayjs from 'dayjs'
 export default {
   components: {
     Header
@@ -39,6 +41,16 @@ export default {
         margin: this.expandSideMenu ? '10px 0 10px 140px' : '10px 0'
       }
     }
+  },
+  mounted () {
+    watermark({
+      watermark_txt: 'WeCube: ' + localStorage.getItem('username') + ' ' + dayjs().format('YYYY-MM-DD HH:mm:ss'),
+      watermark_fontsize: '16px',
+      watermark_x_space: 300,
+      watermark_y_space: 100,
+      watermark_y: 200,
+      watermark_alpha: 0.2
+    })
   },
   methods: {
     allMenus (data) {
