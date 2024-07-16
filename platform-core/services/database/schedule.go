@@ -14,6 +14,15 @@ import (
 )
 
 func CreateProcSchedule(ctx context.Context, param *models.CreateProcScheduleParam) (result *models.ProcScheduleConfig, err error) {
+	queryRows, queryErr := db.MysqlEngine.Context(ctx).QueryString("select id from proc_schedule_config where name=?", param.Name)
+	if queryErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(queryRows) > 0 {
+		err = fmt.Errorf("Name:%s duplicate ", param.Name)
+		return
+	}
 	result = &models.ProcScheduleConfig{
 		Id:             "psc_" + guid.CreateGuid(),
 		ProcDefId:      param.ProcDefId,
@@ -241,8 +250,8 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 		filterParams = append(filterParams, param.ScheduleMode)
 	}
 	if param.Owner != "" {
-		filterSqlList = append(filterSqlList, "created_by=?")
-		filterParams = append(filterParams, param.Owner)
+		filterSqlList = append(filterSqlList, "created_by like ?")
+		filterParams = append(filterParams, fmt.Sprintf("%%%s%%", param.Owner))
 	}
 	if param.Name != "" {
 		filterSqlList = append(filterSqlList, "name like ?")
@@ -344,15 +353,15 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 }
 
 func QueryProcScheduleInstance(ctx context.Context, psConfigId, status string) (result []*models.ProcScheduleInstQueryObj, err error) {
-	var procInsRows []*models.ProcIns
+	var procInsRows []*models.ScheduleProcInsQueryRow
 	if status == "" {
-		err = db.MysqlEngine.Context(ctx).SQL("select t3.id,t3.status,t3.created_time,t3.proc_def_id,t3.proc_def_name from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id=?", psConfigId).Find(&procInsRows)
+		err = db.MysqlEngine.Context(ctx).SQL("select t3.id,t3.status,t2.created_time,t3.proc_def_id,t3.proc_def_name,t2.error_msg from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id=?", psConfigId).Find(&procInsRows)
 	} else {
 		err = db.MysqlEngine.Context(ctx).SQL("select t3.id,t3.status,t3.created_time,t3.proc_def_id,t3.proc_def_name from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id=? and t3.status=?", psConfigId, status).Find(&procInsRows)
 	}
 	result = []*models.ProcScheduleInstQueryObj{}
 	for _, row := range procInsRows {
-		if row.Id == "" {
+		if row.CreatedTime.IsZero() {
 			continue
 		}
 		result = append(result, &models.ProcScheduleInstQueryObj{
@@ -361,6 +370,7 @@ func QueryProcScheduleInstance(ctx context.Context, psConfigId, status string) (
 			ProcDefName: row.ProcDefName,
 			Status:      row.Status,
 			ExecTime:    row.CreatedTime.Format(models.DateTimeFormat),
+			ErrorMsg:    row.ErrorMsg,
 		})
 	}
 	return
