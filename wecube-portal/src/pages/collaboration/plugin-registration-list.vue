@@ -80,12 +80,8 @@
             <div class="card-item-content mb-2">
               <div class="card-content-list mb-1" v-for="(keyItem, index) in cardContentList" :key="index">
                 <span style="min-width: 80px">{{ $t(keyItem.label) }}: </span>
-                <Tooltip
-                  v-if="keyItem.key === 'menus'"
-                  max-width="450"
-                  :content="item[keyItem.key].length ? item[keyItem.key].join(';') : '-'"
-                  placement="left"
-                >
+                <Tooltip v-if="keyItem.key === 'menus'" max-width="450" placement="left">
+                  <div slot="content" v-html="item[keyItem.key].length ? item[keyItem.key].join('</br>') : '-'"></div>
                   <div class="card-menu-content">
                     {{ item[keyItem.key].length ? item[keyItem.key].join(';') : '-' }}
                   </div>
