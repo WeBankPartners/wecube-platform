@@ -19,7 +19,7 @@
 <script>
 import Header from './components/header'
 import { MENUS } from '../const/menus.js'
-import { watermark } from '@/const/watermark'
+import { watermark } from '@/const/waterMark'
 import dayjs from 'dayjs'
 export default {
   components: {
