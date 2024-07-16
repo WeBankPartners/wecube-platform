@@ -15,6 +15,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
 	"github.com/gin-gonic/gin"
 	"strings"
+	"time"
 )
 
 func ProcDefList(c *gin.Context) {
@@ -384,7 +385,11 @@ func ProcInsStart(c *gin.Context) {
 }
 
 func ProcInsList(c *gin.Context) {
-	result, err := database.ListProcInstance(c, middleware.GetRequestRoles(c))
+	withCronIns := strings.ToLower(c.Query("withCronIns"))
+	withSubProc := strings.ToLower(c.Query("withSubProc"))
+	mgmtRole := c.Query("mgmtRole")
+	search := c.Query("search")
+	result, err := database.ListProcInstance(c, middleware.GetRequestRoles(c), withCronIns, withSubProc, mgmtRole, search)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -463,6 +468,11 @@ func ProcInsOperation(c *gin.Context) {
 		middleware.ReturnError(c, exterror.New().DataPermissionDeny)
 		return
 	}
+	procInsObj, getProcInsErr := database.GetSimpleProcInsRow(c, param.ProcInstId)
+	if getProcInsErr != nil {
+		middleware.ReturnError(c, getProcInsErr)
+		return
+	}
 	workflowId, nodeId, err := database.GetProcWorkByInsId(c, param.ProcInstId, param.NodeInstId)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -477,6 +487,10 @@ func ProcInsOperation(c *gin.Context) {
 		}
 	}
 	if param.Act == "skip" {
+		if procInsObj.Status != models.JobStatusRunning {
+			middleware.ReturnError(c, fmt.Errorf("ProcIns status:%s ,operation %s illegal", procInsObj.Status, param.Act))
+			return
+		}
 		operationObj := models.ProcRunOperation{WorkflowId: workflowId, NodeId: nodeId, Operation: "ignore", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
 		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
 		if err != nil {
@@ -488,6 +502,10 @@ func ProcInsOperation(c *gin.Context) {
 			killSubProc(c, param.ProcInstId, param.NodeInstId, middleware.GetRequestUser(c))
 		}
 	} else if param.Act == "choose" {
+		if procInsObj.Status != models.JobStatusRunning {
+			middleware.ReturnError(c, fmt.Errorf("ProcIns status:%s ,operation %s illegal", procInsObj.Status, param.Act))
+			return
+		}
 		if param.Message == "" {
 			middleware.ReturnError(c, fmt.Errorf("param message can not empty with choose action"))
 			return
@@ -500,6 +518,10 @@ func ProcInsOperation(c *gin.Context) {
 		}
 		go workflow.HandleProOperation(&operationObj)
 	} else if param.Act == "stop" {
+		if procInsObj.Status != models.JobStatusRunning {
+			middleware.ReturnError(c, fmt.Errorf("ProcIns status:%s ,operation %s illegal", procInsObj.Status, param.Act))
+			return
+		}
 		operationObj := models.ProcRunOperation{WorkflowId: workflowId, Operation: "stop", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
 		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
 		if err != nil {
@@ -507,7 +529,12 @@ func ProcInsOperation(c *gin.Context) {
 			return
 		}
 		go workflow.HandleProOperation(&operationObj)
+		time.Sleep(2500 * time.Millisecond)
 	} else if param.Act == "recover" {
+		if procInsObj.Status != models.WorkflowStatusStop {
+			middleware.ReturnError(c, fmt.Errorf("ProcIns status:%s ,operation %s illegal", procInsObj.Status, param.Act))
+			return
+		}
 		operationObj := models.ProcRunOperation{WorkflowId: workflowId, Operation: "continue", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
 		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
 		if err != nil {
@@ -515,6 +542,7 @@ func ProcInsOperation(c *gin.Context) {
 			return
 		}
 		go workflow.HandleProOperation(&operationObj)
+		time.Sleep(2500 * time.Millisecond)
 	}
 	middleware.ReturnSuccess(c)
 }
@@ -678,6 +706,7 @@ func ProcTermination(c *gin.Context) {
 	}
 	go workflow.HandleProOperation(&operationObj)
 	killSubProc(c, procInsId, "", middleware.GetRequestUser(c))
+	time.Sleep(2500 * time.Millisecond)
 	middleware.ReturnSuccess(c)
 }
 
@@ -722,6 +751,7 @@ func BatchProcTermination(c *gin.Context) {
 		go workflow.HandleProOperation(&operationObj)
 		killSubProc(c, procInsParam.Id, "", middleware.GetRequestUser(c))
 	}
+	time.Sleep(2500 * time.Millisecond)
 	middleware.ReturnSuccess(c)
 }
 
