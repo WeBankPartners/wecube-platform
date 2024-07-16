@@ -22,7 +22,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	var permissionList []*models.ProcDefPermission
 	var roleProcDefMap = make(map[string][]*models.ProcDefDto)
 	var userRolesMap = convertArray2Map(param.UserRoles)
-	var manageRoles, userRoles, allManageRoles, manageRolesDisplay, userRolesDisplay, userPermissionRoles []string
+	var manageRoles, userRoles, allManageRoles, manageRolesDisplay, userRolesDisplay, userPermissionRoles, managePermissionRoles []string
 	var response models.QueryRolesResponse
 	var roleDisplayNameMap = make(map[string]string)
 	var enabledCreated bool
@@ -85,6 +85,7 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 		}
 		enabledCreated = false
 		manageRoles = []string{}
+		managePermissionRoles = []string{}
 		userRoles = []string{}
 		userPermissionRoles = []string{}
 		manageRolesDisplay = []string{}
@@ -104,19 +105,22 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 			}
 		}
 		for _, permission := range permissionList {
-			if permission.Permission == "MGMT" && userRolesMap[permission.RoleName] {
+			if permission.Permission == "MGMT" {
 				manageRoles = append(manageRoles, permission.RoleName)
 				manageRolesDisplay = append(manageRolesDisplay, roleDisplayNameMap[permission.RoleName])
 			} else if permission.Permission == "USE" {
 				userRoles = append(userRoles, permission.RoleName)
 				userRolesDisplay = append(userRolesDisplay, roleDisplayNameMap[permission.RoleName])
 			}
+			if permission.Permission == "MGMT" && userRolesMap[permission.RoleName] {
+				managePermissionRoles = append(managePermissionRoles, permission.RoleName)
+			}
 			if permission.Permission == "USE" && userRolesMap[permission.RoleName] {
 				userPermissionRoles = append(userPermissionRoles, permission.RoleName)
 			}
 		}
 		if param.PermissionType == "MGMT" {
-			for _, manageRole := range manageRoles {
+			for _, manageRole := range managePermissionRoles {
 				if _, ok := roleProcDefMap[manageRole]; !ok {
 					roleProcDefMap[manageRole] = make([]*models.ProcDefDto, 0)
 					allManageRoles = append(allManageRoles, manageRole)
