@@ -88,7 +88,7 @@
             >
             <!--终止执行-->
             <Button
-              v-if="currentInstanceStatusForNodeOperation === 'InProgress' && !subProcBindParentFlag"
+              v-if="['InProgress', 'Stop'].includes(currentInstanceStatusForNodeOperation) && !subProcBindParentFlag"
               type="warning"
               @click="stopHandler"
               icon="md-square"
@@ -124,7 +124,7 @@
             </FormItem>
           </Col>
           <Col v-if="!isEnqueryPage" span="12" offset="0">
-            <FormItem required :label-width="100" :label="$t('target_object')">
+            <FormItem required :label-width="100" :label="$t('bc_execution_instance')">
               <Select
                 style="width: 80%"
                 label
@@ -1016,9 +1016,9 @@ export default {
       return function (status, type) {
         const list = [
           { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
+          { label: this.$t('fe_stop'), value: 'Stop', color: '#ed4014' },
           { label: this.$t('fe_inProgressFaulted'), value: 'InProgress(Faulted)', color: '#ed4014' },
           { label: this.$t('fe_inProgressTimeouted'), value: 'InProgress(Timeouted)', color: '#ed4014' },
-          { label: this.$t('fe_stop'), value: 'Stop', color: '#ed4014' },
           { label: this.$t('fe_inProgress'), value: 'InProgress', color: '#1990ff' },
           { label: this.$t('fe_completed'), value: 'Completed', color: '#7ac756' },
           { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
