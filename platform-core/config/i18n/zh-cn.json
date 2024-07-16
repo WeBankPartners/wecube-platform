@@ -154,7 +154,7 @@
   },
   "proc_def_data_node_error": {
     "code": 20000034,
-    "message": "发布失败:数据节点表达式校验错误"
+    "message": "发布失败:数据节点: %s 表达式校验错误"
   },
   "proc_def_sub_proc_check_error": {
     "code": 20000035,
