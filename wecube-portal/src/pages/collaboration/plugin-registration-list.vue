@@ -105,10 +105,14 @@
                     <p>{{ $t('regist_plugin_tip2') }}</p>
                   </template>
                   <Button
-                    :disabled="!item.registerDone || isPluginRegistering"
+                    :disabled="!item.registerDone || isPluginRegistering || item.menus.length === 0"
                     size="small"
                     v-if="keyItem.buttonText && keyItem.key === 'menus'"
-                    :type="!item.registerDone ? 'default' : keyItem.buttonType"
+                    :type="
+                      !item.registerDone || isPluginRegistering || item.menus.length === 0
+                        ? 'default'
+                        : keyItem.buttonType
+                    "
                     @click="registPlugin(item.id)"
                   >
                     {{
@@ -159,13 +163,18 @@
                 accept=".xml"
               >
                 <Tooltip :content="$t('p_import_service')" placement="top">
-                  <Button type="info" size="small" :disabled="!item.registerDone">
+                  <Button type="info" size="small" :disabled="isButtonDisabled(item)">
                     <Icon type="md-cloud-upload" />
                   </Button>
                 </Tooltip>
               </Upload>
               <Tooltip :content="$t('p_export_service')" placement="top">
-                <Button type="info" size="small" @click.stop="exportPluginFile(item.id)" :disabled="!item.registerDone">
+                <Button
+                  type="info"
+                  size="small"
+                  @click.stop="exportPluginFile(item.id)"
+                  :disabled="isButtonDisabled(item)"
+                >
                   <Icon type="md-cloud-download" />
                 </Button>
               </Tooltip>
@@ -173,7 +182,7 @@
                 <Button
                   type="warning"
                   size="small"
-                  :disabled="!item.registerDone"
+                  :disabled="isButtonDisabled(item)"
                   @click="enterSettingPage(item.id, 2)"
                 >
                   <Icon type="md-cube" />
@@ -576,7 +585,7 @@ export default {
       this.isPluginRegistering = false
       if (status === 'OK') {
         this.$Message.success(this.$t('action_successful'))
-        await this.getViewList()
+        this.reloadPage()
       } else {
         this.$Message.error(this.$t('p_execute_fail'))
       }
@@ -712,6 +721,11 @@ export default {
           }
         })
       }
+    },
+    isButtonDisabled (item) {
+      if (item.registerDone) return false
+
+      return !(item.instances.length && item.uiActive && item.menus.length)
     }
   }
 }
@@ -755,6 +769,7 @@ export default {
           justify-content: space-between;
           align-items: center;
           .panal-title-text {
+            font-weight: bold;
             padding: 8px 25px;
             background-color: #f7f7f7;
             border-color: #f7f7f7;
