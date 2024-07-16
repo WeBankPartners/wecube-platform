@@ -2,6 +2,9 @@
   <div class="time-execution-history">
     <div class="search">
       <Search :options="searchOptions" v-model="searchConfig.params" @search="handleQuery"></Search>
+      <Button :disabled="selectData.length === 0" type="error" class="btn-right" @click="batchStopTask">
+        {{ $t('fe_batchStop') }}
+      </Button>
     </div>
     <Table
       size="small"
@@ -10,6 +13,7 @@
       :max-height="MODALHEIGHT"
       :data="tableData"
       :loading="loading"
+      @on-selection-change="selectionChange"
     ></Table>
     <Page
       style="float: right; margin-top: 16px"
@@ -30,6 +34,7 @@ import {
   instancesWithPaging,
   getAllFlow,
   createWorkflowInstanceTerminationRequest,
+  batchWorkflowInstanceTermination,
   pauseAndContinueFlow
 } from '@/api/server'
 import dayjs from 'dayjs'
@@ -118,11 +123,12 @@ export default {
       },
       allFlows: [],
       tableData: [],
+      selectData: [],
       loading: false,
       tableColumns: [
         {
-          type: 'index',
-          width: 50,
+          type: 'selection',
+          width: 55,
           align: 'center'
         },
         {
@@ -295,6 +301,9 @@ export default {
       this.pageable.current = 1
       this.getProcessInstances()
     },
+    selectionChange (val) {
+      this.selectData = val
+    },
     // #region 暂停、继续编排
     async flowControlHandler (operateType, row) {
       this.$Modal.confirm({
@@ -357,6 +366,35 @@ export default {
         onCancel: () => {}
       })
     },
+    // 批量终止
+    batchStopTask () {
+      const list = this.selectData.filter(i => i.operator !== localStorage.getItem('username')) || []
+      const operatorList = list.map(i => i.operator) || []
+      const tips = Array.from(new Set(operatorList)).join('、')
+      this.$Modal.confirm({
+        title: tips ? this.$t('be_workflow_non_owner_title') : this.$t('bc_confirm') + ' ' + this.$t('stop_orch'),
+        content: tips
+          ? `${this.$t('be_workflow_non_owner_list_tip1')}[${tips}]${this.$t('be_workflow_non_owner_list_tip2')}`
+          : '',
+        'z-index': 1000000,
+        onOk: async () => {
+          const params = this.selectData.map(i => {
+            return {
+              id: i.id
+            }
+          })
+          const { status } = await batchWorkflowInstanceTermination(params)
+          if (status === 'OK') {
+            this.getProcessInstances()
+            this.$Notice.success({
+              title: 'Success',
+              desc: 'Success'
+            })
+          }
+        },
+        onCancel: () => {}
+      })
+    },
     async getFlows () {
       let { status, data } = await getAllFlow(false)
       if (status === 'OK') {
@@ -405,11 +443,23 @@ export default {
         }
       }
       this.tableData = []
+      this.selectData = []
       this.loading = true
       let { status, data } = await instancesWithPaging(params)
       this.loading = false
       if (status === 'OK') {
         this.tableData = data.contents
+        this.tableData.forEach(i => {
+          // 禁用不能终止的表格复选框
+          if (
+            !(
+              ['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(i.status) &&
+              !(i.parentProcIns && i.parentProcIns.procInsId)
+            )
+          ) {
+            i._disabled = true
+          }
+        })
         this.pageable.total = data.pageInfo.totalRows
         this.pageable.pageSize = data.pageInfo.pageSize
         this.pageable.startIndex = data.pageInfo.startIndex
@@ -432,7 +482,7 @@ export default {
             path: '/implementation/workflow-execution/view-execution',
             query: {
               id: row.id,
-              from: 'history'
+              from: 'time'
             }
           })
         }
@@ -460,6 +510,12 @@ export default {
   .search {
     display: flex;
     justify-content: space-between;
+    .btn-right {
+      width: 90px;
+      height: 28px;
+      margin-left: 10px;
+      padding: 0px;
+    }
   }
   .ivu-form-item {
     margin-bottom: 8px;

@@ -43,7 +43,7 @@ export const getTreePreviewData = (flowId, targetId, sessionId) =>
   req.get(`platform/v1/process/definitions/${flowId}/preview/entities/${targetId}?sessionId=${sessionId}`)
 export const createFlowInstance = data => req.post(`platform/v1/process/instances`, data)
 export const instancesWithPaging = data => req.post(`platform/v1/process/instancesWithPaging`, data)
-export const getProcessInstances = () => req.get(`platform/v1/process/instances`)
+export const getProcessInstances = params => req.get(`platform/v1/process/instances`, params)
 export const getProcessInstance = id => req.get(`platform/v1/process/instances/${id}`)
 
 export const retryProcessInstance = data => req.post(`platform/v1/process/instances/proceed`, data)
@@ -209,8 +209,12 @@ export const updateConfigStatus = (id, data) =>
 export const batchExportConfig = (id, data) => req.post(`/platform/v1/plugins/packages/export-choose/${id}`, data)
 
 export const resetPassword = data => req.post(`platform/v1/users/reset-password`, data)
+// 终止执行
 export const createWorkflowInstanceTerminationRequest = data =>
   req.post(`platform/v1/public/process/instances/${data.procInstId}/terminations`, data)
+// 批量终止执行
+export const batchWorkflowInstanceTermination = data =>
+  req.post(`/platform/v1/public/process/instances/batch-terminations`, data)
 export const getTaskNodeInstanceExecBindings = data =>
   req.get(`/platform/v1/process/instances/${data.procInstId}/tasknodes/${data.nodeInstId}/tasknode-bindings`)
 export const updateTaskNodeInstanceExecBindings = data =>
