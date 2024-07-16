@@ -863,6 +863,10 @@ func LaunchPlugin(c *gin.Context) {
 	}
 	dockerCmd += dockerResource.ImageName
 	if err = bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, dockerCmd); err != nil {
+		// 清理启动失败的docker
+		if rmDockerErr := bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, fmt.Sprintf("docker rm -f %s", dockerResource.ContainerName)); rmDockerErr != nil {
+			log.Logger.Error("Try to remove failed docker container", log.String("containerName", dockerResource.ContainerName), log.Error(rmDockerErr))
+		}
 		middleware.ReturnError(c, err)
 		return
 	}

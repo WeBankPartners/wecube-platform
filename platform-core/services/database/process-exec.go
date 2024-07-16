@@ -923,8 +923,8 @@ func ListProcInstance(ctx context.Context, userRoles []string, withCronIns, with
 		filterSql += " and t2.sub_proc=0 "
 	}
 	if search != "" {
-		filterSql += " and (t1.proc_def_name like ? or t1.entity_data_name like ?) "
-		filterParam = append(filterParam, fmt.Sprintf("%%%s%%", search), fmt.Sprintf("%%%s%%", search))
+		filterSql += " and (t1.id like ? or t1.proc_def_name like ? or t1.entity_data_name like ?) "
+		filterParam = append(filterParam, fmt.Sprintf("%%%s%%", search), fmt.Sprintf("%%%s%%", search), fmt.Sprintf("%%%s%%", search))
 	}
 	if mgmtRole != "" {
 		userRoles = []string{mgmtRole}
@@ -1765,6 +1765,8 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 		if param.Operator == "systemCron" {
 			scheduleInsFlag = true
 		}
+	} else {
+		filterSqlList = append(filterSqlList, "created_by!='systemCron'")
 	}
 	if param.StartTime != "" {
 		filterSqlList = append(filterSqlList, "created_time>=?")
