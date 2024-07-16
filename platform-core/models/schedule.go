@@ -107,12 +107,13 @@ type ProcScheduleInstQueryParam struct {
 }
 
 type ProcScheduleInstQueryObj struct {
-	ProcInstId  string `json:"procInstId"`
-	Status      string `json:"status"`
-	ExecTime    string `json:"execTime"`
-	ProcDefId   string `json:"procDefId"`
-	ProcDefName string `json:"procDefName"`
-	ErrorMsg    string `json:"errorMsg"`
+	ProcInstId    string `json:"procInstId"`
+	Status        string `json:"status"`
+	ExecTime      string `json:"execTime"`
+	ProcDefId     string `json:"procDefId"`
+	ProcDefName   string `json:"procDefName"`
+	ErrorMsg      string `json:"errorMsg"`
+	DisplayStatus string `json:"displayStatus"`
 }
 
 type SendMailTarget struct {

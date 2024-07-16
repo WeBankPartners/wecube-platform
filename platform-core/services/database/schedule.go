@@ -360,18 +360,32 @@ func QueryProcScheduleInstance(ctx context.Context, psConfigId, status string) (
 		err = db.MysqlEngine.Context(ctx).SQL("select t3.id,t3.status,t3.created_time,t3.proc_def_id,t3.proc_def_name from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id=? and t3.status=?", psConfigId, status).Find(&procInsRows)
 	}
 	result = []*models.ProcScheduleInstQueryObj{}
+	var inProgressInsList []string
 	for _, row := range procInsRows {
 		if row.CreatedTime.IsZero() {
 			continue
 		}
 		result = append(result, &models.ProcScheduleInstQueryObj{
-			ProcInstId:  row.Id,
-			ProcDefId:   row.ProcDefId,
-			ProcDefName: row.ProcDefName,
-			Status:      row.Status,
-			ExecTime:    row.CreatedTime.Format(models.DateTimeFormat),
-			ErrorMsg:    row.ErrorMsg,
+			ProcInstId:    row.Id,
+			ProcDefId:     row.ProcDefId,
+			ProcDefName:   row.ProcDefName,
+			Status:        row.Status,
+			ExecTime:      row.CreatedTime.Format(models.DateTimeFormat),
+			ErrorMsg:      row.ErrorMsg,
+			DisplayStatus: row.Status,
 		})
+		if row.Status == models.JobStatusRunning {
+			inProgressInsList = append(inProgressInsList, row.Id)
+		}
+	}
+	if len(inProgressInsList) > 0 {
+		procInsNodeStatusMap := make(map[string]string)
+		procInsNodeStatusMap, err = getProcInsNodeStatus(ctx, inProgressInsList)
+		for _, row := range result {
+			if nodeStatus, ok := procInsNodeStatusMap[row.ProcInstId]; ok {
+				row.DisplayStatus = fmt.Sprintf("%s(%s)", row.Status, nodeStatus)
+			}
+		}
 	}
 	return
 }
