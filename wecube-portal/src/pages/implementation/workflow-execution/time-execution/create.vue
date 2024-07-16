@@ -40,9 +40,24 @@
               :placeholder="$t('fe_task_name')"
             />
           </FormItem>
+          <FormItem :label="$t('be_mgmt_role')" required>
+            <Select v-model="timeConfig.params.role" @on-change="handleRoleChange">
+              <Option v-for="item in timeConfig.currentUserRoles" :key="item.name" :value="item.name">{{
+                item.displayName
+              }}</Option>
+            </Select>
+          </FormItem>
           <!--执行记录-->
-          <FormItem :label="$t('execution_history')" required>
-            <Select v-model="timeConfig.params.selectedFlowInstance" filterable>
+          <FormItem v-if="timeConfig.params.role" :label="$t('execution_history')" required>
+            <Select
+              v-model="timeConfig.params.selectedFlowInstance"
+              filterable
+              :remote-method="() => {}"
+              @on-query-change="remoteProcessInstances"
+              :loading="remoteLoading"
+              @on-open-change="remoteOpenChange"
+              clearable
+            >
               <Option
                 v-for="item in timeConfig.allFlowInstances"
                 :value="item.id"
@@ -63,6 +78,7 @@
                     <span style="color: #2b85e4">{{ '[' + item.version + '] ' }}</span>
                     <!-- <Tag style="color: #515a6e">{{ item.entityDisplayName + ' ' }}</Tag> -->
                     <div
+                      v-if="item.entityDisplayName"
                       :style="{
                         backgroundColor: '#c5c8ce',
                         padding: '4px 15px',
@@ -124,13 +140,6 @@
               format="HH:mm:ss"
             ></TimePicker>
           </FormItem>
-          <FormItem :label="$t('be_mgmt_role')" required>
-            <Select v-model="timeConfig.params.role">
-              <Option v-for="item in timeConfig.currentUserRoles" :key="item.name" :value="item.name">{{
-                item.displayName
-              }}</Option>
-            </Select>
-          </FormItem>
           <FormItem :label="$t('be_email_push')" required>
             <Select v-model="timeConfig.params.mailMode">
               <Option v-for="item in timeConfig.mailModeOptions" :key="item.value" :value="item.value">{{
@@ -162,6 +171,7 @@ import {
   getCurrentUserRoles,
   getAllFlow
 } from '@/api/server'
+import { debounce } from '@/const/util'
 import dayjs from 'dayjs'
 export default {
   components: {
@@ -172,6 +182,7 @@ export default {
     return {
       showModal: false,
       fullscreen: false,
+      remoteLoading: false,
       MODALHEIGHT: 0,
       allFlows: [],
       searchConfig: {
@@ -733,12 +744,33 @@ export default {
         })
       }
     },
-    async getProcessInstances () {
-      let { status, data } = await getProcessInstances()
+    handleRoleChange () {
+      this.timeConfig.params.selectedFlowInstance = ''
+      this.timeConfig.allFlowInstances = []
+    },
+    remoteOpenChange (flag) {
+      if (flag) {
+        this.timeConfig.allFlowInstances = []
+        this.remoteProcessInstances(this.timeConfig.params.selectedFlowInstance)
+      }
+    },
+    // 获取执行记录
+    remoteProcessInstances: debounce(async function (query) {
+      const params = {
+        params: {
+          withCronIns: 'no', // no普通执行历史 yes定时执行历史
+          withSubProc: 'no', // 过滤子编排记录
+          search: query,
+          mgmtRole: this.timeConfig.params.role
+        }
+      }
+      this.remoteLoading = true
+      let { status, data } = await getProcessInstances(params)
+      this.remoteLoading = false
       if (status === 'OK') {
         this.timeConfig.allFlowInstances = data.filter(item => item.status === 'Completed')
       }
-    },
+    }, 500),
     changeTimePicker (time) {
       this.timeConfig.params.time = time
     },
@@ -795,7 +827,6 @@ export default {
       }
     },
     async setTimedExecution () {
-      this.getProcessInstances()
       this.timeConfig.params.name = `定时任务${new Date().getTime()}`
       this.timeConfig.params.selectedFlowInstance = ''
       this.timeConfig.params.scheduleMode = 'Monthly'
@@ -821,7 +852,7 @@ export default {
         path: '/implementation/workflow-execution/view-execution',
         query: {
           id: row.procInstId,
-          from: 'history'
+          from: 'detail'
         }
       })
     },
