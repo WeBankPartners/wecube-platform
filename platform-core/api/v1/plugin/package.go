@@ -835,7 +835,7 @@ func LaunchPlugin(c *gin.Context) {
 		envBindList = append(envBindList, "LICENSE_SIGNATURE="+licSign)
 	}
 	// 替换容器参数差异化变量
-	replaceMap, err := database.BuildDockerEnvMap(c, envMap)
+	replaceMap, err := database.BuildDockerEnvMap(c, envMap, pluginPackageObj.Name, pluginPackageObj.Version)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
