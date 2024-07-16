@@ -122,6 +122,16 @@ func UploadPackage(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("plugin %s:%s already existed", registerConfig.Name, registerConfig.Version))
 		return
 	}
+	var samePackageNameNum int
+	samePackageNameNum, err = database.GetPluginPackageNum(c, pluginPackageObj.Name)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if samePackageNameNum > 3 {
+		middleware.ReturnError(c, fmt.Errorf("Package num limit 3 "))
+		return
+	}
 	if registerConfig.ResourceDependencies.Mysql.InitFileName != "" {
 		initSql = registerConfig.ResourceDependencies.Mysql.InitFileName
 		upgradeSql = registerConfig.ResourceDependencies.Mysql.UpgradeFileName
@@ -634,6 +644,15 @@ func LaunchPlugin(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	existPluginInstance, getExistErr := database.GetPluginInstance("", pluginPackageObj.Name, hostIp, false)
+	if getExistErr != nil {
+		middleware.ReturnError(c, getExistErr)
+		return
+	}
+	if existPluginInstance.Id != "" {
+		middleware.ReturnError(c, fmt.Errorf("Host:%s already running plugin:%s ", hostIp, pluginPackageObj.Name))
+		return
+	}
 	log.Logger.Debug("pluginPackage", log.JsonObj("data", pluginPackageObj))
 	resources, getResourceErr := database.GetPluginRuntimeResources(c, pluginPackageId)
 	if getResourceErr != nil {
@@ -904,7 +923,7 @@ func LaunchPlugin(c *gin.Context) {
 // RemovePlugin 运行管理 - 插件实例销毁
 func RemovePlugin(c *gin.Context) {
 	pluginInstanceId := c.Param("pluginInstanceId")
-	pluginInstanceObj, err := database.GetPluginInstance(pluginInstanceId)
+	pluginInstanceObj, err := database.GetPluginInstance(pluginInstanceId, "", "", true)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
