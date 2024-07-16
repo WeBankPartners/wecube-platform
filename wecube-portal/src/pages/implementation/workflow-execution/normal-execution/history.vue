@@ -86,19 +86,19 @@ export default {
           component: 'tag-select',
           list: [
             { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
+            { label: this.$t('fe_stop'), value: 'Stop', color: '#ed4014' },
             { label: this.$t('fe_inProgressFaulted'), value: 'InProgress(Faulted)', color: '#ed4014' },
             { label: this.$t('fe_inProgressTimeouted'), value: 'InProgress(Timeouted)', color: '#ed4014' },
-            { label: this.$t('fe_stop'), value: 'Stop', color: '#ed4014' },
             { label: this.$t('fe_inProgress'), value: 'InProgress', color: '#1990ff' },
             { label: this.$t('fe_completed'), value: 'Completed', color: '#7ac756' },
             { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
             { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
           ]
         },
-        // 操作对象类型
+        // 操作对象
         {
           key: 'entityDisplayName',
-          placeholder: this.$t('be_instance_type'),
+          placeholder: this.$t('bc_execution_instance'),
           component: 'input'
         },
         // 执行人
@@ -181,13 +181,14 @@ export default {
             return <Tag color={findObj.color}>{findObj.label}</Tag>
           }
         },
+        // 操作对象
         {
-          title: this.$t('be_instance_type'),
+          title: this.$t('bc_execution_instance'),
           key: 'entityDisplayName',
           minWidth: 160,
           render: (h, params) => {
             if (params.row.entityDisplayName !== '') {
-              return <Tag color="default">{params.row.entityDisplayName}</Tag>
+              return <span>{params.row.entityDisplayName}</span>
             } else {
               return <span>-</span>
             }
@@ -234,7 +235,7 @@ export default {
                     <Icon type="md-eye" size="16"></Icon>
                   </Button>
                 </Tooltip>
-                {params.row.status === 'InProgress' && (
+                {['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)'].includes(params.row.status) && (
                   <Tooltip content={this.$t('pause')} placement="top">
                     <Button
                       size="small"
@@ -248,7 +249,7 @@ export default {
                     </Button>
                   </Tooltip>
                 )}
-                {params.row.status === 'InProgress' &&
+                {['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(params.row.status) &&
                   !(params.row.parentProcIns && params.row.parentProcIns.procInsId) && (
                   <Tooltip content={this.$t('stop_orch')} placement="top">
                     <Button
