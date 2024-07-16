@@ -71,8 +71,8 @@ func (AuthService) Login(credential *model.CredentialDto, taskLogin bool) (*mode
 
 	} else {
 		if pwdBytes, pwdErr := base64.StdEncoding.DecodeString(credential.Password); pwdErr == nil {
-			credential.Password = hex.EncodeToString(pwdBytes)
-			if decodePwd, decodeErr := cipher.AesDePassword(GetLoginSeed(), credential.Password); decodeErr == nil {
+			inputPwd := hex.EncodeToString(pwdBytes)
+			if decodePwd, decodeErr := cipher.AesDePassword(GetLoginSeed(), inputPwd); decodeErr == nil {
 				credential.Password = decodePwd
 			} else {
 				log.Logger.Info("try to decode pwd with aes fail")
