@@ -373,6 +373,7 @@ export default {
             return <div>{res}</div>
           }
         },
+        // 成功
         {
           title: this.$t('success_count'),
           key: 'totalCompletedInstances',
@@ -395,6 +396,7 @@ export default {
             )
           }
         },
+        // 执行中
         {
           title: this.$t('in_progress_count'),
           key: 'totalInProgressInstances',
@@ -417,8 +419,9 @@ export default {
             )
           }
         },
+        // 手动终止
         {
-          title: this.$t('terminate_count'),
+          title: this.$t('fe_internallyTerminated'),
           key: 'totalTerminateInstances',
           width: 100,
           render: (h, params) => {
@@ -439,30 +442,9 @@ export default {
             )
           }
         },
+        // 自动退出
         {
-          title: this.$t('timeout_count'),
-          key: 'totalTimeoutInstances',
-          width: 90,
-          render: (h, params) => {
-            return (
-              <div>
-                <span style="color:red">{params.row.totalTimeoutInstances}</span>
-                {params.row.totalTimeoutInstances > 0 && (
-                  <Button
-                    style="margin-left:8px"
-                    size="small"
-                    type="primary"
-                    ghost
-                    onClick={() => this.getDetails(params.row, 'Timeout')}
-                    icon="ios-search"
-                  ></Button>
-                )}
-              </div>
-            )
-          }
-        },
-        {
-          title: this.$t('failure_count'),
+          title: this.$t('fe_faulted'),
           key: 'totalFaultedInstances',
           width: 90,
           render: (h, params) => {
@@ -503,30 +485,30 @@ export default {
             return (
               <div style="display:flex;align-items:center;justify-content:center;">
                 {params.row.status === 'Ready' && (
-                  <Tooltip content={this.$t('pause')} placement="top">
+                  <Tooltip content={this.$t('disable')} placement="top">
                     <Button
                       size="small"
                       type="warning"
                       onClick={() => {
-                        this.pause(params.row) // 暂停
+                        this.pause(params.row) // 禁用
                       }}
                       style="margin-right:5px;"
                     >
-                      <Icon type="md-pause" size="16"></Icon>
+                      <Icon type="md-lock" size="16"></Icon>
                     </Button>
                   </Tooltip>
                 )}
                 {params.row.status === 'Stopped' && (
-                  <Tooltip content={this.$t('start_up')} placement="top">
+                  <Tooltip content={this.$t('enable')} placement="top">
                     <Button
                       size="small"
                       type="success"
                       onClick={() => {
-                        this.resume(params.row) // 继续
+                        this.resume(params.row) // 启用
                       }}
                       style="margin-right:5px;"
                     >
-                      <Icon type="md-play" size="16"></Icon>
+                      <Icon type="md-unlock" size="16"></Icon>
                     </Button>
                   </Tooltip>
                 )}
@@ -658,7 +640,18 @@ export default {
               { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
             ]
             const findObj = list.find(item => item.value === params.row.status) || {}
-            return <Tag color={findObj.color}>{findObj.label}</Tag>
+            if (findObj.label) {
+              return <Tag color={findObj.color}>{findObj.label}</Tag>
+            } else {
+              return <span>-</span>
+            }
+          }
+        },
+        {
+          title: '执行信息',
+          key: 'errorMsg',
+          render: (h, params) => {
+            return <span>{params.row.errorMsg || '-'}</span>
           }
         },
         {
