@@ -578,7 +578,7 @@ func UpdatePluginMysqlInstancePreVersion(ctx context.Context, mysqlInstanceId, p
 	return
 }
 
-func BuildDockerEnvMap(ctx context.Context, envMap map[string]string) (replaceMap map[string]string, err error) {
+func BuildDockerEnvMap(ctx context.Context, envMap map[string]string, packageName, packageVersion string) (replaceMap map[string]string, err error) {
 	if envMap == nil {
 		return nil, fmt.Errorf("illegal docker env map")
 	}
@@ -598,7 +598,7 @@ func BuildDockerEnvMap(ctx context.Context, envMap map[string]string) (replaceMa
 		}
 	}()
 	if len(sysVarList) > 0 {
-		var systemVariableRows []*models.SystemVariables
+		var selfSysVarRows, systemVariableRows []*models.SystemVariables
 		filterSql, filterParam := db.CreateListParams(sysVarList, "")
 		err = db.MysqlEngine.Context(ctx).SQL("select name,`value`,default_value from system_variables where status='active' and name in ("+filterSql+")", filterParam...).Find(&systemVariableRows)
 		if err != nil {
@@ -606,6 +606,21 @@ func BuildDockerEnvMap(ctx context.Context, envMap map[string]string) (replaceMa
 			return
 		}
 		for _, row := range systemVariableRows {
+			tmpV := row.Value
+			if tmpV == "" {
+				tmpV = row.DefaultValue
+			}
+			if tmpV != "" {
+				envMap[row.Name] = tmpV
+			}
+		}
+		// 查相应插件版本的变量，如果有的话覆盖掉上面的变量以自己的为准
+		err = db.MysqlEngine.Context(ctx).SQL("select name,`value`,default_value from system_variables where source='"+fmt.Sprintf("%s__%s", packageName, packageVersion)+"' and name in ("+filterSql+")", filterParam...).Find(&selfSysVarRows)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		for _, row := range selfSysVarRows {
 			tmpV := row.Value
 			if tmpV == "" {
 				tmpV = row.DefaultValue
