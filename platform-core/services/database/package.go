@@ -786,7 +786,7 @@ func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId, plugi
 		}})
 	}
 	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set ui_active=0 where name=? and ui_active=1", Param: []interface{}{pluginPackageName}})
-	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set ui_active=1,updated_by=?,updated_time=? where id=?", Param: []interface{}{pluginPackageId, operator, time.Now()}})
+	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set ui_active=1,updated_by=?,updated_time=? where id=?", Param: []interface{}{operator, time.Now(), pluginPackageId}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
