@@ -226,6 +226,7 @@ type ProcInsNodeDetail struct {
 	SucceedingNodeIds   []string `json:"succeedingNodeIds"`
 	DynamicBind         int      `json:"dynamicBind"`
 	DynamicBindNodeName string   `json:"dynamicBindNodeName"`
+	AllowContinue       bool     `json:"allowContinue"`
 }
 
 type ProcCallPluginServiceFuncParam struct {
