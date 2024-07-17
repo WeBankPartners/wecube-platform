@@ -1,5 +1,9 @@
 <template>
   <div class="all-page">
+    <Spin fix v-if="isSpinShow" style="z-index: 1000000">
+      <Icon type="ios-loading" :size="25" class="spin-icon-load"></Icon>
+      <div style="font-size: 20px">{{ $t('p_instance_creation') }}</div>
+    </Spin>
     <div class="register-content">
       <div class="content-header">
         <Icon size="22" class="arrow-back" type="md-arrow-back" @click="returnPreviousPage" />
@@ -37,7 +41,11 @@
               <MenuInjection v-if="currentTabName === '1'" :pkgId="pluginId"></MenuInjection>
             </TabPane>
             <TabPane name="2" :disabled="[3, 4].includes(currentStep)" :label="$t('data_model')">
-              <DataModel v-if="currentTabName === '2'" :pkgId="pluginId"></DataModel>
+              <DataModel
+                v-if="currentTabName === '2'"
+                :pkgId="pluginId"
+                :pluginName="pluginItemDetail.name"
+              ></DataModel>
             </TabPane>
             <TabPane name="3" :disabled="[3, 4].includes(currentStep)" :label="$t('system_params')">
               <SysParmas v-if="currentTabName === '3'" :pkgId="pluginId"></SysParmas>
@@ -85,16 +93,23 @@
                       <Row>
                         <p style="margin-top: 20px">{{ $t('running_node') }}:</p>
                         <div v-if="allInstances.length === 0">{{ $t('no_avaliable_instances') }}</div>
-                        <div v-else>
-                          <div v-for="item in allInstances" :key="item.id">
+                        <div v-else style="display: flex; flex-direction: column">
+                          <div v-for="item in allInstances" :key="item.id" class="mt-2">
                             <div>
                               <Col span="4">
                                 <div class="instance-item">{{ item.displayLabel }}</div>
                               </Col>
                               <Col span="5" offset="0">
-                                <Button size="small" type="error" @click="removePlugin(item.id)">
-                                  {{ $t('ternmiante') }}
-                                </Button>
+                                <Poptip
+                                  confirm
+                                  :title="$t('p_delConfirm_tip')"
+                                  placement="left-end"
+                                  @on-ok="removePlugin(item.id)"
+                                >
+                                  <Button size="small" type="error" class="destroy-instance-button">{{
+                                    $t('ternmiante')
+                                  }}</Button>
+                                </Poptip>
                               </Col>
                             </div>
                           </div>
@@ -233,6 +248,8 @@
 <script>
 import hasIn from 'lodash/hasIn'
 import isEmpty from 'lodash/isEmpty'
+import cloneDeep from 'lodash/cloneDeep'
+import find from 'lodash/find'
 import DependencyAnalysis from './components/dependency-analysis.vue'
 import MenuInjection from './components/menu-injection.vue'
 import DataModel from './components/data-model.vue'
@@ -382,7 +399,8 @@ export default {
         4: this.$t('p_fifth_step_title')
       },
       isJustShowRightContent: false,
-      isServiceListNotEmpty: false
+      isServiceListNotEmpty: false,
+      isSpinShow: false
     }
   },
   created () {
@@ -445,6 +463,7 @@ export default {
           }
         })
       }
+      this.getAvailableInstances(this.pluginId)
     },
     returnPreviousPage () {
       this.$router.push({ path: '/collaboration/plugin-management' })
@@ -541,12 +560,16 @@ export default {
       })
     },
     async createInstanceByIpPort (ip, port) {
-      this.$Notice.info({
-        title: 'Info',
-        desc: 'Start Launching... It will take sometime.'
-      })
+      this.isSpinShow = true
+      const timeId = setTimeout(() => {
+        this.isSpinShow = false
+        this.timeId = null
+        this.$Message.error(this.$t('p_instance_creation_failed'))
+      }, 180000)
       const { status } = await createPluginInstanceByPackageIdAndHostIp(this.pluginId, ip, port)
       if (status === 'OK') {
+        this.isSpinShow = false
+        clearTimeout(timeId)
         this.$Notice.success({
           title: 'Success',
           desc: 'Instance launched successfully'
@@ -554,6 +577,9 @@ export default {
         const index = this.allowCreationIpPort.findIndex(item => item.port === port)
         this.allowCreationIpPort.splice(index, 1)
         this.getAvailableInstances(this.pluginId)
+      } else {
+        this.isSpinShow = false
+        clearTimeout(timeId)
       }
     },
     async getAvailableInstances (id) {
@@ -568,6 +594,12 @@ export default {
               displayLabel: _.host + ':' + _.port
             }
           }
+        })
+        this.availableHostList = cloneDeep(this.availableHostList).filter(item => {
+          const findItem = find(this.allInstances, {
+            hostIp: item
+          })
+          return !findItem
         })
       }
     },

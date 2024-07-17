@@ -864,5 +864,7 @@
   "p_plugin_name": "Plugin Name",
   "p_batch_export": "Batch Export",
   "p_menu_in_effect": "Menu In Effect",
-  "p_menu_not_working": "Menu Not Working"
+  "p_menu_not_working": "Menu Not Working",
+  "p_instance_creation": "Instance Creating",
+  "p_instance_creation_failed": "Instance Creation Failed"
 }
