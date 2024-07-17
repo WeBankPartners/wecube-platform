@@ -622,7 +622,11 @@ export default {
           if (item.bindType === 'constant' && item.required === 'Y' && item.bindValue === '') {
             res = true
           }
-          if (item.bindType === 'context' && item.required === 'Y' && item.bindNodeId === '') {
+          if (
+            item.bindType === 'context' &&
+            item.required === 'Y' &&
+            (item.bindNodeId === '' || item.bindParamType === '' || item.bindParamName === '')
+          ) {
             res = true
           }
         })

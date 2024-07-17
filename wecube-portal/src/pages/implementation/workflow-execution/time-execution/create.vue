@@ -296,6 +296,7 @@ export default {
           key: 'entityDataName',
           width: 200
         },
+        // 定时类型
         {
           title: this.$t('timing_type'),
           key: 'scheduleMode',
@@ -332,16 +333,6 @@ export default {
               scheduleExpr = params.row.scheduleExpr.split(' ')[1]
             }
             return <span>{scheduleExpr || '-'}</span>
-          }
-        },
-        // 执行频率
-        {
-          title: this.$t('fe_execute_frequence'),
-          key: 'status',
-          width: 110,
-          render: (h, params) => {
-            const find = this.timeConfig.scheduleModeOptions.find(item => item.value === params.row.scheduleMode)
-            return <div>{find.label}</div>
           }
         },
         // 管理角色
