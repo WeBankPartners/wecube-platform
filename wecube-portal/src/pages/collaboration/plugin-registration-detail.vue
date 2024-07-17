@@ -172,7 +172,9 @@
               :pkgId="pluginId"
               :pkgName="pluginItemDetail.name"
               :batchRegistButtonShow="false"
+              :modalTitleVersion="selectedVersion"
               @get-service-list="onServiceListGet"
+              @success="onRegisteSuccess"
             ></PluginRegister>
           </div>
         </div>
@@ -180,7 +182,7 @@
     </div>
     <div class="footer-button">
       <Dropdown placement="bottom-start" @on-click="onInheritedVersionSelected">
-        <Button v-if="currentStep === 2" type="info" class="mr-3" :disabled="!isServiceListNotEmpty">
+        <Button v-if="currentStep === 2" type="info" class="mr-3" :disabled="!isServiceActionNotEmpty">
           {{ $t('p_inherited_version') }}
           <Icon type="ios-arrow-down"></Icon>
         </Button>
@@ -202,7 +204,7 @@
         :on-error="onError"
         accept=".xml"
       >
-        <Button v-if="currentStep === 2" class="mr-3" type="info" :disabled="!isServiceListNotEmpty">
+        <Button v-if="currentStep === 2" class="mr-3" type="info" :disabled="!isServiceActionNotEmpty">
           {{ $t('p_importing_configuration') }}
         </Button>
       </Upload>
@@ -211,7 +213,7 @@
       </Button>
       <div v-else>
         <Poptip
-          v-if="currentStep === 2 && isServiceListNotEmpty && inheritedVersion === initInheritedVersion"
+          v-if="currentStep === 2 && !isServiceActionNotEmpty"
           confirm
           placement="left-end"
           word-wrap
@@ -267,7 +269,8 @@ import {
   queryDataBaseByPackageId,
   queryStorageFilesByPackageId,
   registPluginPackage,
-  getAvailableInstancesByPackageId
+  getAvailableInstancesByPackageId,
+  getPluginConfigsByPackageId
 } from '@/api/server.js'
 
 export default {
@@ -359,8 +362,7 @@ export default {
       uploadHeaders: {
         Authorization: 'Bearer ' + getCookie('accessToken')
       },
-      inheritedVersion: '',
-      initInheritedVersion: '',
+      inheritedVersion: '-',
       selectedIp: [],
       availableHostList: [],
       allowCreationIpPort: [],
@@ -399,8 +401,10 @@ export default {
         4: this.$t('p_fifth_step_title')
       },
       isJustShowRightContent: false,
-      isServiceListNotEmpty: false,
-      isSpinShow: false
+      isServiceListNotEmpty: false, // 整个注册数组都不是空
+      isServiceActionNotEmpty: false, // 整个注册数字中只要有一个item.pluginConfigDtoList不为空数组则为true
+      isSpinShow: false,
+      selectedVersion: ''
     }
   },
   created () {
@@ -429,8 +433,6 @@ export default {
       const { data, status } = await req.get(api, { params })
       if (status === 'OK') {
         this.pluginItemDetail = data[0]
-        this.inheritedVersion = this.pluginItemDetail.version
-        this.initInheritedVersion = this.pluginItemDetail.version
       } else {
         this.$Message.error(this.$t('p_request_fail'))
       }
@@ -474,8 +476,32 @@ export default {
     onFooterButtonClick (key) {
       this[this.buttonFunctionMap[key]]()
     },
-    enterNextStep () {
-      if (this.currentStep === 2) {
+    getAllServiceById () {
+      return new Promise(resolve => {
+        getPluginConfigsByPackageId(this.pluginId).then(res => {
+          if (res.status === 'OK') {
+            resolve(res.data)
+          }
+        })
+      })
+    },
+    async enterNextStep () {
+      if (this.currentStep === 1) {
+        const data = await this.getAllServiceById()
+        if (!data || isEmpty(data)) {
+          this.currentStep += 1
+          this.enterNextStep()
+          return
+        }
+        if (!isEmpty(this.inheritedVersionOptionList)) {
+          this.onInheritedVersionSelected(JSON.stringify(this.inheritedVersionOptionList[0]))
+        }
+      } else if (this.currentStep === 2) {
+        if (!this.pluginItemDetail.menus || isEmpty(this.pluginItemDetail.menus)) {
+          this.currentStep += 1
+          this.enterNextStep()
+          return
+        }
         this.currentTabName = '1'
       } else if (this.currentStep === 3) {
         this.currentTabName = '6'
@@ -494,7 +520,7 @@ export default {
           inheritPackageId: versionObj.pluginPackageId
         })
         if (status === 'OK') {
-          this.inheritedVersion = versionObj.version
+          this.selectedVersion = versionObj.version
           this.$refs.pluginRegister.startRegister()
           this.batchRegist()
         } else {
@@ -508,6 +534,7 @@ export default {
           title: 'Success',
           desc: response.message
         })
+        this.selectedVersion = this.$t('p_new_config')
         this.$refs.pluginRegister.startRegister()
         this.batchRegist()
       } else {
@@ -669,9 +696,20 @@ export default {
     onServiceListGet (data) {
       if (!isEmpty(data)) {
         this.isServiceListNotEmpty = true
+        this.isServiceActionNotEmpty = false
+        for (let i = 0; i < data.length; i++) {
+          if (!isEmpty(data[i].pluginConfigDtoList)) {
+            this.isServiceActionNotEmpty = true
+            break
+          }
+        }
       } else {
         this.isServiceListNotEmpty = false
+        this.isServiceActionNotEmpty = false
       }
+    },
+    onRegisteSuccess () {
+      this.inheritedVersion = this.selectedVersion
     }
   }
 }
