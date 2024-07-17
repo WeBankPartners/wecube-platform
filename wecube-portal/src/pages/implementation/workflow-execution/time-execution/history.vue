@@ -136,16 +136,20 @@ export default {
           minWidth: 160,
           key: 'name',
           render: (h, params) => {
-            return (
-              <span
-                style="cursor:pointer;"
-                onClick={() => {
-                  this.jumpToHistory(params.row)
-                }}
-              >
-                {params.row.scheduleJobName || '-'}
-              </span>
-            )
+            if (params.row.scheduleJobName) {
+              return (
+                <span
+                  style="cursor:pointer;color:#5cadff;"
+                  onClick={() => {
+                    this.jumpToHistory(params.row)
+                  }}
+                >
+                  {params.row.scheduleJobName}
+                </span>
+              )
+            } else {
+              return <span>-</span>
+            }
           }
         },
         {
