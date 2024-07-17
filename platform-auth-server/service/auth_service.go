@@ -478,5 +478,6 @@ func GetLoginSeed() (output string) {
 		sourceSeed = model.Config.Auth.SigningKey
 	}
 	output = sourceSeed
+	log.Logger.Info("loginSeed", log.String("output", output))
 	return
 }
