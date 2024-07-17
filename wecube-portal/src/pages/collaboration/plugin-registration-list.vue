@@ -1,5 +1,9 @@
 <template>
   <div>
+    <Spin fix v-if="isSpinShow" style="z-index: 1000000">
+      <Icon type="ios-loading" :size="25" class="spin-icon-load"></Icon>
+      <div style="font-size: 20px">{{ $t('p_instance_creation') }}</div>
+    </Spin>
     <div class="search-top">
       <div class="search-top-left">
         <RadioGroup
@@ -73,8 +77,8 @@
                   <Tag color="green" v-if="item.uiActive">{{ $t('p_menu_in_effect') }}</Tag>
                   <Tag v-else>{{ $t('p_menu_not_working') }}</Tag>
                 </span>
-                <Tag v-if="item.instances.length === 0">{{ $t('p_no_instance') }}</Tag>
-                <Tag v-else color="green">{{ $t('p_running') }}</Tag>
+                <Tag v-if="item.instances.length === 0">{{ $t('p_background_no_running') }}</Tag>
+                <Tag v-else color="green">{{ $t('p_background_running') }}</Tag>
               </div>
             </div>
             <div class="card-item-content mb-2">
@@ -304,6 +308,7 @@
 
 <script>
 import debounce from 'lodash/debounce'
+import find from 'lodash/find'
 import cloneDeep from 'lodash/cloneDeep'
 import isEmpty from 'lodash/isEmpty'
 import { getCookie } from '@/pages/util/cookie'
@@ -403,15 +408,21 @@ export default {
           key: 'name'
         },
         {
+          title: this.$t('p_plugin_name'),
+          width: 130,
+          key: 'version'
+        },
+        {
           title: this.$t('updatedBy'),
-          width: 150,
+          width: 130,
           key: 'updatedBy'
         },
         {
           title: this.$t('table_updated_date'),
           key: 'updatedTime'
         }
-      ]
+      ],
+      isSpinShow: false
     }
   },
   computed: {},
@@ -463,7 +474,8 @@ export default {
       }
     },
     async showDeletedPlugin () {
-      this.resetDeletePluginModal()
+      this.searchForm.name = ''
+      this.searchForm.updatedBy = ''
       this.pluginListType = 'isDeleted'
       await this.getViewList()
       this.isDeletedPluginModalShow = true
@@ -506,7 +518,13 @@ export default {
       const res = await getAvailableContainerHosts()
       this.availableHostList = res.data ? res.data : []
       this.currentPluginId = item.id
-      this.getAvailableInstancesByPackageId(this.currentPluginId)
+      await this.getAvailableInstancesByPackageId(this.currentPluginId)
+      this.availableHostList = cloneDeep(this.availableHostList).filter(item => {
+        const findItem = find(this.allRunningInstances, {
+          hostIp: item
+        })
+        return !findItem
+      })
       this.isAddInstanceModalShow = true
     },
     addInstanceConfirm () {
@@ -547,20 +565,27 @@ export default {
       })
     },
     async createInstanceByIpPort (ip, port) {
-      this.$Notice.info({
-        title: 'Info',
-        desc: 'Start Launching... It will take sometime.'
-      })
+      this.isSpinShow = true
+      const timeId = setTimeout(() => {
+        this.isSpinShow = false
+        this.timeId = null
+        this.$Message.error(this.$t('p_instance_creation_failed'))
+      }, 180000)
       const { status } = await createPluginInstanceByPackageIdAndHostIp(this.currentPluginId, ip, port)
       if (status === 'OK') {
+        this.isSpinShow = false
+        clearTimeout(timeId)
         this.$Notice.success({
           title: 'Success',
           desc: 'Instance launched successfully'
         })
         const index = this.allowCreationIpPort.findIndex(item => item.port === port)
         this.allowCreationIpPort.splice(index, 1)
-        this.getAvailableInstancesByPackageId(this.currentPluginId)
+        await this.getAvailableInstancesByPackageId(this.currentPluginId)
         this.reloadPage()
+      } else {
+        this.isSpinShow = false
+        clearTimeout(timeId)
       }
     },
     reloadPage () {
@@ -650,7 +675,7 @@ export default {
               if (data.state === 'Completed') {
                 this.resetOnlinePluginSelectModal()
                 // this.getViewList();
-                this.startInstallPlugin(res.data.requestId)
+                this.startInstallPlugin(res.data.pluginPackageId)
               }
             }
           }, 5000)
@@ -704,19 +729,23 @@ export default {
       this.isBatchModalShow = false
     },
     async getAvailableInstancesByPackageId (id) {
-      let { data, status } = await getAvailableInstancesByPackageId(id)
-      if (status === 'OK') {
-        this.allRunningInstances = data.map(_ => {
-          if (_.status !== 'REMOVED') {
-            return {
-              id: _.id,
-              hostIp: _.host,
-              port: _.port,
-              displayLabel: _.host + ':' + _.port
-            }
+      return new Promise(resolve => {
+        getAvailableInstancesByPackageId(id).then(res => {
+          if (res.status === 'OK') {
+            this.allRunningInstances = res.data.map(_ => {
+              if (_.status !== 'REMOVED') {
+                return {
+                  id: _.id,
+                  hostIp: _.host,
+                  port: _.port,
+                  displayLabel: _.host + ':' + _.port
+                }
+              }
+            })
           }
+          resolve(this.allRunningInstances)
         })
-      }
+      })
     },
     isButtonDisabled (item) {
       if (item.registerDone) return false
@@ -728,6 +757,20 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.spin-icon-load {
+  animation: ani-demo-spin 1s linear infinite;
+}
+@keyframes ani-demo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 .search-top {
   display: flex;
   align-items: center;
@@ -789,6 +832,9 @@ export default {
             .card-menu-content {
               max-height: 21px;
               overflow: hidden;
+              max-width: calc(30vw - 150px);
+              white-space: nowrap;
+              text-overflow: ellipsis;
             }
           }
         }
@@ -856,8 +902,10 @@ export default {
   margin-top: 10px;
 }
 
-::-webkit-scrollbar {
-  display: none;
+.search-top {
+  ::-webkit-scrollbar {
+    display: none;
+  }
 }
 </style>
 
