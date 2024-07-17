@@ -854,8 +854,8 @@
   "p_manageRole": "管理权限",
   "p_use_version": "使用版本",
   "p_confirm_next_step": "确认下一步",
-  "p_no_use_warning": "当前插件未注册服务，可能导致无法正常使用",
-  "p_no_use_action": "请点击【继承版本】或【导入新配置】导入服务列表。",
+  "p_no_use_warning": "当前插件注册服务列表为空，可能导致无法正常使用",
+  "p_no_use_action": "请点击【继承版本】或【导入新配置】注册服务列表。",
   "p_skip": "跳过",
   "p_continue_installation": "继续安装",
   "p_import_service": "导入服务及系统参数",
@@ -867,5 +867,6 @@
   "p_menu_in_effect": "前端运行中",
   "p_menu_not_working": "前端未运行",
   "p_instance_creation": "实例创建中",
-  "p_instance_creation_failed": "实例创建失败"
+  "p_instance_creation_failed": "实例创建失败",
+  "p_new_config": "新配置"
 }
