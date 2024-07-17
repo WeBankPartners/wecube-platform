@@ -175,7 +175,7 @@ export default {
         {
           title: this.$t('flow_status'),
           key: 'status',
-          minWidth: 120,
+          minWidth: 140,
           render: (h, params) => {
             const list = [
               { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
