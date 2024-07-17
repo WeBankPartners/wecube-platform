@@ -151,7 +151,7 @@ export default {
             return (
               <div>
                 <span
-                  style="cursor:pointer;"
+                  style="cursor:pointer;color:#5cadff;"
                   onClick={() => {
                     this.jumpToHistory(params.row)
                   }}
