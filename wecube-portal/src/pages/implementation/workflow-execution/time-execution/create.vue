@@ -618,7 +618,7 @@ export default {
         },
         {
           title: this.$t('status'),
-          key: 'status',
+          key: 'displayStatus',
           render: (h, params) => {
             const list = [
               { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
@@ -630,7 +630,7 @@ export default {
               { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
               { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
             ]
-            const findObj = list.find(item => item.value === params.row.status) || {}
+            const findObj = list.find(item => item.value === params.row.displayStatus) || {}
             if (findObj.label) {
               return <Tag color={findObj.color}>{findObj.label}</Tag>
             } else {
