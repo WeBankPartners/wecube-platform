@@ -772,9 +772,10 @@ func DeleteProcDefNodeLinkByNode(ctx context.Context, nodeId string) (err error)
 	return
 }
 
-func DeleteProcDefNodeLink(ctx context.Context, procDefId string, linkId string) (err error) {
+func DeleteProcDefNodeLink(ctx context.Context, procDefId string, linkId, operator string) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node_link where proc_def_id=? and link_id= ?", Param: []interface{}{procDefId, linkId}})
+	actions = append(actions, &db.ExecAction{Sql: "update proc_def set updated_by=?,updated_time=? where id=?", Param: []interface{}{operator, time.Now(), procDefId}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
