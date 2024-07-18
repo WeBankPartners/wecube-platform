@@ -791,6 +791,9 @@ export default {
     }
   }
   .footer-button {
+    position: fixed;
+    bottom: 10px;
+    width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
