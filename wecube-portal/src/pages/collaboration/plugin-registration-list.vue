@@ -242,7 +242,7 @@
           <div v-if="allRunningInstances.length">
             <div class="allow-add-port-item" v-for="(item, index) in allRunningInstances" :key="index">
               {{ item.displayLabel }}
-              <Poptip confirm :title="$t('p_delConfirm_tip')" placement="left-end" @on-ok="destroyInstance(item.id)">
+              <Poptip confirm :title="$t('p_destroy_tips')" placement="left-end" @on-ok="destroyInstance(item.id)">
                 <Button size="small" type="error" class="destroy-instance-button">{{ $t('ternmiante') }}</Button>
               </Poptip>
             </div>
