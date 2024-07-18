@@ -867,5 +867,6 @@
   "p_menu_not_working": "Menu Not Working",
   "p_instance_creation": "Instance Creating",
   "p_instance_creation_failed": "Instance Creation Failed",
-  "p_new_config": "New Config"
+  "p_new_config": "New Config",
+  "p_destroy_tips": "Destroyed data cannot be restored, confirm execution?"
 }
