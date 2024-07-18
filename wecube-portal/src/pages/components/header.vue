@@ -157,8 +157,10 @@ import {
   getAllPluginPackageResourceFiles,
   getApplicationVersion,
   changePassword,
-  getProcessableList
+  getProcessableList,
+  getInputParamsEncryptKey
 } from '@/api/server.js'
+import CryptoJS from 'crypto-js'
 import { getChildRouters } from '../util/router.js'
 import { MENUS } from '../../const/menus.js'
 export default {
@@ -202,7 +204,8 @@ export default {
         totalNumber: 0, // 总数
         finnishNumber: 0, // 完成数量
         currentName: '' // 当前加载的插件名称
-      }
+      },
+      encryptKey: ''
     }
   },
   methods: {
@@ -228,11 +231,29 @@ export default {
     showChangePassword () {
       this.changePassword = true
     },
+    async getInputParamsEncryptKey () {
+      const { status, data } = await getInputParamsEncryptKey()
+      if (status === 'OK') {
+        this.encryptKey = data
+      }
+    },
     okChangePassword () {
       this.$refs['formValidate'].validate(async valid => {
         if (valid) {
           if (this.formValidate.newPassword === this.formValidate.confirmPassword) {
-            const { status } = await changePassword(this.formValidate)
+            await this.getInputParamsEncryptKey()
+            const key = CryptoJS.enc.Utf8.parse(this.encryptKey)
+            const config = {
+              iv: CryptoJS.enc.Utf8.parse(Math.trunc(new Date() / 100000) * 100000000),
+              mode: CryptoJS.mode.CBC
+            }
+            const { originalPassword, newPassword } = this.formValidate
+            const encryptParams = {
+              originalPassword: CryptoJS.AES.encrypt(originalPassword, key, config).toString(),
+              newPassword: CryptoJS.AES.encrypt(newPassword, key, config).toString(),
+              confirmPassword: CryptoJS.AES.encrypt(newPassword, key, config).toString()
+            }
+            const { status } = await changePassword(encryptParams)
             if (status === 'OK') {
               this.$Message.success('Success !')
               this.changePassword = false
