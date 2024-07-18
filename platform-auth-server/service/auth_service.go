@@ -72,7 +72,7 @@ func (AuthService) Login(credential *model.CredentialDto, taskLogin bool) (*mode
 	} else {
 		if pwdBytes, pwdErr := base64.StdEncoding.DecodeString(credential.Password); pwdErr == nil {
 			inputPwd := hex.EncodeToString(pwdBytes)
-			if decodePwd, decodeErr := cipher.AesDePassword(GetLoginSeed(), inputPwd); decodeErr == nil {
+			if decodePwd, decodeErr := decodeUIAesPassword(GetLoginSeed(), inputPwd); decodeErr == nil {
 				credential.Password = decodePwd
 			} else {
 				log.Logger.Info("try to decode pwd with aes fail")
@@ -479,5 +479,18 @@ func GetLoginSeed() (output string) {
 	}
 	output = sourceSeed
 	log.Logger.Info("loginSeed", log.String("output", output))
+	return
+}
+
+func decodeUIAesPassword(seed, password string) (decodePwd string, err error) {
+	unixTime := time.Now().Unix() / 100
+	decodePwd, err = cipher.AesDePasswordWithIV(seed, password, fmt.Sprintf("%d", unixTime*100000000))
+	if err != nil {
+		unixTime = unixTime - 1
+		decodePwd, err = cipher.AesDePasswordWithIV(seed, password, fmt.Sprintf("%d", unixTime*100000000))
+	}
+	if err != nil {
+		err = fmt.Errorf("aes decode with iv fail,%s ", err.Error())
+	}
 	return
 }
