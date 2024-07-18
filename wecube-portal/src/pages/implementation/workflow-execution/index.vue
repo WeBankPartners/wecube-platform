@@ -55,3 +55,13 @@ export default {
   methods: {}
 }
 </script>
+<style lang="scss">
+#workflow-execution {
+  .ivu-tag {
+    display: inline-block;
+    line-height: 16px;
+    height: auto;
+    padding: 5px 6px;
+  }
+}
+</style>

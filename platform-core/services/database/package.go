@@ -74,10 +74,20 @@ func QueryPluginPackages(ctx context.Context, param *models.PluginPackageQueryPa
 	}
 	idListFilter, idListParam := db.CreateListParams(packageIdList, "")
 	var packageMenuRows []*models.PluginPackageMenus
-	err = db.MysqlEngine.Context(ctx).SQL("select plugin_package_id,code,display_name,local_display_name from plugin_package_menus where plugin_package_id in ("+idListFilter+") order by code", idListParam...).Find(&packageMenuRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select plugin_package_id,code,display_name,local_display_name,category from plugin_package_menus where plugin_package_id in ("+idListFilter+") order by code", idListParam...).Find(&packageMenuRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
+	}
+	var menuItemRows []*models.MenuItems
+	err = db.MysqlEngine.Context(ctx).SQL("select code,local_display_name from menu_items").Find(&menuItemRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	menuItemNameMap := make(map[string]string)
+	for _, row := range menuItemRows {
+		menuItemNameMap[row.Code] = row.LocalDisplayName
 	}
 	var instanceRows []*models.PluginInstances
 	err = db.MysqlEngine.Context(ctx).SQL("select id,host,port,package_id from plugin_instances").Find(&instanceRows)
@@ -88,6 +98,9 @@ func QueryPluginPackages(ctx context.Context, param *models.PluginPackageQueryPa
 	menuMap := make(map[string][]string)
 	instanceMap := make(map[string][]*models.PluginPackageInstanceObj)
 	for _, row := range packageMenuRows {
+		if prefixName, ok := menuItemNameMap[row.Category]; ok {
+			row.LocalDisplayName = prefixName + "-" + row.LocalDisplayName
+		}
 		if existMenuList, ok := menuMap[row.PluginPackageId]; ok {
 			menuMap[row.PluginPackageId] = append(existMenuList, row.LocalDisplayName)
 		} else {
@@ -1013,7 +1026,7 @@ func SetPluginPackageRegisterDone(ctx context.Context, pluginPackageId, operator
 
 func GetPluginConfigVersionList(ctx context.Context, pluginPackageId, pluginPackageName string) (result []*models.PluginVersionListObj, err error) {
 	var packageRows []*models.PluginPackages
-	err = db.MysqlEngine.Context(ctx).SQL("select id,name,`version` from plugin_packages where status!='DECOMMISSIONED' and name=? and id!=?", pluginPackageName, pluginPackageId).Find(&packageRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select id,name,`version` from plugin_packages where status!='DECOMMISSIONED' and name=? and id!=? order by `version` desc", pluginPackageName, pluginPackageId).Find(&packageRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return

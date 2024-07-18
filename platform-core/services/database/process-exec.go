@@ -1060,14 +1060,16 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 		}
 	}
 	var procNodeDefRows []*models.ProcDefNode
-	err = db.MysqlEngine.Context(ctx).SQL("select id,node_id,name,dynamic_bind,bind_node_id from proc_def_node where proc_def_id=?", result.ProcDefId).Find(&procNodeDefRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select id,node_id,name,dynamic_bind,bind_node_id,allow_continue from proc_def_node where proc_def_id=?", result.ProcDefId).Find(&procNodeDefRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
 	defNodeIdNameMap := make(map[string]string)
+	defNodeAllowContinueMap := make(map[string]bool)
 	for _, v := range procNodeDefRows {
 		defNodeIdNameMap[v.NodeId] = v.Name
+		defNodeAllowContinueMap[v.NodeId] = v.AllowContinue
 	}
 	orderIndex := 1
 	for _, row := range procInsNodeRows {
@@ -1084,6 +1086,7 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 			Status:            row.Status,
 			PreviousNodeIds:   []string{},
 			SucceedingNodeIds: []string{},
+			AllowContinue:     defNodeAllowContinueMap[row.Id],
 		}
 		for _, defRow := range procNodeDefRows {
 			if defRow.Id == row.ProcDefNodeId {

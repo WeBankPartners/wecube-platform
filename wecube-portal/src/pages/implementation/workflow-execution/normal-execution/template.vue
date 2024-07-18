@@ -161,6 +161,7 @@ export default {
                   onClick={() => this.copyNameToSearch(params.row.name)}
                 />
                 <span
+                  style="cursor:pointer;color:#5cadff;"
                   onClick={() => {
                     this.handleChooseTemplate(params.row)
                   }}

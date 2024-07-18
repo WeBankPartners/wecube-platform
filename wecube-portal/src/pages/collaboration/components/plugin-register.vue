@@ -507,7 +507,7 @@
     <Modal
       v-model="configTreeManageModal"
       width="700"
-      :title="$t('batch_regist')"
+      :title="$t('batch_regist') + (modalTitleVersion ? ' - ' + modalTitleVersion : '')"
       :mask-closable="false"
       @on-ok="setConfigTreeHandler"
       @on-cancel="closeTreeModal"
@@ -697,6 +697,10 @@ export default {
     batchRegistButtonShow: {
       type: Boolean,
       default: true
+    },
+    modalTitleVersion: {
+      type: String,
+      default: ''
     }
   },
   watch: {
@@ -913,7 +917,7 @@ export default {
     },
     closeTreeModal () {
       this.configTreeManageModal = false
-      this.$emit('success')
+      this.$emit('close-tree')
     },
     batchRegist () {
       this.getConfigByPkgId()
@@ -1266,7 +1270,7 @@ export default {
       this.currentPluginObj = {}
       let currentConfig = this.allPluginConfigs.find(s => s.id === id)
       const { data, status } = await getInterfacesByPluginConfigId(id)
-      if (status === 'OK') {
+      if (status === 'OK' && currentConfig) {
         currentConfig.interfaces = data.map(_ => {
           return {
             ..._,
@@ -1277,8 +1281,8 @@ export default {
         this.selectedEntityType = currentConfig.targetEntityWithFilterRule
         this.registerName = this.currentPluginObj.registerName
       }
-      this.hidePanal = true
       this.isLoading = false
+      this.hidePanal = true
     },
     copyRegistSource (v) {
       this.registSourceChange(v)
