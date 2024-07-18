@@ -936,6 +936,9 @@ func DeleteProcDefNode(c *gin.Context) {
 	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node_param where proc_def_node_id=?", Param: []interface{}{procDefNode.Id}})
 	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node_link where source=? or target=?", Param: []interface{}{procDefNode.Id, procDefNode.Id}})
 	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node where proc_def_id=? and node_id=?", Param: []interface{}{procDefId, uiNodeId}})
+	// 更新编排更新人更新时间
+	operator := middleware.GetRequestUser(c)
+	actions = append(actions, &db.ExecAction{Sql: "update proc_def set updated_by=?,updated_time=? where id=?", Param: []interface{}{operator, time.Now(), procDefId}})
 	err = db.Transaction(actions, c)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -1027,7 +1030,7 @@ func DeleteProcDefNodeLink(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("proc-def-id invalid"))
 		return
 	}
-	err = database.DeleteProcDefNodeLink(c, procDefId, linkId)
+	err = database.DeleteProcDefNodeLink(c, procDefId, linkId, middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
