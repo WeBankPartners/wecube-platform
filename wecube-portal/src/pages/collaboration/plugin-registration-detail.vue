@@ -1,5 +1,9 @@
 <template>
   <div class="all-page">
+    <Spin fix v-if="isSpinShow" style="z-index: 1000000">
+      <Icon type="ios-loading" :size="25" class="spin-icon-load"></Icon>
+      <div style="font-size: 20px">{{ $t('p_instance_creation') }}</div>
+    </Spin>
     <div class="register-content">
       <div class="content-header">
         <Icon size="22" class="arrow-back" type="md-arrow-back" @click="returnPreviousPage" />
@@ -37,7 +41,11 @@
               <MenuInjection v-if="currentTabName === '1'" :pkgId="pluginId"></MenuInjection>
             </TabPane>
             <TabPane name="2" :disabled="[3, 4].includes(currentStep)" :label="$t('data_model')">
-              <DataModel v-if="currentTabName === '2'" :pkgId="pluginId"></DataModel>
+              <DataModel
+                v-if="currentTabName === '2'"
+                :pkgId="pluginId"
+                :pluginName="pluginItemDetail.name"
+              ></DataModel>
             </TabPane>
             <TabPane name="3" :disabled="[3, 4].includes(currentStep)" :label="$t('system_params')">
               <SysParmas v-if="currentTabName === '3'" :pkgId="pluginId"></SysParmas>
@@ -85,16 +93,23 @@
                       <Row>
                         <p style="margin-top: 20px">{{ $t('running_node') }}:</p>
                         <div v-if="allInstances.length === 0">{{ $t('no_avaliable_instances') }}</div>
-                        <div v-else>
-                          <div v-for="item in allInstances" :key="item.id">
+                        <div v-else style="display: flex; flex-direction: column">
+                          <div v-for="item in allInstances" :key="item.id" class="mt-2">
                             <div>
                               <Col span="4">
                                 <div class="instance-item">{{ item.displayLabel }}</div>
                               </Col>
                               <Col span="5" offset="0">
-                                <Button size="small" type="error" @click="removePlugin(item.id)">
-                                  {{ $t('ternmiante') }}
-                                </Button>
+                                <Poptip
+                                  confirm
+                                  :title="$t('p_delConfirm_tip')"
+                                  placement="left-end"
+                                  @on-ok="removePlugin(item.id)"
+                                >
+                                  <Button size="small" type="error" class="destroy-instance-button">{{
+                                    $t('ternmiante')
+                                  }}</Button>
+                                </Poptip>
                               </Col>
                             </div>
                           </div>
@@ -157,7 +172,9 @@
               :pkgId="pluginId"
               :pkgName="pluginItemDetail.name"
               :batchRegistButtonShow="false"
+              :modalTitleVersion="selectedVersion"
               @get-service-list="onServiceListGet"
+              @success="onRegisteSuccess"
             ></PluginRegister>
           </div>
         </div>
@@ -165,7 +182,7 @@
     </div>
     <div class="footer-button">
       <Dropdown placement="bottom-start" @on-click="onInheritedVersionSelected">
-        <Button v-if="currentStep === 2" type="info" class="mr-3" :disabled="!isServiceListNotEmpty">
+        <Button v-if="currentStep === 2" type="info" class="mr-3" :disabled="!isServiceActionNotEmpty">
           {{ $t('p_inherited_version') }}
           <Icon type="ios-arrow-down"></Icon>
         </Button>
@@ -187,7 +204,7 @@
         :on-error="onError"
         accept=".xml"
       >
-        <Button v-if="currentStep === 2" class="mr-3" type="info" :disabled="!isServiceListNotEmpty">
+        <Button v-if="currentStep === 2" class="mr-3" type="info" :disabled="!isServiceActionNotEmpty">
           {{ $t('p_importing_configuration') }}
         </Button>
       </Upload>
@@ -196,7 +213,7 @@
       </Button>
       <div v-else>
         <Poptip
-          v-if="currentStep === 2 && isServiceListNotEmpty && inheritedVersion === initInheritedVersion"
+          v-if="currentStep === 2 && !isServiceActionNotEmpty"
           confirm
           placement="left-end"
           word-wrap
@@ -233,6 +250,8 @@
 <script>
 import hasIn from 'lodash/hasIn'
 import isEmpty from 'lodash/isEmpty'
+import cloneDeep from 'lodash/cloneDeep'
+import find from 'lodash/find'
 import DependencyAnalysis from './components/dependency-analysis.vue'
 import MenuInjection from './components/menu-injection.vue'
 import DataModel from './components/data-model.vue'
@@ -250,7 +269,8 @@ import {
   queryDataBaseByPackageId,
   queryStorageFilesByPackageId,
   registPluginPackage,
-  getAvailableInstancesByPackageId
+  getAvailableInstancesByPackageId,
+  getPluginConfigsByPackageId
 } from '@/api/server.js'
 
 export default {
@@ -342,8 +362,7 @@ export default {
       uploadHeaders: {
         Authorization: 'Bearer ' + getCookie('accessToken')
       },
-      inheritedVersion: '',
-      initInheritedVersion: '',
+      inheritedVersion: '-',
       selectedIp: [],
       availableHostList: [],
       allowCreationIpPort: [],
@@ -382,7 +401,10 @@ export default {
         4: this.$t('p_fifth_step_title')
       },
       isJustShowRightContent: false,
-      isServiceListNotEmpty: false
+      isServiceListNotEmpty: false, // 整个注册数组都不是空
+      isServiceActionNotEmpty: false, // 整个注册数字中只要有一个item.pluginConfigDtoList不为空数组则为true
+      isSpinShow: false,
+      selectedVersion: ''
     }
   },
   created () {
@@ -411,8 +433,6 @@ export default {
       const { data, status } = await req.get(api, { params })
       if (status === 'OK') {
         this.pluginItemDetail = data[0]
-        this.inheritedVersion = this.pluginItemDetail.version
-        this.initInheritedVersion = this.pluginItemDetail.version
       } else {
         this.$Message.error(this.$t('p_request_fail'))
       }
@@ -445,6 +465,7 @@ export default {
           }
         })
       }
+      this.getAvailableInstances(this.pluginId)
     },
     returnPreviousPage () {
       this.$router.push({ path: '/collaboration/plugin-management' })
@@ -455,8 +476,32 @@ export default {
     onFooterButtonClick (key) {
       this[this.buttonFunctionMap[key]]()
     },
-    enterNextStep () {
-      if (this.currentStep === 2) {
+    getAllServiceById () {
+      return new Promise(resolve => {
+        getPluginConfigsByPackageId(this.pluginId).then(res => {
+          if (res.status === 'OK') {
+            resolve(res.data)
+          }
+        })
+      })
+    },
+    async enterNextStep () {
+      if (this.currentStep === 1) {
+        const data = await this.getAllServiceById()
+        if (!data || isEmpty(data)) {
+          this.currentStep += 1
+          this.enterNextStep()
+          return
+        }
+        if (!isEmpty(this.inheritedVersionOptionList)) {
+          this.onInheritedVersionSelected(JSON.stringify(this.inheritedVersionOptionList[0]))
+        }
+      } else if (this.currentStep === 2) {
+        if (!this.pluginItemDetail.menus || isEmpty(this.pluginItemDetail.menus)) {
+          this.currentStep += 1
+          this.enterNextStep()
+          return
+        }
         this.currentTabName = '1'
       } else if (this.currentStep === 3) {
         this.currentTabName = '6'
@@ -475,7 +520,7 @@ export default {
           inheritPackageId: versionObj.pluginPackageId
         })
         if (status === 'OK') {
-          this.inheritedVersion = versionObj.version
+          this.selectedVersion = versionObj.version
           this.$refs.pluginRegister.startRegister()
           this.batchRegist()
         } else {
@@ -489,6 +534,7 @@ export default {
           title: 'Success',
           desc: response.message
         })
+        this.selectedVersion = this.$t('p_new_config')
         this.$refs.pluginRegister.startRegister()
         this.batchRegist()
       } else {
@@ -541,12 +587,16 @@ export default {
       })
     },
     async createInstanceByIpPort (ip, port) {
-      this.$Notice.info({
-        title: 'Info',
-        desc: 'Start Launching... It will take sometime.'
-      })
+      this.isSpinShow = true
+      const timeId = setTimeout(() => {
+        this.isSpinShow = false
+        this.timeId = null
+        this.$Message.error(this.$t('p_instance_creation_failed'))
+      }, 180000)
       const { status } = await createPluginInstanceByPackageIdAndHostIp(this.pluginId, ip, port)
       if (status === 'OK') {
+        this.isSpinShow = false
+        clearTimeout(timeId)
         this.$Notice.success({
           title: 'Success',
           desc: 'Instance launched successfully'
@@ -554,6 +604,9 @@ export default {
         const index = this.allowCreationIpPort.findIndex(item => item.port === port)
         this.allowCreationIpPort.splice(index, 1)
         this.getAvailableInstances(this.pluginId)
+      } else {
+        this.isSpinShow = false
+        clearTimeout(timeId)
       }
     },
     async getAvailableInstances (id) {
@@ -568,6 +621,12 @@ export default {
               displayLabel: _.host + ':' + _.port
             }
           }
+        })
+        this.availableHostList = cloneDeep(this.availableHostList).filter(item => {
+          const findItem = find(this.allInstances, {
+            hostIp: item
+          })
+          return !findItem
         })
       }
     },
@@ -637,9 +696,20 @@ export default {
     onServiceListGet (data) {
       if (!isEmpty(data)) {
         this.isServiceListNotEmpty = true
+        this.isServiceActionNotEmpty = false
+        for (let i = 0; i < data.length; i++) {
+          if (!isEmpty(data[i].pluginConfigDtoList)) {
+            this.isServiceActionNotEmpty = true
+            break
+          }
+        }
       } else {
         this.isServiceListNotEmpty = false
+        this.isServiceActionNotEmpty = false
       }
+    },
+    onRegisteSuccess () {
+      this.inheritedVersion = this.selectedVersion
     }
   }
 }
