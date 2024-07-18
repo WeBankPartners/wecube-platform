@@ -1069,7 +1069,7 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 	defNodeAllowContinueMap := make(map[string]bool)
 	for _, v := range procNodeDefRows {
 		defNodeIdNameMap[v.NodeId] = v.Name
-		defNodeAllowContinueMap[v.NodeId] = v.AllowContinue
+		defNodeAllowContinueMap[v.Id] = v.AllowContinue
 	}
 	orderIndex := 1
 	for _, row := range procInsNodeRows {
