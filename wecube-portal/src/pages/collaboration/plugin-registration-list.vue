@@ -263,7 +263,7 @@
     >
       <div class="delete-plugin-list">
         <Select
-          v-model="searchForm.deleteSearchName"
+          v-model="deletedSearchForm.name"
           class="mb-3"
           style="width: 50%; height: 80%"
           :placeholder="$t('p_enter_plugin_name')"
@@ -330,8 +330,7 @@ const initSearchForm = {
   running: 'yes',
   name: '',
   updatedBy: '',
-  withDelete: 'no', // 枚举值，yes是删除列表，no是未删除
-  deleteSearchName: ''
+  withDelete: 'no' // 枚举值，yes是删除列表，no是未删除
 }
 
 export default {
@@ -342,6 +341,10 @@ export default {
   data () {
     return {
       searchForm: cloneDeep(initSearchForm),
+      deletedSearchForm: {
+        withDelete: 'yes', // 枚举值，yes是删除列表，no是未删除
+        name: ''
+      },
       searchRadioGroupOptions: [
         {
           label: this.$t('all'),
@@ -425,8 +428,10 @@ export default {
       isSpinShow: false
     }
   },
-  computed: {},
   async mounted () {
+    if (window.pluginRegistrationListSearchForm) {
+      this.searchForm = window.pluginRegistrationListSearchForm
+    }
     await this.getViewList()
     this.getUpdatedByOptionList()
   },
@@ -437,15 +442,10 @@ export default {
     async getViewList () {
       return new Promise(resolve => {
         const api = '/platform/v1/packages'
-        const params = cloneDeep(this.searchForm)
+        let params = cloneDeep(this.searchForm)
         if (this.pluginListType === 'isDeleted') {
-          params.withDelete = 'yes'
-          params.running = 'all'
-          params.name = params.deleteSearchName
-        } else {
-          params.withDelete = 'no'
+          params = cloneDeep(this.deletedSearchForm)
         }
-        delete params.deleteSearchName
         req.get(api, { params }).then(res => {
           this.processOptionList(res.data, this.searchNameOptionList, 'name')
           if (this.pluginListType === 'isDeleted') {
@@ -474,8 +474,7 @@ export default {
       }
     },
     async showDeletedPlugin () {
-      this.searchForm.name = ''
-      this.searchForm.updatedBy = ''
+      this.deletedSearchForm.name = ''
       this.pluginListType = 'isDeleted'
       await this.getViewList()
       this.isDeletedPluginModalShow = true
@@ -615,7 +614,6 @@ export default {
       this.isDeletedPluginModalShow = false
       this.deletedPluginList = []
       this.pluginListType = ''
-      this.searchForm = cloneDeep(initSearchForm)
     },
     async onDeletePluginModalChange (state) {
       if (!state) {
@@ -674,7 +672,6 @@ export default {
               })
               if (data.state === 'Completed') {
                 this.resetOnlinePluginSelectModal()
-                // this.getViewList();
                 this.startInstallPlugin(res.data.pluginPackageId)
               }
             }
@@ -713,10 +710,15 @@ export default {
       this.currentPluginId = pluginId
       this.isBatchModalShow = true
     },
+    saveSearchForm () {
+      window.pluginRegistrationListSearchForm = this.searchForm
+    },
     startInstallPlugin (pluginId) {
+      this.saveSearchForm()
       this.$router.push({ path: '/collaboration/registrationDetail', query: { pluginId } })
     },
     enterSettingPage (pluginId, step) {
+      this.saveSearchForm()
       this.$router.push({
         path: '/collaboration/registrationDetail',
         query: {
