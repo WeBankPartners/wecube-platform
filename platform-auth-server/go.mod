@@ -3,7 +3,7 @@ module github.com/WeBankPartners/wecube-platform/platform-auth-server
 go 1.18
 
 require (
-	github.com/WeBankPartners/go-common-lib v1.0.38
+	github.com/WeBankPartners/go-common-lib v1.1.5
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/go-sql-driver/mysql v1.7.0
@@ -29,6 +29,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
+	github.com/petermattis/goid v0.0.0-20240716203034-badd1c0974d6 // indirect
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
