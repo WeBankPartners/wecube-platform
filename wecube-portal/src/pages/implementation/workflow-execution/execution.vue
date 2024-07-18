@@ -257,7 +257,9 @@
               v-if="
                 noActionFlag ||
                 ['start', 'end', 'abnormal'].includes(currentNodeType) ||
-                ['Completed', 'InternallyTerminated', 'Faulted'].includes(currentInstanceStatusForNodeOperation)
+                ['NotStarted', 'Completed', 'InternallyTerminated', 'Faulted'].includes(
+                  currentInstanceStatusForNodeOperation
+                )
               "
               class="no-data"
             >
@@ -265,13 +267,15 @@
             </div>
             <template v-else>
               <!--高危检测-->
-              <Button
-                style="background-color: #bf22e0; color: white"
-                v-if="['Risky'].includes(currentNodeStatus)"
-                @click="workFlowActionHandler('risky')"
-                :loading="btnLoading"
-                >{{ $t('dangerous_confirm') }}</Button
-              >
+              <div v-if="['Risky'].includes(currentNodeStatus)">
+                <span>当前节点有高危指令，流程等待中，有操作风险，详情请查看日志，如果确认继续执行点击下方按钮。</span>
+                <Button
+                  style="background-color: #bf22e0; color: white; margin-top: 10px"
+                  @click="workFlowActionHandler('risky')"
+                  :loading="btnLoading"
+                  >{{ $t('dangerous_confirm') }}</Button
+                >
+              </div>
               <!--反选数据-->
               <Button
                 type="primary"
@@ -306,7 +310,11 @@
                 class="time-node"
               >
                 <span>{{ $t('be_expected_completion_time') }}：【{{ manualSkipParams.dateToDisplay }}】</span>
-                <div class="workflowActionModal-container" style="margin-top: 10px">
+                <div
+                  v-if="currentNodeItem.allowContinue"
+                  class="workflowActionModal-container"
+                  style="margin-top: 10px"
+                >
                   <Button @click="confirmSkip" type="warning">{{ $t('be_manual_skip') }}</Button>
                 </div>
               </div>
@@ -997,6 +1005,13 @@ export default {
       }
       return true
     },
+    currentNodeItem () {
+      if (!this.flowData.flowNodes) {
+        return {}
+      }
+      const found = this.flowData.flowNodes.find(_ => _.nodeId === this.currentFailedNodeID) || {}
+      return found
+    },
     currentNodeStatus () {
       if (!this.flowData.flowNodes) {
         return ''
@@ -1125,8 +1140,8 @@ export default {
     // 查看执行历史
     if (id) {
       this.querySelectedFlowInstanceId = id
-      this.selectedFlowInstance = id
       await this.getProcessInstances()
+      this.selectedFlowInstance = id
       this.queryHandler()
     }
     // 选择模板新建执行
@@ -1608,7 +1623,7 @@ export default {
 
     // 获取执行记录列表
     async getProcessInstances () {
-      const params = {
+      let params = {
         params: {
           withCronIns: this.from === 'normal' ? 'no' : this.from === 'time' ? 'yes' : '',
           search: '',
@@ -1619,10 +1634,11 @@ export default {
       let { status, data } = await getProcessInstances(params)
       if (status === 'OK') {
         this.allFlowInstances = data || []
-        const hasFlag = this.allFlowInstances.some(i => i.id === this.selectedFlowInstance)
+        const id = this.$route.query.id
+        const hasFlag = this.allFlowInstances.some(i => i.id === id)
         // 没有这条记录数据，则根据ID查询拼接起来
         if (!hasFlag) {
-          params.params.search = this.selectedFlowInstance
+          params.params.search = id
           let { status, data } = await getProcessInstances(params)
           if (status === 'OK' && data && data[0]) {
             this.allFlowInstances.unshift(data[0])
@@ -1632,7 +1648,19 @@ export default {
     },
     // 刷新当前选中执行记录状态
     async fetchCurrentInstanceStatus () {
-      this.getProcessInstances()
+      const params = {
+        params: {
+          withCronIns: this.from === 'normal' ? 'no' : this.from === 'time' ? 'yes' : '',
+          search: this.$route.query.id,
+          withSubProc: '',
+          mgmtRole: ''
+        }
+      }
+      let { status, data } = await getProcessInstances(params)
+      if (status === 'OK' && data && data[0]) {
+        const index = this.allFlowInstances.findIndex(i => i.id === data[0].id)
+        this.allFlowInstances.splice(index, 1, data[0])
+      }
     },
     async getNodeBindings (id) {
       if (!id) return
@@ -2070,7 +2098,15 @@ export default {
             if (_.succeedingNodeIds.length > 0) {
               let current = []
               current = _.succeedingNodeIds.map(to => {
-                return '"' + _.nodeId + '"' + ' -> ' + `${'"' + to + '"'} [label="${lineName[_.nodeId + to]}" ]`
+                const toNodeItem = this.flowData.flowNodes.find(i => i.nodeId === to) || {}
+                const edgeColor = statusColor[toNodeItem.status] || '#505a68'
+                return (
+                  '"' +
+                  _.nodeId +
+                  '"' +
+                  ' -> ' +
+                  `${'"' + to + '"'} [label="${lineName[_.nodeId + to]}" color="${edgeColor}" ]`
+                )
               })
               pathAry.push(current)
             }
@@ -2190,13 +2226,6 @@ export default {
       let { status, data } = await getProcessInstance(found.id)
       if (status === 'OK') {
         this.currentInstanceStatusForNodeOperation = data.status
-        // const inProcessNode = data.taskNodeInstances.find(
-        //   node => ['decision'].includes(node.nodeType) && node.status === 'InProgress'
-        // )
-        // 正在执行分支为判断分支时，拉起分支选择
-        // if (this.currentInstanceStatusForNodeOperation !== 'Stop' && !this.hasExecuteBranchVisible && inProcessNode) {
-        //   this.executeBranchHandler(null, inProcessNode.nodeId)
-        // }
         if (
           !this.flowData.flowNodes ||
           (this.flowData.flowNodes && this.comparativeData(this.flowData.flowNodes, data.taskNodeInstances))
@@ -2211,6 +2240,13 @@ export default {
           removeEvent('.decision-node', 'click', this.executeBranchHandler)
           this.initFlowGraph(true)
           this.renderModelGraph()
+        }
+        // 正在执行分支为判断分支时，拉起分支选择
+        const inProcessNode = data.taskNodeInstances.find(
+          node => ['decision'].includes(node.nodeType) && node.status === 'InProgress'
+        )
+        if (this.currentInstanceStatusForNodeOperation !== 'Stop' && !this.hasExecuteBranchVisible && inProcessNode) {
+          this.retryHandler(null, inProcessNode.nodeId)
         }
         if (['Completed', 'InternallyTerminated', 'Faulted'].includes(data.status)) {
           this.stopSuccess = true
@@ -2247,21 +2283,22 @@ export default {
     processInstance () {
       this.start()
     },
-    retryHandler (e) {
-      this.currentFailedNodeID = e.target.parentNode.getAttribute('id')
+    // 通用节点操作弹框
+    retryHandler (e, id) {
+      this.currentFailedNodeID = id || e.target.parentNode.getAttribute('id')
       this.isNodeCanBindData = this.nodesCannotBindData.includes(this.currentFailedNodeID)
       this.retryTargetModelColums[0].disabled = this.isNodeCanBindData
       this.workflowActionModalVisible = true
       this.targetModalVisible = false
       this.showNodeDetail = false
-      const node = this.flowData.flowNodes.find(i => i.nodeId === e.target.parentNode.getAttribute('id')) || {}
+      const node = this.flowData.flowNodes.find(i => i.nodeId === (id || e.target.parentNode.getAttribute('id'))) || {}
       // 时间节点手动调过
       if (['timeInterval', 'date'].includes(node.nodeType) && node.status === 'InProgress') {
         this.timeNodeHandler(e)
       }
       // 判断分支-选择执行
       if (['decision'].includes(node.nodeType) && node.status === 'InProgress') {
-        this.executeBranchHandler(e)
+        this.executeBranchHandler(e, id)
       }
     },
     // 时间节点手动跳过
