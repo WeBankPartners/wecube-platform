@@ -1071,6 +1071,7 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 		defNodeIdNameMap[v.NodeId] = v.Name
 		defNodeAllowContinueMap[v.Id] = v.AllowContinue
 	}
+	log.Logger.Info("defNodeAllowContinueMap", log.JsonObj("data", defNodeAllowContinueMap))
 	orderIndex := 1
 	for _, row := range procInsNodeRows {
 		nodeObj := models.ProcInsNodeDetail{
@@ -1086,7 +1087,7 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 			Status:            row.Status,
 			PreviousNodeIds:   []string{},
 			SucceedingNodeIds: []string{},
-			AllowContinue:     defNodeAllowContinueMap[row.Id],
+			AllowContinue:     defNodeAllowContinueMap[row.ProcDefNodeId],
 		}
 		for _, defRow := range procNodeDefRows {
 			if defRow.Id == row.ProcDefNodeId {
