@@ -296,6 +296,7 @@ export default {
           key: 'entityDataName',
           width: 200
         },
+        // 定时类型
         {
           title: this.$t('timing_type'),
           key: 'scheduleMode',
@@ -332,16 +333,6 @@ export default {
               scheduleExpr = params.row.scheduleExpr.split(' ')[1]
             }
             return <span>{scheduleExpr || '-'}</span>
-          }
-        },
-        // 执行频率
-        {
-          title: this.$t('fe_execute_frequence'),
-          key: 'status',
-          width: 110,
-          render: (h, params) => {
-            const find = this.timeConfig.scheduleModeOptions.find(item => item.value === params.row.scheduleMode)
-            return <div>{find.label}</div>
           }
         },
         // 管理角色
@@ -627,7 +618,7 @@ export default {
         },
         {
           title: this.$t('status'),
-          key: 'status',
+          key: 'displayStatus',
           render: (h, params) => {
             const list = [
               { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
@@ -639,7 +630,7 @@ export default {
               { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
               { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
             ]
-            const findObj = list.find(item => item.value === params.row.status) || {}
+            const findObj = list.find(item => item.value === params.row.displayStatus) || {}
             if (findObj.label) {
               return <Tag color={findObj.color}>{findObj.label}</Tag>
             } else {
