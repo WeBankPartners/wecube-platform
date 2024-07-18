@@ -102,7 +102,7 @@
                               <Col span="5" offset="0">
                                 <Poptip
                                   confirm
-                                  :title="$t('p_delConfirm_tip')"
+                                  :title="$t('p_destroy_tips')"
                                   placement="left-end"
                                   @on-ok="removePlugin(item.id)"
                                 >
@@ -287,7 +287,10 @@ export default {
   data () {
     return {
       pluginId: '',
-      pluginItemDetail: {},
+      pluginItemDetail: {
+        name: '',
+        version: ''
+      },
       currentStep: 1,
       stepContent: [
         {
