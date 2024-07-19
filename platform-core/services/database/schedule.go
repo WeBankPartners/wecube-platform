@@ -14,6 +14,15 @@ import (
 )
 
 func CreateProcSchedule(ctx context.Context, param *models.CreateProcScheduleParam) (result *models.ProcScheduleConfig, err error) {
+	queryRows, queryErr := db.MysqlEngine.Context(ctx).QueryString("select id from proc_schedule_config where name=?", param.Name)
+	if queryErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(queryRows) > 0 {
+		err = fmt.Errorf("Name:%s duplicate ", param.Name)
+		return
+	}
 	result = &models.ProcScheduleConfig{
 		Id:             "psc_" + guid.CreateGuid(),
 		ProcDefId:      param.ProcDefId,
@@ -28,9 +37,12 @@ func CreateProcSchedule(ctx context.Context, param *models.CreateProcSchedulePar
 		CreatedTime:    time.Now(),
 		Role:           param.Role,
 		MailMode:       param.MailMode,
+		Name:           param.Name,
+		UpdatedBy:      param.Operator,
+		UpdatedTime:    time.Now(),
 	}
-	_, err = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_config(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,schedule_mode,schedule_expr,cron_expr,exec_times,created_by,created_time,`role`,mail_mode) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-		result.Id, result.ProcDefId, result.ProcDefKey, result.ProcDefName, result.Status, result.EntityDataId, result.EntityTypeId, result.EntityDataName, result.ScheduleMode, result.ScheduleExpr, result.CronExpr, 0, result.CreatedBy, result.CreatedTime, param.Role, param.MailMode)
+	_, err = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_config(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,schedule_mode,schedule_expr,cron_expr,exec_times,created_by,created_time,updated_by,updated_time,`role`,mail_mode,name) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		result.Id, result.ProcDefId, result.ProcDefKey, result.ProcDefName, result.Status, result.EntityDataId, result.EntityTypeId, result.EntityDataName, result.ScheduleMode, result.ScheduleExpr, result.CronExpr, 0, result.CreatedBy, result.CreatedTime, result.UpdatedBy, result.UpdatedTime, param.Role, param.MailMode, param.Name)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
@@ -106,11 +118,11 @@ func GetProcScheduleConfigStatus(ctx context.Context, id string) (status string)
 func NewProcScheduleJob(ctx context.Context, psConfig *models.ProcScheduleConfig, newId string) (duplicateRow bool, err error) {
 	var insertErr error
 	if psConfig.MailMode == "none" || psConfig.MailMode == "" {
-		_, insertErr = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_job(id,schedule_config_id,status,handle_by,created_time) values (?,?,?,?,?)",
-			newId, psConfig.Id, "ready", models.Config.HostIp, time.Now())
+		_, insertErr = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_job(id,schedule_config_id,status,handle_by,created_time,created_by) values (?,?,?,?,?,?)",
+			newId, psConfig.Id, "ready", models.Config.HostIp, time.Now(), psConfig.UpdatedBy)
 	} else {
-		_, insertErr = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_job(id,schedule_config_id,status,handle_by,mail_status,created_time) values (?,?,?,?,?,?)",
-			newId, psConfig.Id, "ready", models.Config.HostIp, "wait", time.Now())
+		_, insertErr = db.MysqlEngine.Context(ctx).Exec("insert into proc_schedule_job(id,schedule_config_id,status,handle_by,mail_status,created_time,created_by) values (?,?,?,?,?,?,?)",
+			newId, psConfig.Id, "ready", models.Config.HostIp, "wait", time.Now(), psConfig.UpdatedBy)
 	}
 	if insertErr != nil {
 		if strings.Contains(strings.ToLower(insertErr.Error()), "duplicate") {
@@ -238,8 +250,20 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 		filterParams = append(filterParams, param.ScheduleMode)
 	}
 	if param.Owner != "" {
-		filterSqlList = append(filterSqlList, "created_by=?")
-		filterParams = append(filterParams, param.Owner)
+		filterSqlList = append(filterSqlList, "created_by like ?")
+		filterParams = append(filterParams, fmt.Sprintf("%%%s%%", param.Owner))
+	}
+	if param.Name != "" {
+		filterSqlList = append(filterSqlList, "name like ?")
+		filterParams = append(filterParams, fmt.Sprintf("%%%s%%", param.Name))
+	}
+	if param.ProcDefId != "" {
+		filterSqlList = append(filterSqlList, "proc_def_id=?")
+		filterParams = append(filterParams, param.ProcDefId)
+	}
+	if param.JobCreatedStartTime != "" && param.JobCreatedEndTime != "" {
+		filterSqlList = append(filterSqlList, "created_time >= ? and created_time <= ?")
+		filterParams = append(filterParams, []interface{}{param.JobCreatedStartTime, param.JobCreatedEndTime}...)
 	}
 	//if param.StartTime != "" {
 	//	filterSqlList = append(filterSqlList, "created_time>=?")
@@ -321,6 +345,7 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 			Role:                     row.Role,
 			MailMode:                 row.MailMode,
 			Version:                  procDefVersionMap[row.ProcDefId],
+			Name:                     row.Name,
 		}
 		result = append(result, &resultObj)
 	}
@@ -328,24 +353,57 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 }
 
 func QueryProcScheduleInstance(ctx context.Context, psConfigId, status string) (result []*models.ProcScheduleInstQueryObj, err error) {
-	var procInsRows []*models.ProcIns
+	var scheduleConfigRows []*models.ProcScheduleConfig
+	err = db.MysqlEngine.Context(ctx).SQL("select id,proc_def_name from proc_schedule_config where id=?", psConfigId).Find(&scheduleConfigRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(scheduleConfigRows) == 0 {
+		err = fmt.Errorf("can not find schedule config with id:%s ", psConfigId)
+		return
+	}
+	procDefName := scheduleConfigRows[0].ProcDefName
+	var procInsRows []*models.ScheduleProcInsQueryRow
 	if status == "" {
-		err = db.MysqlEngine.Context(ctx).SQL("select t3.id,t3.status,t3.created_time,t3.proc_def_id,t3.proc_def_name from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id=?", psConfigId).Find(&procInsRows)
+		err = db.MysqlEngine.Context(ctx).SQL("select t3.id,t3.status,t2.created_time,t3.proc_def_id,t3.proc_def_name,t2.error_msg from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id=?", psConfigId).Find(&procInsRows)
 	} else {
 		err = db.MysqlEngine.Context(ctx).SQL("select t3.id,t3.status,t3.created_time,t3.proc_def_id,t3.proc_def_name from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id=? and t3.status=?", psConfigId, status).Find(&procInsRows)
 	}
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
 	result = []*models.ProcScheduleInstQueryObj{}
+	var inProgressInsList []string
 	for _, row := range procInsRows {
-		if row.Id == "" {
+		if row.CreatedTime.IsZero() {
 			continue
 		}
+		if row.ProcDefName == "" {
+			row.ProcDefName = procDefName
+		}
 		result = append(result, &models.ProcScheduleInstQueryObj{
-			ProcInstId:  row.Id,
-			ProcDefId:   row.ProcDefId,
-			ProcDefName: row.ProcDefName,
-			Status:      row.Status,
-			ExecTime:    row.CreatedTime.Format(models.DateTimeFormat),
+			ProcInstId:    row.Id,
+			ProcDefId:     row.ProcDefId,
+			ProcDefName:   row.ProcDefName,
+			Status:        row.Status,
+			ExecTime:      row.CreatedTime.Format(models.DateTimeFormat),
+			ErrorMsg:      row.ErrorMsg,
+			DisplayStatus: row.Status,
 		})
+		if row.Status == models.JobStatusRunning {
+			inProgressInsList = append(inProgressInsList, row.Id)
+		}
+	}
+	if len(inProgressInsList) > 0 {
+		procInsNodeStatusMap := make(map[string]string)
+		procInsNodeStatusMap, err = getProcInsNodeStatus(ctx, inProgressInsList)
+		for _, row := range result {
+			if nodeStatus, ok := procInsNodeStatusMap[row.ProcInstId]; ok {
+				row.DisplayStatus = fmt.Sprintf("%s(%s)", row.Status, nodeStatus)
+			}
+		}
 	}
 	return
 }
