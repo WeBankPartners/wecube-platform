@@ -49,7 +49,7 @@
                     <DatePicker
                       type="datetime"
                       placeholder="Select date and time"
-                      v-model="itemCustomInfo.customAttrs.timeConfig.date"
+                      v-model="tempDate"
                       format="yyyy-MM-dd HH:mm:ss"
                       @on-change="dateChange"
                       :editable="false"
@@ -493,7 +493,8 @@ export default {
           label: this.$t('dynamic_bind'),
           value: 1
         }
-      ]
+      ],
+      tempDate: ''
     }
   },
   components: {
@@ -559,6 +560,8 @@ export default {
           this.itemCustomInfo = data
           this.itemCustomInfo.selfAttrs = JSON.parse(data.selfAttrs)
           this.itemCustomInfo.customAttrs.timeConfig = JSON.parse(data.customAttrs.timeConfig)
+          // 临时存储时间中间值，解决时间字符串直接绑定转为UTC时间问题
+          this.tempDate = this.itemCustomInfo.customAttrs.timeConfig.date
           if (this.itemCustomInfo.customAttrs.routineExpression === '') {
             this.itemCustomInfo.customAttrs.routineExpression = rootEntity
           }
