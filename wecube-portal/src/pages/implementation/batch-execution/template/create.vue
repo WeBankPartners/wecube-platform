@@ -1,7 +1,7 @@
 <!--批量执行-模板新增-->
 <template>
   <div class="batch-execution-template-create">
-    <BaseForm ref="form" :from="from" :type="type" :data="detailData" @back="handleBack" />
+    <BaseForm ref="form" from="template" :type="type" :data="detailData" @back="handleBack" />
     <div v-if="type !== 'view'" class="footer-button">
       <!--预执行-->
       <Button type="success" @click="saveExcute">{{ $t('be_pre_execute') }}</Button>
@@ -25,9 +25,9 @@
 
 <script>
 import CryptoJS from 'crypto-js'
-import BaseForm from './base-form.vue'
-import AuthDialog from '../../components/auth.vue'
-import DangerousModal from './components/dangerous-modal.vue'
+import BaseForm from '../base-form.vue'
+import AuthDialog from '@/pages/components/auth.vue'
+import DangerousModal from '../components/dangerous-modal.vue'
 import { debounce } from '@/const/util'
 import {
   saveBatchExecute,
@@ -43,7 +43,6 @@ export default {
   },
   data () {
     return {
-      from: 'template', // 模板，执行
       id: this.$route.query.id || '', // 模板id
       type: this.$route.query.type || 'add', // 新增，编辑，查看
       detailData: {},
@@ -66,15 +65,12 @@ export default {
   },
   methods: {
     handleBack () {
-      this.$eventBusP.$emit('change-menu', 'templateList')
-      if (this.type === 'edit') {
-        this.$router.replace({
-          name: this.$route.name,
-          query: {
-            status: 'draft'
-          }
-        })
-      }
+      this.$router.push({
+        path: '/implementation/batch-execution/template-list',
+        query: {
+          status: this.type === 'edit' ? 'draft' : ''
+        }
+      })
     },
     async getInputParamsEncryptKey () {
       const { status, data } = await getInputParamsEncryptKey()
@@ -353,7 +349,12 @@ export default {
           desc: this.$t('successful')
         })
         this.saveTemplateId = data.id
-        this.$eventBusP.$emit('change-menu', 'templateList')
+        this.$router.push({
+          path: '/implementation/batch-execution/template-list',
+          query: {
+            status: this.type === 'edit' ? 'draft' : ''
+          }
+        })
         this.$router.replace({
           name: this.$route.name,
           query: {

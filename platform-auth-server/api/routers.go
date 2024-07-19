@@ -84,6 +84,8 @@ func init() {
 			ApiCode: "TaskLogin"},
 		&handlerFuncObj{Url: "/v1/api/token", Method: http.MethodGet, HandlerFunc: RefreshToken,
 			ApiCode: "RefreshToken"},
+		&handlerFuncObj{Url: constant.UriGetLoginSeed, Method: http.MethodGet, HandlerFunc: GetLoginSeed,
+			ApiCode: "GetLoginSeed"},
 
 		&handlerFuncObj{Url: "/v1/authorities", Method: http.MethodPost, HandlerFunc: RegisterLocalAuthority,
 			ApiCode: "RegisterLocalAuthority"},

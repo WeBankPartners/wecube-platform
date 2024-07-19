@@ -49,7 +49,7 @@
   </div>
 </template>
 <script>
-// import CryptoJS from 'crypto-js'
+import CryptoJS from 'crypto-js'
 import { login, getApplyRoles, registerUser, getEncryptKey } from '../api/server'
 import { setCookie, clearCookie } from './util/cookie'
 export default {
@@ -88,17 +88,16 @@ export default {
     async login () {
       if (!this.username || !this.password) return
       this.loading = true
-      // await this.getEncryptKey()
-      // const key = CryptoJS.enc.Utf8.parse(this.encryptKey)
-      // const config = {
-      //   iv: key,
-      //   mode: CryptoJS.mode.CBC
-      //   // padding: CryptoJS.pad.PKcs7
-      // }
-      // let encryptedPassword = CryptoJS.AES.encrypt(this.password, key, config).toString()
+      await this.getEncryptKey()
+      const key = CryptoJS.enc.Utf8.parse(this.encryptKey)
+      const config = {
+        iv: CryptoJS.enc.Utf8.parse(Math.trunc(new Date() / 100000) * 100000000),
+        mode: CryptoJS.mode.CBC
+      }
+      let encryptedPassword = CryptoJS.AES.encrypt(this.password, key, config).toString()
       const payload = {
         username: this.username,
-        password: this.password
+        password: encryptedPassword
       }
       const { status, data } = await login(payload)
       if (status === 'OK') {
@@ -116,8 +115,8 @@ export default {
       this.loading = false
     },
     async getEncryptKey () {
-      const { statusCode, data } = await getEncryptKey()
-      if (statusCode === 'OK') {
+      const { status, data } = await getEncryptKey()
+      if (status === 'OK') {
         this.encryptKey = data
       }
     },

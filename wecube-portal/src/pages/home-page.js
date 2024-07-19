@@ -9,24 +9,35 @@ export default {
   },
   created () {
     this.comps = window.homepageComponent.data
-    // window.homepageComponent.on('change', v => {
-    //   this.comps = window.homepageComponent.data
-    // })
     this.$eventBusP.$on('allMenus', menues => {
       window.homepageComponent.on('change', () => {
-        this.comps = window.homepageComponent.data
-        // 首页根据菜单权限隐藏相关页面
-        this.comps.forEach(c => {
-          c.deleteFalg = false
-          for (let menu of menues) {
-            if (c.code === menu.code) {
-              c.deleteFalg = true
-            }
-          }
-        })
-        this.comps = this.comps.filter(i => !i.deleteFalg)
+        this.filterHomePageByRole(menues)
       })
     })
+  },
+  methods: {
+    filterHomePageByRole (menues) {
+      // this.comps = window.homepageComponent.data
+      // 首页根据菜单权限隐藏相关页面
+      window.homepageComponent.data.forEach(c => {
+        c.deleteFalg = false
+        if (c.code && Array.isArray(menues) && menues.length > 0) {
+          const hasMenu = menues.some(i => {
+            return (
+              i.code === c.code ||
+              i.submenus.some(j => {
+                return j.code === c.code
+              })
+            )
+          })
+          if (!hasMenu) {
+            c.deleteFalg = true
+          }
+        }
+      })
+      window.homepageComponent.data = window.homepageComponent.data.filter(i => !i.deleteFalg)
+      this.comps = window.homepageComponent.data
+    }
   },
   render () {
     // const comps = window.homepageComponent || []
