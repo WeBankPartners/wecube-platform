@@ -262,7 +262,7 @@
           :style="{ cursor: subProc === 1 ? 'not-allowed' : 'move' }"
           :draggable="editFlow && subProc === 0"
           node-type="subProc"
-          data-label="子编排"
+          :data-label="$t('fe_childFlow')"
           data-shape="rect-node"
           fill="white"
           line-width="1"
@@ -274,7 +274,7 @@
             class="item-tool-icon"
             draggable="false"
           />
-          <div class="item-tool-name">{{ '子编排' }}</div>
+          <div class="item-tool-name">{{ $t('fe_childFlow') }}</div>
         </div>
         <div style="word-break: keep-all" slot="content">
           <p>{{ $t('timeIntervalFunc') }}</p>
