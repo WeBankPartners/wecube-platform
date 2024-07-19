@@ -1158,6 +1158,7 @@ export default {
             const { data, status } = await getAllPluginByPkgId(this.pkgId)
             if (status === 'OK') {
               this.plugins = data
+              this.$emit('get-service-list', this.plugins)
             }
             this.hidePanal = false
           }
