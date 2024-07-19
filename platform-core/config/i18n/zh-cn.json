@@ -38,7 +38,7 @@
   },
   "plugin_dependency_illegal": {
     "code": 20000001,
-    "message": "插件版本依赖校验失败"
+    "message": "安装失败：插件版本依赖校验失败"
   },
   "proc_def_node_name_empty_error": {
     "code": 20000002,
@@ -142,7 +142,7 @@
   },
   "data_permission_deny": {
     "code": 20000031,
-    "message": "无数据权限"
+    "message": "操作失败：无数据权限"
   },
   "add_role_exist_error": {
     "code": 20000032,
@@ -150,7 +150,7 @@
   },
   "proc_def_decision_merge_error": {
     "code": 20000033,
-    "message": "发布失败:判断汇聚节点 %s 找不到对应的判断开始节点"
+    "message": "发布失败:判断结束节点 %s 找不到对应的判断开始节点"
   },
   "proc_def_data_node_error": {
     "code": 20000034,
@@ -166,6 +166,10 @@
   },
   "proc_def_merge_error": {
     "code": 20000037,
-    "message": "发布失败:汇聚节点 %s 找不到对应的分流节点"
+    "message": "发布失败:汇聚-并行结束节点 %s 找不到对应的分流-并行开始节点"
+  },
+  "proc_status_operation_error": {
+    "code": 20000038,
+    "message": "操作失败：当前编排状态已更新，请刷新重试"
   }
 }
