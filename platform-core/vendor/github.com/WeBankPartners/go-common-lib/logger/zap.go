@@ -69,10 +69,10 @@ func InitArchiveZapLogger(config LogConfig) (zapLogger *zap.Logger) {
 			enc.AppendString("[" + fmt.Sprintf("goid-%d", goid.Get()) + "]" + "[" + trimPath + "]")
 		}
 		zCore := zapcore.NewCore(zapcore.NewConsoleEncoder(encoderConfig), zapcore.NewMultiWriteSyncer(zapcore.AddSync(&hook)), zapLevel)
-		zapLogger = zap.New(zCore, zap.AddCaller(), zap.Development())
+		zapLogger = zap.New(zCore, zap.AddCaller(), zap.Development(), zap.AddCallerSkip(1))
 	} else {
 		zCore := zapcore.NewCore(zapcore.NewJSONEncoder(encoderConfig), zapcore.NewMultiWriteSyncer(zapcore.AddSync(&hook)), zapLevel)
-		zapLogger = zap.New(zCore, zap.AddCaller(), zap.Development())
+		zapLogger = zap.New(zCore, zap.AddCaller(), zap.Development(), zap.AddCallerSkip(1))
 	}
 	zapLogger.Info("Success init " + config.Name + " log !!")
 	return zapLogger

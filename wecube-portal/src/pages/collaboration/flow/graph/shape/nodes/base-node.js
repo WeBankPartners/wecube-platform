@@ -10,6 +10,7 @@ import defaultStyles from '../defaultStyles'
 import startIcon from '../../../icon/start.svg'
 import endIcon from '../../../icon/end.svg'
 import decisionIcon from '../../../icon/decision.svg'
+import decisionMergeIcon from '../../../icon/decisionMerge.svg'
 import abnormalIcon from '../../../icon/abnormal.svg'
 import timeIntervalIcon from '../../../icon/timeInterval.svg'
 import dateIcon from '../../../icon/date.svg'
@@ -19,6 +20,7 @@ import humanIcon from '../../../icon/human.svg'
 import mergeIcon from '../../../icon/merge.svg'
 import forkIcon from '../../../icon/fork.svg'
 import deleteIcon from '../../../icon/delete.svg'
+import subProcIcon from '../../../icon/subProc.svg'
 
 const { iconStyles, nodeStyles, anchorPointStyles, nodeLabelStyles } = defaultStyles
 
@@ -27,6 +29,7 @@ const nodeTypeToImg = {
   start: startIcon,
   end: endIcon,
   decision: decisionIcon,
+  decisionMerge: decisionMergeIcon,
   abnormal: abnormalIcon,
   timeInterval: timeIntervalIcon,
   date: dateIcon,
@@ -34,7 +37,8 @@ const nodeTypeToImg = {
   human: humanIcon,
   merge: mergeIcon,
   data: dataIcon,
-  fork: forkIcon
+  fork: forkIcon,
+  subProc: subProcIcon
 }
 function getStyle (options, cfg) {
   return {

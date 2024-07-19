@@ -21,7 +21,8 @@ import (
 const DBTransactionId = "transactionId"
 
 var (
-	MysqlEngine *xorm.Engine
+	MysqlEngine         *xorm.Engine
+	WorkflowMysqlEngine *xorm.Engine
 )
 
 func InitDatabase() error {
@@ -45,6 +46,36 @@ func InitDatabase() error {
 		log.Logger.Info("Success init database connect !!")
 	} else {
 		log.Logger.Error("Init database fail", log.Error(err))
+	}
+	if err == nil {
+		if initWorkflowDbErr := InitWorkflowDatabase(); initWorkflowDbErr != nil {
+			log.Logger.Error("Init workflow database fail", log.Error(initWorkflowDbErr))
+		}
+	}
+	return err
+}
+
+func InitWorkflowDatabase() error {
+	connStr := fmt.Sprintf("%s:%s@%s(%s)/%s?collation=utf8mb4_unicode_ci&allowNativePasswords=true",
+		models.Config.Database.User, models.Config.Database.Password, "tcp", fmt.Sprintf("%s:%s", models.Config.Database.Server, models.Config.Database.Port), models.Config.Database.DataBase)
+	engine, err := xorm.NewEngine("mysql", connStr)
+	if err != nil {
+		log.Logger.Error("Init workflow database connect fail", log.Error(err))
+		return err
+	}
+	engine.SetMaxIdleConns(models.Config.Database.MaxIdle)
+	engine.SetMaxOpenConns(models.Config.Database.MaxOpen)
+	engine.SetConnMaxLifetime(time.Duration(models.Config.Database.Timeout) * time.Second)
+	if models.Config.Log.DbLogEnable {
+		engine.SetLogger(&dbContextLogger{LogLevel: 1, ShowSql: true, Logger: log.WorkflowDatabaseLogger})
+	}
+	// 使用驼峰式映射
+	engine.SetMapper(core.SnakeMapper{})
+	WorkflowMysqlEngine = engine
+	if err = CheckDbConnection(); err == nil {
+		log.Logger.Info("Success init workflow database connect !!")
+	} else {
+		log.Logger.Error("Init workflow database fail", log.Error(err))
 	}
 	return err
 }
