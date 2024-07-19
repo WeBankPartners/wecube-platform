@@ -87,7 +87,7 @@
                 <Tooltip v-if="keyItem.key === 'menus'" max-width="450" placement="left">
                   <div slot="content" v-html="item[keyItem.key].length ? item[keyItem.key].join('</br>') : '-'"></div>
                   <div class="card-menu-content">
-                    {{ item[keyItem.key].length ? item[keyItem.key].join(';') : '-' }}
+                    {{ getMenuText(item) }}
                   </div>
                 </Tooltip>
                 <div v-else-if="keyItem.key === 'instances'">
@@ -307,6 +307,7 @@
 </template>
 
 <script>
+import Vue from 'vue'
 import debounce from 'lodash/debounce'
 import find from 'lodash/find'
 import cloneDeep from 'lodash/cloneDeep'
@@ -774,8 +775,14 @@ export default {
     },
     isButtonDisabled (item) {
       if (item.registerDone) return false
-
       return !(item.instances.length && item.uiActive && item.menus.length)
+    },
+    getMenuText (item) {
+      if (Vue.config.lang === 'zh-CN') {
+        return item.localMenus && item.localMenus.length ? item.localMenus.join(';') : '-'
+      } else {
+        return item.menus && item.menus.length ? item.menus.join(';') : '-'
+      }
     }
   }
 }
