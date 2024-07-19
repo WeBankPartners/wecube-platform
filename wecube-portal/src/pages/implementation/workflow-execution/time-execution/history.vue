@@ -447,6 +447,7 @@ export default {
         status: this.searchConfig.params.status !== '' ? this.searchConfig.params.status : undefined,
         startTime: this.searchConfig.params.time[0] ? this.searchConfig.params.time[0] + ' 00:00:00' : undefined,
         endTime: this.searchConfig.params.time[1] ? this.searchConfig.params.time[1] + ' 23:59:59' : undefined,
+        subProc: 'main', // 只查询主编排
         pageable: {
           startIndex: (this.pageable.current - 1) * this.pageable.pageSize,
           pageSize: this.pageable.pageSize
