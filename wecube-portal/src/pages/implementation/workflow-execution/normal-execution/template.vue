@@ -89,9 +89,9 @@ export default {
           label: this.$t('table_created_date'),
           initDateType: 1,
           dateRange: [
-            { label: '近3个月', type: 'month', value: 3, dateType: 1 },
-            { label: '近半年', type: 'month', value: 6, dateType: 2 },
-            { label: '近一年', type: 'year', value: 1, dateType: 3 },
+            { label: this.$t('fe_recent3Months'), type: 'month', value: 3, dateType: 1 },
+            { label: this.$t('fe_recentHalfYear'), type: 'month', value: 6, dateType: 2 },
+            { label: this.$t('fe_recentOneYear'), type: 'year', value: 1, dateType: 3 },
             { label: this.$t('be_auto'), dateType: 4 } // 自定义
           ],
           labelWidth: 110,
@@ -212,6 +212,11 @@ export default {
               </div>
             )
           }
+        },
+        {
+          title: this.$t('table_created_date'),
+          key: 'createdTime',
+          minWidth: 150
         },
         {
           title: this.$t('be_use_status'),
