@@ -887,5 +887,7 @@
   "p_instance_creation": "实例创建中",
   "p_instance_creation_failed": "实例创建失败",
   "p_new_config": "新配置",
-  "p_destroy_tips": "销毁数据将无法恢复,确认执行? "
+  "p_destroy_tips": "销毁数据将无法恢复,确认执行? ",
+  "p_instance_destroy_failed": "实例销毁失败",
+  "p_instance_destroy": "实例销毁中"
 }
