@@ -1742,48 +1742,47 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 	if param.Id != "" {
 		filterSqlList = append(filterSqlList, "id=?")
 		filterParams = append(filterParams, param.Id)
+	}
+	if param.EntityDisplayName != "" {
+		filterSqlList = append(filterSqlList, "entity_data_name like ?")
+		filterParams = append(filterParams, "%"+param.EntityDisplayName+"%")
+	}
+	if param.ProcInstName != "" {
+		filterSqlList = append(filterSqlList, "proc_def_name like ?")
+		filterParams = append(filterParams, "%"+param.ProcInstName+"%")
+	}
+	if param.ProcDefId != "" {
+		filterSqlList = append(filterSqlList, "proc_def_id=?")
+		filterParams = append(filterParams, param.ProcDefId)
+	}
+	if param.Status != "" {
+		if strings.HasPrefix(param.Status, "InProgress(") {
+			nodeStatus := param.Status[11 : len(param.Status)-1]
+			param.Status = models.JobStatusRunning
+			filterSqlList = append(filterSqlList, "id in (select proc_ins_id from proc_ins_node where status in (?))")
+			filterParams = append(filterParams, nodeStatus)
+		} else if param.Status == models.JobStatusRunning {
+			filterSqlList = append(filterSqlList, "id not in (select proc_ins_id from proc_ins_node where status in ('Faulted','Timeouted'))")
+		}
+		filterSqlList = append(filterSqlList, "status=?")
+		filterParams = append(filterParams, param.Status)
+	}
+	if param.Operator != "" {
+		filterSqlList = append(filterSqlList, "created_by=?")
+		filterParams = append(filterParams, param.Operator)
+		if param.Operator == "systemCron" {
+			scheduleInsFlag = true
+		}
 	} else {
-		if param.EntityDisplayName != "" {
-			filterSqlList = append(filterSqlList, "entity_data_name like ?")
-			filterParams = append(filterParams, "%"+param.EntityDisplayName+"%")
-		}
-		if param.ProcInstName != "" {
-			filterSqlList = append(filterSqlList, "proc_def_name like ?")
-			filterParams = append(filterParams, "%"+param.ProcInstName+"%")
-		}
-		if param.ProcDefId != "" {
-			filterSqlList = append(filterSqlList, "proc_def_id=?")
-			filterParams = append(filterParams, param.ProcDefId)
-		}
-		if param.Status != "" {
-			if strings.HasPrefix(param.Status, "InProgress(") {
-				nodeStatus := param.Status[11 : len(param.Status)-1]
-				param.Status = models.JobStatusRunning
-				filterSqlList = append(filterSqlList, "id in (select proc_ins_id from proc_ins_node where status in (?))")
-				filterParams = append(filterParams, nodeStatus)
-			} else if param.Status == models.JobStatusRunning {
-				filterSqlList = append(filterSqlList, "id not in (select proc_ins_id from proc_ins_node where status in ('Faulted','Timeouted'))")
-			}
-			filterSqlList = append(filterSqlList, "status=?")
-			filterParams = append(filterParams, param.Status)
-		}
-		if param.Operator != "" {
-			filterSqlList = append(filterSqlList, "created_by=?")
-			filterParams = append(filterParams, param.Operator)
-			if param.Operator == "systemCron" {
-				scheduleInsFlag = true
-			}
-		} else {
-			filterSqlList = append(filterSqlList, "created_by!='systemCron'")
-		}
-		if param.StartTime != "" {
-			filterSqlList = append(filterSqlList, "created_time>=?")
-			filterParams = append(filterParams, param.StartTime)
-		}
-		if param.EndTime != "" {
-			filterSqlList = append(filterSqlList, "created_time<=?")
-			filterParams = append(filterParams, param.EndTime)
-		}
+		filterSqlList = append(filterSqlList, "created_by!='systemCron'")
+	}
+	if param.StartTime != "" {
+		filterSqlList = append(filterSqlList, "created_time>=?")
+		filterParams = append(filterParams, param.StartTime)
+	}
+	if param.EndTime != "" {
+		filterSqlList = append(filterSqlList, "created_time<=?")
+		filterParams = append(filterParams, param.EndTime)
 	}
 	if param.SubProc == "main" {
 		filterSqlList = append(filterSqlList, "proc_def_id in (select id from proc_def where sub_proc=0)")
