@@ -13,6 +13,7 @@ import WeSelect from '../src/pages/components/select.vue'
 import WeTable from '../src/pages/components/table.js'
 import indexCom from './pages/index'
 import req from './api/base'
+import implicitRoutes from './implicitRoutes.js'
 import { getChildRouters } from './pages/util/router.js'
 const eventBus = new Vue()
 Vue.prototype.$eventBusP = eventBus
@@ -92,18 +93,7 @@ window.addRoutersWithoutPermission = routes => {
     })
   )
 }
-window.implicitRoutes = {
-  'collaboration/workflow-mgmt': {
-    childBreadcrumb: {
-      'en-US': 'Workflow Mgmt',
-      'zh-CN': '编排设计'
-    },
-    parentBreadcrumb: {
-      'en-US': 'Workflow',
-      'zh-CN': '编排设计'
-    }
-  }
-}
+window.implicitRoutes = implicitRoutes
 window.addImplicitRoute = routes => {
   window.implicitRoutes = Object.assign(window.implicitRoutes, routes)
 }
@@ -134,7 +124,7 @@ const findPath = (routes, path) => {
   window.routers.concat(routes).forEach(route => {
     if (route.children) {
       route.children.forEach(child => {
-        if (child.path === path || child.redirect === path) {
+        if (child.path === path || child.redirect === path || findSideMenuPath(child)) {
           found = true
         }
       })
@@ -146,6 +136,14 @@ const findPath = (routes, path) => {
       found = true
     }
   })
+  // 适配平台侧边菜单栏，父路由配置有子路由，判断子路由权限
+  function findSideMenuPath (child) {
+    if (Array.isArray(child.children) && child.children.length > 0) {
+      return child.children.some(item => item.path === path)
+    } else {
+      return false
+    }
+  }
   return found
 }
 
@@ -158,10 +156,12 @@ router.beforeEach((to, from, next) => {
     if (window.myMenus) {
       let isHasPermission = []
         .concat(...window.myMenus.map(_ => _.submenus), window.childRouters)
-        .find(_ => _.link === to.path && _.active)
+        .find(_ => to.path.startsWith(_.link) && _.active)
       if (
         (isHasPermission && isHasPermission.active) ||
-        ['/404', '/login', '/homepage', '/collaboration/workflow-mgmt'].includes(to.path)
+        ['/404', '/login', '/homepage', '/collaboration/workflow-mgmt', '/collaboration/registrationDetail'].includes(
+          to.path
+        )
       ) {
         /* has permission */
         window.sessionStorage.setItem(

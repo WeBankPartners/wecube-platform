@@ -2,7 +2,7 @@
   <div class="plugin-register-page">
     <Row>
       <Col span="7" style="border-right: 1px solid #e8eaec">
-        <div style="height: calc(100vh - 180px); overflow-y: auto">
+        <div style="height: calc(100vh - 350px); overflow-y: auto">
           <div v-if="plugins.length < 1">{{ $t('no_plugin') }}</div>
           <div style="">
             <Menu theme="light" :active-name="currentPlugin" @on-select="selectPlugin" style="width: 100%; z-index: 10">
@@ -56,7 +56,7 @@
             </Menu>
           </div>
         </div>
-        <div style="padding-right: 20px; margin-top: 10px">
+        <div v-if="batchRegistButtonShow" style="padding-right: 20px; margin-top: 10px">
           <Button type="info" long ghost @click="batchRegist">{{ $t('batch_regist') }}</Button>
         </div>
       </Col>
@@ -88,7 +88,7 @@
               </FormItem>
             </Col>
           </Row>
-          <div style="height: calc(100vh - 300px); overflow: auto" id="paramsContainer">
+          <div style="height: calc(100vh - 500px); overflow: auto" id="paramsContainer">
             <div style="background: #f7f7f7">
               <div
                 v-for="(inter, index) in currentPluginObj.interfaces"
@@ -507,7 +507,7 @@
     <Modal
       v-model="configTreeManageModal"
       width="700"
-      :title="$t('batch_regist')"
+      :title="$t('batch_regist') + (modalTitleVersion ? ' - ' + modalTitleVersion : '')"
       :mask-closable="false"
       @on-ok="setConfigTreeHandler"
       @on-cancel="closeTreeModal"
@@ -693,6 +693,14 @@ export default {
     },
     pkgName: {
       required: true
+    },
+    batchRegistButtonShow: {
+      type: Boolean,
+      default: true
+    },
+    modalTitleVersion: {
+      type: String,
+      default: ''
     }
   },
   watch: {
@@ -904,10 +912,12 @@ export default {
           title: 'Success',
           desc: 'Success'
         })
+        this.$emit('success')
       }
     },
     closeTreeModal () {
       this.configTreeManageModal = false
+      this.$emit('close-tree')
     },
     batchRegist () {
       this.getConfigByPkgId()
@@ -1148,6 +1158,7 @@ export default {
             const { data, status } = await getAllPluginByPkgId(this.pkgId)
             if (status === 'OK') {
               this.plugins = data
+              this.$emit('get-service-list', this.plugins)
             }
             this.hidePanal = false
           }
@@ -1209,6 +1220,7 @@ export default {
       const { data, status } = await getPluginConfigsByPackageId(this.pkgId)
       if (status === 'OK') {
         this.plugins = data
+        this.$emit('get-service-list', this.plugins)
       }
     },
     async copyPluginConfigDto (id) {
@@ -1259,7 +1271,7 @@ export default {
       this.currentPluginObj = {}
       let currentConfig = this.allPluginConfigs.find(s => s.id === id)
       const { data, status } = await getInterfacesByPluginConfigId(id)
-      if (status === 'OK') {
+      if (status === 'OK' && currentConfig) {
         currentConfig.interfaces = data.map(_ => {
           return {
             ..._,
@@ -1270,8 +1282,8 @@ export default {
         this.selectedEntityType = currentConfig.targetEntityWithFilterRule
         this.registerName = this.currentPluginObj.registerName
       }
-      this.hidePanal = true
       this.isLoading = false
+      this.hidePanal = true
     },
     copyRegistSource (v) {
       this.registSourceChange(v)
@@ -1293,14 +1305,17 @@ export default {
           }
         })
       }
+    },
+    startRegister () {
+      this.getRoleList()
+      this.getAllPluginByPkgId()
+      this.getAllDataModels()
+      this.retrieveSystemVariables()
+      this.getRolesByCurrentUser()
     }
   },
   created () {
-    this.getRoleList()
-    this.getAllPluginByPkgId()
-    this.getAllDataModels()
-    this.retrieveSystemVariables()
-    this.getRolesByCurrentUser()
+    this.startRegister()
   }
 }
 </script>
