@@ -19,9 +19,13 @@ type ProcDefListObj struct {
 	Tags           string             `json:"tags"`
 	ExcludeMode    string             `json:"excludeMode"`
 	CreatedTime    string             `json:"createdTime"`
+	UpdatedTime    string             `json:"updatedTime"`
+	CreateUser     string             `json:"createUser"`
+	UpdateUser     string             `json:"updateUser"`
 	Scene          string             `json:"scene"`
 	FlowNodes      []*ProcDefFlowNode `json:"flowNodes"`
 	NodeLinks      []*ProcDefNodeLink `json:"nodeLinks"`
+	Collected      bool               `json:"collected"`
 }
 
 func (p *ProcDefListObj) Parse(input *ProcDef) {
@@ -38,6 +42,9 @@ func (p *ProcDefListObj) Parse(input *ProcDef) {
 	if input.ConflictCheck {
 		p.ExcludeMode = "Y"
 	}
+	p.UpdatedTime = input.UpdatedTime.Format(DateTimeFormat)
+	p.CreateUser = input.CreatedBy
+	p.UpdateUser = input.UpdatedBy
 }
 
 type ProcDefFlowNode struct {
@@ -55,6 +62,7 @@ type ProcDefFlowNode struct {
 	PreviousNodeIds   []string `json:"previousNodeIds"`
 	SucceedingNodeIds []string `json:"succeedingNodeIds"`
 	OrderedNo         string   `json:"orderedNo"`
+	SubProcDefId      string   `json:"subProcDefId"`
 }
 
 type ProcPreviewEntityNode struct {
@@ -151,17 +159,19 @@ func (p *ProcPreviewData) AnalyzeRefIds() {
 }
 
 type TaskNodeBindingObj struct {
-	Bound             string `json:"bound"`
-	EntityDataId      string `json:"entityDataId"`
-	EntityTypeId      string `json:"entityTypeId"`
-	NodeDefId         string `json:"nodeDefId"`
-	OrderedNo         string `json:"orderedNo"`
-	Id                string `json:"id"`
-	PackageName       string `json:"packageName"`
-	EntityName        string `json:"entityName"`
-	EntityDisplayName string `json:"entityDisplayName"`
-	NodeInstId        string `json:"nodeInstId"`
-	ProcInstId        string `json:"procInstId"`
+	Bound               string `json:"bound"`
+	EntityDataId        string `json:"entityDataId"`
+	EntityTypeId        string `json:"entityTypeId"`
+	NodeDefId           string `json:"nodeDefId"`
+	OrderedNo           string `json:"orderedNo"`
+	Id                  string `json:"id"`
+	PackageName         string `json:"packageName"`
+	EntityName          string `json:"entityName"`
+	EntityDisplayName   string `json:"entityDisplayName"`
+	NodeInstId          string `json:"nodeInstId"`
+	ProcInstId          string `json:"procInstId"`
+	SubPreviewSessionId string `json:"subPreviewSessionId"`
+	SubProcDefId        string `json:"subProcDefId"`
 }
 
 type ProcInsStartParam struct {
@@ -171,6 +181,8 @@ type ProcInsStartParam struct {
 	ProcDefId         string                `json:"procDefId"`
 	ProcessSessionId  string                `json:"processSessionId"`
 	TaskNodeBinds     []*TaskNodeBindingObj `json:"taskNodeBinds"`
+	ParentInsNodeId   string                `json:"parentInsNodeId"`
+	ParentRunNodeId   string                `json:"parentRunNodeId"`
 }
 
 type ProcInsDetail struct {
@@ -188,6 +200,12 @@ type ProcInsDetail struct {
 	TaskNodeInstances []*ProcInsNodeDetail `json:"taskNodeInstances"`
 	Version           string               `json:"version"`
 	NodeLinks         []*ProcDefNodeLink   `json:"nodeLinks"`
+	ParentProcIns     *ParentProcInsObj    `json:"parentProcIns"`
+	UpdatedBy         string               `json:"updatedBy"`
+	UpdatedTime       string               `json:"updatedTime"`
+	ScheduleJobName   string               `json:"scheduleJobName"`
+	SubProc           bool                 `json:"subProc"`
+	DisplayStatus     string               `json:"displayStatus"`
 }
 
 type ProcInsNodeDetail struct {
@@ -208,6 +226,7 @@ type ProcInsNodeDetail struct {
 	SucceedingNodeIds   []string `json:"succeedingNodeIds"`
 	DynamicBind         int      `json:"dynamicBind"`
 	DynamicBindNodeName string   `json:"dynamicBindNodeName"`
+	AllowContinue       bool     `json:"allowContinue"`
 }
 
 type ProcCallPluginServiceFuncParam struct {
@@ -474,6 +493,7 @@ type QueryProcPageParam struct {
 	Operator          string    `json:"operator"`
 	EntityDisplayName string    `json:"entityDisplayName"`
 	ProcDefId         string    `json:"procDefId"`
+	SubProc           string    `json:"subProc"`
 }
 
 type QueryProcPageResponse struct {
@@ -538,4 +558,27 @@ type ProcStartEventResultData struct {
 	ProcInstId        string                      `json:"procInstId"`
 	Status            string                      `json:"status"`
 	TaskNodeInstances []*ProcStartEventResultData `json:"taskNodeInstances"`
+}
+
+type ProcContextSubProcRow struct {
+	EntityTypeId string    `xorm:"entity_type_id"`
+	EntityDataId string    `xorm:"entity_data_id"`
+	ProcInsId    string    `xorm:"proc_ins_id"`
+	ProcDefId    string    `xorm:"proc_def_id"`
+	ProcDefName  string    `xorm:"proc_def_name"`
+	CreatedTime  time.Time `xorm:"created_time"`
+	Version      string    `xorm:"version"`
+	Status       string    `xorm:"status"`
+	ErrorMessage string    `xorm:"error_message"`
+}
+
+type SubProcDefListParam struct {
+	EntityExpr string `json:"entityExpr"`
+}
+
+type ParentProcInsObj struct {
+	Id          string `json:"-" xorm:"id"`
+	ProcInsId   string `json:"procInsId" xorm:"proc_ins_id"`
+	ProcDefName string `json:"procDefName" xorm:"proc_def_name"`
+	Version     string `json:"version" xorm:"version"`
 }
