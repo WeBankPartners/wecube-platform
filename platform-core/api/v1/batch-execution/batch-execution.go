@@ -589,8 +589,12 @@ func GetSeed(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
 		log.Logger.Error(e.(string))
 	})
-
-	md5sum := cipher.Md5Encode(models.Config.EncryptSeed)
-	middleware.ReturnData(c, md5sum[0:16])
-	return
+	result, err := database.GetEncryptSeed(c)
+	md5sum := cipher.Md5Encode(result)
+	result = md5sum[0:16]
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
 }

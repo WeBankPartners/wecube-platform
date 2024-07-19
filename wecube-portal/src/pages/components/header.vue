@@ -1,5 +1,21 @@
 <template>
-  <div>
+  <div class="platform-header">
+    <div v-if="loadPlugin.isShow" class="plugin-load">
+      <div class="plugin-load-header">
+        <Icon type="ios-alert-outline" size="32" color="#2d8cf0" />
+        <div style="position: relative; display: inline-block; bottom: 4px">
+          {{ $t('notification_desc') }}({{ loadPlugin.finnishNumber }}/{{ loadPlugin.totalNumber }})
+        </div>
+        <Icon
+          type="ios-close"
+          size="32"
+          @click="loadPlugin.isShow = false"
+          class="plugin-load-close-btn"
+          color="#999"
+        />
+      </div>
+      <div class="current-plugin">{{ loadPlugin.currentName }}</div>
+    </div>
     <Header>
       <div class="menus">
         <Menu mode="horizontal" theme="dark">
@@ -141,8 +157,10 @@ import {
   getAllPluginPackageResourceFiles,
   getApplicationVersion,
   changePassword,
-  getProcessableList
+  getProcessableList,
+  getInputParamsEncryptKey
 } from '@/api/server.js'
+import CryptoJS from 'crypto-js'
 import { getChildRouters } from '../util/router.js'
 import { MENUS } from '../../const/menus.js'
 export default {
@@ -179,7 +197,15 @@ export default {
         confirmPassword: [{ required: true, message: 'Confirm Password cannot be empty', trigger: 'blur' }]
       },
       pendingCount: 0, // 待审批数量
-      timer: null
+      timer: null,
+      loadPlugin: {
+        // 插件加载过程显示控制
+        isShow: false, // 是否显示
+        totalNumber: 0, // 总数
+        finnishNumber: 0, // 完成数量
+        currentName: '' // 当前加载的插件名称
+      },
+      encryptKey: ''
     }
   },
   methods: {
@@ -205,11 +231,29 @@ export default {
     showChangePassword () {
       this.changePassword = true
     },
+    async getInputParamsEncryptKey () {
+      const { status, data } = await getInputParamsEncryptKey()
+      if (status === 'OK') {
+        this.encryptKey = data
+      }
+    },
     okChangePassword () {
       this.$refs['formValidate'].validate(async valid => {
         if (valid) {
           if (this.formValidate.newPassword === this.formValidate.confirmPassword) {
-            const { status } = await changePassword(this.formValidate)
+            await this.getInputParamsEncryptKey()
+            const key = CryptoJS.enc.Utf8.parse(this.encryptKey)
+            const config = {
+              iv: CryptoJS.enc.Utf8.parse(Math.trunc(new Date() / 100000) * 100000000),
+              mode: CryptoJS.mode.CBC
+            }
+            const { originalPassword, newPassword } = this.formValidate
+            const encryptParams = {
+              originalPassword: CryptoJS.AES.encrypt(originalPassword, key, config).toString(),
+              newPassword: CryptoJS.AES.encrypt(newPassword, key, config).toString(),
+              confirmPassword: CryptoJS.AES.encrypt(newPassword, key, config).toString()
+            }
+            const { status } = await changePassword(encryptParams)
             if (status === 'OK') {
               this.$Message.success('Success !')
               this.changePassword = false
@@ -305,9 +349,6 @@ export default {
         //   { relatedPath: 'http://localhost:8888/js/app.e4cd4d03.js ' },
         //   { relatedPath: 'http://localhost:8888/css/app.f724c7a4.css' }
         // ]
-        this.$Notice.info({
-          title: this.$t('notification_desc')
-        })
         const eleContain = document.getElementsByTagName('body')
         let script = {}
         data.forEach(file => {
@@ -326,6 +367,8 @@ export default {
             eleContain[0].appendChild(contains)
           }
         })
+        this.loadPlugin.totalNumber = Object.keys(script).length
+        this.loadPlugin.isShow = true
         Object.keys(script).forEach(key => {
           if (script[key].readyState) {
             // IE
@@ -338,9 +381,11 @@ export default {
             // Non IE
             script[key].onload = () => {
               setTimeout(() => {
-                this.$Notice.success({
-                  title: `${key} ${this.$t('plugin_load')}`
-                })
+                this.loadPlugin.currentName = `${key} ${this.$t('plugin_load')}`
+                ++this.loadPlugin.finnishNumber
+                if (this.loadPlugin.finnishNumber === this.loadPlugin.totalNumber) {
+                  this.loadPlugin.isShow = false
+                }
               }, 0)
             }
           }
@@ -414,7 +459,12 @@ export default {
   }
 }
 </script>
-
+<style lang="scss">
+.menus .ivu-menu-horizontal .ivu-menu-submenu .ivu-select-dropdown {
+  max-height: none !important;
+  overflow: visible !important;
+}
+</style>
 <style lang="scss" scoped>
 .img-logo {
   height: 20px;
@@ -500,6 +550,37 @@ export default {
         display: flex;
         align-items: center;
       }
+    }
+  }
+
+  .plugin-load {
+    right: 30px;
+    z-index: 100;
+    position: absolute;
+    top: 70px;
+    padding: 16px;
+    border-radius: 4px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+    background: #fff;
+    .plugin-load-header {
+      font-size: 16px;
+      line-height: 19px;
+      margin: 4px;
+      color: #17233d;
+    }
+    .plugin-load-close-btn {
+      position: relative;
+      bottom: 18px;
+      left: 18px;
+      cursor: pointer;
+    }
+    .current-plugin {
+      font-size: 14px;
+      color: #515a6e;
+      margin: 4px;
+      text-align: justify;
+      margin-left: 42px;
+      line-height: 1.5;
     }
   }
 }

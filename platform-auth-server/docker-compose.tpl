@@ -28,3 +28,4 @@ services:
       - AUTH_PASSWORD=[#AUTH_PASSWORD]
       - SSL=[#SSL]
       - NOTIFY_PERCENT=[#NOTIFY_PERCENT]
+      - ENCRYPT_SEED=[#ENCRYPT_SEED]
