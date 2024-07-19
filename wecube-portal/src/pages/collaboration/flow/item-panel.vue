@@ -104,7 +104,6 @@
           <p>{{ $t('decisionNodeFunc') }}</p>
           <p>{{ $t('usage') }}</p>
           <p>{{ $t('decisionNodetip1') }}</p>
-          <p>{{ $t('decisionNodetip2') }}</p>
         </div>
       </Tooltip>
       <!--判断结束-->
