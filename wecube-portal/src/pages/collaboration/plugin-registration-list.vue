@@ -553,6 +553,7 @@ export default {
       }, 180000)
 
       let { status, message } = await removePluginInstance(instanceId)
+      this.allRunningInstances = cloneDeep(this.allRunningInstances).filter(item => item.id !== instanceId)
       this.isSpinShow = false
       clearTimeout(timeId)
       if (status === 'OK') {
