@@ -596,7 +596,7 @@ import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
 import { addEvent, removeEvent } from '@/pages/util/event.js'
-import { debounce } from '@/const/util'
+import { debounce, deepClone } from '@/const/util'
 export default {
   components: {
     JsonViewer,
@@ -1522,7 +1522,10 @@ export default {
     },
     async flowNodesTargetModelConfirm () {
       let obj = {}
-      this.selectedFlowNodesModelData.forEach(_ => {
+      let selectObj = {}
+      // 表格数据按节点分组
+      let tableAllFlowNodesModelData = deepClone(this.allFlowNodesModelData)
+      tableAllFlowNodesModelData.forEach(_ => {
         if (!obj[_.nodeDefId]) {
           obj[_.nodeDefId] = []
           obj[_.nodeDefId].push(_)
@@ -1530,10 +1533,26 @@ export default {
           obj[_.nodeDefId].push(_)
         }
       })
+      // 表格勾选数据按节点分组
+      this.selectedFlowNodesModelData.forEach(_ => {
+        if (!selectObj[_.nodeDefId]) {
+          selectObj[_.nodeDefId] = []
+          selectObj[_.nodeDefId].push(_)
+        } else {
+          selectObj[_.nodeDefId].push(_)
+        }
+      })
       let promiseArray = []
       Object.keys(obj).forEach(key => {
         // 解决有些勾上的数据bound为N的bug
-        obj[key].forEach(item => (item.bound = 'Y'))
+        obj[key].forEach(item => {
+          const selectNodeDefIds = (selectObj[key] && selectObj[key].map(i => i.id)) || []
+          if (selectNodeDefIds.includes(item.id)) {
+            item.bound = 'Y'
+          } else {
+            item.bound = 'N'
+          }
+        })
         promiseArray.push(setDataByNodeDefIdAndProcessSessionId(key, this.processSessionId, obj[key]))
       })
       await Promise.all(promiseArray)
