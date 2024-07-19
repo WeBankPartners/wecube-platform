@@ -171,5 +171,9 @@
   "proc_status_operation_error": {
     "code": 20000038,
     "message": "Operation Failed: The current process status has been updated, please refresh and try again"
+  },
+  "schedule_operation_error": {
+    "code": 20000039,
+    "message": "Operation Failed: The current task status has been updated, please refresh and try again"
   }
 }
