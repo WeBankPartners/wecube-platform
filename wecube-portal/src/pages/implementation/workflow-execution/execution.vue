@@ -251,7 +251,8 @@
       class="json-viewer"
     >
       <template slot="content">
-        <HeaderTitle title="节点操作">
+        <!--节点操作-->
+        <HeaderTitle :title="$t('fe_nodeOperate')">
           <div ref="action" style="padding-left: 20px">
             <div
               v-if="
@@ -263,12 +264,12 @@
               "
               class="no-data"
             >
-              暂无操作
+              {{ $t('fe_noOperate') }}
             </div>
             <template v-else>
               <!--高危检测-->
               <div v-if="['Risky'].includes(currentNodeStatus)">
-                <span>当前节点有高危指令，流程等待中，有操作风险，详情请查看日志，如果确认继续执行点击下方按钮。</span>
+                <span>{{ $t('fe_riskyTips') }}</span>
                 <Button
                   style="background-color: #bf22e0; color: white; margin-top: 10px"
                   @click="workFlowActionHandler('risky')"
@@ -338,13 +339,15 @@
             </template>
           </div>
         </HeaderTitle>
-        <HeaderTitle title="节点信息">
+        <!--节点信息-->
+        <HeaderTitle :title="$t('fe_nodeInfo')">
           <template v-if="nodeDetailResponseHeader && Object.keys(nodeDetailResponseHeader).length > 0">
             <json-viewer :value="nodeDetailResponseHeader" :expand-depth="5"></json-viewer>
           </template>
-          <div v-else class="no-data">暂无数据</div>
+          <div v-else class="no-data">{{ $t('noData') }}</div>
         </HeaderTitle>
-        <HeaderTitle title="API调用">
+        <!--API调用-->
+        <HeaderTitle :title="$t('fe_apiInfo')">
           <Table :columns="nodeDetailColumns" tooltip="true" :data="nodeDetailIO"> </Table>
         </HeaderTitle>
       </template>
@@ -994,7 +997,7 @@ export default {
       subProcId: '', // 新建执行预览子编排从链接上传过来的子编排ID
       noActionFlag: false, // 节点无操作按钮标识
       subProcBindParentFlag: false, // 子编排是否绑定主编排标识
-      from: this.$route.query.from // 查看页面来源(create新增页 sub子编排预览 main主编排预览 normal普通执行列表查看 time定时执行列表查看 detail定时新建详情查看)
+      from: this.$route.query.from // 查看页面来源(create新增页 sub子编排预览 main主编排预览 normal普通执行列表查看 time定时执行列表查看)
     }
   },
   computed: {
@@ -2245,7 +2248,13 @@ export default {
         const inProcessNode = data.taskNodeInstances.find(
           node => ['decision'].includes(node.nodeType) && node.status === 'InProgress'
         )
-        if (this.currentInstanceStatusForNodeOperation !== 'Stop' && !this.hasExecuteBranchVisible && inProcessNode) {
+        if (
+          !['Stop', 'Completed', 'InternallyTerminated', 'Faulted'].includes(
+            this.currentInstanceStatusForNodeOperation
+          ) &&
+          !this.hasExecuteBranchVisible &&
+          inProcessNode
+        ) {
           this.retryHandler(null, inProcessNode.nodeId)
         }
         if (['Completed', 'InternallyTerminated', 'Faulted'].includes(data.status)) {

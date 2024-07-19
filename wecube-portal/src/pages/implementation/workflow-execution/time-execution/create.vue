@@ -206,9 +206,9 @@ export default {
           label: this.$t('table_created_date'),
           initDateType: 1,
           dateRange: [
-            { label: '近3个月', type: 'month', value: 3, dateType: 1 },
-            { label: '近半年', type: 'month', value: 6, dateType: 2 },
-            { label: '近一年', type: 'year', value: 1, dateType: 3 },
+            { label: this.$t('fe_recent3Months'), type: 'month', value: 3, dateType: 1 },
+            { label: this.$t('fe_recentHalfYear'), type: 'month', value: 6, dateType: 2 },
+            { label: this.$t('fe_recentOneYear'), type: 'year', value: 1, dateType: 3 },
             { label: this.$t('be_auto'), dateType: 4 } // 自定义
           ],
           labelWidth: 110,
@@ -251,9 +251,9 @@ export default {
           label: this.$t('execute_date'),
           initDateType: 4,
           dateRange: [
-            { label: '近3个月', type: 'month', value: 3, dateType: 1 },
-            { label: '近半年', type: 'month', value: 6, dateType: 2 },
-            { label: '近一年', type: 'year', value: 1, dateType: 3 },
+            { label: this.$t('fe_recent3Months'), type: 'month', value: 3, dateType: 1 },
+            { label: this.$t('fe_recentHalfYear'), type: 'month', value: 6, dateType: 2 },
+            { label: this.$t('fe_recentOneYear'), type: 'year', value: 1, dateType: 3 },
             { label: this.$t('be_auto'), dateType: 4 } // 自定义
           ],
           labelWidth: 110,
@@ -318,7 +318,7 @@ export default {
             const find = this.timeConfig.scheduleModeOptions.find(item => item.value === params.row.scheduleMode)
             return (
               <div>{`${find.label}${params.row.scheduleMode === 'Weekly' ? weekMap[schedule] : schedule}${
-                params.row.scheduleMode === 'Monthly' ? '号' : ''
+                params.row.scheduleMode === 'Monthly' ? this.$t('fe_dayly') : ''
               }`}</div>
             )
           }
@@ -638,8 +638,9 @@ export default {
             }
           }
         },
+        // 执行信息
         {
-          title: '执行信息',
+          title: this.$t('fe_executionInfo'),
           key: 'errorMsg',
           render: (h, params) => {
             return <span>{params.row.errorMsg || '-'}</span>
@@ -740,6 +741,11 @@ export default {
     },
     // 获取执行记录
     remoteProcessInstances: debounce(async function (query) {
+      function containsDateTime (str) {
+        const regex = /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/
+        return regex.test(str)
+      }
+      if (containsDateTime(query)) return // 解决下拉框勾选时，用全部名称搜索，导致结果为空的问题
       const params = {
         params: {
           withCronIns: 'no', // no普通执行历史 yes定时执行历史
@@ -811,7 +817,7 @@ export default {
       }
     },
     async setTimedExecution () {
-      this.timeConfig.params.name = `定时任务${new Date().getTime()}`
+      this.timeConfig.params.name = `${this.$t('fe_timeTask')}${new Date().getTime()}`
       this.timeConfig.params.selectedFlowInstance = ''
       this.timeConfig.params.scheduleMode = 'Monthly'
       this.timeConfig.params.time = '00:00:00'
@@ -836,7 +842,7 @@ export default {
         path: '/implementation/workflow-execution/view-execution',
         query: {
           id: row.procInstId,
-          from: 'detail'
+          from: 'time'
         }
       })
     },

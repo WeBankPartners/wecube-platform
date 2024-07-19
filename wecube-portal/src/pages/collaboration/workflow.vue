@@ -219,9 +219,9 @@ export default {
           label: this.$t('table_created_date'),
           initDateType: 1,
           dateRange: [
-            { label: '近3个月', type: 'month', value: 3, dateType: 1 },
-            { label: '近半年', type: 'month', value: 6, dateType: 2 },
-            { label: '近一年', type: 'year', value: 1, dateType: 3 },
+            { label: this.$t('fe_recent3Months'), type: 'month', value: 3, dateType: 1 },
+            { label: this.$t('fe_recentHalfYear'), type: 'month', value: 6, dateType: 2 },
+            { label: this.$t('fe_recentOneYear'), type: 'year', value: 1, dateType: 3 },
             { label: this.$t('be_auto'), dateType: 4 } // 自定义
           ],
           labelWidth: 110,
@@ -361,7 +361,7 @@ export default {
           key: 'conflictCheck',
           width: 90,
           render: (h, params) => {
-            const res = params.row.conflictCheck ? '是' : '否'
+            const res = params.row.conflictCheck ? this.$t('yes') : this.$t('no')
             return <span>{res}</span>
           }
         },
@@ -381,6 +381,11 @@ export default {
           title: this.$t('createdBy'),
           key: 'createdBy',
           width: 90
+        },
+        {
+          title: this.$t('table_created_date'),
+          key: 'createdTime',
+          width: 130
         },
         {
           title: this.$t('updatedBy'),
@@ -1029,7 +1034,7 @@ export default {
         loading: true,
         render: () => {
           if (!total) {
-            return <span>{`确认禁用当前编排？${this.$t('confirmBatchDisableWarn')}`}</span>
+            return <span>{`${this.$t('fe_confirmDisabledFlow')}${this.$t('confirmBatchDisableWarn')}`}</span>
           } else {
             return <span>{`禁用当前子编排会影响【${nameStr}】等${total}个主编排，确认禁用吗？`}</span>
           }
@@ -1059,7 +1064,7 @@ export default {
     enabledSingleFlow (row) {
       this.$Modal.confirm({
         title: this.$t('enable'),
-        content: '确认启用该编排？',
+        content: this.$t('fe_confirmEnableFlow'),
         onOk: async () => {
           const data = {
             procDefIds: [row.id],
