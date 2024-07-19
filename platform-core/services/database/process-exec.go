@@ -910,7 +910,7 @@ func getReplaceOidMap(inputList []string, oidMap map[string]string) (outputList 
 	return
 }
 
-func ListProcInstance(ctx context.Context, userRoles []string, withCronIns, withSubProc, mgmtRole, search string) (result []*models.ProcInsDetail, err error) {
+func ListProcInstance(ctx context.Context, userRoles []string, withCronIns, withSubProc, mgmtRole, search, status string) (result []*models.ProcInsDetail, err error) {
 	var procInsRows []*models.ProcInsWithVersion
 	var filterSql string
 	filterParam := []interface{}{}
@@ -921,6 +921,10 @@ func ListProcInstance(ctx context.Context, userRoles []string, withCronIns, with
 	}
 	if withSubProc == "no" {
 		filterSql += " and t2.sub_proc=0 "
+	}
+	if status != "" {
+		filterSql += " and t1.status=? "
+		filterParam = append(filterParam, status)
 	}
 	if search != "" {
 		filterSql += " and (t1.id like ? or t1.proc_def_name like ? or t1.entity_data_name like ?) "
