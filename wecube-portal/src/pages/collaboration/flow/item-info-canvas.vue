@@ -33,6 +33,12 @@
         <FormItem :label="$t('version')" prop="version">
           <InputNumber :min="1" disabled v-model="itemCustomInfo.version" style="width: 100%"></InputNumber>
         </FormItem>
+        <FormItem :label="$t('workflow_type')" prop="subProc">
+          <RadioGroup v-model="itemCustomInfo.subProc" @on-change="paramsChanged">
+            <Radio :disabled="itemCustomInfo.version > 1" :label="0">{{ $t('main_workflow') }}</Radio>
+            <Radio :disabled="itemCustomInfo.version > 1" :label="1">{{ $t('child_workflow') }}</Radio>
+          </RadioGroup>
+        </FormItem>
         <FormItem>
           <label slot="label">
             <span style="color: red">*</span>
@@ -101,6 +107,7 @@ export default {
         id: '',
         label: '', // 编排名称
         version: 1, // 版本
+        subProc: 0,
         rootEntity: '', // 操作对象
         scene: '', // 使用场景，请求、发布、其他
         authPlugins: [], // 授权插件列表，taskman/monitor
@@ -116,6 +123,14 @@ export default {
       oriRootEntity: '' // 缓存编排最初对象类型，在修改时提示
     }
   },
+  watch: {
+    'itemCustomInfo.subProc': {
+      handler (val) {
+        this.$eventBusP.$emit('subProc', val)
+      },
+      immediate: true
+    }
+  },
   mounted () {},
   methods: {
     async showItemInfo (data, editFlow) {
@@ -128,6 +143,7 @@ export default {
         id: '',
         label: '', // 编排名称
         version: 1, // 版本
+        subProc: 0,
         rootEntity: '', // 操作对象
         scene: '', // 使用场景，请求、发布、其他
         authPlugins: [], // 授权插件列表，taskman/monitor
@@ -146,11 +162,13 @@ export default {
         this.itemCustomInfo[k] = tmpData[k]
       })
       this.itemCustomInfo.version = Number(this.itemCustomInfo.version.split('v')[1])
+      this.itemCustomInfo.subProc = Number(this.itemCustomInfo.subProc)
     },
     saveItem () {
       let finalData = JSON.parse(JSON.stringify(this.itemCustomInfo))
       finalData.version += ''
       finalData.name = finalData.label
+      finalData.subProc = Boolean(finalData.subProc)
       this.$emit('sendItemInfo', finalData)
     },
     isSaveBtnActive () {
