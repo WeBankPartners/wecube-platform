@@ -71,7 +71,7 @@ func StartProcSchedule(c *gin.Context) {
 	for _, v := range param {
 		scStatus := database.GetProcScheduleConfigStatus(c, v.Id)
 		if scStatus != models.ScheduleStatusStop {
-			err = exterror.New().ProcStatusOperationError
+			err = exterror.New().ScheduleOperationError
 			//err = fmt.Errorf("Config status:%s illegal ", scStatus)
 			break
 		}
@@ -96,7 +96,7 @@ func StopProcSchedule(c *gin.Context) {
 	for _, v := range param {
 		scStatus := database.GetProcScheduleConfigStatus(c, v.Id)
 		if scStatus != models.ScheduleStatusReady {
-			err = exterror.New().ProcStatusOperationError
+			err = exterror.New().ScheduleOperationError
 			//err = fmt.Errorf("Config status:%s illegal ", scStatus)
 			break
 		}
@@ -121,7 +121,7 @@ func DeleteProcSchedule(c *gin.Context) {
 	for _, v := range param {
 		scStatus := database.GetProcScheduleConfigStatus(c, v.Id)
 		if scStatus == models.ScheduleStatusDelete {
-			err = exterror.New().ProcStatusOperationError
+			err = exterror.New().ScheduleOperationError
 			//err = fmt.Errorf("Config status:%s illegal ", scStatus)
 			break
 		}
