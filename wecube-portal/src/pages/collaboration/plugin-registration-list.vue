@@ -2,7 +2,7 @@
   <div>
     <Spin fix v-if="isSpinShow" style="z-index: 1000000">
       <Icon type="ios-loading" :size="25" class="spin-icon-load"></Icon>
-      <div style="font-size: 20px">{{ $t('p_instance_creation') }}</div>
+      <div style="font-size: 20px">{{ spinContent }}</div>
     </Spin>
     <div class="search-top">
       <div class="search-top-left">
@@ -64,8 +64,8 @@
       </div>
     </div>
     <div class="card-content">
-      <div v-if="!dataList || dataList.length === 0" class="no-card-tips">{{ $t('noData') }}</div>
-      <Row class="all-card-item" :gutter="8" v-else>
+      <!-- <div v-if="!dataList || dataList.length === 0" class="no-card-tips">{{ $t('noData') }}</div> -->
+      <Row class="all-card-item" :gutter="8">
         <Col v-for="(item, index) in dataList" :span="8" :key="index" class="panal-list">
           <Card class="panal-list-card">
             <div slot="title" class="panal-title">
@@ -411,7 +411,7 @@ export default {
           key: 'name'
         },
         {
-          title: this.$t('p_plugin_name'),
+          title: this.$t('version'),
           width: 130,
           key: 'version'
         },
@@ -425,7 +425,8 @@ export default {
           key: 'updatedTime'
         }
       ],
-      isSpinShow: false
+      isSpinShow: false,
+      spinContent: ''
     }
   },
   async mounted () {
@@ -542,7 +543,17 @@ export default {
       }
     },
     async destroyInstance (instanceId) {
+      this.isSpinShow = true
+      this.spinContent = this.$t('p_instance_destroy')
+      const timeId = setTimeout(() => {
+        this.isSpinShow = false
+        this.timeId = null
+        this.$Message.error(this.$t('p_instance_destroy_failed'))
+      }, 180000)
+
       let { status, message } = await removePluginInstance(instanceId)
+      this.isSpinShow = false
+      clearTimeout(timeId)
       if (status === 'OK') {
         this.$Notice.success({
           title: 'Success',
@@ -565,6 +576,7 @@ export default {
     },
     async createInstanceByIpPort (ip, port) {
       this.isSpinShow = true
+      this.spinContent = this.$t('p_instance_creation')
       const timeId = setTimeout(() => {
         this.isSpinShow = false
         this.timeId = null
