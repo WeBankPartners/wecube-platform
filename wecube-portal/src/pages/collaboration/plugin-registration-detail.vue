@@ -182,7 +182,7 @@
     </div>
     <div class="footer-button">
       <Dropdown placement="bottom-start" @on-click="onInheritedVersionSelected">
-        <Button v-if="currentStep === 2" type="info" class="mr-3" :disabled="!isServiceActionNotEmpty">
+        <Button v-if="currentStep === 2" type="info" class="mr-3">
           {{ $t('p_inherited_version') }}
           <Icon type="ios-arrow-down"></Icon>
         </Button>
@@ -204,7 +204,7 @@
         :on-error="onError"
         accept=".xml"
       >
-        <Button v-if="currentStep === 2" class="mr-3" type="info" :disabled="!isServiceActionNotEmpty">
+        <Button v-if="currentStep === 2" class="mr-3" type="info">
           {{ $t('p_importing_configuration') }}
         </Button>
       </Upload>
