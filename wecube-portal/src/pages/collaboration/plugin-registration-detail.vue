@@ -2,7 +2,7 @@
   <div class="all-page">
     <Spin fix v-if="isSpinShow" style="z-index: 1000000">
       <Icon type="ios-loading" :size="25" class="spin-icon-load"></Icon>
-      <div style="font-size: 20px">{{ $t('p_instance_creation') }}</div>
+      <div style="font-size: 20px">{{ spinContent }}</div>
     </Spin>
     <div class="register-content">
       <div class="content-header">
@@ -404,10 +404,10 @@ export default {
         4: this.$t('p_fifth_step_title')
       },
       isJustShowRightContent: false,
-      isServiceListNotEmpty: false, // 整个注册数组都不是空
       isServiceActionNotEmpty: false, // 整个注册数字中只要有一个item.pluginConfigDtoList不为空数组则为true
       isSpinShow: false,
-      selectedVersion: ''
+      selectedVersion: '',
+      spinContent: ''
     }
   },
   created () {
@@ -453,10 +453,7 @@ export default {
         this.inheritedVersionOptionList = []
         this.$Message.error(res.message)
       }
-
-      const hostList = await getAvailableContainerHosts()
-      this.availableHostList = hostList.data ? hostList.data : []
-
+      this.availableHostList = (await getAvailableContainerHosts()).data || []
       const { status, data } = await queryStorageFilesByPackageId(this.pluginId)
       if (status === 'OK') {
         this.storageServiceData = data.map(_ => {
@@ -591,6 +588,7 @@ export default {
     },
     async createInstanceByIpPort (ip, port) {
       this.isSpinShow = true
+      this.spinContent = this.$t('p_instance_creation')
       const timeId = setTimeout(() => {
         this.isSpinShow = false
         this.timeId = null
@@ -607,6 +605,7 @@ export default {
         const index = this.allowCreationIpPort.findIndex(item => item.port === port)
         this.allowCreationIpPort.splice(index, 1)
         this.getAvailableInstances(this.pluginId)
+        this.selectedIp = []
       } else {
         this.isSpinShow = false
         clearTimeout(timeId)
@@ -625,6 +624,7 @@ export default {
             }
           }
         })
+        this.availableHostList = (await getAvailableContainerHosts()).data || []
         this.availableHostList = cloneDeep(this.availableHostList).filter(item => {
           const findItem = find(this.allInstances, {
             hostIp: item
@@ -634,7 +634,16 @@ export default {
       }
     },
     async removePlugin (instanceId) {
+      this.isSpinShow = true
+      this.spinContent = this.$t('p_instance_destroy')
+      const timeId = setTimeout(() => {
+        this.isSpinShow = false
+        this.timeId = null
+        this.$Message.error(this.$t('p_instance_destroy_failed'))
+      }, 180000)
       let { status, message } = await removePluginInstance(instanceId)
+      this.isSpinShow = false
+      clearTimeout(timeId)
       if (status === 'OK') {
         this.$Notice.success({
           title: 'Success',
@@ -696,18 +705,18 @@ export default {
     reloadPage () {
       document.location.reload()
     },
-    onServiceListGet (data) {
+    onServiceListGet (data = []) {
       if (!isEmpty(data)) {
-        this.isServiceListNotEmpty = true
         this.isServiceActionNotEmpty = false
         for (let i = 0; i < data.length; i++) {
-          if (!isEmpty(data[i].pluginConfigDtoList)) {
-            this.isServiceActionNotEmpty = true
-            break
+          for (let j = 0; j < data[i].pluginConfigDtoList.length; j++) {
+            if (data[i].pluginConfigDtoList[j].registerName) {
+              this.isServiceActionNotEmpty = true
+              return
+            }
           }
         }
       } else {
-        this.isServiceListNotEmpty = false
         this.isServiceActionNotEmpty = false
       }
     },
