@@ -1172,7 +1172,7 @@ export default {
   methods: {
     handleBack () {
       if (this.isEnqueryPage) {
-        if (['create', 'main', 'normal'].includes(this.$route.query.from)) {
+        if (['create', 'main', 'sub', 'normal'].includes(this.$route.query.from)) {
           return this.$router.push({
             path: '/implementation/workflow-execution/normal-history',
             query: {

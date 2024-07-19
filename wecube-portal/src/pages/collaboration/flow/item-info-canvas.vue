@@ -99,6 +99,12 @@ export default {
   components: {
     FilterRules
   },
+  props: {
+    subProc: {
+      type: String,
+      default: 'main'
+    }
+  },
   data () {
     return {
       editFlow: true, // 在查看时隐藏按钮
@@ -107,7 +113,7 @@ export default {
         id: '',
         label: '', // 编排名称
         version: 1, // 版本
-        subProc: 0,
+        subProc: this.subProc === 'main' ? 0 : 1,
         rootEntity: '', // 操作对象
         scene: '', // 使用场景，请求、发布、其他
         authPlugins: [], // 授权插件列表，taskman/monitor
@@ -143,7 +149,6 @@ export default {
         id: '',
         label: '', // 编排名称
         version: 1, // 版本
-        subProc: 0,
         rootEntity: '', // 操作对象
         scene: '', // 使用场景，请求、发布、其他
         authPlugins: [], // 授权插件列表，taskman/monitor
