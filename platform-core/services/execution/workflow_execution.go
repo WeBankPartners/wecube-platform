@@ -159,7 +159,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 			}
 		}
 	} else if procDefNode.DynamicBind == 2 {
-		dataBindings, err = dynamicBindNodeInRuntime(ctx, procInsNode, procDefNode)
+		dataBindings, err = DynamicBindNodeInRuntime(ctx, procInsNode, procDefNode)
 		if err != nil {
 			err = fmt.Errorf("get runtime dynamic bind data fail,%s ", err.Error())
 			return
@@ -884,7 +884,7 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 			continue
 		}
 		nodeExpressionList := []string{}
-		if node.NodeType == "data" {
+		if node.NodeType == models.JobDataType {
 			tmpExprObjList, tmpErr := database.GetProcDataNodeExpression(node.RoutineExpression)
 			if tmpErr != nil {
 				err = tmpErr
@@ -947,6 +947,15 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 					CreatedBy:      operator,
 					CreatedTime:    nowTime,
 				}
+				// 子编排试算
+				if node.NodeType == models.JobSubProcType && node.SubProcDefId != "" {
+					subPreviewResult, subPreviewErr := BuildProcPreviewData(c, node.SubProcDefId, tmpPreviewRow.EntityDataId, operator)
+					if subPreviewErr != nil {
+						err = fmt.Errorf("build sub process preview data fail,node:%s dataId:%s err:%s ", node.NodeName, tmpPreviewRow.EntityDataId, subPreviewErr.Error())
+						return
+					}
+					tmpPreviewRow.SubSessionId = subPreviewResult.ProcessSessionId
+				}
 				previewRows = append(previewRows, &tmpPreviewRow)
 			}
 			if existEntityNodeObj, ok := entityNodeMap[nodeDataObj.Id]; !ok {
@@ -994,7 +1003,7 @@ func QueryProcPreviewNodeData(ctx context.Context, param *models.QueryExpression
 	return
 }
 
-func dynamicBindNodeInRuntime(ctx context.Context, procInsNode *models.ProcInsNode, procDefNode *models.ProcDefNode) (dataBinding []*models.ProcDataBinding, err error) {
+func DynamicBindNodeInRuntime(ctx context.Context, procInsNode *models.ProcInsNode, procDefNode *models.ProcDefNode) (dataBinding []*models.ProcDataBinding, err error) {
 	interfaceFilters := []*models.Filter{}
 	if procDefNode.ServiceName != "" {
 		interfaceObj, getInterfaceErr := database.GetSimpleLastPluginInterface(ctx, procDefNode.ServiceName)
