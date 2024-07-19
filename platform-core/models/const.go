@@ -43,6 +43,8 @@ const (
 	TableNamePluginConfigInterfaces          = "plugin_config_interfaces"
 	TableNamePluginConfigInterfaceParameters = "plugin_config_interface_parameters"
 	TableNameSystemVariables                 = "system_variables"
+	TableNamePluginObjectMeta                = "plugin_object_meta"
+	TableNamePluginObjectPropertyMeta        = "plugin_object_property_meta"
 
 	// batch execution
 	BatchExecTemplateStatusAvailable    = "available"
@@ -78,12 +80,15 @@ const (
 	SysVarMailPassword = "PLATFORM_MAIL_PWD"
 	SysVarMailSSL      = "PLATFORM_MAIL_SSL"
 	SysVarSystemSource = "system"
+	SysVarEncryptSeed  = "ENCRYPT_SEED"
 
 	// proc event status
 	ProcEventStatusCreated = "created"
 	ProcEventStatusPending = "pending"
 	ProcEventStatusDone    = "done"
 	ProcEventStatusFail    = "fail"
+
+	SensitiveDisplay = "******"
 )
 
 var (

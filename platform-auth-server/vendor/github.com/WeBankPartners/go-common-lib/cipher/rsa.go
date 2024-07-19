@@ -11,8 +11,10 @@ import (
 	"strings"
 )
 
-func DecryptRsa(inputString, rsaPemContent string) (string, error) {
-	if !strings.HasPrefix(strings.ToLower(inputString), "rsa@") {
+const rsaPrefix = "RSA@"
+
+func DecryptRsa(inputString, privateKeyContent string) (string, error) {
+	if !strings.HasPrefix(inputString, rsaPrefix) {
 		return inputString, nil
 	}
 	inputString = inputString[4:]
@@ -22,7 +24,7 @@ func DecryptRsa(inputString, rsaPemContent string) (string, error) {
 		err = fmt.Errorf("Input string format to base64 fail,%s ", err.Error())
 		return inputString, err
 	}
-	block, _ := pem.Decode([]byte(rsaPemContent))
+	block, _ := pem.Decode([]byte(privateKeyContent))
 	privateKeyInterface, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
 		err = fmt.Errorf("Parse private key fail,%s ", err.Error())
@@ -35,6 +37,24 @@ func DecryptRsa(inputString, rsaPemContent string) (string, error) {
 		return result, err
 	}
 	result = string(decodeBytes)
+	return result, nil
+}
+
+func EncryptRsa(inputString, publicKeyContent string) (string, error) {
+	var result string
+	block, _ := pem.Decode([]byte(publicKeyContent))
+	privateKeyInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		err = fmt.Errorf("Parse public key fail,%s ", err.Error())
+		return result, err
+	}
+	publicKey := privateKeyInterface.(*rsa.PublicKey)
+	encodeBytes, err := rsa.EncryptPKCS1v15(rand.Reader, publicKey, []byte(inputString))
+	if err != nil {
+		err = fmt.Errorf("Encode fail,%s ", err.Error())
+		return result, err
+	}
+	result = rsaPrefix + base64.StdEncoding.EncodeToString(encodeBytes)
 	return result, nil
 }
 

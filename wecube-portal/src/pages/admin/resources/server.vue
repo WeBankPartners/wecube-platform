@@ -23,8 +23,10 @@ import {
   createServers,
   updateServers,
   productSerial,
-  deleteServers
+  deleteServers,
+  getInputParamsEncryptKey
 } from '@/api/server.js'
+import CryptoJS from 'crypto-js'
 import { outerActions } from '@/const/actions.js'
 import { formatData } from '../../util/format.js'
 
@@ -199,7 +201,8 @@ export default {
           inputType: 'select',
           placeholder: this.$t('table_type')
         }
-      ]
+      ],
+      encryptKey: ''
     }
   },
   methods: {
@@ -338,6 +341,12 @@ export default {
         _.props.disabled = _.actionType === 'add'
       })
     },
+    async getInputParamsEncryptKey () {
+      const { status, data } = await getInputParamsEncryptKey()
+      if (status === 'OK') {
+        this.encryptKey = data
+      }
+    },
     async saveHandler (data) {
       const setBtnsStatus = () => {
         this.outerActions.forEach(_ => {
@@ -356,11 +365,17 @@ export default {
       let d = JSON.parse(JSON.stringify(data))
       let addObj = d.find(_ => _.isNewAddedRow)
       let editAry = d.filter(_ => !_.isNewAddedRow)
+      await this.getInputParamsEncryptKey()
+      const key = CryptoJS.enc.Utf8.parse(this.encryptKey)
+      const config = {
+        iv: CryptoJS.enc.Utf8.parse(Math.trunc(new Date() / 100000) * 100000000),
+        mode: CryptoJS.mode.CBC
+      }
       if (addObj) {
         let payload = {
           host: addObj.host,
           isAllocated: addObj.isAllocated === 'true',
-          loginPassword: addObj.loginPassword,
+          loginPassword: CryptoJS.AES.encrypt(addObj.loginPassword, key, config).toString(),
           loginUsername: addObj.loginUsername,
           name: addObj.name,
           port: addObj.port,
@@ -385,7 +400,7 @@ export default {
             id: _.id,
             host: _.host,
             isAllocated: _.isAllocated === 'true',
-            loginPassword: _.loginPassword,
+            loginPassword: CryptoJS.AES.encrypt(_.loginPassword, key, config).toString(),
             loginUsername: _.loginUsername,
             name: _.name,
             port: _.port,

@@ -66,6 +66,7 @@ export default {
       editFlow: true, // 在查看时隐藏按钮
       canRemovedId: '',
       demoFlowId: '',
+      isAdd: this.$route.query.isAdd || 'false',
       isShowGraph: false,
       itemInfoType: '', // canvas、node、edge
       mode: 'drag-shadow-node',
@@ -502,7 +503,7 @@ export default {
           return
         }
 
-        // 分流节点不能连出
+        // 分流节点连出校验
         if (sourceNodeType === 'fork') {
           // 分流节点不能直连异常节点
           if (targertNodeType === 'abnormal') {
@@ -520,6 +521,43 @@ export default {
             )
             return
           }
+          // 分流节点不能直连汇聚节点
+          if (targertNodeType === 'merge') {
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
+            return
+          }
+        }
+
+        // 汇聚节点不能直连分流节点
+        if (sourceNodeType === 'merge') {
+          if (targertNodeType === 'fork') {
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
+            return
+          }
+        }
+
+        // 判断开始不能直连判断结束节点
+        if (sourceNodeType === 'decision') {
+          if (targertNodeType === 'decisionMerge') {
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
+            return
+          }
+        }
+
+        // 判断结束不能直连判断开始节点
+        if (sourceNodeType === 'decisionMerge') {
+          if (targertNodeType === 'decision') {
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
+            return
+          }
         }
 
         if (sourceNodeType === 'start') {
@@ -530,17 +568,17 @@ export default {
             this.$Message.warning(`${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('oneExit')}`)
             return
           }
-          // 开始节点不能直连汇聚节点
-          if (targertNodeType === 'merge') {
-            // this.$Message.warning('开始节点不能直连汇聚节点！')
+          // 开始节点不能直连判断结束节点
+          if (targertNodeType === 'decisionMerge') {
+            // this.$Message.warning('开始节点不能直连判断结束节点！')
             this.$Message.warning(
               `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
             )
             return
           }
-          // 开始节点不能直连分流节点
-          if (targertNodeType === 'fork') {
-            // this.$Message.warning('开始节点不能直连分流节点！')
+          // 开始节点不能直连汇聚节点
+          if (targertNodeType === 'merge') {
+            // this.$Message.warning('开始节点不能直连汇聚节点！')
             this.$Message.warning(
               `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
             )
@@ -588,6 +626,7 @@ export default {
             return
           }
         }
+
         // 异常节点只能连入
         // if (targertNodeType === 'decision') {
         //   if (!['human'].includes(sourceNodeType)) {
@@ -596,7 +635,8 @@ export default {
         //   }
         // }
 
-        if (['data', 'human', 'automatic', 'date', 'timeInterval'].includes(sourceNodeType)) {
+        // 只能有一个出口
+        if (['data', 'human', 'automatic', 'subProc', 'date', 'timeInterval'].includes(sourceNodeType)) {
           const outEdges = source.getOutEdges()
           if (outEdges.length === 1) {
             // this.$Message.warning('该节点只能有一个出口！')
@@ -605,7 +645,8 @@ export default {
           }
         }
 
-        if (['data', 'human', 'automatic', 'date', 'timeInterval'].includes(targertNodeType)) {
+        // 只能有一个入口
+        if (['data', 'human', 'automatic', 'subProc', 'date', 'timeInterval'].includes(targertNodeType)) {
           const inEdges = target.getInEdges()
           if (inEdges.length === 1) {
             this.$Message.warning(`${this.$t('saveFailed')}[${targertNodeName}]${this.$t('oneEntrance')}`)
@@ -627,7 +668,7 @@ export default {
           this.itemInfoType = 'edge'
           const find = this.graph.save().nodes.find(node => node.id === sourceId)
           let isNameRequired = false
-          if (find && find.customAttrs.nodeType === 'decision') {
+          if (find && ['decision', 'decisionMerge'].includes(find.customAttrs.nodeType)) {
             isNameRequired = true
           }
           this.$refs.itemInfoEdgeRef.showItemInfo(model, true, this.editFlow, isNameRequired)
@@ -659,7 +700,7 @@ export default {
           this.itemInfoType = 'edge'
           const find = this.graph.save().nodes.find(node => node.id === model.source)
           let isNameRequired = false
-          if (find && find.customAttrs.nodeType === 'decision') {
+          if (find && ['decision', 'decisionMerge'].includes(find.customAttrs.nodeType)) {
             isNameRequired = true
           }
           this.$refs.itemInfoEdgeRef.showItemInfo(model, false, this.editFlow, isNameRequired)
@@ -921,7 +962,7 @@ export default {
       if (this.canRemovedId) {
         this.graph.updateItem(this.canRemovedId, {
           style: {
-            fill: 'white' // 更新后的节点背景色
+            fill: '#ffffff00' // 更新后的节点背景色, 使用透明色#ffffff00
           }
         })
       }

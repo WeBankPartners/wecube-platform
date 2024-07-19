@@ -14,6 +14,7 @@
           {{ $t('be_plugin_service_no_permission_tip4') }}
         </Alert>
         <Collapse v-model="opendPanel">
+          <!--基础信息-->
           <Panel name="1">
             {{ $t('basicInfo') }}
             <template slot="content">
@@ -26,7 +27,7 @@
                     <span style="color: red">*</span>
                     {{ $t('name') }}
                   </label>
-                  <Input v-model="itemCustomInfo.customAttrs.name" @on-change="paramsChanged"></Input>
+                  <Input v-model.trim="itemCustomInfo.customAttrs.name" @on-change="paramsChanged"></Input>
                   <span style="position: absolute; left: 310px; top: 2px; line-height: 30px; background: #ffffff"
                     >{{ (itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length) || 0 }}/30</span
                   >
@@ -48,7 +49,7 @@
                     <DatePicker
                       type="datetime"
                       placeholder="Select date and time"
-                      v-model="itemCustomInfo.customAttrs.timeConfig.date"
+                      v-model="tempDate"
                       format="yyyy-MM-dd HH:mm:ss"
                       @on-change="dateChange"
                       :editable="false"
@@ -97,10 +98,12 @@
               </Form>
             </template>
           </Panel>
+          <!--执行控制-->
           <Panel
             name="2"
             v-if="
-              itemCustomInfo.customAttrs && ['human', 'automatic', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
+              itemCustomInfo.customAttrs &&
+              ['human', 'automatic', 'subProc', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
             "
           >
             {{ $t('controlOfExecution') }}
@@ -109,7 +112,8 @@
                 <FormItem
                   :label="$t('timeout')"
                   v-if="
-                    itemCustomInfo.customAttrs && ['automatic', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
+                    itemCustomInfo.customAttrs &&
+                    ['automatic', 'subProc', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
                   "
                 >
                   <Select v-model="itemCustomInfo.customAttrs.timeout" filterable @on-change="paramsChanged">
@@ -127,10 +131,12 @@
               </Form>
             </template>
           </Panel>
+          <!--数据绑定-->
           <Panel
             name="3"
             v-if="
-              itemCustomInfo.customAttrs && ['human', 'automatic', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
+              itemCustomInfo.customAttrs &&
+              ['human', 'automatic', 'subProc', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
             "
           >
             {{ $t('dataBinding') }}
@@ -138,7 +144,7 @@
               <Form :label-width="120">
                 <FormItem
                   :label="$t('locate_approach')"
-                  v-if="['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
+                  v-if="['human', 'automatic', 'subProc'].includes(itemCustomInfo.customAttrs.nodeType)"
                 >
                   <Select v-model="itemCustomInfo.customAttrs.dynamicBind" @on-change="changDynamicBind">
                     <Option v-for="item in dynamicBindOptions" :value="item.value" :key="item.value">{{
@@ -148,7 +154,7 @@
                 </FormItem>
                 <FormItem
                   v-if="
-                    ['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType) &&
+                    ['human', 'automatic', 'subProc'].includes(itemCustomInfo.customAttrs.nodeType) &&
                     [1].includes(itemCustomInfo.customAttrs.dynamicBind)
                   "
                 >
@@ -201,6 +207,7 @@
               </Form>
             </template>
           </Panel>
+          <!--调用插件服务-->
           <Panel
             name="4"
             v-if="itemCustomInfo.customAttrs && ['human', 'automatic'].includes(itemCustomInfo.customAttrs.nodeType)"
@@ -338,11 +345,57 @@
               </div>
             </template>
           </Panel>
+          <!--调用子编排-->
+          <Panel
+            name="5"
+            v-if="itemCustomInfo.customAttrs && ['subProc'].includes(itemCustomInfo.customAttrs.nodeType)"
+          >
+            {{ $t('call_childFlow') }}
+            <template slot="content">
+              <Form :label-width="120">
+                <FormItem style="margin-top: 8px">
+                  <label slot="label">
+                    <span style="color: red">*</span>
+                    {{ $t('child_workflow') }}
+                  </label>
+                  <Select v-model="itemCustomInfo.customAttrs.subProcDefId" @on-change="changeSubProc" filterable>
+                    <Option v-for="item in subProcList" :value="item.procDefId" :key="item.procDefId">{{
+                      `${item.procDefName}【${item.procDefVersion}】`
+                    }}</Option>
+                  </Select>
+                  <span v-if="itemCustomInfo.customAttrs.subProcDefId === ''" style="color: red"
+                    >{{ $t('child_workflow') }} {{ $t('cannotBeEmpty') }}</span
+                  >
+                  <span v-if="subProcRemoveFlag" style="color: red">{{ $t('fe_childFlow_permissionTips') }}</span>
+                </FormItem>
+                <template v-if="itemCustomInfo.customAttrs.subProcDefId && subProcItem">
+                  <FormItem :label="$t('child_flowId')">
+                    <span>{{ subProcItem.procDefId || itemCustomInfo.customAttrs.subProcDefId || '-' }}</span>
+                    <Button :disabled="subProcRemoveFlag" type="info" size="small" @click="viewParentFlowGraph">{{
+                      $t('view_workFlow')
+                    }}</Button>
+                  </FormItem>
+                  <FormItem :label="$t('instance_type')">
+                    <span>{{ subProcItem.rootEntity || '-' }}</span>
+                  </FormItem>
+                  <FormItem :label="$t('createdBy')">
+                    <span>{{ subProcItem.createUser || '-' }}</span>
+                  </FormItem>
+                  <FormItem :label="$t('updatedBy')">
+                    <span>{{ subProcItem.updateUser || '-' }}</span>
+                  </FormItem>
+                  <FormItem :label="$t('table_updated_date')">
+                    <span>{{ subProcItem.updatedTime || '-' }}</span>
+                  </FormItem>
+                </template>
+              </Form>
+            </template>
+          </Panel>
         </Collapse>
       </div>
     </div>
     <div class="item-footer">
-      <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
+      <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive" @click="saveItem" type="primary">{{
         $t('save')
       }}</Button>
       <Button v-if="editFlow !== 'false'" @click="hideItem">{{ $t('cancel') }}</Button>
@@ -357,7 +410,8 @@ import {
   getNodeParams,
   getSourceNode,
   getNodeDetailById,
-  getRoleList
+  getRoleList,
+  getChildFlowListNew
 } from '@/api/server.js'
 import ItemFilterRulesGroup from './item-filter-rules-group.vue'
 export default {
@@ -366,7 +420,7 @@ export default {
       editFlow: true, // 在查看时隐藏按钮
       isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
       needAddFirst: true,
-      opendPanel: ['1', '2', '3', '4'],
+      opendPanel: ['1', '2', '3', '4', '5'],
       currentSelectedEntity: '', // 流程图根
       itemCustomInfo: {
         customAttrs: {
@@ -413,6 +467,9 @@ export default {
       associatedNodes: [], // 可选择的前序节点
       allEntityType: [], // 所有模型
       filteredPlugins: [], // 可选择的插件函数，根据定位规则获取
+      subProcList: [], // 子编排列表
+      subProcItem: {}, // 选中的子编排
+      subProcRemoveFlag: false, // 子编排权限被移除或者禁用
       unitOptions: ['sec', 'min', 'hour', 'day'],
       date: '',
       nodeList: [], // 编排中的所有节点，供上下文中绑定使用
@@ -436,11 +493,47 @@ export default {
           label: this.$t('dynamic_bind'),
           value: 1
         }
-      ]
+      ],
+      tempDate: ''
     }
   },
   components: {
     ItemFilterRulesGroup
+  },
+  computed: {
+    isSaveBtnActive () {
+      let res = false
+      if (!this.itemCustomInfo.customAttrs.name || this.itemCustomInfo.customAttrs.name.length > 30) {
+        res = true
+      }
+      if (this.itemCustomInfo.customAttrs.nodeType === 'date') {
+        if (this.itemCustomInfo.customAttrs.timeConfig.date === '') {
+          res = true
+        }
+      }
+      if (['human', 'automatic', 'subProc'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
+        if (this.itemCustomInfo.customAttrs.dynamicBind === 1) {
+          if (this.itemCustomInfo.customAttrs.bindNodeId === '') {
+            res = true
+          }
+        } else if (this.itemCustomInfo.customAttrs.routineExpression === '') {
+          res = true
+        }
+      }
+      // 插件服务必填校验
+      if (['human', 'automatic'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
+        if (!this.itemCustomInfo.customAttrs.serviceName) {
+          res = true
+        }
+      }
+      // 子编排必填校验
+      if (['subProc'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
+        if (!this.itemCustomInfo.customAttrs.subProcDefId) {
+          res = true
+        }
+      }
+      return res
+    }
   },
   mounted () {
     this.getAllDataModels()
@@ -467,6 +560,8 @@ export default {
           this.itemCustomInfo = data
           this.itemCustomInfo.selfAttrs = JSON.parse(data.selfAttrs)
           this.itemCustomInfo.customAttrs.timeConfig = JSON.parse(data.customAttrs.timeConfig)
+          // 临时存储时间中间值，解决时间字符串直接绑定转为UTC时间问题
+          this.tempDate = this.itemCustomInfo.customAttrs.timeConfig.date
           if (this.itemCustomInfo.customAttrs.routineExpression === '') {
             this.itemCustomInfo.customAttrs.routineExpression = rootEntity
           }
@@ -474,12 +569,13 @@ export default {
           this.getAssociatedNodes()
           this.getRootNode()
           this.mgmtParamInfos()
+          this.getSubProcList() // 获取子编排列表
         }
       }
       this.getRoleDisplayName(permissionToRole)
     },
     saveItem () {
-      if (['human', 'automatic', 'data'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
+      if (['human', 'automatic', 'subProc', 'data'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
         const routineExpressionItem =
           this.$refs.filterRulesGroupRef && this.$refs.filterRulesGroupRef.routineExpressionItem
         if (routineExpressionItem) {
@@ -503,7 +599,14 @@ export default {
           ''
         )
       }
-
+      // 定位规则操作必填校验
+      if (['data'].includes(this.itemCustomInfo.customAttrs.nodeType) && this.needAddFirst === false) {
+        const routineExpressionItem =
+          (this.$refs.filterRulesGroupRef && this.$refs.filterRulesGroupRef.routineExpressionItem) || []
+        const operateFlag = routineExpressionItem.every(i => i.operate !== '')
+        if (!operateFlag) return this.$Message.warning(this.$t('fe_locationRuleTips'))
+      }
+      // 插件服务校验
       if (['human', 'automatic'].includes(this.itemCustomInfo.customAttrs.nodeType) && this.checkParamsInfo()) return
       const tmpData = JSON.parse(JSON.stringify(this.itemCustomInfo))
       let selfAttrs = tmpData.selfAttrs
@@ -522,36 +625,16 @@ export default {
           if (item.bindType === 'constant' && item.required === 'Y' && item.bindValue === '') {
             res = true
           }
-          if (item.bindType === 'context' && item.required === 'Y' && item.bindNodeId === '') {
+          if (
+            item.bindType === 'context' &&
+            item.required === 'Y' &&
+            (item.bindNodeId === '' || item.bindParamType === '' || item.bindParamName === '')
+          ) {
             res = true
           }
         })
       if (res) {
         this.$Message.warning(this.$t('checkContextParameter'))
-      }
-      return res
-    },
-    isSaveBtnActive () {
-      let res = false
-      if (this.itemCustomInfo.customAttrs.name && this.itemCustomInfo.customAttrs.name.length > 30) {
-        res = true
-      }
-      if (this.itemCustomInfo.customAttrs.nodeType === 'date') {
-        if (this.itemCustomInfo.customAttrs.timeConfig.date === '') {
-          res = true
-        }
-      }
-      if (['human', 'automatic'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
-        if (this.itemCustomInfo.customAttrs.dynamicBind === 1) {
-          if (this.itemCustomInfo.customAttrs.bindNodeId === '') {
-            res = true
-          }
-        } else if (this.itemCustomInfo.customAttrs.routineExpression === '') {
-          res = true
-        }
-        if (!this.itemCustomInfo.customAttrs.serviceName) {
-          res = true
-        }
       }
       return res
     },
@@ -618,6 +701,7 @@ export default {
       } else {
         this.itemCustomInfo.customAttrs.routineExpression = val
         this.getPlugin()
+        this.getSubProcList()
         this.paramsChanged()
       }
     },
@@ -786,6 +870,39 @@ export default {
           }
         }
       }
+    },
+    // 选择子编排
+    changeSubProc (val) {
+      this.paramsChanged()
+      this.subProcItem = this.subProcList.find(i => i.procDefId === val) || {}
+    },
+    // 获取子编排列表
+    async getSubProcList () {
+      const params = {
+        entityExpr: this.itemCustomInfo.customAttrs.routineExpression
+      }
+      const { status, data } = await getChildFlowListNew(params)
+      if (status === 'OK') {
+        this.subProcRemoveFlag = false
+        this.subProcList = data || []
+        if (this.itemCustomInfo.customAttrs.subProcDefId) {
+          this.subProcItem =
+            this.subProcList.find(i => i.procDefId === this.itemCustomInfo.customAttrs.subProcDefId) || {}
+          // 编辑操作，匹配不到对应子编排，删除子编排
+          if (!this.subProcItem.procDefId && this.editFlow !== 'false') {
+            this.itemCustomInfo.customAttrs.subProcDefId = ''
+          }
+          // 查看编排，匹配不到对应数据，给出提示
+          if (!this.subProcItem.procDefId && this.editFlow === 'false') {
+            this.subProcRemoveFlag = true
+          }
+        }
+      }
+    },
+    viewParentFlowGraph (row) {
+      window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
+      const path = `${window.location.origin}/#/collaboration/workflow-mgmt?flowId=${this.itemCustomInfo.customAttrs.subProcDefId}&editFlow=false&flowListTab=deployed`
+      window.open(path, '_blank')
     }
   }
 }

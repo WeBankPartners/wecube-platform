@@ -27,17 +27,19 @@ const (
 type ProcDefNodeType string
 
 const (
-	ProcDefNodeTypeStart        ProcDefNodeType = "start"        //开始
-	ProcDefNodeTypeEnd          ProcDefNodeType = "end"          //结束
-	ProcDefNodeTypeAbnormal     ProcDefNodeType = "abnormal"     //异常
-	ProcDefNodeTypeDecision     ProcDefNodeType = "decision"     //判断
-	ProcDefNodeTypeFork         ProcDefNodeType = "fork"         //分流
-	ProcDefNodeTypeMerge        ProcDefNodeType = "merge"        //汇聚
-	ProcDefNodeTypeHuman        ProcDefNodeType = "human"        //人工节点
-	ProcDefNodeTypeAutomatic    ProcDefNodeType = "automatic"    //自动节点
-	ProcDefNodeTypeData         ProcDefNodeType = "data"         //数据节点
-	ProcDefNodeTypeDate         ProcDefNodeType = "date"         //时间节点
-	ProcDefNodeTypeTimeInterval ProcDefNodeType = "timeInterval" //时间间隔
+	ProcDefNodeTypeStart        ProcDefNodeType = "start"         //开始
+	ProcDefNodeTypeEnd          ProcDefNodeType = "end"           //结束
+	ProcDefNodeTypeAbnormal     ProcDefNodeType = "abnormal"      //异常
+	ProcDefNodeTypeDecision     ProcDefNodeType = "decision"      //判断
+	ProcDefNodeTypeFork         ProcDefNodeType = "fork"          //分流
+	ProcDefNodeTypeMerge        ProcDefNodeType = "merge"         //汇聚
+	ProcDefNodeTypeHuman        ProcDefNodeType = "human"         //人工节点
+	ProcDefNodeTypeAutomatic    ProcDefNodeType = "automatic"     //自动节点
+	ProcDefNodeTypeData         ProcDefNodeType = "data"          //数据节点
+	ProcDefNodeTypeDate         ProcDefNodeType = "date"          //时间节点
+	ProcDefNodeTypeTimeInterval ProcDefNodeType = "timeInterval"  //时间间隔
+	ProcDefNodeSubProcess       ProcDefNodeType = "subProc"       // 子编排
+	ProcDefNodeDecisionMerge    ProcDefNodeType = "decisionMerge" // 判断汇聚
 )
 
 type ProcDef struct {
@@ -56,6 +58,7 @@ type ProcDef struct {
 	UpdatedBy     string    `json:"updatedBy" xorm:"updated_by"`         // 更新人
 	UpdatedTime   time.Time `json:"updatedTime" xorm:"updated_time"`     // 更新时间
 	ManageRole    string    `json:"manageRole" xorm:"-"`                 // 属主
+	SubProc       bool      `json:"subProc" xorm:"sub_proc"`             // 是否子编排
 }
 
 type ProcDefNode struct {
@@ -77,6 +80,7 @@ type ProcDefNode struct {
 	OrderedNo         int       `json:"orderedNo" xorm:"ordered_no"`                  // 节点顺序
 	UiStyle           string    `json:"uiStyle" xorm:"ui_style"`                      // 前端样式
 	AllowContinue     bool      `json:"allowContinue" xorm:"allow_continue"`          // 允许跳过
+	SubProcDefId      string    `json:"subProcDefId" xorm:"sub_proc_def_id"`          // 子编排定义id
 	CreatedBy         string    `json:"createdBy" xorm:"created_by"`                  // 创建人
 	CreatedTime       time.Time `json:"createdTime" xorm:"created_time"`              // 创建时间
 	UpdatedBy         string    `json:"updatedBy" xorm:"updated_by"`                  // 更新人
@@ -115,12 +119,12 @@ type ProcDefPermission struct {
 }
 
 type ProcDefCollect struct {
-	Id          string    `json:"id" xorm:"id"`                    // 唯一标识
-	ProcDefId   string    `json:"procDefId" xorm:"proc_def_id"`    // 编排id
-	RoleId      string    `json:"roleId" xorm:"role_id"`           // 角色id
-	UserId      string    `json:"userId" xorm:"user_id"`           // 用户id
-	CreatedTime time.Time `json:"createdTime" xorm:"created_time"` // 创建时间
-	UpdatedTime time.Time `json:"updatedTime" xorm:"updated_time"` // 更新时间
+	Id          string    `json:"id" xorm:"id"`                                    // 唯一标识
+	ProcDefId   string    `json:"procDefId" xorm:"proc_def_id" binding:"required"` // 编排id
+	RoleId      string    `json:"roleId" xorm:"role_id"`                           // 角色id
+	UserId      string    `json:"userId" xorm:"user_id"`                           // 用户id
+	CreatedTime time.Time `json:"createdTime" xorm:"created_time"`                 // 创建时间
+	UpdatedTime time.Time `json:"updatedTime" xorm:"updated_time"`                 // 更新时间
 }
 
 type SyncUseRoleParam struct {
@@ -140,6 +144,7 @@ type ProcessDefinitionParam struct {
 	ConflictCheck    bool             `json:"conflictCheck"`    // 冲突检测
 	RootEntity       string           `json:"rootEntity"`       // 根节点
 	PermissionToRole PermissionToRole `json:"permissionToRole"` // 角色
+	SubProc          bool             `json:"subProc"`          // 是否子编排
 }
 
 type CheckProcDefNameParam struct {
@@ -158,12 +163,18 @@ type QueryProcessDefinitionParam struct {
 	Plugins          []string `json:"plugins"`          // 授权插件
 	UpdatedTimeStart string   `json:"updatedTimeStart"` // 更新时间开始
 	UpdatedTimeEnd   string   `json:"updatedTimeEnd"`   // 更新时间结束
+	CreatedTimeStart string   `json:"createdTimeStart"` // 创建时间开始
+	CreatedTimeEnd   string   `json:"createdTimeEnd"`   // 创建时间结束
 	Status           string   `json:"status"`           // disabled 禁用 draft草稿 deployed 发布状态
 	CreatedBy        string   `json:"createdBy"`        // 创建人
 	UpdatedBy        string   `json:"updatedBy"`        // 更新人
 	Scene            string   `json:"scene"`            // 使用场景
 	UserRoles        []string // 用户角色
 	LastVersion      bool     `json:"lastVersion"`
+	SubProc          string   `json:"subProc"` // 是否子编排 -> all(全部编排) | main(主编排)  |  sub(子编排)
+	PermissionType   string   `json:"permissionType"`
+	OnlyCollect      bool     `json:"onlyCollect"`
+	Operator         string   `json:"operator"`
 }
 
 type BatchUpdateProcDefPermission struct {
@@ -231,6 +242,7 @@ type ProcDefNodeCustomAttrs struct {
 	UpdatedBy         string              `json:"updatedBy" `        // 更新人
 	UpdatedTime       string              `json:"updatedTime" `      // 更新时间
 	AllowContinue     bool                `json:"allowContinue"`     // 允许跳过
+	SubProcDefId      string              `json:"subProcDefId"`      // 子编排定义id
 }
 
 type ProcDefNodeCustomAttrsDto struct {
@@ -255,6 +267,9 @@ type ProcDefNodeCustomAttrsDto struct {
 	UpdatedBy         string              `json:"updatedBy" `        // 更新人
 	UpdatedTime       string              `json:"updatedTime" `      // 更新时间
 	AllowContinue     bool                `json:"allowContinue"`     // 允许跳过
+	SubProcDefId      string              `json:"subProcDefId"`      // 子编排定义id
+	SubProcDefName    string              `json:"subProcDefName"`    // 子编排定义名称
+	SubProcDefVersion string              `json:"subProcDefVersion"` // 子编排定义版本
 }
 
 type InterfaceParameterDto struct {
@@ -323,6 +338,16 @@ type ProcDefDto struct {
 	UseRolesDisplay  []string `json:"userRolesDisplay"` // 使用角色-显示名
 	MgmtRoles        []string `json:"mgmtRoles"`        // 管理角色
 	MgmtRolesDisplay []string `json:"mgmtRolesDisplay"` // 管理角色-显示名
+	SubProc          bool     `json:"subProc"`          // 是否子编排
+	Collected        bool     `json:"collected"`        // 是否收藏
+}
+
+type ProcDefParentListItem struct {
+	Id      string `json:"id"`      // 唯一标识
+	Key     string `json:"key"`     // 编排key
+	Name    string `json:"name"`    // 编排名称
+	Version string `json:"version"` // 版本
+	Status  string `json:"status"`  // 状态
 }
 
 type TimeConfigDto struct {
@@ -488,6 +513,7 @@ func ConvertProcDef2Dto(procDef *ProcDef) *ProcDefDto {
 		CreatedTime:   procDef.CreatedTime.Format(DateTimeFormat),
 		UpdatedBy:     procDef.UpdatedBy,
 		UpdatedTime:   procDef.UpdatedTime.Format(DateTimeFormat),
+		SubProc:       procDef.SubProc,
 	}
 	return dto
 }
@@ -519,6 +545,7 @@ func ConvertProcDefDto2Model(dto *ProcDefDto) *ProcDef {
 		CreatedTime:   createTime,
 		UpdatedBy:     dto.UpdatedBy,
 		UpdatedTime:   updateTime,
+		SubProc:       dto.SubProc,
 	}
 }
 
@@ -566,6 +593,7 @@ func ConvertProcDefNodeResultDto2Model(dto *ProcDefNodeResultDto) (node *ProcDef
 			UpdatedBy:         attr.UpdatedBy,
 			UpdatedTime:       updateTime,
 			AllowContinue:     attr.AllowContinue,
+			SubProcDefId:      attr.SubProcDefId,
 		}
 		if dto.ProcDefNodeCustomAttrs != nil {
 			list = dto.ProcDefNodeCustomAttrs.ParamInfos
@@ -611,6 +639,7 @@ func ConvertProcDefNode2Dto(procDefNode *ProcDefNode, list []*ProcDefNodeParam) 
 			UpdatedBy:         procDefNode.UpdatedBy,
 			UpdatedTime:       procDefNode.UpdatedTime.Format(DateTimeFormat),
 			AllowContinue:     procDefNode.AllowContinue,
+			SubProcDefId:      procDefNode.SubProcDefId,
 		},
 		NodeAttrs: procDefNode.UiStyle,
 	}
@@ -693,10 +722,14 @@ func BuildInterfaceParameterDto(p *PluginConfigInterfaceParameters) *InterfacePa
 	}
 }
 
-func BuildProcDefDto(procDef *ProcDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay []string, enableCreated bool) *ProcDefDto {
+func BuildProcDefDto(procDef *ProcDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay []string, enableCreated bool, collectProcDefMap map[string]string) *ProcDefDto {
 	var authPlugins = make([]string, 0)
 	if len(procDef.ForPlugin) > 0 {
 		authPlugins = strings.Split(procDef.ForPlugin, ",")
+	}
+	collected := false
+	if _, ok := collectProcDefMap[procDef.Id]; ok {
+		collected = true
 	}
 	return &ProcDefDto{
 		Id:               procDef.Id,
@@ -718,6 +751,7 @@ func BuildProcDefDto(procDef *ProcDef, userRoles, manageRoles, userRolesDisplay,
 		UseRolesDisplay:  userRolesDisplay,
 		MgmtRoles:        manageRoles,
 		MgmtRolesDisplay: manageRolesDisplay,
+		Collected:        collected,
 	}
 }
 
@@ -752,6 +786,7 @@ func ConvertParam2ProcDefNode(user string, param ProcDefNodeRequestParam) *ProcD
 		UpdatedBy:         user,
 		UpdatedTime:       now,
 		AllowContinue:     procDefNodeAttr.AllowContinue,
+		SubProcDefId:      procDefNodeAttr.SubProcDefId,
 	}
 	return node
 }
@@ -762,4 +797,23 @@ func GenNodeId(nodeType string) string {
 		nodeTypeShort = nodeTypeShort[:4]
 	}
 	return fmt.Sprintf("pdn_%s_%s", nodeTypeShort, guid.CreateGuid())
+}
+
+type ProcDefParentPageResult struct {
+	Page    *PageInfo                `json:"page"`
+	Content []*ProcDefParentListItem `json:"content"`
+}
+
+type ProcDefSortNodes []*ProcDefNode
+
+func (p ProcDefSortNodes) Len() int {
+	return len(p)
+}
+
+func (p ProcDefSortNodes) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
+}
+
+func (p ProcDefSortNodes) Less(i, j int) bool {
+	return p[i].OrderedNo < p[j].OrderedNo
 }

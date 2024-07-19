@@ -1,16 +1,12 @@
 <template>
   <div
-    class="batch-execution-menu"
+    class="workbench-menu"
     :style="{
       width: expand ? '140px' : '0px',
       top: scrollTop > 50 ? '0px' : 50 - scrollTop + 'px'
     }"
   >
     <div v-show="expand" style="height: 100%">
-      <!-- <div class="home" @click="handleGoHome">
-        <img style="width:23px;height:23px;margin-right:10px;" src="@/images/menu_desk.png" />
-        {{ $t('tw_workbench') }}
-      </div> -->
       <Menu
         @on-select="handleSelectMenu"
         theme="dark"
@@ -21,13 +17,14 @@
         <Submenu v-for="(i, index) in menuList" :key="index" :name="i.name">
           <template #title>
             <div class="menu-item">
-              <Icon size="20" :type="i.icon" />
-              <span>{{ i.title }}</span>
+              <img v-if="i.img" :src="i.img" />
+              <Icon v-if="i.icon" :type="i.icon" :size="22" style="margin-right: 10px" color="#fff" />
+              {{ i.title }}
             </div>
           </template>
-          <MenuItem v-for="(j, idx) in i.children" :key="idx" :name="j.name" :to="j.path">
-            {{ j.title }}
-          </MenuItem>
+          <MenuItem v-for="(j, idx) in i.children" :key="idx" :name="j.name" :to="j.path" :replace="false">{{
+            j.title
+          }}</MenuItem>
         </Submenu>
       </Menu>
     </div>
@@ -41,49 +38,52 @@
 <script>
 export default {
   props: {
-    active: {
-      type: String,
-      default: ''
-    }
+    menuList: Array
   },
   data () {
     return {
       scrollTop: 0,
       expand: true,
       activeName: '',
-      openNames: ['execute'],
-      menuList: [
-        {
-          title: this.$t('execute'),
-          icon: 'md-hammer',
-          name: 'execute',
-          children: [
-            { title: this.$t('be_new_execute'), path: '', name: 'executeCreate' },
-            { title: this.$t('be_execute_history'), path: '', name: 'executeList' }
-          ]
-        },
-        {
-          title: this.$t('template'),
-          icon: 'md-document',
-          name: 'template',
-          children: [
-            { title: this.$t('be_new_template'), path: '', name: 'templateCreate' },
-            { title: this.$t('be_template_manage'), path: '', name: 'templateList' }
-          ]
-        }
-      ]
+      openNames: [] // 由于每次点击菜单栏，组件都会重新渲染，暂时做不到菜单栏按照用户点击依次展开
     }
   },
   watch: {
-    active: {
+    '$route.path': {
       handler (val) {
-        this.activeName = val
+        if (val) {
+          this.menuList.forEach(i => {
+            for (let j of i.children) {
+              if (j.path === this.$route.path) {
+                this.activeName = j.name
+                this.openNames.push(i.name)
+              }
+            }
+          })
+        }
       },
       immediate: true
     }
   },
+  // created () {
+  //   this.menuList.forEach(i => {
+  //     for (let j of i.children) {
+  //       if (j.path === this.$route.fullPath) {
+  //         this.activeName = j.name
+  //         this.openNames.push(i.name)
+  //         window.localStorage.setItem('sub_menu_active_name', j.name)
+  //         window.localStorage.setItem('sub_menu_open_name', i.name)
+  //       }
+  //     }
+  //   })
+  //   if (!this.activeName) {
+  //     this.activeName = window.localStorage.getItem('sub_menu_active_name') || ''
+  //     const openName = window.localStorage.getItem('sub_menu_open_name') || ''
+  //     openName && this.openNames.push(openName)
+  //   }
+  // },
   mounted () {
-    this.$eventBusP.$emit('expand-menu', this.expand)
+    this.$eventBusP.$emit('expand-menu', true)
     window.addEventListener('scroll', this.getScrollTop)
   },
   beforeDestroy () {
@@ -99,21 +99,14 @@ export default {
       this.$eventBusP.$emit('expand-menu', this.expand)
     },
     handleSelectMenu (name) {
-      if (['templateCreate', 'executeCreate'].includes(name)) {
-        this.$router.replace({
-          name: this.$route.name,
-          query: {}
-        })
-      }
       this.activeName = name
-      this.$emit('select', name)
     }
   }
 }
 </script>
 
 <style lang="scss">
-.batch-execution-menu {
+.workbench-menu {
   .ivu-menu-dark {
     background: #001529;
   }
@@ -123,11 +116,18 @@ export default {
   .ivu-menu-dark.ivu-menu-vertical .ivu-menu-item,
   .ivu-menu-dark.ivu-menu-vertical .ivu-menu-submenu-title {
     background: #10192b;
+    padding: 10px;
+    i {
+      margin-right: 0px;
+    }
+  }
+  .ivu-menu-item {
+    padding-left: 32px !important;
   }
 }
 </style>
 <style lang="scss" scoped>
-.batch-execution-menu {
+.workbench-menu {
   position: fixed;
   left: 0;
   height: 100%;
@@ -135,7 +135,7 @@ export default {
   .home {
     display: flex;
     align-items: center;
-    padding: 20px 20px 10px 20px;
+    padding: 20px 12px 10px 12px;
     width: 140px;
     background: #002140;
     color: #fff;
@@ -145,9 +145,10 @@ export default {
   .menu-item {
     display: flex;
     align-items: center;
-    span {
-      margin-left: 5px;
-      margin-bottom: -1px;
+    img {
+      width: 23px;
+      height: 23px;
+      margin-right: 10px;
     }
   }
   .small-menu {
@@ -174,7 +175,7 @@ export default {
   }
   .expand {
     position: absolute;
-    top: calc(50% - 14px);
+    top: calc(50% - 10px);
     cursor: pointer;
   }
 }

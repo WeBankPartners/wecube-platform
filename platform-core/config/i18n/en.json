@@ -38,7 +38,7 @@
   },
   "plugin_dependency_illegal": {
     "code": 20000001,
-    "message": "Plugin dependency validate fail"
+    "message": "Installation Failed: The plug-in version dependency verification failed"
   },
   "proc_def_node_name_empty_error": {
     "code": 20000002,
@@ -142,10 +142,38 @@
   },
   "data_permission_deny": {
     "code": 20000031,
-    "message": "Data Permission Deny"
+    "message": "Operation Failed: No data permissions are available"
   },
   "add_role_exist_error": {
     "code": 20000032,
     "message": "Failed to add: The current role already exists. Modify the role and add it again"
+  },
+  "proc_def_decision_merge_error": {
+    "code": 20000033,
+    "message": "Publish Failed: Decision merge node %s can not match suitable decision node"
+  },
+  "proc_def_data_node_error": {
+    "code": 20000034,
+    "message": "Publish Failed: [Data node]:%s expression validate fail"
+  },
+  "proc_def_sub_proc_check_error": {
+    "code": 20000035,
+    "message": "Publish Failed: Sub process can not contain data node or sub process node"
+  },
+  "proc_def_node_sub_proc_empty_error": {
+    "code": 20000036,
+    "message": "Publish Failed: [subProc nodes]:%s sub process param cannot be empty"
+  },
+  "proc_def_merge_error": {
+    "code": 20000037,
+    "message": "Publish Failed: Merge node %s can not match suitable fork node"
+  },
+  "proc_status_operation_error": {
+    "code": 20000038,
+    "message": "Operation Failed: The current process status has been updated, please refresh and try again"
+  },
+  "schedule_operation_error": {
+    "code": 20000039,
+    "message": "Operation Failed: The current task status has been updated, please refresh and try again"
   }
 }

@@ -116,6 +116,7 @@ func AddOrUpdateProcessDefinition(c *gin.Context) {
 			ConflictCheck: param.ConflictCheck,
 			UpdatedBy:     middleware.GetRequestUser(c),
 			UpdatedTime:   time.Now(),
+			SubProc:       param.SubProc,
 		}
 		nodeList, err = database.GetProcDefNodeById(c, param.Id)
 		if err != nil {
@@ -236,7 +237,11 @@ func QueryProcessDefinitionList(c *gin.Context) {
 		return
 	}
 	param.UserRoles = middleware.GetRequestRoles(c)
-	list, err = database.QueryProcessDefinitionList(c, param, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
+	param.Operator = middleware.GetRequestUser(c)
+	if param.PermissionType == "" {
+		param.PermissionType = "MGMT"
+	}
+	list, err = database.QueryProcessDefinitionList(c, param, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"), middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -501,7 +506,7 @@ func DeployProcessDefinition(c *gin.Context) {
 		return
 	}
 	// 检查节点的合法性
-	if err = checkDeployedProcDef(c, procDefId); err != nil {
+	if err = checkDeployedProcDef(c, procDefId, procDef); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
@@ -931,6 +936,9 @@ func DeleteProcDefNode(c *gin.Context) {
 	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node_param where proc_def_node_id=?", Param: []interface{}{procDefNode.Id}})
 	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node_link where source=? or target=?", Param: []interface{}{procDefNode.Id, procDefNode.Id}})
 	actions = append(actions, &db.ExecAction{Sql: "delete  from proc_def_node where proc_def_id=? and node_id=?", Param: []interface{}{procDefId, uiNodeId}})
+	// 更新编排更新人更新时间
+	operator := middleware.GetRequestUser(c)
+	actions = append(actions, &db.ExecAction{Sql: "update proc_def set updated_by=?,updated_time=? where id=?", Param: []interface{}{operator, time.Now(), procDefId}})
 	err = db.Transaction(actions, c)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -1022,7 +1030,7 @@ func DeleteProcDefNodeLink(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("proc-def-id invalid"))
 		return
 	}
-	err = database.DeleteProcDefNodeLink(c, procDefId, linkId)
+	err = database.DeleteProcDefNodeLink(c, procDefId, linkId, middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -1391,7 +1399,7 @@ checkDeployedProcDefNode
 6. 开始结束节点都不超过一个
 7. 判断节点出的线,必须有名字并且同一个判断节点的所有线的名字不能相同
 */
-func checkDeployedProcDef(ctx context.Context, procDefId string) error {
+func checkDeployedProcDef(ctx context.Context, procDefId string, procDef *models.ProcDef) error {
 	var inCount, outCount int
 	var list []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
@@ -1400,6 +1408,8 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 	var nodeIdKeymap = make(map[string]*models.ProcDefNode)
 	var startNodeNameList, endNodeNameList, sortNodeIds []string
 	var sortLinks [][]string
+	var sortNodes models.ProcDefSortNodes
+	var withDecisionMerge, withMerge bool
 	list, err = database.GetProcDefNodeById(ctx, procDefId)
 	if err != nil {
 		return err
@@ -1419,6 +1429,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 		linkList = make([]*models.ProcDefNodeLink, 0)
 	}
 	for _, node := range list {
+		sortNodes = append(sortNodes, node)
 		inCount = 0
 		outCount = 0
 		nodeMap[node.Id] = node
@@ -1444,6 +1455,13 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 			}
 		case models.ProcDefNodeTypeMerge:
 			// 汇聚必须多进单出
+			withMerge = true
+			if !(inCount > 1 && outCount == 1) {
+				return exterror.New().ProcDefNode20000005Error.WithParam(node.Name)
+			}
+		case models.ProcDefNodeDecisionMerge:
+			// 判断汇聚必须多进单出
+			withDecisionMerge = true
 			if !(inCount > 1 && outCount == 1) {
 				return exterror.New().ProcDefNode20000005Error.WithParam(node.Name)
 			}
@@ -1462,12 +1480,27 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 					tempLinkNameMap[link.Name] = true
 				}
 			}
+		case models.ProcDefNodeTypeData:
+			// 判断定位规则有没有带operation
+			if _, err = database.GetProcDataNodeExpression(node.RoutineExpression); err != nil {
+				return exterror.New().ProcDefDataNodeError.WithParam(node.Name)
+			}
+		case models.ProcDefNodeSubProcess:
+			if procDef.SubProc {
+				return exterror.New().ProcDefSubProcCheckError
+			}
+			if node.SubProcDefId == "" {
+				return exterror.New().ProcDefNodeSubProcEmptyError.WithParam(node.Name)
+			}
 		default:
 			// 任务三种节点,插件服务不能为空
 			if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) {
 				if strings.TrimSpace(node.ServiceName) == "" {
 					return exterror.New().ProcDefNodeServiceNameEmptyError.WithParam(node.Name)
 				}
+			}
+			if node.NodeType == string(models.ProcDefNodeTypeHuman) && procDef.SubProc {
+				return exterror.New().ProcDefSubProcCheckError
 			}
 			// 时间节点,日期不能为空
 			if node.NodeType == string(models.ProcDefNodeTypeDate) && node.TimeConfig != "" {
@@ -1507,6 +1540,44 @@ func checkDeployedProcDef(ctx context.Context, procDefId string) error {
 	sortNodeIdMap, isLoop := tools.ProcNodeSort(sortNodeIds, sortLinks)
 	if isLoop {
 		return exterror.New().ProcDefLoopCheckError
+	}
+	if withDecisionMerge {
+		// 判断汇聚是否有成对的判断开始
+		for _, v := range sortNodes {
+			v.OrderedNo = sortNodeIdMap[v.Id]
+		}
+		sort.Sort(sortNodes)
+		decisionCount := 0
+		for _, v := range sortNodes {
+			if v.NodeType == models.JobDecisionType {
+				decisionCount = decisionCount + 1
+			}
+			if v.NodeType == models.JobDecisionMergeType {
+				decisionCount = decisionCount - 1
+			}
+			if decisionCount < 0 {
+				return exterror.New().ProcDefDecisionMergeError.WithParam(v.Name)
+			}
+		}
+	}
+	if withMerge {
+		// 汇聚是否有成对的分流
+		for _, v := range sortNodes {
+			v.OrderedNo = sortNodeIdMap[v.Id]
+		}
+		sort.Sort(sortNodes)
+		mergeCount := 0
+		for _, v := range sortNodes {
+			if v.NodeType == models.JobForkType {
+				mergeCount = mergeCount + 1
+			}
+			if v.NodeType == models.JobMergeType {
+				mergeCount = mergeCount - 1
+			}
+			if mergeCount < 0 {
+				return exterror.New().ProcDefMergeError.WithParam(v.Name)
+			}
+		}
 	}
 	return database.UpdateProcDefNodeOrder(ctx, sortNodeIdMap)
 }
@@ -1578,4 +1649,48 @@ func checkRootEntityEquals(originEntity, targetEntity string) bool {
 		target = targetEntity[:targetStart]
 	}
 	return origin == target
+}
+
+func GetProcDefParentList(c *gin.Context) {
+	procDefId := c.Param("proc-def-id")
+	var param models.PageInfo
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	result, err := database.GetProcDefParentList(c, procDefId, &param)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		pageResult := models.ProcDefParentPageResult{Page: &param, Content: result}
+		middleware.ReturnData(c, pageResult)
+	}
+}
+
+func AddProcDefCollect(c *gin.Context) {
+	var param models.ProcDefCollect
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	err := database.AddProcDefCollect(c, param.ProcDefId, middleware.GetRequestUser(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}
+
+func DelProcDefCollect(c *gin.Context) {
+	var param models.ProcDefCollect
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	err := database.DelProcDefCollect(c, param.ProcDefId, middleware.GetRequestUser(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
 }
