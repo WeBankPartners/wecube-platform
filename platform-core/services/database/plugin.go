@@ -495,3 +495,17 @@ func GetPluginConfigInterfaceById(id string, available bool) (result *models.Plu
 	result.OutputParameters = outputParams
 	return
 }
+
+func QueryPluginInterfaceParam(ctx context.Context, param *models.PluginInterfaceParamQueryParam) (result *models.PluginConfigInterfaceParameters, err error) {
+	var pluginParamRows []*models.PluginConfigInterfaceParameters
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_config_interface_parameters where name=? and plugin_config_interface_id in (select t1.id from plugin_config_interfaces t1 left join plugin_configs t2 on t1.plugin_config_id=t2.id where t1.service_name=? and t2.status='ENABLED')", param.ParamName, param.ServiceId).Find(&pluginParamRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	result = &models.PluginConfigInterfaceParameters{}
+	if len(pluginParamRows) > 0 {
+		result = pluginParamRows[0]
+	}
+	return
+}
