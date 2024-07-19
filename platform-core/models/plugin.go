@@ -854,8 +854,9 @@ type PluginPackageQueryParam struct {
 
 type PluginPackageQueryObj struct {
 	PluginPackages
-	Menus     []string                    `json:"menus"`
-	Instances []*PluginPackageInstanceObj `json:"instances"`
+	Menus      []string                    `json:"menus"`
+	LocalMenus []string                    `json:"localMenus"`
+	Instances  []*PluginPackageInstanceObj `json:"instances"`
 }
 
 type PluginPackageInstanceObj struct {

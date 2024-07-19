@@ -389,7 +389,8 @@ func ProcInsList(c *gin.Context) {
 	withSubProc := strings.ToLower(c.Query("withSubProc"))
 	mgmtRole := c.Query("mgmtRole")
 	search := c.Query("search")
-	result, err := database.ListProcInstance(c, middleware.GetRequestRoles(c), withCronIns, withSubProc, mgmtRole, search)
+	status := c.Query("status")
+	result, err := database.ListProcInstance(c, middleware.GetRequestRoles(c), withCronIns, withSubProc, mgmtRole, search, status)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {

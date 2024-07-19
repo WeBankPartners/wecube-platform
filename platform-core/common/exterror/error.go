@@ -72,6 +72,7 @@ type ErrorTemplate struct {
 	ProcDefNodeSubProcEmptyError      CustomError `json:"proc_def_node_sub_proc_empty_error"`
 	ProcDefMergeError                 CustomError `json:"proc_def_merge_error"`
 	ProcStatusOperationError          CustomError `json:"proc_status_operation_error"`
+	ScheduleOperationError            CustomError `json:"schedule_operation_error"`
 	DeleteUserError                   CustomError `json:"delete_user_error"`
 	BatchExecPluginAuthError          CustomError `json:"batch_exec_plugin_auth_error"`
 	BatchExecPluginApiError           CustomError `json:"batch_exec_plugin_api_error"`
