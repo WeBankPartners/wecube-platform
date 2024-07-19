@@ -1123,7 +1123,7 @@ func InheritPluginConfig(ctx context.Context, param *models.InheritPluginConfigP
 	// 继承系统参数
 	sysVarSource := fmt.Sprintf("%s__%s", parentPluginPackage.Name, parentPluginPackage.Version)
 	var sysVarRows []*models.SystemVariables
-	err = db.MysqlEngine.Context(ctx).SQL("select * from system_variables where package_name=? and source=?", parentPluginPackage.Name, sysVarSource).Find(&sysVarRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from system_variables where source=?", sysVarSource).Find(&sysVarRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
