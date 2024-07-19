@@ -20,8 +20,9 @@
           </Col>
           <Col span="2" v-if="isBatch">
             <Button
+              size="small"
               ghost
-              style="vertical-align: top"
+              style="vertical-align: center; margin-left: 5px"
               @click="deleteFilterRule(index)"
               v-if="routineExpressionItem.length > 1"
               type="error"
@@ -32,7 +33,7 @@
       </template>
     </Row>
     <div v-if="isBatch">
-      <Button ghost type="primary" style="" @click="addFilterRule" icon="ios-add"></Button>
+      <Button type="success" ghost @click="addFilterRule" size="small" icon="md-add"></Button>
     </div>
   </div>
 </template>
