@@ -404,7 +404,6 @@ export default {
         4: this.$t('p_fifth_step_title')
       },
       isJustShowRightContent: false,
-      isServiceListNotEmpty: false, // 整个注册数组都不是空
       isServiceActionNotEmpty: false, // 整个注册数字中只要有一个item.pluginConfigDtoList不为空数组则为true
       isSpinShow: false,
       selectedVersion: '',
@@ -706,18 +705,18 @@ export default {
     reloadPage () {
       document.location.reload()
     },
-    onServiceListGet (data) {
+    onServiceListGet (data = []) {
       if (!isEmpty(data)) {
-        this.isServiceListNotEmpty = true
         this.isServiceActionNotEmpty = false
         for (let i = 0; i < data.length; i++) {
-          if (!isEmpty(data[i].pluginConfigDtoList)) {
-            this.isServiceActionNotEmpty = true
-            break
+          for (let j = 0; j < data[i].pluginConfigDtoList.length; j++) {
+            if (data[i].pluginConfigDtoList[j].registerName) {
+              this.isServiceActionNotEmpty = true
+              return
+            }
           }
         }
       } else {
-        this.isServiceListNotEmpty = false
         this.isServiceActionNotEmpty = false
       }
     },
