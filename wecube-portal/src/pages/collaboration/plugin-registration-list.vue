@@ -145,7 +145,7 @@
                 <Button
                   type="primary"
                   size="small"
-                  :disabled="!item.registerDone"
+                  :disabled="isButtonDisabled(item)"
                   @click="enterSettingPage(item.id, 1)"
                 >
                   <Icon type="ios-settings" />
@@ -545,9 +545,9 @@ export default {
     async destroyInstance (instanceId) {
       this.isSpinShow = true
       this.spinContent = this.$t('p_instance_destroy')
-      const timeId = setTimeout(() => {
+      let timeId = setTimeout(() => {
         this.isSpinShow = false
-        this.timeId = null
+        timeId = null
         this.$Message.error(this.$t('p_instance_destroy_failed'))
       }, 180000)
 
@@ -577,9 +577,9 @@ export default {
     async createInstanceByIpPort (ip, port) {
       this.isSpinShow = true
       this.spinContent = this.$t('p_instance_creation')
-      const timeId = setTimeout(() => {
+      let timeId = setTimeout(() => {
         this.isSpinShow = false
-        this.timeId = null
+        timeId = null
         this.$Message.error(this.$t('p_instance_creation_failed'))
       }, 180000)
       const { status } = await createPluginInstanceByPackageIdAndHostIp(this.currentPluginId, ip, port)
@@ -662,6 +662,13 @@ export default {
         })
     },
     async onOnlinePluginSelectModalConfirm () {
+      this.isSpinShow = true
+      this.spinContent = this.$t('p_online_plugin_installation')
+      let timeId = setTimeout(() => {
+        this.isSpinShow = false
+        timeId = null
+        this.$Message.error(this.$t('p_instance_destroy_failed'))
+      }, 180000)
       const payload = {
         keyName: this.selectedOnlinePlugin
       }
@@ -672,10 +679,14 @@ export default {
           this.pluginTimer = setInterval(async () => {
             const { status, data } = await getPluginArtifactStatus(res.data.requestId)
             if (status !== 'OK' || data.state !== 'InProgress') {
+              this.isSpinShow = false
+              clearTimeout(timeId)
               clearInterval(this.pluginTimer)
               this.pluginTimer = null
             }
             if (status === 'OK' && data.state !== 'InProgress') {
+              this.isSpinShow = false
+              clearTimeout(timeId)
               clearInterval(this.pluginTimer)
               this.pluginTimer = null
               this.$Notice.info({
@@ -684,7 +695,7 @@ export default {
               })
               if (data.state === 'Completed') {
                 this.resetOnlinePluginSelectModal()
-                this.startInstallPlugin(res.data.pluginPackageId)
+                this.startInstallPlugin(data.pluginPackageId)
               }
             }
           }, 5000)
