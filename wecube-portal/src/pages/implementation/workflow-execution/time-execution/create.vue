@@ -654,14 +654,16 @@ export default {
           render: (h, params) => {
             return (
               <div>
-                <Button
-                  onClick={() => this.jumpToHistory(params.row)}
-                  type="primary"
-                  size="small"
-                  style="margin-right: 5px"
-                >
-                  {this.$t('bc_history_record')}
-                </Button>
+                {params.row.status && (
+                  <Button
+                    onClick={() => this.jumpToHistory(params.row)}
+                    type="primary"
+                    size="small"
+                    style="margin-right: 5px"
+                  >
+                    {this.$t('bc_history_record')}
+                  </Button>
+                )}
               </div>
             )
           }
@@ -751,7 +753,8 @@ export default {
           withCronIns: 'no', // no普通执行历史 yes定时执行历史
           withSubProc: 'no', // 过滤子编排记录
           search: query,
-          mgmtRole: this.timeConfig.params.role
+          mgmtRole: this.timeConfig.params.role,
+          status: 'Completed'
         }
       }
       this.remoteLoading = true
