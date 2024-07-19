@@ -63,7 +63,7 @@ export default {
         createdTimeEnd: '',
         createdBy: '',
         scene: '', // 分组
-        subProc: 'main',
+        subProc: this.$route.query.subProc || 'main',
         onlyCollect: false
       },
       cardList: [], // 模板数据
@@ -255,7 +255,7 @@ export default {
         path: '/implementation/workflow-execution/normal-create',
         query: {
           templateId: row.id,
-          type: this.searchParams.subProc
+          subProc: this.searchParams.subProc
         }
       })
     },

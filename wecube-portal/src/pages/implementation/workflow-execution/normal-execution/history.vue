@@ -116,7 +116,7 @@ export default {
       ],
       searchConfig: {
         params: {
-          subProc: 'main',
+          subProc: this.$route.query.subProc || 'main',
           id: '',
           time: [dayjs().subtract(3, 'day').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
           startTime: '',
@@ -255,6 +255,20 @@ export default {
                     </Button>
                   </Tooltip>
                 )}
+                {params.row.status === 'Stop' && (
+                  <Tooltip content={this.$t('be_continue')} placement="top">
+                    <Button
+                      size="small"
+                      type="success"
+                      onClick={() => {
+                        this.flowControlHandler('recover', params.row) // 继续
+                      }}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="md-play" size="16"></Icon>
+                    </Button>
+                  </Tooltip>
+                )}
                 {['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(params.row.status) &&
                   !(params.row.parentProcIns && params.row.parentProcIns.procInsId) && (
                   <Tooltip content={this.$t('stop_orch')} placement="top">
@@ -267,20 +281,6 @@ export default {
                       style="margin-right:5px;"
                     >
                       <Icon type="md-power" size="16"></Icon>
-                    </Button>
-                  </Tooltip>
-                )}
-                {params.row.status === 'Stop' && (
-                  <Tooltip content={this.$t('be_continue')} placement="top">
-                    <Button
-                      size="small"
-                      type="success"
-                      onClick={() => {
-                        this.flowControlHandler('recover', params.row) // 继续
-                      }}
-                      style="margin-right:5px;"
-                    >
-                      <Icon type="md-play" size="16"></Icon>
                     </Button>
                   </Tooltip>
                 )}
@@ -339,7 +339,7 @@ export default {
     // 查看主编排
     viewParentFlowGraph (row) {
       window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
-      const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${row.parentProcIns.procInsId}&from=main`
+      const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${row.parentProcIns.procInsId}&from=main&subProc=${this.searchConfig.params.subProc}`
       window.open(path, '_blank')
     },
     selectionChange (val) {
@@ -368,7 +368,9 @@ export default {
             procInstId: row.id,
             act: operateType
           }
+          this.loading = true
           const { status } = await pauseAndContinueFlow(payload)
+          this.loading = false
           if (status === 'OK') {
             this.getProcessInstances()
             this.$Notice.success({
@@ -399,7 +401,9 @@ export default {
             procInstId: row.id,
             procInstKey: row.procInstKey
           }
+          this.loading = true
           const { status } = await createWorkflowInstanceTerminationRequest(payload)
+          this.loading = false
           if (status === 'OK') {
             this.getProcessInstances()
             this.$Notice.success({
@@ -428,7 +432,9 @@ export default {
               id: i.id
             }
           })
+          this.loading = true
           const { status } = await batchWorkflowInstanceTermination(params)
+          this.loading = false
           if (status === 'OK') {
             this.getProcessInstances()
             this.$Notice.success({

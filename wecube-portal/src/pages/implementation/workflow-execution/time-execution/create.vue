@@ -838,13 +838,9 @@ export default {
       })
     },
     jumpToHistory (row) {
-      this.$router.push({
-        path: '/implementation/workflow-execution/view-execution',
-        query: {
-          id: row.procInstId,
-          from: 'time'
-        }
-      })
+      window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
+      const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${row.procInstId}&from=time`
+      window.open(path, '_blank')
     },
     async getDetails (row, rowStatus) {
       const params = {

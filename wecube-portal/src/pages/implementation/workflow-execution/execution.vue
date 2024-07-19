@@ -1,208 +1,211 @@
 <!--编排执行和查看页面-->
 <template>
   <div class="workflow-execution">
-    <div class="workflow-execution-header">
-      <div class="back-header">
-        <Icon size="22" type="md-arrow-back" class="icon" @click="handleBack" />
-      </div>
-      <div class="form">
-        <Form label-position="left">
-          <FormItem v-if="isEnqueryPage" :label-width="100" :label="$t('orchs')">
-            <Select
-              v-model="selectedFlowInstance"
-              style="width: 60%"
-              filterable
-              clearable
-              :placeholder="$t('fe_flowname_placeholder')"
-              @on-clear="clearHistoryOrch"
-              @on-change="queryHandler"
-              :disabled="['main', 'sub'].includes(from)"
-            >
-              <Option
-                v-for="item in allFlowInstances"
-                :value="item.id"
-                :key="item.id"
-                :label="
-                  item.procInstName +
-                  '  ' +
-                  '[' +
-                  item.version +
-                  ']  ' +
-                  item.entityDisplayName +
-                  '  ' +
-                  (item.operator || 'operator') +
-                  '  ' +
-                  (item.createdTime || '0000-00-00 00:00:00') +
-                  '  ' +
-                  getStatusStyleAndName(item.displayStatus, 'label')
-                "
-              >
-                <div style="display: flex; justify-content: space-between">
-                  <div>
-                    <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
-                    <span style="color: #2b85e4">{{ '[' + item.version + '] ' }}</span>
-                    <div
-                      :style="{
-                        backgroundColor: '#c5c8ce',
-                        padding: '4px 15px',
-                        width: 'fit-content',
-                        color: '#fff',
-                        borderRadius: '4px',
-                        display: 'inline-block',
-                        marginLeft: '10px'
-                      }"
-                    >
-                      {{ item.entityDisplayName + ' ' }}
-                    </div>
-                  </div>
-                  <div style="display: flex; align-items: center">
-                    <span style="color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
-                    <span style="color: #ccc">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
-                    <div style="width: 100px">
-                      <span :style="getStatusStyleAndName(item.displayStatus, 'style')">{{
-                        getStatusStyleAndName(item.displayStatus, 'label')
-                      }}</span>
-                    </div>
-                  </div>
-                </div>
-              </Option>
-            </Select>
-            <!--暂停执行-->
-            <Button
-              type="warning"
-              @click="flowControlHandler('stop')"
-              style="background-color: #826bea; border-color: #826bea"
-              v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
-              icon="md-pause"
-              >{{ $t('be_pause') }}</Button
-            >
-            <!--继续执行-->
-            <Button
-              type="success"
-              @click="flowControlHandler('recover')"
-              v-if="currentInstanceStatusForNodeOperation === 'Stop'"
-              icon="md-play"
-              >{{ $t('be_continue') }}</Button
-            >
-            <!--终止执行-->
-            <Button
-              v-if="['InProgress', 'Stop'].includes(currentInstanceStatusForNodeOperation) && !subProcBindParentFlag"
-              type="warning"
-              @click="stopHandler"
-              icon="md-square"
-              >{{ $t('stop_orch') }}</Button
-            >
-            <!-- disabled="currentInstanceStatus || stopSuccess"  stop_orch -->
-            <!--定时执行-->
-            <!-- <Button
-              v-if="currentInstanceStatusForNodeOperation === 'Completed'"
-              type="primary"
-              @click="setTimedExecution"
-              icon="md-stopwatch"
-              >{{ $t('timed_execution') }}</Button
-            > -->
-            <!-- :disabled="canAbleToSetting" timed_execution -->
-          </FormItem>
-          <Col v-if="!isEnqueryPage" span="7">
-            <FormItem :label-width="100" :label="$t('select_orch')">
+    <Card :bordered="false" dis-hover :padding="0">
+      <div class="workflow-execution-header">
+        <div class="back-header">
+          <Icon size="22" type="md-arrow-back" class="icon" @click="handleBack" />
+        </div>
+        <div class="form">
+          <Form label-position="left">
+            <FormItem v-if="isEnqueryPage" :label-width="100" :label="$t('orchs')">
               <Select
-                label
-                v-model="selectedFlow"
-                :disabled="Boolean(subProcId)"
-                @on-change="orchestrationSelectHandler"
-                @on-open-change="getAllFlow"
+                v-model="selectedFlowInstance"
+                style="width: 60%"
                 filterable
                 clearable
-                @on-clear="clearFlow"
+                :placeholder="$t('fe_flowname_placeholder')"
+                @on-clear="clearHistoryOrch"
+                @on-change="queryHandler"
+                :disabled="['main', 'sub'].includes(from)"
               >
-                <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId"
-                  >{{ item.procDefName }} [{{ item.procDefVersion }}] {{ item.createdTime }}</Option
+                <Option
+                  v-for="item in allFlowInstances"
+                  :value="item.id"
+                  :key="item.id"
+                  :label="
+                    item.procInstName +
+                    '  ' +
+                    '[' +
+                    item.version +
+                    ']  ' +
+                    item.entityDisplayName +
+                    '  ' +
+                    (item.operator || 'operator') +
+                    '  ' +
+                    (item.createdTime || '0000-00-00 00:00:00') +
+                    '  ' +
+                    getStatusStyleAndName(item.displayStatus, 'label')
+                  "
                 >
+                  <div style="display: flex; justify-content: space-between">
+                    <div>
+                      <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
+                      <span style="color: #2b85e4">{{ '[' + item.version + '] ' }}</span>
+                      <div
+                        :style="{
+                          backgroundColor: '#c5c8ce',
+                          padding: '4px 15px',
+                          width: 'fit-content',
+                          color: '#fff',
+                          borderRadius: '4px',
+                          display: 'inline-block',
+                          marginLeft: '10px'
+                        }"
+                      >
+                        {{ item.entityDisplayName + ' ' }}
+                      </div>
+                    </div>
+                    <div style="display: flex; align-items: center">
+                      <span style="color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
+                      <span style="color: #ccc">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
+                      <div style="width: 100px">
+                        <span :style="getStatusStyleAndName(item.displayStatus, 'style')">{{
+                          getStatusStyleAndName(item.displayStatus, 'label')
+                        }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </Option>
               </Select>
-            </FormItem>
-          </Col>
-          <Col v-if="!isEnqueryPage" span="12" offset="0">
-            <FormItem required :label-width="100" :label="$t('bc_execution_instance')">
-              <Select
-                style="width: 80%"
-                label
-                v-model="selectedTarget"
-                :disabled="Boolean(subProcId)"
-                @on-change="onTargetSelectHandler"
-                @on-open-change="getTargetOptions"
-                filterable
-                clearable
-                @on-clear="clearTarget"
-              >
-                <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.displayName }}</Option>
-              </Select>
+              <!--暂停执行-->
               <Button
-                :disabled="
-                  isExecuteActive ||
-                  !showExcution ||
-                  !this.selectedTarget ||
-                  !this.selectedFlow ||
-                  !isShowExect ||
-                  Boolean(subProcId)
-                "
-                :loading="btnLoading"
-                type="info"
-                @click="excutionFlow"
-                >{{ $t('execute') }}</Button
+                type="warning"
+                @click="flowControlHandler('stop')"
+                style="background-color: #826bea; border-color: #826bea"
+                v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
+                icon="md-pause"
+                >{{ $t('be_pause') }}</Button
               >
+              <!--继续执行-->
+              <Button
+                type="success"
+                @click="flowControlHandler('recover')"
+                v-if="currentInstanceStatusForNodeOperation === 'Stop'"
+                icon="md-play"
+                >{{ $t('be_continue') }}</Button
+              >
+              <!--终止执行-->
+              <Button
+                v-if="['InProgress', 'Stop'].includes(currentInstanceStatusForNodeOperation) && !subProcBindParentFlag"
+                type="warning"
+                @click="stopHandler"
+                icon="md-square"
+                >{{ $t('stop_orch') }}</Button
+              >
+              <!-- disabled="currentInstanceStatus || stopSuccess"  stop_orch -->
+              <!--定时执行-->
+              <!-- <Button
+                v-if="currentInstanceStatusForNodeOperation === 'Completed'"
+                type="primary"
+                @click="setTimedExecution"
+                icon="md-stopwatch"
+                >{{ $t('timed_execution') }}</Button
+              > -->
+              <!-- :disabled="canAbleToSetting" timed_execution -->
             </FormItem>
-          </Col>
-          <!--模板收藏功能-->
-          <Col v-if="!isEnqueryPage && selectedFlow" span="5" style="text-align: right">
-            <Tooltip :content="selectedFlowObj.collected ? $t('be_cancel_save') : $t('bc_save')" placement="left">
-              <Icon
-                style="cursor: pointer; margin-right: 10px"
-                :size="28"
-                :color="selectedFlowObj.collected ? '#ebac42' : ''"
-                :type="selectedFlowObj.collected ? 'ios-star' : 'ios-star-outline'"
-                @click="handleStar(selectedFlowObj)"
-              />
-            </Tooltip>
-          </Col>
-        </Form>
+            <Col v-if="!isEnqueryPage" span="7">
+              <FormItem :label-width="100" :label="$t('select_orch')">
+                <Select
+                  label
+                  v-model="selectedFlow"
+                  :disabled="Boolean(subProcId)"
+                  @on-change="orchestrationSelectHandler"
+                  @on-open-change="getAllFlow"
+                  filterable
+                  clearable
+                  @on-clear="clearFlow"
+                >
+                  <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId"
+                    >{{ item.procDefName }} [{{ item.procDefVersion }}] {{ item.createdTime }}</Option
+                  >
+                </Select>
+              </FormItem>
+            </Col>
+            <Col v-if="!isEnqueryPage" span="12" offset="0">
+              <FormItem required :label-width="100" :label="$t('bc_execution_instance')">
+                <Select
+                  style="width: 80%"
+                  label
+                  v-model="selectedTarget"
+                  :disabled="Boolean(subProcId)"
+                  @on-change="onTargetSelectHandler"
+                  @on-open-change="getTargetOptions"
+                  filterable
+                  clearable
+                  @on-clear="clearTarget"
+                >
+                  <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.displayName }}</Option>
+                </Select>
+                <Button
+                  :disabled="
+                    isExecuteActive ||
+                    !showExcution ||
+                    !this.selectedTarget ||
+                    !this.selectedFlow ||
+                    !isShowExect ||
+                    Boolean(subProcId)
+                  "
+                  :loading="btnLoading"
+                  type="info"
+                  @click="excutionFlow"
+                  >{{ $t('execute') }}</Button
+                >
+              </FormItem>
+            </Col>
+            <!--模板收藏功能-->
+            <Col v-if="!isEnqueryPage && selectedFlow" span="5" style="text-align: right">
+              <Tooltip :content="selectedFlowObj.collected ? $t('be_cancel_save') : $t('bc_save')" placement="left">
+                <Icon
+                  style="cursor: pointer; margin-right: 10px"
+                  :size="28"
+                  :color="selectedFlowObj.collected ? '#ebac42' : ''"
+                  :type="selectedFlowObj.collected ? 'ios-star' : 'ios-star-outline'"
+                  @click="handleStar(selectedFlowObj)"
+                />
+              </Tooltip>
+            </Col>
+          </Form>
+        </div>
       </div>
-    </div>
-    <Row id="graph-container">
-      <Col span="7" style="border-right: 1px solid #d3cece; text-align: center; height: 100%; position: relative">
-        <div class="graph-container" id="flow" style="height: 90%"></div>
-        <!--重置-->
-        <Button class="reset-button" size="small" @click="ResetFlow">ResetZoom</Button>
-        <span class="set-data-title">{{ $t('fe_view_flow') }}</span>
-        <!--预览数据-->
-        <Button
-          v-if="!isEnqueryPage && selectedFlow && selectedTarget"
-          class="set-data-button"
-          size="small"
-          type="primary"
-          @click="setFlowDataForAllNodes"
-          >{{ $t('fe_node_datalist') }}</Button
-        >
-      </Col>
-      <Col span="17" style="text-align: center; text-align: center; height: 100%; position: relative">
-        <div class="graph-container" id="graph" style="height: 90%"></div>
-        <!--重置-->
-        <Button class="reset-button" size="small" @click="ResetModel">ResetZoom</Button>
-        <span class="set-data-title">{{ $t('fe_preview_using_data') }}</span>
-        <!--预览数据-->
-        <Button
-          v-if="selectedFlow && selectedTarget"
-          class="set-data-button"
-          size="small"
-          type="primary"
-          @click="showModelDataWithFlow"
-          >{{ $t('fe_data_nodelist') }}</Button
-        >
-        <Spin size="large" fix v-show="isLoading">
-          <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-          <div>{{ $t('loading') }}</div>
-        </Spin>
-      </Col>
-    </Row>
+      <Row id="graph-container">
+        <Col span="7" style="border-right: 1px solid #d3cece; text-align: center; height: 100%; position: relative">
+          <div class="graph-container" id="flow" style="height: 90%"></div>
+          <!--重置-->
+          <Button class="reset-button" size="small" @click="ResetFlow">ResetZoom</Button>
+          <span class="set-data-title">{{ $t('fe_view_flow') }}</span>
+          <!--预览数据-->
+          <Button
+            v-if="!isEnqueryPage && selectedFlow && selectedTarget"
+            class="set-data-button"
+            size="small"
+            type="primary"
+            @click="setFlowDataForAllNodes"
+            >{{ $t('fe_node_datalist') }}</Button
+          >
+        </Col>
+        <Col span="17" style="text-align: center; text-align: center; height: 100%; position: relative">
+          <div class="graph-container" id="graph" style="height: 90%"></div>
+          <!--重置-->
+          <Button class="reset-button" size="small" @click="ResetModel">ResetZoom</Button>
+          <span class="set-data-title">{{ $t('fe_preview_using_data') }}</span>
+          <!--预览数据-->
+          <Button
+            v-if="selectedFlow && selectedTarget"
+            class="set-data-button"
+            size="small"
+            type="primary"
+            @click="showModelDataWithFlow"
+            >{{ $t('fe_data_nodelist') }}</Button
+          >
+          <Spin size="large" fix v-show="isLoading">
+            <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+            <div>{{ $t('loading') }}</div>
+          </Spin>
+        </Col>
+      </Row>
+      <Spin fix v-if="loading"></Spin>
+    </Card>
     <!--左侧预览弹窗(新建)-->
     <BaseDrawer :title="$t('overview')" :visible.sync="flowNodesWithDataModalVisible" width="70%" :scrollable="true">
       <template slot-scope="{ maxHeight }" slot="content">
@@ -211,10 +214,7 @@
           :columns="flowNodesWithModelDataColums"
           :max-height="maxHeight"
           :data="allFlowNodesModelData"
-          @on-select="allFlowNodesSingleSelect"
-          @on-select-cancel="allFlowNodesSingleCancel"
-          @on-select-all-cancel="allFlowNodesSelectAllCancel"
-          @on-select-all="allFlowNodesSelectAll"
+          @on-selection-change="allFlowNodesSelectChange"
           :span-method="flowNodeDataHandleSpan"
         >
         </Table>
@@ -625,6 +625,7 @@ export default {
       indexArray: [0],
       flowIndexArray: [0],
       btnLoading: false,
+      loading: false,
       currentModelNodeRefs: [],
       showNodeDetail: false,
       nodeDetailFullscreen: false,
@@ -996,8 +997,9 @@ export default {
       flowOwner: '',
       subProcId: '', // 新建执行预览子编排从链接上传过来的子编排ID
       noActionFlag: false, // 节点无操作按钮标识
-      subProcBindParentFlag: false, // 子编排是否绑定主编排标识
-      from: this.$route.query.from // 查看页面来源(create新增页 sub子编排预览 main主编排预览 normal普通执行列表查看 time定时执行列表查看)
+      subProcBindParentFlag: true, // 子编排是否绑定主编排标识
+      from: this.$route.query.from, // 查看页面来源(create新增页 sub子编排预览 main主编排预览 normal普通执行列表查看 time定时执行列表查看)
+      subProc: this.$route.query.subProc // 是否子编排标识
     }
   },
   computed: {
@@ -1169,19 +1171,31 @@ export default {
   },
   methods: {
     handleBack () {
-      // 从新增页跳转到查看详情页，返回到历史列表
-      if (this.isEnqueryPage && this.$route.query.from === 'create') {
+      if (this.isEnqueryPage) {
+        if (['create', 'main', 'normal'].includes(this.$route.query.from)) {
+          return this.$router.push({
+            path: '/implementation/workflow-execution/normal-history',
+            query: {
+              subProc: this.subProc
+            }
+          })
+        } else if (this.$route.query.from === 'time') {
+          return this.$router.push({
+            path: '/implementation/workflow-execution/time-history',
+            query: {
+              subProc: this.subProc
+            }
+          })
+        }
+      }
+      if (!this.isEnqueryPage) {
         return this.$router.push({
-          path: '/implementation/workflow-execution/normal-history'
+          path: '/implementation/workflow-execution/normal-template',
+          query: {
+            subProc: this.subProc
+          }
         })
       }
-      // 预览子编排，返回到新建选择页面
-      if (!this.isEnqueryPage && this.subProcId) {
-        return this.$router.push({
-          path: '/implementation/workflow-execution/normal-template'
-        })
-      }
-      this.$router.back()
     },
     // 收藏or取消收藏
     handleStar: debounce(async function ({ procDefId, collected }) {
@@ -1287,39 +1301,6 @@ export default {
     //     this.timeConfig.currentUserRoles = data
     //   }
     // },
-    async stopHandler () {
-      const instance = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
-      this.$Modal.confirm({
-        title:
-          localStorage.getItem('username') !== instance.operator
-            ? this.$t('be_workflow_non_owner_title')
-            : this.$t('bc_confirm') + ' ' + this.$t('stop_orch'),
-        content:
-          localStorage.getItem('username') !== instance.operator
-            ? `${this.$t('be_workflow_non_owner_list_tip1')}[${instance.operator}]${this.$t(
-              'be_workflow_non_owner_list_tip2'
-            )}`
-            : '',
-        'z-index': 10,
-        onOk: async () => {
-          // createWorkflowInstanceTerminationRequest
-          const payload = {
-            procInstId: this.selectedFlowInstance,
-            procInstKey: instance.procInstKey
-          }
-          const { status } = await createWorkflowInstanceTerminationRequest(payload)
-          if (status === 'OK') {
-            this.fetchCurrentInstanceStatus()
-            this.stopSuccess = true
-            this.$Notice.success({
-              title: 'Success',
-              desc: 'Success'
-            })
-          }
-        },
-        onCancel: () => {}
-      })
-    },
     async getDetail (row) {
       if (!row.packageName || !row.entityName || !row.dataId) return
       let params = {
@@ -1431,34 +1412,9 @@ export default {
         item.bound = 'N'
       })
     },
-    allFlowNodesSingleSelect (selection, row) {
-      this.selectedFlowNodesModelData = this.selectedFlowNodesModelData.concat(row)
-    },
-    allFlowNodesSingleCancel (selection, row) {
-      const index = this.selectedFlowNodesModelData.findIndex(cn => {
-        return cn.id === row.id
-      })
-      this.selectedFlowNodesModelData.splice(index, 1)
-    },
-    allFlowNodesSelectAll (selection) {
-      let temp = []
-      this.selectedFlowNodesModelData.forEach(cntl => {
-        temp.push(cntl.id)
-      })
-      selection.forEach(se => {
-        if (!temp.includes(se.id)) {
-          this.selectedFlowNodesModelData.push(se)
-        }
-      })
-    },
-    allFlowNodesSelectAllCancel () {
-      let temp = []
-      this.tartetModels.forEach(tm => {
-        temp.push(tm.id)
-      })
-      this.selectedFlowNodesModelData = this.selectedFlowNodesModelData.filter(item => {
-        return !temp.includes(item.id)
-      })
+    // 左侧编排预览勾选数据
+    allFlowNodesSelectChange (selection) {
+      this.selectedFlowNodesModelData = selection
     },
     async setFlowDataForAllNodes () {
       let compare = (a, b) => {
@@ -2103,13 +2059,26 @@ export default {
               current = _.succeedingNodeIds.map(to => {
                 const toNodeItem = this.flowData.flowNodes.find(i => i.nodeId === to) || {}
                 const edgeColor = statusColor[toNodeItem.status] || '#505a68'
-                return (
-                  '"' +
-                  _.nodeId +
-                  '"' +
-                  ' -> ' +
-                  `${'"' + to + '"'} [label="${lineName[_.nodeId + to]}" color="${edgeColor}" ]`
-                )
+                // 修复判断分支多连线不能区分颜色问题
+                if (_.nodeType === 'decision') {
+                  return (
+                    '"' +
+                    _.nodeId +
+                    '"' +
+                    ' -> ' +
+                    `${'"' + to + '"'} [label="${lineName[_.nodeId + to]}" color="${edgeColor}" ]`
+                  )
+                } else {
+                  return (
+                    '"' +
+                    _.nodeId +
+                    '"' +
+                    ' -> ' +
+                    `${'"' + to + '"'} [label="${lineName[_.nodeId + to]}" color="${
+                      excution ? statusColor[_.status] : 'black'
+                    }"]`
+                  )
+                }
               })
               pathAry.push(current)
             }
@@ -2203,7 +2172,8 @@ export default {
             path: '/implementation/workflow-execution/view-execution',
             query: {
               id: data.id,
-              from: 'create'
+              from: 'create',
+              subProc: this.subProc
             }
           })
         }
@@ -2694,7 +2664,7 @@ export default {
       this.tableMaxHeight = document.body.scrollHeight - 410
       this.nodeDetailFullscreen = true
     },
-    // #region 暂停、继续编排
+    // 暂停、继续编排
     async flowControlHandler (operateType) {
       const instance = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
       this.$Modal.confirm({
@@ -2714,7 +2684,9 @@ export default {
             procInstId: this.selectedFlowInstance,
             act: operateType
           }
+          this.loading = true
           const { status } = await pauseAndContinueFlow(payload)
+          this.loading = false
           if (status === 'OK') {
             this.$Notice.success({
               title: 'Success',
@@ -2726,8 +2698,43 @@ export default {
         },
         onCancel: () => {}
       })
+    },
+    // 终止操作
+    async stopHandler () {
+      const instance = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
+      this.$Modal.confirm({
+        title:
+          localStorage.getItem('username') !== instance.operator
+            ? this.$t('be_workflow_non_owner_title')
+            : this.$t('bc_confirm') + ' ' + this.$t('stop_orch'),
+        content:
+          localStorage.getItem('username') !== instance.operator
+            ? `${this.$t('be_workflow_non_owner_list_tip1')}[${instance.operator}]${this.$t(
+              'be_workflow_non_owner_list_tip2'
+            )}`
+            : '',
+        'z-index': 10,
+        onOk: async () => {
+          // createWorkflowInstanceTerminationRequest
+          const payload = {
+            procInstId: this.selectedFlowInstance,
+            procInstKey: instance.procInstKey
+          }
+          this.loading = true
+          const { status } = await createWorkflowInstanceTerminationRequest(payload)
+          this.loading = false
+          if (status === 'OK') {
+            this.fetchCurrentInstanceStatus()
+            this.stopSuccess = true
+            this.$Notice.success({
+              title: 'Success',
+              desc: 'Success'
+            })
+          }
+        },
+        onCancel: () => {}
+      })
     }
-    // #endregion
   }
 }
 </script>
