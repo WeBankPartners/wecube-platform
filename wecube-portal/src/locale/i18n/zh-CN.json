@@ -889,5 +889,6 @@
   "p_new_config": "新配置",
   "p_destroy_tips": "销毁数据将无法恢复,确认执行? ",
   "p_instance_destroy_failed": "实例销毁失败",
-  "p_instance_destroy": "实例销毁中"
+  "p_instance_destroy": "实例销毁中",
+  "p_online_plugin_installation": "在线插件安装中"
 }
