@@ -7,8 +7,8 @@ github.com/Azure/azure-sdk-for-go/sdk/internal v0.7.0/go.mod h1:yqy467j36fJxcRV2
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/toml v1.2.1 h1:9F2/+DoOYIOksmaJFPw1tGFy1eDnIJXg+UHjuD8lTak=
 github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
-github.com/WeBankPartners/go-common-lib v1.1.3 h1:e1867SDlwQfWafGOoBuQtQbiqYZa9hMyHrvvOZfJ2yk=
-github.com/WeBankPartners/go-common-lib v1.1.3/go.mod h1:s6S7m/RloGFfY+Twq0hurp8kNZz9GtlbmKMRYWYdFaI=
+github.com/WeBankPartners/go-common-lib v1.1.5 h1:hrFieMX0ptqYRgPv7WM+G5do5x9W9Mp1qI5Kxyi9OVo=
+github.com/WeBankPartners/go-common-lib v1.1.5/go.mod h1:s6S7m/RloGFfY+Twq0hurp8kNZz9GtlbmKMRYWYdFaI=
 github.com/bytedance/sonic v1.5.0/go.mod h1:ED5hyg4y6t3/9Ku1R6dU/4KyJ48DZ4jPhfY1O2AihPM=
 github.com/bytedance/sonic v1.9.1 h1:6iJ6NqdoxCDr6mbY8h18oSO+cShGSMRGCEo7F2h0x8s=
 github.com/bytedance/sonic v1.9.1/go.mod h1:i736AoUSYt75HyZLoJW9ERYxcy6eaN6h4BZXU064P/U=

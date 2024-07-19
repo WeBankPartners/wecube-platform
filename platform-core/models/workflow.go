@@ -6,17 +6,19 @@ import (
 )
 
 const (
-	JobStartType    = "start"
-	JobEndType      = "end"
-	JobBreakType    = "abnormal"
-	JobAutoType     = "automatic"
-	JobDataType     = "data"
-	JobHumanType    = "human"
-	JobForkType     = "fork"
-	JobMergeType    = "merge"
-	JobTimeType     = "timeInterval"
-	JobDateType     = "date"
-	JobDecisionType = "decision"
+	JobStartType         = "start"
+	JobEndType           = "end"
+	JobBreakType         = "abnormal"
+	JobAutoType          = "automatic"
+	JobDataType          = "data"
+	JobHumanType         = "human"
+	JobForkType          = "fork"
+	JobMergeType         = "merge"
+	JobTimeType          = "timeInterval"
+	JobDateType          = "date"
+	JobDecisionType      = "decision"
+	JobSubProcType       = "subProc"
+	JobDecisionMergeType = "decisionMerge"
 
 	JobStatusReady     = "NotStarted"
 	JobStatusRunning   = "InProgress"
@@ -28,17 +30,18 @@ const (
 )
 
 type ProcRunWorkflow struct {
-	Id            string    `json:"id" xorm:"id"`                         // 唯一标识
-	ProcInsId     string    `json:"procInsId" xorm:"proc_ins_id"`         // 编排实例id
-	Name          string    `json:"name" xorm:"name"`                     // 名称
-	Status        string    `json:"status" xorm:"status"`                 // 状态->ready(初始化) | running(运行中) | fail(失败) | success(成功) | problem(节点失败) | kill(终止)
-	ErrorMessage  string    `json:"errorMessage" xorm:"error_message"`    // 错误信息
-	Sleep         bool      `json:"sleep" xorm:"sleep"`                   // 休眠->problem超10min或running中当前节点wait超10min,防止不是终态的工作流一直占用资源
-	Stop          bool      `json:"stop" xorm:"stop"`                     // 暂停->人为停止
-	CreatedTime   time.Time `json:"createdTime" xorm:"created_time"`      // 创建时间
-	UpdatedTime   time.Time `json:"updatedTime" xorm:"updated_time"`      // 更新时间
-	Host          string    `json:"host" xorm:"host"`                     // 当前运行主机
-	LastAliveTime time.Time `json:"lastAliveTime" xorm:"last_alive_time"` // 定期打卡时间->每隔10s更新
+	Id              string    `json:"id" xorm:"id"`                              // 唯一标识
+	ProcInsId       string    `json:"procInsId" xorm:"proc_ins_id"`              // 编排实例id
+	Name            string    `json:"name" xorm:"name"`                          // 名称
+	Status          string    `json:"status" xorm:"status"`                      // 状态->ready(初始化) | running(运行中) | fail(失败) | success(成功) | problem(节点失败) | kill(终止)
+	ErrorMessage    string    `json:"errorMessage" xorm:"error_message"`         // 错误信息
+	Sleep           bool      `json:"sleep" xorm:"sleep"`                        // 休眠->problem超10min或running中当前节点wait超10min,防止不是终态的工作流一直占用资源
+	Stop            bool      `json:"stop" xorm:"stop"`                          // 暂停->人为停止
+	CreatedTime     time.Time `json:"createdTime" xorm:"created_time"`           // 创建时间
+	UpdatedTime     time.Time `json:"updatedTime" xorm:"updated_time"`           // 更新时间
+	Host            string    `json:"host" xorm:"host"`                          // 当前运行主机
+	LastAliveTime   time.Time `json:"lastAliveTime" xorm:"last_alive_time"`      // 定期打卡时间->每隔10s更新
+	ParentRunNodeId string    `json:"parentRunNodeId" xorm:"parent_run_node_id"` // 父运行实例节点id
 }
 
 type ProcRunNode struct {
@@ -117,4 +120,23 @@ type WorkProblemErrObj struct {
 	NodeId     string `json:"nodeId"`
 	NodeName   string `json:"nodeName"`
 	ErrMessage string `json:"errMessage"`
+}
+
+type ProcRunNodeSubProc struct {
+	Id            int       `json:"id" xorm:"id"`                          // 自增id
+	ProcRunNodeId string    `json:"procRunNodeId" xorm:"proc_run_node_id"` // 任务节点id
+	WorkflowId    string    `json:"workflowId" xorm:"workflow_id"`         // 子工作流id
+	EntityTypeId  string    `json:"entityTypeId" xorm:"entity_type_id"`    // 绑定数据entity
+	EntityDataId  string    `json:"entityDataId" xorm:"entity_data_id"`    // 绑定数据id
+	CreatedTime   time.Time `json:"createdTime" xorm:"created_time"`       // 创建时间
+}
+
+type ProcSubProcQueryRow struct {
+	Status        string `json:"status" xorm:"status"`                  // 编排状态
+	ProcRunNodeId string `json:"procRunNodeId" xorm:"proc_run_node_id"` // 任务节点id
+	WorkflowId    string `json:"workflowId" xorm:"workflow_id"`         // 子工作流id
+	EntityTypeId  string `json:"entityTypeId" xorm:"entity_type_id"`    // 绑定数据entity
+	EntityDataId  string `json:"entityDataId" xorm:"entity_data_id"`    // 绑定数据id
+	ErrorMessage  string `json:"errorMessage" xorm:"error_message"`     // 错误信息
+	ProcInsId     string `json:"procInsId" xorm:"proc_ins_id"`          // 编排实例id
 }
