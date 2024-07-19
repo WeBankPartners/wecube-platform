@@ -259,20 +259,6 @@ export default {
                     </Button>
                   </Tooltip>
                 )}
-                {['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(params.row.status) && (
-                  <Tooltip content={this.$t('stop_orch')} placement="top">
-                    <Button
-                      size="small"
-                      type="error"
-                      onClick={() => {
-                        this.stopTask(params.row) // 终止
-                      }}
-                      style="margin-right:5px;"
-                    >
-                      <Icon type="md-power" size="16"></Icon>
-                    </Button>
-                  </Tooltip>
-                )}
                 {params.row.status === 'Stop' && (
                   <Tooltip content={this.$t('be_continue')} placement="top">
                     <Button
@@ -284,6 +270,20 @@ export default {
                       style="margin-right:5px;"
                     >
                       <Icon type="md-play" size="16"></Icon>
+                    </Button>
+                  </Tooltip>
+                )}
+                {['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(params.row.status) && (
+                  <Tooltip content={this.$t('stop_orch')} placement="top">
+                    <Button
+                      size="small"
+                      type="error"
+                      onClick={() => {
+                        this.stopTask(params.row) // 终止
+                      }}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="md-power" size="16"></Icon>
                     </Button>
                   </Tooltip>
                 )}
@@ -327,7 +327,9 @@ export default {
             procInstId: row.id,
             act: operateType
           }
+          this.loading = true
           const { status } = await pauseAndContinueFlow(payload)
+          this.loading = false
           if (status === 'OK') {
             this.getProcessInstances()
             this.$Notice.success({
@@ -358,7 +360,9 @@ export default {
             procInstId: row.id,
             procInstKey: row.procInstKey
           }
+          this.loading = true
           const { status } = await createWorkflowInstanceTerminationRequest(payload)
+          this.loading = false
           if (status === 'OK') {
             this.getProcessInstances()
             this.$Notice.success({
@@ -387,7 +391,9 @@ export default {
               id: i.id
             }
           })
+          this.loading = true
           const { status } = await batchWorkflowInstanceTermination(params)
+          this.loading = false
           if (status === 'OK') {
             this.getProcessInstances()
             this.$Notice.success({
