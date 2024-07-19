@@ -479,6 +479,7 @@ export default {
     async jumpToHistory (row) {
       const params = {
         id: row.id,
+        operator: 'systemCron',
         pageable: {
           startIndex: 0,
           pageSize: 5000
