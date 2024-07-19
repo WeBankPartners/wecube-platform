@@ -353,17 +353,35 @@ func QueryProcScheduleList(ctx context.Context, param *models.ProcScheduleQueryP
 }
 
 func QueryProcScheduleInstance(ctx context.Context, psConfigId, status string) (result []*models.ProcScheduleInstQueryObj, err error) {
+	var scheduleConfigRows []*models.ProcScheduleConfig
+	err = db.MysqlEngine.Context(ctx).SQL("select id,proc_def_name from proc_schedule_config where id=?", psConfigId).Find(&scheduleConfigRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(scheduleConfigRows) == 0 {
+		err = fmt.Errorf("can not find schedule config with id:%s ", psConfigId)
+		return
+	}
+	procDefName := scheduleConfigRows[0].ProcDefName
 	var procInsRows []*models.ScheduleProcInsQueryRow
 	if status == "" {
 		err = db.MysqlEngine.Context(ctx).SQL("select t3.id,t3.status,t2.created_time,t3.proc_def_id,t3.proc_def_name,t2.error_msg from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id=?", psConfigId).Find(&procInsRows)
 	} else {
 		err = db.MysqlEngine.Context(ctx).SQL("select t3.id,t3.status,t3.created_time,t3.proc_def_id,t3.proc_def_name from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id=? and t3.status=?", psConfigId, status).Find(&procInsRows)
 	}
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
 	result = []*models.ProcScheduleInstQueryObj{}
 	var inProgressInsList []string
 	for _, row := range procInsRows {
 		if row.CreatedTime.IsZero() {
 			continue
+		}
+		if row.ProcDefName == "" {
+			row.ProcDefName = procDefName
 		}
 		result = append(result, &models.ProcScheduleInstQueryObj{
 			ProcInstId:    row.Id,
