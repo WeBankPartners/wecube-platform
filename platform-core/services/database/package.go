@@ -95,16 +95,23 @@ func QueryPluginPackages(ctx context.Context, param *models.PluginPackageQueryPa
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
+	localMenuMap := make(map[string][]string)
 	menuMap := make(map[string][]string)
 	instanceMap := make(map[string][]*models.PluginPackageInstanceObj)
 	for _, row := range packageMenuRows {
 		if prefixName, ok := menuItemNameMap[row.Category]; ok {
 			row.LocalDisplayName = prefixName + "-" + row.LocalDisplayName
 		}
-		if existMenuList, ok := menuMap[row.PluginPackageId]; ok {
-			menuMap[row.PluginPackageId] = append(existMenuList, row.LocalDisplayName)
+		if existMenuList, ok := localMenuMap[row.PluginPackageId]; ok {
+			localMenuMap[row.PluginPackageId] = append(existMenuList, row.LocalDisplayName)
 		} else {
-			menuMap[row.PluginPackageId] = []string{row.LocalDisplayName}
+			localMenuMap[row.PluginPackageId] = []string{row.LocalDisplayName}
+		}
+		row.DisplayName = row.Category + "-" + row.DisplayName
+		if existMenuList, ok := menuMap[row.PluginPackageId]; ok {
+			menuMap[row.PluginPackageId] = append(existMenuList, row.DisplayName)
+		} else {
+			menuMap[row.PluginPackageId] = []string{row.DisplayName}
 		}
 	}
 	for _, row := range instanceRows {
@@ -118,6 +125,9 @@ func QueryPluginPackages(ctx context.Context, param *models.PluginPackageQueryPa
 	for _, row := range packageRows {
 		row.UpdatedTimeString = row.UpdatedTime.Format(models.DateTimeFormat)
 		resultObj := models.PluginPackageQueryObj{PluginPackages: *row, Menus: []string{}, Instances: []*models.PluginPackageInstanceObj{}}
+		if menuList, ok := localMenuMap[row.Id]; ok {
+			resultObj.LocalMenus = menuList
+		}
 		if menuList, ok := menuMap[row.Id]; ok {
 			resultObj.Menus = menuList
 		}
