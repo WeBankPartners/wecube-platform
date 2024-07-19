@@ -71,7 +71,8 @@ func StartProcSchedule(c *gin.Context) {
 	for _, v := range param {
 		scStatus := database.GetProcScheduleConfigStatus(c, v.Id)
 		if scStatus != models.ScheduleStatusStop {
-			err = fmt.Errorf("Config status:%s illegal ", scStatus)
+			err = exterror.New().ProcStatusOperationError
+			//err = fmt.Errorf("Config status:%s illegal ", scStatus)
 			break
 		}
 		if err = database.UpdateProcScheduleStatus(c, v.Id, models.ScheduleStatusReady, middleware.GetRequestUser(c), middleware.GetRequestRoles(c)); err != nil {
@@ -95,7 +96,8 @@ func StopProcSchedule(c *gin.Context) {
 	for _, v := range param {
 		scStatus := database.GetProcScheduleConfigStatus(c, v.Id)
 		if scStatus != models.ScheduleStatusReady {
-			err = fmt.Errorf("Config status:%s illegal ", scStatus)
+			err = exterror.New().ProcStatusOperationError
+			//err = fmt.Errorf("Config status:%s illegal ", scStatus)
 			break
 		}
 		if err = database.UpdateProcScheduleStatus(c, v.Id, models.ScheduleStatusStop, middleware.GetRequestUser(c), middleware.GetRequestRoles(c)); err != nil {
@@ -119,7 +121,8 @@ func DeleteProcSchedule(c *gin.Context) {
 	for _, v := range param {
 		scStatus := database.GetProcScheduleConfigStatus(c, v.Id)
 		if scStatus == models.ScheduleStatusDelete {
-			err = fmt.Errorf("Config status:%s illegal ", scStatus)
+			err = exterror.New().ProcStatusOperationError
+			//err = fmt.Errorf("Config status:%s illegal ", scStatus)
 			break
 		}
 		if err = database.UpdateProcScheduleStatus(c, v.Id, models.ScheduleStatusDelete, middleware.GetRequestUser(c), middleware.GetRequestRoles(c)); err != nil {
