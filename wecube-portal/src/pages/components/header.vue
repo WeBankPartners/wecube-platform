@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="platform-header">
     <div v-if="loadPlugin.isShow" class="plugin-load">
       <div class="plugin-load-header">
         <Icon type="ios-alert-outline" size="32" color="#2d8cf0" />
