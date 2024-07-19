@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/api/support"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
@@ -63,4 +64,10 @@ func RefreshToken(c *gin.Context) {
 		}
 	}
 
+}
+
+func GetLoginSeed(c *gin.Context) {
+	seed := service.GetLoginSeed()
+	md5sum := cipher.Md5Encode(seed)
+	support.ReturnData(c, md5sum[0:16])
 }

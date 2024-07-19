@@ -15,6 +15,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
 	"github.com/gin-gonic/gin"
 	"strings"
+	"time"
 )
 
 func ProcDefList(c *gin.Context) {
@@ -22,14 +23,18 @@ func ProcDefList(c *gin.Context) {
 	permission := c.Query("permission")     // USE | MGMT
 	tag := c.Query("tag")
 	plugin := c.Query("plugin")
+	subProc := c.Query("subProc")
 	if includeDraft == "" {
 		includeDraft = "0"
 	}
 	if permission == "" {
 		permission = "USE"
 	}
+	if subProc == "" {
+		subProc = "all"
+	}
 	log.Logger.Debug("procDefList", log.String("includeDraft", includeDraft), log.String(permission, "permission"), log.String("tag", tag), log.StringList("roleList", middleware.GetRequestRoles(c)))
-	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, middleware.GetRequestRoles(c))
+	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, subProc, middleware.GetRequestUser(c), middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -42,14 +47,18 @@ func PublicProcDefList(c *gin.Context) {
 	tag := c.Query("tag")
 	plugin := c.Query("plugin")
 	withAll := c.Query("all")
+	subProc := c.Query("subProc")
 	if permission == "" {
 		permission = "USE"
 	}
 	if withAll == "" {
 		withAll = "N"
 	}
+	if subProc == "" {
+		subProc = "main"
+	}
 	log.Logger.Debug("public procDefList", log.String(permission, "permission"), log.String("tag", tag))
-	procList, err := database.ProcDefList(c, "0", permission, tag, plugin, middleware.GetRequestRoles(c))
+	procList, err := database.ProcDefList(c, "0", permission, tag, plugin, subProc, middleware.GetRequestUser(c), middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -151,6 +160,16 @@ func ProcDefRootEntities(c *gin.Context) {
 func ProcDefPreview(c *gin.Context) {
 	procDefId := c.Param("proc-def-id")
 	entityDataId := c.Param("entityDataId")
+	sessionId := c.Query("sessionId")
+	if sessionId != "" {
+		result, err := database.GetProcPreviewBySession(c, sessionId)
+		if err != nil {
+			middleware.ReturnError(c, err)
+		} else {
+			middleware.ReturnData(c, result)
+		}
+		return
+	}
 	result, err := execution.BuildProcPreviewData(c, procDefId, entityDataId, middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -335,6 +354,16 @@ func ProcInsStart(c *gin.Context) {
 		return
 	}
 	operator := middleware.GetRequestUser(c)
+	// 检测是不是子编排
+	isSubSession, queryErr := database.CheckSubProcStart(c, param.ProcessSessionId)
+	if queryErr != nil {
+		middleware.ReturnError(c, queryErr)
+		return
+	}
+	if isSubSession {
+		middleware.ReturnError(c, fmt.Errorf("subProcess can not start"))
+		return
+	}
 	// 新增 proc_ins,proc_ins_node,proc_data_binding 纪录
 	procInsId, workflowRow, workNodes, workLinks, err := database.CreateProcInstance(c, &param, operator)
 	if err != nil {
@@ -356,7 +385,12 @@ func ProcInsStart(c *gin.Context) {
 }
 
 func ProcInsList(c *gin.Context) {
-	result, err := database.ListProcInstance(c, middleware.GetRequestRoles(c))
+	withCronIns := strings.ToLower(c.Query("withCronIns"))
+	withSubProc := strings.ToLower(c.Query("withSubProc"))
+	mgmtRole := c.Query("mgmtRole")
+	search := c.Query("search")
+	status := c.Query("status")
+	result, err := database.ListProcInstance(c, middleware.GetRequestRoles(c), withCronIns, withSubProc, mgmtRole, search, status)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -435,12 +469,30 @@ func ProcInsOperation(c *gin.Context) {
 		middleware.ReturnError(c, exterror.New().DataPermissionDeny)
 		return
 	}
+	procInsObj, getProcInsErr := database.GetSimpleProcInsRow(c, param.ProcInstId)
+	if getProcInsErr != nil {
+		middleware.ReturnError(c, getProcInsErr)
+		return
+	}
 	workflowId, nodeId, err := database.GetProcWorkByInsId(c, param.ProcInstId, param.NodeInstId)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
+	nodeObj := &models.ProcInsNode{}
+	if param.NodeInstId != "" {
+		nodeObj, err = database.GetSimpleProcInsNode(c, param.NodeInstId, "")
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+	}
 	if param.Act == "skip" {
+		if procInsObj.Status != models.JobStatusRunning {
+			middleware.ReturnError(c, exterror.New().ProcStatusOperationError)
+			//middleware.ReturnError(c, fmt.Errorf("ProcIns status:%s ,operation %s illegal", procInsObj.Status, param.Act))
+			return
+		}
 		operationObj := models.ProcRunOperation{WorkflowId: workflowId, NodeId: nodeId, Operation: "ignore", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
 		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
 		if err != nil {
@@ -448,7 +500,15 @@ func ProcInsOperation(c *gin.Context) {
 			return
 		}
 		go workflow.HandleProOperation(&operationObj)
+		if nodeObj.NodeType == models.JobSubProcType {
+			killSubProc(c, param.ProcInstId, param.NodeInstId, middleware.GetRequestUser(c))
+		}
 	} else if param.Act == "choose" {
+		if procInsObj.Status != models.JobStatusRunning {
+			middleware.ReturnError(c, exterror.New().ProcStatusOperationError)
+			//middleware.ReturnError(c, fmt.Errorf("ProcIns status:%s ,operation %s illegal", procInsObj.Status, param.Act))
+			return
+		}
 		if param.Message == "" {
 			middleware.ReturnError(c, fmt.Errorf("param message can not empty with choose action"))
 			return
@@ -461,6 +521,11 @@ func ProcInsOperation(c *gin.Context) {
 		}
 		go workflow.HandleProOperation(&operationObj)
 	} else if param.Act == "stop" {
+		if procInsObj.Status != models.JobStatusRunning {
+			middleware.ReturnError(c, exterror.New().ProcStatusOperationError)
+			//middleware.ReturnError(c, fmt.Errorf("ProcIns status:%s ,operation %s illegal", procInsObj.Status, param.Act))
+			return
+		}
 		operationObj := models.ProcRunOperation{WorkflowId: workflowId, Operation: "stop", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
 		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
 		if err != nil {
@@ -468,7 +533,13 @@ func ProcInsOperation(c *gin.Context) {
 			return
 		}
 		go workflow.HandleProOperation(&operationObj)
+		time.Sleep(2500 * time.Millisecond)
 	} else if param.Act == "recover" {
+		if procInsObj.Status != models.WorkflowStatusStop {
+			middleware.ReturnError(c, exterror.New().ProcStatusOperationError)
+			//middleware.ReturnError(c, fmt.Errorf("ProcIns status:%s ,operation %s illegal", procInsObj.Status, param.Act))
+			return
+		}
 		operationObj := models.ProcRunOperation{WorkflowId: workflowId, Operation: "continue", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
 		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
 		if err != nil {
@@ -476,6 +547,7 @@ func ProcInsOperation(c *gin.Context) {
 			return
 		}
 		go workflow.HandleProOperation(&operationObj)
+		time.Sleep(2500 * time.Millisecond)
 	}
 	middleware.ReturnSuccess(c)
 }
@@ -526,6 +598,9 @@ func ProcInsNodeRetry(c *gin.Context) {
 	if procInsNodeObj.Status == models.JobStatusReady {
 		middleware.ReturnSuccess(c)
 		return
+	}
+	if procInsNodeObj.NodeType == models.JobSubProcType {
+		killSubProc(c, procInsId, procInsNodeId, operator)
 	}
 	workflowId, nodeId, err := database.GetProcWorkByInsId(c, procInsId, procInsNodeId)
 	if err != nil {
@@ -614,6 +689,16 @@ func ProcTermination(c *gin.Context) {
 		middleware.ReturnError(c, exterror.New().DataPermissionDeny)
 		return
 	}
+	procInsObj, getErr := database.GetSimpleProcInsRow(c, procInsId)
+	if getErr != nil {
+		middleware.ReturnError(c, getErr)
+		return
+	}
+	if procInsObj.Status == models.JobStatusFail || procInsObj.Status == models.JobStatusSuccess {
+		middleware.ReturnError(c, exterror.New().ProcStatusOperationError)
+		//middleware.ReturnError(c, fmt.Errorf("procIns:%s[%s] status is %s ,can not termination", procInsObj.ProcDefName, procInsObj.Id, procInsObj.Status))
+		return
+	}
 	workflowId, _, err := database.GetProcWorkByInsId(c, procInsId, "")
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -626,7 +711,78 @@ func ProcTermination(c *gin.Context) {
 		return
 	}
 	go workflow.HandleProOperation(&operationObj)
+	killSubProc(c, procInsId, "", middleware.GetRequestUser(c))
+	time.Sleep(2500 * time.Millisecond)
 	middleware.ReturnSuccess(c)
+}
+
+func BatchProcTermination(c *gin.Context) {
+	var procInsList []*models.ProcIns
+	if err := c.ShouldBindJSON(&procInsList); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	for _, procInsParam := range procInsList {
+		permissionLegal, checkPermissionErr := database.CheckProcInsUserPermission(c, middleware.GetRequestRoles(c), procInsParam.Id)
+		if checkPermissionErr != nil {
+			middleware.ReturnError(c, checkPermissionErr)
+			return
+		}
+		if !permissionLegal {
+			middleware.ReturnError(c, exterror.New().DataPermissionDeny)
+			return
+		}
+		procInsObj, getErr := database.GetSimpleProcInsRow(c, procInsParam.Id)
+		if getErr != nil {
+			middleware.ReturnError(c, getErr)
+			return
+		}
+		if procInsObj.Status == models.JobStatusFail || procInsObj.Status == models.JobStatusSuccess {
+			middleware.ReturnError(c, exterror.New().ProcStatusOperationError)
+			//middleware.ReturnError(c, fmt.Errorf("procIns:%s[%s] status is %s ,can not termination", procInsObj.ProcDefName, procInsObj.Id, procInsObj.Status))
+			return
+		}
+	}
+	for _, procInsParam := range procInsList {
+		workflowId, _, err := database.GetProcWorkByInsId(c, procInsParam.Id, "")
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		operationObj := models.ProcRunOperation{WorkflowId: workflowId, Operation: "kill", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
+		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		go workflow.HandleProOperation(&operationObj)
+		killSubProc(c, procInsParam.Id, "", middleware.GetRequestUser(c))
+	}
+	time.Sleep(2500 * time.Millisecond)
+	middleware.ReturnSuccess(c)
+}
+
+func killSubProc(ctx context.Context, mainProcInsId, procNodeId, operator string) {
+	var err error
+	var subWorkflowIdList []string
+	subWorkflowIdList, err = database.GetRunningProcInsSubWorkflow(ctx, mainProcInsId, procNodeId)
+	if err != nil {
+		log.Logger.Error("Try to kill sub proc fail with query sub workflow list", log.String("mainProcIns", mainProcInsId), log.Error(err))
+		return
+	}
+	if len(subWorkflowIdList) == 0 {
+		return
+	}
+	for _, subWorkflowId := range subWorkflowIdList {
+		subOperationObj := models.ProcRunOperation{WorkflowId: subWorkflowId, Operation: "kill", Status: "wait", CreatedBy: operator}
+		subOperationObj.Id, err = database.AddWorkflowOperation(ctx, &subOperationObj)
+		if err != nil {
+			log.Logger.Error("Try to kill sub proc fail", log.String("mainProcIns", mainProcInsId), log.String("subWorkflowId", subWorkflowId), log.Error(err))
+		} else {
+			go workflow.HandleProOperation(&subOperationObj)
+		}
+	}
+	return
 }
 
 func ProcStartEvents(c *gin.Context) {
@@ -678,4 +834,40 @@ func GetProcNodeNextChoose(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, result)
 	}
+}
+
+func SubProcDefList(c *gin.Context) {
+	var param models.SubProcDefListParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	result, err := database.ProcDefList(c, "0", "USE", "", "", "sub", middleware.GetRequestUser(c), middleware.GetRequestRoles(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if param.EntityExpr != "" {
+		exprList, analyzeErr := remote.AnalyzeExpression(param.EntityExpr)
+		if analyzeErr != nil {
+			middleware.ReturnError(c, analyzeErr)
+			return
+		}
+		if len(exprList) > 0 {
+			lastExpr := exprList[len(exprList)-1]
+			matchRootEntity := fmt.Sprintf("%s:%s", lastExpr.Package, lastExpr.Entity)
+			newResultList := []*models.ProcDefListObj{}
+			for _, v := range result {
+				tmpRootEntity := v.RootEntity
+				if filterIndex := strings.Index(v.RootEntity, "{"); filterIndex > 0 {
+					tmpRootEntity = v.RootEntity[:filterIndex]
+				}
+				if tmpRootEntity == matchRootEntity {
+					newResultList = append(newResultList, v)
+				}
+			}
+			result = newResultList
+		}
+	}
+	middleware.ReturnData(c, result)
 }
