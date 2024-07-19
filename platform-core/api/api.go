@@ -76,6 +76,11 @@ func init() {
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/instances", Method: "GET", HandlerFunc: plugin.GetPluginRunningInstances, ApiCode: "get-plugin-running-instance"},
 		&handlerFuncObj{Url: "/packages/name/list", Method: "GET", HandlerFunc: plugin.GetPackageNames, ApiCode: "get-package-names"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/resources/s3/files", Method: "GET", HandlerFunc: plugin.GetPluginS3Files, ApiCode: "get-plugin-s3-files"},
+		&handlerFuncObj{Url: "/packages/ui/register", Method: "POST", HandlerFunc: plugin.UIRegisterPackage, ApiCode: "ui-register-package"},
+		&handlerFuncObj{Url: "/packages/register-done", Method: "POST", HandlerFunc: plugin.RegisterPackageDone, ApiCode: "register-package-done"},
+		&handlerFuncObj{Url: "/plugins/packages/version/get", Method: "GET", HandlerFunc: plugin.GetPluginConfigVersionList, ApiCode: "get-package-config-version"},
+		&handlerFuncObj{Url: "/plugins/packages/version/inherit", Method: "POST", HandlerFunc: plugin.InheritPluginConfig, ApiCode: "inherit-package-config"},
+
 		// plugin-config
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugin-configs", Method: "GET", HandlerFunc: plugin.GetPluginConfigs, ApiCode: "get-plugin-configs"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugins", Method: "GET", HandlerFunc: plugin.GetPluginConfigsWithInterfaces, ApiCode: "get-plugin-configs-with-interfaces"},
@@ -88,12 +93,16 @@ func init() {
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugin-config-outlines", Method: "GET", HandlerFunc: plugin.GetBatchPluginConfigs, ApiCode: "get-batch-plugin-configs"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/plugin-configs/enable-in-batch", Method: "POST", HandlerFunc: plugin.BatchEnablePluginConfig, ApiCode: "batch-enable-plugin-configs"},
 		&handlerFuncObj{Url: "/plugins/packages/export/:pluginPackageId", Method: "GET", HandlerFunc: plugin.ExportPluginConfigs, ApiCode: "export-plugin-configs"},
+		&handlerFuncObj{Url: "/plugins/packages/export-choose/:pluginPackageId", Method: "POST", HandlerFunc: plugin.ExportPluginConfigs, ApiCode: "export-choose-plugin-configs"},
 		&handlerFuncObj{Url: "/plugins/packages/import/:pluginPackageId", Method: "POST", HandlerFunc: plugin.ImportPluginConfigs, ApiCode: "import-plugin-configs"},
 		&handlerFuncObj{Url: "/packages/decommission/:pluginPackageId", Method: "POST", HandlerFunc: plugin.DeletePlugin, ApiCode: "delete-plugin"},
 		&handlerFuncObj{Url: "/plugins/query-by-target-entity", Method: "POST", HandlerFunc: plugin.QueryPluginByTargetEntity, ApiCode: "query-plugin-by-target-entity"},
 		&handlerFuncObj{Url: "/plugin-artifacts", Method: "GET", HandlerFunc: plugin.ListOnliePackage, ApiCode: "list-online-packages"},
 		&handlerFuncObj{Url: "/plugin-artifacts/pull-requests", Method: "POST", HandlerFunc: plugin.PullOnliePackage, ApiCode: "pull-online-package"},
 		&handlerFuncObj{Url: "/plugin-artifacts/pull-requests/:pullId", Method: "GET", HandlerFunc: plugin.PullOnliePackageStatus, ApiCode: "pull-online-package-status"},
+		&handlerFuncObj{Url: "/plugins/configs/interfaces/param/metadata/query", Method: "POST", HandlerFunc: plugin.QueryPluginInterfaceParam, ApiCode: "query-plugin-interface-param"},
+		&handlerFuncObj{Url: "/plugins/objectmetas/id/:objectMetaId", Method: "GET", HandlerFunc: plugin.GetObjectMetas, ApiCode: "get-object-metas"},
+		&handlerFuncObj{Url: "/plugins/configs/:pluginConfigId/interfaces/objectmetas/:objectMetaId", Method: "POST", HandlerFunc: plugin.UpdateObjectMetas, ApiCode: "update-object-metas"},
 
 		// model
 		&handlerFuncObj{Url: "/models", Method: "GET", HandlerFunc: plugin.GetAllModels, ApiCode: "get-all-models"},
@@ -149,6 +158,10 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/link/:node-link-id", Method: "GET", HandlerFunc: process.GetProcDefNodeLink, ApiCode: "get-process-definition-node-link"},
 		&handlerFuncObj{Url: "/public/process/definitions/syncUseRole", Method: "POST", HandlerFunc: process.SyncUseRole, ApiCode: "public-sync-user-role"},
 		&handlerFuncObj{Url: "/process/definitions/handler/update", Method: "POST", HandlerFunc: process.UpdateProcDefHandler, ApiCode: "update-process-definition-handler"},
+		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/parent/get", Method: "POST", HandlerFunc: process.GetProcDefParentList, ApiCode: "get-process-definition-parent"},
+		&handlerFuncObj{Url: "/process/definitions/collect/add", Method: "POST", HandlerFunc: process.AddProcDefCollect, ApiCode: "add-proc-collect"},
+		&handlerFuncObj{Url: "/process/definitions/collect/del", Method: "POST", HandlerFunc: process.DelProcDefCollect, ApiCode: "del-proc-collect"},
+		&handlerFuncObj{Url: "/process/definitions/sub/list", Method: "POST", HandlerFunc: process.SubProcDefList, ApiCode: "sub-proc-list"},
 
 		// process runtime
 		&handlerFuncObj{Url: "/process/definitions", Method: "GET", HandlerFunc: process.ProcDefList, ApiCode: "list-process-def"},
@@ -171,6 +184,7 @@ func init() {
 		&handlerFuncObj{Url: "/process/instances/:procInsId/tasknode-bindings", Method: "GET", HandlerFunc: process.GetInstanceTaskNodeBindings, ApiCode: "get-process-ins-binding"},
 		&handlerFuncObj{Url: "/process/instances/:procInsId/preview/entities", Method: "GET", HandlerFunc: process.GetProcInsPreview, ApiCode: "get-ins-preview"},
 		&handlerFuncObj{Url: "/public/process/instances/:procInsId/terminations", Method: "POST", HandlerFunc: process.ProcTermination, ApiCode: "process-ins-terminations"},
+		&handlerFuncObj{Url: "/public/process/instances/batch-terminations", Method: "POST", HandlerFunc: process.BatchProcTermination, ApiCode: "batch-ins-terminations"},
 		&handlerFuncObj{Url: "/process/instances/proceed", Method: "POST", HandlerFunc: process.ProcInsOperation, ApiCode: "proc-ins-operation"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/entities/:entityName/query", Method: "POST", HandlerFunc: process.ProcEntityDataQuery, ApiCode: "proc-ins-operation"},
 		&handlerFuncObj{Url: "/process/instances/callback", Method: "POST", HandlerFunc: process.ProcInstanceCallback, ApiCode: "proc-ins-callback"},
