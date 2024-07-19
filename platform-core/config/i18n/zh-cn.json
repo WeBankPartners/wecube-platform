@@ -171,5 +171,9 @@
   "proc_status_operation_error": {
     "code": 20000038,
     "message": "操作失败：当前编排状态已更新，请刷新重试"
+  },
+  "schedule_operation_error": {
+    "code": 20000039,
+    "message": "新加一个系统报错：操作失败：当前任务状态已更新，请刷新重试"
   }
 }
