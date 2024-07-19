@@ -868,5 +868,7 @@
   "p_instance_creation": "Instance Creating",
   "p_instance_creation_failed": "Instance Creation Failed",
   "p_new_config": "New Config",
-  "p_destroy_tips": "Destroyed data cannot be restored, confirm execution?"
+  "p_destroy_tips": "Destroyed data cannot be restored, confirm execution?",
+  "p_instance_destroy_failed": "Instance destruction failed",
+  "p_instance_destroy": "Instance being destroyed"
 }
