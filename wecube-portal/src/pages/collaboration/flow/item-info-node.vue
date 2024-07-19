@@ -366,7 +366,7 @@
                   <span v-if="itemCustomInfo.customAttrs.subProcDefId === ''" style="color: red"
                     >{{ $t('child_workflow') }} {{ $t('cannotBeEmpty') }}</span
                   >
-                  <span v-if="subProcRemoveFlag" style="color: red">{{ '子编排权限被移除或者被禁用' }}</span>
+                  <span v-if="subProcRemoveFlag" style="color: red">{{ $t('fe_childFlow_permissionTips') }}</span>
                 </FormItem>
                 <template v-if="itemCustomInfo.customAttrs.subProcDefId && subProcItem">
                   <FormItem :label="$t('child_flowId')">
@@ -601,7 +601,7 @@ export default {
         const routineExpressionItem =
           (this.$refs.filterRulesGroupRef && this.$refs.filterRulesGroupRef.routineExpressionItem) || []
         const operateFlag = routineExpressionItem.every(i => i.operate !== '')
-        if (!operateFlag) return this.$Message.warning('定位规则操作均必填')
+        if (!operateFlag) return this.$Message.warning(this.$t('fe_locationRuleTips'))
       }
       // 插件服务校验
       if (['human', 'automatic'].includes(this.itemCustomInfo.customAttrs.nodeType) && this.checkParamsInfo()) return
