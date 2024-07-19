@@ -38,7 +38,7 @@
   },
   "plugin_dependency_illegal": {
     "code": 20000001,
-    "message": "Plugin dependency validate fail"
+    "message": "Installation Failed: The plug-in version dependency verification failed"
   },
   "proc_def_node_name_empty_error": {
     "code": 20000002,
@@ -142,7 +142,7 @@
   },
   "data_permission_deny": {
     "code": 20000031,
-    "message": "Data Permission Deny"
+    "message": "Operation Failed: No data permissions are available"
   },
   "add_role_exist_error": {
     "code": 20000032,
@@ -167,5 +167,9 @@
   "proc_def_merge_error": {
     "code": 20000037,
     "message": "Publish Failed: Merge node %s can not match suitable fork node"
+  },
+  "proc_status_operation_error": {
+    "code": 20000038,
+    "message": "Operation Failed: The current process status has been updated, please refresh and try again"
   }
 }
