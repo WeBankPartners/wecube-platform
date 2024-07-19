@@ -488,7 +488,8 @@ func ProcInsOperation(c *gin.Context) {
 	}
 	if param.Act == "skip" {
 		if procInsObj.Status != models.JobStatusRunning {
-			middleware.ReturnError(c, fmt.Errorf("ProcIns status:%s ,operation %s illegal", procInsObj.Status, param.Act))
+			middleware.ReturnError(c, exterror.New().ProcStatusOperationError)
+			//middleware.ReturnError(c, fmt.Errorf("ProcIns status:%s ,operation %s illegal", procInsObj.Status, param.Act))
 			return
 		}
 		operationObj := models.ProcRunOperation{WorkflowId: workflowId, NodeId: nodeId, Operation: "ignore", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
@@ -503,7 +504,8 @@ func ProcInsOperation(c *gin.Context) {
 		}
 	} else if param.Act == "choose" {
 		if procInsObj.Status != models.JobStatusRunning {
-			middleware.ReturnError(c, fmt.Errorf("ProcIns status:%s ,operation %s illegal", procInsObj.Status, param.Act))
+			middleware.ReturnError(c, exterror.New().ProcStatusOperationError)
+			//middleware.ReturnError(c, fmt.Errorf("ProcIns status:%s ,operation %s illegal", procInsObj.Status, param.Act))
 			return
 		}
 		if param.Message == "" {
@@ -519,7 +521,8 @@ func ProcInsOperation(c *gin.Context) {
 		go workflow.HandleProOperation(&operationObj)
 	} else if param.Act == "stop" {
 		if procInsObj.Status != models.JobStatusRunning {
-			middleware.ReturnError(c, fmt.Errorf("ProcIns status:%s ,operation %s illegal", procInsObj.Status, param.Act))
+			middleware.ReturnError(c, exterror.New().ProcStatusOperationError)
+			//middleware.ReturnError(c, fmt.Errorf("ProcIns status:%s ,operation %s illegal", procInsObj.Status, param.Act))
 			return
 		}
 		operationObj := models.ProcRunOperation{WorkflowId: workflowId, Operation: "stop", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
@@ -532,7 +535,8 @@ func ProcInsOperation(c *gin.Context) {
 		time.Sleep(2500 * time.Millisecond)
 	} else if param.Act == "recover" {
 		if procInsObj.Status != models.WorkflowStatusStop {
-			middleware.ReturnError(c, fmt.Errorf("ProcIns status:%s ,operation %s illegal", procInsObj.Status, param.Act))
+			middleware.ReturnError(c, exterror.New().ProcStatusOperationError)
+			//middleware.ReturnError(c, fmt.Errorf("ProcIns status:%s ,operation %s illegal", procInsObj.Status, param.Act))
 			return
 		}
 		operationObj := models.ProcRunOperation{WorkflowId: workflowId, Operation: "continue", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
@@ -690,7 +694,8 @@ func ProcTermination(c *gin.Context) {
 		return
 	}
 	if procInsObj.Status == models.JobStatusFail || procInsObj.Status == models.JobStatusSuccess {
-		middleware.ReturnError(c, fmt.Errorf("procIns:%s[%s] status is %s ,can not termination", procInsObj.ProcDefName, procInsObj.Id, procInsObj.Status))
+		middleware.ReturnError(c, exterror.New().ProcStatusOperationError)
+		//middleware.ReturnError(c, fmt.Errorf("procIns:%s[%s] status is %s ,can not termination", procInsObj.ProcDefName, procInsObj.Id, procInsObj.Status))
 		return
 	}
 	workflowId, _, err := database.GetProcWorkByInsId(c, procInsId, "")
@@ -732,7 +737,8 @@ func BatchProcTermination(c *gin.Context) {
 			return
 		}
 		if procInsObj.Status == models.JobStatusFail || procInsObj.Status == models.JobStatusSuccess {
-			middleware.ReturnError(c, fmt.Errorf("procIns:%s[%s] status is %s ,can not termination", procInsObj.ProcDefName, procInsObj.Id, procInsObj.Status))
+			middleware.ReturnError(c, exterror.New().ProcStatusOperationError)
+			//middleware.ReturnError(c, fmt.Errorf("procIns:%s[%s] status is %s ,can not termination", procInsObj.ProcDefName, procInsObj.Id, procInsObj.Status))
 			return
 		}
 	}
