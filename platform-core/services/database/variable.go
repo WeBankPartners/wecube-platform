@@ -89,7 +89,7 @@ func DeleteSystemVariables(ctx context.Context, params []*models.SystemVariables
 
 func RegisterPlugin(ctx context.Context, name, version string) (err error) {
 	var actions []*db.ExecAction
-	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set status=? where name=? and status=?", Param: []interface{}{models.PluginStatusUnRegistered, name, models.PluginStatusRegistered}})
+	//actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set status=? where name=? and status=?", Param: []interface{}{models.PluginStatusUnRegistered, name, models.PluginStatusRegistered}})
 	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set status=? where name=? and `version`=?", Param: []interface{}{models.PluginStatusRegistered, name, version}})
 	actions = append(actions, &db.ExecAction{Sql: "update system_variables set status='inactive' where package_name=? and status='active'", Param: []interface{}{name}})
 	actions = append(actions, &db.ExecAction{Sql: "update system_variables set status='active' where source=?", Param: []interface{}{fmt.Sprintf("%s__%s", name, version)}})
@@ -149,6 +149,17 @@ func DeactivateSystemVariablesByPackage(ctx context.Context, name, version strin
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		return
+	}
+	return
+}
+
+func GetEncryptSeed(ctx context.Context) (encryptSeed string, err error) {
+	encryptSeed, err = GetSystemVariable(ctx, models.SysVarEncryptSeed)
+	if err != nil {
+		return
+	}
+	if encryptSeed == "" {
+		encryptSeed = models.Config.EncryptSeed
 	}
 	return
 }
