@@ -7,6 +7,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"time"
 )
 
 func QuerySystemVariables(ctx context.Context, param *models.QueryRequestParam) (result *models.SystemVariablesListPageData, err error) {
@@ -87,10 +88,10 @@ func DeleteSystemVariables(ctx context.Context, params []*models.SystemVariables
 	return
 }
 
-func RegisterPlugin(ctx context.Context, name, version string) (err error) {
+func RegisterPlugin(ctx context.Context, name, version, operator string) (err error) {
 	var actions []*db.ExecAction
 	//actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set status=? where name=? and status=?", Param: []interface{}{models.PluginStatusUnRegistered, name, models.PluginStatusRegistered}})
-	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set status=? where name=? and `version`=?", Param: []interface{}{models.PluginStatusRegistered, name, version}})
+	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set status=?,updated_by=?,updated_time=? where name=? and `version`=?", Param: []interface{}{models.PluginStatusRegistered, operator, time.Now(), name, version}})
 	actions = append(actions, &db.ExecAction{Sql: "update system_variables set status='inactive' where package_name=? and status='active'", Param: []interface{}{name}})
 	actions = append(actions, &db.ExecAction{Sql: "update system_variables set status='active' where source=?", Param: []interface{}{fmt.Sprintf("%s__%s", name, version)}})
 	err = db.Transaction(actions, ctx)
