@@ -999,7 +999,7 @@ func DisableAllPluginConfigsByPackageId(ctx context.Context, pluginPackageId str
 	return
 }
 
-func DecommissionPluginPackage(ctx context.Context, pluginPackageId string) (err error) {
+func DecommissionPluginPackage(ctx context.Context, pluginPackageId, operator string) (err error) {
 	session := db.MysqlEngine.NewSession().Context(ctx)
 	defer session.Close()
 	err = session.Begin()
@@ -1009,6 +1009,8 @@ func DecommissionPluginPackage(ctx context.Context, pluginPackageId string) (err
 	}
 	updateData := make(map[string]interface{})
 	updateData["status"] = models.PluginStatusDecommissioned
+	updateData["updated_time"] = time.Now()
+	updateData["updated_by"] = operator
 	_, err = session.Table(new(models.PluginPackages)).Where("id = ?", pluginPackageId).Update(updateData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
