@@ -294,6 +294,7 @@
   "auth_setting": "Auth Setting",
   "runtime_resource": "Runtime Resource",
   "plugin_regist": "Plugin Register",
+  "plugin_registing": "Plugin Registing",
   "no_plugin_packages": "No Plugin Packages",
   "path": "Path",
   "runtime_container": "Runtime Container",
