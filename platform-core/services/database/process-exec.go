@@ -2104,3 +2104,30 @@ func getScheduleProcInsConfigMap(ctx context.Context, procInsIdList []string) (s
 	}
 	return
 }
+
+func CheckProcDefStatus(ctx context.Context, procDefId string) (err error) {
+	procDefObj, getProcDefErr := GetSimpleProcDefRow(ctx, procDefId)
+	if getProcDefErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if procDefObj.Status != "deployed" {
+		err = fmt.Errorf("procDef:%s status:%s illegal", procDefObj.Name, procDefObj.Status)
+		return
+	}
+	var subProcDefRows []*models.ProcDef
+	err = db.MysqlEngine.Context(ctx).SQL("select id,name,status from proc_def where id in (select sub_proc_def_id from proc_def_node where proc_def_id=?)", procDefId).Find(&subProcDefRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(subProcDefRows) > 0 {
+		for _, row := range subProcDefRows {
+			if row.Status != "deployed" {
+				err = fmt.Errorf("subProcDef:%s status:%s illegal", row.Name, row.Status)
+				return
+			}
+		}
+	}
+	return
+}
