@@ -2,14 +2,15 @@
   <div class="">
     <div class="report-container">
       <div class="item">
-        <DatePicker
+        <!-- <DatePicker
           type="datetimerange"
           format="yyyy-MM-dd HH:mm:ss"
           style="width: 300px"
           split-panels
           :placeholder="$t('datetime_range')"
           @on-change="getDate"
-        ></DatePicker>
+        ></DatePicker> -->
+        <DateGroup :label="$t('datetime_range')" :typeList="dateTypeList" @change="getDate"></DateGroup>
       </div>
       <div class="item">
         <Select
@@ -73,6 +74,7 @@
 
 <script>
 import ReportDetail from './show-report-detail'
+import DateGroup from '@/pages/components/date-group'
 import {
   getFlowExecutePluginList,
   getPluginTasknodesBindings,
@@ -80,7 +82,10 @@ import {
   getPluginReportDetails
 } from '@/api/server.js'
 export default {
-  name: '',
+  components: {
+    ReportDetail,
+    DateGroup
+  },
   data () {
     return {
       MODALHEIGHT: 0,
@@ -166,6 +171,12 @@ export default {
             )
           }
         }
+      ],
+      dateTypeList: [
+        { label: this.$t('be_threeDays_recent'), type: 'day', value: 3, dateType: 1 },
+        { label: this.$t('be_oneWeek_recent'), type: 'day', value: 7, dateType: 2 },
+        { label: this.$t('be_oneMonth_recent'), type: 'month', value: 1, dateType: 3 },
+        { label: this.$t('be_auto'), dateType: 4 } // 自定义
       ]
     }
   },
@@ -183,8 +194,8 @@ export default {
     },
     async getPluginReportDetails (val, type) {
       const params = {
-        endDate: this.searchConfig.params.endDate,
         startDate: this.searchConfig.params.startDate,
+        endDate: this.searchConfig.params.endDate,
         status: type,
         entityDataName: val.entityDataName,
         serviceId: val.serviceId,
@@ -216,8 +227,8 @@ export default {
       )
     },
     getDate (dateRange) {
-      this.searchConfig.params.startDate = dateRange[0]
-      this.searchConfig.params.endDate = dateRange[1]
+      this.searchConfig.params.startDate = dateRange[0] ? dateRange[0] + ' 00:00:00' : ''
+      this.searchConfig.params.endDate = dateRange[1] ? dateRange[1] + ' 23:59:59' : ''
     },
     async getPlugin () {
       const { status, data } = await getFlowExecutePluginList()
@@ -235,9 +246,6 @@ export default {
       }
     },
     changeTasknodesBindings () {}
-  },
-  components: {
-    ReportDetail
   }
 }
 </script>

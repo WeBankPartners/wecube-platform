@@ -113,7 +113,7 @@ export default {
         id: '',
         label: '', // 编排名称
         version: 1, // 版本
-        subProc: this.subProc === 'main' ? 0 : 1,
+        subProc: 0,
         rootEntity: '', // 操作对象
         scene: '', // 使用场景，请求、发布、其他
         authPlugins: [], // 授权插件列表，taskman/monitor
@@ -167,7 +167,11 @@ export default {
         this.itemCustomInfo[k] = tmpData[k]
       })
       this.itemCustomInfo.version = Number(this.itemCustomInfo.version.split('v')[1])
-      this.itemCustomInfo.subProc = Number(this.itemCustomInfo.subProc)
+      if (this.itemCustomInfo.createdTime === this.itemCustomInfo.updatedTime) {
+        this.itemCustomInfo.subProc = this.subProc === 'main' ? 0 : 1
+      } else {
+        this.itemCustomInfo.subProc = Number(this.itemCustomInfo.subProc)
+      }
     },
     saveItem () {
       let finalData = JSON.parse(JSON.stringify(this.itemCustomInfo))
