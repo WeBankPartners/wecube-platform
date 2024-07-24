@@ -105,14 +105,10 @@
                     <p>{{ $t('regist_plugin_tip2') }}</p>
                   </template>
                   <Button
-                    :disabled="!item.registerDone || isPluginRegistering || item.menus.length === 0"
+                    :disabled="!item.registerDone || item.menus.length === 0"
                     size="small"
                     v-if="keyItem.buttonText && keyItem.key === 'menus'"
-                    :type="
-                      !item.registerDone || isPluginRegistering || item.menus.length === 0
-                        ? 'default'
-                        : keyItem.buttonType
-                    "
+                    :type="!item.registerDone || item.menus.length === 0 ? 'default' : keyItem.buttonType"
                     @click="registPlugin(item.id)"
                   >
                     {{
@@ -388,7 +384,6 @@ export default {
       allowCreationIpPort: [],
       availableHostList: [],
       currentPluginId: '',
-      isPluginRegistering: false,
       isDeletedPluginModalShow: false,
       deletedPluginList: [],
       pluginListType: '',
@@ -611,12 +606,13 @@ export default {
       }, 3000)
     },
     async registPlugin (pluginId) {
-      this.isPluginRegistering = true
+      this.isSpinShow = true
+      this.spinContent = this.$t('plugin_registing')
       const api = '/platform/v1/packages/ui/register'
       const { status } = await req.post(api, {
         id: pluginId
       })
-      this.isPluginRegistering = false
+      this.isSpinShow = false
       if (status === 'OK') {
         this.$Message.success(this.$t('action_successful'))
         this.reloadPage()
