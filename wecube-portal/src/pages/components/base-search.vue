@@ -2,6 +2,7 @@
   <div class="platform-base-search">
     <div class="platform-base-search-form" :style="{ maxHeight: expand ? '200px' : '40px' }">
       <Form :inline="true" :model="value" label-position="right">
+        <slot name="prepend"></slot>
         <template v-for="(i, index) in options">
           <FormItem v-if="!i.hidden" :prop="i.key" :key="index">
             <div style="display: flex; align-items: center">
@@ -9,10 +10,10 @@
               <span v-if="i.label">{{ i.label }}：</span>
               <Input
                 v-if="i.component === 'input'"
-                v-model="value[i.key]"
+                v-model.trim="value[i.key]"
                 :placeholder="i.placeholder"
                 clearable
-                :style="{ width: i.width || 200 + 'px' }"
+                :style="{ width: i.width || 195 + 'px' }"
                 @on-change="handleInputChange"
               ></Input>
               <!--下拉选择-->
@@ -48,12 +49,40 @@
                   <Option :key="idx" :value="j.value">{{ j.label }}</Option>
                 </template>
               </Select>
+              <!--标签形式下拉框-->
+              <Select
+                v-else-if="i.component === 'tag-select'"
+                v-model="value[i.key]"
+                :placeholder="i.placeholder"
+                clearable
+                :multiple="i.multiple || false"
+                :filterable="i.filterable || true"
+                :max-tag-count="1"
+                :style="{ width: i.width || 200 + 'px' }"
+                @on-change="$emit('search')"
+              >
+                <template v-for="(j, idx) in i.list">
+                  <Option :key="idx" :value="j.value" :label="j.label">
+                    <div
+                      :style="{
+                        backgroundColor: j.color,
+                        padding: '4px 15px',
+                        width: 'fit-content',
+                        color: '#fff',
+                        borderRadius: '4px'
+                      }"
+                    >
+                      {{ j.label }}
+                    </div>
+                  </Option>
+                </template>
+              </Select>
               <!--switch开关类型-->
               <i-Switch
                 v-else-if="i.component === 'switch'"
                 v-model="value[i.key]"
                 @on-change="$emit('search')"
-                style="margin-right: 10px"
+                style="margin-right: 5px"
               >
               </i-Switch>
               <!--标签组-->
@@ -63,7 +92,7 @@
                 @on-change="$emit('search')"
                 type="button"
                 button-style="solid"
-                style="margin-right: 10px"
+                style="margin-right: 5px"
               >
                 <Radio v-for="(j, idx) in i.list" :label="j.value" :key="idx" border>{{ j.label }}</Radio>
               </RadioGroup>
@@ -191,10 +220,13 @@ export default {
     // 重置表单
     handleReset () {
       Object.keys(this.formData).forEach(key => {
-        if (Array.isArray(this.formData[key])) {
-          this.formData[key] = []
-        } else {
-          this.formData[key] = ''
+        const formKeysArr = this.options.map(i => i.key)
+        if (formKeysArr.includes(key)) {
+          if (Array.isArray(this.formData[key])) {
+            this.formData[key] = []
+          } else {
+            this.formData[key] = ''
+          }
         }
       })
       // 处理时间类型默认值
@@ -204,7 +236,7 @@ export default {
           this.handleDateTypeChange(i.key, i.dateType, i.dateRange, false)
         }
       })
-      // 点击清空按钮需要给默认值的表单选项
+      // 清空表单需要初始化默认值
       const initOptions = this.options.filter(i => i.initValue !== undefined)
       initOptions.forEach(i => {
         this.formData[i.key] = i.initValue
@@ -294,11 +326,11 @@ export default {
     height: 30px !important;
     line-height: 30px !important;
     font-size: 12px !important;
-    color: #000;
+    // color: #000;
   }
   .ivu-radio-wrapper-checked.ivu-radio-border {
-    border-color: #2d8cf0;
-    color: #2d8cf0;
+    background-color: #2d8cf0;
+    color: #fff;
   }
   .ivu-select-multiple .ivu-tag {
     max-width: 90px;
