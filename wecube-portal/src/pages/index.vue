@@ -5,9 +5,7 @@
     </div>
     <div class="content-container">
       <Breadcrumb :style="setBreadcrumbStyle" v-if="isShowBreadcrum">
-        <BreadcrumbItem
-          ><a @click="homePageClickHandler">{{ $t('home') }}</a></BreadcrumbItem
-        >
+        <BreadcrumbItem><a @click="homePageClickHandler">{{ $t('home') }}</a></BreadcrumbItem>
         <BreadcrumbItem>{{ parentBreadcrumb }}</BreadcrumbItem>
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
       </Breadcrumb>
@@ -25,7 +23,7 @@ export default {
   components: {
     Header
   },
-  data () {
+  data() {
     return {
       isShowBreadcrum: true,
       allMenusAry: [],
@@ -35,14 +33,14 @@ export default {
     }
   },
   computed: {
-    setBreadcrumbStyle () {
+    setBreadcrumbStyle() {
       // 给侧边菜单栏适配样式
       return {
         margin: this.expandSideMenu ? '10px 0 10px 140px' : '10px 0'
       }
     }
   },
-  mounted () {
+  mounted() {
     watermark({
       watermark_txt: 'WeCube: ' + localStorage.getItem('username') + ' ' + dayjs().format('YYYY-MM-DD HH:mm:ss'),
       watermark_fontsize: '16px',
@@ -53,17 +51,17 @@ export default {
     })
   },
   methods: {
-    allMenus (data) {
+    allMenus(data) {
       this.allMenusAry = data
     },
-    setBreadcrumb () {
+    setBreadcrumb() {
       this.isShowBreadcrum = !(this.$route.path === '/homepage' || this.$route.path === '/404')
       if (this.$route.path === '/coming-soon') {
         this.parentBreadcrumb = '-'
         this.childBreadcrumb = 'Coming Soon'
         return
       }
-      let currentLangKey = localStorage.getItem('lang') || navigator.language
+      const currentLangKey = localStorage.getItem('lang') || navigator.language
       const menuObj = window.myMenus
         ? [].concat(...window.myMenus.map(_ => _.submenus)).find(m => m.link === this.$route.path)
         : MENUS.find(m => m.link === this.$route.path)
@@ -76,9 +74,10 @@ export default {
           })
         })
         this.childBreadcrumb = menuObj.title
-      } else {
+      }
+      else {
         this.parentBreadcrumb = '-'
-        let path = this.$route.path.substr(1)
+        const path = this.$route.path.substr(1)
         if (!window.implicitRoutes) {
           return
         }
@@ -87,12 +86,12 @@ export default {
         this.childBreadcrumb = implicitRoute ? implicitRoute['childBreadcrumb'][currentLangKey] : '-'
       }
     },
-    homePageClickHandler () {
+    homePageClickHandler() {
       window.needReLoad = false
       this.$router.push('/homepage')
     }
   },
-  created () {
+  created() {
     // 获取taskman侧边菜单栏展开收缩状态
     this.$eventBusP.$on('expand-menu', val => {
       this.expandSideMenu = val
@@ -101,13 +100,13 @@ export default {
   },
   watch: {
     allMenusAry: {
-      handler (val) {
+      handler() {
         this.setBreadcrumb()
       },
       immediate: true
     },
     $route: {
-      handler (val) {
+      handler() {
         this.setBreadcrumb()
       },
       immediate: true

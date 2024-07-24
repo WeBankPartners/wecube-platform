@@ -12,8 +12,7 @@
                   <Tooltip content="">
                     <span
                       style="display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
-                      >{{ objItem.name }}</span
-                    >
+                    >{{ objItem.name }}</span>
                     <div slot="content" style="white-space: normal">
                       <span>{{ objItem.description }}</span>
                     </div>
@@ -87,8 +86,7 @@
                       v-if="item.status === 'active'"
                       :value="item.name"
                       :key="index"
-                      >{{ item.name }}</Option
-                    >
+                    >{{ item.name }}</Option>
                   </Select>
                   <span v-if="objItem.mappingType === 'context' || objItem.mappingType === 'constant'">N/A</span>
 
@@ -133,7 +131,7 @@
 import FilterRulesRef from '../../components/filter-rules-ref.vue'
 export default {
   name: 'recursive',
-  data () {
+  data() {
     return {
       sensitiveData: [
         {
@@ -149,24 +147,24 @@ export default {
   },
   props: ['treeData', 'clearedEntityType', 'allEntityType', 'increment', 'status'],
   computed: {
-    count () {
-      var c = this.increment
+    count() {
+      let c = this.increment
       return ++c
     },
-    stylePadding () {
+    stylePadding() {
       return {
         'margin-left': this.count * 24 + 'px',
         'border-left': '1px solid #e8eaec'
       }
     }
   },
-  mounted () {},
+  mounted() {},
   methods: {
-    hide (index) {
+    hide(index) {
       this.recursiveViewConfig[index]._isShow = !this.recursiveViewConfig[index]._isShow
       this.$set(this.recursiveViewConfig, index, this.recursiveViewConfig[index])
     },
-    mappingTypeChange (v, param) {
+    mappingTypeChange(v, param) {
       if (v === 'entity') {
         param.mappingEntityExpression = null
       }
