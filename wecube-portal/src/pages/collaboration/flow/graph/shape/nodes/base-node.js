@@ -22,7 +22,9 @@ import forkIcon from '../../../icon/fork.svg'
 import deleteIcon from '../../../icon/delete.svg'
 import subProcIcon from '../../../icon/subProc.svg'
 
-const { iconStyles, nodeStyles, anchorPointStyles, nodeLabelStyles } = defaultStyles
+const {
+  iconStyles, nodeStyles, anchorPointStyles, nodeLabelStyles
+} = defaultStyles
 
 const nodeTypeToImg = {
   delete: deleteIcon,
@@ -40,7 +42,7 @@ const nodeTypeToImg = {
   fork: forkIcon,
   subProc: subProcIcon
 }
-function getStyle (options, cfg) {
+function getStyle(options, cfg) {
   return {
     ...cfg,
     // 自定义默认样式
@@ -76,7 +78,7 @@ export default G6 => {
   G6.registerNode(
     'base-node',
     {
-      getShapeStyle (cfg) {
+      getShapeStyle(cfg) {
         const width = cfg.style.width || 80
         const height = cfg.style.height || 40
         return getStyle.call(
@@ -93,9 +95,9 @@ export default G6 => {
         )
       },
       // 绘制图标
-      drawIcon (cfg, group, attrs) {
+      drawIcon(cfg, group, attrs) {
         const nodeType = cfg.customAttrs.nodeType
-        let { logoIcon, stateIcon } = attrs
+        const { logoIcon, stateIcon } = attrs
         logoIcon.img = nodeTypeToImg[nodeType]
         const icons = [logoIcon, stateIcon]
         icons.forEach(($item, index) => {
@@ -121,7 +123,8 @@ export default G6 => {
             if (item) {
               if ($item.show) {
                 item.show()
-              } else {
+              }
+              else {
                 item.hide()
               }
             }
@@ -129,7 +132,7 @@ export default G6 => {
         })
       },
       // 绘制锚点
-      initAnchor (cfg, group) {
+      initAnchor(cfg, group) {
         group.anchorShapes = []
         group.showAnchor = () => {
           this.drawAnchor(cfg, group)
@@ -146,15 +149,15 @@ export default G6 => {
           group.anchorShapes = []
         }
       },
-      drawAnchor (cfg, group) {
+      drawAnchor(cfg, group) {
         const { type, direction, anchorPointStyles } = group.getFirst().attr()
         const item = group.get('children')[0]
         const bBox = item.getBBox()
         const anchors = this.getAnchorPoints(cfg)
 
         // 绘制锚点坐标
-        anchors &&
-          anchors.forEach((p, i) => {
+        anchors
+          && anchors.forEach((p, i) => {
             const diff = type === 'triangle-node' ? (direction === 'up' ? 1 : 0) : 0.5
             const x = bBox.width * (p[0] - 0.5)
             const y = bBox.height * (p[1] - diff)
@@ -207,21 +210,16 @@ export default G6 => {
           })
 
         // 查找所有锚点
-        group.getAllAnchors = () => {
-          return group.anchorShapes.filter(c => c.get('isAnchor') === true)
-        }
+        group.getAllAnchors = () => group.anchorShapes.filter(c => c.get('isAnchor') === true)
         // 查找指定锚点
-        group.getAnchor = i => {
-          return group.anchorShapes.filter(c => c.get('className') === 'node-anchor' && c.get('index') === i)
-        }
+        group.getAnchor = i =>
+          group.anchorShapes.filter(c => c.get('className') === 'node-anchor' && c.get('index') === i)
         // 查找所有锚点背景
-        group.getAllAnchorBg = () => {
-          return group.anchorShapes.filter(c => c.get('className') === 'node-anchor-bg')
-        }
+        group.getAllAnchorBg = () => group.anchorShapes.filter(c => c.get('className') === 'node-anchor-bg')
       },
       /* 添加文本节点 */
       /* https://g6.antv.vision/zh/docs/manual/advanced/keyconcept/shape-and-properties/#%E6%96%87%E6%9C%AC-text */
-      addLabel (cfg, group, attrs) {
+      addLabel(cfg, group, attrs) {
         const { label, labelCfg, labels } = attrs
         // 字体小于12时 svg会报错
         /* if (labelCfg && labelCfg.fontSize < 12) {
@@ -254,7 +252,8 @@ export default G6 => {
               draggable: true
             })
           })
-        } else if (label) {
+        }
+        else if (label) {
           const { maxlength } = labelCfg
 
           let text = maxlength ? label.substr(0, maxlength) : label || ''
@@ -276,7 +275,7 @@ export default G6 => {
           })
         }
       },
-      drawModelRect (group, attrs) {
+      drawModelRect(group, attrs) {
         const { preRect, width, height } = attrs
         const $preRect = {
           show: true, // 是否显示左侧方条
@@ -299,11 +298,11 @@ export default G6 => {
         }
       },
       /* 绘制节点，包含文本 */
-      draw (cfg, group) {
+      draw(cfg, group) {
         return this.drawShape(cfg, group)
       },
       /* 绘制节点，包含文本 */
-      drawShape (cfg, group) {
+      drawShape(cfg, group) {
         // 元素分组
         // 合并外部样式和默认样式
         const attrs = this.getShapeStyle(cfg, group)
@@ -317,9 +316,7 @@ export default G6 => {
         })
 
         // 给 group 添加自定义方法 按className查找元素
-        group.$getItem = className => {
-          return group.get('children').find(item => item.get('className') === className)
-        }
+        group.$getItem = className => group.get('children').find(item => item.get('className') === className)
 
         if (this.type === 'modelRect-node') {
           this.drawModelRect(group, attrs)
@@ -334,7 +331,7 @@ export default G6 => {
         return shape
       },
       /* 更新节点，包含文本 */
-      update (cfg, node) {
+      update(cfg, node) {
         const model = node.get('model')
         const { attrs } = node.get('keyShape')
         const group = node.get('group')
@@ -345,8 +342,8 @@ export default G6 => {
           labelCfgStyle = model.labelCfg.style
         }
         // 更新文本内容
-        text &&
-          text.attr({
+        text
+          && text.attr({
             text: model.label,
             ...labelCfgStyle
           })
@@ -364,7 +361,8 @@ export default G6 => {
             width: model.size && model.size[0],
             height: model.size && model.size[1]
           })
-        } else {
+        }
+        else {
           const logoIcon = group.get('children').find(x => x.cfg.className === `${attrs.type}-logoIcon`)
 
           if (logoIcon) {
@@ -384,7 +382,7 @@ export default G6 => {
         }
       },
       /* 设置节点的状态，主要是交互状态，业务状态请在 draw 方法中实现 */
-      setState (name, value, item) {
+      setState(name, value, item) {
         const buildInEvents = [
           'anchorShow',
           'anchorActived',
@@ -398,21 +396,25 @@ export default G6 => {
         ]
         const group = item.getContainer()
 
-        if (group.get('destroyed')) return
+        if (group.get('destroyed')) {
+          return
+        }
         if (buildInEvents.includes(name)) {
           // 内部this绑定到了当前item实例
           itemEvents[name].call(this, value, group)
-        } else if (this.stateApplying) {
+        }
+        else if (this.stateApplying) {
           // eslint-disable-next-line no-useless-call
           this.stateApplying.call(this, name, value, item)
-        } else {
+        }
+        else {
           console.warn(
             `warning: ${name} 事件回调未注册!\n可继承该节点并通过 stateApplying 方法进行注册\n如已注册请忽略 (-_-!)`
           )
         }
       },
       /* 获取锚点（相关边的连入点） */
-      getAnchorPoints (cfg) {
+      getAnchorPoints(cfg) {
         return (
           cfg.anchorPoints || [
             [0.5, 0],
