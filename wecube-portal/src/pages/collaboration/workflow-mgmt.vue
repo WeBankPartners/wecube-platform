@@ -19,6 +19,7 @@
       <ItemInfoCanvas
         v-show="itemInfoType === 'canvas'"
         ref="itemInfoCanvasRef"
+        :subProc="subProc"
         @sendItemInfo="setCanvasInfo"
         @hideItemInfo="hideItemInfo"
       ></ItemInfoCanvas>
@@ -111,7 +112,8 @@ export default {
       nodesAndDeges: {
         nodes: [],
         edges: []
-      } // 节点和边信息
+      }, // 节点和边信息
+      subProc: this.$route.query.subProc
     }
   },
   async mounted () {
@@ -503,7 +505,7 @@ export default {
           return
         }
 
-        // 分流节点不能连出
+        // 分流节点连出校验
         if (sourceNodeType === 'fork') {
           // 分流节点不能直连异常节点
           if (targertNodeType === 'abnormal') {
@@ -521,6 +523,43 @@ export default {
             )
             return
           }
+          // 分流节点不能直连汇聚节点
+          if (targertNodeType === 'merge') {
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
+            return
+          }
+        }
+
+        // 汇聚节点不能直连分流节点
+        if (sourceNodeType === 'merge') {
+          if (targertNodeType === 'fork') {
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
+            return
+          }
+        }
+
+        // 判断开始不能直连判断结束节点
+        if (sourceNodeType === 'decision') {
+          if (targertNodeType === 'decisionMerge') {
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
+            return
+          }
+        }
+
+        // 判断结束不能直连判断开始节点
+        if (sourceNodeType === 'decisionMerge') {
+          if (targertNodeType === 'decision') {
+            this.$Message.warning(
+              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+            )
+            return
+          }
         }
 
         if (sourceNodeType === 'start') {
@@ -531,17 +570,17 @@ export default {
             this.$Message.warning(`${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('oneExit')}`)
             return
           }
-          // 开始节点不能直连汇聚节点
-          if (targertNodeType === 'merge') {
-            // this.$Message.warning('开始节点不能直连汇聚节点！')
+          // 开始节点不能直连判断结束节点
+          if (targertNodeType === 'decisionMerge') {
+            // this.$Message.warning('开始节点不能直连判断结束节点！')
             this.$Message.warning(
               `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
             )
             return
           }
-          // 开始节点不能直连分流节点
-          if (targertNodeType === 'fork') {
-            // this.$Message.warning('开始节点不能直连分流节点！')
+          // 开始节点不能直连汇聚节点
+          if (targertNodeType === 'merge') {
+            // this.$Message.warning('开始节点不能直连汇聚节点！')
             this.$Message.warning(
               `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
             )
@@ -589,6 +628,7 @@ export default {
             return
           }
         }
+
         // 异常节点只能连入
         // if (targertNodeType === 'decision') {
         //   if (!['human'].includes(sourceNodeType)) {
@@ -597,6 +637,7 @@ export default {
         //   }
         // }
 
+        // 只能有一个出口
         if (['data', 'human', 'automatic', 'subProc', 'date', 'timeInterval'].includes(sourceNodeType)) {
           const outEdges = source.getOutEdges()
           if (outEdges.length === 1) {
@@ -606,6 +647,7 @@ export default {
           }
         }
 
+        // 只能有一个入口
         if (['data', 'human', 'automatic', 'subProc', 'date', 'timeInterval'].includes(targertNodeType)) {
           const inEdges = target.getInEdges()
           if (inEdges.length === 1) {
@@ -922,7 +964,7 @@ export default {
       if (this.canRemovedId) {
         this.graph.updateItem(this.canRemovedId, {
           style: {
-            fill: 'white' // 更新后的节点背景色
+            fill: '#ffffff00' // 更新后的节点背景色, 使用透明色#ffffff00
           }
         })
       }
