@@ -263,7 +263,7 @@ export default {
     // 执行详情
     handleExecuteDetail (row) {
       this.$router.push({
-        path: '/implementation/workflow-execution/create-execution',
+        path: '/implementation/batch-execution/create-execution',
         query: {
           // 更新的参数
           id: row.id,
@@ -274,7 +274,7 @@ export default {
     // 重新发起
     handleRelaunch (row) {
       this.$router.push({
-        path: '/implementation/workflow-execution/create-execution',
+        path: '/implementation/batch-execution/create-execution',
         query: {
           // 更新的参数
           id: row.id,

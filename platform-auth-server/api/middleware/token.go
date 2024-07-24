@@ -32,7 +32,8 @@ func AuthApi(authoritiesFetcher GetAuthorities) gin.HandlerFunc {
 		}
 
 		if urlPath == constant.UrlPrefix+constant.UriLogin ||
-			urlPath == constant.UrlPrefix+constant.UriTaskLogin {
+			urlPath == constant.UrlPrefix+constant.UriTaskLogin ||
+			urlPath == constant.UrlPrefix+constant.UriGetLoginSeed {
 			c.Next()
 		} else {
 			//apiUri := c.Request.URL.Path[len(constant.UrlPrefix):]
