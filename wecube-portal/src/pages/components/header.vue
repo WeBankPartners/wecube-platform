@@ -164,7 +164,7 @@ import CryptoJS from 'crypto-js'
 import { getChildRouters } from '../util/router.js'
 import { MENUS } from '../../const/menus.js'
 export default {
-  data () {
+  data() {
     return {
       username: '',
       currentLanguage: '',
@@ -192,9 +192,27 @@ export default {
         confirmPassword: ''
       },
       ruleValidate: {
-        originalPassword: [{ required: true, message: 'The Original Password cannot be empty', trigger: 'blur' }],
-        newPassword: [{ required: true, message: 'New Password cannot be empty', trigger: 'blur' }],
-        confirmPassword: [{ required: true, message: 'Confirm Password cannot be empty', trigger: 'blur' }]
+        originalPassword: [
+          {
+            required: true,
+            message: 'The Original Password cannot be empty',
+            trigger: 'blur'
+          }
+        ],
+        newPassword: [
+          {
+            required: true,
+            message: 'New Password cannot be empty',
+            trigger: 'blur'
+          }
+        ],
+        confirmPassword: [
+          {
+            required: true,
+            message: 'Confirm Password cannot be empty',
+            trigger: 'blur'
+          }
+        ]
       },
       pendingCount: 0, // 待审批数量
       timer: null,
@@ -209,35 +227,36 @@ export default {
     }
   },
   methods: {
-    async getApplicationVersion () {
+    async getApplicationVersion() {
       const { status, data } = await getApplicationVersion()
       if (status === 'OK') {
         this.version = data
         window.localStorage.setItem('wecube_version', this.version)
-      } else {
+      }
+      else {
         this.version = window.localStorage.getItem('wecube_version') || ''
       }
     },
-    goHome () {
+    goHome() {
       this.$router.push('/homepage')
     },
-    changeDocs (url) {
+    changeDocs(url) {
       window.open(this.$t(url))
     },
-    logout () {
+    logout() {
       clearCookie()
       window.location.href = window.location.origin + window.location.pathname + '#/login'
     },
-    showChangePassword () {
+    showChangePassword() {
       this.changePassword = true
     },
-    async getInputParamsEncryptKey () {
+    async getInputParamsEncryptKey() {
       const { status, data } = await getInputParamsEncryptKey()
       if (status === 'OK') {
         this.encryptKey = data
       }
     },
-    okChangePassword () {
+    okChangePassword() {
       this.$refs['formValidate'].validate(async valid => {
         if (valid) {
           if (this.formValidate.newPassword === this.formValidate.confirmPassword) {
@@ -258,44 +277,49 @@ export default {
               this.$Message.success('Success !')
               this.changePassword = false
             }
-          } else {
+          }
+          else {
             this.$Message.warning(this.$t('confirm_password_error'))
           }
         }
       })
     },
-    cancelChangePassword (flag = false) {
+    cancelChangePassword(flag = false) {
       if (!flag) {
         this.$refs['formValidate'].resetFields()
         this.changePassword = false
       }
     },
-    changeLanguage (lan) {
+    async changeLanguage(lan) {
       Vue.config.lang = lan
+      this.$i18n.locale = lan
       this.currentLanguage = this.language[lan]
       localStorage.setItem('lang', lan)
+      await this.getMyMenus(true)
+      window.location.reload()
     },
-    getLocalLang () {
-      let currentLangKey = localStorage.getItem('lang') || navigator.language
+    getLocalLang() {
+      const currentLangKey = localStorage.getItem('lang') || navigator.language
       const lang = this.language[currentLangKey] || 'English'
       this.currentLanguage = lang
     },
-    async getMyMenus () {
+    async getMyMenus() {
       this.menus = []
-      let { status, data } = await getMyMenus()
+      const { status, data } = await getMyMenus()
       if (status === 'OK') {
         data.forEach(_ => {
           if (!_.category) {
-            let menuObj = MENUS.find(m => m.code === _.code)
+            const menuObj = MENUS.find(m => m.code === _.code)
             if (menuObj) {
               this.menus.push({
-                title: this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName,
+                title: this.$i18n.locale === 'zh-CN' ? menuObj.cnName : menuObj.enName,
                 id: _.id,
                 submenus: [],
                 ..._,
                 ...menuObj
               })
-            } else {
+            }
+            else {
               this.menus.push({
                 title: _.code,
                 id: _.id,
@@ -307,25 +331,26 @@ export default {
         })
         data.forEach(_ => {
           if (_.category) {
-            let menuObj = MENUS.find(m => m.code === _.code)
+            const menuObj = MENUS.find(m => m.code === _.code)
             if (menuObj) {
               // Platform Menus
               this.menus.forEach(h => {
                 if (_.category === '' + h.id) {
                   h.submenus.push({
-                    title: this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName,
+                    title: this.$i18n.locale === 'zh-CN' ? menuObj.cnName : menuObj.enName,
                     id: _.id,
                     ..._,
                     ...menuObj
                   })
                 }
               })
-            } else {
+            }
+            else {
               // Plugins Menus
               this.menus.forEach(h => {
                 if (_.category === '' + h.id) {
                   h.submenus.push({
-                    title: this.$lang === 'zh-CN' ? _.localDisplayName : _.displayName,
+                    title: this.$i18n.locale === 'zh-CN' ? _.localDisplayName : _.displayName,
                     id: _.id,
                     link: _.path,
                     ..._
@@ -342,7 +367,7 @@ export default {
         getChildRouters(window.routers || [])
       }
     },
-    async getAllPluginPackageResourceFiles () {
+    async getAllPluginPackageResourceFiles() {
       const { status, data } = await getAllPluginPackageResourceFiles()
       if (status === 'OK' && data && data.length > 0) {
         // const data = [
@@ -350,17 +375,17 @@ export default {
         //   { relatedPath: 'http://localhost:8888/css/app.f724c7a4.css' }
         // ]
         const eleContain = document.getElementsByTagName('body')
-        let script = {}
+        const script = {}
         data.forEach(file => {
           if (file.relatedPath.indexOf('.js') > -1) {
-            let contains = document.createElement('script')
+            const contains = document.createElement('script')
             contains.type = 'text/javascript'
             contains.src = file.relatedPath
             script[file.packageName] = contains
             eleContain[0].appendChild(contains)
           }
           if (file.relatedPath.indexOf('.css') > -1) {
-            let contains = document.createElement('link')
+            const contains = document.createElement('link')
             contains.type = 'text/css'
             contains.rel = 'stylesheet'
             contains.href = file.relatedPath
@@ -377,7 +402,8 @@ export default {
                 script[key].onreadystatechange = null
               }
             }
-          } else {
+          }
+          else {
             // Non IE
             script[key].onload = () => {
               setTimeout(() => {
@@ -393,13 +419,13 @@ export default {
       }
     },
     // #region 角色管理，角色申请
-    userMgmt () {
+    userMgmt() {
       this.$refs.userMgmtRef.openModal()
     },
-    roleApply () {
+    roleApply() {
       this.$refs.roleApplyRef.openModal()
     },
-    async getPendingCount () {
+    async getPendingCount() {
       const params = {
         filters: [
           {
@@ -427,19 +453,13 @@ export default {
     }
     // #endregion
   },
-  async created () {
+  async created() {
     this.getLocalLang()
     this.getApplicationVersion()
     this.getMyMenus()
     this.username = window.localStorage.getItem('username')
   },
-  watch: {
-    $lang: async function (lang) {
-      await this.getMyMenus(true)
-      window.location.reload()
-    }
-  },
-  mounted () {
+  mounted() {
     if (window.needReLoad) {
       this.getAllPluginPackageResourceFiles()
       window.needReLoad = false

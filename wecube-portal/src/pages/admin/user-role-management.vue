@@ -247,7 +247,7 @@ import {
 import { MENUS } from '@/const/menus.js'
 
 export default {
-  data () {
+  data() {
     return {
       addRoleToUser: {
         isShow: false,
@@ -301,25 +301,25 @@ export default {
     }
   },
   methods: {
-    compare (prop) {
+    compare(prop) {
       return function (obj1, obj2) {
-        var val1 = obj1[prop]
-        var val2 = obj2[prop]
+        let val1 = obj1[prop]
+        let val2 = obj2[prop]
         if (!isNaN(Number(val1)) && !isNaN(Number(val2))) {
           val1 = Number(val1)
           val2 = Number(val2)
         }
         if (val1 < val2) {
           return -1
-        } else if (val1 > val2) {
-          return 1
-        } else {
-          return 0
         }
+        else if (val1 > val2) {
+          return 1
+        }
+        return 0
       }
     },
-    async confirmAddRoleToUser () {
-      let { status } = await addRoleToUser(this.addRoleToUser.params.id, this.addRoleToUser.params.roles)
+    async confirmAddRoleToUser() {
+      const { status } = await addRoleToUser(this.addRoleToUser.params.id, this.addRoleToUser.params.roles)
       if (status === 'OK') {
         this.$Notice.success({
           title: 'Success',
@@ -328,24 +328,24 @@ export default {
         this.handleUserClick(true, this.addRoleToUser.params.username)
       }
     },
-    async addRoleToUsers (item) {
+    async addRoleToUsers(item) {
       this.addRoleToUser.params = { ...item }
-      let { status, data } = await getRolesByUserName(item.username)
+      const { status, data } = await getRolesByUserName(item.username)
       if (status === 'OK') {
         this.addRoleToUser.params.roles = data.map(d => d.id)
       }
-      let res = await getRoleList()
+      const res = await getRoleList()
       if (res.status === 'OK') {
         this.addRoleToUser.allRoles = res.data
         this.addRoleToUser.isShow = true
       }
     },
-    removeUser (item) {
+    removeUser(item) {
       this.$Modal.confirm({
         title: this.$t('confirm_to_delete'),
         'z-index': 1000000,
         onOk: async () => {
-          let { status } = await removeUser(item.id)
+          const { status } = await removeUser(item.id)
           if (status === 'OK') {
             this.$Notice.success({
               title: 'Success',
@@ -359,7 +359,7 @@ export default {
         onCancel: () => {}
       })
     },
-    async resetRolePassword (item) {
+    async resetRolePassword(item) {
       this.$Modal.confirm({
         title: this.$t('reset_password'),
         'z-index': 1000000,
@@ -367,7 +367,7 @@ export default {
           const params = {
             username: item.username
           }
-          let { status, data } = await resetPassword(params)
+          const { status, data } = await resetPassword(params)
           if (status === 'OK') {
             this.newPassword = data
             this.showNewPassword = true
@@ -376,8 +376,8 @@ export default {
         onCancel: () => {}
       })
     },
-    copyPassword (password) {
-      let inputElement = document.createElement('input')
+    copyPassword() {
+      const inputElement = document.createElement('input')
       inputElement.value = this.newPassword
       document.body.appendChild(inputElement)
       inputElement.select()
@@ -389,7 +389,7 @@ export default {
       inputElement.remove()
       this.showNewPassword = false
     },
-    async handleMenuTreeCheck (allChecked, currentChecked) {
+    async handleMenuTreeCheck(allChecked) {
       this.menuTreeLoading = true
       const menuCodes = allChecked.filter(i => i.category).map(_ => _.code)
       const { status, message } = await updateRoleToMenusByRoleId(this.currentRoleId, menuCodes)
@@ -402,14 +402,14 @@ export default {
       }
       this.menuTreeLoading = false
     },
-    async getAllMenus () {
+    async getAllMenus() {
       const { status, data } = await getAllMenusList()
       if (status === 'OK') {
         this.originMenus = data
       }
       this.menus = this.menusResponseHandeler(this.originMenus)
     },
-    menusPermissionSelected (allMenus, menusPermissions = [], disabled) {
+    menusPermissionSelected(allMenus, menusPermissions = [], disabled) {
       allMenus.forEach(_ => {
         _.children.forEach(m => {
           const subMenu = menusPermissions.find(n => m.code === n.code)
@@ -421,14 +421,15 @@ export default {
         _.disabled = disabled
       })
     },
-    menusResponseHandeler (data, disabled = true) {
-      let menus = []
+    menusResponseHandeler(data, disabled = true) {
+      const menus = []
       data.forEach(_ => {
         if (!_.category) {
-          let menuObj = MENUS.find(m => m.code === _.code)
+          const menuObj = MENUS.find(m => m.code === _.code)
           menus.push({
             ..._,
-            title: _.source === 'SYSTEM' ? (this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName) : _.displayName,
+            title:
+              _.source === 'SYSTEM' ? (this.$i18n.locale === 'zh-CN' ? menuObj.cnName : menuObj.enName) : _.displayName,
             id: _.id,
             expand: true,
             checked: false,
@@ -439,17 +440,17 @@ export default {
       })
       data.forEach(_ => {
         if (_.category) {
-          let menuObj = MENUS.find(m => m.code === _.code)
+          const menuObj = MENUS.find(m => m.code === _.code)
           menus.forEach(h => {
             if (_.category === h.id) {
               h.children.push({
                 ..._,
                 title:
                   _.source === 'SYSTEM'
-                    ? this.$lang === 'zh-CN'
+                    ? this.$i18n.locale === 'zh-CN'
                       ? menuObj.cnName
                       : menuObj.enName
-                    : this.$lang === 'zh-CN'
+                    : this.$i18n.locale === 'zh-CN'
                       ? _.localDisplayName
                       : _.displayName,
                 id: _.id,
@@ -463,37 +464,33 @@ export default {
       })
       return menus
     },
-    renderUserNameForTransfer (item) {
+    renderUserNameForTransfer(item) {
       return item.label
     },
-    async getAllUsers () {
-      let { status, data } = await getUserList()
+    async getAllUsers() {
+      const { status, data } = await getUserList()
       if (status === 'OK') {
-        this.users = data.map(_ => {
-          return {
-            ..._,
-            checked: false,
-            color: '#5cadff'
-          }
-        })
+        this.users = data.map(_ => ({
+          ..._,
+          checked: false,
+          color: '#5cadff'
+        }))
       }
       this.getAllRoles()
     },
-    async getAllRoles () {
-      let params = { all: 'Y' }
-      let { status, data } = await getRoleList(params)
+    async getAllRoles() {
+      const params = { all: 'Y' }
+      const { status, data } = await getRoleList(params)
       if (status === 'OK') {
-        this.roles = data.map(_ => {
-          return {
-            ..._,
-            checked: false,
-            color: 'success'
-          }
-        })
+        this.roles = data.map(_ => ({
+          ..._,
+          checked: false,
+          color: 'success'
+        }))
         this.roles.sort(this.compare('status')).reverse()
       }
     },
-    async handleUserClick (checked, name) {
+    async handleUserClick(checked, name) {
       this.selectedUser = name
       this.currentRoleId = 0
       this.users.forEach(_ => {
@@ -503,12 +500,12 @@ export default {
         }
       })
       if (checked) {
-        let permissions = await getMenusByUserName(name)
+        const permissions = await getMenusByUserName(name)
         if (permissions.status === 'OK') {
           const userMenus = [].concat(...(permissions.data || []).map(_ => _.menuList))
           this.menusPermissionSelected(this.menus, userMenus, true)
         }
-        let { status, data } = await getRolesByUserName(name)
+        const { status, data } = await getRolesByUserName(name)
         if (status === 'OK') {
           this.roles.forEach(_ => {
             _.checked = false
@@ -518,16 +515,19 @@ export default {
             }
           })
         }
-      } else {
+      }
+      else {
         this.roles.forEach(_ => {
           _.checked = false
         })
         this.menusPermissionSelected(this.menus, [], true)
       }
     },
-    async handleRoleClick (checked, id) {
+    async handleRoleClick(checked, id) {
       const find = this.roles.filter(r => r.id === id)
-      if (find[0].status === 'Deleted') return
+      if (find[0].status === 'Deleted') {
+        return
+      }
       this.currentRoleId = id
       this.roles.forEach(_ => {
         _.checked = false
@@ -537,11 +537,11 @@ export default {
       })
       this.menus = this.menusResponseHandeler(this.originMenus, !checked)
       if (checked) {
-        let permissions = await getMenusByRoleId(id)
+        const permissions = await getMenusByRoleId(id)
         if (permissions.status === 'OK') {
           this.menusPermissionSelected(this.menus, permissions.data.menuList, false)
         }
-        let { status, data } = await getUsersByRoleId(id)
+        const { status, data } = await getUsersByRoleId(id)
         if (status === 'OK') {
           this.users.forEach(_ => {
             _.checked = false
@@ -551,15 +551,16 @@ export default {
             }
           })
         }
-      } else {
+      }
+      else {
         this.users.forEach(_ => {
           _.checked = false
         })
       }
     },
-    async handleUserTransferChange (newTargetKeys, direction, moveKeys) {
+    async handleUserTransferChange(newTargetKeys, direction, moveKeys) {
       if (direction === 'right') {
-        let { status, message } = await grantRolesForUser(moveKeys, this.selectedRole)
+        const { status, message } = await grantRolesForUser(moveKeys, this.selectedRole)
         if (status === 'OK') {
           this.$Notice.success({
             title: 'success',
@@ -567,8 +568,9 @@ export default {
           })
           this.usersKeyBySelectedRole = newTargetKeys
         }
-      } else {
-        let { status, message } = await revokeRolesForUser(moveKeys, this.selectedRole)
+      }
+      else {
+        const { status, message } = await revokeRolesForUser(moveKeys, this.selectedRole)
         if (status === 'OK') {
           this.$Notice.success({
             title: 'success',
@@ -578,35 +580,33 @@ export default {
         }
       }
     },
-    async confirmUser () {
+    async confirmUser() {
       if (this.selectedUser) {
         await this.handleUserClick(true, this.selectedUser)
       }
       this.userManageModal = false
     },
-    async openUserManageModal (id) {
+    async openUserManageModal(id) {
       this.usersKeyBySelectedRole = []
       this.allUsersForTransfer = []
       this.selectedRole = id
-      let { status, data } = await getUsersByRoleId(id)
+      const { status, data } = await getUsersByRoleId(id)
       if (status === 'OK') {
         this.usersKeyBySelectedRole = data.map(_ => _.id)
       }
-      this.allUsersForTransfer = this.users.map(_ => {
-        return {
-          key: _.id,
-          username: _.username,
-          label: _.username || ''
-        }
-      })
+      this.allUsersForTransfer = this.users.map(_ => ({
+        key: _.id,
+        username: _.username,
+        label: _.username || ''
+      }))
       this.userManageModal = true
     },
-    editUserEmail (item) {
+    editUserEmail(item) {
       this.editUser.params = JSON.parse(JSON.stringify(item))
       this.editUser.isShow = true
     },
-    async confirmEditUserEmail (item) {
-      let { status, message } = await editUser(this.editUser.params)
+    async confirmEditUserEmail() {
+      const { status, message } = await editUser(this.editUser.params)
       if (status === 'OK') {
         this.$Notice.success({
           title: 'success',
@@ -616,14 +616,14 @@ export default {
         this.getAllUsers()
       }
     },
-    async addUser () {
+    async addUser() {
       if (!this.addedUser.username) {
         this.$Message.warning(`${this.$t('username_cannot_empty')}`)
         return
       }
       // eslint-disable-next-line no-useless-escape
       if (this.addedUser.authType === 'LOCAL') {
-        let res = []
+        const res = []
         res.push(/[A-Z]/.test(this.addedUser.password))
         res.push(/.*[a-z].*/.test(this.addedUser.password))
         res.push(/\d/.test(this.addedUser.password))
@@ -642,12 +642,13 @@ export default {
       if (!this.addedUser.email) {
         this.$Message.warning(`${this.$t('email')}${this.$t('cannotBeEmpty')}`)
         return
-      } else if (!emailRegex.test(this.addedUser.email)) {
+      }
+      else if (!emailRegex.test(this.addedUser.email)) {
         this.$Message.warning(`${this.$t('email')}${this.$t('invalidFormat')}`)
         return
       }
 
-      let { status, message } = await userCreate(this.addedUser)
+      const { status, message } = await userCreate(this.addedUser)
       if (status === 'OK') {
         this.$Notice.success({
           title: 'success',
@@ -660,7 +661,7 @@ export default {
         this.getAllUsers()
       }
     },
-    async addRole () {
+    async addRole() {
       if (this.addedRole.isAdd && !this.addedRole.params.name) {
         this.$Message.warning(`${this.$t('role')}${this.$t('cannotBeEmpty')}`)
         return
@@ -673,7 +674,8 @@ export default {
       if (!this.addedRole.params.email) {
         this.$Message.warning(`${this.$t('email')}${this.$t('cannotBeEmpty')}`)
         return
-      } else if (!emailRegex.test(this.addedRole.params.email)) {
+      }
+      else if (!emailRegex.test(this.addedRole.params.email)) {
         this.$Message.warning(`${this.$t('email')}${this.$t('invalidFormat')}`)
         return
       }
@@ -685,7 +687,7 @@ export default {
       const method = this.addedRole.isAdd
         ? roleCreate(this.addedRole.params)
         : updateRole(this.addedRole.params.id, this.addedRole.params)
-      let { status, message } = await method
+      const { status, message } = await method
       if (status === 'OK') {
         this.$Notice.success({
           title: 'success',
@@ -695,7 +697,7 @@ export default {
         this.getAllRoles()
       }
     },
-    openAddRoleModal () {
+    openAddRoleModal() {
       this.addedRole.isAdd = true
       this.addedRole.params.name = ''
       this.addedRole.params.displayName = ''
@@ -703,28 +705,29 @@ export default {
       this.addedRole.params.administrator = ''
       this.addedRole.isShow = true
     },
-    editRole (item) {
+    editRole(item) {
       this.addedRole.isAdd = false
       this.addedRole.params = { ...item }
       if (item.status === 'Deleted') {
         this.addedRole.params.status = true
-      } else {
+      }
+      else {
         this.addedRole.params.status = false
       }
       this.addedRole.isShow = true
     },
-    openAddUserModal () {
+    openAddUserModal() {
       this.addedUser.username = ''
       this.addedUser.authType = 'LOCAL'
       this.addedUser.password = ''
       this.addedUser.email = ''
       this.addUserModalVisible = true
     },
-    cancel () {
+    cancel() {
       this.addedRole.isShow = false
     }
   },
-  created () {
+  created() {
     this.getAllUsers()
     this.getAllRoles()
     this.getAllMenus()

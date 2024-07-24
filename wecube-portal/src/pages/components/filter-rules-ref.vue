@@ -8,8 +8,7 @@
           v-for="(path, index) in pathList"
           :key="path.pathExp"
           @click="showPoptip(path, index)"
-          >{{ path.pathExp.replace(/@@[0-9A-Za-z_]*@@/g, '') }}</span
-        >
+        >{{ path.pathExp.replace(/@@[0-9A-Za-z_]*@@/g, '') }}</span>
         <Button
           :class="disabled ? 'disabled-filter' : ''"
           v-if="pathList.length > 0"
@@ -17,14 +16,13 @@
           icon="md-copy"
           @click.stop.prevent="copyPathExp"
           size="small"
-          >{{ $t('copy') }}</Button
-        >
+        >{{ $t('copy') }}</Button>
         <Button v-if="pathList.length === 0" class="arrow-icon" icon="ios-arrow-down" long size="small"></Button>
       </div>
       <div slot="content">
         <div v-show="!disabled" ref="filter_rules_path_options" class="filter_rules_path_options">
           <ul>
-            <li id="paste" style="margin-bottom: 5px;" v-if="pathList.length === 0">
+            <li id="paste" style="margin-bottom: 5px" v-if="pathList.length === 0">
               <input
                 class="paste_input"
                 v-model="pasteValue"
@@ -45,23 +43,23 @@
               {{ $t('add_filter_rule') }}
             </li>
             <li>
-              <Input prefix="ios-search" v-model="filterString" size="small" style="width:100%" />
+              <Input prefix="ios-search" v-model="filterString" size="small" style="width: 100%" />
             </li>
           </ul>
-          <hr style="margin-top:5px;" />
-          <div style="max-height: 145px;overflow: auto;margin-top:5px;">
+          <hr style="margin-top: 5px" />
+          <div style="max-height: 145px; overflow: auto; margin-top: 5px">
             <ul
               v-if="!needNativeAttr"
               v-for="opt in filterCurrentLeafOptiongs"
               :key="opt.pathExp + Math.random() * 1000"
             >
-              <li style="color:rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
+              <li style="color: rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
             </ul>
             <ul v-for="opt in filterCurrentRefOptiongs" :key="opt.pathExp + Math.random() * 1000">
-              <li style="color:rgb(64, 141, 218)" @click="optClickHandler(opt, 'up')">{{ opt.pathExp }}</li>
+              <li style="color: rgb(64, 141, 218)" @click="optClickHandler(opt, 'up')">{{ opt.pathExp }}</li>
             </ul>
             <ul v-for="opt in filterCurrentOptiongs" :key="opt.pathExp + Math.random() * 1000">
-              <li style="color:rgb(211, 82, 32)" @click="optClickHandler(opt, 'down')">{{ opt.pathExp }}</li>
+              <li style="color: rgb(211, 82, 32)" @click="optClickHandler(opt, 'down')">{{ opt.pathExp }}</li>
             </ul>
           </div>
         </div>
@@ -69,9 +67,7 @@
     </Poptip>
     <Modal v-model="modelVisable" :title="$t('filter_rule')" @on-ok="okHandler" @on-cancel="cancelHandler">
       <Row style="margin-bottom: 10px" v-for="(rule, index) in currentPathFilterRules" :key="index">
-        <Col span="1" style="margin-top: 4px;"
-          ><Button type="error" icon="ios-trash-outline" @click="deleteFilterRule(index)" size="small"></Button
-        ></Col>
+        <Col span="1" style="margin-top: 4px"><Button type="error" icon="ios-trash-outline" @click="deleteFilterRule(index)" size="small"></Button></Col>
         <Col span="8" offset="1">
           <Select filterable v-model="rule.attr" @on-change="attrChangeHandler($event, rule)">
             <Option v-for="(attr, index) in currentNodeEntityAttrs" :key="index" :value="attr.name">{{
@@ -109,7 +105,7 @@
 import { getTargetOptions, getEntityRefsByPkgNameAndEntityName } from '@/api/server'
 export default {
   name: 'FilterRules',
-  data () {
+  data() {
     return {
       filterRuleOp: ['eq', 'neq', 'in', 'like', 'gt', 'lt', 'is', 'isnot'],
       pathList: [],
@@ -155,25 +151,25 @@ export default {
   },
   watch: {
     filterString: {
-      handler (val) {
+      handler(val) {
         this.filterCurrentOptiongs = this.currentOptiongs.filter(opt => opt.pathExp.indexOf(val) > -1)
         this.filterCurrentRefOptiongs = this.currentRefOptiongs.filter(opt => opt.pathExp.indexOf(val) > -1)
         this.filterCurrentLeafOptiongs = this.currentLeafOptiongs.filter(opt => opt.pathExp.indexOf(val) > -1)
       }
     },
     value: {
-      handler (val) {
+      handler() {
         // if (val === this.fullPathExp) return
         this.formatFirstCurrentOptions()
       }
     },
     allDataModelsWithAttrs: {
-      handler (val) {
+      handler() {
         this.formatCurrentOptions()
       }
     },
     rootEntity: {
-      handler (val) {
+      handler(val) {
         this.restorePathExp(val)
         this.$emit('input', this.fullPathExp)
         this.$emit('change', this.fullPathExp)
@@ -181,12 +177,12 @@ export default {
     }
   },
   computed: {
-    allEntity () {
+    allEntity() {
       let entity = []
       this.allDataModelsWithAttrs.forEach(_ => {
         if (_.entities) {
           entity = entity.concat(_.entities).map(i => {
-            let noneFound = i.attributes.find(_ => _.name === 'NONE')
+            const noneFound = i.attributes.find(_ => _.name === 'NONE')
             return {
               ...i,
               attributes: noneFound
@@ -208,13 +204,13 @@ export default {
       })
       return entity
     },
-    fullPathExp () {
+    fullPathExp() {
       return this.pathList.map(path => path.pathExp).join('')
     }
   },
   methods: {
-    copyPathExp () {
-      let inputElement = document.createElement('input')
+    copyPathExp() {
+      const inputElement = document.createElement('input')
       inputElement.value = this.fullPathExp
       document.body.appendChild(inputElement)
       inputElement.select()
@@ -225,20 +221,20 @@ export default {
       })
       inputElement.remove()
     },
-    inputHandler (v) {
+    inputHandler() {
       this.pasteValue = ''
     },
-    pastePathExp (e) {
+    pastePathExp(e) {
       let clipboardData = e.clipboardData
       if (!clipboardData) {
         clipboardData = e.originalEvent.clipboardData
       }
-      let data = clipboardData.getData('Text')
+      const data = clipboardData.getData('Text')
       this.restorePathExp(data)
       this.$emit('input', this.fullPathExp)
       this.$emit('change', this.fullPathExp)
     },
-    restorePathExp (PathExp) {
+    restorePathExp(PathExp) {
       this.pathList = []
       // eslint-disable-next-line no-useless-escape
       const pathList = PathExp.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
@@ -256,7 +252,8 @@ export default {
               pathExp: `~${_}`,
               nodeType: 'entity'
             }
-          } else {
+          }
+          else {
             path = {
               entity: ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1],
               pkg: _.match(/[^>]+(?=:)/)[0],
@@ -264,7 +261,8 @@ export default {
               nodeType: 'entity'
             }
           }
-        } else {
+        }
+        else {
           const previous = pathList[i - 1]
           const previousSplit = previous.split(':')
           const ruleIndex = previousSplit[1].indexOf('{')
@@ -282,7 +280,7 @@ export default {
       // this.$emit('change', this.fullPathExp)
       this.poptipVisable = false
     },
-    optClickHandler (opt, lastSelectType) {
+    optClickHandler(opt, lastSelectType) {
       this.lastSelectType = lastSelectType
       this.pathList = this.pathList.slice(0, this.currentNodeIndex + 1)
       this.pathList.push(opt)
@@ -293,7 +291,7 @@ export default {
       this.currentNode = opt
       this.poptipVisable = this.needAttr || this.needNativeAttr
     },
-    async attrChangeHandler (v, rule) {
+    async attrChangeHandler(v, rule) {
       const found = this.currentNodeEntityAttrs.find(_ => _.name === v)
       const isRef = found.dataType === 'ref'
       rule.isRef = isRef
@@ -304,14 +302,14 @@ export default {
         }
       }
     },
-    opChangeHandler (v, rule) {
+    opChangeHandler(v, rule) {
       const multiple = (v === 'in' || v === 'like') && rule.isRef
       rule.value = multiple ? [] : ''
     },
-    deleteFilterRule (index) {
+    deleteFilterRule(index) {
       this.currentPathFilterRules.splice(index, 1)
     },
-    addRules () {
+    addRules() {
       this.currentPathFilterRules.push({
         op: '',
         attr: '',
@@ -320,19 +318,21 @@ export default {
         isRef: false
       })
     },
-    okHandler () {
+    okHandler() {
       this.modelVisable = false
       let rules = ''
       this.currentPathFilterRules
         .filter(r => r.op && r.attr)
-        .forEach((rule, index) => {
+        .forEach(rule => {
           const isMultiple = Array.isArray(rule.value)
           let str = ''
           if (isMultiple) {
             str = `{${rule.attr} ${rule.op} [${rule.value.map(v => `'${v}'`)}]}`
-          } else if (rule.op === 'is' || rule.op === 'isnot') {
+          }
+          else if (rule.op === 'is' || rule.op === 'isnot') {
             str = `{${rule.attr} ${rule.op} NULL}`
-          } else {
+          }
+          else {
             const noQuotation = rule.op === 'gt' || rule.op === 'lt'
             str = noQuotation ? `{${rule.attr} ${rule.op} ${rule.value}}` : `{${rule.attr} ${rule.op} '${rule.value}'}`
           }
@@ -343,31 +343,34 @@ export default {
       this.$emit('input', this.fullPathExp)
       this.$emit('change', this.fullPathExp)
     },
-    cancelHandler () {
+    cancelHandler() {
       this.modelVisable = false
       this.currentPathFilterRules = []
     },
-    showPoptip (node, index) {
+    showPoptip(node, index) {
       this.currentNodeIndex = index
       this.currentNode = node
       this.formatNextCurrentOptions(node)
       //   this.poptipVisable = true
     },
-    deleteCurrentNode () {
+    deleteCurrentNode() {
       this.pathList = this.pathList.slice(0, this.currentNodeIndex)
       this.poptipVisable = false
       this.$emit('input', this.fullPathExp)
       this.$emit('change', this.fullPathExp)
       this.formatNextCurrentOptions(this.currentNode)
     },
-    addFilterRuleForCurrentNode () {
-      if (!this.currentNode) return
+    addFilterRuleForCurrentNode() {
+      if (!this.currentNode) {
+        return
+      }
       this.currentNodeEntityAttrs = this.allEntity.find(_ => _.name === this.currentNode.entity).attributes
       const rules = this.currentNode.pathExp.match(/[^{]+(?=})/g)
       if (rules) {
         rules.forEach(async r => {
           let enums = []
           let isRef = false
+          // eslint-disable-next-line
           let [attr, op, value] = r.split(' ')
           const found = this.currentNodeEntityAttrs.find(a => a.name === attr)
           if (found.dataType === 'ref') {
@@ -377,23 +380,28 @@ export default {
               isRef = true
             }
           }
-          value =
-            value.indexOf('[') > -1 && found.dataType === 'ref'
-              ? value
-                .slice(1, -1)
-                .split(',')
-                .map(v => v.slice(1, -1))
-              : value.indexOf("'") > -1
-                ? value.slice(1, -1)
-                : value
-          this.currentPathFilterRules.push({ op, value, enums, isRef, attr })
+          value = value.indexOf('[') > -1 && found.dataType === 'ref'
+            ? value
+              .slice(1, -1)
+              .split(',')
+              .map(v => v.slice(1, -1))
+            : value.indexOf('\'') > -1
+              ? value.slice(1, -1)
+              : value
+          this.currentPathFilterRules.push({
+            op,
+            value,
+            enums,
+            isRef,
+            attr
+          })
         })
       }
       this.poptipVisable = false
       this.modelVisable = true
     },
-    formatCurrentOptions () {
-      let compare = (a, b) => {
+    formatCurrentOptions() {
+      const compare = (a, b) => {
         if (a.pathExp < b.pathExp) {
           return -1
         }
@@ -403,28 +411,27 @@ export default {
         return 0
       }
       this.currentOptiongs = this.allEntity
-        .map(_ => {
-          return {
-            pkg: _.packageName,
-            entity: _.name,
-            pathExp: `${_.packageName}:${_.name}`,
-            nodeType: 'entity'
-          }
-        })
+        .map(_ => ({
+          pkg: _.packageName,
+          entity: _.name,
+          pathExp: `${_.packageName}:${_.name}`,
+          nodeType: 'entity'
+        }))
         .sort(compare)
       this.filterCurrentOptiongs = this.currentOptiongs
       this.filterCurrentRefOptiongs = this.currentRefOptiongs
       this.filterCurrentLeafOptiongs = this.currentLeafOptiongs
     },
-    formatFirstCurrentOptions () {
+    formatFirstCurrentOptions() {
       this.pathList = []
       if (this.value && this.value.indexOf(':') > -1) {
         this.restorePathExp(this.value)
-      } else {
+      }
+      else {
         this.formatCurrentOptions()
       }
     },
-    async formatNextCurrentOptions (opt) {
+    async formatNextCurrentOptions(opt) {
       if (this.pathList.length === 0) {
         this.currentOptiongs = []
         this.currentRefOptiongs = []
@@ -436,41 +443,37 @@ export default {
         this.currentOptiongs = []
         this.currentRefOptiongs = []
         this.currentLeafOptiongs = []
-      } else {
+      }
+      else {
         const { status, data } = await getEntityRefsByPkgNameAndEntityName(opt.pkg, opt.entity)
         if (status === 'OK') {
-          this.currentRefOptiongs = data.referenceByEntityList.map(e => {
-            return {
-              pkg: e.packageName,
-              entity: e.name,
-              pathExp: `~(${e.relatedAttribute.name})${e.packageName}:${e.name}`,
-              nodeType: 'entity'
-            }
-          })
-          this.currentOptiongs = data.referenceToEntityList.map(e => {
-            return {
-              pkg: e.relatedAttribute.refPackageName,
-              entity: e.relatedAttribute.refEntityName,
-              pathExp: `.${e.relatedAttribute.name}>${e.relatedAttribute.refPackageName}:${e.relatedAttribute.refEntityName}`,
-              nodeType: 'entity'
-            }
-          })
+          this.currentRefOptiongs = data.referenceByEntityList.map(e => ({
+            pkg: e.packageName,
+            entity: e.name,
+            pathExp: `~(${e.relatedAttribute.name})${e.packageName}:${e.name}`,
+            nodeType: 'entity'
+          }))
+          this.currentOptiongs = data.referenceToEntityList.map(e => ({
+            pkg: e.relatedAttribute.refPackageName,
+            entity: e.relatedAttribute.refEntityName,
+            pathExp: `.${e.relatedAttribute.name}>${e.relatedAttribute.refPackageName}:${e.relatedAttribute.refEntityName}`,
+            nodeType: 'entity'
+          }))
           this.currentLeafOptiongs = []
           if (this.needNativeAttr) {
             const foundEntity = this.allEntity.find(i => i.packageName === opt.pkg && i.name === opt.entity)
             const attrOption = foundEntity.attributes
               // .filter(attr => attr.dataType !== 'ref')
-              .map(a => {
-                return {
-                  pkg: a.packageName,
-                  entity: a.entityName,
-                  pathExp: `.${a.name}`,
-                  nodeType: 'attr'
-                }
-              })
+              .map(a => ({
+                pkg: a.packageName,
+                entity: a.entityName,
+                pathExp: `.${a.name}`,
+                nodeType: 'attr'
+              }))
             this.currentOptiongs = this.currentOptiongs.concat(attrOption)
-          } else {
-            let referenceToEntityList = []
+          }
+          else {
+            const referenceToEntityList = []
             data.leafEntityList.referenceToEntityList.forEach(e => {
               const index = referenceToEntityList.indexOf(e.filterRule)
               if (index < 0) {
@@ -488,7 +491,7 @@ export default {
                 referenceToEntityList.push(e.filterRule)
               }
             })
-            let referenceByEntityList = []
+            const referenceByEntityList = []
             data.leafEntityList.referenceByEntityList.forEach(e => {
               const index = referenceByEntityList.indexOf(e.filterRule)
               if (index < 0) {
@@ -515,7 +518,7 @@ export default {
       this.filterCurrentLeafOptiongs = this.currentLeafOptiongs
     }
   },
-  mounted () {
+  mounted() {
     // this.bindPastePathExp()
     if (!this.value && this.rootEntity) {
       this.restorePathExp(this.rootEntity)

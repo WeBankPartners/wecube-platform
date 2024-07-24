@@ -3,7 +3,7 @@
  */
 
 const ball = {
-  run (group) {
+  run(group) {
     // 获得当前边的第1个图形，这里是边本身的 path
     const path = group.get('children')[0]
     const endArrowShape = path.get('endArrowShape')
@@ -16,7 +16,9 @@ const ball = {
     const length = path.getTotalLength()
     const num = Math.floor(length / 100) || 1
 
-    if (length <= 40) return // 线段太短就不要动画了
+    if (length <= 40) {
+      return
+    } // 线段太短就不要动画了
 
     for (let i = 0; i < num; i++) {
       const timeout = setTimeout(() => {
@@ -55,7 +57,7 @@ const ball = {
       group.runners.push(timeout)
     }
   },
-  stop (group) {
+  stop(group) {
     const runners = []
 
     group.get('children').forEach(child => {
@@ -75,7 +77,7 @@ const ball = {
 }
 
 const dash = {
-  run (group) {
+  run(group) {
     let index = 0
     // 获得当前边的第1个图形，这里是边本身的 path
     const path = group.get('children')[0]
@@ -91,7 +93,7 @@ const dash = {
     })
 
     dashLine.animate(
-      radio => {
+      () => {
         index++
         if (index > 9) {
           index = 0
@@ -107,7 +109,7 @@ const dash = {
       }
     )
   },
-  stop (group) {
+  stop(group) {
     // 获得当前边的第1个图形，这里是边本身的 path
     const path = group.get('children').find(item => item.cfg.name === 'edge-dash')
 

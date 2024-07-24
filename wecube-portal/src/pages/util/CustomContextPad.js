@@ -1,5 +1,5 @@
 export default class CustomContextPad {
-  constructor (config, contextPad, create, elementFactory, injector, translate, modeling, bpmnFactory) {
+  constructor(config, contextPad, create, elementFactory, injector, translate, modeling, bpmnFactory) {
     this.create = create
     this.elementFactory = elementFactory
     this.translate = translate
@@ -13,19 +13,22 @@ export default class CustomContextPad {
     contextPad.registerProvider(this) // // 定义这是一个contextPad
   }
 
-  getContextPadEntries (element) {
-    const { autoPlace, create, elementFactory, translate } = this
+  getContextPadEntries(element) {
+    const {
+      autoPlace, create, elementFactory, translate
+    } = this
 
-    function appendTask (event, element) {
+    function appendTask(event, element) {
       if (autoPlace) {
         const shape = elementFactory.createShape({ type: 'bpmn:SubProcess' })
         autoPlace.append(element, shape)
-      } else {
+      }
+      else {
         appendTaskStart(event, element)
       }
     }
 
-    function appendTaskStart (event) {
+    function appendTaskStart(event) {
       const shape = elementFactory.createShape({ type: 'bpmn:SubProcess' })
       create.start(event, shape, element)
     }

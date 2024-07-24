@@ -38,7 +38,7 @@ import * as d3Graphviz from 'd3-graphviz'
 import { getAllDataModels } from '@/api/server'
 import { addEvent } from '../util/event.js'
 export default {
-  data () {
+  data() {
     return {
       data: [],
       allEntityType: [],
@@ -49,73 +49,82 @@ export default {
       currentAttrs: []
     }
   },
-  mounted () {
+  mounted() {
     this.getAllDataModels()
   },
   methods: {
-    ResetModel () {
+    ResetModel() {
       if (this.graph.graphviz) {
         this.graph.graphviz.resetZoom()
       }
     },
-    async getAllDataModels () {
+    async getAllDataModels() {
       const { data, status } = await getAllDataModels()
       if (status === 'OK') {
-        this.allEntityType = data.map(_ => {
+        this.allEntityType = data.map(_ =>
           // handle result sort by name
-          return {
+          ({
             ..._,
             entities: _.entities.sort(function (a, b) {
-              var s = a.name.toLowerCase()
-              var t = b.name.toLowerCase()
-              if (s < t) return -1
-              if (s > t) return 1
+              const s = a.name.toLowerCase()
+              const t = b.name.toLowerCase()
+              if (s < t) {
+                return -1
+              }
+              if (s > t) {
+                return 1
+              }
             })
-          }
-        })
+          }))
         data.forEach(i => {
           i.entities.forEach(_ => {
             this.data.push({
               ..._,
               id: '[' + _.packageName + ']' + _.name,
-              tos: _.referenceToEntityList.map(to => {
-                return { ...to, id: '[' + to.packageName + ']' + to.name }
-              }),
-              bys: _.referenceByEntityList.map(by => {
-                return { ...by, id: '[' + by.packageName + ']' + by.name }
-              })
+              tos: _.referenceToEntityList.map(to => ({
+                ...to,
+                id: '[' + to.packageName + ']' + to.name
+              })),
+              bys: _.referenceByEntityList.map(by => ({
+                ...by,
+                id: '[' + by.packageName + ']' + by.name
+              }))
             })
           })
         })
         this.initGraph()
       }
     },
-    genDOT () {
-      var dots = [
+    genDOT() {
+      const dots = [
         'digraph  {',
         'bgcolor="transparent";',
         'Node [fontname=Arial,shape="none",width="0.7", height="0.8", color="#273c75"];',
         'Edge [fontname=Arial, minlen="1", color="#000", fontsize=10];'
       ]
-      let drawConnection = (from, to) => {
-        return `"${from.id}"->"${to.id}"[edgetooltip="${to.id}" id="edge${from.id}" class="${to.id}" fontsize=8 taillabel="${from.refName}" labeldistance=6 minlen="2"];`
-      }
+      const drawConnection = (from, to) =>
+        `"${from.id}"->"${to.id}"[edgetooltip="${to.id}" id="edge${from.id}" class="${to.id}" fontsize=8 taillabel="${from.refName}" labeldistance=6 minlen="2"];`
 
-      let addNodeAttr = node => {
+      const addNodeAttr = node => {
         const color = '#273c75'
-        return `"${node.id}" [fixedsize=false id="${node.id}" label="${node.name +
-          '(v' +
-          node.dataModelVersion +
-          ')'}" shape="box" fontcolor="${color}"];`
+        return `"${node.id}" [fixedsize=false id="${node.id}" label="${
+          node.name + '(v' + node.dataModelVersion + ')'
+        }" shape="box" fontcolor="${color}"];`
       }
       const nodeMap = new Map()
       this.data.forEach(node => {
         dots.push(addNodeAttr(node))
         if (node.tos.length) {
           node.tos.forEach(to => {
-            let found = this.data.find(_ => to.id === _.id)
+            const found = this.data.find(_ => to.id === _.id)
             if (found) {
-              const dot = drawConnection({ ...node, refName: to.relatedAttribute.name }, found)
+              const dot = drawConnection(
+                {
+                  ...node,
+                  refName: to.relatedAttribute.name
+                },
+                found
+              )
               if (!nodeMap.has(dot)) {
                 dots.push(dot)
                 nodeMap.set(dot, true)
@@ -126,9 +135,15 @@ export default {
 
         if (node.bys.length) {
           node.bys.forEach(by => {
-            let found = this.data.find(_ => by.id === _.id)
+            const found = this.data.find(_ => by.id === _.id)
             if (found) {
-              const dot = drawConnection({ ...found, refName: by.relatedAttribute.name }, node)
+              const dot = drawConnection(
+                {
+                  ...found,
+                  refName: by.relatedAttribute.name
+                },
+                node
+              )
               if (!nodeMap.has(dot)) {
                 dots.push(dot)
                 nodeMap.set(dot, true)
@@ -141,8 +156,8 @@ export default {
       dots.push('}')
       return dots.join('')
     },
-    renderGraph () {
-      let nodesString = this.genDOT()
+    renderGraph() {
+      const nodesString = this.genDOT()
       this.graph.graphviz.renderDot(nodesString)
       this.shadeAll()
       addEvent('svg', 'mouseover', e => {
@@ -153,16 +168,18 @@ export default {
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
       addEvent('.node', 'click', this.handleNodeClick)
     },
-    handleNodeClick (e) {
+    handleNodeClick() {
       this.currentAttrs = this.data.find(_ => _.id === this.nodeName).attributes
       this.drawerVisible = true
-      if (this.isHandleNodeClick) return
+      if (this.isHandleNodeClick) {
+        return
+      }
       this.isHandleNodeClick = true
       setTimeout(() => {
         this.isHandleNodeClick = false
       }, 500)
     },
-    handleNodeMouseover (e) {
+    handleNodeMouseover(e) {
       e.preventDefault()
       e.stopPropagation()
       d3.selectAll('g').attr('cursor', 'pointer')
@@ -171,9 +188,8 @@ export default {
       this.shadeAll()
       this.colorNode(this.nodeName)
     },
-    shadeAll () {
-      d3.selectAll('g path')
-        .attr('stroke', '#7f8fa6')
+    shadeAll() {
+      d3.selectAll('g path').attr('stroke', '#7f8fa6')
         .attr('stroke-opacity', '.2')
       d3.selectAll('g polygon')
         .attr('stroke', '#7f8fa6')
@@ -182,8 +198,8 @@ export default {
         .attr('fill-opacity', '.2')
       d3.selectAll('.edge text').attr('fill', '#7f8fa6')
     },
-    colorNode (nodeName) {
-      let fromNodesIds = []
+    colorNode(nodeName) {
+      const fromNodesIds = []
       const fromNodes = document.querySelectorAll('g[id="' + 'edge' + nodeName + '"]')
       for (let i = 0; i < fromNodes.length; i++) {
         fromNodesIds.push(fromNodes[i].attributes.class.nodeValue)
@@ -202,7 +218,7 @@ export default {
         .attr('fill', 'red')
         .attr('fill-opacity', '1')
         .attr('stroke-opacity', '1')
-      let toNodesIds = []
+      const toNodesIds = []
       const toNodes = document.querySelectorAll('g[class="' + 'edge ' + nodeName + '"]')
       for (let i = 0; i < toNodes.length; i++) {
         toNodesIds.push(toNodes[i].attributes.id.nodeValue)
@@ -225,17 +241,14 @@ export default {
         .attr('stroke', 'yellow')
         .attr('stroke-opacity', '1')
     },
-    initGraph () {
+    initGraph() {
       const graphEl = document.getElementById('data-model')
       const height = graphEl.offsetHeight
       const width = graphEl.offsetWidth - 20
       const initEvent = () => {
-        let graph
-        graph = d3.select(`#data-model`)
+        const graph = d3.select('#data-model')
         graph.on('dblclick.zoom', null)
-        this.graph.graphviz = graph
-          .graphviz()
-          .zoom(true)
+        this.graph.graphviz = graph.graphviz().zoom(true)
           .fit(true)
           .height(height)
           .width(width)

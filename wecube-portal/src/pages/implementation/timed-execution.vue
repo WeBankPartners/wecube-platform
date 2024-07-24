@@ -97,8 +97,7 @@
               v-for="item in timeConfig.modeToValue[timeConfig.params.scheduleMode]"
               :key="item.value"
               :value="item.value"
-              >{{ item.label }}</Option
-            >
+            >{{ item.label }}</Option>
           </Select>
         </FormItem>
         <FormItem :label="$t('execute_date')">
@@ -151,7 +150,7 @@ import {
 } from '@/api/server'
 export default {
   name: '',
-  data () {
+  data() {
     return {
       showModal: false,
       fullscreen: false,
@@ -178,20 +177,18 @@ export default {
           key: 'action',
           width: 100,
           align: 'center',
-          render: (h, params) => {
-            return (
-              <div>
-                <Button
-                  onClick={() => this.jumpToHistory(params.row)}
-                  type="primary"
-                  size="small"
-                  style="margin-right: 5px"
-                >
-                  {this.$t('bc_history_record')}
-                </Button>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <Button
+                onClick={() => this.jumpToHistory(params.row)}
+                type="primary"
+                size="small"
+                style="margin-right: 5px"
+              >
+                {this.$t('bc_history_record')}
+              </Button>
+            </div>
+          )
         }
       ],
       detailTableData: [],
@@ -206,10 +203,22 @@ export default {
           scheduleMode: ''
         },
         timingTypeOptions: [
-          { label: this.$t('Hourly'), value: 'Hourly' },
-          { label: this.$t('Daily'), value: 'Daily' },
-          { label: this.$t('Weekly'), value: 'Weekly' },
-          { label: this.$t('Monthly'), value: 'Monthly' }
+          {
+            label: this.$t('Hourly'),
+            value: 'Hourly'
+          },
+          {
+            label: this.$t('Daily'),
+            value: 'Daily'
+          },
+          {
+            label: this.$t('Weekly'),
+            value: 'Weekly'
+          },
+          {
+            label: this.$t('Monthly'),
+            value: 'Monthly'
+          }
         ]
       },
       tableData: [],
@@ -223,16 +232,14 @@ export default {
           title: this.$t('flow_name'),
           key: 'procDefName',
           width: 200,
-          render: (h, params) => {
-            return (
-              <div>
-                <span>
-                  {params.row.procDefName}
-                  <Tag style="margin-left:2px">{params.row.version}</Tag>
-                </span>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span>
+                {params.row.procDefName}
+                <Tag style="margin-left:2px">{params.row.version}</Tag>
+              </span>
+            </div>
+          )
         },
         {
           title: this.$t('target_object'),
@@ -304,111 +311,101 @@ export default {
           title: this.$t('success_count'),
           key: 'totalCompletedInstances',
           width: 90,
-          render: (h, params) => {
-            return (
-              <div>
-                <span style="color:#2d8cf0">{params.row.totalCompletedInstances}</span>
-                {params.row.totalCompletedInstances > 0 && (
-                  <Button
-                    style="margin-left:8px"
-                    size="small"
-                    type="primary"
-                    ghost
-                    onClick={() => this.getDetails(params.row, 'Completed')}
-                    icon="ios-search"
-                  ></Button>
-                )}
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span style="color:#2d8cf0">{params.row.totalCompletedInstances}</span>
+              {params.row.totalCompletedInstances > 0 && (
+                <Button
+                  style="margin-left:8px"
+                  size="small"
+                  type="primary"
+                  ghost
+                  onClick={() => this.getDetails(params.row, 'Completed')}
+                  icon="ios-search"
+                ></Button>
+              )}
+            </div>
+          )
         },
         {
           title: this.$t('in_progress_count'),
           key: 'totalInProgressInstances',
           width: 100,
-          render: (h, params) => {
-            return (
-              <div>
-                <span style="color:red">{params.row.totalInProgressInstances}</span>
-                {params.row.totalInProgressInstances > 0 && (
-                  <Button
-                    style="margin-left:8px"
-                    size="small"
-                    type="primary"
-                    ghost
-                    onClick={() => this.getDetails(params.row, 'InProgress')}
-                    icon="ios-search"
-                  ></Button>
-                )}
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span style="color:red">{params.row.totalInProgressInstances}</span>
+              {params.row.totalInProgressInstances > 0 && (
+                <Button
+                  style="margin-left:8px"
+                  size="small"
+                  type="primary"
+                  ghost
+                  onClick={() => this.getDetails(params.row, 'InProgress')}
+                  icon="ios-search"
+                ></Button>
+              )}
+            </div>
+          )
         },
         {
           title: this.$t('terminate_count'),
           key: 'totalTerminateInstances',
           width: 100,
-          render: (h, params) => {
-            return (
-              <div>
-                <span style="color:red">{params.row.totalTerminateInstances}</span>
-                {params.row.totalTerminateInstances > 0 && (
-                  <Button
-                    style="margin-left:8px"
-                    size="small"
-                    type="primary"
-                    ghost
-                    onClick={() => this.getDetails(params.row, 'InternallyTerminated')}
-                    icon="ios-search"
-                  ></Button>
-                )}
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span style="color:red">{params.row.totalTerminateInstances}</span>
+              {params.row.totalTerminateInstances > 0 && (
+                <Button
+                  style="margin-left:8px"
+                  size="small"
+                  type="primary"
+                  ghost
+                  onClick={() => this.getDetails(params.row, 'InternallyTerminated')}
+                  icon="ios-search"
+                ></Button>
+              )}
+            </div>
+          )
         },
         {
           title: this.$t('timeout_count'),
           key: 'totalTimeoutInstances',
           width: 90,
-          render: (h, params) => {
-            return (
-              <div>
-                <span style="color:red">{params.row.totalTimeoutInstances}</span>
-                {params.row.totalTimeoutInstances > 0 && (
-                  <Button
-                    style="margin-left:8px"
-                    size="small"
-                    type="primary"
-                    ghost
-                    onClick={() => this.getDetails(params.row, 'Timeout')}
-                    icon="ios-search"
-                  ></Button>
-                )}
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span style="color:red">{params.row.totalTimeoutInstances}</span>
+              {params.row.totalTimeoutInstances > 0 && (
+                <Button
+                  style="margin-left:8px"
+                  size="small"
+                  type="primary"
+                  ghost
+                  onClick={() => this.getDetails(params.row, 'Timeout')}
+                  icon="ios-search"
+                ></Button>
+              )}
+            </div>
+          )
         },
         {
           title: this.$t('failure_count'),
           key: 'totalFaultedInstances',
           width: 90,
-          render: (h, params) => {
-            return (
-              <div>
-                <span style="color:red">{params.row.totalFaultedInstances}</span>
-                {params.row.totalFaultedInstances > 0 && (
-                  <Button
-                    style="margin-left:8px"
-                    size="small"
-                    type="primary"
-                    ghost
-                    onClick={() => this.getDetails(params.row, 'Faulted')}
-                    icon="ios-search"
-                  ></Button>
-                )}
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span style="color:red">{params.row.totalFaultedInstances}</span>
+              {params.row.totalFaultedInstances > 0 && (
+                <Button
+                  style="margin-left:8px"
+                  size="small"
+                  type="primary"
+                  ghost
+                  onClick={() => this.getDetails(params.row, 'Faulted')}
+                  icon="ios-search"
+                ></Button>
+              )}
+            </div>
+          )
         },
         {
           title: this.$t('table_action'),
@@ -416,38 +413,36 @@ export default {
           width: 230,
           align: 'center',
           fixed: 'right',
-          render: (h, params) => {
-            return (
-              <div>
-                {params.row.status === 'Ready' && (
-                  <Button
-                    onClick={() => this.pause(params.row)}
-                    type="warning"
-                    size="small"
-                    style="background-color: #826bea; border-color: #826bea;margin-right: 5px"
-                  >
-                    {this.$t('pause')}
-                  </Button>
-                )}
-                {params.row.status === 'Stopped' && (
-                  <Button onClick={() => this.resume(params.row)} type="info" size="small" style="margin-right: 5px">
-                    {this.$t('start_up')}
-                  </Button>
-                )}
-                <Button onClick={() => this.remove(params.row)} type="error" size="small" style="margin-right: 5px">
-                  {this.$t('delete')}
-                </Button>
+          render: (h, params) => (
+            <div>
+              {params.row.status === 'Ready' && (
                 <Button
-                  onClick={() => this.getDetails(params.row, '')}
-                  type="primary"
+                  onClick={() => this.pause(params.row)}
+                  type="warning"
                   size="small"
-                  style="margin-right: 5px"
+                  style="background-color: #826bea; border-color: #826bea;margin-right: 5px"
                 >
-                  {this.$t('list')}
+                  {this.$t('pause')}
                 </Button>
-              </div>
-            )
-          }
+              )}
+              {params.row.status === 'Stopped' && (
+                <Button onClick={() => this.resume(params.row)} type="info" size="small" style="margin-right: 5px">
+                  {this.$t('start_up')}
+                </Button>
+              )}
+              <Button onClick={() => this.remove(params.row)} type="error" size="small" style="margin-right: 5px">
+                {this.$t('delete')}
+              </Button>
+              <Button
+                onClick={() => this.getDetails(params.row, '')}
+                type="primary"
+                size="small"
+                style="margin-right: 5px"
+              >
+                {this.$t('list')}
+              </Button>
+            </div>
+          )
         }
       ],
       timeConfig: {
@@ -462,65 +457,200 @@ export default {
         },
         currentUserRoles: [],
         mailModeOptions: [
-          { label: this.$t('be_role_email'), value: 'role' },
-          { label: this.$t('be_user_email'), value: 'user' },
-          { label: this.$t('be_not_send'), value: 'none' }
+          {
+            label: this.$t('be_role_email'),
+            value: 'role'
+          },
+          {
+            label: this.$t('be_user_email'),
+            value: 'user'
+          },
+          {
+            label: this.$t('be_not_send'),
+            value: 'none'
+          }
         ],
         scheduleModeOptions: [
-          { label: this.$t('Hourly'), value: 'Hourly' },
-          { label: this.$t('Daily'), value: 'Daily' },
-          { label: this.$t('Weekly'), value: 'Weekly' },
-          { label: this.$t('Monthly'), value: 'Monthly' }
+          {
+            label: this.$t('Hourly'),
+            value: 'Hourly'
+          },
+          {
+            label: this.$t('Daily'),
+            value: 'Daily'
+          },
+          {
+            label: this.$t('Weekly'),
+            value: 'Weekly'
+          },
+          {
+            label: this.$t('Monthly'),
+            value: 'Monthly'
+          }
         ],
         modeToValue: {
           Monthly: [
-            { label: '1', value: 1 },
-            { label: '2', value: 2 },
-            { label: '3', value: 3 },
-            { label: '4', value: 4 },
-            { label: '5', value: 5 },
-            { label: '6', value: 6 },
-            { label: '7', value: 7 },
-            { label: '8', value: 8 },
-            { label: '9', value: 9 },
-            { label: '10', value: 10 },
-            { label: '11', value: 11 },
-            { label: '12', value: 12 },
-            { label: '13', value: 13 },
-            { label: '14', value: 14 },
-            { label: '15', value: 15 },
-            { label: '16', value: 16 },
-            { label: '17', value: 17 },
-            { label: '18', value: 18 },
-            { label: '19', value: 19 },
-            { label: '20', value: 20 },
-            { label: '21', value: 21 },
-            { label: '22', value: 22 },
-            { label: '23', value: 23 },
-            { label: '24', value: 24 },
-            { label: '25', value: 25 },
-            { label: '26', value: 26 },
-            { label: '27', value: 27 },
-            { label: '28', value: 28 },
-            { label: '29', value: 29 },
-            { label: '30', value: 30 },
-            { label: '31', value: 31 }
+            {
+              label: '1',
+              value: 1
+            },
+            {
+              label: '2',
+              value: 2
+            },
+            {
+              label: '3',
+              value: 3
+            },
+            {
+              label: '4',
+              value: 4
+            },
+            {
+              label: '5',
+              value: 5
+            },
+            {
+              label: '6',
+              value: 6
+            },
+            {
+              label: '7',
+              value: 7
+            },
+            {
+              label: '8',
+              value: 8
+            },
+            {
+              label: '9',
+              value: 9
+            },
+            {
+              label: '10',
+              value: 10
+            },
+            {
+              label: '11',
+              value: 11
+            },
+            {
+              label: '12',
+              value: 12
+            },
+            {
+              label: '13',
+              value: 13
+            },
+            {
+              label: '14',
+              value: 14
+            },
+            {
+              label: '15',
+              value: 15
+            },
+            {
+              label: '16',
+              value: 16
+            },
+            {
+              label: '17',
+              value: 17
+            },
+            {
+              label: '18',
+              value: 18
+            },
+            {
+              label: '19',
+              value: 19
+            },
+            {
+              label: '20',
+              value: 20
+            },
+            {
+              label: '21',
+              value: 21
+            },
+            {
+              label: '22',
+              value: 22
+            },
+            {
+              label: '23',
+              value: 23
+            },
+            {
+              label: '24',
+              value: 24
+            },
+            {
+              label: '25',
+              value: 25
+            },
+            {
+              label: '26',
+              value: 26
+            },
+            {
+              label: '27',
+              value: 27
+            },
+            {
+              label: '28',
+              value: 28
+            },
+            {
+              label: '29',
+              value: 29
+            },
+            {
+              label: '30',
+              value: 30
+            },
+            {
+              label: '31',
+              value: 31
+            }
           ],
           Weekly: [
-            { label: this.$t('Mon'), value: 1 },
-            { label: this.$t('Tue'), value: 2 },
-            { label: this.$t('Wed'), value: 3 },
-            { label: this.$t('Thu'), value: 4 },
-            { label: this.$t('Fri'), value: 5 },
-            { label: this.$t('Sat'), value: 6 },
-            { label: this.$t('Sun'), value: 7 }
+            {
+              label: this.$t('Mon'),
+              value: 1
+            },
+            {
+              label: this.$t('Tue'),
+              value: 2
+            },
+            {
+              label: this.$t('Wed'),
+              value: 3
+            },
+            {
+              label: this.$t('Thu'),
+              value: 4
+            },
+            {
+              label: this.$t('Fri'),
+              value: 5
+            },
+            {
+              label: this.$t('Sat'),
+              value: 6
+            },
+            {
+              label: this.$t('Sun'),
+              value: 7
+            }
           ]
         },
         allFlowInstances: []
       }
     }
   },
-  mounted () {
+  mounted() {
     const catchParams = localStorage.getItem('timed-execution-search-params')
     if (catchParams) {
       const tmp = JSON.parse(catchParams)
@@ -534,35 +664,38 @@ export default {
     this.MODALHEIGHT = document.body.scrollHeight - 300
     this.getUserScheduledTasks()
   },
-  beforeDestroy () {
+  beforeDestroy() {
     const selectParams = JSON.stringify(this.searchConfig.params)
     localStorage.setItem('timed-execution-search-params', selectParams)
   },
   methods: {
-    async getProcessInstances () {
-      let { status, data } = await getProcessInstances()
+    async getProcessInstances() {
+      const { status, data } = await getProcessInstances()
       if (status === 'OK') {
         this.timeConfig.allFlowInstances = data.filter(item => item.status === 'Completed')
       }
     },
-    changeTimePicker (time) {
+    changeTimePicker(time) {
       this.timeConfig.params.time = time
     },
-    async saveTime () {
+    async saveTime() {
       const found = this.timeConfig.allFlowInstances.find(_ => _.id === this.timeConfig.params.selectedFlowInstance)
-      if (!found) return
+      if (!found) {
+        return
+      }
       let scheduleExpr = ''
       if (['Hourly', 'Daily'].includes(this.timeConfig.params.scheduleMode)) {
         scheduleExpr = this.timeConfig.params.time
         if (this.timeConfig.params.scheduleMode === 'Hourly') {
           scheduleExpr = this.timeConfig.params.time.substring(3)
         }
-      } else {
+      }
+      else {
         scheduleExpr = this.timeConfig.params.cycle + ' ' + this.timeConfig.params.time
       }
-      let params = {
+      const params = {
         scheduleMode: this.timeConfig.params.scheduleMode,
-        scheduleExpr: scheduleExpr,
+        scheduleExpr,
         procDefName: found.procInstName,
         procDefId: found.procDefId,
         entityDataName: found.entityDisplayName,
@@ -580,7 +713,7 @@ export default {
         this.getUserScheduledTasks()
       }
     },
-    async setTimedExecution () {
+    async setTimedExecution() {
       this.getProcessInstances()
       this.timeConfig.params.selectedFlowInstance = ''
       this.timeConfig.params.scheduleMode = 'Monthly'
@@ -590,21 +723,21 @@ export default {
       this.timeConfig.params.mailMode = 'none'
       this.timeConfig.isShow = true
     },
-    async getCurrentUserRoles () {
+    async getCurrentUserRoles() {
       const { status, data } = await getCurrentUserRoles()
       if (status === 'OK') {
         this.timeConfig.currentUserRoles = data
       }
     },
-    exportData () {
+    exportData() {
       this.$refs.table.exportCsv({
         filename: 'timed_execution'
       })
     },
-    jumpToHistory (row) {
+    jumpToHistory(row) {
       this.$emit('jumpToHistory', row.procInstId)
     },
-    async getDetails (row, rowStatus) {
+    async getDetails(row, rowStatus) {
       const params = {
         userTaskId: row.id,
         procInstanceStatus: rowStatus
@@ -615,7 +748,7 @@ export default {
         this.detailTableData = data
       }
     },
-    async resume (row) {
+    async resume(row) {
       const params = [
         {
           id: row.id
@@ -630,7 +763,7 @@ export default {
         this.getUserScheduledTasks()
       }
     },
-    async pause (row) {
+    async pause(row) {
       const params = [
         {
           id: row.id
@@ -645,7 +778,7 @@ export default {
         this.getUserScheduledTasks()
       }
     },
-    remove (row) {
+    remove(row) {
       this.$Modal.confirm({
         title: this.$t('confirm_to_delete'),
         'z-index': 1000000,
@@ -667,9 +800,9 @@ export default {
         onCancel: () => {}
       })
     },
-    async getUserScheduledTasks () {
+    async getUserScheduledTasks() {
       await this.getCurrentUserRoles()
-      let params = JSON.parse(JSON.stringify(this.searchConfig.params))
+      const params = JSON.parse(JSON.stringify(this.searchConfig.params))
       const keys = Object.keys(params)
       keys.forEach(key => {
         if (params[key] === '') {
@@ -681,7 +814,7 @@ export default {
         this.tableData = data
       }
     },
-    getDate (dateRange) {
+    getDate(dateRange) {
       this.searchConfig.params.startTime = dateRange[0]
       this.searchConfig.params.endTime = dateRange[1]
     }

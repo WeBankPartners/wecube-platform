@@ -1,13 +1,13 @@
 import CNtranslations from './cn-translations'
 
-export default function customTranslate (template, replacements) {
-  replacements = replacements || {}
+export default function customTranslate(template, replacements) {
+  const tempReplacements = replacements || {}
 
   // Translate
-  template = CNtranslations[template] || template
+  const TempTemplate = CNtranslations[template] || template
 
   // Replace
-  return template.replace(/{([^}]+)}/g, function (_, key) {
-    return replacements[key] || '{' + key + '}'
+  return TempTemplate.replace(/{([^}]+)}/g, function (_, key) {
+    return tempReplacements[key] || '{' + key + '}'
   })
 }

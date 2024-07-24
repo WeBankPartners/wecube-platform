@@ -33,7 +33,7 @@ export default {
     }
   },
   watch: {
-    isBatchModalShow: function (val) {
+    isBatchModalShow(val) {
       if (typeof val === 'boolean') {
         this.configTreeManageModal = val
         this.isSelectAll = false
@@ -43,7 +43,7 @@ export default {
       }
     }
   },
-  data () {
+  data() {
     return {
       configTree: [],
       configTreeManageModal: false,
@@ -51,18 +51,14 @@ export default {
     }
   },
   methods: {
-    async setConfigTreeHandler () {
-      const payload = this.$refs.configTree.data.map(_ => {
-        return {
-          ..._,
-          pluginConfigs: _.children.map(child => {
-            return {
-              ...child,
-              status: child.checked ? 'ENABLED' : 'DISABLED'
-            }
-          })
-        }
-      })
+    async setConfigTreeHandler() {
+      const payload = this.$refs.configTree.data.map(_ => ({
+        ..._,
+        pluginConfigs: _.children.map(child => ({
+          ...child,
+          status: child.checked ? 'ENABLED' : 'DISABLED'
+        }))
+      }))
       const { status } = await batchExportConfig(this.pluginId, payload)
       if (status === 'OK') {
         this.$Notice.success({
@@ -72,19 +68,19 @@ export default {
         this.closeModal()
       }
     },
-    closeTreeModal () {
+    closeTreeModal() {
       this.closeModal()
     },
-    onVisibleChange (state) {
+    onVisibleChange(state) {
       if (!state) {
         this.closeModal()
       }
     },
-    closeModal () {
+    closeModal() {
       this.isSelectAll = false
       this.$emit('close')
     },
-    selectOrCancelAll (val) {
+    selectOrCancelAll(val) {
       this.isSelectAll = val
       this.$nextTick(() => {
         this.configTree.forEach(parent => {
@@ -105,7 +101,7 @@ export default {
         })
       })
     },
-    async getConfigByPkgId () {
+    async getConfigByPkgId() {
       const { status, data } = await getConfigByPkgId(this.pluginId)
       if (status === 'OK') {
         this.configTree = data.map(_ => {
@@ -115,15 +111,13 @@ export default {
             title: _.name,
             expand: true,
             disabled: !hasPermission,
-            children: _.pluginConfigs.map(config => {
-              return {
-                ...config,
-                title: `${config.name}-(${config.registerName})`,
-                expand: true,
-                checked: config.status === 'ENABLED',
-                disabled: !config.hasMgmtPermission
-              }
-            })
+            children: _.pluginConfigs.map(config => ({
+              ...config,
+              title: `${config.name}-(${config.registerName})`,
+              expand: true,
+              checked: config.status === 'ENABLED',
+              disabled: !config.hasMgmtPermission
+            }))
           }
         })
       }

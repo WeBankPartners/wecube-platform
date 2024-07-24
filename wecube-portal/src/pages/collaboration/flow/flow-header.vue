@@ -55,7 +55,7 @@ export default {
   components: {
     FlowAuth
   },
-  data () {
+  data() {
     return {
       nodeHasAlert: false,
       flowListTab: '', // 对应编排列表状态tab
@@ -65,7 +65,7 @@ export default {
     }
   },
   methods: {
-    showItemInfo (data, editFlow, flowListTab) {
+    showItemInfo(data, editFlow, flowListTab) {
       this.nodeHasAlert = false
       this.editFlow = editFlow
       this.flowListTab = flowListTab
@@ -93,31 +93,34 @@ export default {
     },
     // #region
     // 修改权限
-    changePermission () {
+    changePermission() {
       this.$refs.flowAuthRef.startAuth(
         this.itemCustomInfo.permissionToRole.MGMT,
         this.itemCustomInfo.permissionToRole.USE
       )
     },
-    updateAuth (mgmt, use) {
+    updateAuth(mgmt, use) {
       this.$emit('updateAuth', mgmt, use)
     },
     // #endregion
-    openCanvasPanel () {
+    openCanvasPanel() {
       this.$emit('openCanvasPanel', '')
     },
     // 发布编排
-    async releaseFlow () {
+    async releaseFlow() {
       const { status } = await flowRelease(this.itemCustomInfo.id)
       if (status === 'OK') {
         this.$Message.success(this.$t('release_flow') + this.$t('action_successful'))
         this.$router.push({
           path: '/collaboration/workflow',
-          query: { flowListTab: 'deployed', subProc: this.subProc }
+          query: {
+            flowListTab: 'deployed',
+            subProc: this.subProc
+          }
         })
       }
     },
-    async changeStatus (statusCode, actionTip) {
+    async changeStatus(statusCode, actionTip) {
       const statusToTip = {
         disabled: {
           title: this.$t('disable'),
@@ -137,12 +140,13 @@ export default {
             procDefIds: [this.itemCustomInfo.id],
             status: statusCode
           }
-          let { status } = await flowBatchChangeStatus(data)
+          const { status } = await flowBatchChangeStatus(data)
           if (status === 'OK') {
             this.$Message.success(this.$t(actionTip) + this.$t('action_successful'))
             if (statusCode === 'deleted') {
               this.backToFlowList()
-            } else {
+            }
+            else {
               this.$emit('updateFlowData', '')
             }
           }
@@ -150,15 +154,15 @@ export default {
         onCancel: () => {}
       })
     },
-    async exportFlow () {
+    async exportFlow() {
       const accessToken = getCookie('accessToken')
       const headers = {
         Authorization: 'Bearer ' + accessToken
       }
       axios({
         method: 'post',
-        url: `platform/v1/process/definitions/export`,
-        headers: headers,
+        url: 'platform/v1/process/definitions/export',
+        headers,
         data: {
           procDefIds: this.itemCustomInfo.id
         },
@@ -166,14 +170,15 @@ export default {
       })
         .then(response => {
           if (response.status < 400) {
-            let fileName = `${this.itemCustomInfo.name}_${dayjs().format('YYMMDDHHmmss')}.json`
-            let blob = new Blob([response.data])
+            const fileName = `${this.itemCustomInfo.name}_${dayjs().format('YYMMDDHHmmss')}.json`
+            const blob = new Blob([response.data])
             if ('msSaveOrOpenBlob' in navigator) {
               window.navigator.msSaveOrOpenBlob(blob, fileName)
-            } else {
+            }
+            else {
               if ('download' in document.createElement('a')) {
                 // 非IE下载
-                let elink = document.createElement('a')
+                const elink = document.createElement('a')
                 elink.download = fileName
                 elink.style.display = 'none'
                 elink.href = URL.createObjectURL(blob)
@@ -181,7 +186,8 @@ export default {
                 elink.click()
                 URL.revokeObjectURL(elink.href) // 释放URL 对象
                 document.body.removeChild(elink)
-              } else {
+              }
+              else {
                 // IE10+下载
                 navigator.msSaveOrOpenBlob(blob, fileName)
               }
@@ -192,13 +198,16 @@ export default {
           this.$Message.warning('Error')
         })
     },
-    backToFlowList () {
+    backToFlowList() {
       this.$router.push({
         path: '/collaboration/workflow',
-        query: { flowListTab: this.flowListTab, subProc: this.subProc }
+        query: {
+          flowListTab: this.flowListTab,
+          subProc: this.subProc
+        }
       })
     },
-    hideReleaseBtn () {
+    hideReleaseBtn() {
       this.nodeHasAlert = true
     }
   }

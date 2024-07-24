@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 
 Vue.use(Router)
-let router = new Router({
+const router = new Router({
   routes: [
     {
       path: '/',
@@ -184,8 +184,10 @@ let router = new Router({
 const keys = ['push', 'replace']
 keys.forEach(key => {
   const original = Router.prototype[key]
-  Router.prototype[key] = function push (localtion, onResolve, onReject) {
-    if (onResolve || onReject) return original.call(this, localtion, onResolve, onReject)
+  Router.prototype[key] = function push(localtion, onResolve, onReject) {
+    if (onResolve || onReject) {
+      return original.call(this, localtion, onResolve, onReject)
+    }
     return original.call(this, localtion).catch(err => err)
   }
 })

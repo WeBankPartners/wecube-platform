@@ -20,7 +20,7 @@ import PluginAspect from './plugin-aspect'
 import TasknodeAspect from './tasknode-aspect'
 export default {
   name: '',
-  data () {
+  data() {
     return {}
   },
   methods: {},

@@ -28,14 +28,11 @@
                     {{ $t('name') }}
                   </label>
                   <Input v-model.trim="itemCustomInfo.customAttrs.name" @on-change="paramsChanged"></Input>
-                  <span style="position: absolute; left: 310px; top: 2px; line-height: 30px; background: #ffffff"
-                    >{{ (itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length) || 0 }}/30</span
-                  >
+                  <span style="position: absolute; left: 310px; top: 2px; line-height: 30px; background: #ffffff">{{ (itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length) || 0 }}/30</span>
                   <span
                     v-if="itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length > 30"
                     style="color: red"
-                    >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
-                  >
+                  >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span>
                 </FormItem>
                 <FormItem :label="$t('node_type')">
                   <Input v-model="itemCustomInfo.customAttrs.nodeType" disabled></Input>
@@ -55,9 +52,7 @@
                       :editable="false"
                       style="width: 100%"
                     ></DatePicker>
-                    <span v-if="itemCustomInfo.customAttrs.timeConfig.date === ''" style="color: red"
-                      >{{ $t('date') }}{{ $t('cannotBeEmpty') }}</span
-                    >
+                    <span v-if="itemCustomInfo.customAttrs.timeConfig.date === ''" style="color: red">{{ $t('date') }}{{ $t('cannotBeEmpty') }}</span>
                   </FormItem>
                 </template>
                 <template v-if="itemCustomInfo.customAttrs && itemCustomInfo.customAttrs.nodeType === 'timeInterval'">
@@ -103,7 +98,7 @@
             name="2"
             v-if="
               itemCustomInfo.customAttrs &&
-              ['human', 'automatic', 'subProc', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
+                ['human', 'automatic', 'subProc', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
             "
           >
             {{ $t('controlOfExecution') }}
@@ -113,12 +108,11 @@
                   :label="$t('timeout')"
                   v-if="
                     itemCustomInfo.customAttrs &&
-                    ['automatic', 'subProc', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
+                      ['automatic', 'subProc', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
                   "
                 >
                   <Select v-model="itemCustomInfo.customAttrs.timeout" filterable @on-change="paramsChanged">
-                    <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
-                      >{{ item.label }}
+                    <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index">{{ item.label }}
                     </Option>
                   </Select>
                 </FormItem>
@@ -136,7 +130,7 @@
             name="3"
             v-if="
               itemCustomInfo.customAttrs &&
-              ['human', 'automatic', 'subProc', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
+                ['human', 'automatic', 'subProc', 'data'].includes(itemCustomInfo.customAttrs.nodeType)
             "
           >
             {{ $t('dataBinding') }}
@@ -155,7 +149,7 @@
                 <FormItem
                   v-if="
                     ['human', 'automatic', 'subProc'].includes(itemCustomInfo.customAttrs.nodeType) &&
-                    [1].includes(itemCustomInfo.customAttrs.dynamicBind)
+                      [1].includes(itemCustomInfo.customAttrs.dynamicBind)
                   "
                 >
                   <label slot="label">
@@ -177,11 +171,10 @@
                   <span
                     v-if="
                       [1].includes(itemCustomInfo.customAttrs.dynamicBind) &&
-                      itemCustomInfo.customAttrs.bindNodeId === ''
+                        itemCustomInfo.customAttrs.bindNodeId === ''
                     "
                     style="color: red"
-                    >{{ $t('bind_node') }}{{ $t('cannotBeEmpty') }}</span
-                  >
+                  >{{ $t('bind_node') }}{{ $t('cannotBeEmpty') }}</span>
                 </FormItem>
                 <FormItem>
                   <label slot="label">
@@ -232,9 +225,7 @@
                       item.serviceDisplayName
                     }}</Option>
                   </Select>
-                  <span v-if="itemCustomInfo.customAttrs.serviceName === ''" style="color: red"
-                    >{{ $t('pluginService') }} {{ $t('cannotBeEmpty') }}</span
-                  >
+                  <span v-if="itemCustomInfo.customAttrs.serviceName === ''" style="color: red">{{ $t('pluginService') }} {{ $t('cannotBeEmpty') }}</span>
                 </FormItem>
               </Form>
               <div v-if="itemCustomInfo.customAttrs.serviceName">
@@ -244,7 +235,7 @@
                     <template
                       v-if="
                         itemCustomInfo.customAttrs.paramInfos &&
-                        itemCustomInfo.customAttrs.paramInfos.filter(p => p.bindType === 'context').length > 0
+                          itemCustomInfo.customAttrs.paramInfos.filter(p => p.bindType === 'context').length > 0
                       "
                     >
                       <div>
@@ -317,7 +308,7 @@
                     <template
                       v-if="
                         itemCustomInfo.customAttrs.paramInfos &&
-                        itemCustomInfo.customAttrs.paramInfos.filter(p => p.bindType === 'constant').length > 0
+                          itemCustomInfo.customAttrs.paramInfos.filter(p => p.bindType === 'constant').length > 0
                       "
                     >
                       <div style="background: #e5e9ee">
@@ -363,9 +354,7 @@
                       `${item.procDefName}【${item.procDefVersion}】`
                     }}</Option>
                   </Select>
-                  <span v-if="itemCustomInfo.customAttrs.subProcDefId === ''" style="color: red"
-                    >{{ $t('child_workflow') }} {{ $t('cannotBeEmpty') }}</span
-                  >
+                  <span v-if="itemCustomInfo.customAttrs.subProcDefId === ''" style="color: red">{{ $t('child_workflow') }} {{ $t('cannotBeEmpty') }}</span>
                   <span v-if="subProcRemoveFlag" style="color: red">{{ $t('fe_childFlow_permissionTips') }}</span>
                 </FormItem>
                 <template v-if="itemCustomInfo.customAttrs.subProcDefId && subProcItem">
@@ -415,7 +404,7 @@ import {
 } from '@/api/server.js'
 import ItemFilterRulesGroup from './item-filter-rules-group.vue'
 export default {
-  data () {
+  data() {
     return {
       editFlow: true, // 在查看时隐藏按钮
       isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
@@ -475,8 +464,14 @@ export default {
       nodeList: [], // 编排中的所有节点，供上下文中绑定使用
       canSelectNode: [], // 存储在上下文中可以选择使用的节点
       paramsTypes: [
-        { value: 'INPUT', label: this.$t('input') },
-        { value: 'OUTPUT', label: this.$t('output') }
+        {
+          value: 'INPUT',
+          label: this.$t('input')
+        },
+        {
+          value: 'OUTPUT',
+          label: this.$t('output')
+        }
       ],
       mgmtRole: '', // 编排属主角色，供错误提示用
       isShowAlert: false, // 在服务插件有值，但无可选项是提示
@@ -501,7 +496,7 @@ export default {
     ItemFilterRulesGroup
   },
   computed: {
-    isSaveBtnActive () {
+    isSaveBtnActive() {
       let res = false
       if (!this.itemCustomInfo.customAttrs.name || this.itemCustomInfo.customAttrs.name.length > 30) {
         res = true
@@ -516,7 +511,8 @@ export default {
           if (this.itemCustomInfo.customAttrs.bindNodeId === '') {
             res = true
           }
-        } else if (this.itemCustomInfo.customAttrs.routineExpression === '') {
+        }
+        else if (this.itemCustomInfo.customAttrs.routineExpression === '') {
           res = true
         }
       }
@@ -535,18 +531,18 @@ export default {
       return res
     }
   },
-  mounted () {
+  mounted() {
     this.getAllDataModels()
   },
   methods: {
-    async showItemInfo (nodeData, needAddFirst = false, rootEntity, editFlow, permissionToRole) {
+    async showItemInfo(nodeData, needAddFirst = false, rootEntity, editFlow, permissionToRole) {
       this.isShowAlert = false
       this.editFlow = editFlow
       this.currentSelectedEntity = rootEntity
       this.needAddFirst = needAddFirst
       if (this.needAddFirst) {
-        let tmpData = JSON.parse(JSON.stringify(nodeData))
-        let customAttrs = JSON.parse(JSON.stringify(tmpData.customAttrs || {}))
+        const tmpData = JSON.parse(JSON.stringify(nodeData))
+        const customAttrs = JSON.parse(JSON.stringify(tmpData.customAttrs || {}))
         // delete tmpData.customAttrs
         customAttrs.routineExpression = rootEntity
         this.itemCustomInfo = {
@@ -554,8 +550,9 @@ export default {
           selfAttrs: tmpData
         }
         this.saveItem()
-      } else {
-        let { status, data } = await getNodeDetailById(nodeData.customAttrs.procDefId, nodeData.id)
+      }
+      else {
+        const { status, data } = await getNodeDetailById(nodeData.customAttrs.procDefId, nodeData.id)
         if (status === 'OK') {
           this.itemCustomInfo = data
           this.itemCustomInfo.selfAttrs = JSON.parse(data.selfAttrs)
@@ -574,25 +571,24 @@ export default {
       }
       this.getRoleDisplayName(permissionToRole)
     },
-    saveItem () {
+    saveItem() {
       if (['human', 'automatic', 'subProc', 'data'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
-        const routineExpressionItem =
-          this.$refs.filterRulesGroupRef && this.$refs.filterRulesGroupRef.routineExpressionItem
+        const routineExpressionItem = this.$refs.filterRulesGroupRef && this.$refs.filterRulesGroupRef.routineExpressionItem
         if (routineExpressionItem) {
-          this.itemCustomInfo.customAttrs.routineExpression = routineExpressionItem.reduce((tmp, item, index) => {
-            return (
-              tmp +
-              item.routineExpression +
-              '#DMEOP#' +
-              item.operate +
-              (index === routineExpressionItem.length - 1 ? '' : '#DME#')
-            )
-          }, '')
+          this.itemCustomInfo.customAttrs.routineExpression = routineExpressionItem.reduce(
+            (tmp, item, index) =>
+              tmp
+              + item.routineExpression
+              + '#DMEOP#'
+              + item.operate
+              + (index === routineExpressionItem.length - 1 ? '' : '#DME#'),
+            ''
+          )
         }
       }
       if (
-        this.itemCustomInfo.customAttrs.routineExpression !== '' &&
-        this.itemCustomInfo.customAttrs.routineExpression.endsWith('#DMEOP#')
+        this.itemCustomInfo.customAttrs.routineExpression !== ''
+        && this.itemCustomInfo.customAttrs.routineExpression.endsWith('#DMEOP#')
       ) {
         this.itemCustomInfo.customAttrs.routineExpression = this.itemCustomInfo.customAttrs.routineExpression.replace(
           /#DMEOP#$/,
@@ -601,34 +597,37 @@ export default {
       }
       // 定位规则操作必填校验
       if (['data'].includes(this.itemCustomInfo.customAttrs.nodeType) && this.needAddFirst === false) {
-        const routineExpressionItem =
-          (this.$refs.filterRulesGroupRef && this.$refs.filterRulesGroupRef.routineExpressionItem) || []
+        const routineExpressionItem = (this.$refs.filterRulesGroupRef && this.$refs.filterRulesGroupRef.routineExpressionItem) || []
         const operateFlag = routineExpressionItem.every(i => i.operate !== '')
-        if (!operateFlag) return this.$Message.warning(this.$t('fe_locationRuleTips'))
+        if (!operateFlag) {
+          return this.$Message.warning(this.$t('fe_locationRuleTips'))
+        }
       }
       // 插件服务校验
-      if (['human', 'automatic'].includes(this.itemCustomInfo.customAttrs.nodeType) && this.checkParamsInfo()) return
+      if (['human', 'automatic'].includes(this.itemCustomInfo.customAttrs.nodeType) && this.checkParamsInfo()) {
+        return
+      }
       const tmpData = JSON.parse(JSON.stringify(this.itemCustomInfo))
-      let selfAttrs = tmpData.selfAttrs
+      const selfAttrs = tmpData.selfAttrs
       selfAttrs.label = tmpData.customAttrs.name
-      let finalData = {
-        selfAttrs: selfAttrs,
+      const finalData = {
+        selfAttrs,
         customAttrs: tmpData.customAttrs
       }
       this.$emit('sendItemInfo', finalData, this.needAddFirst)
       this.needAddFirst = false
     },
-    checkParamsInfo () {
+    checkParamsInfo() {
       let res = false
-      this.itemCustomInfo.customAttrs.paramInfos &&
-        this.itemCustomInfo.customAttrs.paramInfos.forEach(item => {
+      this.itemCustomInfo.customAttrs.paramInfos
+        && this.itemCustomInfo.customAttrs.paramInfos.forEach(item => {
           if (item.bindType === 'constant' && item.required === 'Y' && item.bindValue === '') {
             res = true
           }
           if (
-            item.bindType === 'context' &&
-            item.required === 'Y' &&
-            (item.bindNodeId === '' || item.bindParamType === '' || item.bindParamName === '')
+            item.bindType === 'context'
+            && item.required === 'Y'
+            && (item.bindNodeId === '' || item.bindParamType === '' || item.bindParamName === '')
           ) {
             res = true
           }
@@ -638,10 +637,10 @@ export default {
       }
       return res
     },
-    panalStatus () {
+    panalStatus() {
       return this.isParmasChanged
     },
-    hideItem () {
+    hideItem() {
       if (this.isParmasChanged) {
         this.$Modal.confirm({
           title: `${this.$t('confirm_discarding_changes')}`,
@@ -656,13 +655,14 @@ export default {
             this.$emit('hideItemInfo')
           }
         })
-      } else {
+      }
+      else {
         this.$emit('hideItemInfo')
       }
     },
     // 获取当前节点的前序节点
-    async getAssociatedNodes () {
-      let { status, data } = await getAssociatedNodes(
+    async getAssociatedNodes() {
+      const { status, data } = await getAssociatedNodes(
         this.itemCustomInfo.customAttrs.procDefId,
         this.itemCustomInfo.customAttrs.id
       )
@@ -671,7 +671,7 @@ export default {
       }
     },
     // 更新动态绑定节点逻辑
-    changeBindNode () {
+    changeBindNode() {
       const find = this.associatedNodes.find(node => node.nodeId === this.itemCustomInfo.customAttrs.bindNodeId)
       if (find) {
         this.$nextTick(() => {
@@ -682,23 +682,24 @@ export default {
       }
     },
     // 更新关联节点的响应
-    changeAssociatedNode () {},
+    changeAssociatedNode() {},
 
     // #region 定位规则
 
     // 获取所有根数据
-    async getAllDataModels () {
-      let { data, status } = await getAllDataModels()
+    async getAllDataModels() {
+      const { data, status } = await getAllDataModels()
       if (status === 'OK') {
         this.allEntityType = data.filter(d => d.packageName === this.currentSelectedEntity.split(':')[0])
       }
     },
 
     // 定位规则回传
-    singleFilterRuleChanged (val) {
+    singleFilterRuleChanged(val) {
       if (val === '') {
         this.changDynamicBind()
-      } else {
+      }
+      else {
         this.itemCustomInfo.customAttrs.routineExpression = val
         this.getPlugin()
         this.getSubProcList()
@@ -706,48 +707,46 @@ export default {
       }
     },
     // 获取可选插件
-    getPlugin () {
+    getPlugin() {
       this.getFilteredPluginInterfaceList(this.itemCustomInfo.customAttrs.routineExpression)
     },
     // #endregion
     // 监听参数变化
-    paramsChanged () {
+    paramsChanged() {
       this.isParmasChanged = true
     },
-    dateChange (dateStr) {
+    dateChange(dateStr) {
       this.itemCustomInfo.customAttrs.timeConfig.date = dateStr
       this.paramsChanged()
     },
     // #region 上下文参数相关
     // 改变插件时的响应
-    changePluginInterfaceList (plugin) {
+    changePluginInterfaceList(plugin) {
       this.paramsChanged()
       this.itemCustomInfo.customAttrs.contextParamNodes = []
       if (plugin) {
         const findPluginDetail = this.filteredPlugins.find(p => p.serviceName === plugin)
         this.itemCustomInfo.customAttrs.paramInfos = []
         if (findPluginDetail && findPluginDetail.configurableInputParameters) {
-          let needParams = findPluginDetail.configurableInputParameters.filter(
+          const needParams = findPluginDetail.configurableInputParameters.filter(
             _ => _.mappingType === 'context' || _.mappingType === 'constant'
           )
-          this.itemCustomInfo.customAttrs.paramInfos = needParams.map(_ => {
-            return {
-              paramName: _.name,
-              bindNodeId: '',
-              bindParamType: 'INPUT',
-              bindParamName: '',
-              bindType: _.mappingType,
-              bindValue: '',
-              required: _.required
-            }
-          })
+          this.itemCustomInfo.customAttrs.paramInfos = needParams.map(_ => ({
+            paramName: _.name,
+            bindNodeId: '',
+            bindParamType: 'INPUT',
+            bindParamName: '',
+            bindType: _.mappingType,
+            bindValue: '',
+            required: _.required
+          }))
         }
       }
     },
     // 改变上下文中的源节点列表清除对应数据的响应
-    changeContextParamNodes (selection) {
-      this.itemCustomInfo.customAttrs.paramInfos &&
-        this.itemCustomInfo.customAttrs.paramInfos.forEach(pInfo => {
+    changeContextParamNodes(selection) {
+      this.itemCustomInfo.customAttrs.paramInfos
+        && this.itemCustomInfo.customAttrs.paramInfos.forEach(pInfo => {
           if (pInfo.bindNodeId !== '' && !selection.includes(pInfo.bindNodeId)) {
             pInfo.bindNodeId = ''
             pInfo.bindParamName = ''
@@ -755,7 +754,7 @@ export default {
         })
     },
     // 获取插件函数列表
-    async getFilteredPluginInterfaceList (path) {
+    async getFilteredPluginInterfaceList(path) {
       let pkg = ''
       let entity = ''
       let payload = {}
@@ -771,7 +770,8 @@ export default {
         if (isBy > 0) {
           entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
           pkg = current[0].split(')')[1]
-        } else {
+        }
+        else {
           entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
           pkg = last.match(/[^>]+(?=:)/)[0]
         }
@@ -780,7 +780,8 @@ export default {
           entityName: entity.split('#DMEOP#')[0],
           targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : ''
         }
-      } else {
+      }
+      else {
         payload = {
           pkgName: '',
           entityName: '',
@@ -799,50 +800,52 @@ export default {
       }
     },
     // 设置被预选中的节点
-    prevCtxNodeChange (val) {
+    prevCtxNodeChange() {
       return (
         this.nodeList.filter(n => (this.itemCustomInfo.customAttrs.contextParamNodes || []).includes(n.nodeId)) || []
       )
     },
     // 改变节点及参数类型获取参数名
-    onParamsNodeChange (index, paramsChanged) {
+    onParamsNodeChange(index, paramsChanged) {
       this.getParamsOptionsByNode(index)
       if (paramsChanged) {
         this.paramsChanged()
       }
     },
-    async getParamsOptionsByNode (index) {
+    async getParamsOptionsByNode(index) {
       this.$set(this.itemCustomInfo.customAttrs.paramInfos[index], 'currentParamNames', [])
       const paramInfos = this.itemCustomInfo.customAttrs.paramInfos || []
       if (paramInfos[index].bindNodeId !== '') {
-        let { status, data } = await getNodeParams(
+        const { status, data } = await getNodeParams(
           this.itemCustomInfo.customAttrs.procDefId,
           paramInfos[index].bindNodeId
         )
         if (status === 'OK') {
-          let res = (data || []).filter(_ => _.type === this.itemCustomInfo.customAttrs.paramInfos[index].bindParamType)
+          const res = (data || []).filter(
+            _ => _.type === this.itemCustomInfo.customAttrs.paramInfos[index].bindParamType
+          )
           this.$set(this.itemCustomInfo.customAttrs.paramInfos[index], 'currentParamNames', res)
         }
       }
     },
-    mgmtParamInfos () {
+    mgmtParamInfos() {
       const paramInfos = this.itemCustomInfo.customAttrs.paramInfos
-      paramInfos &&
-        paramInfos.forEach((p, pIndex) => {
+      paramInfos
+        && paramInfos.forEach((p, pIndex) => {
           if (p.bindType === 'context') {
             this.onParamsNodeChange(pIndex, false)
           }
         })
     },
     // 获取可选根节点
-    async getRootNode () {
-      let { status, data } = await getSourceNode(this.itemCustomInfo.customAttrs.procDefId)
+    async getRootNode() {
+      const { status, data } = await getSourceNode(this.itemCustomInfo.customAttrs.procDefId)
       if (status === 'OK') {
         this.nodeList = (data || []).filter(r => r.nodeId !== this.itemCustomInfo.customAttrs.id)
       }
     },
     // #endregion
-    changDynamicBind () {
+    changDynamicBind() {
       this.itemCustomInfo.customAttrs.bindNodeId = ''
       this.itemCustomInfo.customAttrs.routineExpression = this.currentSelectedEntity
       this.itemCustomInfo.customAttrs.serviceName = ''
@@ -853,16 +856,16 @@ export default {
       })
       this.paramsChanged()
     },
-    durationChange (val) {
+    durationChange() {
       if (!this.itemCustomInfo.customAttrs.timeConfig.duration) {
         this.itemCustomInfo.customAttrs.timeConfig.duration = 0
       }
       this.paramsChanged()
     },
-    async getRoleDisplayName (permissionToRole) {
+    async getRoleDisplayName(permissionToRole) {
       if (permissionToRole.MGMT && permissionToRole.MGMT.length > 0) {
-        let params = { all: 'Y' }
-        let { status, data } = await getRoleList(params)
+        const params = { all: 'Y' }
+        const { status, data } = await getRoleList(params)
         if (status === 'OK') {
           const find = data.find(d => d.name === permissionToRole.MGMT[0])
           if (find) {
@@ -872,12 +875,12 @@ export default {
       }
     },
     // 选择子编排
-    changeSubProc (val) {
+    changeSubProc(val) {
       this.paramsChanged()
       this.subProcItem = this.subProcList.find(i => i.procDefId === val) || {}
     },
     // 获取子编排列表
-    async getSubProcList () {
+    async getSubProcList() {
       const params = {
         entityExpr: this.itemCustomInfo.customAttrs.routineExpression
       }
@@ -886,8 +889,7 @@ export default {
         this.subProcRemoveFlag = false
         this.subProcList = data || []
         if (this.itemCustomInfo.customAttrs.subProcDefId) {
-          this.subProcItem =
-            this.subProcList.find(i => i.procDefId === this.itemCustomInfo.customAttrs.subProcDefId) || {}
+          this.subProcItem = this.subProcList.find(i => i.procDefId === this.itemCustomInfo.customAttrs.subProcDefId) || {}
           // 编辑操作，匹配不到对应子编排，删除子编排
           if (!this.subProcItem.procDefId && this.editFlow !== 'false') {
             this.itemCustomInfo.customAttrs.subProcDefId = ''
@@ -899,7 +901,7 @@ export default {
         }
       }
     },
-    viewParentFlowGraph (row) {
+    viewParentFlowGraph() {
       window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
       const path = `${window.location.origin}/#/collaboration/workflow-mgmt?flowId=${this.itemCustomInfo.customAttrs.subProcDefId}&editFlow=false&flowListTab=deployed`
       window.open(path, '_blank')

@@ -52,13 +52,14 @@ export default {
       default: 'template'
     }
   },
-  data () {
+  data() {
     return {
       searchParams: {
         procDefId: '',
         procDefName: '',
         plugins: [],
-        createdTime: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+        createdTime: [dayjs().subtract(3, 'month')
+          .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
         createdTimeStart: '',
         createdTimeEnd: '',
         createdBy: '',
@@ -79,8 +80,14 @@ export default {
           key: 'subProc',
           component: 'radio-group',
           list: [
-            { label: this.$t('main_workflow'), value: 'main' },
-            { label: this.$t('child_workflow'), value: 'sub' }
+            {
+              label: this.$t('main_workflow'),
+              value: 'main'
+            },
+            {
+              label: this.$t('child_workflow'),
+              value: 'sub'
+            }
           ],
           initValue: 'main'
         },
@@ -89,10 +96,28 @@ export default {
           label: this.$t('table_created_date'),
           initDateType: 1,
           dateRange: [
-            { label: this.$t('fe_recent3Months'), type: 'month', value: 3, dateType: 1 },
-            { label: this.$t('fe_recentHalfYear'), type: 'month', value: 6, dateType: 2 },
-            { label: this.$t('fe_recentOneYear'), type: 'year', value: 1, dateType: 3 },
-            { label: this.$t('be_auto'), dateType: 4 } // 自定义
+            {
+              label: this.$t('fe_recent3Months'),
+              type: 'month',
+              value: 3,
+              dateType: 1
+            },
+            {
+              label: this.$t('fe_recentHalfYear'),
+              type: 'month',
+              value: 6,
+              dateType: 2
+            },
+            {
+              label: this.$t('fe_recentOneYear'),
+              type: 'year',
+              value: 1,
+              dateType: 3
+            },
+            {
+              label: this.$t('be_auto'),
+              dateType: 4
+            } // 自定义
           ],
           labelWidth: 110,
           component: 'custom-time'
@@ -118,75 +143,71 @@ export default {
           title: this.$t('flow_name'),
           key: 'name',
           minWidth: 220,
-          render: (h, params) => {
-            return (
-              <div>
-                {
-                  /* 收藏 */
-                  !params.row.collected && (
-                    <Tooltip content={this.$t('bc_save')} placement="top-start">
-                      <Icon
-                        style="cursor:pointer;margin-right:5px;"
-                        size="18"
-                        type="ios-star-outline"
-                        onClick={e => {
-                          e.stopPropagation()
-                          this.handleStar(params.row)
-                        }}
-                      />
-                    </Tooltip>
-                  )
-                }
-                {
-                  /* 取消收藏 */
-                  params.row.collected && (
-                    <Tooltip content={this.$t('be_cancel_save')} placement="top-start">
-                      <Icon
-                        style="cursor:pointer;margin-right:5px;"
-                        size="18"
-                        type="ios-star"
-                        color="#ebac42"
-                        onClick={e => {
-                          e.stopPropagation()
-                          this.handleStar(params.row)
-                        }}
-                      />
-                    </Tooltip>
-                  )
-                }
-                <Icon
-                  type="ios-funnel-outline"
-                  size="12"
-                  style="cursor: pointer;margin-right:4px"
-                  onClick={() => this.copyNameToSearch(params.row.name)}
-                />
-                <span
-                  style="cursor:pointer;color:#5cadff;"
-                  onClick={() => {
-                    this.handleChooseTemplate(params.row)
-                  }}
-                >
-                  {params.row.name}
-                  <Tag style="margin-left:2px">{params.row.version}</Tag>
-                </span>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              {
+                /* 收藏 */
+                !params.row.collected && (
+                  <Tooltip content={this.$t('bc_save')} placement="top-start">
+                    <Icon
+                      style="cursor:pointer;margin-right:5px;"
+                      size="18"
+                      type="ios-star-outline"
+                      onClick={e => {
+                        e.stopPropagation()
+                        this.handleStar(params.row)
+                      }}
+                    />
+                  </Tooltip>
+                )
+              }
+              {
+                /* 取消收藏 */
+                params.row.collected && (
+                  <Tooltip content={this.$t('be_cancel_save')} placement="top-start">
+                    <Icon
+                      style="cursor:pointer;margin-right:5px;"
+                      size="18"
+                      type="ios-star"
+                      color="#ebac42"
+                      onClick={e => {
+                        e.stopPropagation()
+                        this.handleStar(params.row)
+                      }}
+                    />
+                  </Tooltip>
+                )
+              }
+              <Icon
+                type="ios-funnel-outline"
+                size="12"
+                style="cursor: pointer;margin-right:4px"
+                onClick={() => this.copyNameToSearch(params.row.name)}
+              />
+              <span
+                style="cursor:pointer;color:#5cadff;"
+                onClick={() => {
+                  this.handleChooseTemplate(params.row)
+                }}
+              >
+                {params.row.name}
+                <Tag style="margin-left:2px">{params.row.version}</Tag>
+              </span>
+            </div>
+          )
         },
         {
           title: this.$t('workflow_id'),
           minWidth: 180,
           ellipsis: true,
           key: 'id',
-          render: (h, params) => {
-            return (
-              <div>
-                <Tooltip content={params.row.id} placement="top">
-                  <span>{params.row.id}</span>
-                </Tooltip>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <Tooltip content={params.row.id} placement="top">
+                <span>{params.row.id}</span>
+              </Tooltip>
+            </div>
+          )
         },
         {
           title: this.$t('be_instance_type'),
@@ -195,23 +216,20 @@ export default {
           render: (h, params) => {
             if (params.row.rootEntity !== '') {
               return <Tag color="default">{params.row.rootEntity}</Tag>
-            } else {
-              return <span>-</span>
             }
+            return <span>-</span>
           }
         },
         {
           title: this.$t('be_createby_role'),
           key: 'createdBy',
           minWidth: 180,
-          render: (h, params) => {
-            return (
-              <div style="display:flex;flex-direction:column">
-                <span>{params.row.createdBy}</span>
-                <span>{params.row.mgmtRolesDisplay && params.row.mgmtRolesDisplay[0]}</span>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div style="display:flex;flex-direction:column">
+              <span>{params.row.createdBy}</span>
+              <span>{params.row.mgmtRolesDisplay && params.row.mgmtRolesDisplay[0]}</span>
+            </div>
+          )
         },
         {
           title: this.$t('table_created_date'),
@@ -224,9 +242,21 @@ export default {
           minWidth: 120,
           render: (h, params) => {
             const list = [
-              { label: this.$t('deployed'), value: 'deployed', color: '#19be6b' },
-              { label: this.$t('draft'), value: 'draft', color: '#c5c8ce' },
-              { label: this.$t('disabled'), value: 'disabled', color: '#ed4014' }
+              {
+                label: this.$t('deployed'),
+                value: 'deployed',
+                color: '#19be6b'
+              },
+              {
+                label: this.$t('draft'),
+                value: 'draft',
+                color: '#c5c8ce'
+              },
+              {
+                label: this.$t('disabled'),
+                value: 'disabled',
+                color: '#ed4014'
+              }
             ]
             const item = list.find(i => i.value === params.row.status)
             return item && <Tag color={item.color}>{item.label}</Tag>
@@ -245,12 +275,12 @@ export default {
       ]
     }
   },
-  mounted () {
+  mounted() {
     this.getTemplateList()
   },
   methods: {
     // 选择模板新建执行
-    handleChooseTemplate (row) {
+    handleChooseTemplate(row) {
       this.$router.push({
         path: '/implementation/workflow-execution/normal-create',
         query: {
@@ -259,15 +289,15 @@ export default {
         }
       })
     },
-    handleSearch () {
+    handleSearch() {
       this.getTemplateList()
     },
     // 选择编排名称后过滤
-    copyNameToSearch (procDefName) {
+    copyNameToSearch(procDefName) {
       this.searchParams.procDefName = procDefName
       this.getTemplateList()
     },
-    async getTemplateList () {
+    async getTemplateList() {
       const params = deepClone(this.searchParams)
       params.createdTimeStart = params.createdTime[0] ? params.createdTime[0] + ' 00:00:00' : ''
       params.createdTimeEnd = params.createdTime[1] ? params.createdTime[1] + ' 23:59:59' : ''
@@ -275,16 +305,17 @@ export default {
       params.status = 'deployed'
       delete params.createdTime
       this.spinShow = true
-      let { data, status } = await flowList(params)
+      const { data, status } = await flowList(params)
       this.spinShow = false
       if (status === 'OK') {
-        this.cardList = data.map(item => {
-          return { ...item, expand: true }
-        })
+        this.cardList = data.map(item => ({
+          ...item,
+          expand: true
+        }))
       }
     },
     // 展开收缩卡片
-    handleExpand (item) {
+    handleExpand(item) {
       item.expand = !item.expand
     },
     // 收藏or取消收藏

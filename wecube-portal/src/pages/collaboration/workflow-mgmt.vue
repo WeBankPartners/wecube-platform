@@ -14,7 +14,7 @@
         <Button size="small" @click="resetCanvas">Reset</Button>
       </div>
       <!-- 挂载节点 -->
-      <div id="canvasPanel" ref="canvasPanel" @dragover.prevent />
+      <div id="canvasPanel" ref="canvasPanel" @dragover.prevent></div>
       <!-- 信息配置 -->
       <ItemInfoCanvas
         v-show="itemInfoType === 'canvas'"
@@ -51,7 +51,9 @@ import ItemInfoCanvas from '@/pages/collaboration/flow/item-info-canvas.vue'
 import ItemInfoEdge from '@/pages/collaboration/flow/item-info-edge.vue'
 import ItemInfoNode from '@/pages/collaboration/flow/item-info-node.vue'
 import { nodeDefaultAttr } from './flow/node-default-attr.js'
-import { getFlowById, flowMgmt, flowNodeMgmt, flowEdgeMgmt, flowNodeDelete, flowEdgeDelete } from '@/api/server.js'
+import {
+  getFlowById, flowMgmt, flowNodeMgmt, flowEdgeMgmt, flowNodeDelete, flowEdgeDelete
+} from '@/api/server.js'
 
 export default {
   components: {
@@ -61,7 +63,7 @@ export default {
     ItemInfoNode,
     ItemInfoEdge
   },
-  data () {
+  data() {
     return {
       flowListTab: '', // 记录跳转过来时列表的tab位置
       editFlow: true, // 在查看时隐藏按钮
@@ -116,7 +118,7 @@ export default {
       subProc: this.$route.query.subProc
     }
   },
-  async mounted () {
+  async mounted() {
     if (this.$route.query.flowId) {
       this.flowListTab = this.$route.query.flowListTab
       this.demoFlowId = this.$route.query.flowId
@@ -129,21 +131,25 @@ export default {
         this.initGraphEvent()
         this.openCanvasPanel()
       })
-    } else {
-      this.$router.push({ path: '/collaboration/workflow', query: { flowListTab: this.flowListTab } })
+    }
+    else {
+      this.$router.push({
+        path: '/collaboration/workflow',
+        query: { flowListTab: this.flowListTab }
+      })
     }
   },
   methods: {
     // 更新编排信息
-    updateFlowData () {
+    updateFlowData() {
       this.getFlowInfo(this.demoFlowId)
     },
     // 画布属性展开
-    openCanvasPanel () {
+    openCanvasPanel() {
       this.itemInfoType = 'canvas'
       this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef, this.editFlow)
     },
-    async getFlowInfo (id) {
+    async getFlowInfo(id) {
       const { status, data } = await getFlowById(id)
       if (status === 'OK') {
         this.permissionToRole = data.permissionToRole
@@ -155,38 +161,36 @@ export default {
         this.$refs.headerInfoRef.showItemInfo(this.procDef, this.editFlow, this.flowListTab)
       }
     },
-    hideReleaseBtn () {
+    hideReleaseBtn() {
       this.$refs.headerInfoRef.hideReleaseBtn()
     },
     // 整理编排节点与边数据结构
-    mgmtNodesAndEdges (info) {
+    mgmtNodesAndEdges(info) {
       if (info.nodes && info.nodes.length > 0) {
         this.nodesAndDeges.nodes = info.nodes.map(n => {
-          let customAttrs = n.customAttrs
+          const customAttrs = n.customAttrs
           if (customAttrs.timeConfig) {
             customAttrs.timeConfig = JSON.parse(customAttrs.timeConfig)
           }
-          let selfAttrs = JSON.parse(n.selfAttrs)
+          const selfAttrs = JSON.parse(n.selfAttrs)
           // selfAttrs.logoIcon.img = ''
           return {
             ...selfAttrs,
-            customAttrs: customAttrs
+            customAttrs
           }
         })
       }
       if (info.edges && info.edges.length > 0) {
-        this.nodesAndDeges.edges = info.edges.map(n => {
-          return {
-            ...JSON.parse(n.selfAttrs),
-            customAttrs: n.customAttrs
-          }
-        })
+        this.nodesAndDeges.edges = info.edges.map(n => ({
+          ...JSON.parse(n.selfAttrs),
+          customAttrs: n.customAttrs
+        }))
       }
     },
-    resetCanvas () {
+    resetCanvas() {
       this.graph.zoomTo(1) // 缩放到原始大小
     },
-    createGraphic () {
+    createGraphic() {
       const grid = new G6.Grid()
       const cfg = registerFactory(G6, {
         width: window.innerWidth - 70,
@@ -271,7 +275,7 @@ export default {
       // this.graph.get('canvas').set('localRefresh', false) // 关闭局部渲染
       // this.graph.fitView()
     },
-    removeItem () {
+    removeItem() {
       this.$Modal.confirm({
         title: this.$t('delete'),
         content: this.$t('confirm_to_delete'),
@@ -289,33 +293,33 @@ export default {
       })
     },
     // #region 流程数据校验
-    alreadyHasStart (nodeType) {
+    alreadyHasStart() {
       const findNode = this.graph.save().nodes.findIndex(node => node.customAttrs.nodeType === 'start')
       if (findNode === -1) {
         return false
-      } else {
-        // this.$Message.warning('只能存在一个开始节点！')
-        this.$Message.warning(`${this.$t('saveFailed')}${this.$t('canOnlyOneStartNode')}`)
-        return true
       }
+
+      // this.$Message.warning('只能存在一个开始节点！')
+      this.$Message.warning(`${this.$t('saveFailed')}${this.$t('canOnlyOneStartNode')}`)
+      return true
     },
-    alreadyHasEnd (nodeType) {
+    alreadyHasEnd() {
       const findNode = this.graph.save().nodes.findIndex(node => node.customAttrs.nodeType === 'end')
       if (findNode === -1) {
         return false
-      } else {
-        // this.$Message.warning('只能存在一个结束节点！')
-        this.$Message.warning(`${this.$t('saveFailed')}${this.$t('canOnlyOneEndNode')}`)
-        return true
       }
+
+      // this.$Message.warning('只能存在一个结束节点！')
+      this.$Message.warning(`${this.$t('saveFailed')}${this.$t('canOnlyOneEndNode')}`)
+      return true
     },
     // #endregion
     // 初始化图事件
-    initGraphEvent () {
+    initGraphEvent() {
       this.graph.on('drop', e => {
         const { originalEvent } = e
         if (originalEvent.dataTransfer) {
-          let transferData = originalEvent.dataTransfer.getData('dragComponent')
+          const transferData = originalEvent.dataTransfer.getData('dragComponent')
           const { nodeType } = JSON.parse(transferData)
           if (nodeType === 'start' && this.alreadyHasStart(nodeType)) {
             return
@@ -338,14 +342,14 @@ export default {
           const id = e.item.get('model').id
           const movedNode = this.graph.save().nodes.find(n => n.id === id)
           const tmp = JSON.parse(JSON.stringify(movedNode))
-          let customAttrs = tmp.customAttrs
+          const customAttrs = tmp.customAttrs
           customAttrs.id = tmp.id
           customAttrs.name = tmp.label
           delete tmp.customAttrs
-          let selfAttrs = tmp
-          let finalData = {
-            selfAttrs: selfAttrs,
-            customAttrs: customAttrs
+          const selfAttrs = tmp
+          const finalData = {
+            selfAttrs,
+            customAttrs
           }
           if (this.editFlow !== 'false') {
             this.setNodeInfo(finalData, true)
@@ -366,15 +370,17 @@ export default {
             this.removeItem()
             return
           }
-          if (this.editFlow !== 'false' && this.isExecutionAllowed()) return
+          if (this.editFlow !== 'false' && this.isExecutionAllowed()) {
+            return
+          }
           this.itemInfoType = ''
           this.$nextTick(() => {
             if (e && e.item) {
               const model = e.item.get('model')
               this.itemInfoType = 'node'
               this.$nextTick(() => {
-                this.$refs.itemInfoNodeRef &&
-                  this.$refs.itemInfoNodeRef.showItemInfo(
+                this.$refs.itemInfoNodeRef
+                  && this.$refs.itemInfoNodeRef.showItemInfo(
                     model,
                     false,
                     this.procDef.rootEntity.split('{')[0], // 禁止向节点传递过滤条件
@@ -406,13 +412,13 @@ export default {
       })
 
       // 鼠标拖拽到画布外时特殊处理
-      this.graph.on('mousedown', e => {
+      this.graph.on('mousedown', () => {
         this.isMouseDown = true
       })
-      this.graph.on('mouseup', e => {
+      this.graph.on('mouseup', () => {
         this.isMouseDown = false
       })
-      this.graph.on('canvas:mouseleave', e => {
+      this.graph.on('canvas:mouseleave', () => {
         this.graph.getNodes().forEach(x => {
           const group = x.getContainer()
 
@@ -440,17 +446,15 @@ export default {
         }
       })
 
-      this.graph.on('before-node-removed', ({ target, callback }) => {
+      this.graph.on('before-node-removed', ({ callback }) => {
         setTimeout(() => {
-          // 确认提示
-          // eslint-disable-next-line standard/no-callback-literal
           callback(true)
         }, 1000)
       })
 
       this.graph.on('after-node-dblclick', e => {
         if (e && e.item) {
-          console.log(e.item)
+          console.error(e.item)
         }
       })
 
@@ -484,7 +488,9 @@ export default {
         }
       })
 
-      this.graph.on('before-edge-add', ({ source, target, sourceAnchor, targetAnchor }) => {
+      this.graph.on('before-edge-add', ({
+        source, target, sourceAnchor, targetAnchor
+      }) => {
         const sourceId = source.get('id')
         const targetId = target.get('id')
 
@@ -680,7 +686,9 @@ export default {
       // 注册边点击事件
       this.graph.on('edge:click', e => {
         this.deleteRemoveNode()
-        if (this.editFlow !== 'false' && this.isExecutionAllowed()) return
+        if (this.editFlow !== 'false' && this.isExecutionAllowed()) {
+          return
+        }
         const edge = e.item
         if (e && edge) {
           const model = edge.get('model')
@@ -710,31 +718,39 @@ export default {
       })
 
       // 注册画布点击事件
-      this.graph.on('canvas:click', e => {
+      this.graph.on('canvas:click', () => {
         this.deleteRemoveNode()
         this.$nextTick(() => {
-          if (this.editFlow !== 'false' && this.isExecutionAllowed()) return
+          if (this.editFlow !== 'false' && this.isExecutionAllowed()) {
+            return
+          }
           this.itemInfoType = 'canvas'
           this.$refs.itemInfoCanvasRef.showItemInfo(this.procDef, this.editFlow)
         })
       })
     },
-    deleteNode (item) {
+    deleteNode(item) {
       this.graph.removeItem(item)
     },
-    nameCheck (label) {
+    nameCheck(label) {
       const nodes = this.graph.save().nodes
       const findIndex = nodes.findIndex(node => node.label === label)
       if (findIndex > -1) {
         return this.nameCheck(label + '1')
-      } else {
-        return label
       }
+
+      return label
     },
     // 添加节点
-    addNode (transferData, { x, y }) {
-      if (this.editFlow !== 'false' && this.isExecutionAllowed()) return
-      let { label, shape, lineWidth, nodeType, stroke } = JSON.parse(transferData)
+    addNode(transferData, { x, y }) {
+      if (this.editFlow !== 'false' && this.isExecutionAllowed()) {
+        return
+      }
+      // eslint-disable-next-line
+      let { label } = JSON.parse(transferData)
+      const {
+        shape, lineWidth, nodeType, stroke
+      } = JSON.parse(transferData)
       const findStartNodeIndex = this.graph.save().nodes.findIndex(n => n.id.startsWith('id_start'))
       if (nodeType === 'start' && findStartNodeIndex > -1) {
         this.$Message.warning(this.$t('start_node_warning'))
@@ -780,7 +796,7 @@ export default {
         style: {
           // fill: fill || '',
           fill: '#1890FF',
-          stroke: stroke,
+          stroke,
           lineWidth: lineWidth || 1,
           top: '100px'
         },
@@ -813,13 +829,13 @@ export default {
       })
     },
     // 移除删除入口
-    deleteRemoveNode () {
+    deleteRemoveNode() {
       const item = this.graph.findById('remove_node')
       this.graph.removeItem(item)
     },
     // 选中节点或线时，为其添加删除入口
-    addRemoveNode ({ x, y }) {
-      const id = `remove_node`
+    addRemoveNode({ x, y }) {
+      const id = 'remove_node'
       const model = {
         id,
         label: '',
@@ -850,21 +866,22 @@ export default {
       }
       this.graph.addItem('node', model)
     },
-    uuid (len, radix) {
-      let chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('')
-      // eslint-disable-next-line one-var
-      let uuid = [],
-        i
-      radix = radix || chars.length
+    uuid(len, tempRadix) {
+      const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('')
+      const uuid = []
+      const radix = tempRadix || chars.length
 
       if (len) {
-        for (i = 0; i < len; i++) uuid[i] = chars[0 | (Math.random() * radix)]
-      } else {
-        var r
+        for (let i = 0; i < len; i++) {
+          uuid[i] = chars[0 | (Math.random() * radix)]
+        }
+      }
+      else {
+        let r
         uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-'
         uuid[14] = '4'
 
-        for (i = 0; i < 36; i++) {
+        for (let i = 0; i < 36; i++) {
           if (!uuid[i]) {
             r = 0 | (Math.random() * 16)
             uuid[i] = chars[i === 19 ? (r & 0x3) | 0x8 : r]
@@ -873,14 +890,14 @@ export default {
       }
       return uuid.join('')
     },
-    saveSvg () {
+    saveSvg() {
       const nodes = this.graph.save().nodes
       const edges = this.graph.save().edges
 
-      console.log('Nodes:', nodes)
-      console.log('Edges:', edges)
+      console.error('Nodes:', nodes)
+      console.error('Edges:', edges)
     },
-    isExecutionAllowed () {
+    isExecutionAllowed() {
       const nodeToRef = {
         canvas: 'itemInfoCanvasRef',
         edge: 'itemInfoEdgeRef',
@@ -892,7 +909,7 @@ export default {
     },
     // #region 数据保存集合
     // 保存编排整体信息
-    async setCanvasInfo (info) {
+    async setCanvasInfo(info) {
       const { status } = await flowMgmt(info)
       if (status === 'OK') {
         this.itemInfoType = ''
@@ -900,8 +917,8 @@ export default {
         this.getFlowInfo(this.demoFlowId)
       }
     },
-    async updateAuth (mgmt, use) {
-      let finalData = JSON.parse(JSON.stringify(this.procDef))
+    async updateAuth(mgmt, use) {
+      const finalData = JSON.parse(JSON.stringify(this.procDef))
       finalData.permissionToRole.MGMT = mgmt
       finalData.permissionToRole.USE = use
 
@@ -913,7 +930,7 @@ export default {
       }
     },
     // 保存节点信息
-    async setNodeInfo (info, needAddFirst) {
+    async setNodeInfo(info, needAddFirst) {
       info.selfAttrs.style.fill = 'white'
       const { status } = await flowNodeMgmt(info)
       if (status === 'OK') {
@@ -937,7 +954,7 @@ export default {
       }
     },
     // 保存边信息
-    async setEdgeInfo (info, needAddFirst) {
+    async setEdgeInfo(info, needAddFirst) {
       info.procDefId = this.procDef.id
       const { status } = await flowEdgeMgmt(info)
       if (status === 'OK') {
@@ -958,7 +975,7 @@ export default {
         }
       }
     },
-    hideItemInfo () {
+    hideItemInfo() {
       this.deleteRemoveNode()
       this.itemInfoType = ''
       if (this.canRemovedId) {

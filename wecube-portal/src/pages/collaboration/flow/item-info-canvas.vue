@@ -20,15 +20,12 @@
             @on-change="paramsChanged"
             :disabled="!itemCustomInfo.enableModifyName"
           ></Input>
-          <span style="position: absolute; left: 314px; top: 2px; line-height: 30px; background: #ffffff"
-            >{{ itemCustomInfo.label.length || 0 }}/30</span
-          >
+          <span style="position: absolute; left: 314px; top: 2px; line-height: 30px; background: #ffffff">{{ itemCustomInfo.label.length || 0 }}/30</span>
           <span
             class="custom-error-tag"
             v-if="itemCustomInfo.label.length > 30 || itemCustomInfo.label.length === 0"
             style="color: red"
-            >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
-          >
+          >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span>
         </FormItem>
         <FormItem :label="$t('version')" prop="version">
           <InputNumber :min="1" disabled v-model="itemCustomInfo.version" style="width: 100%"></InputNumber>
@@ -51,9 +48,7 @@
             :rootOnly="true"
             style="width: 100%"
           ></FilterRules>
-          <span class="custom-error-tag" v-if="itemCustomInfo.rootEntity === ''" style="color: red"
-            >{{ $t('instance_type') }}{{ $t('cannotBeEmpty') }}</span
-          >
+          <span class="custom-error-tag" v-if="itemCustomInfo.rootEntity === ''" style="color: red">{{ $t('instance_type') }}{{ $t('cannotBeEmpty') }}</span>
         </FormItem>
         <!-- @on-change="paramsChanged" -->
         <FormItem :label="$t('authPlugin')">
@@ -63,24 +58,16 @@
         </FormItem>
         <FormItem :label="$t('group')" prop="scene">
           <Input v-model="itemCustomInfo.scene" @on-change="paramsChanged"></Input>
-          <span style="position: absolute; left: 320px; top: 2px; line-height: 30px; background: #ffffff"
-            >{{ itemCustomInfo.scene.length || 0 }}/30</span
-          >
-          <span class="custom-error-tag" v-if="itemCustomInfo.scene.length > 30" style="color: red"
-            >{{ $t('group') }} {{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
-          >
+          <span style="position: absolute; left: 320px; top: 2px; line-height: 30px; background: #ffffff">{{ itemCustomInfo.scene.length || 0 }}/30</span>
+          <span class="custom-error-tag" v-if="itemCustomInfo.scene.length > 30" style="color: red">{{ $t('group') }} {{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span>
         </FormItem>
         <FormItem :label="$t('conflict_test')">
           <i-switch v-model="itemCustomInfo.conflictCheck" @on-change="paramsChanged" />
         </FormItem>
         <FormItem :label="$t('description')">
           <Input v-model="itemCustomInfo.tags" @on-change="paramsChanged" type="textarea" :rows="4"></Input>
-          <span style="position: relative; left: 310px; top: -28px; background: #ffffff"
-            >{{ itemCustomInfo.tags.length || 0 }}/200</span
-          >
-          <span v-if="itemCustomInfo.tags.length > 200" style="color: red"
-            >{{ $t('description') }}{{ $t('cannotExceed') }} 200 {{ $t('characters') }}</span
-          >
+          <span style="position: relative; left: 310px; top: -28px; background: #ffffff">{{ itemCustomInfo.tags.length || 0 }}/200</span>
+          <span v-if="itemCustomInfo.tags.length > 200" style="color: red">{{ $t('description') }}{{ $t('cannotExceed') }} 200 {{ $t('characters') }}</span>
         </FormItem>
       </Form>
     </div>
@@ -105,7 +92,7 @@ export default {
       default: 'main'
     }
   },
-  data () {
+  data() {
     return {
       editFlow: true, // 在查看时隐藏按钮
       isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
@@ -131,15 +118,15 @@ export default {
   },
   watch: {
     'itemCustomInfo.subProc': {
-      handler (val) {
+      handler(val) {
         this.$eventBusP.$emit('subProc', val)
       },
       immediate: true
     }
   },
-  mounted () {},
+  mounted() {},
   methods: {
-    async showItemInfo (data, editFlow) {
+    async showItemInfo(data, editFlow) {
       this.editFlow = editFlow
       this.isParmasChanged = false
       // 获取所有根CI类型
@@ -169,18 +156,19 @@ export default {
       this.itemCustomInfo.version = Number(this.itemCustomInfo.version.split('v')[1])
       if (this.itemCustomInfo.createdTime === this.itemCustomInfo.updatedTime) {
         this.itemCustomInfo.subProc = this.subProc === 'main' ? 0 : 1
-      } else {
+      }
+      else {
         this.itemCustomInfo.subProc = Number(this.itemCustomInfo.subProc)
       }
     },
-    saveItem () {
-      let finalData = JSON.parse(JSON.stringify(this.itemCustomInfo))
+    saveItem() {
+      const finalData = JSON.parse(JSON.stringify(this.itemCustomInfo))
       finalData.version += ''
       finalData.name = finalData.label
       finalData.subProc = Boolean(finalData.subProc)
       this.$emit('sendItemInfo', finalData)
     },
-    isSaveBtnActive () {
+    isSaveBtnActive() {
       let res = false
       if (this.itemCustomInfo.label.length > 30 || this.itemCustomInfo.label.length === 0) {
         res = true
@@ -193,10 +181,10 @@ export default {
       }
       return res
     },
-    panalStatus () {
+    panalStatus() {
       return this.isParmasChanged
     },
-    hideItem () {
+    hideItem() {
       if (this.isParmasChanged) {
         this.$Modal.confirm({
           title: `${this.$t('confirm_discarding_changes')}`,
@@ -211,18 +199,19 @@ export default {
             this.$emit('hideItemInfo')
           }
         })
-      } else {
+      }
+      else {
         this.$emit('hideItemInfo')
       }
     },
 
-    async getAllDataModels () {
-      let { data, status } = await getAllDataModels()
+    async getAllDataModels() {
+      const { data, status } = await getAllDataModels()
       if (status === 'OK') {
         this.allEntityType = data
       }
     },
-    onEntitySelect (v) {
+    onEntitySelect(v) {
       this.itemCustomInfo.rootEntity = v || ''
       if (this.oriRootEntity !== '' && this.oriRootEntity !== this.itemCustomInfo.rootEntity) {
         this.$Modal.confirm({
@@ -236,20 +225,21 @@ export default {
             this.itemCustomInfo.rootEntity = this.oriRootEntity
           }
         })
-      } else {
+      }
+      else {
         this.paramsChanged()
       }
     },
 
     // 获取插件列表
-    async pluginList () {
-      let { data, status } = await getPluginList()
+    async pluginList() {
+      const { data, status } = await getPluginList()
       if (status === 'OK') {
         this.authPluginList = data
       }
     },
     // 监听参数变化
-    paramsChanged () {
+    paramsChanged() {
       this.isParmasChanged = true
     }
   }
