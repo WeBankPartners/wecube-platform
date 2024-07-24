@@ -2,7 +2,7 @@
   <div id="workflow-execution">
     <div :style="benchStyle">
       <transition name="fade" mode="out-in">
-        <router-view></router-view>
+        <router-view class="pages" :key="$route.name"></router-view>
       </transition>
       <BenchMenu :menuList="menuList"></BenchMenu>
     </div>
@@ -20,21 +20,21 @@ export default {
       expand: true,
       menuList: [
         {
-          title: '普通执行',
+          title: this.$t('fe_normalExecute'),
           icon: 'ios-hammer',
           name: '1',
           children: [
-            { title: '新建', path: '/implementation/workflow-execution/normal-template', name: '1-1' },
-            { title: '历史', path: '/implementation/workflow-execution/normal-history', name: '1-2' }
+            { title: this.$t('create'), path: '/implementation/workflow-execution/normal-template', name: '1-1' },
+            { title: this.$t('fe_history'), path: '/implementation/workflow-execution/normal-history', name: '1-2' }
           ]
         },
         {
-          title: '定时执行',
+          title: this.$t('timed_execution'),
           icon: 'ios-time',
           name: '2',
           children: [
-            { title: '新建', path: '/implementation/workflow-execution/time-create', name: '2-1' },
-            { title: '历史', path: '/implementation/workflow-execution/time-history', name: '2-2' }
+            { title: this.$t('create'), path: '/implementation/workflow-execution/time-create', name: '2-1' },
+            { title: this.$t('fe_history'), path: '/implementation/workflow-execution/time-history', name: '2-2' }
           ]
         }
       ]
@@ -55,3 +55,13 @@ export default {
   methods: {}
 }
 </script>
+<style lang="scss">
+#workflow-execution {
+  .ivu-tag {
+    display: inline-block;
+    line-height: 16px;
+    height: auto;
+    padding: 5px 6px;
+  }
+}
+</style>

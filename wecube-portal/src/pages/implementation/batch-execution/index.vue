@@ -26,12 +26,12 @@ export default {
           children: [
             {
               title: this.$t('be_new_execute'),
-              path: '/implementation/workflow-execution/choose-template',
+              path: '/implementation/batch-execution/choose-template',
               name: '1-1'
             },
             {
               title: this.$t('be_execute_history'),
-              path: '/implementation/workflow-execution/execution-history',
+              path: '/implementation/batch-execution/execution-history',
               name: '1-2'
             }
           ]
@@ -43,12 +43,12 @@ export default {
           children: [
             {
               title: this.$t('be_new_template'),
-              path: '/implementation/workflow-execution/template-create',
+              path: '/implementation/batch-execution/template-create',
               name: '2-1'
             },
             {
               title: this.$t('be_template_manage'),
-              path: '/implementation/workflow-execution/template-list',
+              path: '/implementation/batch-execution/template-list',
               name: '2-2'
             }
           ]

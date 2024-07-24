@@ -20,6 +20,7 @@ const (
 	UriApplyByApplier     = "/v1/roles/apply/byhandler"
 	UriRoles              = "/v1/roles"
 	UriHealthCheck        = "/v1/health-check"
+	UriGetLoginSeed       = "/v1/api/seed"
 
 	Operator = "operator"
 
