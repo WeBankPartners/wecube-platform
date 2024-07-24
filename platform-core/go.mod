@@ -3,9 +3,10 @@ module github.com/WeBankPartners/wecube-platform/platform-core
 go 1.19
 
 require (
-	github.com/WeBankPartners/go-common-lib v1.1.3
+	github.com/WeBankPartners/go-common-lib v1.1.5
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-sql-driver/mysql v1.7.1
+	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
 	github.com/minio/minio-go/v7 v7.0.66
 	go.uber.org/zap v1.26.0
 	xorm.io/core v0.7.3
@@ -25,7 +26,6 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.5.0 // indirect
-	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect

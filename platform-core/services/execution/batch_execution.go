@@ -3,9 +3,12 @@ package execution
 import (
 	"context"
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/cipher"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
@@ -414,6 +417,9 @@ func handleInputData(
 			if err != nil {
 				return
 			}
+			if procReqParamObj.IsSensitive {
+				inputParamData[inputDef.Name] = buildSensitiveData(inputParamData[inputDef.Name], entityInstance.Id)
+			}
 			procReqParamObj.DataValue = fmt.Sprintf("%v", inputParamData[inputDef.Name])
 			procReqParamObj.CallbackId = entityInstance.Id
 			procInsNodeReq.Params = append(procInsNodeReq.Params, &procReqParamObj)
@@ -557,6 +563,9 @@ func handleOutputData(
 			if v, ok := output[models.PluginCallResultPresetErrorMsg]; ok {
 				tmpResultOutput[models.PluginCallResultPresetErrorMsg] = v
 			}
+			if procReqParamObj.IsSensitive {
+				tmpResultOutput[outputDef.Name] = buildSensitiveData(tmpResultOutput[outputDef.Name], procReqParamObj.CallbackId)
+			}
 			procReqParamObj.DataValue = fmt.Sprintf("%v", tmpResultOutput[outputDef.Name])
 			procInsNodeReq.Params = append(procInsNodeReq.Params, &procReqParamObj)
 		}
@@ -652,5 +661,22 @@ func getExprDataIdString(queryResult []map[string]interface{}, parentId string) 
 	}
 	entityDataId = strings.Join(idList, ",")
 	fullDataId = strings.Join(fullIdList, ",")
+	return
+}
+
+func buildSensitiveData(inputValue interface{}, dataId string) (output string) {
+	ctx := db.DBCtx(fmt.Sprintf("%d", time.Now().Unix()))
+	inputString := fmt.Sprintf("%v", inputValue)
+	output = inputString
+	seed, err := database.GetEncryptSeed(ctx)
+	if err != nil {
+		log.Logger.Error("buildSensitiveData fail with get seed error", log.Error(err))
+		return
+	}
+	output, err = cipher.AesEnPasswordByGuid(dataId, seed, inputString, "")
+	if err != nil {
+		output = inputString
+		log.Logger.Error("buildSensitiveData aes encrypt fail", log.Error(err))
+	}
 	return
 }

@@ -13,9 +13,9 @@ import (
 
 // GetPluginModels 插件配置 - 数据模型
 func GetPluginModels(c *gin.Context) {
-	packageName := c.Param("pluginPackageId")
-	if packageName == "" {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("packageName can not empty")))
+	pluginPackageId := c.Param("pluginPackageId")
+	if pluginPackageId == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("pluginPackageId can not empty")))
 		return
 	}
 	withAttrString := strings.ToLower(c.Query("withAttr"))
@@ -23,7 +23,12 @@ func GetPluginModels(c *gin.Context) {
 	if withAttrString == "n" || withAttrString == "no" || withAttrString == "false" {
 		withAttr = false
 	}
-	result, err := database.GetDataModels(c, packageName, withAttr)
+	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
+	if err := database.GetSimplePluginPackage(c, &pluginPackageObj, true); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	result, err := database.GetDataModels(c, pluginPackageObj.Name, withAttr)
 	if len(result) == 0 {
 		result = append(result, &models.DataModel{})
 	}

@@ -156,4 +156,5 @@ type ProcInsWithVersion struct {
 	UpdatedBy      string    `json:"updatedBy" xorm:"updated_by"`            // 更新人
 	UpdatedTime    time.Time `json:"updatedTime" xorm:"updated_time"`        // 更新时间
 	Version        string    `json:"version" xorm:"version"`
+	SubProc        bool      `json:"subProc" xorm:"sub_proc"` // 是否子编排
 }

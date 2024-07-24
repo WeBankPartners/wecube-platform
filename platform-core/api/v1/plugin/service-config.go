@@ -266,7 +266,15 @@ func ExportPluginConfigs(c *gin.Context) {
 		return
 	}
 
-	retData, err := database.ExportPluginConfigs(c, pluginPackageId)
+	var reqParam []*models.PluginConfigsBatchEnable
+	if c.Request.Method == http.MethodPost {
+		if err = c.ShouldBindJSON(&reqParam); err != nil {
+			middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+			return
+		}
+	}
+
+	retData, err := database.ExportPluginConfigs(c, pluginPackageId, reqParam)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -500,4 +508,82 @@ func tryCalculateConfigurableParameters(refObjectMeta *models.CoreObjectMetaDto)
 		}
 	}
 	return objectConfigParamDtoList
+}
+
+func QueryPluginInterfaceParam(c *gin.Context) {
+	var param models.PluginInterfaceParamQueryParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	result, err := database.QueryPluginInterfaceParam(c, &param)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+// GetObjectMetas 服务注册 - 查询 object 类型的 interface parameters
+func GetObjectMetas(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	objectMetaId := c.Param("objectMetaId")
+	result, err := database.GetObjectMetas(c, objectMetaId)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+// UpdateObjectMetas 服务注册 - 配置 object 类型的 interface parameters
+func UpdateObjectMetas(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	pluginConfigId := c.Param("pluginConfigId")
+	var err error
+	if pluginConfigId == "" {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, pluginConfigId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	objectMetaId := c.Param("objectMetaId")
+	if objectMetaId == "" {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param err, objectMetaId can not be empty"))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	reqParam := models.CoreObjectMeta{}
+	if err = c.ShouldBindJSON(&reqParam); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if reqParam.Id != objectMetaId {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param.Id should be equal to objectMetaId: %s", objectMetaId))
+		middleware.ReturnError(c, err)
+		return
+	}
+	if reqParam.ConfigId != pluginConfigId {
+		err = exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("request param.ConfigId should be equal to pluginConfigId: %s", pluginConfigId))
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	err = database.UpdateObjectMetas(c, &reqParam)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
 }

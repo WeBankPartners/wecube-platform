@@ -1,6 +1,12 @@
 <template>
-  <div>
-    <Modal v-model="flowRoleManageModal" width="700" :title="$t('role_drawer_title')" :mask-closable="false">
+  <Modal
+    v-model="flowRoleManageModal"
+    width="720"
+    :title="$t('role_drawer_title')"
+    :mask-closable="false"
+    class="platform-base-role-transfer"
+  >
+    <div class="content">
       <div>
         <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
         <Transfer
@@ -25,11 +31,11 @@
           filterable
         ></Transfer>
       </div>
-      <div slot="footer">
-        <Button type="primary" :disabled="disabled" @click="confirmRole">{{ $t('bc_confirm') }}</Button>
-      </div>
-    </Modal>
-  </div>
+    </div>
+    <div slot="footer">
+      <Button type="primary" :disabled="disabled" @click="confirmRole">{{ $t('bc_confirm') }}</Button>
+    </div>
+  </Modal>
 </template>
 <script>
 import { getRoleList, getCurrentUserRoles } from '@/api/server.js'
@@ -114,3 +120,12 @@ export default {
   }
 }
 </script>
+<style lang="scss" scoped>
+.platform-base-role-transfer {
+  .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+</style>

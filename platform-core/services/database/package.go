@@ -30,6 +30,115 @@ func GetPackages(ctx context.Context, allFlag bool) (result []*models.PluginPack
 	return
 }
 
+func QueryPluginPackages(ctx context.Context, param *models.PluginPackageQueryParam) (result []*models.PluginPackageQueryObj, err error) {
+	var packageRows []*models.PluginPackages
+	var filterSql []string
+	var filterParam []interface{}
+	if param.Id != "" {
+		filterSql = append(filterSql, "id=?")
+		filterParam = append(filterParam, param.Id)
+	}
+	if param.UpdatedBy != "" {
+		filterSql = append(filterSql, "updated_by like ?")
+		filterParam = append(filterParam, fmt.Sprintf("%%%s%%", param.UpdatedBy))
+	}
+	if param.Name != "" {
+		filterSql = append(filterSql, "name like ?")
+		filterParam = append(filterParam, fmt.Sprintf("%%%s%%", param.Name))
+	}
+	if !param.WithDelete {
+		filterSql = append(filterSql, "status in ('UNREGISTERED','REGISTERED')")
+	} else {
+		filterSql = append(filterSql, "status='DECOMMISSIONED'")
+	}
+	if param.WithRunningInstance == "yes" {
+		filterSql = append(filterSql, "id in (select package_id from plugin_instances)")
+	} else if param.WithRunningInstance == "no" {
+		filterSql = append(filterSql, "id not in (select package_id from plugin_instances)")
+	}
+	var queryFilterSql string
+	if len(filterSql) > 0 {
+		queryFilterSql = "where " + strings.Join(filterSql, " and ")
+	}
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_packages "+queryFilterSql+" order by name,`version` desc", filterParam...).Find(&packageRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(packageRows) == 0 {
+		return
+	}
+	var packageIdList []string
+	for _, row := range packageRows {
+		packageIdList = append(packageIdList, row.Id)
+	}
+	idListFilter, idListParam := db.CreateListParams(packageIdList, "")
+	var packageMenuRows []*models.PluginPackageMenus
+	err = db.MysqlEngine.Context(ctx).SQL("select plugin_package_id,code,display_name,local_display_name,category from plugin_package_menus where plugin_package_id in ("+idListFilter+") order by code", idListParam...).Find(&packageMenuRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	var menuItemRows []*models.MenuItems
+	err = db.MysqlEngine.Context(ctx).SQL("select code,local_display_name from menu_items").Find(&menuItemRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	menuItemNameMap := make(map[string]string)
+	for _, row := range menuItemRows {
+		menuItemNameMap[row.Code] = row.LocalDisplayName
+	}
+	var instanceRows []*models.PluginInstances
+	err = db.MysqlEngine.Context(ctx).SQL("select id,host,port,package_id from plugin_instances").Find(&instanceRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	localMenuMap := make(map[string][]string)
+	menuMap := make(map[string][]string)
+	instanceMap := make(map[string][]*models.PluginPackageInstanceObj)
+	for _, row := range packageMenuRows {
+		if prefixName, ok := menuItemNameMap[row.Category]; ok {
+			row.LocalDisplayName = prefixName + "-" + row.LocalDisplayName
+		}
+		if existMenuList, ok := localMenuMap[row.PluginPackageId]; ok {
+			localMenuMap[row.PluginPackageId] = append(existMenuList, row.LocalDisplayName)
+		} else {
+			localMenuMap[row.PluginPackageId] = []string{row.LocalDisplayName}
+		}
+		row.DisplayName = row.Category + "-" + row.DisplayName
+		if existMenuList, ok := menuMap[row.PluginPackageId]; ok {
+			menuMap[row.PluginPackageId] = append(existMenuList, row.DisplayName)
+		} else {
+			menuMap[row.PluginPackageId] = []string{row.DisplayName}
+		}
+	}
+	for _, row := range instanceRows {
+		address := fmt.Sprintf("%s:%d", row.Host, row.Port)
+		if existInstanceList, ok := instanceMap[row.PackageId]; ok {
+			instanceMap[row.PackageId] = append(existInstanceList, &models.PluginPackageInstanceObj{Id: row.Id, Address: address})
+		} else {
+			instanceMap[row.PackageId] = []*models.PluginPackageInstanceObj{{Id: row.Id, Address: address}}
+		}
+	}
+	for _, row := range packageRows {
+		row.UpdatedTimeString = row.UpdatedTime.Format(models.DateTimeFormat)
+		resultObj := models.PluginPackageQueryObj{PluginPackages: *row, Menus: []string{}, Instances: []*models.PluginPackageInstanceObj{}}
+		if menuList, ok := localMenuMap[row.Id]; ok {
+			resultObj.LocalMenus = menuList
+		}
+		if menuList, ok := menuMap[row.Id]; ok {
+			resultObj.Menus = menuList
+		}
+		if instanceList, ok := instanceMap[row.Id]; ok {
+			resultObj.Instances = instanceList
+		}
+		result = append(result, &resultObj)
+	}
+	return
+}
+
 func GetPluginDependencies(ctx context.Context, pluginPackageId string) (result *models.PluginPackageDepObj, err error) {
 	var pluginPackageRows []*models.PluginPackages
 	err = db.MysqlEngine.Context(ctx).SQL("select name,`version` from plugin_packages where id=?", pluginPackageId).Find(&pluginPackageRows)
@@ -145,7 +254,7 @@ func GetPluginRuntimeResources(ctx context.Context, pluginPackageId string) (res
 	return
 }
 
-func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, withUi, enterprise bool, pluginPackageId string) (resultPackageId string, err error) {
+func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, withUi, enterprise bool, pluginPackageId, operator string) (resultPackageId string, err error) {
 	var actions []*db.ExecAction
 	if pluginPackageId == "" {
 		pluginPackageId = "plugin_" + guid.CreateGuid()
@@ -156,8 +265,8 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 	if enterprise {
 		edition = models.PluginEditionEnterprise
 	}
-	actions = append(actions, &db.ExecAction{Sql: "insert into plugin_packages ( id,name,`version`,status,upload_timestamp,ui_package_included,`edition` ) values (?,?,?,?,?,?,?)", Param: []interface{}{
-		pluginPackageId, registerConfig.Name, registerConfig.Version, models.PluginStatusUnRegistered, nowTime, withUi, edition}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into plugin_packages ( id,name,`version`,status,upload_timestamp,ui_package_included,`edition`,register_done,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		pluginPackageId, registerConfig.Name, registerConfig.Version, models.PluginStatusUnRegistered, nowTime, withUi, edition, 0, operator, nowTime}})
 	for _, pluginConfig := range registerConfig.Plugins.Plugin {
 		pluginConfigId := "p_config_" + guid.CreateGuid()
 		actions = append(actions, &db.ExecAction{Sql: "insert into plugin_configs (id,plugin_package_id,name,target_package,target_entity,target_entity_filter_rule,register_name) values (?,?,?,?,?,?,?)", Param: []interface{}{
@@ -492,7 +601,7 @@ func UpdatePluginMysqlInstancePreVersion(ctx context.Context, mysqlInstanceId, p
 	return
 }
 
-func BuildDockerEnvMap(ctx context.Context, envMap map[string]string) (replaceMap map[string]string, err error) {
+func BuildDockerEnvMap(ctx context.Context, envMap map[string]string, packageName, packageVersion string) (replaceMap map[string]string, err error) {
 	if envMap == nil {
 		return nil, fmt.Errorf("illegal docker env map")
 	}
@@ -512,7 +621,7 @@ func BuildDockerEnvMap(ctx context.Context, envMap map[string]string) (replaceMa
 		}
 	}()
 	if len(sysVarList) > 0 {
-		var systemVariableRows []*models.SystemVariables
+		var selfSysVarRows, systemVariableRows []*models.SystemVariables
 		filterSql, filterParam := db.CreateListParams(sysVarList, "")
 		err = db.MysqlEngine.Context(ctx).SQL("select name,`value`,default_value from system_variables where status='active' and name in ("+filterSql+")", filterParam...).Find(&systemVariableRows)
 		if err != nil {
@@ -520,6 +629,21 @@ func BuildDockerEnvMap(ctx context.Context, envMap map[string]string) (replaceMa
 			return
 		}
 		for _, row := range systemVariableRows {
+			tmpV := row.Value
+			if tmpV == "" {
+				tmpV = row.DefaultValue
+			}
+			if tmpV != "" {
+				envMap[row.Name] = tmpV
+			}
+		}
+		// 查相应插件版本的变量，如果有的话覆盖掉上面的变量以自己的为准
+		err = db.MysqlEngine.Context(ctx).SQL("select name,`value`,default_value from system_variables where source='"+fmt.Sprintf("%s__%s", packageName, packageVersion)+"' and name in ("+filterSql+")", filterParam...).Find(&selfSysVarRows)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		for _, row := range selfSysVarRows {
 			tmpV := row.Value
 			if tmpV == "" {
 				tmpV = row.DefaultValue
@@ -539,7 +663,7 @@ func BuildDockerEnvMap(ctx context.Context, envMap map[string]string) (replaceMa
 	return
 }
 
-func LaunchPlugin(ctx context.Context, pluginInstance *models.PluginInstances, resourceItem *models.ResourceItem) (err error) {
+func LaunchPlugin(ctx context.Context, pluginInstance *models.PluginInstances, resourceItem *models.ResourceItem, operator string) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "INSERT INTO resource_item (id,additional_properties,created_by,created_date,is_allocated,name,purpose,resource_server_id,status,`type`,updated_by,updated_date) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 		resourceItem.Id, resourceItem.AdditionalProperties, resourceItem.CreatedBy, resourceItem.CreatedDate, 1, resourceItem.Name, resourceItem.Purpose, resourceItem.ResourceServerId, "created", "docker_container", resourceItem.CreatedBy, resourceItem.CreatedDate,
@@ -562,20 +686,29 @@ func LaunchPlugin(ctx context.Context, pluginInstance *models.PluginInstances, r
 	//	pluginInstance.Id, pluginInstance.Host, pluginInstance.ContainerName, pluginInstance.Port, pluginInstance.ContainerStatus, pluginInstance.PackageId, pluginInstance.DockerInstanceResourceId, pluginInstance.InstanceName, pluginInstance.PluginMysqlInstanceResourceId, pluginInstance.S3bucketResourceId,
 	//}})
 	actions = append(actions, &db.ExecAction{Sql: "update plugin_package_menus set active=1 where plugin_package_id=?", Param: []interface{}{pluginInstance.PackageId}})
+	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set updated_by=?,updated_time=? where id=?", Param: []interface{}{operator, time.Now(), pluginInstance.PackageId}})
 	if err = db.Transaction(actions, ctx); err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
 }
 
-func GetPluginInstance(pluginInstanceId string) (pluginInstance *models.PluginInstances, err error) {
+func GetPluginInstance(pluginInstanceId, instanceName, host string, forceCheck bool) (pluginInstance *models.PluginInstances, err error) {
 	var instanceRows []*models.PluginInstances
-	err = db.MysqlEngine.SQL("select * from plugin_instances where id=?", pluginInstanceId).Find(&instanceRows)
+	if pluginInstanceId != "" {
+		err = db.MysqlEngine.SQL("select * from plugin_instances where id=?", pluginInstanceId).Find(&instanceRows)
+	} else {
+		err = db.MysqlEngine.SQL("select * from plugin_instances where container_name=? and host=?", instanceName, host).Find(&instanceRows)
+	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	} else {
 		if len(instanceRows) == 0 {
-			err = fmt.Errorf("can not find plugin instance with id:%s ", pluginInstanceId)
+			if forceCheck {
+				err = fmt.Errorf("can not find plugin instance with id:%s ", pluginInstanceId)
+			} else {
+				pluginInstance = &models.PluginInstances{}
+			}
 		} else {
 			pluginInstance = instanceRows[0]
 		}
@@ -690,7 +823,7 @@ func GetPackageNames(ctx context.Context) (result []string, err error) {
 	return
 }
 
-func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId string, inputs []*models.PluginPackageResourceFiles) (err error) {
+func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId, pluginPackageName string, inputs []*models.PluginPackageResourceFiles, operator string) (err error) {
 	var actions []*db.ExecAction
 	actions = append(actions, &db.ExecAction{Sql: "delete from plugin_package_resource_files where plugin_package_id=?", Param: []interface{}{pluginPackageId}})
 	for _, v := range inputs {
@@ -698,6 +831,8 @@ func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId string
 			"p_ui_" + guid.CreateGuid(), v.PluginPackageId, v.PackageName, v.PackageVersion, v.Source, v.RelatedPath,
 		}})
 	}
+	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set ui_active=0 where name=? and ui_active=1", Param: []interface{}{pluginPackageName}})
+	actions = append(actions, &db.ExecAction{Sql: "update plugin_packages set ui_active=1,updated_by=?,updated_time=? where id=?", Param: []interface{}{operator, time.Now(), pluginPackageId}})
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -883,6 +1018,136 @@ func DecommissionPluginPackage(ctx context.Context, pluginPackageId string) (err
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		return
+	}
+	return
+}
+
+func SetPluginPackageRegisterDone(ctx context.Context, pluginPackageId, operator string) (err error) {
+	execResult, execErr := db.MysqlEngine.Context(ctx).Exec("update plugin_packages set register_done=1,updated_by=?,updated_time=? where id=?", operator, time.Now(), pluginPackageId)
+	if execErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
+	if affectNum, _ := execResult.RowsAffected(); affectNum <= 0 {
+		err = fmt.Errorf("can not find plugin packages with id=%s ", pluginPackageId)
+	}
+	return
+}
+
+func GetPluginConfigVersionList(ctx context.Context, pluginPackageId, pluginPackageName string) (result []*models.PluginVersionListObj, err error) {
+	var packageRows []*models.PluginPackages
+	err = db.MysqlEngine.Context(ctx).SQL("select id,name,`version` from plugin_packages where status!='DECOMMISSIONED' and name=? and id!=? order by `version` desc", pluginPackageName, pluginPackageId).Find(&packageRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	result = []*models.PluginVersionListObj{}
+	for _, row := range packageRows {
+		result = append(result, &models.PluginVersionListObj{
+			PluginPackageId: row.Id,
+			Name:            row.Name,
+			Version:         row.Version,
+		})
+	}
+	return
+}
+
+func InheritPluginConfig(ctx context.Context, param *models.InheritPluginConfigParam, operator string) (err error) {
+	parentPluginPackage := &models.PluginPackages{Id: param.InheritPackageId}
+	if err = GetSimplePluginPackage(ctx, parentPluginPackage, true); err != nil {
+		return
+	}
+	currentPluginPackage := &models.PluginPackages{Id: param.PluginPackageId}
+	if err = GetSimplePluginPackage(ctx, currentPluginPackage, true); err != nil {
+		return
+	}
+	var sourceConfigRows []*models.PluginConfigs
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_configs where plugin_package_id=? and register_name<>''", param.InheritPackageId).Find(&sourceConfigRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(sourceConfigRows) == 0 {
+		return
+	}
+	var sourceInterfaceRows []*models.PluginConfigInterfaces
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_config_interfaces where plugin_config_id in (select id from plugin_configs where plugin_package_id=? and register_name<>'')", param.InheritPackageId).Find(&sourceInterfaceRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	var sourceParamRows []*models.PluginConfigInterfaceParameters
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_config_interface_parameters where plugin_config_interface_id in (select id from plugin_config_interfaces where plugin_config_id in (select id from plugin_configs where plugin_package_id=? and register_name<>''))", param.InheritPackageId).Find(&sourceParamRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	var sourcePermissionRows []*models.PluginConfigRoles
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_config_roles where plugin_cfg_id in (select id from plugin_configs where plugin_package_id=? and register_name<>'')", param.InheritPackageId).Find(&sourcePermissionRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	var actions []*db.ExecAction
+	configIdMap := make(map[string]string)
+	interfaceIdMap := make(map[string]string)
+	newConfigGuidList := guid.CreateGuidList(len(sourceConfigRows))
+	newInterfaceGuidList := guid.CreateGuidList(len(sourceInterfaceRows))
+	nowTime := time.Now()
+	actions = append(actions, getPluginConfigDeleteActions(param.PluginPackageId)...)
+	for i, row := range sourceConfigRows {
+		newConfigGuid := "p_config_" + newConfigGuidList[i]
+		configIdMap[row.Id] = newConfigGuid
+		actions = append(actions, &db.ExecAction{Sql: "insert into plugin_configs (id,plugin_package_id,name,target_package,target_entity,target_entity_filter_rule,register_name,status) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+			newConfigGuid, param.PluginPackageId, row.Name, row.TargetPackage, row.TargetEntity, row.TargetEntityFilterRule, row.RegisterName, row.Status,
+		}})
+	}
+	for i, row := range sourceInterfaceRows {
+		newInterfaceGuid := "p_conf_inf_" + newInterfaceGuidList[i]
+		interfaceIdMap[row.Id] = newInterfaceGuid
+		actions = append(actions, &db.ExecAction{Sql: "insert into plugin_config_interfaces (id,plugin_config_id,action,service_name,service_display_name,path,http_method,is_async_processing,type,filter_rule,description) values (?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			newInterfaceGuid, configIdMap[row.PluginConfigId], row.Action, row.ServiceName, row.ServiceDisplayName, row.Path, row.HttpMethod, row.IsAsyncProcessing, row.Type, row.FilterRule, row.Description,
+		}})
+	}
+	for _, row := range sourceParamRows {
+		newParamId := "p_conf_inf_param_" + guid.CreateGuid()
+		actions = append(actions, &db.ExecAction{Sql: "insert into plugin_config_interface_parameters (id,plugin_config_interface_id,type,name,data_type,mapping_type,mapping_entity_expression,mapping_system_variable_name,required,sensitive_data,description,mapping_val,ref_object_name,multiple ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			newParamId, interfaceIdMap[row.PluginConfigInterfaceId], row.Type, row.Name, row.DataType, row.MappingType, row.MappingEntityExpression, row.MappingSystemVariableName, row.Required, row.SensitiveData, row.Description, row.MappingVal, row.RefObjectName, row.Multiple,
+		}})
+	}
+	for _, row := range sourcePermissionRows {
+		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_config_roles (id,is_active,perm_type,plugin_cfg_id,role_id,role_name,created_by,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			"p_conf_rol_" + guid.CreateGuid(), row.IsActive, row.PermType, configIdMap[row.PluginCfgId], row.RoleId, row.RoleName, operator, nowTime, operator, nowTime,
+		}})
+	}
+	// 继承系统参数
+	sysVarSource := fmt.Sprintf("%s__%s", parentPluginPackage.Name, parentPluginPackage.Version)
+	var sysVarRows []*models.SystemVariables
+	err = db.MysqlEngine.Context(ctx).SQL("select * from system_variables where source=?", sysVarSource).Find(&sysVarRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(sysVarRows) > 0 {
+		updateSysVarActions, buildSysVarActionErr := getPluginSystemVariableUpdateActions(sysVarRows, currentPluginPackage.Name, currentPluginPackage.Version)
+		if buildSysVarActionErr != nil {
+			err = buildSysVarActionErr
+			return
+		}
+		actions = append(actions, updateSysVarActions...)
+	}
+	err = db.Transaction(actions, ctx)
+	return
+}
+
+func GetPluginPackageNum(ctx context.Context, name string) (registerNum int, err error) {
+	queryRow, queryErr := db.MysqlEngine.Context(ctx).QueryString("select count(1) as num from plugin_packages where name=? and status!='DECOMMISSIONED'", name)
+	if queryErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(queryRow) > 0 {
+		registerNum, _ = strconv.Atoi(queryRow[0]["num"])
 	}
 	return
 }

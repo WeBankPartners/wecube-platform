@@ -40,7 +40,7 @@
 <script>
 import Search from '@/pages/components/base-search.vue'
 import { debounce, deepClone } from '@/const/util'
-import { flowList } from '@/api/server'
+import { flowList, collectFlow, unCollectFlow } from '@/api/server'
 import dayjs from 'dayjs'
 export default {
   components: {
@@ -58,20 +58,19 @@ export default {
         procDefId: '',
         procDefName: '',
         plugins: [],
-        updatedTime: [dayjs().subtract(1, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
-        updatedTimeStart: '',
-        updatedTimeEnd: '',
+        createdTime: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+        createdTimeStart: '',
+        createdTimeEnd: '',
         createdBy: '',
-        updatedBy: '',
         scene: '', // 分组
-        subProc: 'main',
-        isShowCollectTemplate: false
+        subProc: this.$route.query.subProc || 'main',
+        onlyCollect: false
       },
       cardList: [], // 模板数据
       spinShow: false,
       searchOptions: [
         {
-          key: 'isShowCollectTemplate',
+          key: 'onlyCollect',
           label: this.$t('be_only_show_collect'),
           component: 'switch',
           initValue: false
@@ -86,13 +85,13 @@ export default {
           initValue: 'main'
         },
         {
-          key: 'updatedTime',
-          label: this.$t('table_updated_date'),
+          key: 'createdTime',
+          label: this.$t('table_created_date'),
           initDateType: 1,
           dateRange: [
-            { label: '近一月', type: 'month', value: 1, dateType: 1 },
-            { label: '近半年', type: 'month', value: 6, dateType: 2 },
-            { label: '近一年', type: 'year', value: 1, dateType: 3 },
+            { label: this.$t('fe_recent3Months'), type: 'month', value: 3, dateType: 1 },
+            { label: this.$t('fe_recentHalfYear'), type: 'month', value: 6, dateType: 2 },
+            { label: this.$t('fe_recentOneYear'), type: 'year', value: 1, dateType: 3 },
             { label: this.$t('be_auto'), dateType: 4 } // 自定义
           ],
           labelWidth: 110,
@@ -109,8 +108,8 @@ export default {
           component: 'input'
         },
         {
-          key: 'updatedBy',
-          placeholder: this.$t('updatedBy'),
+          key: 'createdBy',
+          placeholder: this.$t('createdBy'),
           component: 'input'
         }
       ],
@@ -124,7 +123,7 @@ export default {
               <div>
                 {
                   /* 收藏 */
-                  !params.row.isCollected && (
+                  !params.row.collected && (
                     <Tooltip content={this.$t('bc_save')} placement="top-start">
                       <Icon
                         style="cursor:pointer;margin-right:5px;"
@@ -140,7 +139,7 @@ export default {
                 }
                 {
                   /* 取消收藏 */
-                  params.row.isCollected && (
+                  params.row.collected && (
                     <Tooltip content={this.$t('be_cancel_save')} placement="top-start">
                       <Icon
                         style="cursor:pointer;margin-right:5px;"
@@ -155,7 +154,14 @@ export default {
                     </Tooltip>
                   )
                 }
+                <Icon
+                  type="ios-funnel-outline"
+                  size="12"
+                  style="cursor: pointer;margin-right:4px"
+                  onClick={() => this.copyNameToSearch(params.row.name)}
+                />
                 <span
+                  style="cursor:pointer;color:#5cadff;"
                   onClick={() => {
                     this.handleChooseTemplate(params.row)
                   }}
@@ -208,14 +214,19 @@ export default {
           }
         },
         {
+          title: this.$t('table_created_date'),
+          key: 'createdTime',
+          minWidth: 150
+        },
+        {
           title: this.$t('be_use_status'),
           key: 'status',
           minWidth: 120,
           render: (h, params) => {
             const list = [
-              { label: this.$t('be_status_use'), value: 'available', color: '#19be6b' },
-              { label: this.$t('be_status_draft'), value: 'draft', color: '#c5c8ce' },
-              { label: this.$t('be_status_role'), value: 'unauthorized', color: '#ed4014' }
+              { label: this.$t('deployed'), value: 'deployed', color: '#19be6b' },
+              { label: this.$t('draft'), value: 'draft', color: '#c5c8ce' },
+              { label: this.$t('disabled'), value: 'disabled', color: '#ed4014' }
             ]
             const item = list.find(i => i.value === params.row.status)
             return item && <Tag color={item.color}>{item.label}</Tag>
@@ -240,7 +251,13 @@ export default {
   methods: {
     // 选择模板新建执行
     handleChooseTemplate (row) {
-      this.$router.push('/implementation/workflow-execution/normal-create')
+      this.$router.push({
+        path: '/implementation/workflow-execution/normal-create',
+        query: {
+          templateId: row.id,
+          subProc: this.searchParams.subProc
+        }
+      })
     },
     handleSearch () {
       this.getTemplateList()
@@ -252,11 +269,11 @@ export default {
     },
     async getTemplateList () {
       const params = deepClone(this.searchParams)
-      params.updatedTimeStart = params.updatedTime[0] ? params.updatedTime[0] + ' 00:00:00' : ''
-      params.updatedTimeEnd = params.updatedTime[1] ? params.updatedTime[1] + ' 23:59:59' : ''
+      params.createdTimeStart = params.createdTime[0] ? params.createdTime[0] + ' 00:00:00' : ''
+      params.createdTimeEnd = params.createdTime[1] ? params.createdTime[1] + ' 23:59:59' : ''
       params.permissionType = 'USE'
       params.status = 'deployed'
-      delete params.updatedTime
+      delete params.createdTime
       this.spinShow = true
       let { data, status } = await flowList(params)
       this.spinShow = false
@@ -271,19 +288,19 @@ export default {
       item.expand = !item.expand
     },
     // 收藏or取消收藏
-    handleStar: debounce(async function ({ id, isCollected }) {
-      // const method = isCollected ? uncollectBatchTemplate : collectBatchTemplate
-      // const params = {
-      //   batchExecutionTemplateId: id
-      // }
-      // const { status } = await method(params)
-      // if (status === 'OK') {
-      //   this.$Notice.success({
-      //     title: this.$t('successful'),
-      //     desc: this.$t('successful')
-      //   })
-      //   this.getTemplateList()
-      // }
+    handleStar: debounce(async function ({ id, collected }) {
+      const method = collected ? unCollectFlow : collectFlow
+      const params = {
+        procDefId: id
+      }
+      const { status } = await method(params)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: this.$t('successful'),
+          desc: this.$t('successful')
+        })
+        this.getTemplateList()
+      }
     }, 300)
   }
 }

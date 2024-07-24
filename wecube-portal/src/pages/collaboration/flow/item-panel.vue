@@ -2,6 +2,7 @@
   <div id="itemPanel" ref="itemPanel">
     <div class="tool-component">{{ $t('components') }}</div>
     <div class="icon-tool">
+      <!--开始节点-->
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
@@ -28,6 +29,7 @@
           <p>{{ $t('startNodetip2') }}</p>
         </div>
       </Tooltip>
+      <!--结束节点-->
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
@@ -54,6 +56,7 @@
           <p>{{ $t('endNodetip2') }}</p>
         </div>
       </Tooltip>
+      <!--异常节点-->
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
@@ -101,7 +104,6 @@
           <p>{{ $t('decisionNodeFunc') }}</p>
           <p>{{ $t('usage') }}</p>
           <p>{{ $t('decisionNodetip1') }}</p>
-          <p>{{ $t('decisionNodetip2') }}</p>
         </div>
       </Tooltip>
       <!--判断结束-->
@@ -122,10 +124,9 @@
           <div class="diamond-item-tool-name">{{ $t('decisionMerge') }}</div>
         </div>
         <div style="word-break: keep-all" slot="content">
-          <p>{{ $t('decisionNodeFunc') }}</p>
+          <p>{{ $t('decisionMergeFunc') }}</p>
           <p>{{ $t('usage') }}</p>
-          <p>{{ $t('decisionNodetip1') }}</p>
-          <p>{{ $t('decisionNodetip2') }}</p>
+          <p>{{ $t('decisionMergetip1') }}</p>
         </div>
       </Tooltip>
       <!--并行开始-->
@@ -149,7 +150,7 @@
           <p>{{ $t('forkNodeFunc') }}</p>
           <p>{{ $t('usage') }}</p>
           <p>{{ $t('forkNodetip1') }}</p>
-          <p>{{ $t('forkNodetip3') }}</p>
+          <p>{{ $t('forkNodetip2') }}</p>
         </div>
       </Tooltip>
       <!--并行结束-->
@@ -170,16 +171,18 @@
           <div class="diamond-item-tool-name">{{ $t('merge') }}</div>
         </div>
         <div style="word-break: keep-all" slot="content">
-          <p>{{ $t('forkNodeFunc') }}</p>
+          <p>{{ $t('mergeNodeFunc') }}</p>
           <p>{{ $t('usage') }}</p>
-          <p>{{ $t('forkNodetip1') }}</p>
-          <p>{{ $t('forkNodetip2') }}</p>
+          <p>{{ $t('mergeNodetip1') }}</p>
+          <p>{{ $t('mergeNodetip2') }}</p>
         </div>
       </Tooltip>
+      <!--人工-->
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
           :draggable="editFlow && subProc === 0"
+          :style="{ cursor: subProc === 1 ? 'not-allowed' : 'move' }"
           node-type="human"
           :data-label="$t('artificial')"
           data-shape="rect-node"
@@ -253,12 +256,14 @@
           <p>{{ $t('dataNodetip1') }}</p>
         </div>
       </Tooltip>
+      <!--子编排-->
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
+          :style="{ cursor: subProc === 1 ? 'not-allowed' : 'move' }"
           :draggable="editFlow && subProc === 0"
           node-type="subProc"
-          data-label="子编排"
+          :data-label="$t('fe_childFlow')"
           data-shape="rect-node"
           fill="white"
           line-width="1"
@@ -270,12 +275,12 @@
             class="item-tool-icon"
             draggable="false"
           />
-          <div class="item-tool-name">{{ '子编排' }}</div>
+          <div class="item-tool-name">{{ $t('fe_childFlow') }}</div>
         </div>
         <div style="word-break: keep-all" slot="content">
-          <p>{{ $t('timeIntervalFunc') }}</p>
+          <p>{{ $t('childFlowFunc') }}</p>
           <p>{{ $t('usage') }}</p>
-          <p>{{ $t('timeIntervaltip1') }}</p>
+          <p>{{ $t('childFlowtip1') }}</p>
         </div>
       </Tooltip>
       <Tooltip :maxWidth="400" placement="right" :delay="1000">

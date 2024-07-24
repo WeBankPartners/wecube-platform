@@ -35,8 +35,8 @@
         </FormItem>
         <FormItem :label="$t('workflow_type')" prop="subProc">
           <RadioGroup v-model="itemCustomInfo.subProc" @on-change="paramsChanged">
-            <Radio :disabled="$parent.isAdd !== 'true'" :label="0">{{ $t('main_workflow') }}</Radio>
-            <Radio :disabled="$parent.isAdd !== 'true'" :label="1">{{ $t('child_workflow') }}</Radio>
+            <Radio :disabled="itemCustomInfo.version > 1" :label="0">{{ $t('main_workflow') }}</Radio>
+            <Radio :disabled="itemCustomInfo.version > 1" :label="1">{{ $t('child_workflow') }}</Radio>
           </RadioGroup>
         </FormItem>
         <FormItem>
@@ -48,6 +48,7 @@
             @change="onEntitySelect"
             v-model="itemCustomInfo.rootEntity"
             :allDataModelsWithAttrs="allEntityType"
+            :rootOnly="true"
             style="width: 100%"
           ></FilterRules>
           <span class="custom-error-tag" v-if="itemCustomInfo.rootEntity === ''" style="color: red"
@@ -92,11 +93,17 @@
   </div>
 </template>
 <script>
-import FilterRules from '@/pages/components/filter-rules.vue'
+import FilterRules from './item-filter-rules.vue'
 import { getAllDataModels, getPluginList } from '@/api/server.js'
 export default {
   components: {
     FilterRules
+  },
+  props: {
+    subProc: {
+      type: String,
+      default: 'main'
+    }
   },
   data () {
     return {
@@ -142,7 +149,6 @@ export default {
         id: '',
         label: '', // 编排名称
         version: 1, // 版本
-        subProc: 0,
         rootEntity: '', // 操作对象
         scene: '', // 使用场景，请求、发布、其他
         authPlugins: [], // 授权插件列表，taskman/monitor
@@ -161,7 +167,11 @@ export default {
         this.itemCustomInfo[k] = tmpData[k]
       })
       this.itemCustomInfo.version = Number(this.itemCustomInfo.version.split('v')[1])
-      this.itemCustomInfo.subProc = Number(this.itemCustomInfo.subProc)
+      if (this.itemCustomInfo.createdTime === this.itemCustomInfo.updatedTime) {
+        this.itemCustomInfo.subProc = this.subProc === 'main' ? 0 : 1
+      } else {
+        this.itemCustomInfo.subProc = Number(this.itemCustomInfo.subProc)
+      }
     },
     saveItem () {
       let finalData = JSON.parse(JSON.stringify(this.itemCustomInfo))

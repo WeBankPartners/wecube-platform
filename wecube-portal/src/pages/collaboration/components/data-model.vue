@@ -5,7 +5,7 @@
       <Spin v-if="isLoading" fix size="large">
         <Icon type="ios-loading" size="54" class="demo-spin-icon-load"></Icon>
       </Spin>
-      <div v-if="dataModel.dynamic" style="padding-left:3px;margin-bottom: 10px">
+      <div v-if="dataModel.dynamic" style="padding-left: 3px; margin-bottom: 10px">
         <Button size="small" shape="circle" type="primary" icon="md-sync" @click="getData(true)">{{
           $t('get_dynamic_model')
         }}</Button>
@@ -45,6 +45,9 @@ export default {
   props: {
     pkgId: {
       required: true
+    },
+    pluginName: {
+      required: true
     }
   },
   created () {
@@ -59,7 +62,7 @@ export default {
     async getData (ispull) {
       this.isLoading = true
       let { status, data } = this.dataModel.dynamic
-        ? await pullDynamicDataModel(this.pkgId)
+        ? await pullDynamicDataModel(this.pluginName)
         : await getPluginPkgDataModel(this.pkgId)
       this.isLoading = false
       if (status === 'OK') {
@@ -107,10 +110,9 @@ export default {
 
       let addNodeAttr = node => {
         const color = '#273c75'
-        return `"${node.id}" [fixedsize=false id="${node.id}" label="${node.name +
-          '(v' +
-          node.dataModelVersion +
-          ')'}" shape="box" fontcolor="${color}"];`
+        return `"${node.id}" [fixedsize=false id="${node.id}" label="${
+          node.name + '(v' + node.dataModelVersion + ')'
+        }" shape="box" fontcolor="${color}"];`
       }
       const nodeMap = new Map()
       this.data.forEach(node => {
@@ -166,9 +168,7 @@ export default {
       this.colorNode(this.nodeName)
     },
     shadeAll () {
-      d3.selectAll('g path')
-        .attr('stroke', '#7f8fa6')
-        .attr('stroke-opacity', '.2')
+      d3.selectAll('g path').attr('stroke', '#7f8fa6').attr('stroke-opacity', '.2')
       d3.selectAll('g polygon')
         .attr('stroke', '#7f8fa6')
         .attr('stroke-opacity', '.2')
@@ -227,12 +227,7 @@ export default {
         let graph
         graph = d3.select(`#data-model-graph`)
         graph.on('dblclick.zoom', null)
-        this.graph.graphviz = graph
-          .graphviz()
-          .zoom(true)
-          .fit(true)
-          .height(height)
-          .width(width)
+        this.graph.graphviz = graph.graphviz().zoom(true).fit(true).height(height).width(width)
       }
 
       initEvent()
