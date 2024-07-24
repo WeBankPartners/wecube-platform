@@ -27,7 +27,7 @@
                     <span style="color: red">*</span>
                     {{ $t('name') }}
                   </label>
-                  <Input v-model="itemCustomInfo.customAttrs.name" @on-change="paramsChanged"></Input>
+                  <Input v-model.trim="itemCustomInfo.customAttrs.name" @on-change="paramsChanged"></Input>
                   <span style="position: absolute; left: 310px; top: 2px; line-height: 30px; background: #ffffff"
                     >{{ (itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length) || 0 }}/30</span
                   >
@@ -49,7 +49,7 @@
                     <DatePicker
                       type="datetime"
                       placeholder="Select date and time"
-                      v-model="itemCustomInfo.customAttrs.timeConfig.date"
+                      v-model="tempDate"
                       format="yyyy-MM-dd HH:mm:ss"
                       @on-change="dateChange"
                       :editable="false"
@@ -360,17 +360,20 @@
                   </label>
                   <Select v-model="itemCustomInfo.customAttrs.subProcDefId" @on-change="changeSubProc" filterable>
                     <Option v-for="item in subProcList" :value="item.procDefId" :key="item.procDefId">{{
-                      item.procDefName
+                      `${item.procDefName}【${item.procDefVersion}】`
                     }}</Option>
                   </Select>
                   <span v-if="itemCustomInfo.customAttrs.subProcDefId === ''" style="color: red"
                     >{{ $t('child_workflow') }} {{ $t('cannotBeEmpty') }}</span
                   >
+                  <span v-if="subProcRemoveFlag" style="color: red">{{ $t('fe_childFlow_permissionTips') }}</span>
                 </FormItem>
-                <template v-if="itemCustomInfo.customAttrs.subProcDefId">
+                <template v-if="itemCustomInfo.customAttrs.subProcDefId && subProcItem">
                   <FormItem :label="$t('child_flowId')">
-                    <span>{{ subProcItem.procDefId || '-' }}</span>
-                    <Button type="info" size="small" @click="viewParentFlowGraph">{{ $t('view_workFlow') }}</Button>
+                    <span>{{ subProcItem.procDefId || itemCustomInfo.customAttrs.subProcDefId || '-' }}</span>
+                    <Button :disabled="subProcRemoveFlag" type="info" size="small" @click="viewParentFlowGraph">{{
+                      $t('view_workFlow')
+                    }}</Button>
                   </FormItem>
                   <FormItem :label="$t('instance_type')">
                     <span>{{ subProcItem.rootEntity || '-' }}</span>
@@ -408,7 +411,7 @@ import {
   getSourceNode,
   getNodeDetailById,
   getRoleList,
-  getChildFlowList
+  getChildFlowListNew
 } from '@/api/server.js'
 import ItemFilterRulesGroup from './item-filter-rules-group.vue'
 export default {
@@ -466,6 +469,7 @@ export default {
       filteredPlugins: [], // 可选择的插件函数，根据定位规则获取
       subProcList: [], // 子编排列表
       subProcItem: {}, // 选中的子编排
+      subProcRemoveFlag: false, // 子编排权限被移除或者禁用
       unitOptions: ['sec', 'min', 'hour', 'day'],
       date: '',
       nodeList: [], // 编排中的所有节点，供上下文中绑定使用
@@ -489,7 +493,8 @@ export default {
           label: this.$t('dynamic_bind'),
           value: 1
         }
-      ]
+      ],
+      tempDate: ''
     }
   },
   components: {
@@ -515,11 +520,13 @@ export default {
           res = true
         }
       }
+      // 插件服务必填校验
       if (['human', 'automatic'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
         if (!this.itemCustomInfo.customAttrs.serviceName) {
           res = true
         }
       }
+      // 子编排必填校验
       if (['subProc'].includes(this.itemCustomInfo.customAttrs.nodeType)) {
         if (!this.itemCustomInfo.customAttrs.subProcDefId) {
           res = true
@@ -553,6 +560,8 @@ export default {
           this.itemCustomInfo = data
           this.itemCustomInfo.selfAttrs = JSON.parse(data.selfAttrs)
           this.itemCustomInfo.customAttrs.timeConfig = JSON.parse(data.customAttrs.timeConfig)
+          // 临时存储时间中间值，解决时间字符串直接绑定转为UTC时间问题
+          this.tempDate = this.itemCustomInfo.customAttrs.timeConfig.date
           if (this.itemCustomInfo.customAttrs.routineExpression === '') {
             this.itemCustomInfo.customAttrs.routineExpression = rootEntity
           }
@@ -590,6 +599,13 @@ export default {
           ''
         )
       }
+      // 定位规则操作必填校验
+      if (['data'].includes(this.itemCustomInfo.customAttrs.nodeType) && this.needAddFirst === false) {
+        const routineExpressionItem =
+          (this.$refs.filterRulesGroupRef && this.$refs.filterRulesGroupRef.routineExpressionItem) || []
+        const operateFlag = routineExpressionItem.every(i => i.operate !== '')
+        if (!operateFlag) return this.$Message.warning(this.$t('fe_locationRuleTips'))
+      }
       // 插件服务校验
       if (['human', 'automatic'].includes(this.itemCustomInfo.customAttrs.nodeType) && this.checkParamsInfo()) return
       const tmpData = JSON.parse(JSON.stringify(this.itemCustomInfo))
@@ -609,7 +625,11 @@ export default {
           if (item.bindType === 'constant' && item.required === 'Y' && item.bindValue === '') {
             res = true
           }
-          if (item.bindType === 'context' && item.required === 'Y' && item.bindNodeId === '') {
+          if (
+            item.bindType === 'context' &&
+            item.required === 'Y' &&
+            (item.bindNodeId === '' || item.bindParamType === '' || item.bindParamName === '')
+          ) {
             res = true
           }
         })
@@ -681,6 +701,7 @@ export default {
       } else {
         this.itemCustomInfo.customAttrs.routineExpression = val
         this.getPlugin()
+        this.getSubProcList()
         this.paramsChanged()
       }
     },
@@ -852,21 +873,29 @@ export default {
     },
     // 选择子编排
     changeSubProc (val) {
+      this.paramsChanged()
       this.subProcItem = this.subProcList.find(i => i.procDefId === val) || {}
     },
     // 获取子编排列表
     async getSubProcList () {
       const params = {
-        params: {
-          subProc: 'sub'
-        }
+        entityExpr: this.itemCustomInfo.customAttrs.routineExpression
       }
-      const { status, data } = await getChildFlowList(params)
+      const { status, data } = await getChildFlowListNew(params)
       if (status === 'OK') {
+        this.subProcRemoveFlag = false
         this.subProcList = data || []
         if (this.itemCustomInfo.customAttrs.subProcDefId) {
           this.subProcItem =
             this.subProcList.find(i => i.procDefId === this.itemCustomInfo.customAttrs.subProcDefId) || {}
+          // 编辑操作，匹配不到对应子编排，删除子编排
+          if (!this.subProcItem.procDefId && this.editFlow !== 'false') {
+            this.itemCustomInfo.customAttrs.subProcDefId = ''
+          }
+          // 查看编排，匹配不到对应数据，给出提示
+          if (!this.subProcItem.procDefId && this.editFlow === 'false') {
+            this.subProcRemoveFlag = true
+          }
         }
       }
     },
