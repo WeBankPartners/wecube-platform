@@ -56,7 +56,7 @@ const loginMethodOptions = [
 ]
 
 export default {
-  data () {
+  data() {
     return {
       payload: {
         filters: [],
@@ -206,7 +206,7 @@ export default {
     }
   },
   methods: {
-    async queryData () {
+    async queryData() {
       this.payload.pageable.pageSize = this.pagination.pageSize
       this.payload.pageable.startIndex = (this.pagination.currentPage - 1) * this.pagination.pageSize
       const { status, data } = await retrieveServers(this.payload)
@@ -218,42 +218,41 @@ export default {
         this.pagination.total = data.pageInfo.totalRows
       }
     },
-    async getResourceServerStatus () {
+    async getResourceServerStatus() {
       const { status, data } = await getResourceServerStatus()
       if (status === 'OK') {
         this.setOptions(data, 'status')
       }
     },
-    async getResourceServerType () {
+    async getResourceServerType() {
       const { status, data } = await getResourceServerType()
       if (status === 'OK') {
         this.setOptions(data, 'type')
       }
     },
-    setOptions (data, column) {
+    setOptions(data, column) {
       let statusIndex
       this.tableColumns.find((_, i) => {
         if (_.key === column) {
           statusIndex = i
         }
       })
-      const options = data.map(_ => {
-        return {
-          label: _,
-          value: _,
-          key: _
-        }
-      })
+      const options = data.map(_ => ({
+        label: _,
+        value: _,
+        key: _
+      }))
       this.$set(this.tableColumns[statusIndex], 'options', options)
     },
-    handleSubmit (data) {
+    handleSubmit(data) {
       this.payload.filters = data
       this.queryData()
     },
-    sortHandler (data) {
+    sortHandler(data) {
       if (data.order === 'normal') {
         delete this.payload.sorting
-      } else {
+      }
+      else {
         this.payload.sorting = {
           asc: data.order === 'asc',
           field: data.key
@@ -261,15 +260,15 @@ export default {
       }
       this.queryData()
     },
-    pageChange (current) {
+    pageChange(current) {
       this.pagination.currentPage = current
       this.queryData()
     },
-    pageSizeChange (size) {
+    pageSizeChange(size) {
       this.pagination.pageSize = size
       this.queryData()
     },
-    async productSerial (data) {
+    async productSerial(data) {
       if (data.type !== 'docker') {
         this.$Notice.warning({
           title: 'Warning',
@@ -285,7 +284,7 @@ export default {
         })
       }
     },
-    actionFun (type, data) {
+    actionFun(type, data) {
       switch (type) {
         case 'product_serial':
           this.productSerial(data)
@@ -312,20 +311,21 @@ export default {
           break
       }
     },
-    onSelectedRowsChange (rows, checkoutBoxdisable) {
+    onSelectedRowsChange(rows) {
       if (rows.length > 0) {
         this.outerActions.forEach(_ => {
           _.props.disabled = _.actionType === 'add'
         })
-      } else {
+      }
+      else {
         this.outerActions.forEach(_ => {
           _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
         })
       }
       this.seletedRows = rows
     },
-    addHandler () {
-      let emptyRowData = {}
+    addHandler() {
+      const emptyRowData = {}
       this.tableColumns.forEach(_ => {
         emptyRowData[_.inputKey] = ''
       })
@@ -341,13 +341,13 @@ export default {
         _.props.disabled = _.actionType === 'add'
       })
     },
-    async getInputParamsEncryptKey () {
+    async getInputParamsEncryptKey() {
       const { status, data } = await getInputParamsEncryptKey()
       if (status === 'OK') {
         this.encryptKey = data
       }
     },
-    async saveHandler (data) {
+    async saveHandler(data) {
       const setBtnsStatus = () => {
         this.outerActions.forEach(_ => {
           _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
@@ -355,16 +355,16 @@ export default {
         this.$refs.table.setAllRowsUneditable()
         this.$nextTick(() => {
           /* to get iview original data to set _ischecked flag */
-          let objData = this.$refs.table.$refs.table.$refs.tbody.objData
-          for (let obj in objData) {
+          const objData = this.$refs.table.$refs.table.$refs.tbody.objData
+          for (const obj in objData) {
             objData[obj]._isChecked = false
             objData[obj]._isDisabled = false
           }
         })
       }
-      let d = JSON.parse(JSON.stringify(data))
-      let addObj = d.find(_ => _.isNewAddedRow)
-      let editAry = d.filter(_ => !_.isNewAddedRow)
+      const d = JSON.parse(JSON.stringify(data))
+      const addObj = d.find(_ => _.isNewAddedRow)
+      const editAry = d.filter(_ => !_.isNewAddedRow)
       await this.getInputParamsEncryptKey()
       const key = CryptoJS.enc.Utf8.parse(this.encryptKey)
       const config = {
@@ -372,7 +372,7 @@ export default {
         mode: CryptoJS.mode.CBC
       }
       if (addObj) {
-        let payload = {
+        const payload = {
           host: addObj.host,
           isAllocated: addObj.isAllocated === 'true',
           loginPassword: CryptoJS.AES.encrypt(addObj.loginPassword, key, config).toString(),
@@ -395,21 +395,19 @@ export default {
         }
       }
       if (editAry.length > 0) {
-        let payload = editAry.map(_ => {
-          return {
-            id: _.id,
-            host: _.host,
-            isAllocated: _.isAllocated === 'true',
-            loginPassword: CryptoJS.AES.encrypt(_.loginPassword, key, config).toString(),
-            loginUsername: _.loginUsername,
-            name: _.name,
-            port: _.port,
-            purpose: _.purpose,
-            loginMode: _.loginMode,
-            status: _.status,
-            type: _.type
-          }
-        })
+        const payload = editAry.map(_ => ({
+          id: _.id,
+          host: _.host,
+          isAllocated: _.isAllocated === 'true',
+          loginPassword: CryptoJS.AES.encrypt(_.loginPassword, key, config).toString(),
+          loginUsername: _.loginUsername,
+          name: _.name,
+          port: _.port,
+          purpose: _.purpose,
+          loginMode: _.loginMode,
+          status: _.status,
+          type: _.type
+        }))
         const { status, message } = await updateServers(payload)
         if (status === 'OK') {
           this.$Notice.success({
@@ -421,7 +419,7 @@ export default {
         }
       }
     },
-    editHandler () {
+    editHandler() {
       this.$refs.table.swapRowEditable(true)
       this.outerActions.forEach(_ => {
         if (_.actionType === 'save') {
@@ -432,16 +430,14 @@ export default {
         this.$refs.table.setCheckoutStatus(true)
       })
     },
-    deleteHandler (deleteData) {
+    deleteHandler(deleteData) {
       this.$Modal.confirm({
         title: this.$t('confirm_to_delete'),
         'z-index': 1000000,
         onOk: async () => {
-          const payload = deleteData.map(_ => {
-            return {
-              id: _.id
-            }
-          })
+          const payload = deleteData.map(_ => ({
+            id: _.id
+          }))
           const { status, message } = await deleteServers(payload)
           if (status === 'OK') {
             this.$Notice.success({
@@ -457,19 +453,19 @@ export default {
         onCancel: () => {}
       })
     },
-    cancelHandler () {
+    cancelHandler() {
       const index = this.tableData.findIndex(item => item.isNewAddedRow === true)
       if (index > -1) {
         this.tableData.splice(index, 1)
       }
       this.$refs.table.setAllRowsUneditable()
       this.$refs.table.setCheckoutStatus()
-      this.outerActions &&
-        this.outerActions.forEach(_ => {
+      this.outerActions
+        && this.outerActions.forEach(_ => {
           _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
         })
     },
-    async exportHandler () {
+    async exportHandler() {
       const { status, data } = await retrieveServers({})
       if (status === 'OK') {
         this.$refs.table.export({
@@ -479,7 +475,7 @@ export default {
       }
     }
   },
-  mounted () {
+  mounted() {
     this.getResourceServerStatus()
     this.getResourceServerType()
     this.queryData()
