@@ -311,6 +311,7 @@ export default {
     },
     async getAllPluginPackageResourceFiles() {
       const { status, data } = await getAllPluginPackageResourceFiles()
+      window.resourceFiles = data
       if (status === 'OK' && data && data.length > 0) {
         // const data = [
         //   { relatedPath: 'http://localhost:8888/js/app.e4cd4d03.js ' },

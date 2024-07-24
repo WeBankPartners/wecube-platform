@@ -122,6 +122,7 @@ export const getGlobalMenus = () =>
         })
 
         window.myMenus = menus
+        console.error(menus, '11')
         resolve(menus)
       }
     })
