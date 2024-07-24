@@ -8,7 +8,7 @@
 import { getSysParams } from '@/api/server'
 export default {
   name: 'sys-params',
-  data () {
+  data() {
     return {
       tableData: [],
       tableColumns: [
@@ -23,9 +23,7 @@ export default {
         {
           title: this.$t('table_value'),
           key: 'value',
-          render: (h, params) => {
-            return h('span', params.row.value || params.row.defaultValue)
-          }
+          render: (h, params) => h('span', params.row.value || params.row.defaultValue)
         },
         {
           title: this.$t('status'),
@@ -36,7 +34,7 @@ export default {
   },
   watch: {
     pkgId: {
-      handler: function (val) {
+      handler(val) {
         val && this.getData(val)
       }
     }
@@ -46,12 +44,12 @@ export default {
       required: true
     }
   },
-  mounted () {
+  mounted() {
     this.getData(this.pkgId)
   },
   methods: {
-    async getData (pkgId) {
-      let { status, data } = await getSysParams(pkgId)
+    async getData(pkgId) {
+      const { status, data } = await getSysParams(pkgId)
       if (status === 'OK') {
         this.tableData = data
       }
