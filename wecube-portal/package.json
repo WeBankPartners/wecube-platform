@@ -13,10 +13,9 @@
     }
   },
   "lint-staged": {
-    "*.{js,json,css,md,vue}": [
+    "*.{js,css,md,vue}": [
       "prettier --write",
-      "eslint --fix",
-      "git add"
+      "eslint --fix"
     ]
   },
   "dependencies": {
@@ -37,18 +36,21 @@
     "view-design": "4.3.2",
     "vis": "^4.21.0",
     "vue": "^2.6.6",
-    "vue-i18n": "^5.0.3",
+    "vue-i18n": "^8.15.0",
     "vue-json-viewer": "^2.2.20",
     "vue-router": "^3.0.1",
     "webpack": "^4.29.6",
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
-    "@babel/core": "^7.4.0",
+    "@babel/core": "^7.24.9",
+    "@babel/eslint-parser": "^7.24.8",
+    "@babel/preset-env": "^7.24.8",
     "@vue/cli-plugin-babel": "^3.4.0",
+    "@vue/cli-plugin-eslint": "^3.11.0",
     "@vue/cli-service": "^3.4.0",
     "autoprefixer": "^7.1.2",
-    "babel-eslint": "^8.2.1",
+    "babel-eslint": "^10.0.1",
     "babel-helper-vue-jsx-merge-props": "^2.0.3",
     "babel-loader": "^8.0.5",
     "babel-plugin-syntax-jsx": "^6.18.0",
@@ -62,7 +64,7 @@
     "compression-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^4.0.1",
     "css-loader": "^0.28.11",
-    "eslint": "^4.19.1",
+    "eslint": "^6.8.0",
     "eslint-config-standard": "^10.2.1",
     "eslint-friendly-formatter": "^3.0.0",
     "eslint-loader": "^1.7.1",
@@ -70,7 +72,7 @@
     "eslint-plugin-node": "^5.2.0",
     "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-standard": "^3.0.1",
-    "eslint-plugin-vue": "^4.0.0",
+    "eslint-plugin-vue": "^5.2.3",
     "extract-text-webpack-plugin": "^3.0.0",
     "file-loader": "^1.1.4",
     "friendly-errors-webpack-plugin": "^1.6.1",
@@ -89,6 +91,7 @@
     "shelljs": "^0.7.6",
     "uglifyjs-webpack-plugin": "^1.1.1",
     "url-loader": "^1.1.2",
+    "vue-eslint-parser": "^9.4.3",
     "vue-loader": "^14.2.2",
     "vue-style-loader": "^3.0.1",
     "vue-template-compiler": "^2.5.21"

@@ -1,7 +1,7 @@
 // 防抖函数
 export const debounce1 = (fn, delay) => {
   let timer = null
-  let that = this
+  const that = this
   return (...args) => {
     timer && clearTimeout(timer)
     timer = setTimeout(() => {
@@ -9,7 +9,7 @@ export const debounce1 = (fn, delay) => {
     }, delay)
   }
 }
-export function debounce (fn, delay = 500) {
+export function debounce(fn, delay = 500) {
   let timer = null
   return function () {
     const args = arguments
@@ -25,9 +25,11 @@ export function debounce (fn, delay = 500) {
 // 截流函数
 export const throttle = (fn, delay) => {
   let timer = null
-  let that = this
+  const that = this
   return args => {
-    if (timer) return
+    if (timer) {
+      return
+    }
     timer = setTimeout(() => {
       fn.apply(that, args)
       timer = null
@@ -37,13 +39,14 @@ export const throttle = (fn, delay) => {
 
 // 深拷贝
 export const deepClone = obj => {
-  let objClone = Array.isArray(obj) ? [] : {}
+  const objClone = Array.isArray(obj) ? [] : {}
   if (obj && typeof obj === 'object') {
-    for (let key in obj) {
-      if (obj.hasOwnProperty(key)) {
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
         if (obj[key] && typeof obj[key] === 'object') {
           objClone[key] = deepClone(obj[key])
-        } else {
+        }
+        else {
           objClone[key] = obj[key]
         }
       }
