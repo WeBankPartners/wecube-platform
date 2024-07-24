@@ -1,4 +1,4 @@
-export default function exportFile (res) {
+export default function exportFile(res) {
   const contentDispositionHeader = res.headers['content-disposition']
   let filename = 'file'
   if (contentDispositionHeader) {
@@ -9,7 +9,8 @@ export default function exportFile (res) {
   }
   if (filename === null || filename === undefined || filename === '') {
     filename = 'file'
-  } else {
+  }
+  else {
     filename = decodeURI(filename)
   }
 
@@ -17,9 +18,10 @@ export default function exportFile (res) {
   if ('msSaveOrOpenBlob' in navigator) {
     // Microsoft Edge and Microsoft Internet Explorer 10-11
     window.navigator.msSaveOrOpenBlob(blob, filename)
-  } else {
+  }
+  else {
     // 非IE下载
-    let elink = document.createElement('a')
+    const elink = document.createElement('a')
     elink.download = filename
     elink.href = window.URL.createObjectURL(blob)
     elink.click()
