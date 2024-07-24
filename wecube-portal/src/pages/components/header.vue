@@ -148,12 +148,12 @@
   </div>
 </template>
 <script>
+import { getGlobalMenus } from '@/const/util.js'
 import UserMgmt from './user-mgmt.vue'
 import RoleApply from './role-apply.vue'
 import { clearCookie } from '@/pages/util/cookie'
 import Vue from 'vue'
 import {
-  getMyMenus,
   getAllPluginPackageResourceFiles,
   getApplicationVersion,
   changePassword,
@@ -162,7 +162,6 @@ import {
 } from '@/api/server.js'
 import CryptoJS from 'crypto-js'
 import { getChildRouters } from '../util/router.js'
-import { MENUS } from '../../const/menus.js'
 export default {
   data() {
     return {
@@ -304,68 +303,11 @@ export default {
       this.currentLanguage = lang
     },
     async getMyMenus() {
-      this.menus = []
-      const { status, data } = await getMyMenus()
-      if (status === 'OK') {
-        data.forEach(_ => {
-          if (!_.category) {
-            const menuObj = MENUS.find(m => m.code === _.code)
-            if (menuObj) {
-              this.menus.push({
-                title: this.$i18n.locale === 'zh-CN' ? menuObj.cnName : menuObj.enName,
-                id: _.id,
-                submenus: [],
-                ..._,
-                ...menuObj
-              })
-            }
-            else {
-              this.menus.push({
-                title: _.code,
-                id: _.id,
-                submenus: [],
-                ..._
-              })
-            }
-          }
-        })
-        data.forEach(_ => {
-          if (_.category) {
-            const menuObj = MENUS.find(m => m.code === _.code)
-            if (menuObj) {
-              // Platform Menus
-              this.menus.forEach(h => {
-                if (_.category === '' + h.id) {
-                  h.submenus.push({
-                    title: this.$i18n.locale === 'zh-CN' ? menuObj.cnName : menuObj.enName,
-                    id: _.id,
-                    ..._,
-                    ...menuObj
-                  })
-                }
-              })
-            }
-            else {
-              // Plugins Menus
-              this.menus.forEach(h => {
-                if (_.category === '' + h.id) {
-                  h.submenus.push({
-                    title: this.$i18n.locale === 'zh-CN' ? _.localDisplayName : _.displayName,
-                    id: _.id,
-                    link: _.path,
-                    ..._
-                  })
-                }
-              })
-            }
-          }
-        })
-        window.localStorage.setItem('wecube_cache_menus', JSON.stringify(this.menus))
-        this.$emit('allMenus', this.menus)
-        this.$eventBusP.$emit('allMenus', this.menus)
-        window.myMenus = this.menus
-        getChildRouters(window.routers || [])
-      }
+      this.menus = await getGlobalMenus()
+      window.localStorage.setItem('wecube_cache_menus', JSON.stringify(this.menus))
+      this.$emit('allMenus', this.menus)
+      this.$eventBusP.$emit('allMenus', this.menus)
+      getChildRouters(window.routers || [])
     },
     async getAllPluginPackageResourceFiles() {
       const { status, data } = await getAllPluginPackageResourceFiles()
@@ -394,6 +336,7 @@ export default {
         })
         this.loadPlugin.totalNumber = Object.keys(script).length
         this.loadPlugin.isShow = true
+        window.isLoadingPlugin = true
         Object.keys(script).forEach(key => {
           if (script[key].readyState) {
             // IE
@@ -411,6 +354,10 @@ export default {
                 ++this.loadPlugin.finnishNumber
                 if (this.loadPlugin.finnishNumber === this.loadPlugin.totalNumber) {
                   this.loadPlugin.isShow = false
+                  window.isLoadingPlugin = false
+                  this.$nextTick(() => {
+                    window.location.href = window.location.origin + '/#' + window.sessionStorage.currentPath
+                  })
                 }
               }, 0)
             }

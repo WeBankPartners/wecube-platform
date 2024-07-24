@@ -7,8 +7,8 @@ import 'view-design/dist/styles/iview.css'
 
 import VueI18n from 'vue-i18n'
 import { i18n } from './locale/i18n/index.js'
-import locale from 'view-design/dist/locale/en-US'
-import './locale/i18n'
+import viewDesignEn from 'view-design/dist/locale/en-US'
+import viewDesignZh from 'view-design/dist/locale/zh-CN'
 
 import WeSelect from '../src/pages/components/select.vue'
 import WeTable from '../src/pages/components/table.js'
@@ -16,6 +16,7 @@ import indexCom from './pages/index'
 import req from './api/base'
 import implicitRoutes from './implicitRoutes.js'
 import { getChildRouters } from './pages/util/router.js'
+import { getGlobalMenus } from '@/const/util.js'
 const eventBus = new Vue()
 Vue.prototype.$eventBusP = eventBus
 Vue.component('WeSelect', WeSelect)
@@ -26,7 +27,7 @@ Vue.use(ViewUI, {
   transfer: true,
   size: 'default',
   VueI18n,
-  locale
+  locale: i18n.locale === 'en-US' ? viewDesignEn : viewDesignZh
 })
 
 window.request = req
@@ -101,10 +102,6 @@ window.addImplicitRoute = routes => {
 }
 window.homepageComponent = new UserWatch()
 window.addHomepageComponent = compObj => {
-  // compObj = {
-  //   name: () => {},
-  //   component: component
-  // }
   const found = window.homepageComponent.data.find(_ => _.name() === compObj.name())
   if (!found) {
     window.homepageComponent.data.push(compObj)
@@ -148,14 +145,17 @@ const findPath = (routes, path) => {
   return found
 }
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+  if (window.isLoadingPlugin) {
+    return
+  }
   const found = findPath(router.options.routes, to.path)
   if (!found) {
     window.location.href = window.location.origin + '#/homepage'
     next('/homepage')
   }
   else {
-    if (window.myMenus) {
+    if ((await getGlobalMenus()) && window.myMenus) {
       const isHasPermission = []
         .concat(...window.myMenus.map(_ => _.submenus), window.childRouters)
         .find(_ => to.path.startsWith(_.link) && _.active)
