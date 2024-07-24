@@ -300,6 +300,7 @@
   "auth_setting": "权限设定",
   "runtime_resource": "运行资源",
   "plugin_regist": "插件注册",
+  "plugin_registing": "插件注册中",
   "no_plugin_packages": "暂无插件包",
   "path": "路径",
   "runtime_container": "运行容器",
