@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/cipher"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"strings"
 	"time"
 
@@ -61,9 +62,10 @@ func CreateResourceServer(ctx context.Context, params []*models.ResourceServer) 
 	var actions []*db.ExecAction
 	nowTime := time.Now()
 	for _, v := range params {
-		v.LoginPassword, err = DecodeUIPassword(ctx, v.LoginPassword)
-		if err != nil {
-			return
+		if decodePwd, tmpErr := DecodeUIPassword(ctx, v.LoginPassword); tmpErr != nil {
+			log.Logger.Info("try to decode ui password fail", log.Error(tmpErr))
+		} else {
+			v.LoginPassword = decodePwd
 		}
 		v.Id = "rs_ser_" + guid.CreateGuid()
 		if !strings.HasPrefix(v.LoginPassword, models.AESPrefix) {
@@ -82,9 +84,10 @@ func UpdateResourceServer(ctx context.Context, params []*models.ResourceServer) 
 	var actions []*db.ExecAction
 	nowTime := time.Now()
 	for _, v := range params {
-		v.LoginPassword, err = DecodeUIPassword(ctx, v.LoginPassword)
-		if err != nil {
-			return
+		if decodePwd, tmpErr := DecodeUIPassword(ctx, v.LoginPassword); tmpErr != nil {
+			log.Logger.Info("try to decode ui password fail", log.Error(tmpErr))
+		} else {
+			v.LoginPassword = decodePwd
 		}
 		if !strings.HasPrefix(v.LoginPassword, models.AESPrefix) {
 			enPwd := encrypt.EncryptWithAesECB(v.LoginPassword, models.Config.Plugin.ResourcePasswordSeed, v.Name)
