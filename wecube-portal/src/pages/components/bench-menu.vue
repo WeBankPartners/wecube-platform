@@ -28,7 +28,7 @@
         </Submenu>
       </Menu>
     </div>
-    <div class="expand" :style="{ left: expand ? '140px' : '0px' }">
+    <div class="expand" :style="{left: expand ? '140px' : '0px'}">
       <Icon v-if="expand" @click="handleExpand" type="ios-arrow-dropleft" size="28" />
       <Icon v-else @click="handleExpand" type="ios-arrow-dropright" size="28" />
     </div>
@@ -40,7 +40,7 @@ export default {
   props: {
     menuList: Array
   },
-  data () {
+  data() {
     return {
       scrollTop: 0,
       expand: true,
@@ -50,10 +50,10 @@ export default {
   },
   watch: {
     '$route.path': {
-      handler (val) {
+      handler(val) {
         if (val) {
           this.menuList.forEach(i => {
-            for (let j of i.children) {
+            for (const j of i.children) {
               if (j.path === this.$route.path) {
                 this.activeName = j.name
                 this.openNames.push(i.name)
@@ -82,23 +82,23 @@ export default {
   //     openName && this.openNames.push(openName)
   //   }
   // },
-  mounted () {
+  mounted() {
     this.$eventBusP.$emit('expand-menu', true)
     window.addEventListener('scroll', this.getScrollTop)
   },
-  beforeDestroy () {
+  beforeDestroy() {
     this.$eventBusP.$emit('expand-menu', false)
     window.removeEventListener('scroll', this.getScrollTop)
   },
   methods: {
-    getScrollTop () {
+    getScrollTop() {
       this.scrollTop = document.documentElement.scrollTop || document.body.scrollTop
     },
-    handleExpand () {
+    handleExpand() {
       this.expand = !this.expand
       this.$eventBusP.$emit('expand-menu', this.expand)
     },
-    handleSelectMenu (name) {
+    handleSelectMenu(name) {
       this.activeName = name
     }
   }
