@@ -8,7 +8,10 @@ const MIN_WIDTH = 130
 export default {
   name: 'WeTable',
   props: {
-    tableColumns: { default: () => [], require: true },
+    tableColumns: {
+      default: () => [],
+      require: true
+    },
     tableData: { default: () => [] },
     showCheckbox: { default: () => true },
     highlightRow: { default: () => false },
@@ -21,7 +24,7 @@ export default {
     isRefreshable: { default: () => false },
     isColumnsFilterOn: { default: () => true }
   },
-  data () {
+  data() {
     return {
       form: {},
       selectedRows: [],
@@ -34,13 +37,13 @@ export default {
       timer: null
     }
   },
-  mounted () {
+  mounted() {
     this.formatTableData()
     this.showedColumns = this.tableColumns.map(column => column.title)
 
-    let len = 32
-    let chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz'
-    let maxPos = chars.length
+    const len = 32
+    const chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz'
+    const maxPos = chars.length
     let randomId = ''
     for (let i = 0; i < len; i++) {
       randomId += chars.charAt(Math.floor(Math.random() * maxPos))
@@ -48,12 +51,12 @@ export default {
     this.randomId = randomId
   },
   watch: {
-    tableData (val) {
+    tableData() {
       this.formatTableData()
       this.selectedRows = []
     },
     tableColumns: {
-      handler (val, oldval) {
+      handler() {
         this.calColumn()
         this.tableColumns.forEach(_ => {
           if (_.children) {
@@ -62,7 +65,8 @@ export default {
                 this.$set(this.form, j.inputKey, '')
               }
             })
-          } else {
+          }
+          else {
             if (!_.isNotFilterable) {
               this.$set(this.form, _.inputKey, '')
             }
@@ -74,7 +78,7 @@ export default {
       immediate: true
     },
     ascOptions: {
-      handler (val, oldval) {
+      handler() {
         this.calColumn()
       },
       deep: true,
@@ -83,16 +87,16 @@ export default {
   },
   computed: {},
   methods: {
-    pushNewAddedRowToSelections () {
+    pushNewAddedRowToSelections() {
       this.selectedRows.push(this.data[0])
       this.$emit('getSelectedRows', this.selectedRows, true)
     },
 
-    setAllRowsUneditable () {
+    setAllRowsUneditable() {
       this.data.forEach(_ => (_.isRowEditable = false))
       this.selectedRows = []
     },
-    setTableData (disable) {
+    setTableData(disable) {
       const keys = Object.keys(this.data[0])
       this.selectedRows.forEach(_ => {
         this.data.forEach(i => {
@@ -109,9 +113,9 @@ export default {
         this.setCheckoutStatus(disable)
       })
     },
-    setCheckoutStatus (disable) {
-      let objData = this.$refs.table.$refs.tbody.objData
-      for (let obj in objData) {
+    setCheckoutStatus(disable) {
+      const objData = this.$refs.table.$refs.tbody.objData
+      for (const obj in objData) {
         objData[obj]._isChecked = false
         objData[obj]._isDisabled = false
       }
@@ -121,7 +125,7 @@ export default {
         objData[index]._isDisabled = disable
       })
     },
-    rowCancelHandler (weId) {
+    rowCancelHandler(weId) {
       const index = this.selectedRows.findIndex(el => el.weTableRowId === weId)
       this.selectedRows.splice(index, 1)
       this.data.forEach(_ => {
@@ -132,7 +136,7 @@ export default {
       this.$nextTick(() => this.setCheckoutStatus(true))
       this.$emit('getSelectedRows', this.selectedRows, true)
     },
-    swapRowEditable (status) {
+    swapRowEditable(status) {
       this.selectedRows.forEach(row => {
         this.data.forEach(_ => {
           if (_.weTableRowId === row.weTableRowId) {
@@ -141,27 +145,26 @@ export default {
         })
       })
     },
-    formatTableData () {
-      this.data = this.tableData.map((_, index) => {
-        return {
-          ..._,
-          weTableRowId: index + 1,
-          isRowEditable: _.isRowEditable && index === 0 ? _.isRowEditable : false,
-          weTableForm: { ..._ }
-        }
-      })
+    formatTableData() {
+      this.data = this.tableData.map((_, index) => ({
+        ..._,
+        weTableRowId: index + 1,
+        isRowEditable: _.isRowEditable && index === 0 ? _.isRowEditable : false,
+        weTableForm: { ..._ }
+      }))
       this.data.forEach(_ => {
-        for (let i in _['weTableForm']) {
+        for (const i in _['weTableForm']) {
           if (
-            typeof _['weTableForm'][i] === 'object' &&
-            _['weTableForm'][i] !== null &&
-            !Array.isArray(_['weTableForm'][i])
+            typeof _['weTableForm'][i] === 'object'
+            && _['weTableForm'][i] !== null
+            && !Array.isArray(_['weTableForm'][i])
           ) {
             _[i] = _['weTableForm'][i].codeId || _['weTableForm'][i].guid
             _['weTableForm'][i] = _['weTableForm'][i].value || _['weTableForm'][i].key_name || _['weTableForm'][i].name
-          } else {
+          }
+          else {
             if (Array.isArray(_['weTableForm'][i]) && i !== 'nextOperations') {
-              _['weTableForm'][i] = _['weTableForm'][i]
+              // _['weTableForm'][i] = _['weTableForm'][i]
               const found = this.tableColumns.find(q => q.inputKey === i)
 
               if (found && found.inputType === 'multiSelect') {
@@ -181,7 +184,7 @@ export default {
         }
       })
     },
-    handleSubmit (ref) {
+    handleSubmit() {
       const generateFilters = (type, i) => {
         switch (type) {
           case 'text':
@@ -234,8 +237,8 @@ export default {
         }
       }
 
-      let filters = []
-      for (let i in this.form) {
+      const filters = []
+      for (const i in this.form) {
         if (!!this.form[i] && this.form[i] !== '' && this.form[i] !== 0) {
           this.tableColumns
             .filter(_ => _.searchSeqNo || _.children)
@@ -246,7 +249,8 @@ export default {
                     generateFilters(j.inputType, i)
                   }
                 })
-              } else {
+              }
+              else {
                 if (i === _.inputKey) {
                   generateFilters(_.inputType, i)
                 }
@@ -256,7 +260,7 @@ export default {
       }
       this.$emit('handleSubmit', filters)
     },
-    reset (ref) {
+    reset() {
       this.tableColumns.forEach(_ => {
         if (_.children) {
           _.children.forEach(j => {
@@ -264,14 +268,15 @@ export default {
               this.form[j.inputKey] = ''
             }
           })
-        } else {
+        }
+        else {
           if (!_.isNotFilterable) {
             this.form[_.inputKey] = ''
           }
         }
       })
     },
-    getTableOuterActions () {
+    getTableOuterActions() {
       if (this.tableOuterActions) {
         if (this.isColumnsFilterOn) {
           this.tableOuterActions.forEach(action => {
@@ -281,7 +286,7 @@ export default {
           })
         }
 
-        let columnsTitles = this.tableColumns.filter(_ => _.isDisplayed || _.displaySeqNo).map(column => column.title)
+        const columnsTitles = this.tableColumns.filter(_ => _.isDisplayed || _.displaySeqNo).map(column => column.title)
 
         return this.tableOuterActions.map(_ => {
           if (_.actionType === 'filterColumns') {
@@ -299,34 +304,33 @@ export default {
                   }}
                   style="display: grid;"
                 >
-                  {columnsTitles.map(_ => {
-                    return (
-                      <Checkbox label={_}>
-                        <span>{_}</span>
-                      </Checkbox>
-                    )
-                  })}
+                  {columnsTitles.map(_ => (
+                    <Checkbox label={_}>
+                      <span>{_}</span>
+                    </Checkbox>
+                  ))}
                 </CheckboxGroup>
               </Poptip>
             )
-          } else {
-            return (
-              <Button
-                style="margin-right: 10px"
-                {..._}
-                onClick={() => {
-                  this.$emit('actionFun', _.actionType, this.selectedRows)
-                }}
-              >
-                {_.label}
-              </Button>
-            )
           }
+          return (
+            <Button
+              style="margin-right: 10px"
+              {..._}
+              onClick={() => {
+                this.$emit('actionFun', _.actionType, this.selectedRows)
+              }}
+            >
+              {_.label}
+            </Button>
+          )
         })
       }
     },
-    renderFormItem (item, index = 0) {
-      if (item.isNotFilterable) return
+    renderFormItem(item, index = 0) {
+      if (item.isNotFilterable) {
+        return
+      }
       const data = {
         props: {
           ...item
@@ -336,7 +340,7 @@ export default {
         }
       }
 
-      let renders = item => {
+      const renders = item => {
         switch (item.component) {
           case 'WeSelect':
             return (
@@ -373,8 +377,8 @@ export default {
         </Col>
       )
     },
-    getFormFilters () {
-      let compare = (a, b) => {
+    getFormFilters() {
+      const compare = (a, b) => {
         if (a.searchSeqNo < b.searchSeqNo) {
           return -1
         }
@@ -409,8 +413,8 @@ export default {
               })}
             <Col span={6}>
               <div style="display: flex;">
-                {this.tableColumns.filter(_ => !!_.searchSeqNo).sort(compare).length > DEFAULT_FILTER_NUMBER &&
-                  (!this.isShowHiddenFilters ? (
+                {this.tableColumns.filter(_ => !!_.searchSeqNo).sort(compare).length > DEFAULT_FILTER_NUMBER
+                  && (!this.isShowHiddenFilters ? (
                     <FormItem>
                       <div slot="label" style="visibility: hidden;">
                         <span>Placeholder</span>
@@ -468,34 +472,35 @@ export default {
         </Form>
       )
     },
-    onCheckboxSelect (selection) {
+    onCheckboxSelect(selection) {
       this.selectedRows = selection
       this.$emit('getSelectedRows', selection, false)
     },
-    onRadioSelect (current, old) {
+    onRadioSelect(current) {
       this.$emit('getSelectedRows', [current], false)
     },
-    cancelSelected () {
+    cancelSelected() {
       this.$refs['table'].selectAll(false)
       this.selectedRows = []
     },
-    sortHandler (sort) {
+    sortHandler(sort) {
       this.$emit('sortHandler', sort)
     },
-    export (data) {
+    export(data) {
       this.$refs.table.exportCsv({
         filename: data.filename,
         columns: this.columns,
         data: data.data
       })
     },
-    onColResize (newWidth, oldWidth, column, event) {
-      let cols = [...this.columns]
+    // eslint-disable-next-line
+    onColResize(newWidth, oldWidth, column, event) {
+      const cols = [...this.columns]
       cols.find(x => x.key === column.key).width = newWidth
       this.columns = cols
     },
-    calColumn () {
-      let compare = (a, b) => {
+    calColumn() {
+      const compare = (a, b) => {
         if (a.displaySeqNo < b.displaySeqNo) {
           return -1
         }
@@ -519,9 +524,8 @@ export default {
               return this.renderCol(j, isChildLast)
             })
           }
-        } else {
-          return this.renderCol(_, isLast)
         }
+        return this.renderCol(_, isLast)
       })
 
       if (this.showCheckbox && !this.highlightRow) {
@@ -532,55 +536,52 @@ export default {
           fixed: 'left'
         })
       }
-      this.tableInnerActions &&
-        this.columns.push({
+      this.tableInnerActions
+        && this.columns.push({
           title: this.$t('actions'),
           fixed: 'right',
           key: 'actions',
           maxWidth: 500,
           minWidth: 200,
-          render: (h, params) => {
-            return (
-              <div>
-                {this.tableInnerActions.map(_ => {
-                  if (
-                    _.visible
-                      ? _.visible.key === 'nextOperations'
-                        ? !!params.row[_.visible.key].find(op => op === _.actionType) &&
-                          _.visible.value === !params.row['isRowEditable']
-                        : _.visible.value === !!params.row[_.visible.key]
-                      : true
-                  ) {
-                    return (
-                      <Button
-                        {...{ props: { ..._.props } }}
-                        style="marginRight: 5px"
-                        onClick={() => {
-                          this.$emit('actionFun', _.actionType, params.row)
-                        }}
-                      >
-                        {_.label}
-                      </Button>
-                    )
-                  }
-                })}
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              {this.tableInnerActions.map(_ => {
+                if (
+                  _.visible
+                    ? _.visible.key === 'nextOperations'
+                      ? !!params.row[_.visible.key].find(op => op === _.actionType)
+                        && _.visible.value === !params.row['isRowEditable']
+                      : _.visible.value === !!params.row[_.visible.key]
+                    : true
+                ) {
+                  return (
+                    <Button
+                      {...{ props: { ..._.props } }}
+                      style="marginRight: 5px"
+                      onClick={() => {
+                        this.$emit('actionFun', _.actionType, params.row)
+                      }}
+                    >
+                      {_.label}
+                    </Button>
+                  )
+                }
+              })}
+            </div>
+          )
         })
 
       if (this.isColumnsFilterOn) {
-        this.columns = this.columns.filter(column => {
-          return (
-            column.type === 'selection' ||
-            column.key === 'actions' ||
-            !!this.showedColumns.find(_ => _ === column.title)
-          )
-        })
+        this.columns = this.columns.filter(
+          column =>
+            column.type === 'selection'
+            || column.key === 'actions'
+            || !!this.showedColumns.find(_ => _ === column.title)
+        )
       }
     },
-    renderCol (col, isLastCol = false) {
-      let setValueHandler = (_this, v, col, params) => {
+    renderCol(col, isLastCol = false) {
+      const setValueHandler = (_this, v, col, params) => {
         _this.selectedRows.forEach(_ => {
           if (_.weTableRowId === params.row.weTableRowId) {
             _[col.inputKey] = v
@@ -598,131 +599,130 @@ export default {
         sortable: this.isSortable ? 'custom' : false,
         render: (h, params) => {
           if (
-            params.row.isRowEditable &&
-            (!params.column.disEditor || params.row.isNewAddedRow) &&
-            !params.column.disAdded
+            params.row.isRowEditable
+            && (!params.column.disEditor || params.row.isNewAddedRow)
+            && !params.column.disAdded
           ) {
             const _this = this
 
-            const props =
-              params.column.component === 'WeSelect'
-                ? {
-                  value: params.column.isRefreshable
-                    ? params.column.inputType === 'multiSelect'
-                      ? []
+            const props = params.column.component === 'WeSelect'
+              ? {
+                value: params.column.isRefreshable
+                  ? params.column.inputType === 'multiSelect'
+                    ? []
+                    : ''
+                  : params.column.inputType === 'multiSelect'
+                    ? Array.isArray(params.row[col.inputKey])
+                      ? params.row[col.inputKey]
                       : ''
-                    : params.column.inputType === 'multiSelect'
-                      ? Array.isArray(params.row[col.inputKey])
-                        ? params.row[col.inputKey]
-                        : ''
-                      : params.row[col.inputKey],
-                  filterParams: params.column.filterRule
-                    ? {
-                      attrId: params.column.ciTypeAttrId,
-                      params: params.row
-                    }
-                    : null,
-                  isMultiple: params.column.isMultiple,
-                  options: params.column.optionKey
-                    ? _this.ascOptions[params.row[col.optionKey]]
-                    : params.column.options
-                }
-                : {
-                  value: params.column.isRefreshable
-                    ? ''
-                    : params.column.inputType === 'multiRef'
-                      ? Array.isArray(params.row[col.inputKey])
-                        ? params.row[col.inputKey]
-                        : ''
-                      : params.row[col.inputKey] || '',
-                  filterParams: params.column.filterRule
-                    ? {
-                      attrId: params.column.ciTypeAttrId,
-                      params: params.row
-                    }
-                    : null,
-                  ciType: params.column.component === 'refSelect' ? params.column.ciType : null,
-                  ...params.column,
-                  type: params.column.component === 'DatePicker' ? 'date' : params.column.type,
-                  guid: params.row.guid ? params.row.guid : '123'
-                }
-            const fun =
-              params.column.component === 'DatePicker'
-                ? {
-                  'on-change': v => {
-                    setValueHandler(_this, v, col, params)
+                    : params.row[col.inputKey],
+                filterParams: params.column.filterRule
+                  ? {
+                    attrId: params.column.ciTypeAttrId,
+                    params: params.row
                   }
-                }
-                : {
-                  input: v => {
-                    setValueHandler(_this, v, col, params)
+                  : null,
+                isMultiple: params.column.isMultiple,
+                options: params.column.optionKey
+                  ? _this.ascOptions[params.row[col.optionKey]]
+                  : params.column.options
+              }
+              : {
+                value: params.column.isRefreshable
+                  ? ''
+                  : params.column.inputType === 'multiRef'
+                    ? Array.isArray(params.row[col.inputKey])
+                      ? params.row[col.inputKey]
+                      : ''
+                    : params.row[col.inputKey] || '',
+                filterParams: params.column.filterRule
+                  ? {
+                    attrId: params.column.ciTypeAttrId,
+                    params: params.row
                   }
+                  : null,
+                ciType: params.column.component === 'refSelect' ? params.column.ciType : null,
+                ...params.column,
+                type: params.column.component === 'DatePicker' ? 'date' : params.column.type,
+                guid: params.row.guid ? params.row.guid : '123'
+              }
+            const fun = params.column.component === 'DatePicker'
+              ? {
+                'on-change': v => {
+                  setValueHandler(_this, v, col, params)
                 }
+              }
+              : {
+                input: v => {
+                  setValueHandler(_this, v, col, params)
+                }
+              }
             const data = {
               props,
               on: fun
             }
             return <params.column.component {...data} />
-          } else {
-            let content = ''
-            if (Array.isArray(params.row.weTableForm[col.key])) {
-              if (params.column.inputType === 'multiSelect') {
-                content = params.row.weTableForm[col.key].map(_ => _.value).toString()
-              }
-              if (params.column.inputType === 'multiRef') {
-                content = params.row.weTableForm[col.key].map(_ => _.key_name).toString()
-              }
-            } else {
-              content = params.row.weTableForm[col.key]
+          }
+          let content = ''
+          if (Array.isArray(params.row.weTableForm[col.key])) {
+            if (params.column.inputType === 'multiSelect') {
+              content = params.row.weTableForm[col.key].map(_ => _.value).toString()
             }
+            if (params.column.inputType === 'multiRef') {
+              content = params.row.weTableForm[col.key].map(_ => _.key_name).toString()
+            }
+          }
+          else {
+            content = params.row.weTableForm[col.key]
+          }
 
-            const containerId = 'ref' + Math.ceil(Math.random() * 1000000)
+          const containerId = 'ref' + Math.ceil(Math.random() * 1000000)
 
-            return h(
-              'span',
-              {
-                class: 'ivu-table-cell-tooltip-content',
-                on: {
-                  mouseenter: event => {
-                    if (
-                      document.getElementById(containerId).scrollWidth >
-                      document.getElementById(containerId).clientWidth
-                    ) {
-                      this.timer = setTimeout(
-                        params => {
-                          this.tipContent = content
-                          const popcorn = document.querySelector('#' + containerId)
-                          const tooltip = document.querySelector('#' + params.randomId)
-                          createPopper(popcorn, tooltip, {
-                            placement: 'bottom'
-                          })
-                        },
-                        800,
-                        {
-                          randomId: this.randomId,
-                          content
-                        }
-                      )
-                    }
-                  },
-                  mouseleave: event => {
-                    clearInterval(this.timer)
-                    this.tipContent = ''
+          return h(
+            'span',
+            {
+              class: 'ivu-table-cell-tooltip-content',
+              on: {
+                mouseenter: () => {
+                  if (
+                    document.getElementById(containerId).scrollWidth > document.getElementById(containerId).clientWidth
+                  ) {
+                    this.timer = setTimeout(
+                      params => {
+                        this.tipContent = content
+                        const popcorn = document.querySelector('#' + containerId)
+                        const tooltip = document.querySelector('#' + params.randomId)
+                        createPopper(popcorn, tooltip, {
+                          placement: 'bottom'
+                        })
+                      },
+                      800,
+                      {
+                        randomId: this.randomId,
+                        content
+                      }
+                    )
                   }
                 },
-                attrs: {
-                  id: containerId
+                mouseleave: () => {
+                  clearInterval(this.timer)
+                  this.tipContent = ''
                 }
               },
-              content
-            )
-          }
+              attrs: {
+                id: containerId
+              }
+            },
+            content
+          )
         }
       }
     }
   },
-  render (h) {
-    const { data, columns, pagination, highlightRow, filtersHidden } = this
+  render() {
+    const {
+      data, columns, pagination, highlightRow, filtersHidden
+    } = this
     return (
       <div>
         {!filtersHidden && <div>{this.getFormFilters()}</div>}
@@ -762,7 +762,7 @@ export default {
       </div>
     )
   },
-  beforeDestroy () {
+  beforeDestroy() {
     this.$emit('getSelectedRows', [], false)
   }
 }

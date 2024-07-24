@@ -75,24 +75,21 @@
                 style="background-color: #826bea; border-color: #826bea"
                 v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
                 icon="md-pause"
-                >{{ $t('be_pause') }}</Button
-              >
+              >{{ $t('be_pause') }}</Button>
               <!--继续执行-->
               <Button
                 type="success"
                 @click="flowControlHandler('recover')"
                 v-if="currentInstanceStatusForNodeOperation === 'Stop'"
                 icon="md-play"
-                >{{ $t('be_continue') }}</Button
-              >
+              >{{ $t('be_continue') }}</Button>
               <!--终止执行-->
               <Button
                 v-if="['InProgress', 'Stop'].includes(currentInstanceStatusForNodeOperation) && !subProcBindParentFlag"
                 type="warning"
                 @click="stopHandler"
                 icon="md-square"
-                >{{ $t('stop_orch') }}</Button
-              >
+              >{{ $t('stop_orch') }}</Button>
               <!-- disabled="currentInstanceStatus || stopSuccess"  stop_orch -->
               <!--定时执行-->
               <!-- <Button
@@ -116,9 +113,7 @@
                   clearable
                   @on-clear="clearFlow"
                 >
-                  <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId"
-                    >{{ item.procDefName }} [{{ item.procDefVersion }}] {{ item.createdTime }}</Option
-                  >
+                  <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">{{ item.procDefName }} [{{ item.procDefVersion }}] {{ item.createdTime }}</Option>
                 </Select>
               </FormItem>
             </Col>
@@ -149,8 +144,7 @@
                   :loading="btnLoading"
                   type="info"
                   @click="excutionFlow"
-                  >{{ $t('execute') }}</Button
-                >
+                >{{ $t('execute') }}</Button>
               </FormItem>
             </Col>
             <!--模板收藏功能-->
@@ -181,8 +175,7 @@
             size="small"
             type="primary"
             @click="setFlowDataForAllNodes"
-            >{{ $t('fe_node_datalist') }}</Button
-          >
+          >{{ $t('fe_node_datalist') }}</Button>
         </Col>
         <Col span="17" style="text-align: center; text-align: center; height: 100%; position: relative">
           <div class="graph-container" id="graph" style="height: 90%"></div>
@@ -196,8 +189,7 @@
             size="small"
             type="primary"
             @click="showModelDataWithFlow"
-            >{{ $t('fe_data_nodelist') }}</Button
-          >
+          >{{ $t('fe_data_nodelist') }}</Button>
           <Spin size="large" fix v-show="isLoading">
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
             <div>{{ $t('loading') }}</div>
@@ -208,7 +200,7 @@
     </Card>
     <!--左侧预览弹窗(新建)-->
     <BaseDrawer :title="$t('overview')" :visible.sync="flowNodesWithDataModalVisible" width="70%" :scrollable="true">
-      <template slot-scope="{ maxHeight }" slot="content">
+      <template slot-scope="{maxHeight}" slot="content">
         <Table
           border
           :columns="flowNodesWithModelDataColums"
@@ -231,7 +223,7 @@
       width="70%"
       :scrollable="true"
     >
-      <template slot-scope="{ maxHeight }" slot="content">
+      <template slot-scope="{maxHeight}" slot="content">
         <Table
           border
           :columns="targetWithFlowModelColums"
@@ -257,10 +249,10 @@
             <div
               v-if="
                 noActionFlag ||
-                ['start', 'end', 'abnormal'].includes(currentNodeType) ||
-                ['NotStarted', 'Completed', 'InternallyTerminated', 'Faulted'].includes(
-                  currentInstanceStatusForNodeOperation
-                )
+                  ['start', 'end', 'abnormal'].includes(currentNodeType) ||
+                  ['NotStarted', 'Completed', 'InternallyTerminated', 'Faulted'].includes(
+                    currentInstanceStatusForNodeOperation
+                  )
               "
               class="no-data"
             >
@@ -274,28 +266,25 @@
                   style="background-color: #bf22e0; color: white; margin-top: 10px"
                   @click="workFlowActionHandler('risky')"
                   :loading="btnLoading"
-                  >{{ $t('dangerous_confirm') }}</Button
-                >
+                >{{ $t('dangerous_confirm') }}</Button>
               </div>
               <!--反选数据-->
               <Button
                 type="primary"
                 v-if="
                   ['NotStarted', 'Risky'].includes(currentNodeStatus) &&
-                  ['human', 'automatic', 'data', 'subProc'].includes(currentNodeType)
+                    ['human', 'automatic', 'data', 'subProc'].includes(currentNodeType)
                 "
                 @click="workFlowActionHandler('dataSelection')"
                 :loading="btnLoading"
-                >{{ $t('data_selection') }}</Button
-              >
+              >{{ $t('data_selection') }}</Button>
               <!--节点重试-->
               <Button
                 type="primary"
                 v-if="['Faulted', 'Timeouted'].includes(currentNodeStatus)"
                 @click="workFlowActionHandler('partialRetry')"
                 :loading="btnLoading"
-                >{{ $t('partial_retry') }}</Button
-              >
+              >{{ $t('partial_retry') }}</Button>
               <!--跳过节点-->
               <Button
                 type="warning"
@@ -303,8 +292,7 @@
                 @click="workFlowActionHandler('skip')"
                 :loading="btnLoading"
                 style="margin-left: 10px"
-                >{{ $t('skip') }}</Button
-              >
+              >{{ $t('skip') }}</Button>
               <!--时间节点-手动跳过-->
               <div
                 v-if="['InProgress'].includes(currentNodeStatus) && ['timeInterval', 'date'].includes(currentNodeType)"
@@ -391,7 +379,7 @@
     </Modal>
     <!--左侧编排节点弹窗(新建)-->
     <BaseDrawer :title="currentNodeTitle" :visible.sync="targetModalVisible" width="70%" :scrollable="true">
-      <template slot-scope="{ maxHeight }" slot="content">
+      <template slot-scope="{maxHeight}" slot="content">
         <Input
           v-model="tableFilterParam"
           :placeholder="$t('please_input') + $t('object')"
@@ -409,7 +397,7 @@
           :columns="targetModelColums.filter(col => !col.disabled)"
           :data="tartetModels"
         >
-          <template slot-scope="{ row }" slot="action">
+          <template slot-scope="{row}" slot="action">
             <div style="display: flex; justify-content: space-around">
               <Button type="info" size="small" @click="modelGraphMouseenterHandler(row)">{{
                 $t('view') + $t('object')
@@ -420,8 +408,7 @@
                 size="small"
                 style="margin-left: 5px"
                 @click="viewSubProcExecution(row)"
-                >{{ $t('fe_view_childFlow') }}</Button
-              >
+              >{{ $t('fe_view_childFlow') }}</Button>
             </div>
           </template>
         </Table>
@@ -437,13 +424,13 @@
       </template>
     </BaseDrawer>
     <!--对象查看弹框-->
-    <Modal v-model="showNodeDetail" :fullscreen="nodeDetailFullscreen" width="1000" :styles="{ top: '50px' }">
+    <Modal v-model="showNodeDetail" :fullscreen="nodeDetailFullscreen" width="1000" :styles="{top: '50px'}">
       <p slot="header">
         <span>{{ nodeTitle }}</span>
         <Icon v-if="!nodeDetailFullscreen" @click="zoomModal" class="header-icon" type="ios-expand" />
         <Icon v-else @click="nodeDetailFullscreen = false" class="header-icon" type="ios-contract" />
       </p>
-      <div :style="[{ overflow: 'auto', margin: '0 6px 6px' }, fullscreenModalContentStyle]">
+      <div :style="[{overflow: 'auto', margin: '0 6px 6px'}, fullscreenModalContentStyle]">
         <json-viewer :value="nodeDetail || {}" :expand-depth="5"></json-viewer>
       </div>
     </Modal>
@@ -489,8 +476,7 @@
               v-for="item in timeConfig.modeToValue[timeConfig.params.scheduleMode]"
               :key="item.value"
               :value="item.value"
-              >{{ item.label }}</Option
-            >
+            >{{ item.label }}</Option>
           </Select>
         </FormItem>
         <FormItem :label="$t('execute_date')">
@@ -603,7 +589,7 @@ export default {
     HeaderTitle,
     BaseDrawer
   },
-  data () {
+  data() {
     return {
       // 属性值展示
       attrValue: {
@@ -664,9 +650,7 @@ export default {
           title: this.$t('fe_nodeName'),
           key: 'orderedNo',
           width: 240,
-          render: (h, params) => {
-            return <span>{params.row.orderedNo + ' ' + params.row.nodeName}</span>
-          }
+          render: (h, params) => <span>{params.row.orderedNo + ' ' + params.row.nodeName}</span>
         },
         {
           type: 'selection',
@@ -689,32 +673,30 @@ export default {
           key: 'action',
           width: 210,
           align: 'center',
-          render: (h, params) => {
-            return (
-              <div style="display: flex; justify-content: space-around">
+          render: (h, params) => (
+            <div style="display: flex; justify-content: space-around">
+              <Button
+                type="info"
+                size="small"
+                onClick={() => {
+                  this.modelGraphMouseenterHandler(params.row)
+                }}
+              >
+                {`${this.$t('view')}${this.$t('object')}`}
+              </Button>
+              {params.row.nodeType === 'subProc' && (
                 <Button
-                  type="info"
+                  color="#808695"
                   size="small"
                   onClick={() => {
-                    this.modelGraphMouseenterHandler(params.row)
+                    this.viewSubProcExecution(params.row)
                   }}
                 >
-                  {`${this.$t('view')}${this.$t('object')}`}
+                  {this.$t('fe_view_childFlow')}
                 </Button>
-                {params.row.nodeType === 'subProc' && (
-                  <Button
-                    color="#808695"
-                    size="small"
-                    onClick={() => {
-                      this.viewSubProcExecution(params.row)
-                    }}
-                  >
-                    {this.$t('fe_view_childFlow')}
-                  </Button>
-                )}
-              </div>
-            )
-          }
+              )}
+            </div>
+          )
         }
       ],
       targetWithFlowModelColums: [
@@ -737,13 +719,11 @@ export default {
             const nodes = params.row.nodeTitle.split(';')
             return (
               <div>
-                {nodes.map((item, index) => {
-                  return (
-                    <div style="margin-bottom:5px" key={index}>
-                      {item || '-'}
-                    </div>
-                  )
-                })}
+                {nodes.map((item, index) => (
+                  <div style="margin-bottom:5px" key={index}>
+                    {item || '-'}
+                  </div>
+                ))}
               </div>
             )
           }
@@ -753,19 +733,17 @@ export default {
           key: 'action',
           width: 150,
           align: 'center',
-          render: (h, params) => {
-            return (
-              <Button
-                type="info"
-                size="small"
-                onClick={() => {
-                  this.modelGraphMouseenterHandler(params.row)
-                }}
-              >
-                {`${this.$t('view')}${this.$t('object')}`}
-              </Button>
-            )
-          }
+          render: (h, params) => (
+            <Button
+              type="info"
+              size="small"
+              onClick={() => {
+                this.modelGraphMouseenterHandler(params.row)
+              }}
+            >
+              {`${this.$t('view')}${this.$t('object')}`}
+            </Button>
+          )
         }
       ],
       retryTargetModelColums: [
@@ -778,9 +756,7 @@ export default {
         {
           title: this.$t('be_instance_type'),
           key: 'packageName',
-          render: (h, params) => {
-            return <span>{params.row.packageName + ':' + params.row.entityName}</span>
-          }
+          render: (h, params) => <span>{params.row.packageName + ':' + params.row.entityName}</span>
         },
         // 操作对象
         {
@@ -795,7 +771,7 @@ export default {
           title: this.$t('fe_info'),
           key: 'message',
           render: (h, params) => {
-            let data = {
+            const data = {
               props: {
                 content: params.row.message || '',
                 delay: 500,
@@ -821,9 +797,7 @@ export default {
         {
           title: this.$t('be_instance_type'),
           key: 'packageName',
-          render: (h, params) => {
-            return <span>{params.row.packageName + ':' + params.row.entityName}</span>
-          }
+          render: (h, params) => <span>{params.row.packageName + ':' + params.row.entityName}</span>
         },
         // 操作对象
         {
@@ -873,23 +847,22 @@ export default {
             const noData = strOutput.every(i => i && Object.keys(i).length === 0)
             if (noData) {
               return <span>-</span>
-            } else {
-              return (
-                <div style="white-space: nowrap; overflow: auto;">
-                  {strOutput.map((data, index) => (
-                    <div key={index} style="margin-left:5px;">
-                      {'{'}
-                      {Object.entries(data).map(([key, value]) => (
-                        <div style="margin-left:5px;">
-                          {key}: <span style="color:#42b983;">{value}</span>
-                        </div>
-                      ))}
-                      {'}'}
-                    </div>
-                  ))}
-                </div>
-              )
             }
+            return (
+              <div style="white-space: nowrap; overflow: auto;">
+                {strOutput.map((data, index) => (
+                  <div key={index} style="margin-left:5px;">
+                    {'{'}
+                    {Object.entries(data).map(([key, value]) => (
+                      <div style="margin-left:5px;">
+                        {key}: <span style="color:#42b983;">{value}</span>
+                      </div>
+                    ))}
+                    {'}'}
+                  </div>
+                ))}
+              </div>
+            )
           }
         }
       ],
@@ -926,59 +899,194 @@ export default {
           mailMode: 'node'
         },
         scheduleModeOptions: [
-          { label: this.$t('Hourly'), value: 'Hourly' },
-          { label: this.$t('Daily'), value: 'Daily' },
-          { label: this.$t('Weekly'), value: 'Weekly' },
-          { label: this.$t('Monthly'), value: 'Monthly' }
+          {
+            label: this.$t('Hourly'),
+            value: 'Hourly'
+          },
+          {
+            label: this.$t('Daily'),
+            value: 'Daily'
+          },
+          {
+            label: this.$t('Weekly'),
+            value: 'Weekly'
+          },
+          {
+            label: this.$t('Monthly'),
+            value: 'Monthly'
+          }
         ],
         modeToValue: {
           Monthly: [
-            { label: '1', value: 1 },
-            { label: '2', value: 2 },
-            { label: '3', value: 3 },
-            { label: '4', value: 4 },
-            { label: '5', value: 5 },
-            { label: '6', value: 6 },
-            { label: '7', value: 7 },
-            { label: '8', value: 8 },
-            { label: '9', value: 9 },
-            { label: '10', value: 10 },
-            { label: '11', value: 11 },
-            { label: '12', value: 12 },
-            { label: '13', value: 13 },
-            { label: '14', value: 14 },
-            { label: '15', value: 15 },
-            { label: '16', value: 16 },
-            { label: '17', value: 17 },
-            { label: '18', value: 18 },
-            { label: '19', value: 19 },
-            { label: '20', value: 20 },
-            { label: '21', value: 21 },
-            { label: '22', value: 22 },
-            { label: '23', value: 23 },
-            { label: '24', value: 24 },
-            { label: '25', value: 25 },
-            { label: '26', value: 26 },
-            { label: '27', value: 27 },
-            { label: '28', value: 28 },
-            { label: '29', value: 29 },
-            { label: '30', value: 30 },
-            { label: '31', value: 31 }
+            {
+              label: '1',
+              value: 1
+            },
+            {
+              label: '2',
+              value: 2
+            },
+            {
+              label: '3',
+              value: 3
+            },
+            {
+              label: '4',
+              value: 4
+            },
+            {
+              label: '5',
+              value: 5
+            },
+            {
+              label: '6',
+              value: 6
+            },
+            {
+              label: '7',
+              value: 7
+            },
+            {
+              label: '8',
+              value: 8
+            },
+            {
+              label: '9',
+              value: 9
+            },
+            {
+              label: '10',
+              value: 10
+            },
+            {
+              label: '11',
+              value: 11
+            },
+            {
+              label: '12',
+              value: 12
+            },
+            {
+              label: '13',
+              value: 13
+            },
+            {
+              label: '14',
+              value: 14
+            },
+            {
+              label: '15',
+              value: 15
+            },
+            {
+              label: '16',
+              value: 16
+            },
+            {
+              label: '17',
+              value: 17
+            },
+            {
+              label: '18',
+              value: 18
+            },
+            {
+              label: '19',
+              value: 19
+            },
+            {
+              label: '20',
+              value: 20
+            },
+            {
+              label: '21',
+              value: 21
+            },
+            {
+              label: '22',
+              value: 22
+            },
+            {
+              label: '23',
+              value: 23
+            },
+            {
+              label: '24',
+              value: 24
+            },
+            {
+              label: '25',
+              value: 25
+            },
+            {
+              label: '26',
+              value: 26
+            },
+            {
+              label: '27',
+              value: 27
+            },
+            {
+              label: '28',
+              value: 28
+            },
+            {
+              label: '29',
+              value: 29
+            },
+            {
+              label: '30',
+              value: 30
+            },
+            {
+              label: '31',
+              value: 31
+            }
           ],
           Weekly: [
-            { label: this.$t('Mon'), value: 1 },
-            { label: this.$t('Tue'), value: 2 },
-            { label: this.$t('Wed'), value: 3 },
-            { label: this.$t('Thu'), value: 4 },
-            { label: this.$t('Fri'), value: 5 },
-            { label: this.$t('Sat'), value: 6 },
-            { label: this.$t('Sun'), value: 7 }
+            {
+              label: this.$t('Mon'),
+              value: 1
+            },
+            {
+              label: this.$t('Tue'),
+              value: 2
+            },
+            {
+              label: this.$t('Wed'),
+              value: 3
+            },
+            {
+              label: this.$t('Thu'),
+              value: 4
+            },
+            {
+              label: this.$t('Fri'),
+              value: 5
+            },
+            {
+              label: this.$t('Sat'),
+              value: 6
+            },
+            {
+              label: this.$t('Sun'),
+              value: 7
+            }
           ]
         },
         mailModeOptions: [
-          { label: this.$t('be_role_email'), value: 'role' },
-          { label: this.$t('be_user_email'), value: 'user' },
-          { label: this.$t('be_not_send'), value: 'none' }
+          {
+            label: this.$t('be_role_email'),
+            value: 'role'
+          },
+          {
+            label: this.$t('be_user_email'),
+            value: 'user'
+          },
+          {
+            label: this.$t('be_not_send'),
+            value: 'none'
+          }
         ],
         currentUserRoles: []
       },
@@ -1003,53 +1111,85 @@ export default {
     }
   },
   computed: {
-    canAbleToSetting () {
+    canAbleToSetting() {
       const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
       if (found && found.status === 'Completed') {
         return false
       }
       return true
     },
-    currentNodeItem () {
+    currentNodeItem() {
       if (!this.flowData.flowNodes) {
         return {}
       }
       const found = this.flowData.flowNodes.find(_ => _.nodeId === this.currentFailedNodeID) || {}
       return found
     },
-    currentNodeStatus () {
+    currentNodeStatus() {
       if (!this.flowData.flowNodes) {
         return ''
       }
       const found = this.flowData.flowNodes.find(_ => _.nodeId === this.currentFailedNodeID)
       if (found) {
         return found.status
-      } else {
-        return ''
       }
+
+      return ''
     },
-    currentNodeType () {
+    currentNodeType() {
       if (!this.flowData.flowNodes) {
         return ''
       }
       const found = this.flowData.flowNodes.find(_ => _.nodeId === this.currentFailedNodeID)
       if (found) {
         return found.nodeType
-      } else {
-        return ''
       }
+
+      return ''
     },
-    getStatusStyleAndName () {
+    getStatusStyleAndName() {
       return function (status, type) {
         const list = [
-          { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
-          { label: this.$t('fe_stop'), value: 'Stop', color: '#ed4014' },
-          { label: this.$t('fe_inProgressFaulted'), value: 'InProgress(Faulted)', color: '#ed4014' },
-          { label: this.$t('fe_inProgressTimeouted'), value: 'InProgress(Timeouted)', color: '#ed4014' },
-          { label: this.$t('fe_inProgress'), value: 'InProgress', color: '#1990ff' },
-          { label: this.$t('fe_completed'), value: 'Completed', color: '#7ac756' },
-          { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
-          { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
+          {
+            label: this.$t('fe_notStart'),
+            value: 'NotStarted',
+            color: '#808695'
+          },
+          {
+            label: this.$t('fe_stop'),
+            value: 'Stop',
+            color: '#ed4014'
+          },
+          {
+            label: this.$t('fe_inProgressFaulted'),
+            value: 'InProgress(Faulted)',
+            color: '#ed4014'
+          },
+          {
+            label: this.$t('fe_inProgressTimeouted'),
+            value: 'InProgress(Timeouted)',
+            color: '#ed4014'
+          },
+          {
+            label: this.$t('fe_inProgress'),
+            value: 'InProgress',
+            color: '#1990ff'
+          },
+          {
+            label: this.$t('fe_completed'),
+            value: 'Completed',
+            color: '#7ac756'
+          },
+          {
+            label: this.$t('fe_faulted'),
+            value: 'Faulted',
+            color: '#e29836'
+          },
+          {
+            label: this.$t('fe_internallyTerminated'),
+            value: 'InternallyTerminated',
+            color: '#e29836'
+          }
         ]
         const findObj = list.find(i => i.value === status) || {}
         if (type === 'style') {
@@ -1064,34 +1204,32 @@ export default {
             fontSize: '12px',
             marginLeft: '5px'
           }
-        } else {
-          return findObj.label
         }
+        return findObj.label
       }
     }
   },
   watch: {
     selectedFlowInstance: {
-      handler (val, oldVal) {
+      handler(val, oldVal) {
         if (val !== oldVal) {
           this.stopSuccess = false
           this.currentInstanceStatus = true
         }
       }
     },
-    targetModalVisible: function (val) {
+    targetModalVisible(val) {
       this.tableFilterParam = null
       if (!val) {
         this.catchNodeTableList = []
       }
     },
-    retryTableFilterParam: function (filter) {
+    retryTableFilterParam(filter) {
       if (!filter) {
         this.retryTartetModels = this.retryCatchNodeTableList
-      } else {
-        this.retryTartetModels = this.retryCatchNodeTableList.filter(item => {
-          return item.entityDisplayName.includes(filter)
-        })
+      }
+      else {
+        this.retryTartetModels = this.retryCatchNodeTableList.filter(item => item.entityDisplayName.includes(filter))
       }
       this.retryTartetModels.forEach(tm => {
         tm._checked = false
@@ -1102,13 +1240,12 @@ export default {
         })
       })
     },
-    tableFilterParam: function (filter) {
+    tableFilterParam(filter) {
       if (!filter) {
         this.tartetModels = this.catchTartetModels
-      } else {
-        this.tartetModels = this.catchTartetModels.filter(item => {
-          return item.displayName.includes(filter)
-        })
+      }
+      else {
+        this.tartetModels = this.catchTartetModels.filter(item => item.displayName.includes(filter))
       }
       this.tartetModels.forEach(tm => {
         tm._checked = false
@@ -1119,11 +1256,11 @@ export default {
         })
       })
     },
-    nodeDetailFullscreen: function (tag) {
+    nodeDetailFullscreen(tag) {
       tag ? (this.fullscreenModalContentStyle = {}) : (this.fullscreenModalContentStyle['max-height'] = '500px')
     },
     // 节点操作弹窗打开，直接查看日志信息
-    workflowActionModalVisible (val) {
+    workflowActionModalVisible(val) {
       if (val === true) {
         this.pluginInfo = ''
         this.nodeDetailResponseHeader = null
@@ -1138,7 +1275,7 @@ export default {
       }
     }
   },
-  async mounted () {
+  async mounted() {
     const id = this.$route.query.id || ''
     const templateId = this.$route.query.templateId || ''
     this.subProcId = this.$route.query.subProcId || ''
@@ -1165,12 +1302,12 @@ export default {
       this.onTargetSelectHandler()
     }
   },
-  destroyed () {
+  destroyed() {
     clearInterval(this.timer)
     localStorage.removeItem('history-execution-search-params')
   },
   methods: {
-    handleBack () {
+    handleBack() {
       if (this.isEnqueryPage) {
         if (['create', 'main', 'sub', 'normal'].includes(this.$route.query.from)) {
           return this.$router.push({
@@ -1179,7 +1316,8 @@ export default {
               subProc: this.subProc
             }
           })
-        } else if (this.$route.query.from === 'time') {
+        }
+        else if (this.$route.query.from === 'time') {
           return this.$router.push({
             path: '/implementation/workflow-execution/time-history',
             query: {
@@ -1201,7 +1339,7 @@ export default {
     handleStar: debounce(async function ({ procDefId, collected }) {
       const method = collected ? unCollectFlow : collectFlow
       const params = {
-        procDefId: procDefId
+        procDefId
       }
       const { status } = await method(params)
       if (status === 'OK') {
@@ -1213,25 +1351,25 @@ export default {
       }
     }, 300),
     // 【新建执行】子编排节点支持跳转预览子编排详情
-    viewSubProcExecution (row) {
+    viewSubProcExecution(row) {
       window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
       const path = `${window.location.origin}/#/implementation/workflow-execution/normal-create?subProcId=${row.subProcDefId}&entityDataId=${row.entityDataId}&sessionId=${row.subPreviewSessionId}`
       window.open(path, '_blank')
     },
     // 【执行详情】子编排调用API列表支持跳转预览子编排详情
-    viewSubProcExecutionDetail (id) {
+    viewSubProcExecutionDetail(id) {
       window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
       const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${id}&from=sub`
       window.open(path, '_blank')
     },
     // 查看日志调用API详情
-    async handleClick (key, value) {
+    async handleClick(key) {
       this.attrValue.attr = key
       const params = {
         paramName: key,
         serviceId: this.pluginInfo
       }
-      let { status, data } = await getMetaData(params)
+      const { status, data } = await getMetaData(params)
       if (status === 'OK') {
         this.attrValue.data.type = data.mappingType
         switch (data.mappingType) {
@@ -1253,10 +1391,10 @@ export default {
         this.attrValue.isShow = true
       }
     },
-    changeTimePicker (time) {
+    changeTimePicker(time) {
       this.timeConfig.params.time = time
     },
-    async saveTime () {
+    async saveTime() {
       const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
       let scheduleExpr = ''
       if (['Hourly', 'Daily'].includes(this.timeConfig.params.scheduleMode)) {
@@ -1264,12 +1402,13 @@ export default {
         if (this.timeConfig.params.scheduleMode === 'Hourly') {
           scheduleExpr = this.timeConfig.params.time.substring(3)
         }
-      } else {
+      }
+      else {
         scheduleExpr = this.timeConfig.params.cycle + ' ' + this.timeConfig.params.time
       }
-      let params = {
+      const params = {
         scheduleMode: this.timeConfig.params.scheduleMode,
-        scheduleExpr: scheduleExpr,
+        scheduleExpr,
         procDefName: found.procInstName,
         procDefId: found.procDefId,
         entityDataName: found.entityDisplayName,
@@ -1301,22 +1440,34 @@ export default {
     //     this.timeConfig.currentUserRoles = data
     //   }
     // },
-    async getDetail (row) {
-      if (!row.packageName || !row.entityName || !row.dataId) return
-      let params = {
-        additionalFilters: [{ attrName: 'id', op: 'eq', condition: row.dataId }]
+    async getDetail(row) {
+      if (!row.packageName || !row.entityName || !row.dataId) {
+        return
+      }
+      const params = {
+        additionalFilters: [
+          {
+            attrName: 'id',
+            op: 'eq',
+            condition: row.dataId
+          }
+        ]
       }
       const { status, data } = await getModelNodeDetail(row.packageName, row.entityName, params)
       if (status === 'OK') {
         this.rowContent = data
       }
     },
-    async retryTargetModelConfirm (visible) {
+    async retryTargetModelConfirm() {
       const found = this.flowData.flowNodes.find(_ => _.nodeId === this.currentFailedNodeID)
-      let tem = []
+      const tem = []
       this.retryTartetModels.forEach(d => {
         const f = this.retryCatchNodeTableList.find(c => c.id === d.id)
-        tem.push({ ...d, bound: f.bound, confirmToken: f.confirmToken })
+        tem.push({
+          ...d,
+          bound: f.bound,
+          confirmToken: f.confirmToken
+        })
       })
       const payload = {
         nodeInstId: found.id,
@@ -1350,7 +1501,7 @@ export default {
         }
       }
     },
-    async targetModelConfirm (visible) {
+    async targetModelConfirm(visible) {
       // TODO:
       this.targetModalVisible = visible
       if (!visible) {
@@ -1359,17 +1510,15 @@ export default {
         this.renderModelGraph()
       }
     },
-    singleSelect (selection, row) {
+    singleSelect(selection, row) {
       this.catchNodeTableList = this.catchNodeTableList.concat(row)
     },
-    singleCancel (selection, row) {
-      const index = this.catchNodeTableList.findIndex(cn => {
-        return cn.id === row.id
-      })
+    singleCancel(selection, row) {
+      const index = this.catchNodeTableList.findIndex(cn => cn.id === row.id)
       this.catchNodeTableList.splice(index, 1)
     },
-    selectAll (selection) {
-      let temp = []
+    selectAll(selection) {
+      const temp = []
       this.catchNodeTableList.forEach(cntl => {
         temp.push(cntl.id)
       })
@@ -1379,45 +1528,42 @@ export default {
         }
       })
     },
-    selectAllCancel () {
-      let temp = []
+    selectAllCancel() {
+      const temp = []
       this.tartetModels.forEach(tm => {
         temp.push(tm.id)
       })
       if (this.tableFilterParam) {
-        this.catchNodeTableList = this.catchNodeTableList.filter(item => {
-          return !temp.includes(item.id)
-        })
-      } else {
+        this.catchNodeTableList = this.catchNodeTableList.filter(item => !temp.includes(item.id))
+      }
+      else {
         this.catchNodeTableList = []
       }
     },
-    retrySingleSelect (selection, row) {
-      let find = this.retryCatchNodeTableList.find(item => item.id === row.id)
+    retrySingleSelect(selection, row) {
+      const find = this.retryCatchNodeTableList.find(item => item.id === row.id)
       find.bound = 'Y'
     },
-    retrySingleCancel (selection, row) {
-      let find = this.retryCatchNodeTableList.find(cn => {
-        return cn.id === row.id
-      })
+    retrySingleCancel(selection, row) {
+      const find = this.retryCatchNodeTableList.find(cn => cn.id === row.id)
       find.bound = 'N'
     },
-    retrySelectAll (selection) {
+    retrySelectAll() {
       this.retryCatchNodeTableList.forEach(item => {
         item.bound = 'Y'
       })
     },
-    retrySelectAllCancel () {
+    retrySelectAllCancel() {
       this.retryCatchNodeTableList.forEach(item => {
         item.bound = 'N'
       })
     },
     // 左侧编排预览勾选数据
-    allFlowNodesSelectChange (selection) {
+    allFlowNodesSelectChange(selection) {
       this.selectedFlowNodesModelData = selection
     },
-    async setFlowDataForAllNodes () {
-      let compare = (a, b) => {
+    async setFlowDataForAllNodes() {
+      const compare = (a, b) => {
         if (a.orderedNo * 1 < b.orderedNo * 1) {
           return -1
         }
@@ -1426,7 +1572,7 @@ export default {
         }
         return 0
       }
-      let allPromises = []
+      const allPromises = []
       this.flowData.flowNodes
         .filter(_ => _.orderedNo)
         .forEach(node => {
@@ -1436,8 +1582,8 @@ export default {
       this.selectedFlowNodesModelData = []
       this.allFlowNodesModelData = []
         .concat(
-          ...dataArray.map(_ => {
-            return _.data.map(d => {
+          ...dataArray.map(_ =>
+            _.data.map(d => {
               const found = this.modelData.find(j => j.dataId === d.entityDataId)
               const flowNode = this.flowData.flowNodes.find(j => j.orderedNo === d.orderedNo)
               const res = {
@@ -1453,14 +1599,13 @@ export default {
                 this.selectedFlowNodesModelData.push(res)
               }
               return res
-            })
-          })
+            }))
         )
         .sort(compare)
       let start = 0
       this.flowIndexArray = [0]
       for (let i = 0; i < this.allFlowNodesModelData.length; i++) {
-        let startName = this.allFlowNodesModelData[start].orderedNo + this.allFlowNodesModelData[start].nodeName
+        const startName = this.allFlowNodesModelData[start].orderedNo + this.allFlowNodesModelData[start].nodeName
         const node = this.allFlowNodesModelData[i]
         if (node.orderedNo + node.nodeName !== startName) {
           start = i
@@ -1469,18 +1614,19 @@ export default {
       }
       this.flowNodesWithDataModalVisible = true
     },
-    flowNodeDataHandleSpan ({ row, column, rowIndex, columnIndex }) {
+    flowNodeDataHandleSpan({ rowIndex, columnIndex }) {
       return this.rowSpanComputed(this.allFlowNodesModelData, this.flowIndexArray, rowIndex, columnIndex)
     },
-    modelDataHandleSpan ({ row, column, rowIndex, columnIndex }) {
+    modelDataHandleSpan({ rowIndex, columnIndex }) {
       return this.rowSpanComputed(this.modelDataWithFlowNodes, this.indexArray, rowIndex, columnIndex)
     },
-    rowSpanComputed (data, indexArray, rowIndex, columnIndex) {
+    rowSpanComputed(data, indexArray, rowIndex, columnIndex) {
       let arr = []
       for (let i = 0; i < indexArray.length; i++) {
         if (rowIndex === indexArray[i] && columnIndex === 0) {
           arr = [indexArray[i + 1] - indexArray[i], 1]
-        } else if (rowIndex > indexArray[i - 1] && rowIndex < indexArray[i] && columnIndex === 0) {
+        }
+        else if (rowIndex > indexArray[i - 1] && rowIndex < indexArray[i] && columnIndex === 0) {
           arr = [0, 0]
         }
       }
@@ -1492,44 +1638,43 @@ export default {
       }
       return arr
     },
-    showModelDataWithFlow () {
-      this.modelDataWithFlowNodes = this.modelData.map(_ => {
-        return {
-          ..._,
-          entity: _.packageName + ':' + _.entityName,
-          nodeTitle:
-            _.refFlowNodeIds.length > 0
-              ? _.refFlowNodeIds
-                .map(id => {
-                  const found = this.flowData.flowNodes.find(n => n.orderedNo === id)
-                  return found.orderedNo + ' ' + found.nodeName
-                })
-                .join(';')
-              : ''
-        }
-      })
+    showModelDataWithFlow() {
+      this.modelDataWithFlowNodes = this.modelData.map(_ => ({
+        ..._,
+        entity: _.packageName + ':' + _.entityName,
+        nodeTitle:
+          _.refFlowNodeIds.length > 0
+            ? _.refFlowNodeIds
+              .map(id => {
+                const found = this.flowData.flowNodes.find(n => n.orderedNo === id)
+                return found.orderedNo + ' ' + found.nodeName
+              })
+              .join(';')
+            : ''
+      }))
       this.targetWithFlowModalVisibleSingleTag = false
       this.targetWithFlowModalVisible = true
       let start = 0
       this.indexArray = [0]
       for (let i = 0; i < this.modelDataWithFlowNodes.length; i++) {
-        let startEntity = this.modelDataWithFlowNodes[start].entity
+        const startEntity = this.modelDataWithFlowNodes[start].entity
         if (this.modelDataWithFlowNodes[i].entity !== startEntity) {
           start = i
           this.indexArray.push(i)
         }
       }
     },
-    async flowNodesTargetModelConfirm () {
-      let obj = {}
-      let selectObj = {}
+    async flowNodesTargetModelConfirm() {
+      const obj = {}
+      const selectObj = {}
       // 表格数据按节点分组
-      let tableAllFlowNodesModelData = deepClone(this.allFlowNodesModelData)
+      const tableAllFlowNodesModelData = deepClone(this.allFlowNodesModelData)
       tableAllFlowNodesModelData.forEach(_ => {
         if (!obj[_.nodeDefId]) {
           obj[_.nodeDefId] = []
           obj[_.nodeDefId].push(_)
-        } else {
+        }
+        else {
           obj[_.nodeDefId].push(_)
         }
       })
@@ -1538,18 +1683,20 @@ export default {
         if (!selectObj[_.nodeDefId]) {
           selectObj[_.nodeDefId] = []
           selectObj[_.nodeDefId].push(_)
-        } else {
+        }
+        else {
           selectObj[_.nodeDefId].push(_)
         }
       })
-      let promiseArray = []
+      const promiseArray = []
       Object.keys(obj).forEach(key => {
         // 解决有些勾上的数据bound为N的bug
         obj[key].forEach(item => {
           const selectNodeDefIds = (selectObj[key] && selectObj[key].map(i => i.id)) || []
           if (selectNodeDefIds.includes(item.id)) {
             item.bound = 'Y'
-          } else {
+          }
+          else {
             item.bound = 'N'
           }
         })
@@ -1562,13 +1709,12 @@ export default {
       })
       this.flowNodesWithDataModalVisible = false
     },
-    async updateNodeInfo () {
-      const currentNode = this.flowData.flowNodes.find(_ => {
-        return _.nodeId === this.currentFlowNodeId
-      })
-      const payload = this.catchNodeTableList.map(_ => {
-        return { ..._, bound: 'Y' }
-      })
+    async updateNodeInfo() {
+      const currentNode = this.flowData.flowNodes.find(_ => _.nodeId === this.currentFlowNodeId)
+      const payload = this.catchNodeTableList.map(_ => ({
+        ..._,
+        bound: 'Y'
+      }))
       await setDataByNodeDefIdAndProcessSessionId(currentNode.nodeDefId, this.processSessionId, payload)
       const filter = this.allBindingsList.filter(_ => _.nodeDefId !== currentNode.nodeDefId)
       this.$Notice.success({
@@ -1600,8 +1746,8 @@ export default {
     // }, 500),
 
     // 获取执行记录列表
-    async getProcessInstances () {
-      let params = {
+    async getProcessInstances() {
+      const params = {
         params: {
           withCronIns: this.from === 'normal' ? 'no' : this.from === 'time' ? 'yes' : '',
           search: '',
@@ -1609,7 +1755,7 @@ export default {
           mgmtRole: ''
         }
       }
-      let { status, data } = await getProcessInstances(params)
+      const { status, data } = await getProcessInstances(params)
       if (status === 'OK') {
         this.allFlowInstances = data || []
         const id = this.$route.query.id
@@ -1617,7 +1763,7 @@ export default {
         // 没有这条记录数据，则根据ID查询拼接起来
         if (!hasFlag) {
           params.params.search = id
-          let { status, data } = await getProcessInstances(params)
+          const { status, data } = await getProcessInstances(params)
           if (status === 'OK' && data && data[0]) {
             this.allFlowInstances.unshift(data[0])
           }
@@ -1625,7 +1771,7 @@ export default {
       }
     },
     // 刷新当前选中执行记录状态
-    async fetchCurrentInstanceStatus () {
+    async fetchCurrentInstanceStatus() {
       const params = {
         params: {
           withCronIns: this.from === 'normal' ? 'no' : this.from === 'time' ? 'yes' : '',
@@ -1634,36 +1780,43 @@ export default {
           mgmtRole: ''
         }
       }
-      let { status, data } = await getProcessInstances(params)
+      const { status, data } = await getProcessInstances(params)
       if (status === 'OK' && data && data[0]) {
         const index = this.allFlowInstances.findIndex(i => i.id === data[0].id)
         this.allFlowInstances.splice(index, 1, data[0])
       }
     },
-    async getNodeBindings (id) {
-      if (!id) return
+    async getNodeBindings(id) {
+      if (!id) {
+        return
+      }
       const { status, data } = await getNodeBindings(id)
       if (status === 'OK') {
         this.flowNodesBindings = data
       }
     },
-    async getAllFlow () {
-      let { status, data } = await getAllFlow(false)
+    async getAllFlow() {
+      const { status, data } = await getAllFlow(false)
       if (status === 'OK') {
         this.allFlows = data.sort((a, b) => {
-          let s = a.createdTime.toLowerCase()
-          let t = b.createdTime.toLowerCase()
-          if (s > t) return -1
-          if (s < t) return 1
+          const s = a.createdTime.toLowerCase()
+          const t = b.createdTime.toLowerCase()
+          if (s > t) {
+            return -1
+          }
+          if (s < t) {
+            return 1
+          }
         })
         this.selectedFlowObj = this.allFlows.find(i => i.procDefId === this.selectedFlow) || {}
       }
     },
-    clearFlow () {
-      d3.select('#flow').selectAll('*').remove()
+    clearFlow() {
+      d3.select('#flow').selectAll('*')
+        .remove()
       this.clearTarget()
     },
-    orchestrationSelectHandler () {
+    orchestrationSelectHandler() {
       this.currentFlowNodeId = ''
       this.currentModelNodeRefs = []
       this.getFlowOutlineData(this.selectedFlow)
@@ -1676,46 +1829,55 @@ export default {
         this.renderModelGraph()
       }
     },
-    async getTargetOptions () {
-      if (!(this.selectedFlow && this.selectedFlow.length > 0)) return
+    async getTargetOptions() {
+      if (!(this.selectedFlow && this.selectedFlow.length > 0)) {
+        return
+      }
       const { status, data } = await getTargetModelByProcessDefId(this.selectedFlow)
       if (status === 'OK') {
         this.allTarget = data
       }
     },
-    clearHistoryOrch () {
+    clearHistoryOrch() {
       this.stop()
       this.selectedFlow = ''
       this.selectedTarget = ''
       this.currentInstanceStatusForNodeOperation = ''
-      d3.select('#flow').selectAll('*').remove()
-      d3.select('#graph').selectAll('*').remove()
+      d3.select('#flow').selectAll('*')
+        .remove()
+      d3.select('#graph').selectAll('*')
+        .remove()
     },
-    getCurrentInstanceStatus () {
+    getCurrentInstanceStatus() {
       const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
       if (found && ['Completed', 'InternallyTerminated', 'Faulted'].includes(found.status)) {
         this.currentInstanceStatus = true
-      } else {
+      }
+      else {
         this.currentInstanceStatus = false
       }
     },
-    queryHandler () {
+    queryHandler() {
       this.hasExecuteBranchVisible = false
       this.currentInstanceStatusForNodeOperation = ''
       this.stop()
-      if (!this.selectedFlowInstance) return
+      if (!this.selectedFlowInstance) {
+        return
+      }
       this.getStatus()
       this.getCurrentInstanceStatus()
       this.isEnqueryPage = true
       this.$nextTick(async () => {
         const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
-        if (!(found && found.id)) return
+        if (!(found && found.id)) {
+          return
+        }
         this.currentInstanceStatusForNodeOperation = found.status
         this.selectedFlow = found.procDefId
         this.selectedTarget = found.entityDataId
         this.processInstance()
         this.getNodeBindings(found.id)
-        let { status, data } = await getProcessInstance(found.id)
+        const { status, data } = await getProcessInstance(found.id)
         if (status === 'OK') {
           this.flowData = {
             ...data,
@@ -1737,16 +1899,16 @@ export default {
         this.tipForNonOwner(found)
       })
     },
-    tipForNonOwner (flow) {
+    tipForNonOwner(flow) {
       if (
-        ['InProgress', 'Timeouted', 'Stop'].includes(flow.status) &&
-        flow.operator !== localStorage.getItem('username')
+        ['InProgress', 'Timeouted', 'Stop'].includes(flow.status)
+        && flow.operator !== localStorage.getItem('username')
       ) {
         this.flowOwner = flow.operator
         this.isShowNonOwnerModal = true
       }
     },
-    queryHistory () {
+    queryHistory() {
       this.selectedTarget = null
       this.stop()
       this.isEnqueryPage = true
@@ -1759,7 +1921,7 @@ export default {
         this.initFlowGraph()
       })
     },
-    createHandler () {
+    createHandler() {
       this.selectedTarget = null
       this.stop()
       this.isEnqueryPage = false
@@ -1773,32 +1935,37 @@ export default {
         this.initFlowGraph()
       })
     },
-    clearTarget () {
+    clearTarget() {
       this.isExecuteActive = false
       this.showExcution = false
       this.selectedTarget = ''
-      d3.select('#graph').selectAll('*').remove()
+      d3.select('#graph').selectAll('*')
+        .remove()
     },
-    onTargetSelectHandler () {
+    onTargetSelectHandler() {
       this.isShowExect = false
       this.showExcution = true
       this.processSessionId = ''
-      if (!this.selectedTarget) return
+      if (!this.selectedTarget) {
+        return
+      }
       this.currentModelNodeRefs = []
       this.getModelData()
     },
-    async getModelData () {
+    async getModelData() {
       this.modelData = []
       if ((!this.selectedFlow || !this.selectedTarget) && !this.isEnqueryPage) {
         this.renderModelGraph()
         return
       }
       this.isLoading = true
-      let { status, data } = this.isEnqueryPage
+      const { status, data } = this.isEnqueryPage
         ? await getPreviewEntitiesByInstancesId(this.selectedFlowInstance)
         : await getTreePreviewData(this.selectedFlow, this.selectedTarget, this.$route.query.sessionId || '')
       this.isLoading = false
-      if (!this.selectedTarget && !this.isEnqueryPage) return
+      if (!this.selectedTarget && !this.isEnqueryPage) {
+        return
+      }
       if (status === 'OK') {
         if (!this.isEnqueryPage) {
           this.isShowExect = true
@@ -1808,19 +1975,19 @@ export default {
           const binds = await getAllBindingsProcessSessionId(data.processSessionId)
           this.allBindingsList = binds.data
         }
-        this.modelData = data.entityTreeNodes.map(_ => {
-          return {
-            ..._,
-            refFlowNodeIds: []
-          }
-        })
+        this.modelData = data.entityTreeNodes.map(_ => ({
+          ..._,
+          refFlowNodeIds: []
+        }))
         this.formatRefNodeIds()
       }
       this.renderModelGraph()
     },
-    async getFlowOutlineData (id) {
-      if (!id) return
-      let { status, data } = await getFlowOutlineByID(id)
+    async getFlowOutlineData(id) {
+      if (!id) {
+        return
+      }
+      const { status, data } = await getFlowOutlineByID(id)
       if (status === 'OK') {
         this.flowData = data
         this.initFlowGraph()
@@ -1828,7 +1995,7 @@ export default {
         this.nodesCannotBindData = data.flowNodes.filter(d => d.dynamicBind === 'Y').map(d => d.nodeId)
       }
     },
-    formatRefNodeIds () {
+    formatRefNodeIds() {
       this.modelData.forEach(i => {
         i.refFlowNodeIds = []
         this.allBindingsList.forEach(j => {
@@ -1839,12 +2006,12 @@ export default {
       })
     },
     // 绘制数据模型图
-    renderModelGraph () {
-      let nodes = this.modelData.map((_, index) => {
+    renderModelGraph() {
+      const nodes = this.modelData.map(_ => {
         const nodeId = _.id
         // '-' 在viz.js中存在渲染问题
         const nodeTitle = '"' + nodeId.replace(/-/g, '_') + '"'
-        let color = _.isHighlight ? '#5DB400' : 'black'
+        const color = _.isHighlight ? '#5DB400' : 'black'
         // const isRecord = _.refFlowNodeIds.length > 0
         // const shape = isRecord ? 'ellipse' : 'ellipse'
         let fillcolor = 'white'
@@ -1857,7 +2024,7 @@ export default {
           }
           return 0
         })
-        let refNodes = []
+        const refNodes = []
         let completedNodes = []
         _.refFlowNodeIds.forEach(id => {
           const node = this.flowData.flowNodes.find(_ => _.orderedNo === id)
@@ -1881,31 +2048,29 @@ export default {
         const label = firstLabel + '\n' + refStr
         return `${nodeTitle} [label="${label}" class="model" id="${nodeId}" flowInstanceId="" color="${color}" fontsize="6" style="filled" fillcolor="${fillcolor}" shape="box"]`
       })
-      let genEdge = () => {
-        let pathAry = []
+      const genEdge = () => {
+        const pathAry = []
 
         this.modelData.forEach(_ => {
           if (_.succeedingIds.length > 0) {
             const nodeId = _.id
             let current = []
-            current = _.succeedingIds.map(to => {
-              return '"' + nodeId + '"' + ' -> ' + '"' + to + '"'
-            })
+            current = _.succeedingIds.map(to => '"' + nodeId + '"' + ' -> ' + '"' + to + '"')
             pathAry.push(current)
           }
         })
-        return pathAry.flat().toString().replace(/,/g, ';')
+        return pathAry.flat().toString()
+          .replace(/,/g, ';')
       }
-      let nodesToString = Array.isArray(nodes) && nodes.length > 0 ? nodes.toString().replace(/,/g, ';') + ';' : ''
-      let nodesString =
-        'digraph G { ' +
-        'splines="polyline";' +
-        'bgcolor="transparent";' +
-        'Node [fontname=Arial, shape="ellipse", color="#505a68"];' +
-        'Edge [fontname=Arial, minlen="1", color="#505a68", fontsize=10];' +
-        nodesToString +
-        genEdge() +
-        '}'
+      const nodesToString = Array.isArray(nodes) && nodes.length > 0 ? nodes.toString().replace(/,/g, ';') + ';' : ''
+      const nodesString = 'digraph G { '
+        + 'splines="polyline";'
+        + 'bgcolor="transparent";'
+        + 'Node [fontname=Arial, shape="ellipse", color="#505a68"];'
+        + 'Edge [fontname=Arial, minlen="1", color="#505a68", fontsize=10];'
+        + nodesToString
+        + genEdge()
+        + '}'
       this.reloadGraph()
       this.graph.graphviz.transition().renderDot(nodesString)
       // .on('end', this.setFontSizeForText)
@@ -1914,7 +2079,7 @@ export default {
       addEvent('.model text', 'click', this.modelGraphClickHandler)
       addEvent('#graph svg', 'click', this.resetcurrentModelNodeRefs)
     },
-    setFontSizeForText () {
+    setFontSizeForText() {
       const nondes = d3.selectAll('#graph svg g .node')._groups[0]
       for (let i = 0; i < nondes.length; i++) {
         const len = nondes[i].children[2].innerHTML.replace(/&nbsp;/g, '').length
@@ -1924,14 +2089,14 @@ export default {
         }
       }
     },
-    resetcurrentModelNodeRefs () {
+    resetcurrentModelNodeRefs() {
       if (!this.isEnqueryPage) {
         this.currentModelNodeRefs = []
         this.renderFlowGraph()
       }
     },
     // 点击数据模型节点事件
-    modelGraphClickHandler (e) {
+    modelGraphClickHandler(e) {
       e.preventDefault()
       e.stopPropagation()
       if (!this.isEnqueryPage) {
@@ -1940,28 +2105,27 @@ export default {
           // 有关联节点时，高亮左边编排图
           this.currentModelNodeRefs = refEle.innerHTML.trim().split('/')
           this.renderFlowGraph()
-        } else {
+        }
+        else {
           // 没有关联节点时，左边编排图取消高亮效果
           this.currentModelNodeRefs = []
           this.renderFlowGraph()
         }
       }
       // 弹出节点数据弹框
-      this.modelDataWithFlowNodes = this.modelData.map(_ => {
-        return {
-          ..._,
-          entity: _.packageName + ':' + _.entityName,
-          nodeTitle:
-            _.refFlowNodeIds.length > 0
-              ? _.refFlowNodeIds
-                .map(id => {
-                  const found = this.flowData.flowNodes.find(n => n.orderedNo === id)
-                  return found.orderedNo + ' ' + found.nodeName
-                })
-                .join(';')
-              : ''
-        }
-      })
+      this.modelDataWithFlowNodes = this.modelData.map(_ => ({
+        ..._,
+        entity: _.packageName + ':' + _.entityName,
+        nodeTitle:
+          _.refFlowNodeIds.length > 0
+            ? _.refFlowNodeIds
+              .map(id => {
+                const found = this.flowData.flowNodes.find(n => n.orderedNo === id)
+                return found.orderedNo + ' ' + found.nodeName
+              })
+              .join(';')
+            : ''
+      }))
       this.modelDataWithFlowNodes = this.modelDataWithFlowNodes.filter(
         i => i.id === e.target.__data__.parent.attributes.id
       )
@@ -1969,12 +2133,18 @@ export default {
       this.targetWithFlowModalVisible = true
     },
     // 查看对象弹框
-    modelGraphMouseenterHandler (row) {
+    modelGraphMouseenterHandler(row) {
       clearTimeout(this.modelDetailTimer)
       this.modelDetailTimer = setTimeout(async () => {
         this.nodeTitle = `${row.displayName}`
-        let params = {
-          additionalFilters: [{ attrName: 'id', op: 'eq', condition: row.dataId || row.id }],
+        const params = {
+          additionalFilters: [
+            {
+              attrName: 'id',
+              op: 'eq',
+              condition: row.dataId || row.id
+            }
+          ],
           procInstId: this.selectedFlowInstance + ''
         }
         const { status, data } = await getModelNodeDetail(row.packageName, row.entityName, params)
@@ -1989,18 +2159,18 @@ export default {
         this.nodeDetailFullscreen = false
       }, 0)
     },
-    ResetFlow () {
+    ResetFlow() {
       if (this.flowGraph.graphviz) {
         this.flowGraph.graphviz.resetZoom()
       }
     },
-    ResetModel () {
+    ResetModel() {
       if (this.graph.graphviz) {
         this.graph.graphviz.resetZoom()
       }
     },
     // 绘制编排流程图
-    renderFlowGraph (excution) {
+    renderFlowGraph(excution) {
       // 节点颜色
       const statusColor = {
         Completed: '#5DB400',
@@ -2012,12 +2182,11 @@ export default {
         NotStarted: '#7F8A96',
         wait: '#7F8A96'
       }
-      let nodes =
-        this.flowData &&
-        this.flowData.flowNodes &&
-        this.flowData.flowNodes
+      const nodes = this.flowData
+        && this.flowData.flowNodes
+        && this.flowData.flowNodes
           .filter(i => i.status !== 'predeploy')
-          .map((_, index) => {
+          .map(_ => {
             const shapeMap = {
               start: 'circle', // 开始
               end: 'doublecircle', // 结束
@@ -2034,7 +2203,7 @@ export default {
               timeInterval: 'Mcircle' // 时间间隔
             }
             if (['start', 'end', 'abnormal', 'date', 'timeInterval'].includes(_.nodeType)) {
-              let className = 'retry'
+              const className = 'retry'
               const defaultLabel = _.nodeType
               return `${_.nodeId} [label="${
                 _.nodeName || defaultLabel
@@ -2043,36 +2212,35 @@ export default {
               }" fillcolor="${excution ? statusColor[_.status] || '#7F8A96' : '#7F8A96'}" shape="${
                 shapeMap[_.nodeType]
               }", id="${_.nodeId}"]`
-            } else {
-              // const className = _.status === 'Faulted' || _.status === 'Timeouted' ? 'retry' : 'normal'
-              let className = 'retry'
-              if (['decision'].includes(_.nodeType) && _.status === 'Faulted') {
-                className = ''
-              }
-              const isModelClick = this.currentModelNodeRefs.indexOf(_.orderedNo) > -1
-              return `${_.nodeId} [fixedsize=false label="${
-                (_.orderedNo ? _.orderedNo + ' ' : '') + _.nodeName
-              }" class="flow ${className}" style="${excution || isModelClick ? 'filled' : 'none'}" fillcolor="${
-                excution
-                  ? statusColor[_.status] || '#7F8A96'
-                  : isModelClick
-                    ? '#ff9900'
-                    : _.nodeId === this.currentFlowNodeId
-                      ? '#5DB400'
-                      : '#7F8A96'
-              }"  shape="${shapeMap[_.nodeType]}" id="${_.nodeId}" ]`
             }
+            // const className = _.status === 'Faulted' || _.status === 'Timeouted' ? 'retry' : 'normal'
+            let className = 'retry'
+            if (['decision'].includes(_.nodeType) && _.status === 'Faulted') {
+              className = ''
+            }
+            const isModelClick = this.currentModelNodeRefs.indexOf(_.orderedNo) > -1
+            return `${_.nodeId} [fixedsize=false label="${
+              (_.orderedNo ? _.orderedNo + ' ' : '') + _.nodeName
+            }" class="flow ${className}" style="${excution || isModelClick ? 'filled' : 'none'}" fillcolor="${
+              excution
+                ? statusColor[_.status] || '#7F8A96'
+                : isModelClick
+                  ? '#ff9900'
+                  : _.nodeId === this.currentFlowNodeId
+                    ? '#5DB400'
+                    : '#7F8A96'
+            }"  shape="${shapeMap[_.nodeType]}" id="${_.nodeId}" ]`
           })
-      let genEdge = () => {
-        let lineName = {}
-        this.flowData.nodeLinks &&
-          this.flowData.nodeLinks.forEach(link => {
+      const genEdge = () => {
+        const lineName = {}
+        this.flowData.nodeLinks
+          && this.flowData.nodeLinks.forEach(link => {
             lineName[link.source + link.target] = link.name
           })
-        let pathAry = []
-        this.flowData &&
-          this.flowData.flowNodes &&
-          this.flowData.flowNodes.forEach(_ => {
+        const pathAry = []
+        this.flowData
+          && this.flowData.flowNodes
+          && this.flowData.flowNodes.forEach(_ => {
             if (_.succeedingNodeIds.length > 0) {
               let current = []
               current = _.succeedingNodeIds.map(to => {
@@ -2081,39 +2249,38 @@ export default {
                 // 修复判断分支多连线不能区分颜色问题
                 if (_.nodeType === 'decision') {
                   return (
-                    '"' +
-                    _.nodeId +
-                    '"' +
-                    ' -> ' +
-                    `${'"' + to + '"'} [label="${lineName[_.nodeId + to]}" color="${edgeColor}" ]`
-                  )
-                } else {
-                  return (
-                    '"' +
-                    _.nodeId +
-                    '"' +
-                    ' -> ' +
-                    `${'"' + to + '"'} [label="${lineName[_.nodeId + to]}" color="${
-                      excution ? statusColor[_.status] : 'black'
-                    }"]`
+                    '"'
+                    + _.nodeId
+                    + '"'
+                    + ' -> '
+                    + `${'"' + to + '"'} [label="${lineName[_.nodeId + to]}" color="${edgeColor}" ]`
                   )
                 }
+                return (
+                  '"'
+                  + _.nodeId
+                  + '"'
+                  + ' -> '
+                  + `${'"' + to + '"'} [label="${lineName[_.nodeId + to]}" color="${
+                    excution ? statusColor[_.status] : 'black'
+                  }"]`
+                )
               })
               pathAry.push(current)
             }
           })
-        return pathAry.flat().toString().replace(/,/g, ';')
+        return pathAry.flat().toString()
+          .replace(/,/g, ';')
       }
-      let nodesToString = Array.isArray(nodes) ? nodes.toString().replace(/,/g, ';') + ';' : ''
-      let nodesString =
-        'digraph G {' +
-        'bgcolor="transparent";' +
-        'splines="polyline"' +
-        'Node [fontname=Arial, width=1.8, height=0.45, color="#505a68", fontsize=12]' +
-        'Edge [fontname=Arial, color="#505a68", fontsize=10];' +
-        nodesToString +
-        genEdge() +
-        '}'
+      const nodesToString = Array.isArray(nodes) ? nodes.toString().replace(/,/g, ';') + ';' : ''
+      const nodesString = 'digraph G {'
+        + 'bgcolor="transparent";'
+        + 'splines="polyline"'
+        + 'Node [fontname=Arial, width=1.8, height=0.45, color="#505a68", fontsize=12]'
+        + 'Edge [fontname=Arial, color="#505a68", fontsize=10];'
+        + nodesToString
+        + genEdge()
+        + '}'
       this.flowGraph.graphviz
         .transition()
         .renderDot(nodesString)
@@ -2130,7 +2297,8 @@ export default {
             d3.selectAll('.retry').attr('cursor', 'pointer')
             d3.selectAll('.time-node').attr('cursor', 'pointer')
             d3.selectAll('.decision-node').attr('cursor', 'pointer')
-          } else {
+          }
+          else {
             removeEvent('.retry', 'click', this.retryHandler)
             removeEvent('.normal', 'click', this.normalHandler)
             removeEvent('.time-node', 'click', this.timeNodeHandler)
@@ -2139,12 +2307,13 @@ export default {
         })
       this.bindFlowEvent()
     },
-    async excutionFlow () {
+    async excutionFlow() {
       // 区分已存在的flowInstance执行 和 新建的执行
       if (this.isEnqueryPage) {
         this.processInstance()
         this.showExcution = false
-      } else {
+      }
+      else {
         if (!this.selectedTarget || !this.selectedFlow) {
           this.$Message.warning(this.$t('workflow_exec_empty_tip'))
           return
@@ -2153,7 +2322,7 @@ export default {
         const currentTarget = this.allTarget.find(_ => _.id === this.selectedTarget)
         let taskNodeBinds = []
         this.modelData.forEach(_ => {
-          let temp = []
+          const temp = []
           _.refFlowNodeIds.forEach(i => {
             temp.push({
               ..._,
@@ -2163,7 +2332,7 @@ export default {
           taskNodeBinds = taskNodeBinds.concat(temp)
         })
 
-        let payload = {
+        const payload = {
           entityDataId: currentTarget.id,
           processSessionId: this.processSessionId,
           entityDisplayName: currentTarget.displayName,
@@ -2183,7 +2352,7 @@ export default {
         setTimeout(() => {
           this.btnLoading = false
         }, 5000)
-        let { status, data } = await createFlowInstance(payload)
+        const { status, data } = await createFlowInstance(payload)
         this.btnLoading = false
         this.isExecuteActive = false
         if (status === 'OK') {
@@ -2198,7 +2367,7 @@ export default {
         }
       }
     },
-    start () {
+    start() {
       if (this.timer === null) {
         this.getStatus()
       }
@@ -2209,18 +2378,20 @@ export default {
         this.getStatus()
       }, 5000)
     },
-    stop () {
+    stop() {
       clearInterval(this.timer)
     },
-    async getStatus () {
+    async getStatus() {
       const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
-      if (!(found && found.id)) return
-      let { status, data } = await getProcessInstance(found.id)
+      if (!(found && found.id)) {
+        return
+      }
+      const { status, data } = await getProcessInstance(found.id)
       if (status === 'OK') {
         this.currentInstanceStatusForNodeOperation = data.status
         if (
-          !this.flowData.flowNodes ||
-          (this.flowData.flowNodes && this.comparativeData(this.flowData.flowNodes, data.taskNodeInstances))
+          !this.flowData.flowNodes
+          || (this.flowData.flowNodes && this.comparativeData(this.flowData.flowNodes, data.taskNodeInstances))
         ) {
           this.flowData = {
             ...data,
@@ -2240,9 +2411,9 @@ export default {
         if (
           !['Stop', 'Completed', 'InternallyTerminated', 'Faulted'].includes(
             this.currentInstanceStatusForNodeOperation
-          ) &&
-          !this.hasExecuteBranchVisible &&
-          inProcessNode
+          )
+          && !this.hasExecuteBranchVisible
+          && inProcessNode
         ) {
           this.retryHandler(null, inProcessNode.nodeId)
         }
@@ -2255,7 +2426,7 @@ export default {
         this.refreshModelData()
       }
     },
-    async refreshModelData () {
+    async refreshModelData() {
       await this.getModelData()
       // this.modelData = []
       if ((!this.selectedFlow || !this.selectedTarget) && !this.isEnqueryPage) {
@@ -2268,7 +2439,7 @@ export default {
         this.renderModelGraph()
       }
     },
-    comparativeData (old, newData) {
+    comparativeData(old, newData) {
       let isNew = false
       newData.forEach(_ => {
         const found = old.find(d => d.nodeId === _.nodeId)
@@ -2278,11 +2449,11 @@ export default {
       })
       return isNew
     },
-    processInstance () {
+    processInstance() {
       this.start()
     },
     // 通用节点操作弹框
-    retryHandler (e, id) {
+    retryHandler(e, id) {
       this.currentFailedNodeID = id || e.target.parentNode.getAttribute('id')
       this.isNodeCanBindData = this.nodesCannotBindData.includes(this.currentFailedNodeID)
       this.retryTargetModelColums[0].disabled = this.isNodeCanBindData
@@ -2300,7 +2471,7 @@ export default {
       }
     },
     // 时间节点手动跳过
-    async timeNodeHandler (e) {
+    async timeNodeHandler(e) {
       const flowInstanceNode = this.flowData.flowNodes.find(
         node => node.nodeId === e.target.parentNode.getAttribute('id')
       )
@@ -2316,7 +2487,7 @@ export default {
       }
     },
     // 确定手动跳过
-    async confirmSkip () {
+    async confirmSkip() {
       const { status } = await skipNode(this.manualSkipParams)
       if (status === 'OK') {
         this.$Notice.success({
@@ -2327,10 +2498,9 @@ export default {
       }
     },
     // 判断节点-显示可执行分支
-    async executeBranchHandler (e, nodeId) {
-      const flowInstanceNode =
-        this.flowData.flowNodes &&
-        this.flowData.flowNodes.find(node => node.nodeId === (nodeId || e.target.parentNode.getAttribute('id')))
+    async executeBranchHandler(e, nodeId) {
+      const flowInstanceNode = this.flowData.flowNodes
+        && this.flowData.flowNodes.find(node => node.nodeId === (nodeId || e.target.parentNode.getAttribute('id')))
       if (flowInstanceNode) {
         this.manualSkipParams.act = 'choose'
         this.manualSkipParams.message = ''
@@ -2344,7 +2514,7 @@ export default {
       }
     },
     // 判断分支-执行分支
-    async confirmExecuteBranch () {
+    async confirmExecuteBranch() {
       const { status } = await executeBranch(this.manualSkipParams)
       if (status === 'OK') {
         this.workflowActionModalVisible = false
@@ -2355,10 +2525,10 @@ export default {
       }
     },
     // 暂时屏蔽了，没起作用
-    normalHandler (e) {
+    normalHandler(e) {
       this.flowGraphMouseenterHandler(e.target.parentNode.getAttribute('id'))
     },
-    async workFlowActionHandler (type) {
+    async workFlowActionHandler(type) {
       const found = this.flowData.flowNodes.find(_ => _.nodeId === this.currentFailedNodeID)
       if (!found) {
         return
@@ -2366,7 +2536,8 @@ export default {
       if (type === 'showlog') {
         // 查看日志
         this.flowGraphMouseenterHandler(this.currentFailedNodeID)
-      } else if (type === 'skip') {
+      }
+      else if (type === 'skip') {
         // 节点跳过
         this.$Modal.confirm({
           title: this.$t('confirm_to_skip'),
@@ -2394,12 +2565,15 @@ export default {
           },
           onCancel: () => {}
         })
-      } else if (type === 'retry') {
+      }
+      else if (type === 'retry') {
         this.executeRetry(found, type)
-      } else if (type === 'risky') {
+      }
+      else if (type === 'risky') {
         // 高危确认
         this.executeRisky(found)
-      } else {
+      }
+      else {
         const payload = {
           nodeInstId: found.id,
           procInstId: found.procInstId
@@ -2410,7 +2584,7 @@ export default {
         this.retryTargetModalVisible = true
       }
     },
-    async executeRetry (nodeInfo, type) {
+    async executeRetry(nodeInfo, type) {
       const payload = {
         act: type,
         nodeInstId: nodeInfo.id,
@@ -2431,7 +2605,7 @@ export default {
         this.processInstance()
       }
     },
-    async executeRisky (nodeInfo) {
+    async executeRisky(nodeInfo) {
       this.confirmModal.message = ''
       this.confirmModal.requestBody = ''
       this.confirmModal.check = false
@@ -2443,11 +2617,11 @@ export default {
         this.confirmModal.requestBody = nodeInfo
       }
     },
-    confirmToExecution () {
+    confirmToExecution() {
       this.confirmModal.isShowConfirmModal = false
       this.executeRetry(this.confirmModal.requestBody, 'retry')
     },
-    async getTaskNodeInstanceExecBindings (payload) {
+    async getTaskNodeInstanceExecBindings(payload) {
       const erroInfo = await this.getErrorLog(this.currentFailedNodeID)
       const { status, data } = await getTaskNodeInstanceExecBindings(payload)
       if (status === 'OK') {
@@ -2459,23 +2633,27 @@ export default {
         this.retryCatchNodeTableList.forEach((tm, index) => {
           tm._checked = false
           const find = erroInfo.find(info => info.id === tm.entityDataId)
-          let retryTartetModelsSingle = this.retryTartetModels[index]
+          const retryTartetModelsSingle = this.retryTartetModels[index]
           if (find) {
             if (find.errorCode === '-1') {
               tm.confirmToken = 'Y'
               retryTartetModelsSingle.status = 'Confirm'
-            } else if (find.errorCode === '1') {
+            }
+            else if (find.errorCode === '1') {
               tm.confirmToken = ''
               retryTartetModelsSingle.status = 'Error'
-            } else if (find.errorCode === '0') {
+            }
+            else if (find.errorCode === '0') {
               tm.confirmToken = ''
               retryTartetModelsSingle.status = ''
-            } else {
+            }
+            else {
               tm.confirmToken = ''
               retryTartetModelsSingle.status = ''
             }
             retryTartetModelsSingle.message = find.errorMessage
-          } else {
+          }
+          else {
             tm.confirmToken = ''
             retryTartetModelsSingle.status = ''
             retryTartetModelsSingle.message = ''
@@ -2488,22 +2666,20 @@ export default {
         })
       }
     },
-    async getErrorLog (id) {
+    async getErrorLog(id) {
       const found = this.flowData.flowNodes.find(_ => _.nodeId === id)
       const { status, data } = await getNodeContext(found.procInstId, found.id)
       if (status === 'OK') {
-        const errorInfo = data.requestObjects.map(item => {
-          return {
-            id: item.callbackParameter,
-            errorMessage: (item.outputs[0] && item.outputs[0].errorMessage) || '',
-            errorCode: (item.outputs[0] && item.outputs[0].errorCode) || ''
-          }
-        })
+        const errorInfo = data.requestObjects.map(item => ({
+          id: item.callbackParameter,
+          errorMessage: (item.outputs[0] && item.outputs[0].errorMessage) || '',
+          errorCode: (item.outputs[0] && item.outputs[0].errorCode) || ''
+        }))
         return errorInfo
       }
     },
     // 新建执行-节点点击事件
-    bindFlowEvent () {
+    bindFlowEvent() {
       if (this.isEnqueryPage !== true) {
         addEvent('.flow', 'mouseover', e => {
           e.preventDefault()
@@ -2512,12 +2688,13 @@ export default {
         })
         removeEvent('.flow', 'click', this.flowNodesClickHandler)
         addEvent('.flow', 'click', this.flowNodesClickHandler)
-      } else {
+      }
+      else {
         removeEvent('.flow', 'click', this.flowNodesClickHandler)
       }
     },
     // 查看日志
-    flowGraphMouseenterHandler (id) {
+    flowGraphMouseenterHandler(id) {
       clearTimeout(this.flowDetailTimer)
       this.flowDetailTimer = setTimeout(async () => {
         const found = this.flowData.flowNodes.find(_ => _.nodeId === id)
@@ -2563,39 +2740,38 @@ export default {
                 }
               })
             }
-          } else {
+          }
+          else {
             this.nodeDetailColumns = this.nodeDetailColumns.filter(i => i.key !== 'procDefId')
           }
         }
         this.tableMaxHeight = 400
       }, 200)
     },
-    replaceParams (obj) {
-      let placeholder = new Array(16).fill('&nbsp;')
+    replaceParams(obj) {
+      const placeholder = new Array(16).fill('&nbsp;')
       placeholder.unshift('<br/>')
-      for (let key in obj) {
+      for (const key in obj) {
         if (obj[key] !== null && typeof obj[key] === 'string') {
           obj[key] = obj[key].replace('\r\n', placeholder.join(''))
         }
       }
       return obj
     },
-    flowNodesClickHandler (e) {
+    flowNodesClickHandler(e) {
       e.preventDefault()
       e.stopPropagation()
-      let g = e.currentTarget
+      const g = e.currentTarget
       this.currentFlowNodeId = g.id
-      const currentNode = this.flowData.flowNodes.find(_ => {
-        return _.nodeId === this.currentFlowNodeId
-      })
+      const currentNode = this.flowData.flowNodes.find(_ => _.nodeId === this.currentFlowNodeId)
       this.currentNodeTitle = `${currentNode.orderedNo}${currentNode.orderedNo ? '、' : ''}${currentNode.nodeName}`
       this.highlightModel(g.id, currentNode.nodeDefId, currentNode.nodeType)
       this.renderFlowGraph()
     },
-    async highlightModel (nodeId, nodeDefId, nodeType) {
+    async highlightModel(nodeId, nodeDefId, nodeType) {
       const hasModalDataNodes = ['human', 'automatic', 'data', 'subProc']
       if (nodeDefId && this.processSessionId && hasModalDataNodes.includes(nodeType)) {
-        let { status, data } = await getDataByNodeDefIdAndProcessSessionId(nodeDefId, this.processSessionId)
+        const { status, data } = await getDataByNodeDefIdAndProcessSessionId(nodeDefId, this.processSessionId)
         if (status === 'OK') {
           this.tartetModels = data.map(_ => {
             const { nodeType } = this.flowData.flowNodes.find(i => i.nodeId === _.nodeDefId) || { nodeType: '' }
@@ -2605,10 +2781,12 @@ export default {
               nodeType
             }
           })
-        } else {
+        }
+        else {
           this.tartetModels = []
         }
-      } else {
+      }
+      else {
         return
       }
 
@@ -2620,7 +2798,7 @@ export default {
       this.targetModalVisible = true
       this.showNodeDetail = false
       this.$nextTick(() => {
-        let objData = this.$refs.selection.objData // 表格所有复选框数据(包括未勾选的)
+        const objData = this.$refs.selection.objData // 表格所有复选框数据(包括未勾选的)
         Object.keys(objData).forEach(i => {
           this.tartetModels.forEach(j => {
             if (j.nodeDefId === nodeDefId && j.entityDataId === objData[i].entityDataId) {
@@ -2634,12 +2812,12 @@ export default {
         })
       })
     },
-    reloadGraph () {
+    reloadGraph() {
       const graphEl = document.getElementById('graph')
       const initEvent = () => {
-        let graph
-        graph = d3.select(`#graph`)
-        graph.on('dblclick.zoom', null).on('wheel.zoom', null).on('mousewheel.zoom', null)
+        const graph = d3.select('#graph')
+        graph.on('dblclick.zoom', null).on('wheel.zoom', null)
+          .on('mousewheel.zoom', null)
         this.graph.graphviz = graph
           .graphviz()
           .fit(true)
@@ -2649,12 +2827,12 @@ export default {
       }
       initEvent()
     },
-    initModelGraph () {
+    initModelGraph() {
       const graphEl = document.getElementById('graph')
       const initEvent = () => {
-        let graph
-        graph = d3.select(`#graph`)
-        graph.on('dblclick.zoom', null).on('wheel.zoom', null).on('mousewheel.zoom', null)
+        const graph = d3.select('#graph')
+        graph.on('dblclick.zoom', null).on('wheel.zoom', null)
+          .on('mousewheel.zoom', null)
         this.graph.graphviz = graph
           .graphviz()
           .fit(true)
@@ -2666,10 +2844,9 @@ export default {
       this.formatRefNodeIds()
       this.renderModelGraph()
     },
-    initFlowGraph (excution = false) {
+    initFlowGraph(excution = false) {
       const graphEl = document.getElementById('flow')
-      let graph
-      graph = d3.select(`#flow`)
+      const graph = d3.select('#flow')
       graph.on('dblclick.zoom', null)
       this.flowGraph.graphviz = graph
         .graphviz()
@@ -2679,12 +2856,12 @@ export default {
         .width(graphEl.offsetWidth - 10)
       this.renderFlowGraph(excution)
     },
-    zoomModal () {
+    zoomModal() {
       this.tableMaxHeight = document.body.scrollHeight - 410
       this.nodeDetailFullscreen = true
     },
     // 暂停、继续编排
-    async flowControlHandler (operateType) {
+    async flowControlHandler(operateType) {
       const instance = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
       this.$Modal.confirm({
         title:
@@ -2699,7 +2876,7 @@ export default {
             : '',
         'z-index': 10,
         onOk: async () => {
-          let payload = {
+          const payload = {
             procInstId: this.selectedFlowInstance,
             act: operateType
           }
@@ -2719,7 +2896,7 @@ export default {
       })
     },
     // 终止操作
-    async stopHandler () {
+    async stopHandler() {
       const instance = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
       this.$Modal.confirm({
         title:
