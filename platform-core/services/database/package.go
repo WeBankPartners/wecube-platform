@@ -1030,7 +1030,7 @@ func DecommissionPluginPackage(ctx context.Context, pluginPackageId, operator st
 	}
 	updateData := make(map[string]interface{})
 	updateData["status"] = models.PluginStatusDecommissioned
-	updateData["updated_time"] = time.Now()
+	updateData["updated_time"] = time.Now().Format(models.DateTimeFormat)
 	updateData["updated_by"] = operator
 	_, err = session.Table(new(models.PluginPackages)).Where("id = ?", pluginPackageId).Update(updateData)
 	if err != nil {
