@@ -15,7 +15,7 @@ export default {
   components: {
     BenchMenu
   },
-  data () {
+  data() {
     return {
       expand: true,
       menuList: [
@@ -57,13 +57,13 @@ export default {
     }
   },
   computed: {
-    benchStyle () {
+    benchStyle() {
       return {
         paddingLeft: this.expand ? '140px' : '0px'
       }
     }
   },
-  mounted () {
+  mounted() {
     this.$eventBusP.$on('expand-menu', val => {
       this.expand = val
     })
