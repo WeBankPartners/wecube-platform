@@ -28,12 +28,21 @@ import (
 
 // GetPackages 插件列表查询
 func GetPackages(c *gin.Context) {
-	allPackageFlag := strings.ToLower(c.Query("all"))
-	allFlag := false
-	if allPackageFlag == "yes" || allPackageFlag == "y" || allPackageFlag == "true" {
-		allFlag = true
+	//allPackageFlag := strings.ToLower(c.Query("all"))
+	//allFlag := false
+	//if allPackageFlag == "yes" || allPackageFlag == "y" || allPackageFlag == "true" {
+	//	allFlag = true
+	//}
+	//result, err := database.GetPackages(c, allFlag)
+	queryParam := models.PluginPackageQueryParam{}
+	queryParam.Id = c.Query("id")
+	queryParam.Name = c.Query("name")
+	queryParam.UpdatedBy = c.Query("updatedBy")
+	queryParam.WithRunningInstance = strings.ToLower(c.Query("running"))
+	if c.Query("withDelete") == "yes" {
+		queryParam.WithDelete = true
 	}
-	result, err := database.GetPackages(c, allFlag)
+	result, err := database.QueryPluginPackages(c, &queryParam)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -113,6 +122,16 @@ func UploadPackage(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("plugin %s:%s already existed", registerConfig.Name, registerConfig.Version))
 		return
 	}
+	var samePackageNameNum int
+	samePackageNameNum, err = database.GetPluginPackageNum(c, pluginPackageObj.Name)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if samePackageNameNum > 3 {
+		middleware.ReturnError(c, fmt.Errorf("Package num limit 3 "))
+		return
+	}
 	if registerConfig.ResourceDependencies.Mysql.InitFileName != "" {
 		initSql = registerConfig.ResourceDependencies.Mysql.InitFileName
 		upgradeSql = registerConfig.ResourceDependencies.Mysql.UpgradeFileName
@@ -154,13 +173,67 @@ func UploadPackage(c *gin.Context) {
 		enterprise = true
 	}
 	var pluginPackageId string
-	pluginPackageId, err = database.UploadPackage(c, &registerConfig, withUi, enterprise, "")
+	pluginPackageId, err = database.UploadPackage(c, &registerConfig, withUi, enterprise, "", middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
+		if registerConfig.Authorities.Authority.SystemRoleName != "" {
+			var menuCodeList []string
+			for _, v := range registerConfig.Authorities.Authority.Menu {
+				menuCodeList = append(menuCodeList, v.Code)
+			}
+			if len(menuCodeList) > 0 {
+				updateRoleErr := updateRoleMenuWithPackage(c, registerConfig.Authorities.Authority.SystemRoleName, menuCodeList)
+				if updateRoleErr != nil {
+					log.Logger.Error("updateRoleMenuWithPackage fail", log.String("pluginPackageId", pluginPackageId), log.Error(updateRoleErr))
+				} else {
+					log.Logger.Info("updateRoleMenuWithPackage done", log.String("pluginPackageId", pluginPackageId), log.StringList("menuCodeList", menuCodeList))
+				}
+			}
+		}
 		resultData := models.PackageIdRespData{Id: pluginPackageId}
 		middleware.ReturnData(c, resultData)
 	}
+}
+
+func updateRoleMenuWithPackage(ctx *gin.Context, roleName string, menuCodeList []string) (err error) {
+	language := ctx.GetHeader(middleware.AcceptLanguageHeader)
+	respData, getRolesErr := remote.RetrieveAllLocalRoles("Y", remote.GetToken(), language, false)
+	if getRolesErr != nil {
+		err = fmt.Errorf("get all roles fail,%s ", getRolesErr.Error())
+		return
+	}
+	var roleId string
+	for _, v := range respData.Data {
+		if v.Name == roleName {
+			roleId = v.ID
+			break
+		}
+	}
+	if roleId == "" {
+		err = fmt.Errorf("can not find role id with name:%s ", roleName)
+		return
+	}
+	var needAddAuthoritiesToGrantList []*models.SimpleAuthorityDto
+	for _, v := range menuCodeList {
+		needAddAuthoritiesToGrantList = append(needAddAuthoritiesToGrantList, &models.SimpleAuthorityDto{Code: v})
+	}
+	err = remote.ConfigureRoleWithAuthoritiesById(roleId, remote.GetToken(), language, needAddAuthoritiesToGrantList)
+	if err != nil {
+		err = fmt.Errorf("ConfigureRoleWithAuthoritiesById fail,%s ", err.Error())
+	} else {
+		for _, code := range menuCodeList {
+			roleMenu := models.RoleMenu{
+				Id:       guid.CreateGuid(),
+				RoleName: roleName,
+				MenuCode: code,
+			}
+			if err = database.AddRoleMenu(ctx, roleMenu); err != nil {
+				break
+			}
+		}
+	}
+	return
 }
 
 // ListOnliePackage 获取在线插件列表
@@ -223,7 +296,7 @@ func doPullPackageBackground(c *gin.Context, pullId, fileName string) {
 		return
 	}
 	archiveFilePath := tmpFile.Name()
-	pkgId, err := doUploadPackage(c, archiveFilePath)
+	pkgId, err := doUploadPackage(c, archiveFilePath, middleware.GetRequestUser(c))
 	if err != nil {
 		// update failed
 		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", err.Error(), "", tmpFileSize)
@@ -239,7 +312,7 @@ func doPullPackageBackground(c *gin.Context, pullId, fileName string) {
 	log.Logger.Debug("pull plugin package,clean up plugin package tmp file", log.JsonObj("fileName", fileName), log.JsonObj("archiveFilePath", archiveFilePath))
 }
 
-func doUploadPackage(c context.Context, archiveFilePath string) (pluginPkgId string, err error) {
+func doUploadPackage(c context.Context, archiveFilePath, operator string) (pluginPkgId string, err error) {
 	tmpFileDir := fmt.Sprintf("/tmp/%d", time.Now().UnixNano())
 	if err = os.MkdirAll(tmpFileDir, 0700); err != nil {
 		err = fmt.Errorf("make tmp dir fail,%s ", err.Error())
@@ -335,7 +408,7 @@ func doUploadPackage(c context.Context, archiveFilePath string) (pluginPkgId str
 	}
 	// 写数据库
 	pkgId := "plugin_" + guid.CreateGuid()
-	_, err = database.UploadPackage(c, &registerConfig, withUi, false, pkgId)
+	_, err = database.UploadPackage(c, &registerConfig, withUi, false, pkgId, operator)
 	if err != nil {
 		return
 	}
@@ -355,6 +428,7 @@ func PullOnliePackageStatus(c *gin.Context) {
 			data["state"] = result.State
 			data["requestId"] = pullId
 			data["errorMessage"] = result.ErrMsg
+			data["pluginPackageId"] = result.PkgId
 		}
 		middleware.ReturnData(c, data)
 	}
@@ -464,7 +538,7 @@ func RegisterPackage(c *gin.Context) {
 		// 把ui.zip用ssh传到静态资源服务器上并解压，如果有两台服务器，则每台都要上传与解压
 		for _, staticResourceObj := range models.Config.StaticResources {
 			targetPath := fmt.Sprintf("%s/%s/%s/ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
-			unzipCmd := fmt.Sprintf("cd %s/%s/%s && unzip -o ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
+			unzipCmd := fmt.Sprintf("cd %s/%s/%s && unzip -o ui.zip && rm -f ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
 			log.Logger.Debug("register plugin,start scp ui.zip to remote host", log.String("server", staticResourceObj.Server), log.String("targetPath", targetPath))
 			if err = bash.RemoteSCP(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, uiFileLocalPath, targetPath); err != nil {
 				break
@@ -515,7 +589,7 @@ func RegisterPackage(c *gin.Context) {
 		}
 		if len(resourceFileList) > 0 {
 			log.Logger.Debug("register plugin,start update plugin static resource file data", log.JsonObj("resourceFileList", resourceFileList))
-			if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, resourceFileList); err != nil {
+			if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, pluginPackageObj.Name, resourceFileList, middleware.GetRequestUser(c)); err != nil {
 				middleware.ReturnError(c, err)
 				return
 			}
@@ -569,6 +643,15 @@ func LaunchPlugin(c *gin.Context) {
 	if err := database.GetSimplePluginPackage(c, &pluginPackageObj, true); err != nil {
 		log.Logger.Error("GetSimplePluginPackage fail", log.Error(err))
 		middleware.ReturnError(c, err)
+		return
+	}
+	existPluginInstance, getExistErr := database.GetPluginInstance("", pluginPackageObj.Name, hostIp, false)
+	if getExistErr != nil {
+		middleware.ReturnError(c, getExistErr)
+		return
+	}
+	if existPluginInstance.Id != "" {
+		middleware.ReturnError(c, fmt.Errorf("Host:%s already running plugin:%s ", hostIp, pluginPackageObj.Name))
 		return
 	}
 	log.Logger.Debug("pluginPackage", log.JsonObj("data", pluginPackageObj))
@@ -753,7 +836,7 @@ func LaunchPlugin(c *gin.Context) {
 		envBindList = append(envBindList, "LICENSE_SIGNATURE="+licSign)
 	}
 	// 替换容器参数差异化变量
-	replaceMap, err := database.BuildDockerEnvMap(c, envMap)
+	replaceMap, err := database.BuildDockerEnvMap(c, envMap, pluginPackageObj.Name, pluginPackageObj.Version)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -779,6 +862,7 @@ func LaunchPlugin(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	time.Sleep(1 * time.Second)
 	// 去目标机器上docker run起来，或使用docker-compose
 	dockerCmd := fmt.Sprintf("docker run -d --name %s ", dockerResource.ContainerName)
 	for _, v := range volumeBindList {
@@ -799,6 +883,10 @@ func LaunchPlugin(c *gin.Context) {
 	}
 	dockerCmd += dockerResource.ImageName
 	if err = bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, dockerCmd); err != nil {
+		// 清理启动失败的docker
+		if rmDockerErr := bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, fmt.Sprintf("docker rm -f %s", dockerResource.ContainerName)); rmDockerErr != nil {
+			log.Logger.Error("Try to remove failed docker container", log.String("containerName", dockerResource.ContainerName), log.Error(rmDockerErr))
+		}
 		middleware.ReturnError(c, err)
 		return
 	}
@@ -819,7 +907,7 @@ func LaunchPlugin(c *gin.Context) {
 		Name:                 dockerResource.ContainerName,
 	}
 	pluginInstance.DockerInstanceResourceId = resourceItem.Id
-	err = database.LaunchPlugin(c, &pluginInstance, &resourceItem)
+	err = database.LaunchPlugin(c, &pluginInstance, &resourceItem, middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -836,7 +924,7 @@ func LaunchPlugin(c *gin.Context) {
 // RemovePlugin 运行管理 - 插件实例销毁
 func RemovePlugin(c *gin.Context) {
 	pluginInstanceId := c.Param("pluginInstanceId")
-	pluginInstanceObj, err := database.GetPluginInstance(pluginInstanceId)
+	pluginInstanceObj, err := database.GetPluginInstance(pluginInstanceId, "", "", true)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -954,5 +1042,155 @@ func GetPluginS3Files(c *gin.Context) {
 			}
 		}
 		middleware.ReturnData(c, result)
+	}
+}
+
+// UIRegisterPackage 插件配置 - 注册插件包UI资源
+func UIRegisterPackage(c *gin.Context) {
+	var param models.PluginPackages
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	pluginPackageId := param.Id
+	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
+	if err := database.GetSimplePluginPackage(c, &pluginPackageObj, true); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	var err error
+	if !pluginPackageObj.UiPackageIncluded {
+		middleware.ReturnSuccess(c)
+		return
+	}
+	if len(models.Config.StaticResources) == 0 {
+		middleware.ReturnError(c, fmt.Errorf("static resource config empty"))
+		return
+	}
+	// 把s3上的ui.zip下下来放到本地
+	log.Logger.Debug("register plugin,start download ui.zip")
+	var uiFileLocalPath, uiDir string
+	if uiFileLocalPath, err = bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/ui.zip", pluginPackageObj.Name, pluginPackageObj.Version)); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	log.Logger.Debug("register plugin,start decompress ui.zip", log.String("uiFileLocalPath", uiFileLocalPath))
+	// 本地解压ui.zip
+	if uiDir, err = bash.DecompressFile(uiFileLocalPath, ""); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	// 把ui.zip用ssh传到静态资源服务器上并解压，如果有两台服务器，则每台都要上传与解压
+	for _, staticResourceObj := range models.Config.StaticResources {
+		targetPath := fmt.Sprintf("%s/%s/%s/ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
+		unzipCmd := fmt.Sprintf("cd %s/%s/%s && unzip -o ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
+		log.Logger.Debug("register plugin,start scp ui.zip to remote host", log.String("server", staticResourceObj.Server), log.String("targetPath", targetPath))
+		if err = bash.RemoteSCP(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, uiFileLocalPath, targetPath); err != nil {
+			break
+		}
+		log.Logger.Debug("register plugin,start unzip ui.zip in remote host", log.String("server", staticResourceObj.Server), log.String("unzipCmd", unzipCmd))
+		if err = bash.RemoteSSHCommand(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, unzipCmd); err != nil {
+			break
+		}
+	}
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	// 把ui.zip里的静态文件读出来
+	var fileNameList []string
+	indexPath, matchIndexFlag, findErr := bash.GetDirIndexPath(uiDir)
+	if findErr != nil {
+		middleware.ReturnError(c, findErr)
+		return
+	}
+	if !matchIndexFlag {
+		middleware.ReturnError(c, fmt.Errorf("can not find index.html in ui package"))
+		return
+	}
+	log.Logger.Debug("match index path", log.String("indexPath", indexPath))
+	indexPath = strings.TrimSuffix(indexPath, "/")
+	dirPrefix := uiDir
+	if indexPath != "" {
+		dirPrefix = uiDir + "/" + indexPath
+	}
+	fileNameList, err = bash.ListDirAllFiles(dirPrefix)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	uiStaticPath := models.Config.StaticResources[0].Path
+	if pathIndex := strings.LastIndex(uiStaticPath, "/"); pathIndex >= 0 {
+		uiStaticPath = uiStaticPath[pathIndex:]
+	}
+	uiStaticPath = fmt.Sprintf("%s/%s/%s", uiStaticPath, pluginPackageObj.Name, pluginPackageObj.Version)
+	if indexPath != "" {
+		uiStaticPath = uiStaticPath + "/" + indexPath
+	}
+	resourceFileList := []*models.PluginPackageResourceFiles{}
+	for _, v := range fileNameList {
+		tmpResourceObj := models.PluginPackageResourceFiles{PluginPackageId: pluginPackageId, PackageName: pluginPackageObj.Name, PackageVersion: pluginPackageObj.Version, Source: "ui.zip", RelatedPath: strings.ReplaceAll(v, dirPrefix, uiStaticPath)}
+		resourceFileList = append(resourceFileList, &tmpResourceObj)
+	}
+	if len(resourceFileList) > 0 {
+		log.Logger.Debug("register plugin,start update plugin static resource file data", log.JsonObj("resourceFileList", resourceFileList))
+		if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, pluginPackageObj.Name, resourceFileList, middleware.GetRequestUser(c)); err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+	}
+	middleware.ReturnSuccess(c)
+}
+
+// RegisterPackageDone 插件配置 - 完成注册插件包
+func RegisterPackageDone(c *gin.Context) {
+	var param models.PluginPackages
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	pluginPackageObj := models.PluginPackages{Id: param.Id}
+	if err := database.GetSimplePluginPackage(c, &pluginPackageObj, true); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if pluginPackageObj.Status != "REGISTERED" {
+		middleware.ReturnError(c, fmt.Errorf("pluginPackage status:%s illegal", pluginPackageObj.Status))
+		return
+	}
+	err := database.SetPluginPackageRegisterDone(c, param.Id, middleware.GetRequestUser(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}
+
+func GetPluginConfigVersionList(c *gin.Context) {
+	pluginPackageId := c.Query("id")
+	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
+	if err := database.GetSimplePluginPackage(c, &pluginPackageObj, true); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	result, err := database.GetPluginConfigVersionList(c, pluginPackageId, pluginPackageObj.Name)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
+func InheritPluginConfig(c *gin.Context) {
+	var param models.InheritPluginConfigParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	err := database.InheritPluginConfig(c, &param, middleware.GetRequestUser(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
 	}
 }

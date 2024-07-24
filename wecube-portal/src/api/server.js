@@ -39,11 +39,11 @@ export const getTargetOptions = (pkgName, entityName) =>
   req.post(`/${pkgName}/entities/${entityName}/query`, {
     additionalFilters: []
   })
-export const getTreePreviewData = (flowId, targetId) =>
-  req.get(`platform/v1/process/definitions/${flowId}/preview/entities/${targetId}`)
+export const getTreePreviewData = (flowId, targetId, sessionId) =>
+  req.get(`platform/v1/process/definitions/${flowId}/preview/entities/${targetId}?sessionId=${sessionId}`)
 export const createFlowInstance = data => req.post(`platform/v1/process/instances`, data)
 export const instancesWithPaging = data => req.post(`platform/v1/process/instancesWithPaging`, data)
-export const getProcessInstances = () => req.get(`platform/v1/process/instances`)
+export const getProcessInstances = params => req.get(`platform/v1/process/instances`, params)
 export const getProcessInstance = id => req.get(`platform/v1/process/instances/${id}`)
 
 export const retryProcessInstance = data => req.post(`platform/v1/process/instances/proceed`, data)
@@ -105,7 +105,7 @@ export const createEnumCategory = data =>
 export const updateEnumCategory = data =>
   req.put(`/platform/v1/cmdb/enum/category-types/${data.catTypeId}/categories/${data.catId}`, data)
 export const login = data => req.post('/auth/v1/api/login', data)
-export const getEncryptKey = () => req.get(`/auth/v1/login/seed`)
+export const getEncryptKey = () => req.get(`/auth/v1/api/seed`)
 // 获取可申请角色列表
 export const getApplyRoles = data => req.get(`/auth/v1/roles?all=${data.all}&roleAdmin=${data.roleAdmin}`)
 export const startApply = data => req.post('/auth/v1/roles/apply', data)
@@ -205,9 +205,16 @@ export const getApplicationVersion = id => req.get(`/platform/v1/appinfo/version
 export const getConfigByPkgId = id => req.get(`/platform/v1/packages/${id}/plugin-config-outlines`)
 export const updateConfigStatus = (id, data) =>
   req.post(`/platform/v1/packages/${id}/plugin-configs/enable-in-batch`, data)
+
+export const batchExportConfig = (id, data) => req.post(`/platform/v1/plugins/packages/export-choose/${id}`, data)
+
 export const resetPassword = data => req.post(`platform/v1/users/reset-password`, data)
+// 终止执行
 export const createWorkflowInstanceTerminationRequest = data =>
   req.post(`platform/v1/public/process/instances/${data.procInstId}/terminations`, data)
+// 批量终止执行
+export const batchWorkflowInstanceTermination = data =>
+  req.post(`/platform/v1/public/process/instances/batch-terminations`, data)
 export const getTaskNodeInstanceExecBindings = data =>
   req.get(`/platform/v1/process/instances/${data.procInstId}/tasknodes/${data.nodeInstId}/tasknode-bindings`)
 export const updateTaskNodeInstanceExecBindings = data =>
@@ -252,10 +259,17 @@ export const getScheduledTasksByStatus = data =>
 
 export const getMetaData = params => req.post(`platform/v1/plugins/configs/interfaces/param/metadata/query`, params)
 
+// 编排列表
 export const flowList = data => req.post(`platform/v1/process/definitions/list`, data)
+// 收藏编排
+export const collectFlow = data => req.post(`platform/v1/process/definitions/collect/add`, data)
+// 取消收藏编排
+export const unCollectFlow = data => req.post(`platform/v1/process/definitions/collect/del`, data)
 export const flowMgmt = data => req.post(`platform/v1/process/definitions`, data)
 export const getFlowById = id => req.get(`platform/v1/process/definitions/${id}`)
 export const getChildFlowList = params => req.get(`/platform/v1/process/definitions`, params)
+// 获取子编排列表
+export const getChildFlowListNew = data => req.post(`/platform/v1/process/definitions/sub/list`, data)
 export const getParentFlowList = (id, data) => req.post(`/platform/v1/process/definitions/${id}/parent/get`, data)
 export const flowNodeMgmt = data => req.post(`platform/v1/process/definitions/tasknodes`, data)
 export const flowNodeDelete = (flowId, nodeId) =>
