@@ -16,8 +16,8 @@ export default {
   },
   watch: {
     pkgId: {
-      handler: () => {
-        this.getData()
+      handler: val => {
+        val && this.getData(val)
       }
     }
   },
@@ -26,8 +26,8 @@ export default {
       required: true
     }
   },
-  created () {
-    this.getData()
+  mounted () {
+    this.getData(this.pkgId)
   },
   methods: {
     formatData (data) {
@@ -63,8 +63,8 @@ export default {
         })
       })
     },
-    async getData () {
-      let { status, data } = await getPluginPkgDependcy(this.pkgId)
+    async getData (id) {
+      let { status, data } = await getPluginPkgDependcy(id)
       if (status === 'OK') {
         this.formatData(data)
         this.initGraph()

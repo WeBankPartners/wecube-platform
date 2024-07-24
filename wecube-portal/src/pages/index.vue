@@ -11,7 +11,7 @@
         <BreadcrumbItem>{{ parentBreadcrumb }}</BreadcrumbItem>
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
       </Breadcrumb>
-      <router-view class="pages" style="padding: 0" :key="$route.name"></router-view>
+      <router-view class="pages" style="padding: 0"></router-view>
     </div>
     <BackTop :height="100" :bottom="100" />
   </div>
@@ -19,6 +19,8 @@
 <script>
 import Header from './components/header'
 import { MENUS } from '../const/menus.js'
+import { watermark } from '../const/waterMark.js'
+import dayjs from 'dayjs'
 export default {
   components: {
     Header
@@ -39,6 +41,16 @@ export default {
         margin: this.expandSideMenu ? '10px 0 10px 140px' : '10px 0'
       }
     }
+  },
+  mounted () {
+    watermark({
+      watermark_txt: 'WeCube: ' + localStorage.getItem('username') + ' ' + dayjs().format('YYYY-MM-DD HH:mm:ss'),
+      watermark_fontsize: '16px',
+      watermark_x_space: 300,
+      watermark_y_space: 100,
+      watermark_y: 200,
+      watermark_alpha: 0.2
+    })
   },
   methods: {
     allMenus (data) {
