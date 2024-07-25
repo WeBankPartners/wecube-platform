@@ -295,6 +295,27 @@ export default {
       users: []
     }
   },
+  beforeRouteEnter (to, from, next) {
+    next(vm => {
+      if (from.path === '/implementation/workflow-execution/view-execution') {
+        // 读取列表搜索参数
+        const storage = window.sessionStorage.getItem('search_timeExecution') || ''
+        if (storage) {
+          const { searchParams, searchOptions } = JSON.parse(storage)
+          vm.searchConfig = searchParams
+          vm.searchOptions = searchOptions
+        }
+      }
+    })
+  },
+  beforeDestroy () {
+    // 缓存列表搜索条件
+    const storage = {
+      searchParams: this.searchConfig,
+      searchOptions: this.searchOptions
+    }
+    window.sessionStorage.setItem('search_timeExecution', JSON.stringify(storage))
+  },
   async mounted () {
     this.MODALHEIGHT = document.body.scrollHeight - 220
     this.getFlows()
