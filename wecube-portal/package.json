@@ -35,11 +35,11 @@
     "moment": "^2.29.4",
     "view-design": "^4.7.0",
     "vis": "^4.21.0",
-    "vue": "^2.6.6",
-    "vue-i18n": "^8.15.0",
+    "vue": "2.6.6",
+    "vue-i18n": "8.28.2",
     "vue-json-viewer": "^2.2.20",
-    "vue-router": "^3.0.1",
-    "webpack": "^4.29.6",
+    "vue-router": "3.0.1",
+    "webpack": "4.29.6",
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
