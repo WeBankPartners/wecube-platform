@@ -781,7 +781,7 @@ export default {
           })
           this.$router.push({
             path: '/collaboration/workflow-mgmt',
-            query: { flowId: data.id, flowListTab: 'draft', isAdd: 'true', subProc: this.searchParams.subProc }
+            query: { flowId: data.id, flowListTab: 'draft', isAdd: 'true' }
           })
         }
       }

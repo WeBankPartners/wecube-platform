@@ -19,7 +19,6 @@
       <ItemInfoCanvas
         v-show="itemInfoType === 'canvas'"
         ref="itemInfoCanvasRef"
-        :subProc="subProc"
         @sendItemInfo="setCanvasInfo"
         @hideItemInfo="hideItemInfo"
       ></ItemInfoCanvas>
@@ -112,8 +111,7 @@ export default {
       nodesAndDeges: {
         nodes: [],
         edges: []
-      }, // 节点和边信息
-      subProc: this.$route.query.subProc
+      } // 节点和边信息
     }
   },
   async mounted () {
