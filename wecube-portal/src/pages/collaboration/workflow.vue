@@ -592,6 +592,27 @@ export default {
       immediate: true
     }
   },
+  beforeRouteEnter (to, from, next) {
+    next(vm => {
+      if (from.path === '/collaboration/workflow-mgmt' && from.query.editFlow === 'false') {
+        // 读取列表搜索参数
+        const storage = window.sessionStorage.getItem('search_workflow') || ''
+        if (storage) {
+          const { searchParams, searchOptions } = JSON.parse(storage)
+          vm.searchParams = searchParams
+          vm.searchOptions = searchOptions
+        }
+      }
+    })
+  },
+  beforeDestroy () {
+    // 缓存列表搜索条件
+    const storage = {
+      searchParams: this.searchParams,
+      searchOptions: this.searchOptions
+    }
+    window.sessionStorage.setItem('search_workflow', JSON.stringify(storage))
+  },
   mounted () {
     if (this.$route.query.flowListTab) {
       this.searchParams.status = this.$route.query.flowListTab
