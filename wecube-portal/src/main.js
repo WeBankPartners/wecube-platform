@@ -186,6 +186,7 @@ const vm = new Vue({
 
 // 创建vuex实例$globalStore(监控把自己的$store挂载到平台了，需要区分)
 Vue.use(store)
+// eslint-disable-next-line no-proto
 vm.__proto__.$globalStore = store
 
 window.vm = vm
