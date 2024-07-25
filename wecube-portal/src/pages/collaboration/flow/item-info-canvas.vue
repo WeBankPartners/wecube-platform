@@ -99,12 +99,6 @@ export default {
   components: {
     FilterRules
   },
-  props: {
-    subProc: {
-      type: String,
-      default: 'main'
-    }
-  },
   data () {
     return {
       editFlow: true, // 在查看时隐藏按钮
@@ -167,11 +161,7 @@ export default {
         this.itemCustomInfo[k] = tmpData[k]
       })
       this.itemCustomInfo.version = Number(this.itemCustomInfo.version.split('v')[1])
-      if (this.itemCustomInfo.createdTime === this.itemCustomInfo.updatedTime) {
-        this.itemCustomInfo.subProc = this.subProc === 'main' ? 0 : 1
-      } else {
-        this.itemCustomInfo.subProc = Number(this.itemCustomInfo.subProc)
-      }
+      this.itemCustomInfo.subProc = Number(this.itemCustomInfo.subProc)
     },
     saveItem () {
       let finalData = JSON.parse(JSON.stringify(this.itemCustomInfo))
