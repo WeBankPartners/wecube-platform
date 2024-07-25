@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
+import store from './store'
 
 import ViewUI from 'view-design'
 import 'view-design/dist/styles/iview.css'
@@ -182,6 +183,11 @@ const vm = new Vue({
   router,
   render: h => h(App)
 })
+
+// 创建vuex实例$globalStore(监控把自己的$store挂载到平台了，需要区分)
+Vue.use(store)
+vm.__proto__.$globalStore = store
+
 window.vm = vm
 window.locale = (key, obj) => {
   const lang = vm._$lang.locales[key]
@@ -191,6 +197,7 @@ window.locale = (key, obj) => {
     vm._$lang.locales[key] = newLang
   }
 }
+
 window.addOptions = options => {
   Object.keys(options).forEach(key => {
     // eslint-disable-next-line no-proto
