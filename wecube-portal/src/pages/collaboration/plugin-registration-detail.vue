@@ -180,8 +180,8 @@
       </div>
     </div>
     <div class="footer-button">
-      <Dropdown placement="bottom-start" @on-click="onInheritedVersionSelected">
-        <Button v-if="currentStep === 2" type="info" class="mr-3">
+      <Dropdown v-if="currentStep === 2" placement="bottom-start" @on-click="onInheritedVersionSelected">
+        <Button type="info" class="mr-3">
           {{ $t('p_inherited_version') }}
           <Icon type="ios-arrow-down"></Icon>
         </Button>
