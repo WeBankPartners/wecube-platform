@@ -411,7 +411,7 @@ export default {
     this.pluginId = this.$route.query.pluginId || ''
     if (hasIn(this.$route.query, 'step') && this.$route.query.step) {
       const step = this.$route.query.step
-      if (['1', '2'].includes(step)) {
+      if ([1, 2].includes(step)) {
         this.isJustShowRightContent = true
         this.currentStep = Number(this.$route.query.step)
       }
