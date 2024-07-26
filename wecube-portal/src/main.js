@@ -154,19 +154,17 @@ router.beforeEach(async (to, from, next) => {
   }
   const found = findPath(router.options.routes, to.path)
   if (!found) {
-    window.sessionStorage.setItem('currentPath',to.path)
+    window.sessionStorage.setItem('currentPath', to.path)
     next('/homepage')
   }
   else {
-    if (window.myMenus || (await getGlobalMenus()) && window.myMenus) {
+    if (window.myMenus || ((await getGlobalMenus()) && window.myMenus)) {
       const isHasPermission = []
         .concat(...window.myMenus.map(_ => _.submenus), window.childRouters)
         .find(_ => to.path.startsWith(_.link) && _.active)
       if (
         (isHasPermission && isHasPermission.active)
-        || ['/collaboration/workflow-mgmt', '/collaboration/registrationDetail'].includes(
-          to.path
-        )
+        || ['/collaboration/workflow-mgmt', '/collaboration/registrationDetail'].includes(to.path)
       ) {
         /* has permission */
         window.sessionStorage.setItem(
