@@ -72,7 +72,6 @@ WatchRouter.on('change', oldPath => {
 window.childRouters = []
 
 window.addRoutes = (route, name) => {
-  console.error(route, name, '33')
   window.routers = window.routers.concat(route)
   getChildRouters(route)
   router.addRoutes([
@@ -150,22 +149,22 @@ router.beforeEach(async (to, from, next) => {
   if (window.isLoadingPlugin && to.path === '/homepage') {
     return
   }
-  if (to.path === '/login') {
+  if (['/404', '/login', '/homepage'].includes(to.path)) {
     return next()
   }
   const found = findPath(router.options.routes, to.path)
   if (!found) {
-    window.location.href = window.location.origin + '#/homepage'
+    window.sessionStorage.setItem('currentPath',to.path)
     next('/homepage')
   }
   else {
-    if ((await getGlobalMenus()) && window.myMenus) {
+    if (window.myMenus || (await getGlobalMenus()) && window.myMenus) {
       const isHasPermission = []
         .concat(...window.myMenus.map(_ => _.submenus), window.childRouters)
         .find(_ => to.path.startsWith(_.link) && _.active)
       if (
         (isHasPermission && isHasPermission.active)
-        || ['/404', '/login', '/homepage', '/collaboration/workflow-mgmt', '/collaboration/registrationDetail'].includes(
+        || ['/collaboration/workflow-mgmt', '/collaboration/registrationDetail'].includes(
           to.path
         )
       ) {
