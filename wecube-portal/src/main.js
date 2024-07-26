@@ -147,8 +147,11 @@ const findPath = (routes, path) => {
 }
 
 router.beforeEach(async (to, from, next) => {
-  if (window.isLoadingPlugin) {
+  if (window.isLoadingPlugin && to.path === '/homepage') {
     return
+  }
+  if (to.path === '/login') {
+    return next()
   }
   const found = findPath(router.options.routes, to.path)
   if (!found) {
@@ -179,7 +182,7 @@ router.beforeEach(async (to, from, next) => {
       }
     }
     else {
-      next()
+      next('/login')
     }
   }
 })
