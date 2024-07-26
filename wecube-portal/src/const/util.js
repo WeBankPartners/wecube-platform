@@ -123,7 +123,8 @@ export const getGlobalMenus = () =>
 
         window.myMenus = menus
         resolve(menus)
-      } else {
+      }
+      else {
         resolve()
       }
     })
