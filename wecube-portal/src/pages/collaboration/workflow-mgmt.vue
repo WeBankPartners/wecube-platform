@@ -19,7 +19,6 @@
       <ItemInfoCanvas
         v-show="itemInfoType === 'canvas'"
         ref="itemInfoCanvasRef"
-        :subProc="subProc"
         @sendItemInfo="setCanvasInfo"
         @hideItemInfo="hideItemInfo"
       ></ItemInfoCanvas>
@@ -114,8 +113,7 @@ export default {
       nodesAndDeges: {
         nodes: [],
         edges: []
-      }, // 节点和边信息
-      subProc: this.$route.query.subProc
+      } // 节点和边信息
     }
   },
   async mounted() {
@@ -549,24 +547,24 @@ export default {
         }
 
         // 判断开始不能直连判断结束节点
-        if (sourceNodeType === 'decision') {
-          if (targertNodeType === 'decisionMerge') {
-            this.$Message.warning(
-              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
-            )
-            return
-          }
-        }
+        // if (sourceNodeType === 'decision') {
+        //   if (targertNodeType === 'decisionMerge') {
+        //     this.$Message.warning(
+        //       `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+        //     )
+        //     return
+        //   }
+        // }
 
         // 判断结束不能直连判断开始节点
-        if (sourceNodeType === 'decisionMerge') {
-          if (targertNodeType === 'decision') {
-            this.$Message.warning(
-              `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
-            )
-            return
-          }
-        }
+        // if (sourceNodeType === 'decisionMerge') {
+        //   if (targertNodeType === 'decision') {
+        //     this.$Message.warning(
+        //       `${this.$t('saveFailed')}[${sourceNodeName}]${this.$t('cannotBeDirectlyConnectedTo')}[${targertNodeName}]`
+        //     )
+        //     return
+        //   }
+        // }
 
         if (sourceNodeType === 'start') {
           const outEdges = source.getOutEdges()

@@ -275,6 +275,27 @@ export default {
       ]
     }
   },
+  beforeRouteEnter(to, from, next) {
+    next(vm => {
+      if (from.path === '/implementation/workflow-execution/normal-create') {
+        // 读取列表搜索参数
+        const storage = window.sessionStorage.getItem('search_normalExecutionAdd') || ''
+        if (storage) {
+          const { searchParams, searchOptions } = JSON.parse(storage)
+          vm.searchParams = searchParams
+          vm.searchOptions = searchOptions
+        }
+      }
+    })
+  },
+  beforeDestroy() {
+    // 缓存列表搜索条件
+    const storage = {
+      searchParams: this.searchParams,
+      searchOptions: this.searchOptions
+    }
+    window.sessionStorage.setItem('search_normalExecutionAdd', JSON.stringify(storage))
+  },
   mounted() {
     this.getTemplateList()
   },

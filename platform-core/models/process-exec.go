@@ -494,6 +494,7 @@ type QueryProcPageParam struct {
 	EntityDisplayName string    `json:"entityDisplayName"`
 	ProcDefId         string    `json:"procDefId"`
 	SubProc           string    `json:"subProc"`
+	Name              string    `json:"name"`
 }
 
 type QueryProcPageResponse struct {

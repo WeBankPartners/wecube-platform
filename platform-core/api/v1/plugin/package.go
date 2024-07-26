@@ -596,7 +596,7 @@ func RegisterPackage(c *gin.Context) {
 		}
 	}
 	// 把对应插件版本的系统变量置为active
-	if err = database.RegisterPlugin(c, pluginPackageObj.Name, pluginPackageObj.Version); err != nil {
+	if err = database.RegisterPlugin(c, pluginPackageObj.Name, pluginPackageObj.Version, middleware.GetRequestUser(c)); err != nil {
 		middleware.ReturnError(c, err)
 	} else {
 		middleware.ReturnData(c, models.PackageIdRespData{Id: pluginPackageId})
