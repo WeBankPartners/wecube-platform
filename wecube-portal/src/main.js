@@ -155,7 +155,7 @@ router.beforeEach(async (to, from, next) => {
   }
   const found = findPath(router.options.routes, to.path)
   if (!found) {
-    window.sessionStorage.setItem('currentPath', to.path)
+    window.sessionStorage.setItem('currentPath', to.fullPath)
     next('/homepage')
   }
   else {
