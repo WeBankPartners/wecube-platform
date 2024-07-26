@@ -374,7 +374,7 @@ func DeletePlugin(c *gin.Context) {
 			}
 		}
 	}
-	err = database.DecommissionPluginPackage(c, pluginPackageId)
+	err = database.DecommissionPluginPackage(c, pluginPackageId, middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
