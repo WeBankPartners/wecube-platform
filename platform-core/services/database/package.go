@@ -355,6 +355,27 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 			"p_res_s3_" + guid.CreateGuid(), pluginPackageId, registerConfig.ResourceDependencies.S3.BucketName,
 		}})
 	}
+	if registerConfig.Authorities.Authority.SystemRoleName != "" && len(registerConfig.Authorities.Authority.Menu) > 0 {
+		var roleMenuRows []*models.RoleMenu
+		err = db.MysqlEngine.Context(ctx).SQL("select distinct menu_code from role_menu where role_name=?", registerConfig.Authorities.Authority.SystemRoleName).Find(&roleMenuRows)
+		if err != nil {
+			return
+		}
+		roleMenuMap := make(map[string]int)
+		for _, row := range roleMenuRows {
+			roleMenuMap[row.MenuCode] = 1
+		}
+		for _, authMenu := range registerConfig.Authorities.Authority.Menu {
+			actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_authorities (id,plugin_package_id,role_name,menu_code) values (?,?,?,?)", Param: []interface{}{
+				"p_auth_" + guid.CreateGuid(), pluginPackageId, registerConfig.Authorities.Authority.SystemRoleName, authMenu.Code,
+			}})
+			if _, existFlag := roleMenuMap[authMenu.Code]; !existFlag {
+				actions = append(actions, &db.ExecAction{Sql: "INSERT INTO role_menu (id,role_name,menu_code) values (?,?,?)", Param: []interface{}{
+					"role_menu_" + guid.CreateGuid(), registerConfig.Authorities.Authority.SystemRoleName, authMenu.Code,
+				}})
+			}
+		}
+	}
 	if len(registerConfig.DataModel.Entity) > 0 {
 		maxVersion, getVersionErr := getMaxDataModelVersion(registerConfig.Name)
 		if getVersionErr != nil {
@@ -999,7 +1020,7 @@ func DisableAllPluginConfigsByPackageId(ctx context.Context, pluginPackageId str
 	return
 }
 
-func DecommissionPluginPackage(ctx context.Context, pluginPackageId string) (err error) {
+func DecommissionPluginPackage(ctx context.Context, pluginPackageId, operator string) (err error) {
 	session := db.MysqlEngine.NewSession().Context(ctx)
 	defer session.Close()
 	err = session.Begin()
@@ -1009,6 +1030,8 @@ func DecommissionPluginPackage(ctx context.Context, pluginPackageId string) (err
 	}
 	updateData := make(map[string]interface{})
 	updateData["status"] = models.PluginStatusDecommissioned
+	updateData["updated_time"] = time.Now().Format(models.DateTimeFormat)
+	updateData["updated_by"] = operator
 	_, err = session.Table(new(models.PluginPackages)).Where("id = ?", pluginPackageId).Update(updateData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
