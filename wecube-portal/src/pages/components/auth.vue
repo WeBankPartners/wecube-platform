@@ -46,7 +46,7 @@ export default {
       default: false
     }
   },
-  data () {
+  data() {
     return {
       isAdd: false, // 标记编排状态
       flowRoleManageModal: false, // 权限弹窗控制
@@ -59,58 +59,55 @@ export default {
     }
   },
   computed: {
-    disabled () {
+    disabled() {
       if (this.useRolesRequired) {
         return this.mgmtRolesKeyToFlow.length === 0 || this.useRolesKeyToFlow.length === 0
-      } else {
-        return this.mgmtRolesKeyToFlow.length === 0
       }
+
+      return this.mgmtRolesKeyToFlow.length === 0
     }
   },
   methods: {
-    renderRoleNameForTransfer (item) {
+    renderRoleNameForTransfer(item) {
       return item.label
     },
-    handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
+    handleMgmtRoleTransferChange(newTargetKeys) {
       if (newTargetKeys.length > 1) {
         this.$Message.warning(this.$t('chooseOne'))
-      } else {
+      }
+      else {
         this.mgmtRolesKeyToFlow = newTargetKeys
       }
     },
-    handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
+    handleUseRoleTransferChange(newTargetKeys) {
       this.useRolesKeyToFlow = newTargetKeys
     },
-    async confirmRole () {
+    async confirmRole() {
       this.$emit('sendAuth', this.mgmtRolesKeyToFlow, this.useRolesKeyToFlow)
       this.flowRoleManageModal = false
     },
-    async getRoleList () {
+    async getRoleList() {
       const { status, data } = await getRoleList()
       if (status === 'OK') {
-        this.allRoles = data.map(_ => {
-          return {
-            ..._,
-            key: _.name,
-            label: _.displayName
-          }
-        })
+        this.allRoles = data.map(_ => ({
+          ..._,
+          key: _.name,
+          label: _.displayName
+        }))
       }
     },
-    async getCurrentUserRoles () {
+    async getCurrentUserRoles() {
       const { status, data } = await getCurrentUserRoles()
       if (status === 'OK') {
-        this.currentUserRoles = data.map(_ => {
-          return {
-            ..._,
-            key: _.name,
-            label: _.displayName
-          }
-        })
+        this.currentUserRoles = data.map(_ => ({
+          ..._,
+          key: _.name,
+          label: _.displayName
+        }))
       }
     },
     // 启动入口
-    async startAuth (mgmtRolesKeyToFlow, useRolesKeyToFlow) {
+    async startAuth(mgmtRolesKeyToFlow, useRolesKeyToFlow) {
       this.mgmtRolesKeyToFlow = mgmtRolesKeyToFlow
       this.useRolesKeyToFlow = useRolesKeyToFlow
       await this.getRoleList()
