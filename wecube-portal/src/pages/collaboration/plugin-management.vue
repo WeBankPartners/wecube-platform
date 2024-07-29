@@ -199,8 +199,7 @@
                                 size="small"
                                 type="success"
                                 @click="createPluginInstanceByPackageIdAndHostIp(item.ip, item.port)"
-                                >{{ $t('create') }}</Button
-                              >
+                              >{{ $t('create') }}</Button>
                             </div>
                           </div>
                         </div>
@@ -357,7 +356,7 @@ export default {
     RuntimesResources,
     AuthSettings
   },
-  data () {
+  data() {
     return {
       showUpload: false,
       currentPluginId: '',
@@ -475,14 +474,15 @@ export default {
   },
   watch: {
     filterForPkg: {
-      handler (v) {
+      handler(v) {
         this.originPluginsGroupFilter = []
         this.originPlugins
           .filter(_ => _.keyName.indexOf(v) > -1)
           .forEach(item => {
             if (item.keyName.split('-v')[0] in this.originPluginsGroupFilter) {
               this.originPluginsGroupFilter[item.keyName.split('-v')[0]].push(item)
-            } else {
+            }
+            else {
               this.originPluginsGroupFilter[item.keyName.split('-v')[0]] = [item]
             }
           })
@@ -490,7 +490,7 @@ export default {
     }
   },
   methods: {
-    reloadPage () {
+    reloadPage() {
       this.$Notice.info({
         title: this.$t('notify'),
         desc: this.$t('reload_notify')
@@ -499,17 +499,17 @@ export default {
         document.location.reload()
       }, 3000)
     },
-    modalChangeHandle (v) {
+    modalChangeHandle(v) {
       if (!v) {
         this.cancelHandler()
       }
     },
-    cancelHandler () {
+    cancelHandler() {
       this.showUploadModal = false
       this.selectedOriginPlugin = ''
       this.filterForPkg = ''
     },
-    async uploadHandler () {
+    async uploadHandler() {
       const payload = {
         keyName: this.selectedOriginPlugin
       }
@@ -541,7 +541,7 @@ export default {
         })
       }
     },
-    async showUploadModalHandler () {
+    async showUploadModalHandler() {
       this.loadingPlugin = true
       const { status, data } = await getPluginArtifacts()
       this.loadingPlugin = false
@@ -551,26 +551,28 @@ export default {
         data.forEach(item => {
           if (item.keyName.split('-v')[0] in this.originPluginsGroupFilter) {
             this.originPluginsGroupFilter[item.keyName.split('-v')[0]].push(item)
-          } else {
+          }
+          else {
             this.originPluginsGroupFilter[item.keyName.split('-v')[0]] = [item]
           }
         })
         this.showUploadModal = true
       }
     },
-    onProgress (event, file, fileList) {
+    onProgress(event) {
       if (event.percent === 100) {
         this.showSuccess = true
       }
     },
-    async onImportSuccess (response, file, filelist) {
+    async onImportSuccess(response) {
       if (response.status === 'OK') {
         this.$Notice.success({
           title: 'Success',
           desc: response.message || ''
         })
         this.getAllPluginPkgs()
-      } else {
+      }
+      else {
         this.$Notice.warning({
           title: 'Warning',
           desc: response.message || ''
@@ -579,14 +581,15 @@ export default {
       this.isShowImportXMLModal = false
       this.$refs.importXML.clearFiles()
     },
-    async onSuccess (response, file, filelist) {
+    async onSuccess(response) {
       if (response.status === 'OK') {
         this.$Notice.success({
           title: 'Success',
           desc: response.message || ''
         })
         this.getAllPluginPkgs()
-      } else {
+      }
+      else {
         this.$Notice.warning({
           title: 'Warning',
           desc: response.message || ''
@@ -594,18 +597,18 @@ export default {
       }
       this.showSuccess = false
     },
-    onError (file, filelist) {
+    onError(file) {
       this.$Notice.error({
         title: 'Error',
         desc: file.message || ''
       })
     },
-    swapPanel (panel) {
+    swapPanel(panel) {
       this.isShowServicePanel = panel === 'servicePanel'
       this.isShowConfigPanel = panel === 'pluginConfigPanel'
       this.isShowRuntimeManagementPanel = panel === 'runtimeManagePanel'
     },
-    async createPluginInstanceByPackageIdAndHostIp (ip, port) {
+    async createPluginInstanceByPackageIdAndHostIp(ip, port) {
       this.$Notice.info({
         title: 'Info',
         desc: 'Start Launching... It will take sometime.'
@@ -625,9 +628,9 @@ export default {
       }
     },
 
-    async registPackage () {
+    async registPackage() {
       this.isRegisted = true
-      let { status } = await registPluginPackage(this.currentPlugin.id)
+      const { status } = await registPluginPackage(this.currentPlugin.id)
       this.isRegisted = false
       if (status === 'OK') {
         this.$set(this.currentPlugin, 'status', 'REGISTERED')
@@ -637,7 +640,7 @@ export default {
         })
       }
     },
-    importBestPractices (packageId) {
+    importBestPractices(packageId) {
       let refreshRequest = null
       this.currentPluginId = packageId
       const currentTime = new Date().getTime()
@@ -657,29 +660,31 @@ export default {
               // this.$refs.importXML.handleClick()
             },
             // eslint-disable-next-line handle-callback-err
-            err => {
+            () => {
               refreshRequest = null
               window.location.href = window.location.origin + window.location.pathname + '#/login'
             }
           )
-        } else {
+        }
+        else {
           this.setUploadActionHeader()
         }
-      } else {
+      }
+      else {
         window.location.href = window.location.origin + window.location.pathname + '#/login'
       }
       this.isShowImportXMLModal = true
     },
-    exportBestPractices (packageId) {
+    exportBestPractices(packageId) {
       exportPluginXMLWithId(packageId)
     },
-    deletePlugin (packageId) {
-      let pkgId = packageId
+    deletePlugin(packageId) {
+      const pkgId = packageId
       this.$Modal.confirm({
         title: this.$t('confirm_to_delete'),
         'z-index': 1000000,
         onOk: async () => {
-          let { status } = await deletePluginPkg(pkgId)
+          const { status } = await deletePluginPkg(pkgId)
           if (status === 'OK') {
             this.$Notice.success({
               title: 'Success',
@@ -694,19 +699,19 @@ export default {
       })
       document.querySelector('.ivu-modal-mask').click()
     },
-    configPlugin (packageId) {
+    configPlugin(packageId) {
       this.swapPanel('pluginConfigPanel')
       this.currentPlugin = this.plugins.find(_ => _.id === packageId)
       this.selectedCiType = this.currentPlugin.cmdbCiTypeId || ''
     },
-    manageService (packageId) {
+    manageService(packageId) {
       this.swapPanel('servicePanel')
       this.currentPlugin = this.plugins.find(_ => _.id === packageId)
       this.selectedCiType = this.currentPlugin.cmdbCiTypeId || ''
     },
-    async manageRuntimePlugin (packageId) {
+    async manageRuntimePlugin(packageId) {
       this.swapPanel('runtimeManagePanel')
-      let currentPlugin = this.plugins.find(_ => _.id === packageId)
+      const currentPlugin = this.plugins.find(_ => _.id === packageId)
       this.selectedCiType = currentPlugin.cmdbCiTypeId || ''
       this.currentPlugin = currentPlugin
       // if (currentPlugin.pluginConfigs) {
@@ -719,45 +724,41 @@ export default {
       this.getAvailableContainerHosts()
       this.resetLogTable()
     },
-    onRuntimeCollapseChange (key) {
+    onRuntimeCollapseChange(key) {
       const found = !!key.find(i => i === '3')
       if (found) {
         this.getStorageTableData()
       }
     },
-    async getStorageTableData () {
-      let { status, data } = await queryStorageFilesByPackageId(this.currentPlugin.id)
+    async getStorageTableData() {
+      const { status, data } = await queryStorageFilesByPackageId(this.currentPlugin.id)
       if (status === 'OK') {
-        this.storageServiceData = data.map(_ => {
-          return {
-            file: _[0],
-            path: _[1],
-            hash: _[2],
-            uploadTime: _[3]
-          }
-        })
+        this.storageServiceData = data.map(_ => ({
+          file: _[0],
+          path: _[1],
+          hash: _[2],
+          uploadTime: _[3]
+        }))
       }
     },
-    async getDBTableData () {
-      let payload = {
+    async getDBTableData() {
+      const payload = {
         sqlQuery: this.dbQueryCommandString,
         pageable: {
           pageSize: this.dbTablePagination.pageSize,
           startIndex: this.dbTablePagination.pageSize * (this.dbTablePagination.currentPage - 1)
         }
       }
-      let { status, data } = await queryDataBaseByPackageId(this.currentPlugin.id, payload)
+      const { status, data } = await queryDataBaseByPackageId(this.currentPlugin.id, payload)
       if (status === 'OK') {
         this.dbTablePagination.total = data.pageInfo.totalRows
-        this.dbQueryColumns = data.headers.map(_ => {
-          return {
-            key: _,
-            title: _,
-            minWidth: 170
-          }
-        })
+        this.dbQueryColumns = data.headers.map(_ => ({
+          key: _,
+          title: _,
+          minWidth: 170
+        }))
         this.dbQueryData = data.contents.map(_ => {
-          let tempObj = {}
+          const tempObj = {}
           _.forEach((i, index) => {
             tempObj[this.dbQueryColumns[index].key] = i
           })
@@ -765,24 +766,24 @@ export default {
         })
       }
     },
-    onDBTablePageChange (currentPage) {
+    onDBTablePageChange(currentPage) {
       this.dbTablePagination.currentPage = currentPage
       this.getDBTableData()
     },
-    onDBTablePageSizeChange (pageSize) {
+    onDBTablePageSizeChange(pageSize) {
       this.dbTablePagination.pageSize = pageSize
       this.getDBTableData()
     },
-    pluginPackageChangeHandler (key) {
+    pluginPackageChangeHandler() {
       this.swapPanel('')
       this.dbQueryCommandString = ''
       this.dbTablePagination.currentPage = 1
       this.dbTablePagination.pageSize = 10
       this.dbTablePagination.total = 0
     },
-    async removePluginInstance (instanceId) {
+    async removePluginInstance(instanceId) {
       this.isLoading = true
-      let { status, message } = await removePluginInstance(instanceId)
+      const { status, message } = await removePluginInstance(instanceId)
       if (status === 'OK') {
         this.$Notice.success({
           title: 'Success',
@@ -793,12 +794,12 @@ export default {
       this.getAvailableInstancesByPackageId(this.currentPlugin.id)
       this.updateMenus()
     },
-    updateMenus () {
+    updateMenus() {
       this.$eventBusP.$emit('updateMenus')
     },
-    async getAvailableInstancesByPackageId (id) {
+    async getAvailableInstancesByPackageId(id) {
       this.isLoading = true
-      let { data, status } = await getAvailableInstancesByPackageId(id)
+      const { data, status } = await getAvailableInstancesByPackageId(id)
       if (status === 'OK') {
         this.allInstances = data.map(_ => {
           if (_.status !== 'REMOVED') {
@@ -813,18 +814,18 @@ export default {
       }
       this.isLoading = false
     },
-    hostSelectOpenHandler (flag) {
+    hostSelectOpenHandler(flag) {
       if (flag) {
         this.getAvailableContainerHosts()
       }
     },
-    async getAvailableContainerHosts () {
+    async getAvailableContainerHosts() {
       const { data, status } = await getAvailableContainerHosts()
       if (status === 'OK') {
         this.allAvailiableHosts = data
       }
     },
-    getAvailablePortByHostIp () {
+    getAvailablePortByHostIp() {
       this.availiableHostsWithPort = []
       this.selectHosts.forEach(async _ => {
         const { data, status } = await getAvailablePortByHostIp(_)
@@ -837,12 +838,14 @@ export default {
         }
       })
     },
-    handleLogTableSubmit (data) {
+    handleLogTableSubmit(data) {
       this.searchFilters = data
       this.getLogTableData()
     },
-    async getLogTableData () {
-      if (this.searchFilters.length < 2) return
+    async getLogTableData() {
+      if (this.searchFilters.length < 2) {
+        return
+      }
       const payload = {
         instanceIds: this.searchFilters[0].value,
         pluginRequest: {
@@ -853,83 +856,79 @@ export default {
           ]
         }
       }
-      let { status, data } = await queryLog(payload)
+      const { status, data } = await queryLog(payload)
       if (status === 'OK') {
-        for (let i in data) {
-          let arr = []
+        for (const i in data) {
+          const arr = []
           this.totalLogTableData = arr.concat(
-            data[i].outputs.map(_ => {
-              return {
-                instance: this.allInstances.find(j => j.id === +i).displayLabel,
-                instanceId: i,
-                ..._
-              }
-            })
+            data[i].outputs.map(_ => ({
+              instance: this.allInstances.find(j => j.id === +i).displayLabel,
+              instanceId: i,
+              ..._
+            }))
           )
         }
         this.handleLogTablePagination()
       }
     },
-    onLogTableChange (current) {
+    onLogTableChange(current) {
       this.logTablePagination.currentPage = current
       this.handleLogTablePagination()
     },
-    onLogTablePageSizeChange (size) {
+    onLogTablePageSizeChange(size) {
       this.logTablePagination.pageSize = size
       this.handleLogTablePagination()
     },
-    handleLogTablePagination () {
+    handleLogTablePagination() {
       this.logTablePagination.total = this.totalLogTableData.length
-      let temp = Array.from(this.totalLogTableData)
+      const temp = Array.from(this.totalLogTableData)
       this.logTableData = temp.splice(
         (this.logTablePagination.currentPage - 1) * this.logTablePagination.pageSize,
         this.logTablePagination.pageSize
       )
     },
-    actionFun (type, data) {
+    actionFun(type, data) {
       if (type === 'showLogDetails') {
         this.getLogDetail(data)
       }
     },
-    resetLogTable () {
+    resetLogTable() {
       this.logTableData = []
       this.totalLogTableData = []
       this.$refs.table && this.$refs.table.reset()
     },
-    selectHost (v) {
+    selectHost(v) {
       this.selectHosts = v
     },
-    handleTabClick (name) {
+    handleTabClick(name) {
       this.currentTab = name
     },
-    async getAllPluginPkgs () {
+    async getAllPluginPkgs() {
       // isRetrieveAllPluginPackages yes获取所有插件包，no获取可用插件包
       const isRetrieveAllPluginPackages = this.isShowDecomissionedPackage ? 'yes' : 'no'
       this.isLoadingPluginList = true
-      let { status, data } = await getAllPluginPkgs(isRetrieveAllPluginPackages)
+      const { status, data } = await getAllPluginPkgs(isRetrieveAllPluginPackages)
       this.isLoadingPluginList = false
       if (status === 'OK') {
-        this.plugins = data.map(_ => {
-          return {
-            ..._,
-            title: `${_.name}[${_.version}]`,
-            id: _.id,
-            expand: false,
-            checked: false
-            // children: _.pluginConfigs.map(i => {
-            //   return {
-            //     ...i,
-            //     title: i.name,
-            //     id: i.id,
-            //     expand: true,
-            //     checked: false
-            //   }
-            // })
-          }
-        })
+        this.plugins = data.map(_ => ({
+          ..._,
+          title: `${_.name}[${_.version}]`,
+          id: _.id,
+          expand: false,
+          checked: false
+          // children: _.pluginConfigs.map(i => {
+          //   return {
+          //     ...i,
+          //     title: i.name,
+          //     id: i.id,
+          //     expand: true,
+          //     checked: false
+          //   }
+          // })
+        }))
       }
     },
-    getHeaders () {
+    getHeaders() {
       this.showUpload = true
       let refreshRequest = null
       const currentTime = new Date().getTime()
@@ -949,26 +948,28 @@ export default {
               this.$refs.uploadButton.handleClick()
             },
             // eslint-disable-next-line handle-callback-err
-            err => {
+            () => {
               refreshRequest = null
               window.location.href = window.location.origin + window.location.pathname + '#/login'
             }
           )
-        } else {
+        }
+        else {
           this.setUploadActionHeader()
           this.$refs.uploadButton.handleClick()
         }
-      } else {
+      }
+      else {
         window.location.href = window.location.origin + window.location.pathname + '#/login'
       }
     },
-    setUploadActionHeader () {
+    setUploadActionHeader() {
       this.headers = {
         Authorization: 'Bearer ' + getCookie('accessToken')
       }
     }
   },
-  created () {
+  created() {
     this.getAllPluginPkgs()
   },
   computed: {}
