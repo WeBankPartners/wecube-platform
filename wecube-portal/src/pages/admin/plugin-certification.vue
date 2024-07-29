@@ -26,7 +26,7 @@ import { setCookie, getCookie } from '@/pages//util/cookie'
 import { getCertification, deleteCertification } from '@/api/server'
 export default {
   name: '',
-  data () {
+  data() {
     return {
       headers: {},
       tableColumns: [
@@ -38,9 +38,7 @@ export default {
         {
           title: this.$t('description'),
           key: 'description',
-          render: (h, params) => {
-            return h('pre', {}, params.row.description)
-          }
+          render: (h, params) => h('pre', {}, params.row.description)
         },
         {
           title: this.$t('table_created_date'),
@@ -57,8 +55,8 @@ export default {
           key: 'action',
           width: 150,
           align: 'center',
-          render: (h, params) => {
-            return h('div', [
+          render: (h, params) =>
+            h('div', [
               h(
                 'Button',
                 {
@@ -93,23 +91,22 @@ export default {
                 this.$t('delete')
               )
             ])
-          }
         }
       ],
       tableData: []
     }
   },
-  mounted () {
+  mounted() {
     this.getTableData()
   },
   methods: {
-    async getTableData () {
+    async getTableData() {
       const { status, data } = await getCertification()
       if (status === 'OK') {
         this.tableData = data
       }
     },
-    export (row) {
+    export(row) {
       const accessToken = getCookie('accessToken')
       axios({
         method: 'GET',
@@ -121,7 +118,7 @@ export default {
       })
         .then(response => {
           if (response.status < 400) {
-            let content = response.data
+            const content = response.data
             const contentDispositionHeader = response.headers['content-disposition']
             let filename = 'file'
             if (contentDispositionHeader) {
@@ -132,16 +129,18 @@ export default {
             }
             if (filename === null || filename === undefined || filename === '') {
               filename = 'file'
-            } else {
+            }
+            else {
               filename = decodeURI(filename)
             }
-            let blob = content
+            const blob = content
             if ('msSaveOrOpenBlob' in navigator) {
               window.navigator.msSaveOrOpenBlob(blob, filename)
-            } else {
+            }
+            else {
               if ('download' in document.createElement('a')) {
                 // 非IE下载
-                let elink = document.createElement('a')
+                const elink = document.createElement('a')
                 elink.download = filename
                 elink.style.display = 'none'
                 elink.href = URL.createObjectURL(blob)
@@ -149,7 +148,8 @@ export default {
                 elink.click()
                 URL.revokeObjectURL(elink.href) // 释放URL 对象
                 document.body.removeChild(elink)
-              } else {
+              }
+              else {
                 // IE10+下载
                 navigator.msSaveOrOpenBlob(blob, filename)
               }
@@ -160,12 +160,12 @@ export default {
           this.$Message.warning('Error')
         })
     },
-    remove (row) {
+    remove(row) {
       this.$Modal.confirm({
         title: this.$t('confirm_to_delete'),
         content: name,
         onOk: async () => {
-          let { status, message } = await deleteCertification(row.id)
+          const { status, message } = await deleteCertification(row.id)
           if (status === 'OK') {
             this.$Notice.success({
               title: 'Success',
@@ -177,7 +177,7 @@ export default {
         onCancel: () => {}
       })
     },
-    getHeaders () {
+    getHeaders() {
       this.isShowUploadList = true
       let refreshRequest = null
       const currentTime = new Date().getTime()
@@ -197,39 +197,42 @@ export default {
               this.$refs.uploadButton.handleClick()
             },
             // eslint-disable-next-line handle-callback-err
-            err => {
+            () => {
               refreshRequest = null
               window.location.href = window.location.origin + window.location.pathname + '#/login'
             }
           )
-        } else {
+        }
+        else {
           this.setUploadActionHeader()
           // this.$refs.uploadButton.handleClick()
         }
-      } else {
+      }
+      else {
         window.location.href = window.location.origin + window.location.pathname + '#/login'
       }
     },
-    setUploadActionHeader () {
+    setUploadActionHeader() {
       this.headers = {
         Authorization: 'Bearer ' + getCookie('accessToken')
       }
     },
-    onImportSuccess (response) {
+    onImportSuccess(response) {
       if (response.status === 'OK') {
         this.$Notice.success({
           title: 'Success',
           desc: response.message || ''
         })
         this.getTableData()
-      } else {
+      }
+      else {
         this.$Notice.warning({
           title: 'Warning',
           desc: response.message || ''
         })
       }
     },
-    onImportError (file) {
+    onImportError(file) {
       this.$Notice.error({
         title: 'Error',
         desc: file.message || ''
