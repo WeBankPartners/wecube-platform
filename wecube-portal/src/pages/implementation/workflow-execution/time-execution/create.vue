@@ -23,7 +23,7 @@
     ></Table>
     <!--查看详情-->
     <BaseDrawer :title="$t('be_details')" :visible.sync="showModal" width="70%">
-      <template slot-scope="{ maxHeight }" slot="content">
+      <template slot-scope="{maxHeight}" slot="content">
         <Table :columns="detailTableColums" size="small" :max-height="maxHeight" :data="detailTableData"></Table>
       </template>
     </BaseDrawer>
@@ -122,8 +122,7 @@
                 v-for="item in timeConfig.modeToValue[timeConfig.params.scheduleMode]"
                 :key="item.value"
                 :value="item.value"
-                >{{ item.label }}</Option
-              >
+              >{{ item.label }}</Option>
             </Select>
           </FormItem>
           <FormItem :label="$t('execute_date')" required>
@@ -178,7 +177,7 @@ export default {
     Search,
     BaseDrawer
   },
-  data () {
+  data() {
     return {
       showModal: false,
       fullscreen: false,
@@ -189,7 +188,8 @@ export default {
         params: {
           name: '',
           procDefId: '',
-          jobCreatedTime: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+          jobCreatedTime: [dayjs().subtract(3, 'month')
+            .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
           jobCreatedStartTime: '',
           jobCreatedEndTime: '',
           time: [],
@@ -206,10 +206,28 @@ export default {
           label: this.$t('table_created_date'),
           initDateType: 1,
           dateRange: [
-            { label: this.$t('fe_recent3Months'), type: 'month', value: 3, dateType: 1 },
-            { label: this.$t('fe_recentHalfYear'), type: 'month', value: 6, dateType: 2 },
-            { label: this.$t('fe_recentOneYear'), type: 'year', value: 1, dateType: 3 },
-            { label: this.$t('be_auto'), dateType: 4 } // 自定义
+            {
+              label: this.$t('fe_recent3Months'),
+              type: 'month',
+              value: 3,
+              dateType: 1
+            },
+            {
+              label: this.$t('fe_recentHalfYear'),
+              type: 'month',
+              value: 6,
+              dateType: 2
+            },
+            {
+              label: this.$t('fe_recentOneYear'),
+              type: 'year',
+              value: 1,
+              dateType: 3
+            },
+            {
+              label: this.$t('be_auto'),
+              dateType: 4
+            } // 自定义
           ],
           labelWidth: 110,
           component: 'custom-time'
@@ -239,10 +257,22 @@ export default {
           placeholder: this.$t('timing_type'),
           component: 'select',
           list: [
-            { label: this.$t('Hourly'), value: 'Hourly' },
-            { label: this.$t('Daily'), value: 'Daily' },
-            { label: this.$t('Weekly'), value: 'Weekly' },
-            { label: this.$t('Monthly'), value: 'Monthly' }
+            {
+              label: this.$t('Hourly'),
+              value: 'Hourly'
+            },
+            {
+              label: this.$t('Daily'),
+              value: 'Daily'
+            },
+            {
+              label: this.$t('Weekly'),
+              value: 'Weekly'
+            },
+            {
+              label: this.$t('Monthly'),
+              value: 'Monthly'
+            }
           ]
         },
         // 执行时间
@@ -251,10 +281,28 @@ export default {
           label: this.$t('execute_date'),
           initDateType: 4,
           dateRange: [
-            { label: this.$t('fe_recent3Months'), type: 'month', value: 3, dateType: 1 },
-            { label: this.$t('fe_recentHalfYear'), type: 'month', value: 6, dateType: 2 },
-            { label: this.$t('fe_recentOneYear'), type: 'year', value: 1, dateType: 3 },
-            { label: this.$t('be_auto'), dateType: 4 } // 自定义
+            {
+              label: this.$t('fe_recent3Months'),
+              type: 'month',
+              value: 3,
+              dateType: 1
+            },
+            {
+              label: this.$t('fe_recentHalfYear'),
+              type: 'month',
+              value: 6,
+              dateType: 2
+            },
+            {
+              label: this.$t('fe_recentOneYear'),
+              type: 'year',
+              value: 1,
+              dateType: 3
+            },
+            {
+              label: this.$t('be_auto'),
+              dateType: 4
+            } // 自定义
           ],
           labelWidth: 110,
           component: 'custom-time'
@@ -272,24 +320,20 @@ export default {
           title: this.$t('fe_task_name'),
           key: 'name',
           width: 200,
-          render: (h, params) => {
-            return <span>{params.row.name || '-'}</span>
-          }
+          render: (h, params) => <span>{params.row.name || '-'}</span>
         },
         {
           title: this.$t('flow_name'),
           key: 'procDefName',
           width: 200,
-          render: (h, params) => {
-            return (
-              <div>
-                <span>
-                  {params.row.procDefName}
-                  <Tag style="margin-left:2px">{params.row.version}</Tag>
-                </span>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span>
+                {params.row.procDefName}
+                <Tag style="margin-left:2px">{params.row.version}</Tag>
+              </span>
+            </div>
+          )
         },
         {
           title: this.$t('bc_execution_instance'),
@@ -369,92 +413,84 @@ export default {
           title: this.$t('success_count'),
           key: 'totalCompletedInstances',
           width: 90,
-          render: (h, params) => {
-            return (
-              <div>
-                <span style="color:#2d8cf0">{params.row.totalCompletedInstances}</span>
-                {params.row.totalCompletedInstances > 0 && (
-                  <Button
-                    style="margin-left:8px"
-                    size="small"
-                    type="primary"
-                    ghost
-                    onClick={() => this.getDetails(params.row, 'Completed')}
-                    icon="ios-search"
-                  ></Button>
-                )}
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span style="color:#2d8cf0">{params.row.totalCompletedInstances}</span>
+              {params.row.totalCompletedInstances > 0 && (
+                <Button
+                  style="margin-left:8px"
+                  size="small"
+                  type="primary"
+                  ghost
+                  onClick={() => this.getDetails(params.row, 'Completed')}
+                  icon="ios-search"
+                ></Button>
+              )}
+            </div>
+          )
         },
         // 执行中
         {
           title: this.$t('in_progress_count'),
           key: 'totalInProgressInstances',
           width: 100,
-          render: (h, params) => {
-            return (
-              <div>
-                <span style="color:red">{params.row.totalInProgressInstances}</span>
-                {params.row.totalInProgressInstances > 0 && (
-                  <Button
-                    style="margin-left:8px"
-                    size="small"
-                    type="primary"
-                    ghost
-                    onClick={() => this.getDetails(params.row, 'InProgress')}
-                    icon="ios-search"
-                  ></Button>
-                )}
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span style="color:red">{params.row.totalInProgressInstances}</span>
+              {params.row.totalInProgressInstances > 0 && (
+                <Button
+                  style="margin-left:8px"
+                  size="small"
+                  type="primary"
+                  ghost
+                  onClick={() => this.getDetails(params.row, 'InProgress')}
+                  icon="ios-search"
+                ></Button>
+              )}
+            </div>
+          )
         },
         // 手动终止
         {
           title: this.$t('fe_internallyTerminated'),
           key: 'totalTerminateInstances',
           width: 100,
-          render: (h, params) => {
-            return (
-              <div>
-                <span style="color:red">{params.row.totalTerminateInstances}</span>
-                {params.row.totalTerminateInstances > 0 && (
-                  <Button
-                    style="margin-left:8px"
-                    size="small"
-                    type="primary"
-                    ghost
-                    onClick={() => this.getDetails(params.row, 'InternallyTerminated')}
-                    icon="ios-search"
-                  ></Button>
-                )}
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span style="color:red">{params.row.totalTerminateInstances}</span>
+              {params.row.totalTerminateInstances > 0 && (
+                <Button
+                  style="margin-left:8px"
+                  size="small"
+                  type="primary"
+                  ghost
+                  onClick={() => this.getDetails(params.row, 'InternallyTerminated')}
+                  icon="ios-search"
+                ></Button>
+              )}
+            </div>
+          )
         },
         // 自动退出
         {
           title: this.$t('fe_faulted'),
           key: 'totalFaultedInstances',
           width: 90,
-          render: (h, params) => {
-            return (
-              <div>
-                <span style="color:red">{params.row.totalFaultedInstances}</span>
-                {params.row.totalFaultedInstances > 0 && (
-                  <Button
-                    style="margin-left:8px"
-                    size="small"
-                    type="primary"
-                    ghost
-                    onClick={() => this.getDetails(params.row, 'Faulted')}
-                    icon="ios-search"
-                  ></Button>
-                )}
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span style="color:red">{params.row.totalFaultedInstances}</span>
+              {params.row.totalFaultedInstances > 0 && (
+                <Button
+                  style="margin-left:8px"
+                  size="small"
+                  type="primary"
+                  ghost
+                  onClick={() => this.getDetails(params.row, 'Faulted')}
+                  icon="ios-search"
+                ></Button>
+              )}
+            </div>
+          )
         },
         {
           title: this.$t('createdBy'),
@@ -472,64 +508,62 @@ export default {
           width: 140,
           align: 'center',
           fixed: 'right',
-          render: (h, params) => {
-            return (
-              <div style="display:flex;align-items:center;justify-content:center;">
-                {params.row.status === 'Ready' && (
-                  <Tooltip content={this.$t('disable')} placement="top">
-                    <Button
-                      size="small"
-                      type="warning"
-                      onClick={() => {
-                        this.pause(params.row) // 禁用
-                      }}
-                      style="margin-right:5px;"
-                    >
-                      <Icon type="md-lock" size="16"></Icon>
-                    </Button>
-                  </Tooltip>
-                )}
-                {params.row.status === 'Stopped' && (
-                  <Tooltip content={this.$t('enable')} placement="top">
-                    <Button
-                      size="small"
-                      type="success"
-                      onClick={() => {
-                        this.resume(params.row) // 启用
-                      }}
-                      style="margin-right:5px;"
-                    >
-                      <Icon type="md-unlock" size="16"></Icon>
-                    </Button>
-                  </Tooltip>
-                )}
-                <Tooltip content={this.$t('delete')} placement="top">
+          render: (h, params) => (
+            <div style="display:flex;align-items:center;justify-content:center;">
+              {params.row.status === 'Ready' && (
+                <Tooltip content={this.$t('disable')} placement="top">
                   <Button
-                    type="error"
                     size="small"
+                    type="warning"
                     onClick={() => {
-                      this.remove(params.row) // 删除
+                      this.pause(params.row) // 禁用
                     }}
                     style="margin-right:5px;"
                   >
-                    <Icon type="md-trash" size="16"></Icon>
+                    <Icon type="md-lock" size="16"></Icon>
                   </Button>
                 </Tooltip>
-                <Tooltip content={this.$t('list')} placement="top">
+              )}
+              {params.row.status === 'Stopped' && (
+                <Tooltip content={this.$t('enable')} placement="top">
                   <Button
                     size="small"
-                    type="info"
+                    type="success"
                     onClick={() => {
-                      this.getDetails(params.row, '') // 列表
+                      this.resume(params.row) // 启用
                     }}
                     style="margin-right:5px;"
                   >
-                    <Icon type="md-eye" size="16"></Icon>
+                    <Icon type="md-unlock" size="16"></Icon>
                   </Button>
                 </Tooltip>
-              </div>
-            )
-          }
+              )}
+              <Tooltip content={this.$t('delete')} placement="top">
+                <Button
+                  type="error"
+                  size="small"
+                  onClick={() => {
+                    this.remove(params.row) // 删除
+                  }}
+                  style="margin-right:5px;"
+                >
+                  <Icon type="md-trash" size="16"></Icon>
+                </Button>
+              </Tooltip>
+              <Tooltip content={this.$t('list')} placement="top">
+                <Button
+                  size="small"
+                  type="info"
+                  onClick={() => {
+                    this.getDetails(params.row, '') // 列表
+                  }}
+                  style="margin-right:5px;"
+                >
+                  <Icon type="md-eye" size="16"></Icon>
+                </Button>
+              </Tooltip>
+            </div>
+          )
         }
       ],
       timeConfig: {
@@ -545,58 +579,193 @@ export default {
         },
         currentUserRoles: [],
         mailModeOptions: [
-          { label: this.$t('be_role_email'), value: 'role' },
-          { label: this.$t('be_user_email'), value: 'user' },
-          { label: this.$t('be_not_send'), value: 'none' }
+          {
+            label: this.$t('be_role_email'),
+            value: 'role'
+          },
+          {
+            label: this.$t('be_user_email'),
+            value: 'user'
+          },
+          {
+            label: this.$t('be_not_send'),
+            value: 'none'
+          }
         ],
         scheduleModeOptions: [
-          { label: this.$t('Hourly'), value: 'Hourly' },
-          { label: this.$t('Daily'), value: 'Daily' },
-          { label: this.$t('Weekly'), value: 'Weekly' },
-          { label: this.$t('Monthly'), value: 'Monthly' }
+          {
+            label: this.$t('Hourly'),
+            value: 'Hourly'
+          },
+          {
+            label: this.$t('Daily'),
+            value: 'Daily'
+          },
+          {
+            label: this.$t('Weekly'),
+            value: 'Weekly'
+          },
+          {
+            label: this.$t('Monthly'),
+            value: 'Monthly'
+          }
         ],
         modeToValue: {
           Monthly: [
-            { label: '1', value: 1 },
-            { label: '2', value: 2 },
-            { label: '3', value: 3 },
-            { label: '4', value: 4 },
-            { label: '5', value: 5 },
-            { label: '6', value: 6 },
-            { label: '7', value: 7 },
-            { label: '8', value: 8 },
-            { label: '9', value: 9 },
-            { label: '10', value: 10 },
-            { label: '11', value: 11 },
-            { label: '12', value: 12 },
-            { label: '13', value: 13 },
-            { label: '14', value: 14 },
-            { label: '15', value: 15 },
-            { label: '16', value: 16 },
-            { label: '17', value: 17 },
-            { label: '18', value: 18 },
-            { label: '19', value: 19 },
-            { label: '20', value: 20 },
-            { label: '21', value: 21 },
-            { label: '22', value: 22 },
-            { label: '23', value: 23 },
-            { label: '24', value: 24 },
-            { label: '25', value: 25 },
-            { label: '26', value: 26 },
-            { label: '27', value: 27 },
-            { label: '28', value: 28 },
-            { label: '29', value: 29 },
-            { label: '30', value: 30 },
-            { label: '31', value: 31 }
+            {
+              label: '1',
+              value: 1
+            },
+            {
+              label: '2',
+              value: 2
+            },
+            {
+              label: '3',
+              value: 3
+            },
+            {
+              label: '4',
+              value: 4
+            },
+            {
+              label: '5',
+              value: 5
+            },
+            {
+              label: '6',
+              value: 6
+            },
+            {
+              label: '7',
+              value: 7
+            },
+            {
+              label: '8',
+              value: 8
+            },
+            {
+              label: '9',
+              value: 9
+            },
+            {
+              label: '10',
+              value: 10
+            },
+            {
+              label: '11',
+              value: 11
+            },
+            {
+              label: '12',
+              value: 12
+            },
+            {
+              label: '13',
+              value: 13
+            },
+            {
+              label: '14',
+              value: 14
+            },
+            {
+              label: '15',
+              value: 15
+            },
+            {
+              label: '16',
+              value: 16
+            },
+            {
+              label: '17',
+              value: 17
+            },
+            {
+              label: '18',
+              value: 18
+            },
+            {
+              label: '19',
+              value: 19
+            },
+            {
+              label: '20',
+              value: 20
+            },
+            {
+              label: '21',
+              value: 21
+            },
+            {
+              label: '22',
+              value: 22
+            },
+            {
+              label: '23',
+              value: 23
+            },
+            {
+              label: '24',
+              value: 24
+            },
+            {
+              label: '25',
+              value: 25
+            },
+            {
+              label: '26',
+              value: 26
+            },
+            {
+              label: '27',
+              value: 27
+            },
+            {
+              label: '28',
+              value: 28
+            },
+            {
+              label: '29',
+              value: 29
+            },
+            {
+              label: '30',
+              value: 30
+            },
+            {
+              label: '31',
+              value: 31
+            }
           ],
           Weekly: [
-            { label: this.$t('Mon'), value: 1 },
-            { label: this.$t('Tue'), value: 2 },
-            { label: this.$t('Wed'), value: 3 },
-            { label: this.$t('Thu'), value: 4 },
-            { label: this.$t('Fri'), value: 5 },
-            { label: this.$t('Sat'), value: 6 },
-            { label: this.$t('Sun'), value: 7 }
+            {
+              label: this.$t('Mon'),
+              value: 1
+            },
+            {
+              label: this.$t('Tue'),
+              value: 2
+            },
+            {
+              label: this.$t('Wed'),
+              value: 3
+            },
+            {
+              label: this.$t('Thu'),
+              value: 4
+            },
+            {
+              label: this.$t('Fri'),
+              value: 5
+            },
+            {
+              label: this.$t('Sat'),
+              value: 6
+            },
+            {
+              label: this.$t('Sun'),
+              value: 7
+            }
           ]
         },
         allFlowInstances: []
@@ -621,68 +790,127 @@ export default {
           key: 'displayStatus',
           render: (h, params) => {
             const list = [
-              { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
-              { label: this.$t('fe_inProgressFaulted'), value: 'InProgress(Faulted)', color: '#ed4014' },
-              { label: this.$t('fe_inProgressTimeouted'), value: 'InProgress(Timeouted)', color: '#ed4014' },
-              { label: this.$t('fe_stop'), value: 'Stop', color: '#ed4014' },
-              { label: this.$t('fe_inProgress'), value: 'InProgress', color: '#1990ff' },
-              { label: this.$t('fe_completed'), value: 'Completed', color: '#7ac756' },
-              { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
-              { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
+              {
+                label: this.$t('fe_notStart'),
+                value: 'NotStarted',
+                color: '#808695'
+              },
+              {
+                label: this.$t('fe_inProgressFaulted'),
+                value: 'InProgress(Faulted)',
+                color: '#ed4014'
+              },
+              {
+                label: this.$t('fe_inProgressTimeouted'),
+                value: 'InProgress(Timeouted)',
+                color: '#ed4014'
+              },
+              {
+                label: this.$t('fe_stop'),
+                value: 'Stop',
+                color: '#ed4014'
+              },
+              {
+                label: this.$t('fe_inProgress'),
+                value: 'InProgress',
+                color: '#1990ff'
+              },
+              {
+                label: this.$t('fe_completed'),
+                value: 'Completed',
+                color: '#7ac756'
+              },
+              {
+                label: this.$t('fe_faulted'),
+                value: 'Faulted',
+                color: '#e29836'
+              },
+              {
+                label: this.$t('fe_internallyTerminated'),
+                value: 'InternallyTerminated',
+                color: '#e29836'
+              }
             ]
             const findObj = list.find(item => item.value === params.row.displayStatus) || {}
             if (findObj.label) {
               return <Tag color={findObj.color}>{findObj.label}</Tag>
-            } else {
-              return <span>-</span>
             }
+            return <span>-</span>
           }
         },
         // 执行信息
         {
           title: this.$t('fe_executionInfo'),
           key: 'errorMsg',
-          render: (h, params) => {
-            return <span>{params.row.errorMsg || '-'}</span>
-          }
+          render: (h, params) => <span>{params.row.errorMsg || '-'}</span>
         },
         {
           title: this.$t('table_action'),
           key: 'action',
           width: 100,
           align: 'center',
-          render: (h, params) => {
-            return (
-              <div>
-                {params.row.status && (
-                  <Button
-                    onClick={() => this.jumpToHistory(params.row)}
-                    type="primary"
-                    size="small"
-                    style="margin-right: 5px"
-                  >
-                    {this.$t('bc_history_record')}
-                  </Button>
-                )}
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              {params.row.status && (
+                <Button
+                  onClick={() => this.jumpToHistory(params.row)}
+                  type="primary"
+                  size="small"
+                  style="margin-right: 5px"
+                >
+                  {this.$t('bc_history_record')}
+                </Button>
+              )}
+            </div>
+          )
         }
       ]
     }
   },
   computed: {
-    getStatusStyleAndName () {
+    getStatusStyleAndName() {
       return function (status, type) {
         const list = [
-          { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
-          { label: this.$t('fe_inProgressFaulted'), value: 'InProgress(Faulted)', color: '#ed4014' },
-          { label: this.$t('fe_inProgressTimeouted'), value: 'InProgress(Timeouted)', color: '#ed4014' },
-          { label: this.$t('fe_stop'), value: 'Stop', color: '#ed4014' },
-          { label: this.$t('fe_inProgress'), value: 'InProgress', color: '#1990ff' },
-          { label: this.$t('fe_completed'), value: 'Completed', color: '#7ac756' },
-          { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
-          { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
+          {
+            label: this.$t('fe_notStart'),
+            value: 'NotStarted',
+            color: '#808695'
+          },
+          {
+            label: this.$t('fe_inProgressFaulted'),
+            value: 'InProgress(Faulted)',
+            color: '#ed4014'
+          },
+          {
+            label: this.$t('fe_inProgressTimeouted'),
+            value: 'InProgress(Timeouted)',
+            color: '#ed4014'
+          },
+          {
+            label: this.$t('fe_stop'),
+            value: 'Stop',
+            color: '#ed4014'
+          },
+          {
+            label: this.$t('fe_inProgress'),
+            value: 'InProgress',
+            color: '#1990ff'
+          },
+          {
+            label: this.$t('fe_completed'),
+            value: 'Completed',
+            color: '#7ac756'
+          },
+          {
+            label: this.$t('fe_faulted'),
+            value: 'Faulted',
+            color: '#e29836'
+          },
+          {
+            label: this.$t('fe_internallyTerminated'),
+            value: 'InternallyTerminated',
+            color: '#e29836'
+          }
         ]
         const findObj = list.find(i => i.value === status)
         if (type === 'style') {
@@ -697,33 +925,34 @@ export default {
             fontSize: '12px',
             marginLeft: '5px'
           }
-        } else {
-          return findObj.label
         }
+        return findObj.label
       }
     }
   },
-  mounted () {
+  mounted() {
     this.MODALHEIGHT = document.body.scrollHeight - 220
     this.getFlows()
     this.getUserScheduledTasks()
   },
   methods: {
-    async getFlows () {
-      let { status, data } = await getAllFlow(false)
+    async getFlows() {
+      const { status, data } = await getAllFlow(false)
       if (status === 'OK') {
         this.allFlows = data.sort((a, b) => {
-          let s = a.createdTime.toLowerCase()
-          let t = b.createdTime.toLowerCase()
-          if (s > t) return -1
-          if (s < t) return 1
-        })
-        this.allFlows = this.allFlows.map(item => {
-          return {
-            label: `${item.procDefName} [${item.procDefVersion}]`,
-            value: item.procDefId
+          const s = a.createdTime.toLowerCase()
+          const t = b.createdTime.toLowerCase()
+          if (s > t) {
+            return -1
+          }
+          if (s < t) {
+            return 1
           }
         })
+        this.allFlows = this.allFlows.map(item => ({
+          label: `${item.procDefName} [${item.procDefVersion}]`,
+          value: item.procDefId
+        }))
         this.searchOptions.forEach(item => {
           if (item.key === 'procDefId') {
             item.list = this.allFlows
@@ -731,11 +960,11 @@ export default {
         })
       }
     },
-    handleRoleChange () {
+    handleRoleChange() {
       this.timeConfig.params.selectedFlowInstance = ''
       this.timeConfig.allFlowInstances = []
     },
-    remoteOpenChange (flag) {
+    remoteOpenChange(flag) {
       if (flag) {
         this.timeConfig.allFlowInstances = []
         this.remoteProcessInstances(this.timeConfig.params.selectedFlowInstance)
@@ -743,11 +972,13 @@ export default {
     },
     // 获取执行记录
     remoteProcessInstances: debounce(async function (query) {
-      function containsDateTime (str) {
+      function containsDateTime(str) {
         const regex = /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/
         return regex.test(str)
       }
-      if (containsDateTime(query)) return // 解决下拉框勾选时，用全部名称搜索，导致结果为空的问题
+      if (containsDateTime(query)) {
+        return
+      } // 解决下拉框勾选时，用全部名称搜索，导致结果为空的问题
       const params = {
         params: {
           withCronIns: 'no', // no普通执行历史 yes定时执行历史
@@ -758,16 +989,16 @@ export default {
         }
       }
       this.remoteLoading = true
-      let { status, data } = await getProcessInstances(params)
+      const { status, data } = await getProcessInstances(params)
       this.remoteLoading = false
       if (status === 'OK') {
         this.timeConfig.allFlowInstances = data.filter(item => item.status === 'Completed')
       }
     }, 500),
-    changeTimePicker (time) {
+    changeTimePicker(time) {
       this.timeConfig.params.time = time
     },
-    async saveTime () {
+    async saveTime() {
       if (!this.timeConfig.params.name) {
         this.$Message.warning(this.$t('fe_task_name') + this.$t('fe_can_not_be_empty'))
         return
@@ -778,8 +1009,8 @@ export default {
       }
       if (!this.timeConfig.params.cycle && ['Monthly', 'Weekly'].includes(this.timeConfig.params.scheduleMode)) {
         this.$Message.warning(
-          (this.timeConfig.params.scheduleMode === 'Monthly' ? this.$t('day') : this.$t('week')) +
-            this.$t('fe_can_not_be_empty')
+          (this.timeConfig.params.scheduleMode === 'Monthly' ? this.$t('day') : this.$t('week'))
+            + this.$t('fe_can_not_be_empty')
         )
         return
       }
@@ -788,20 +1019,23 @@ export default {
         return
       }
       const found = this.timeConfig.allFlowInstances.find(_ => _.id === this.timeConfig.params.selectedFlowInstance)
-      if (!found) return
+      if (!found) {
+        return
+      }
       let scheduleExpr = ''
       if (['Hourly', 'Daily'].includes(this.timeConfig.params.scheduleMode)) {
         scheduleExpr = this.timeConfig.params.time
         if (this.timeConfig.params.scheduleMode === 'Hourly') {
           scheduleExpr = this.timeConfig.params.time.substring(3)
         }
-      } else {
+      }
+      else {
         scheduleExpr = this.timeConfig.params.cycle + ' ' + this.timeConfig.params.time
       }
-      let params = {
+      const params = {
         name: this.timeConfig.params.name,
         scheduleMode: this.timeConfig.params.scheduleMode,
-        scheduleExpr: scheduleExpr,
+        scheduleExpr,
         procDefName: found.procInstName,
         procDefId: found.procDefId,
         entityDataName: found.entityDisplayName,
@@ -819,7 +1053,7 @@ export default {
         this.getUserScheduledTasks()
       }
     },
-    async setTimedExecution () {
+    async setTimedExecution() {
       this.timeConfig.params.name = `${this.$t('fe_timeTask')}${new Date().getTime()}`
       this.timeConfig.params.selectedFlowInstance = ''
       this.timeConfig.params.scheduleMode = 'Monthly'
@@ -829,23 +1063,23 @@ export default {
       this.timeConfig.params.mailMode = 'none'
       this.timeConfig.isShow = true
     },
-    async getCurrentUserRoles () {
+    async getCurrentUserRoles() {
       const { status, data } = await getCurrentUserRoles()
       if (status === 'OK') {
         this.timeConfig.currentUserRoles = data
       }
     },
-    exportData () {
+    exportData() {
       this.$refs.table.exportCsv({
         filename: 'timed_execution'
       })
     },
-    jumpToHistory (row) {
+    jumpToHistory(row) {
       window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
       const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${row.procInstId}&from=time`
       window.open(path, '_blank')
     },
-    async getDetails (row, rowStatus) {
+    async getDetails(row, rowStatus) {
       const params = {
         userTaskId: row.id,
         procInstanceStatus: rowStatus
@@ -856,7 +1090,7 @@ export default {
         this.detailTableData = data
       }
     },
-    async resume (row) {
+    async resume(row) {
       const params = [
         {
           id: row.id
@@ -871,7 +1105,7 @@ export default {
         this.getUserScheduledTasks()
       }
     },
-    async pause (row) {
+    async pause(row) {
       const params = [
         {
           id: row.id
@@ -886,7 +1120,7 @@ export default {
         this.getUserScheduledTasks()
       }
     },
-    remove (row) {
+    remove(row) {
       this.$Modal.confirm({
         title: this.$t('confirm_to_delete'),
         'z-index': 1000000,
@@ -908,9 +1142,11 @@ export default {
         onCancel: () => {}
       })
     },
-    async getUserScheduledTasks () {
+    async getUserScheduledTasks() {
       await this.getCurrentUserRoles()
-      const { name, procDefId, jobCreatedTime, time, owner, scheduleMode } = this.searchConfig.params
+      const {
+        name, procDefId, jobCreatedTime, time, owner, scheduleMode
+      } = this.searchConfig.params
       const params = {
         name,
         procDefId,

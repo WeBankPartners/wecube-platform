@@ -7,8 +7,9 @@ import ViewUI from 'view-design'
 import 'view-design/dist/styles/iview.css'
 
 import VueI18n from 'vue-i18n'
-import locale from 'view-design/dist/locale/en-US'
-import './locale/i18n'
+import { i18n } from './locale/i18n/index.js'
+import viewDesignEn from 'view-design/dist/locale/en-US'
+import viewDesignZh from 'view-design/dist/locale/zh-CN'
 
 import WeSelect from '../src/pages/components/select.vue'
 import WeTable from '../src/pages/components/table.js'
@@ -16,6 +17,7 @@ import indexCom from './pages/index'
 import req from './api/base'
 import implicitRoutes from './implicitRoutes.js'
 import { getChildRouters } from './pages/util/router.js'
+import { getGlobalMenus } from '@/const/util.js'
 const eventBus = new Vue()
 Vue.prototype.$eventBusP = eventBus
 Vue.component('WeSelect', WeSelect)
@@ -26,7 +28,7 @@ Vue.use(ViewUI, {
   transfer: true,
   size: 'default',
   VueI18n,
-  locale
+  locale: i18n.locale === 'en-US' ? viewDesignEn : viewDesignZh
 })
 
 window.request = req
@@ -34,12 +36,12 @@ window.needReLoad = true
 window.routers = []
 
 class UserWatch {
-  constructor () {
+  constructor() {
     this.handles = {}
     this.data = []
   }
-  on (eventType, handle) {
-    if (!this.handles.hasOwnProperty(eventType)) {
+  on(eventType, handle) {
+    if (!Object.prototype.hasOwnProperty.call(this.handles, eventType)) {
       this.handles[eventType] = []
     }
     if (typeof handle === 'function') {
@@ -47,19 +49,22 @@ class UserWatch {
     }
     return this
   }
-  emit (eventType, path) {
-    if (this.handles.hasOwnProperty(eventType)) {
-      this.handles[eventType].forEach((item, key, arr) => {
+  emit(eventType, path) {
+    if (Object.prototype.hasOwnProperty.call(this.handles, eventType)) {
+      this.handles[eventType].forEach(item => {
         item.apply(null, path)
       })
     }
     return this
   }
 }
-let WatchRouter = new UserWatch()
-WatchRouter.on('change', path => {
-  if (window.needReLoad) return
-  if (path === '/login' || path === '/404') {
+const WatchRouter = new UserWatch()
+WatchRouter.on('change', oldPath => {
+  let path = ''
+  if (window.needReLoad) {
+    return
+  }
+  if (oldPath === '/login' || oldPath === '/404') {
     path = '/homepage'
   }
   window.location.href = window.location.origin + '/#' + path
@@ -73,7 +78,7 @@ window.addRoutes = (route, name) => {
   router.addRoutes([
     {
       path: '/',
-      name: name,
+      name,
       redirect: '/homepage',
       component: indexCom,
       children: route
@@ -85,13 +90,11 @@ window.addRoutes = (route, name) => {
 }
 window.addRoutersWithoutPermission = routes => {
   window.childRouters = window.childRouters.concat(
-    routes.map(r => {
-      return {
-        ...r,
-        link: r.path,
-        active: true
-      }
-    })
+    routes.map(r => ({
+      ...r,
+      link: r.path,
+      active: true
+    }))
   )
 }
 window.implicitRoutes = implicitRoutes
@@ -100,10 +103,6 @@ window.addImplicitRoute = routes => {
 }
 window.homepageComponent = new UserWatch()
 window.addHomepageComponent = compObj => {
-  // compObj = {
-  //   name: () => {},
-  //   component: component
-  // }
   const found = window.homepageComponent.data.find(_ => _.name() === compObj.name())
   if (!found) {
     window.homepageComponent.data.push(compObj)
@@ -138,31 +137,35 @@ const findPath = (routes, path) => {
     }
   })
   // 适配平台侧边菜单栏，父路由配置有子路由，判断子路由权限
-  function findSideMenuPath (child) {
+  function findSideMenuPath(child) {
     if (Array.isArray(child.children) && child.children.length > 0) {
       return child.children.some(item => item.path === path)
-    } else {
-      return false
     }
+    return false
   }
   return found
 }
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+  if (window.isLoadingPlugin && to.path === '/homepage') {
+    return
+  }
+  if (['/404', '/login', '/homepage'].includes(to.path)) {
+    return next()
+  }
   const found = findPath(router.options.routes, to.path)
   if (!found) {
-    window.location.href = window.location.origin + '#/homepage'
+    window.sessionStorage.setItem('currentPath', to.fullPath)
     next('/homepage')
-  } else {
-    if (window.myMenus) {
-      let isHasPermission = []
+  }
+  else {
+    if (window.myMenus || ((await getGlobalMenus()) && window.myMenus)) {
+      const isHasPermission = []
         .concat(...window.myMenus.map(_ => _.submenus), window.childRouters)
         .find(_ => to.path.startsWith(_.link) && _.active)
       if (
-        (isHasPermission && isHasPermission.active) ||
-        ['/404', '/login', '/homepage', '/collaboration/workflow-mgmt', '/collaboration/registrationDetail'].includes(
-          to.path
-        )
+        (isHasPermission && isHasPermission.active)
+        || ['/collaboration/workflow-mgmt', '/collaboration/registrationDetail'].includes(to.path)
       ) {
         /* has permission */
         window.sessionStorage.setItem(
@@ -170,18 +173,21 @@ router.beforeEach((to, from, next) => {
           to.path === '/404' || to.path === '/login' ? '/homepage' : to.fullPath
         )
         next()
-      } else {
+      }
+      else {
         /* has no permission */
         next('/404')
       }
-    } else {
-      next()
+    }
+    else {
+      next('/login')
     }
   }
 })
 const vm = new Vue({
   router,
-  render: h => h(App)
+  render: h => h(App),
+  i18n
 })
 
 // 创建vuex实例$globalStore(监控把自己的$store挂载到平台了，需要区分)
@@ -191,11 +197,14 @@ vm.__proto__.$globalStore = store
 
 window.vm = vm
 window.locale = (key, obj) => {
-  const lang = vm._$lang.locales[key]
+  const lang = vm._i18n.messages[key]
   let newLang = {}
   if (lang) {
-    newLang = { ...lang, ...obj }
-    vm._$lang.locales[key] = newLang
+    newLang = {
+      ...lang,
+      ...obj
+    }
+    i18n.setLocaleMessage(key, newLang)
   }
 }
 

@@ -48,33 +48,36 @@ export default {
       default: ''
     }
   },
-  data () {
+  data() {
     return {
       dateType: 1,
       dateTime: []
     }
   },
-  mounted () {
+  mounted() {
     this.handleDateTypeChange()
     this.$emit('change', this.dateTime)
   },
   methods: {
-    handleDateTypeChange () {
+    handleDateTypeChange() {
       this.dateTime = []
       if (this.dateType === 4) {
         this.dateTime = ['', '']
-      } else {
+      }
+      else {
         const { type, value } = this.typeList.find(i => i.dateType === this.dateType)
         const cur = dayjs().format('YYYY-MM-DD')
-        const pre = dayjs().subtract(value, type).format('YYYY-MM-DD')
+        const pre = dayjs().subtract(value, type)
+          .format('YYYY-MM-DD')
         this.dateTime = [pre, cur]
       }
       this.$emit('change', this.dateTime)
     },
-    handleDateRange (dateArr) {
+    handleDateRange(dateArr) {
       if (dateArr && dateArr[0] && dateArr[1]) {
         this.dateTime = [...dateArr]
-      } else {
+      }
+      else {
         this.dateTime = ['', '']
       }
       this.$emit('change', this.dateTime)

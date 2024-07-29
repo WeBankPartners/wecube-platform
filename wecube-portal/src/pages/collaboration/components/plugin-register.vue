@@ -36,8 +36,7 @@
                       font-size: 15px;
                       font-weight: 400;
                     "
-                    >{{ dto.registerName }}</span
-                  >
+                  >{{ dto.registerName }}</span>
                   <div style="vertical-align: top; display: inline-block; float: right">
                     <Tooltip :content="$t('copy')" :delay="500">
                       <Icon
@@ -218,8 +217,7 @@
                       <Tooltip content="">
                         <span
                           style="display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
-                          >{{ param.name }}</span
-                        >
+                        >{{ param.name }}</span>
                         <div slot="content" style="white-space: normal">
                           <span>{{ param.description }}</span>
                         </div>
@@ -302,8 +300,7 @@
                           v-if="item.status === 'active'"
                           :value="item.name"
                           :key="index"
-                          >{{ item.name }}</Option
-                        >
+                        >{{ item.name }}</Option>
                       </Select>
                       <span v-if="param.mappingType === 'context'">N/A</span>
                       <span v-if="param.mappingType === 'constant'">
@@ -330,8 +327,7 @@
                           type="primary"
                           size="small"
                           @click="showObjectConfig(param)"
-                          >{{ $t('configuration') }}</Button
-                        >
+                        >{{ $t('configuration') }}</Button>
                       </span>
                     </FormItem>
                   </Col>
@@ -359,8 +355,7 @@
                               overflow: hidden;
                               text-overflow: ellipsis;
                             "
-                            >{{ outPut.name }}</span
-                          >
+                          >{{ outPut.name }}</span>
                           <div slot="content" style="white-space: normal">
                             <span>{{ outPut.description }}</span>
                           </div>
@@ -599,7 +594,7 @@ import {
 } from '@/api/server'
 
 export default {
-  data () {
+  data() {
     return {
       objectModal: {
         showObjectConfigModal: false,
@@ -646,10 +641,22 @@ export default {
       form: {},
       allSystemVariables: [],
       mappingTypeOptions: [
-        { label: 'context', value: 'context' },
-        { label: 'system_variable', value: 'system_variable' },
-        { label: 'entity', value: 'entity' },
-        { label: 'constant', value: 'constant' }
+        {
+          label: 'context',
+          value: 'context'
+        },
+        {
+          label: 'system_variable',
+          value: 'system_variable'
+        },
+        {
+          label: 'entity',
+          value: 'entity'
+        },
+        {
+          label: 'constant',
+          value: 'constant'
+        }
       ],
       sensitiveData: [
         {
@@ -672,18 +679,19 @@ export default {
     recursive
   },
   computed: {
-    rootEntity () {
+    rootEntity() {
       if (this.selectedEntityType && this.selectedEntityType.length > 0) {
         return this.selectedEntityType.split('{')[0].split(':')[1]
-      } else {
-        return ''
       }
+
+      return ''
+
       // return ''
     },
-    currentPluginObjKeysLength () {
+    currentPluginObjKeysLength() {
       return Object.keys(this.currentPluginObj).length
     },
-    allPluginConfigs () {
+    allPluginConfigs() {
       return [].concat(...this.plugins.map(p => p.pluginConfigDtoList))
     }
   },
@@ -705,17 +713,18 @@ export default {
   },
   watch: {
     selectedEntityType: {
-      handler (val) {
+      handler(val) {
         if (val && val.length > 0) {
           this.clearedEntityType = val.split('{')[0]
-        } else {
+        }
+        else {
           this.clearedEntityType = ''
         }
       }
     }
   },
   methods: {
-    selectOrCancelAll (val) {
+    selectOrCancelAll(val) {
       this.$nextTick(() => {
         this.configTree.forEach(parent => {
           if (!parent.disabled) {
@@ -735,7 +744,7 @@ export default {
         })
       })
     },
-    cancelEdit () {
+    cancelEdit() {
       this.objectModal = {
         showObjectConfigModal: false,
         type: '',
@@ -747,7 +756,7 @@ export default {
         }
       }
     },
-    async okEdit () {
+    async okEdit() {
       const { status } = await updatePluginRegisterObjectType(
         this.objectModal.pluginConfigId,
         this.objectModal.objectMetaId,
@@ -761,8 +770,8 @@ export default {
       }
     },
     // 'inputParameters', param, index
-    async showObjectConfig (originData) {
-      let datax = JSON.parse(JSON.stringify(originData))
+    async showObjectConfig(originData) {
+      const datax = JSON.parse(JSON.stringify(originData))
       if (!originData.refObjectMeta) {
         this.$Notice.error({
           title: 'Error',
@@ -780,30 +789,34 @@ export default {
       // this.objectModal.treeData = JSON.parse(JSON.stringify(originData))
       this.objectModal.showObjectConfigModal = true
     },
-    getObjectRoot (expression) {
+    getObjectRoot(expression) {
       // A --- '>' B -- '~'
       const lastIndexOfA = expression.lastIndexOf('>')
       const lastIndexOfB = expression.lastIndexOf('~')
       // 以 '>' 分割
       if (lastIndexOfA >= lastIndexOfB) {
         this.objectRootEntity = expression.split('>').pop()
-      } else {
+      }
+      else {
         // 以 '~' 分割
-        this.objectRootEntity = expression.split('~').pop().split(')').pop()
+        this.objectRootEntity = expression.split('~').pop()
+          .split(')')
+          .pop()
       }
     },
-    managementExpression (mappingEntityExpression, rootEntity) {
+    managementExpression(mappingEntityExpression, rootEntity) {
       if (mappingEntityExpression && mappingEntityExpression.includes(rootEntity)) {
         return mappingEntityExpression
-      } else {
-        return rootEntity
       }
+
+      return rootEntity
     },
-    selectedEntityTypeChangeHandler (val) {
+    selectedEntityTypeChangeHandler(val) {
       const findIndex = val.indexOf('{')
       if (findIndex === -1) {
         this.currentPluginObj.filterRule = ''
-      } else {
+      }
+      else {
         const rule = val.substring(findIndex, val.length)
         this.currentPluginObj.filterRule = rule
       }
@@ -823,7 +836,7 @@ export default {
         })
       })
     },
-    removeOutputParams (index) {
+    removeOutputParams(index) {
       this.$Modal.confirm({
         title: this.$t('confirm_to_delete'),
         content: name,
@@ -833,7 +846,7 @@ export default {
         onCancel: () => {}
       })
     },
-    addOutputParams () {
+    addOutputParams() {
       const assginOutput = this.currentInter.outputParameters.filter(item => item.mappingType === 'assign')
       const res = assginOutput.every(item => item.name !== '' && item.mappingValue !== '')
       if (!res) {
@@ -859,15 +872,15 @@ export default {
         type: 'OUTPUT'
       })
     },
-    managementObjectExpression (mappingEntityExpression, rootEntity) {
+    managementObjectExpression(mappingEntityExpression, rootEntity) {
       if (mappingEntityExpression && mappingEntityExpression.includes(rootEntity)) {
         return mappingEntityExpression
-      } else {
-        return this.selectedEntityType
       }
+
+      return this.selectedEntityType
     },
     // refObjectMeta。id pluginConfigId
-    showParamsModal (val, index, currentPluginObj) {
+    showParamsModal(val, index) {
       this.currentInter = val
       // this.currentInter.inputParameters.forEach(item => {
       //   item.mappingEntityExpression = this.managementObjectExpression(
@@ -880,28 +893,24 @@ export default {
       this.currentServiceName = val.serviceName
       this.paramsModalVisible = true
     },
-    closeParamsModal () {
+    closeParamsModal() {
       this.paramsModalVisible = false
     },
-    confirmParamsHandler () {
+    confirmParamsHandler() {
       if (this.currentPluginObj.status !== 'ENABLED') {
         this.currentPluginObj.interfaces.splice(this.currentInterIndex, 1, this.currentInter)
         // this.pluginSave()
       }
       this.paramsModalVisible = false
     },
-    async setConfigTreeHandler () {
-      const payload = this.$refs.configTree.data.map(_ => {
-        return {
-          ..._,
-          pluginConfigs: _.children.map(child => {
-            return {
-              ...child,
-              status: child.checked ? 'ENABLED' : 'DISABLED'
-            }
-          })
-        }
-      })
+    async setConfigTreeHandler() {
+      const payload = this.$refs.configTree.data.map(_ => ({
+        ..._,
+        pluginConfigs: _.children.map(child => ({
+          ...child,
+          status: child.checked ? 'ENABLED' : 'DISABLED'
+        }))
+      }))
       const { status } = await updateConfigStatus(this.pkgId, payload)
       if (status === 'OK') {
         await this.getAllPluginByPkgId()
@@ -915,15 +924,15 @@ export default {
         this.$emit('success')
       }
     },
-    closeTreeModal () {
+    closeTreeModal() {
       this.configTreeManageModal = false
       this.$emit('close-tree')
     },
-    batchRegist () {
+    batchRegist() {
       this.getConfigByPkgId()
       this.configTreeManageModal = true
     },
-    async getConfigByPkgId () {
+    async getConfigByPkgId() {
       const { status, data } = await getConfigByPkgId(this.pkgId)
       if (status === 'OK') {
         this.configTree = data.map(_ => {
@@ -933,35 +942,31 @@ export default {
             title: _.name,
             expand: true,
             disabled: !hasPermission,
-            children: _.pluginConfigs.map(config => {
-              return {
-                ...config,
-                title: `${config.name}-(${config.registerName})`,
-                expand: true,
-                checked: config.status === 'ENABLED',
-                disabled: !config.hasMgmtPermission
-              }
-            })
+            children: _.pluginConfigs.map(config => ({
+              ...config,
+              title: `${config.name}-(${config.registerName})`,
+              expand: true,
+              checked: config.status === 'ENABLED',
+              disabled: !config.hasMgmtPermission
+            }))
           }
         })
       }
     },
-    renderRoleNameForTransfer (item) {
+    renderRoleNameForTransfer(item) {
       return item.label
     },
-    async getRolesByCurrentUser () {
+    async getRolesByCurrentUser() {
       const { status, data } = await getRolesByCurrentUser()
       if (status === 'OK') {
-        this.currentUserRoles = data.map(_ => {
-          return {
-            ..._,
-            key: _.name,
-            label: _.displayName
-          }
-        })
+        this.currentUserRoles = data.map(_ => ({
+          ..._,
+          key: _.name,
+          label: _.displayName
+        }))
       }
     },
-    permissionsHandler (config) {
+    permissionsHandler(config) {
       this.mgmtRolesKey = config.permissionToRole.MGMT || []
       this.useRolesKey = config.permissionToRole.USE || []
       let hasPermission = false
@@ -977,29 +982,36 @@ export default {
         this.$refs.useRoles.leftCheckedKeys = []
         this.currentPluginForPermission = config
         this.isAddOrCopy = 'new'
-      } else {
+      }
+      else {
         this.$Message.warning(this.$t('no_permission_to_mgmt'))
       }
     },
-    async confirmRole () {
+    async confirmRole() {
       if (this.mgmtRolesKey.length) {
         if (this.isAddOrCopy === 'copy') {
           // await this.updatePermission(this.newPluginConfig)
           await this.exectCopyPluginConfigDto()
           this.configRoleManageModal = false
-        } else if (this.isAddOrCopy === 'add') {
+        }
+        else if (this.isAddOrCopy === 'add') {
           this.exectAddPluginConfigDto()
           this.configRoleManageModal = false
-        } else if (this.isAddOrCopy === 'new') {
+        }
+        else if (this.isAddOrCopy === 'new') {
           await this.updatePermission(this.currentPluginForPermission.id)
         }
-      } else {
+      }
+      else {
         this.$Message.warning(this.$t('mgmt_role_warning'))
       }
     },
-    async updatePermission (id) {
+    async updatePermission(id) {
       const payload = {
-        permissionToRole: { MGMT: this.mgmtRolesKey, USE: this.useRolesKey }
+        permissionToRole: {
+          MGMT: this.mgmtRolesKey,
+          USE: this.useRolesKey
+        }
       }
       const { status } = await updatePluginConfigRoleBinding(id, payload)
       if (status === 'OK') {
@@ -1011,25 +1023,23 @@ export default {
       }
       this.getAllPluginByPkgId()
     },
-    async getRoleList () {
+    async getRoleList() {
       const { status, data } = await getRoleList()
       if (status === 'OK') {
-        this.allRolesBackUp = data.map(_ => {
-          return {
-            ..._,
-            key: _.name,
-            label: _.displayName
-          }
-        })
+        this.allRolesBackUp = data.map(_ => ({
+          ..._,
+          key: _.name,
+          label: _.displayName
+        }))
       }
     },
-    handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
+    handleMgmtRoleTransferChange(newTargetKeys) {
       this.mgmtRolesKey = newTargetKeys
     },
-    handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
+    handleUseRoleTransferChange(newTargetKeys) {
       this.useRolesKey = newTargetKeys
     },
-    async updateConfigPermission (proId, roleId, type) {
+    async updateConfigPermission(proId, roleId, type) {
       const payload = {
         permission: type,
         roleIds: roleId
@@ -1043,7 +1053,7 @@ export default {
       }
       this.getAllPluginByPkgId()
     },
-    async retrieveSystemVariables () {
+    async retrieveSystemVariables() {
       const { data, status } = await retrieveSystemVariables({
         filters: [],
         paging: false
@@ -1052,7 +1062,7 @@ export default {
         this.allSystemVariables = data.contents
       }
     },
-    async pluginSave () {
+    async pluginSave() {
       if (this.selectedEntityType === '') {
         this.$Notice.warning({
           title: 'Warning',
@@ -1076,7 +1086,7 @@ export default {
         this.currentPluginObj.permissionToRole.MGMT = this.mgmtRolesKey
         this.currentPluginObj.permissionToRole.USE = this.useRolesKey
       }
-      let currentPluginForSave = JSON.parse(JSON.stringify(this.currentPluginObj))
+      const currentPluginForSave = JSON.parse(JSON.stringify(this.currentPluginObj))
       currentPluginForSave.registerName = this.registerName
       currentPluginForSave.targetEntityWithFilterRule = this.selectedEntityType
       if (this.hasNewSource) {
@@ -1099,12 +1109,12 @@ export default {
         this.getInterfacesByPluginConfigId(id)
       }
     },
-    mappingTypeChange (v, param) {
+    mappingTypeChange(v, param) {
       if (v === 'entity') {
         param.mappingEntityExpression = null
       }
     },
-    async regist () {
+    async regist() {
       if (this.selectedEntityType === '') {
         this.$Notice.warning({
           title: 'Warning',
@@ -1120,7 +1130,7 @@ export default {
         this.currentPluginObj.permissionToRole.USE = this.useRolesKey
       }
       this.currentPluginObj.registerName = this.registerName
-      let currentPluginForSave = JSON.parse(JSON.stringify(this.currentPluginObj))
+      const currentPluginForSave = JSON.parse(JSON.stringify(this.currentPluginObj))
       currentPluginForSave.targetEntityWithFilterRule = this.selectedEntityType
       if (this.hasNewSource) {
         delete currentPluginForSave.id
@@ -1144,7 +1154,7 @@ export default {
         }
       }
     },
-    deleteRegisterSource () {
+    deleteRegisterSource() {
       this.$Modal.confirm({
         title: 'Warning',
         content: `${this.$t('delete')} ${this.currentPluginObj.name}(${this.currentPluginObj.registerName}) ?`,
@@ -1166,12 +1176,12 @@ export default {
         onCancel: () => {}
       })
     },
-    addRegistMsg () {
+    addRegistMsg() {
       this.addRegisterName = ''
       this.addRegistModal = true
       this.hasNewSource = false
     },
-    ok () {
+    ok() {
       this.registerName = this.addRegisterName
       this.currentPluginObj.id = new Date().getMilliseconds() + ''
       this.currentPluginObj.registerName = this.registerName
@@ -1179,7 +1189,7 @@ export default {
       this.selectedSource = this.currentPluginObj.id
       this.hasNewSource = true
     },
-    async removePlugin () {
+    async removePlugin() {
       const { status, message } = await deletePlugin(this.currentPluginObj.id)
       if (status === 'OK') {
         this.$Notice.success({
@@ -1190,40 +1200,44 @@ export default {
         this.getInterfacesByPluginConfigId(this.currentPluginObj.id)
       }
     },
-    actionFocus (e) {
+    actionFocus(e) {
       e.preventDefault()
       e.stopPropagation()
     },
-    actionBlurHandler (e, i) {
+    actionBlurHandler(e, i) {
       e.preventDefault()
       e.stopPropagation()
       i.action = e.target.value
     },
-    copyInterface (interfaces) {
+    copyInterface(interfaces) {
       const found = this.currentPluginObj.interfaces.find(_ => _.action === interfaces.action + '-(copy)')
-      if (found) return
-      let i = { ...interfaces }
+      if (found) {
+        return
+      }
+      const i = { ...interfaces }
       i.action = interfaces.action + '-(copy)'
       i.id = null
-      i.inputParameters = i.inputParameters.map(_ => {
-        return { ..._, id: null }
-      })
-      i.outputParameters = i.outputParameters.map(_ => {
-        return { ..._, id: null }
-      })
+      i.inputParameters = i.inputParameters.map(_ => ({
+        ..._,
+        id: null
+      }))
+      i.outputParameters = i.outputParameters.map(_ => ({
+        ..._,
+        id: null
+      }))
       this.currentPluginObj.interfaces.push(i)
     },
-    deleteInterface (index) {
+    deleteInterface(index) {
       this.currentPluginObj.interfaces.splice(index, 1)
     },
-    async getAllPluginByPkgId () {
+    async getAllPluginByPkgId() {
       const { data, status } = await getPluginConfigsByPackageId(this.pkgId)
       if (status === 'OK') {
         this.plugins = data
         this.$emit('get-service-list', this.plugins)
       }
     },
-    async copyPluginConfigDto (id) {
+    async copyPluginConfigDto(id) {
       this.newPluginConfig = id
       this.isAddOrCopy = 'copy'
 
@@ -1235,13 +1249,13 @@ export default {
       this.$refs.useRoles.leftCheckedKeys = []
       this.hasNewSource = true
     },
-    async exectCopyPluginConfigDto () {
+    async exectCopyPluginConfigDto() {
       await this.getInterfacesByPluginConfigId(this.newPluginConfig)
       this.registerName = this.currentPluginObj.registerName + '-(copy)'
       this.currentPluginObj.status = 'DISABLED'
       this.$refs.registerName.focus()
     },
-    async addPluginConfigDto (plugin) {
+    async addPluginConfigDto(plugin) {
       this.newPluginConfig = plugin
       this.isAddOrCopy = 'add'
 
@@ -1252,7 +1266,7 @@ export default {
       this.$refs.useRoles.leftCheckedKeys = []
       this.hasNewSource = true
     },
-    async exectAddPluginConfigDto () {
+    async exectAddPluginConfigDto() {
       const id = this.newPluginConfig.pluginConfigDtoList.find(_ => _.registerName === '' || _.registerName === null).id
       await this.getInterfacesByPluginConfigId(id)
       this.registerName = ''
@@ -1260,24 +1274,22 @@ export default {
       this.currentPluginObj.status = 'DISABLED'
       this.$refs.registerName.focus()
     },
-    selectPlugin (val) {
+    selectPlugin(val) {
       this.hasNewSource = false
       this.currentPlugin = val
       this.getInterfacesByPluginConfigId(val)
     },
-    async getInterfacesByPluginConfigId (id) {
+    async getInterfacesByPluginConfigId(id) {
       this.hidePanal = false
       this.isLoading = true
       this.currentPluginObj = {}
-      let currentConfig = this.allPluginConfigs.find(s => s.id === id)
+      const currentConfig = this.allPluginConfigs.find(s => s.id === id)
       const { data, status } = await getInterfacesByPluginConfigId(id)
       if (status === 'OK' && currentConfig) {
-        currentConfig.interfaces = data.map(_ => {
-          return {
-            ..._,
-            filterRule: _.filterRule ? _.filterRule : ''
-          }
-        })
+        currentConfig.interfaces = data.map(_ => ({
+          ..._,
+          filterRule: _.filterRule ? _.filterRule : ''
+        }))
         this.currentPluginObj = currentConfig
         this.selectedEntityType = currentConfig.targetEntityWithFilterRule
         this.registerName = this.currentPluginObj.registerName
@@ -1285,28 +1297,31 @@ export default {
       this.isLoading = false
       this.hidePanal = true
     },
-    copyRegistSource (v) {
+    copyRegistSource(v) {
       this.registSourceChange(v)
       this.currentPluginObj.status = 'DISABLED'
     },
-    async getAllDataModels () {
+    async getAllDataModels() {
       const { data, status } = await getAllDataModels()
       if (status === 'OK') {
-        this.allEntityType = data.map(_ => {
+        this.allEntityType = data.map(_ =>
           // handle result sort by name
-          return {
+          ({
             ..._,
             entities: _.entities.sort(function (a, b) {
-              var s = a.name.toLowerCase()
-              var t = b.name.toLowerCase()
-              if (s < t) return -1
-              if (s > t) return 1
+              const s = a.name.toLowerCase()
+              const t = b.name.toLowerCase()
+              if (s < t) {
+                return -1
+              }
+              if (s > t) {
+                return 1
+              }
             })
-          }
-        })
+          }))
       }
     },
-    startRegister () {
+    startRegister() {
       this.getRoleList()
       this.getAllPluginByPkgId()
       this.getAllDataModels()
@@ -1314,7 +1329,7 @@ export default {
       this.getRolesByCurrentUser()
     }
   },
-  created () {
+  created() {
     this.startRegister()
   }
 }

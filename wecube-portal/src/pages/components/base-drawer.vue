@@ -3,14 +3,14 @@
     <Drawer
       :title="title"
       v-model="drawerVisible"
-      :width="width"
+      :width="realWidth"
       :mask-closable="true"
       :scrollable="scrollable"
       :lock-scroll="true"
       @on-close="handleCancel"
       class="platform-base-drawer"
     >
-      <div class="content" :style="{ maxHeight: maxHeight + 'px' }">
+      <div class="content" :style="{maxHeight: maxHeight + 'px'}">
         <slot name="content" :maxHeight="maxHeight"></slot>
       </div>
       <div v-if="hasFooter" class="drawer-footer">
@@ -32,8 +32,7 @@ export default {
       type: Boolean,
       default: false
     },
-    width: {
-      type: String | Number,
+    realWidth: {
       default: 1000
     },
     scrollable: {
@@ -43,25 +42,26 @@ export default {
   },
   computed: {
     drawerVisible: {
-      get () {
+      get() {
         return this.visible
       },
-      set (val) {
+      set(val) {
         this.$emit('update:visible', val)
       }
     }
   },
-  data () {
+  data() {
     return {
       maxHeight: 500,
       hasFooter: false
     }
   },
-  mounted () {
+  mounted() {
     // 判断是否有底部按钮
     if (this.$slots.footer && this.$slots.footer.length > 0) {
       this.hasFooter = true
-    } else {
+    }
+    else {
       this.hasFooter = false
     }
     this.maxHeight = document.body.clientHeight - (this.hasFooter ? 150 : 100)
@@ -73,11 +73,11 @@ export default {
     )
   },
   methods: {
-    handleSubmit () {
+    handleSubmit() {
       this.$emit('update:visible', false)
       this.$emit('submit')
     },
-    handleCancel () {
+    handleCancel() {
       this.$emit('update:visible', false)
     }
   }

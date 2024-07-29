@@ -16,17 +16,14 @@
               {{ $t('name') }}
             </label>
             <Input v-model.trim="itemCustomInfo.name" @on-change="paramsChanged"></Input>
-            <span style="position: absolute; left: 320px; top: 2px; line-height: 30px; background: white"
-              >{{ (itemCustomInfo.name && itemCustomInfo.name.length) || 0 }}/30</span
-            >
+            <span style="position: absolute; left: 320px; top: 2px; line-height: 30px; background: white">{{ (itemCustomInfo.name && itemCustomInfo.name.length) || 0 }}/30</span>
             <span
               v-if="
                 (itemCustomInfo.name && itemCustomInfo.name.length > 30) ||
-                (itemCustomInfo.name && itemCustomInfo.name.length === 0)
+                  (itemCustomInfo.name && itemCustomInfo.name.length === 0)
               "
               style="color: red"
-              >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span
-            >
+            >{{ $t('name') }}{{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span>
           </FormItem>
         </template>
       </Form>
@@ -41,7 +38,7 @@
 </template>
 <script>
 export default {
-  data () {
+  data() {
     return {
       editFlow: true, // 在查看时隐藏按钮
       isParmasChanged: false, // 参数变化标志位，控制右侧panel显示逻辑
@@ -54,7 +51,7 @@ export default {
     }
   },
   methods: {
-    showItemInfo (data, needAddFirst = false, editFlow, isNameRequired) {
+    showItemInfo(data, needAddFirst = false, editFlow, isNameRequired) {
       this.editFlow = editFlow
       this.needAddFirst = needAddFirst
       this.isNameRequired = isNameRequired
@@ -66,10 +63,10 @@ export default {
         this.saveItem()
       }
     },
-    saveItem () {
-      let tmpData = JSON.parse(JSON.stringify(this.itemCustomInfo))
+    saveItem() {
+      const tmpData = JSON.parse(JSON.stringify(this.itemCustomInfo))
       tmpData.label = tmpData.name
-      let finalData = {
+      const finalData = {
         customAttrs: {
           id: tmpData.id,
           name: tmpData.name,
@@ -81,7 +78,7 @@ export default {
       this.$emit('sendItemInfo', finalData, this.needAddFirst)
       this.needAddFirst = false
     },
-    isSaveBtnActive () {
+    isSaveBtnActive() {
       let res = false
       if (this.isNameRequired && !this.itemCustomInfo.name) {
         res = true
@@ -91,10 +88,10 @@ export default {
       }
       return res
     },
-    panalStatus () {
+    panalStatus() {
       return this.isParmasChanged
     },
-    hideItem () {
+    hideItem() {
       if (this.isParmasChanged) {
         this.$Modal.confirm({
           title: `${this.$t('confirm_discarding_changes')}`,
@@ -109,12 +106,13 @@ export default {
             this.$emit('hideItemInfo')
           }
         })
-      } else {
+      }
+      else {
         this.$emit('hideItemInfo')
       }
     },
     // 监听参数变化
-    paramsChanged () {
+    paramsChanged() {
       this.isParmasChanged = true
     }
   }

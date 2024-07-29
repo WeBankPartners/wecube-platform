@@ -7,7 +7,7 @@ const state = {
 }
 
 const mutations = {
-  setSearchMap (state, { key, data }) {
+  setSearchMap(state, { key, data }) {
     state.searchMap.set(key, data)
   }
 }

@@ -55,7 +55,9 @@ export default (anchor, group, p) => {
     const { type, direction } = group.getFirst().attr()
     const canvasBox = group.get('children')[0].get('canvasBBox')
 
-    if (!canvasBox || !line) return
+    if (!canvasBox || !line) {
+      return
+    }
 
     const diff = type === 'triangle-node' ? (direction === 'up' ? canvasBox.height : 0) : canvasBox.height / 2
     const pointStart = line.get('pointStart')
@@ -79,17 +81,20 @@ export default (anchor, group, p) => {
         if (e.y >= dragLog[1]) {
           endPoint[0] -= 1
           endPoint[1] -= 1
-        } else {
+        }
+        else {
           // 右上
           endPoint[0] -= 1
           endPoint[1] -= 1
         }
-      } else {
+      }
+      else {
         // 左上
         if (e.y >= dragLog[1]) {
           endPoint[0] += 1
           endPoint[1] += 1
-        } else {
+        }
+        else {
           // 左下
           endPoint[0] += 1
           endPoint[1] += 1
@@ -106,7 +111,7 @@ export default (anchor, group, p) => {
   })
 
   // 拖拽结束删除虚线
-  anchor.on('dragend', e => {
+  anchor.on('dragend', () => {
     const item = group.$getItem('dashed-line')
 
     item.remove()
