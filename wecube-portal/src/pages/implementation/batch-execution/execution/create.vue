@@ -34,7 +34,7 @@ export default {
     BaseForm,
     DangerousModal
   },
-  data () {
+  data() {
     return {
       id: this.$route.query.id || '', // 批量执行id
       type: this.$route.query.type || 'add', // 新增，查看
@@ -49,39 +49,43 @@ export default {
       encryptKey: ''
     }
   },
-  mounted () {
+  mounted() {
     if (this.$route.query.id) {
       if (this.$route.query.from === 'template') {
         this.handleChooseTemplate() // 选择模板创建执行
-      } else {
+      }
+      else {
         this.getExecuteDetail() // 获取执行详情
       }
     }
   },
   methods: {
-    handleBack () {
+    handleBack() {
       this.$router.back()
     },
-    forwardToList () {
+    forwardToList() {
       this.$router.push('/implementation/batch-execution/execution-history')
     },
-    async getInputParamsEncryptKey () {
+    async getInputParamsEncryptKey() {
       const { status, data } = await getInputParamsEncryptKey()
       if (status === 'OK') {
         this.encryptKey = data
       }
     },
     // 选择模板创建
-    async handleChooseTemplate () {
+    async handleChooseTemplate() {
       // 选择模板创建的时候，使用模板ID调用模板详情接口，获取详情信息
       const { status, data } = await getBatchExecuteTemplateDetail(this.id)
       if (status === 'OK') {
-        this.detailData = { ...data, templateData: data }
+        this.detailData = {
+          ...data,
+          templateData: data
+        }
         this.detailData.name = `${this.detailData.name}${new Date().getTime()}`
       }
     },
     // 获取执行详情
-    async getExecuteDetail () {
+    async getExecuteDetail() {
       const { status, data } = await batchExecuteHistory(this.id)
       if (status === 'OK') {
         if (data.batchExecutionTemplateId) {
@@ -89,14 +93,18 @@ export default {
           this.detailData = {
             ...data,
             isDangerousBlock: data.configData.isDangerousBlock,
-            templateData: templateData
+            templateData
           }
-        } else {
+        }
+        else {
           // 预执行数据(无模板ID)
           this.detailData = {
             ...data,
             isDangerousBlock: data.configData.isDangerousBlock,
-            templateData: { id: '', name: '' }
+            templateData: {
+              id: '',
+              name: ''
+            }
           }
         }
         if (this.type === 'copy') {
@@ -105,13 +113,15 @@ export default {
       }
     },
     // 重新执行
-    relaunch () {
+    relaunch() {
       this.type = 'copy'
       this.getExecuteDetail()
     },
     // 执行
     saveExcute: debounce(async function () {
-      if (!this.validRequired()) return
+      if (!this.validRequired()) {
+        return
+      }
       const {
         name,
         currentPackageName,
@@ -139,10 +149,10 @@ export default {
         }
         pluginInputParams.forEach(item => {
           if (
-            item.mappingType === 'constant' &&
-            item.sensitiveData === 'Y' &&
-            item.bindValue &&
-            !item.bindValue.startsWith('encrypt ')
+            item.mappingType === 'constant'
+            && item.sensitiveData === 'Y'
+            && item.bindValue
+            && !item.bindValue.startsWith('encrypt ')
           ) {
             item.bindValue = 'encrypt ' + CryptoJS.AES.encrypt(item.bindValue, key, config).toString()
           }
@@ -157,26 +167,19 @@ export default {
         resultTableParams
       }
       // 查询结果主键
-      let currentEntity = primatKeyAttrList.find(item => {
-        return item.name === primatKeyAttr
-      })
-      const resourceDatas = seletedRows.map(item => {
-        return {
-          id: item.id,
-          businessKeyValue: item[primatKeyAttr]
-        }
-      })
+      const currentEntity = primatKeyAttrList.find(item => item.name === primatKeyAttr)
+      const resourceDatas = seletedRows.map(item => ({
+        id: item.id,
+        businessKeyValue: item[primatKeyAttr]
+      }))
       // 当前插件
-      const plugin = pluginOptions.find(item => {
-        return item.serviceName === pluginId
-      })
+      const plugin = pluginOptions.find(item => item.serviceName === pluginId)
       // 插件入参
       const inputParameterDefinitions = pluginInputParams.map(p => {
-        const inputParameterValue =
-          p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
+        const inputParameterValue = p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
         return {
           inputParameter: p,
-          inputParameterValue: inputParameterValue
+          inputParameterValue
         }
       })
       const outputParameterDefinitions = pluginOutputParams.filter(i => {
@@ -193,12 +196,12 @@ export default {
         isDangerousBlock: templateData.id ? templateData.isDangerousBlock : true, // 是否开启高危检测
         batchExecutionTemplateId: templateData.id || '',
         batchExecutionTemplateName: templateData.name || '',
-        name: name,
+        name,
         packageName: currentPackageName,
         entityName: currentEntityName,
-        dataModelExpression: dataModelExpression,
-        primatKeyAttr: primatKeyAttr,
-        searchParameters: searchParameters,
+        dataModelExpression,
+        primatKeyAttr,
+        searchParameters,
         pluginConfigInterface: plugin,
         inputParameterDefinitions,
         outputParameterDefinitions,
@@ -207,7 +210,7 @@ export default {
         sourceData: JSON.stringify(frontData)
       }
       this.$Spin.show()
-      const { status, data } = await saveBatchExecute(`/platform/v1/batch-execution/job/run`, params)
+      const { status, data } = await saveBatchExecute('/platform/v1/batch-execution/job/run', params)
       this.$Spin.hide()
       if (status === 'OK') {
         this.$Notice.success({
@@ -215,7 +218,8 @@ export default {
           desc: this.$t('successful')
         })
         this.$router.push('/implementation/batch-execution/execution-history')
-      } else if (status === 'CONFIRM') {
+      }
+      else if (status === 'CONFIRM') {
         // 高危检测命中，则弹窗让用户手动确认是否继续执行，若继续，则带id和continueToken再执行一次
         if (data.dangerousCheckResult) {
           params.batchExecId = data.batchExecId
@@ -226,9 +230,10 @@ export default {
         }
       }
     }, 100),
-    validRequired () {
-      const { name, dataModelExpression, pluginId, pluginInputParams, primatKeyAttr, userTableColumns, seletedRows } =
-        this.$refs.form
+    validRequired() {
+      const {
+        name, dataModelExpression, pluginId, pluginInputParams, primatKeyAttr, userTableColumns, seletedRows
+      } = this.$refs.form
       if (!name) {
         this.$Message.warning(this.$t('be_template_name_required'))
         return false
@@ -256,9 +261,8 @@ export default {
       const pluginInputParamsFlag = pluginInputParams.every(item => {
         if (item.required === 'Y' && item.mappingType === 'constant' && !item.bindValue) {
           return false
-        } else {
-          return true
         }
+        return true
       })
       if ((pluginInputParams && pluginInputParams.length === 0) || !pluginInputParamsFlag) {
         this.$Message.warning(this.$t('be_setting_input_required'))
