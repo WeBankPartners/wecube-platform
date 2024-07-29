@@ -196,7 +196,7 @@ export default {
     FlowAuth,
     Search
   },
-  data () {
+  data() {
     return {
       spinShow: true,
       expand: true,
@@ -204,7 +204,8 @@ export default {
         procDefId: '',
         procDefName: '',
         plugins: [],
-        createdTime: [dayjs().subtract(3, 'month').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+        createdTime: [dayjs().subtract(3, 'month')
+          .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
         createdTimeStart: '',
         createdTimeEnd: '',
         createdBy: '',
@@ -219,10 +220,28 @@ export default {
           label: this.$t('table_created_date'),
           initDateType: 1,
           dateRange: [
-            { label: this.$t('fe_recent3Months'), type: 'month', value: 3, dateType: 1 },
-            { label: this.$t('fe_recentHalfYear'), type: 'month', value: 6, dateType: 2 },
-            { label: this.$t('fe_recentOneYear'), type: 'year', value: 1, dateType: 3 },
-            { label: this.$t('be_auto'), dateType: 4 } // 自定义
+            {
+              label: this.$t('fe_recent3Months'),
+              type: 'month',
+              value: 3,
+              dateType: 1
+            },
+            {
+              label: this.$t('fe_recentHalfYear'),
+              type: 'month',
+              value: 6,
+              dateType: 2
+            },
+            {
+              label: this.$t('fe_recentOneYear'),
+              type: 'year',
+              value: 1,
+              dateType: 3
+            },
+            {
+              label: this.$t('be_auto'),
+              dateType: 4
+            } // 自定义
           ],
           labelWidth: 110,
           component: 'custom-time'
@@ -262,10 +281,22 @@ export default {
       ],
       dateType: 1, // 控制时间显示
       dateTypeList: [
-        { label: this.$t('be_recent_three_month'), value: 1 },
-        { label: this.$t('be_recent_half_year'), value: 2 },
-        { label: this.$t('be_recent_one_year'), value: 3 },
-        { label: this.$t('be_auto'), value: 4 }
+        {
+          label: this.$t('be_recent_three_month'),
+          value: 1
+        },
+        {
+          label: this.$t('be_recent_half_year'),
+          value: 2
+        },
+        {
+          label: this.$t('be_recent_one_year'),
+          value: 3
+        },
+        {
+          label: this.$t('be_auto'),
+          value: 4
+        }
       ],
       hideRoles: [], // 在此出现的角色index将被隐藏
       authPluginList: [], // 待授权插件列表
@@ -279,54 +310,44 @@ export default {
         {
           title: this.$t('flow_name'),
           key: 'name',
-          render: (h, params) => {
-            return (
-              <div>
-                <span>
-                  <Icon
-                    type="ios-funnel-outline"
-                    size="12"
-                    style="cursor: pointer;margin-right:4px"
-                    onClick={() => this.copyNameToSearch(params.row.name)}
-                  />
-                </span>
-                <span>
-                  {params.row.name}
-                  <Tag style="margin-left:2px">{params.row.version}</Tag>
-                </span>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span>
+                <Icon
+                  type="ios-funnel-outline"
+                  size="12"
+                  style="cursor: pointer;margin-right:4px"
+                  onClick={() => this.copyNameToSearch(params.row.name)}
+                />
+              </span>
+              <span>
+                {params.row.name}
+                <Tag style="margin-left:2px">{params.row.version}</Tag>
+              </span>
+            </div>
+          )
         },
         {
           title: 'ID',
           width: 100,
           ellipsis: true,
           key: 'id',
-          render: (h, params) => {
-            return (
-              <div>
-                <Tooltip content={params.row.id} placement="top">
-                  <span>{params.row.id.slice(0, 7)}...</span>
-                </Tooltip>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <Tooltip content={params.row.id} placement="top">
+                <span>{params.row.id.slice(0, 7)}...</span>
+              </Tooltip>
+            </div>
+          )
         },
         {
           title: this.$t('authPlugin'),
           key: 'authPlugins',
           render: (h, params) => {
             if (params.row.authPlugins.length > 0) {
-              return (
-                params.row.authPlugins &&
-                params.row.authPlugins.map(i => {
-                  return <Tag>{i}</Tag>
-                })
-              )
-            } else {
-              return <span>-</span>
+              return params.row.authPlugins && params.row.authPlugins.map(i => <Tag>{i}</Tag>)
             }
+            return <span>-</span>
           }
         },
         {
@@ -335,9 +356,8 @@ export default {
           render: (h, params) => {
             if (params.row.rootEntity !== '') {
               return <div>{params.row.rootEntity}</div>
-            } else {
-              return <span>-</span>
             }
+            return <span>-</span>
           }
         },
         {
@@ -345,15 +365,9 @@ export default {
           key: 'userRoles',
           render: (h, params) => {
             if (params.row.userRolesDisplay.length > 0) {
-              return (
-                params.row.userRolesDisplay &&
-                params.row.userRolesDisplay.map(i => {
-                  return <Tag>{i}</Tag>
-                })
-              )
-            } else {
-              return <span>-</span>
+              return params.row.userRolesDisplay && params.row.userRolesDisplay.map(i => <Tag>{i}</Tag>)
             }
+            return <span>-</span>
           }
         },
         {
@@ -372,9 +386,8 @@ export default {
           render: (h, params) => {
             if (params.row.scene !== '') {
               return <div>{params.row.scene}</div>
-            } else {
-              return <span>-</span>
             }
+            return <span>-</span>
           }
         },
         {
@@ -514,19 +527,17 @@ export default {
           title: this.$t('flow_name'),
           key: 'name',
           minWidth: 250,
-          render: (h, params) => {
-            return (
-              <span
-                style="cursor:pointer;color:#5cadff;"
-                onClick={() => {
-                  this.viewParentFlowGraph(params.row)
-                }}
-              >
-                {params.row.name}
-                <Tag style="margin-left:2px">{params.row.version}</Tag>
-              </span>
-            )
-          }
+          render: (h, params) => (
+            <span
+              style="cursor:pointer;color:#5cadff;"
+              onClick={() => {
+                this.viewParentFlowGraph(params.row)
+              }}
+            >
+              {params.row.name}
+              <Tag style="margin-left:2px">{params.row.version}</Tag>
+            </span>
+          )
         },
         {
           title: this.$t('enum_status'),
@@ -534,9 +545,21 @@ export default {
           minWidth: 90,
           render: (h, params) => {
             const list = [
-              { label: this.$t('deployed'), value: 'deployed', color: '#19be6b' },
-              { label: this.$t('draft'), value: 'draft', color: '#c5c8ce' },
-              { label: this.$t('disabled'), value: 'disabled', color: '#ed4014' }
+              {
+                label: this.$t('deployed'),
+                value: 'deployed',
+                color: '#19be6b'
+              },
+              {
+                label: this.$t('draft'),
+                value: 'draft',
+                color: '#c5c8ce'
+              },
+              {
+                label: this.$t('disabled'),
+                value: 'disabled',
+                color: '#ed4014'
+              }
             ]
             const item = list.find(i => i.value === params.row.status)
             return item && <Tag color={item.color}>{item.label}</Tag>
@@ -554,7 +577,7 @@ export default {
   },
   watch: {
     'searchParams.subProc': {
-      handler (val) {
+      handler(val) {
         if (val === 'sub') {
           // 添加主编排列
           this.tableColumn.splice(3, 0, {
@@ -562,28 +585,27 @@ export default {
             width: 100,
             ellipsis: true,
             key: 'mainFlow',
-            render: (h, params) => {
-              return (
-                <Button
-                  type="info"
-                  size="small"
-                  onClick={() => {
-                    this.viewMainFlow(params.row)
-                  }}
-                >
-                  {this.$t('view')}
-                </Button>
-              )
-            }
+            render: (h, params) => (
+              <Button
+                type="info"
+                size="small"
+                onClick={() => {
+                  this.viewMainFlow(params.row)
+                }}
+              >
+                {this.$t('view')}
+              </Button>
+            )
           })
-        } else if (val === 'main') {
+        }
+        else if (val === 'main') {
           this.tableColumn = this.tableColumn.filter(i => i.key !== 'mainFlow')
         }
       },
       immediate: true
     },
     'searchParams.status': {
-      handler (val) {
+      handler(val) {
         if (val) {
           this.selectedParams = []
           this.hideRoles = []
@@ -592,7 +614,7 @@ export default {
       immediate: true
     }
   },
-  beforeRouteEnter (to, from, next) {
+  beforeRouteEnter(to, from, next) {
     next(vm => {
       if (from.path === '/collaboration/workflow-mgmt' && from.query.editFlow === 'false') {
         // 读取列表搜索参数
@@ -605,7 +627,7 @@ export default {
       }
     })
   },
-  beforeDestroy () {
+  beforeDestroy() {
     // 缓存列表搜索条件
     const storage = {
       searchParams: this.searchParams,
@@ -613,7 +635,7 @@ export default {
     }
     window.sessionStorage.setItem('search_workflow', JSON.stringify(storage))
   },
-  mounted () {
+  mounted() {
     if (this.$route.query.flowListTab) {
       this.searchParams.status = this.$route.query.flowListTab
     }
@@ -625,7 +647,7 @@ export default {
     this.pluginList()
   },
   methods: {
-    setHeaders () {
+    setHeaders() {
       const lang = localStorage.getItem('lang') || 'zh-CN'
       const accessToken = getCookie('accessToken')
       this.headers = {
@@ -633,7 +655,7 @@ export default {
         'Accept-Language': lang === 'zh-CN' ? 'zh-CN,zh;q=0.9,en;q=0.8' : 'en-US,en;q=0.9,zh;q=0.8'
       }
     },
-    onSelectAll (selection, roleDataIndex) {
+    onSelectAll(selection, roleDataIndex) {
       selection.forEach(se => {
         const findIndex = this.selectedParams.findIndex(
           param => param.id === se.id && param.roleDataIndex === roleDataIndex
@@ -642,17 +664,17 @@ export default {
           this.selectedParams.push({
             id: se.id,
             name: se.name,
-            roleDataIndex: roleDataIndex,
+            roleDataIndex,
             mgmtRole: se.mgmtRoles || [],
             useRole: se.userRoles || []
           })
         }
       })
     },
-    onSelectAllCancel (selection, roleDataIndex) {
+    onSelectAllCancel(selection, roleDataIndex) {
       this.selectedParams = this.selectedParams.filter(param => param.roleDataIndex !== roleDataIndex)
     },
-    onSelect (selection, row, roleDataIndex) {
+    onSelect(selection, row, roleDataIndex) {
       // if (this.searchParams.subProc === 'sub' && this.searchParams.status === 'deployed') {
       //   this.$nextTick(() => {
       //     // 实现单选效果，目前没找到更好的方法。。。
@@ -671,53 +693,54 @@ export default {
       this.selectedParams.push({
         id: row.id,
         name: row.name,
-        roleDataIndex: roleDataIndex,
+        roleDataIndex,
         mgmtRole: row.mgmtRoles || [],
         useRole: row.userRoles || []
       })
     },
-    cancelSelect (selection, row, roleDataIndex) {
+    cancelSelect(selection, row, roleDataIndex) {
       const findIndex = this.selectedParams.findIndex(
         param => param.id === row.id && param.roleDataIndex === roleDataIndex
       )
       this.selectedParams.splice(findIndex, 1)
     },
-    async create () {
+    async create() {
       this.authTo = 'createFlow'
       this.$refs.flowAuthRef.startAuth([], [])
     },
     // 获取所有插件列表
-    async pluginList () {
-      let { data, status } = await getPluginList()
+    async pluginList() {
+      const { data, status } = await getPluginList()
       if (status === 'OK') {
         this.authPluginList = data
         this.searchOptions.forEach(i => {
           if (i.key === 'plugins') {
-            i.list = this.authPluginList.map(i => {
-              return { label: i, value: i }
-            })
+            i.list = this.authPluginList.map(i => ({
+              label: i,
+              value: i
+            }))
           }
         })
       }
     },
     // 切换tab修改数据
-    changeTab (name) {
+    changeTab(name) {
       this.searchParams.status = name
       this.getFlowList()
     },
     // 切换主编排/子编排
-    changeFlow () {
+    changeFlow() {
       this.selectedParams = []
       this.$refs.search.handleReset()
     },
     // 获取编排列表
-    async getFlowList () {
+    async getFlowList() {
       this.spinShow = true
       const params = JSON.parse(JSON.stringify(this.searchParams))
       params.createdTimeStart = params.createdTime[0] ? params.createdTime[0] + ' 00:00:00' : ''
       params.createdTimeEnd = params.createdTime[1] ? params.createdTime[1] + ' 23:59:59' : ''
       delete params.createdTime
-      let { data, status } = await flowList(params)
+      const { data, status } = await flowList(params)
       this.spinShow = false
       if (status === 'OK') {
         this.data = data
@@ -725,15 +748,16 @@ export default {
     },
     // #region 按钮响应
     // 授权
-    batchAuth () {
+    batchAuth() {
       this.authTo = 'batchAuth'
       if (this.selectedParams.length === 1) {
         this.$refs.flowAuthRef.startAuth(this.selectedParams[0].mgmtRole, this.selectedParams[0].useRole)
-      } else {
+      }
+      else {
         this.$refs.flowAuthRef.startAuth([], [])
       }
     },
-    async updateAuth (mgmt, use) {
+    async updateAuth(mgmt, use) {
       if (this.authTo === 'batchAuth') {
         this.$Modal.confirm({
           title: this.$t('config_permission'),
@@ -746,7 +770,7 @@ export default {
                 USE: use
               }
             }
-            let { status, message } = await flowBatchAuth(data)
+            const { status, message } = await flowBatchAuth(data)
             if (status === 'OK') {
               this.$Notice.success({
                 title: 'Success',
@@ -758,7 +782,8 @@ export default {
           },
           onCancel: () => {}
         })
-      } else if (this.authTo === 'createFlow') {
+      }
+      else if (this.authTo === 'createFlow') {
         const params = {
           id: '',
           name: `${this.$t('workflow_report_aspect')}_${dayjs().format('YYMMDDHHmmss')}`,
@@ -781,13 +806,17 @@ export default {
           })
           this.$router.push({
             path: '/collaboration/workflow-mgmt',
-            query: { flowId: data.id, flowListTab: 'draft', isAdd: 'true' }
+            query: {
+              flowId: data.id,
+              flowListTab: 'draft',
+              isAdd: 'true'
+            }
           })
         }
       }
     },
     // 批量改状态
-    batchChangeStatus (state) {
+    batchChangeStatus(state) {
       const statusToTip = {
         disabled: {
           title: this.$t('disable'),
@@ -815,7 +844,7 @@ export default {
             procDefIds: this.selectedParams.map(p => p.id),
             status: state
           }
-          let { status, message } = await flowBatchChangeStatus(data)
+          const { status, message } = await flowBatchChangeStatus(data)
           if (status === 'OK') {
             this.$Notice.success({
               title: 'Success',
@@ -824,7 +853,8 @@ export default {
             this.$nextTick(() => {
               if (state === 'disabled') {
                 this.searchParams.status = 'disabled'
-              } else if (state === 'enabled') {
+              }
+              else if (state === 'enabled') {
                 this.searchParams.status = 'deployed'
               }
               this.getFlowList()
@@ -836,28 +866,38 @@ export default {
       })
     },
     // 普通编辑直接跳转
-    editAction (row) {
+    editAction(row) {
       const status = row.status
       if (status === 'draft') {
-        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: row.id, flowListTab: 'draft' } })
-      }
-      if (status === 'deployed') {
+        this.$router.push({
+          path: '/collaboration/workflow-mgmt',
+          query: {
+            flowId: row.id,
+            flowListTab: 'draft'
+          }
+        })
       }
     },
     // 选择编排名称后过滤
-    copyNameToSearch (procDefName) {
+    copyNameToSearch(procDefName) {
       this.searchParams.procDefName = procDefName
       this.getFlowList()
     },
     // deployed且 enableCreated为true，先调用接口成功后再跳转
-    async copyToEditAction (row) {
-      let { status, data } = await flowCopy(row.id, 'y')
+    async copyToEditAction(row) {
+      const { status, data } = await flowCopy(row.id, 'y')
       if (status === 'OK') {
-        this.$router.push({ path: '/collaboration/workflow-mgmt', query: { flowId: data, flowListTab: 'draft' } })
+        this.$router.push({
+          path: '/collaboration/workflow-mgmt',
+          query: {
+            flowId: data,
+            flowListTab: 'draft'
+          }
+        })
       }
     },
     // 转给我
-    async handleTransfer (row) {
+    async handleTransfer(row) {
       this.$Modal.confirm({
         title: this.$t('confirm') + this.$t('take_over'),
         'z-index': 1000000,
@@ -878,7 +918,10 @@ export default {
             if (row.status === 'draft') {
               this.$router.push({
                 path: '/collaboration/workflow-mgmt',
-                query: { flowId: row.id, flowListTab: 'draft' }
+                query: {
+                  flowId: row.id,
+                  flowListTab: 'draft'
+                }
               })
             }
           }
@@ -886,8 +929,8 @@ export default {
         onCancel: () => {}
       })
     },
-    async copyAction (row) {
-      let { status, message, data } = await flowCopy(row.id, 'n')
+    async copyAction(row) {
+      const { status, message, data } = await flowCopy(row.id, 'n')
       if (status === 'OK') {
         this.$Notice.success({
           title: 'Success',
@@ -895,26 +938,35 @@ export default {
         })
         this.$router.push({
           path: '/collaboration/workflow-mgmt',
-          query: { flowId: data, flowListTab: 'draft', isAdd: 'true' }
+          query: {
+            flowId: data,
+            flowListTab: 'draft',
+            isAdd: 'true'
+          }
         })
       }
     },
-    viewAction (row) {
+    viewAction(row) {
       this.$router.push({
         path: '/collaboration/workflow-mgmt',
-        query: { flowId: row.id, editFlow: 'false', flowListTab: this.searchParams.status }
+        query: {
+          flowId: row.id,
+          editFlow: 'false',
+          flowListTab: this.searchParams.status
+        }
       })
     },
     // 控制角色下table的显示
-    changeRoleTableStatus (index, type) {
+    changeRoleTableStatus(index, type) {
       if (type === 'in') {
         this.hideRoles.push(index)
-      } else if (type === 'out') {
+      }
+      else if (type === 'out') {
         const findIndex = this.hideRoles.findIndex(rIndex => rIndex === index)
         this.hideRoles.splice(findIndex, 1)
       }
     },
-    handleUpload (file) {
+    handleUpload(file) {
       if (!file.name.endsWith('.json')) {
         this.$Notice.warning({
           title: 'Warning',
@@ -924,46 +976,40 @@ export default {
       }
       return true
     },
-    uploadFailed (val, response) {
+    uploadFailed(val, response) {
       this.$Notice.error({
         title: 'Error',
         desc: response.statusMessage
       })
     },
-    async uploadSucess (res) {
+    async uploadSucess(res) {
       if (res.status === 'OK') {
-        let finalResult = []
+        const finalResult = []
         res.data.resultList.forEach(r => {
           finalResult.push(`${r.procDefName}(${r.ProcDefVersion}): ${r.message}`)
         })
         this.$Notice.info({
           duration: 0,
           title: this.$t('import_flow'),
-          render: h => {
-            return (
-              <div>
-                {finalResult.length > 0 &&
-                  finalResult.map(i => {
-                    return <div>{i}</div>
-                  })}
-              </div>
-            )
-          }
+          render: () => <div>{finalResult.length > 0 && finalResult.map(i => <div>{i}</div>)}</div>
         })
         if (res.data.resultList.length === 1 && res.data.resultList[0].code === 0) {
           this.$router.push({
             path: '/collaboration/workflow-mgmt',
-            query: { flowId: res.data.resultList[0].procDefId, flowListTab: 'draft' }
+            query: {
+              flowId: res.data.resultList[0].procDefId,
+              flowListTab: 'draft'
+            }
           })
         }
         this.getFlowList()
       }
     },
-    async exportFlow () {
+    async exportFlow() {
       this.setHeaders()
       axios({
         method: 'post',
-        url: `platform/v1/process/definitions/export`,
+        url: 'platform/v1/process/definitions/export',
         headers: this.headers,
         data: {
           procDefIds: this.selectedParams.map(p => p.id)
@@ -977,13 +1023,14 @@ export default {
             if (fileNameArr.length === 2) {
               fileName = fileNameArr[1]
             }
-            let blob = new Blob([response.data])
+            const blob = new Blob([response.data])
             if ('msSaveOrOpenBlob' in navigator) {
               window.navigator.msSaveOrOpenBlob(blob, fileName)
-            } else {
+            }
+            else {
               if ('download' in document.createElement('a')) {
                 // 非IE下载
-                let elink = document.createElement('a')
+                const elink = document.createElement('a')
                 elink.download = fileName
                 elink.style.display = 'none'
                 elink.href = URL.createObjectURL(blob)
@@ -991,7 +1038,8 @@ export default {
                 elink.click()
                 URL.revokeObjectURL(elink.href) // 释放URL 对象
                 document.body.removeChild(elink)
-              } else {
+              }
+              else {
                 // IE10+下载
                 navigator.msSaveOrOpenBlob(blob, fileName)
               }
@@ -1003,27 +1051,27 @@ export default {
         })
     },
     // 查看主编排详情
-    viewParentFlowGraph (row) {
+    viewParentFlowGraph(row) {
       window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
       const path = `${window.location.origin}/#/collaboration/workflow-mgmt?flowId=${row.id}&editFlow=false&flowListTab=deployed`
       window.open(path, '_blank')
     },
     // 查看主编排
-    viewMainFlow (row) {
+    viewMainFlow(row) {
       this.mainFlowVisible = true
       this.viewRow = row
       this.getMainFlowList()
     },
-    changPage (val) {
+    changPage(val) {
       this.pagination.currentPage = val
       this.getMainFlowList()
     },
-    changePageSize (val) {
+    changePageSize(val) {
       this.pagination.currentPage = 1
       this.pagination.pageSize = val
       this.getMainFlowList()
     },
-    async getMainFlowList () {
+    async getMainFlowList() {
       const params = {
         startIndex: (this.pagination.currentPage - 1) * this.pagination.pageSize,
         pageSize: this.pagination.pageSize
@@ -1037,11 +1085,14 @@ export default {
       }
     },
     // 禁用单个编排
-    async disabledSingleFlow (row) {
+    async disabledSingleFlow(row) {
       let total = 0
       let nameStr = ''
       if (row.subProc === true) {
-        const { status, data } = await getParentFlowList(row.id, { startIndex: 0, pageSize: 20 })
+        const { status, data } = await getParentFlowList(row.id, {
+          startIndex: 0,
+          pageSize: 20
+        })
         if (status === 'OK') {
           total = data.page.totalRows || 0
           const arr = data.content && data.content.map(i => i.name)
@@ -1056,9 +1107,8 @@ export default {
         render: () => {
           if (!total) {
             return <span>{`${this.$t('fe_confirmDisabledFlow')}${this.$t('confirmBatchDisableWarn')}`}</span>
-          } else {
-            return <span>{`禁用当前子编排会影响【${nameStr}】等${total}个主编排，确认禁用吗？`}</span>
           }
+          return <span>{`禁用当前子编排会影响【${nameStr}】等${total}个主编排，确认禁用吗？`}</span>
         },
         onOk: async () => {
           this.$Modal.remove()
@@ -1066,7 +1116,7 @@ export default {
             procDefIds: [row.id],
             status: 'disabled'
           }
-          let { status, message } = await flowBatchChangeStatus(data)
+          const { status, message } = await flowBatchChangeStatus(data)
           if (status === 'OK') {
             this.$Notice.success({
               title: 'Success',
@@ -1082,7 +1132,7 @@ export default {
       })
     },
     // 启用单个编排
-    enabledSingleFlow (row) {
+    enabledSingleFlow(row) {
       this.$Modal.confirm({
         title: this.$t('enable'),
         content: this.$t('fe_confirmEnableFlow'),
@@ -1091,7 +1141,7 @@ export default {
             procDefIds: [row.id],
             status: 'enabled'
           }
-          let { status, message } = await flowBatchChangeStatus(data)
+          const { status, message } = await flowBatchChangeStatus(data)
           if (status === 'OK') {
             this.$Notice.success({
               title: 'Success',
