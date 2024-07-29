@@ -1,4 +1,4 @@
-/*!
+/* !
  * @author claude
  * date 06/09/2020
  * 注册边
@@ -6,7 +6,7 @@
 
 export default (G6, cfg) => {
   G6.registerEdge('hvh-edge', {
-    draw (cfg, group) {
+    draw(cfg, group) {
       const xOffset = 40
       const { startPoint, endPoint } = cfg
       const Ydiff = endPoint.y - startPoint.y
@@ -15,29 +15,28 @@ export default (G6, cfg) => {
         x: startPoint.x,
         y: endPoint.y
       }
-      const path =
-        Ydiff === 0
-          ? [
-            ['M', startPoint.x, startPoint.y],
-            ['L', endPoint.x, endPoint.y]
-          ]
-          : [
-            ['M', startPoint.x, startPoint.y],
-            ['L', startPoint.x + xOffset, startPoint.y],
-            [
-              'L',
-              horizontalEndPoint.x + xOffset,
-              endPoint.y > startPoint.y ? horizontalEndPoint.y - 10 : horizontalEndPoint.y + 10
-            ],
-            [
-              'Q',
-              horizontalEndPoint.x + xOffset,
-              horizontalEndPoint.y,
-              horizontalEndPoint.x + xOffset + 10,
-              horizontalEndPoint.y
-            ],
-            ['L', endPoint.x, endPoint.y]
-          ]
+      const path = Ydiff === 0
+        ? [
+          ['M', startPoint.x, startPoint.y],
+          ['L', endPoint.x, endPoint.y]
+        ]
+        : [
+          ['M', startPoint.x, startPoint.y],
+          ['L', startPoint.x + xOffset, startPoint.y],
+          [
+            'L',
+            horizontalEndPoint.x + xOffset,
+            endPoint.y > startPoint.y ? horizontalEndPoint.y - 10 : horizontalEndPoint.y + 10
+          ],
+          [
+            'Q',
+            horizontalEndPoint.x + xOffset,
+            horizontalEndPoint.y,
+            horizontalEndPoint.x + xOffset + 10,
+            horizontalEndPoint.y
+          ],
+          ['L', endPoint.x, endPoint.y]
+        ]
 
       // 获取边的样式
       const { edgeStyle } = cfg.sourceNode.getModel()
