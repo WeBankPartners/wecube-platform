@@ -2218,6 +2218,13 @@ export default {
       let { status, data } = await getProcessInstance(found.id)
       if (status === 'OK') {
         this.currentInstanceStatusForNodeOperation = data.status
+        // 定时刷新详情数据时，同步刷新执行历史下拉列表状态字段
+        this.allFlowInstances.forEach(i => {
+          if (i.id === data.id) {
+            i.displayStatus = data.displayStatus
+            i.status = data.status
+          }
+        })
         if (
           !this.flowData.flowNodes ||
           (this.flowData.flowNodes && this.comparativeData(this.flowData.flowNodes, data.taskNodeInstances))

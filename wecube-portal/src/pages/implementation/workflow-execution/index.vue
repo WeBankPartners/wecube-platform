@@ -20,6 +20,7 @@ export default {
       expand: true,
       menuList: [
         {
+          // 普通执行
           title: this.$t('fe_normalExecute'),
           icon: 'ios-hammer',
           name: '1',
@@ -29,6 +30,7 @@ export default {
           ]
         },
         {
+          // 定时执行
           title: this.$t('timed_execution'),
           icon: 'ios-time',
           name: '2',
