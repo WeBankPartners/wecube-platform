@@ -36,7 +36,7 @@
 import { getRefByIdInfoByPackageNameAndEntityName } from '@/api/server'
 export default {
   name: 'PathExp',
-  data () {
+  data() {
     return {
       optionsHide: false,
       currentEntity: '', // 节点变化时更新
@@ -64,16 +64,16 @@ export default {
   },
   watch: {
     value: {
-      handler (val) {
+      handler() {
         this.restorePathExp()
       },
       immediate: true
     },
     allDataModelsWithAttrs: {
-      handler (val) {}
+      handler() {}
     },
     rootEntity: {
-      handler (val) {
+      handler(val) {
         if (!val) {
           return
         }
@@ -92,26 +92,25 @@ export default {
         this.$emit('input', this.inputVal.replace(/\s/g, ''))
       }
     },
-    optionsHide (val) {
+    optionsHide(val) {
       if (val && document.querySelector('.wecube_attr-ul')) {
         // 此处的nextTick不能删，需要在该元素显示后取得宽度
         this.$nextTick(() => {
-          document.querySelector('.wecube_attr-ul').style.width =
-            document.querySelector('.wecube_input_in textarea').clientWidth + 'px'
+          document.querySelector('.wecube_attr-ul').style.width = document.querySelector('.wecube_input_in textarea').clientWidth + 'px'
         })
       }
     }
   },
   computed: {
-    inputValueWithNoSpace () {
+    inputValueWithNoSpace() {
       return this.inputVal.replace(/\s/g, '')
     },
-    allEntity () {
+    allEntity() {
       let entity = []
       this.allDataModelsWithAttrs.forEach(_ => {
         if (_.entities) {
           entity = entity.concat(_.entities).map(i => {
-            let noneFound = i.attributes.find(_ => _.name === 'NONE')
+            const noneFound = i.attributes.find(_ => _.name === 'NONE')
             return {
               ...i,
               attributes: noneFound
@@ -134,7 +133,7 @@ export default {
       return entity
     }
   },
-  mounted () {
+  mounted() {
     this.currentEntity = this.rootEntity
     const found = this.allEntity.find(_ => _.name === this.rootEntity)
     this.currentPkg = found ? found.packageName : ''
@@ -143,7 +142,7 @@ export default {
     this.$emit('input', this.inputVal.replace(/\s/g, ''))
   },
   methods: {
-    restorePathExp () {
+    restorePathExp() {
       if (this.value) {
         this.inputVal = this.value
           // eslint-disable-next-line no-useless-escape
@@ -163,7 +162,8 @@ export default {
                 entity: current[1],
                 pkg: current[0].split(')')[1]
               }
-            } else {
+            }
+            else {
               path = {
                 entity: current[1],
                 pkg: current[0]
@@ -172,7 +172,8 @@ export default {
           }
           this.entityPath.push(path)
         })
-      } else {
+      }
+      else {
         this.inputVal = `${this.currentPkg}:${this.currentEntity || ''}`
         this.entityPath.push({
           entity: this.currentEntity,
@@ -180,15 +181,14 @@ export default {
         })
       }
     },
-    optClickHandler (item) {
+    optClickHandler(item) {
       this.optionsHide = false
       this.isLastNode = !(item.dataType === 'ref')
-      const newValue =
-        item.dataType === 'ref'
-          ? this.isRefBy
-            ? `(${item.name})${item.packageName}:${item.entityName}`
-            : `${item.name}>${item.refPackageName}:${item.refEntityName}`
-          : item.name
+      const newValue = item.dataType === 'ref'
+        ? this.isRefBy
+          ? `(${item.name})${item.packageName}:${item.entityName}`
+          : `${item.name}>${item.refPackageName}:${item.refEntityName}`
+        : item.name
       this.currentPkg = this.isRefBy ? item.packageName : item.refPackageName
       this.currentEntity = this.isRefBy ? item.entityName : item.refEntityName
       this.entityPath.push({
@@ -200,23 +200,25 @@ export default {
       this.$refs['textarea'].focus()
       this.$emit('input', this.inputVal.replace(/\s/g, ''))
     },
-    inputHandler (v) {
+    inputHandler(v) {
       if (!v.data) {
         // 删除的逻辑
         this.isRefBy = false
-        let valList = this.inputVal.split(' ')
+        const valList = this.inputVal.split(' ')
         if (valList.length > 1) {
           valList.splice(-1, 1)
           this.inputVal = valList.join(' ')
           this.entityPath.splice(-1, 1)
           this.$emit('input', this.inputVal.replace(/\s/g, ''))
-        } else if (valList.length < 2) {
+        }
+        else if (valList.length < 2) {
           this.inputVal = valList[0]
           this.$emit('input', this.inputVal.replace(/\s/g, ''))
         }
         this.$refs.textarea.value = this.inputVal
         this.isLastNode = false
-      } else {
+      }
+      else {
         if (!(v.data === '.' || v.data === '~')) {
           this.$Message.error({
             content: this.$t('input_correct_operator')
@@ -247,7 +249,7 @@ export default {
         }
       }
     },
-    getAttrByEntity () {
+    getAttrByEntity() {
       // 获取当前选中entity的属性作为下拉选项
       this.options = []
       this.allEntity.forEach(e => {
@@ -256,7 +258,7 @@ export default {
         }
       })
     },
-    async getRefByEntity () {
+    async getRefByEntity() {
       // 获取当前entity被哪些属性引用作为下拉选项
       const current = this.entityPath[this.entityPath.length - 1]
       const { status, data } = await getRefByIdInfoByPackageNameAndEntityName(current.pkg, current.entity)
