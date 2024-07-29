@@ -3,9 +3,7 @@
     <div class="search">
       <RadioGroup v-model="activeTab">
         <Radio label="entity" border>
-          <span
-            >{{ $t('be_choose_pre') }}<span class="count">{{ selectData.length }}</span></span
-          >
+          <span>{{ $t('be_choose_pre') }}<span class="count">{{ selectData.length }}</span></span>
         </Radio>
       </RadioGroup>
       <Input
@@ -54,7 +52,7 @@ export default {
       default: false
     }
   },
-  data () {
+  data() {
     return {
       activeTab: 'entity',
       keyword: '',
@@ -65,7 +63,7 @@ export default {
   },
   watch: {
     data: {
-      handler (val) {
+      handler(val) {
         this.tableData = deepClone(val)
         this.selectData = this.tableData.filter(item => item._checked)
       },
@@ -73,9 +71,9 @@ export default {
       deep: true
     }
   },
-  mounted () {},
+  mounted() {},
   methods: {
-    handleChooseData (selection) {
+    handleChooseData(selection) {
       this.selectData = selection
       this.$emit('select', selection)
     },

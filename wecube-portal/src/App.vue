@@ -7,7 +7,7 @@
 </template>
 <script>
 export default {
-  mounted () {
+  mounted() {
     // remove loading
     const boxLoading = document.getElementById('boxLoading')
     const boxTitle = document.getElementById('boxTitle')
