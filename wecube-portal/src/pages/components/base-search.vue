@@ -1,6 +1,6 @@
 <template>
   <div class="platform-base-search">
-    <div class="platform-base-search-form" :style="{ maxHeight: expand ? '200px' : '40px' }">
+    <div class="platform-base-search-form" :style="{maxHeight: expand ? '200px' : '40px'}">
       <Form :inline="true" :model="value" label-position="right">
         <slot name="prepend"></slot>
         <template v-for="(i, index) in options">
@@ -13,7 +13,7 @@
                 v-model.trim="value[i.key]"
                 :placeholder="i.placeholder"
                 clearable
-                :style="{ width: i.width || 195 + 'px' }"
+                :style="{width: i.width || 195 + 'px'}"
                 @on-change="handleInputChange"
               ></Input>
               <!--下拉选择-->
@@ -25,7 +25,7 @@
                 :multiple="i.multiple || false"
                 :filterable="i.filterable || true"
                 :max-tag-count="1"
-                :style="{ width: i.width || 200 + 'px' }"
+                :style="{width: i.width || 200 + 'px'}"
                 @on-change="$emit('search')"
               >
                 <template v-for="(j, idx) in i.list">
@@ -42,7 +42,7 @@
                 :multiple="i.multiple || false"
                 :filterable="i.filterable || true"
                 :max-tag-count="1"
-                :style="{ width: i.width || 200 + 'px' }"
+                :style="{width: i.width || 200 + 'px'}"
                 @on-change="$emit('search')"
               >
                 <template v-for="(j, idx) in i.list">
@@ -58,7 +58,7 @@
                 :multiple="i.multiple || false"
                 :filterable="i.filterable || true"
                 :max-tag-count="1"
-                :style="{ width: i.width || 200 + 'px' }"
+                :style="{width: i.width || 200 + 'px'}"
                 @on-change="$emit('search')"
               >
                 <template v-for="(j, idx) in i.list">
@@ -185,22 +185,34 @@ export default {
     }
   },
   computed: {
-    formData () {
+    formData() {
       return this.value
     }
   },
-  data () {
+  data() {
     return {
       expand: false,
       dateTypeList: [
-        { label: this.$t('be_threeDays_recent'), value: 1 },
-        { label: this.$t('be_oneWeek_recent'), value: 2 },
-        { label: this.$t('be_oneMonth_recent'), value: 3 },
-        { label: this.$t('be_auto'), value: 4 }
+        {
+          label: this.$t('be_threeDays_recent'),
+          value: 1
+        },
+        {
+          label: this.$t('be_oneWeek_recent'),
+          value: 2
+        },
+        {
+          label: this.$t('be_oneMonth_recent'),
+          value: 3
+        },
+        {
+          label: this.$t('be_auto'),
+          value: 4
+        }
       ]
     }
   },
-  mounted () {
+  mounted() {
     this.options.forEach(i => {
       if (i.component === 'custom-time') {
         this.$set(i, 'dateType', i.initDateType)
@@ -208,23 +220,24 @@ export default {
     })
   },
   methods: {
-    handleExpand () {
+    handleExpand() {
       this.expand = !this.expand
     },
-    handleSearch () {
+    handleSearch() {
       this.$emit('search')
     },
     handleInputChange: debounce(function () {
       this.$emit('search')
     }, 300),
     // 重置表单
-    handleReset () {
+    handleReset() {
       Object.keys(this.formData).forEach(key => {
         const formKeysArr = this.options.map(i => i.key)
         if (formKeysArr.includes(key)) {
           if (Array.isArray(this.formData[key])) {
             this.formData[key] = []
-          } else {
+          }
+          else {
             this.formData[key] = ''
           }
         }
@@ -257,14 +270,16 @@ export default {
       ]
      * @params remote 默认是否调用查询接口
     */
-    handleDateTypeChange (key, dateType, dateRange, remote = true) {
+    handleDateTypeChange(key, dateType, dateRange, remote = true) {
       this.formData[key] = []
       if (dateType === 4) {
         this.formData[key] = []
-      } else {
+      }
+      else {
         const { type, value } = dateRange.find(i => i.dateType === dateType)
         const cur = dayjs().format('YYYY-MM-DD')
-        const pre = dayjs().subtract(value, type).format('YYYY-MM-DD')
+        const pre = dayjs().subtract(value, type)
+          .format('YYYY-MM-DD')
         this.formData[key] = [pre, cur]
       }
       // 同步更新父组件form数据
@@ -273,17 +288,18 @@ export default {
         this.$emit('search')
       }
     },
-    handleDateRange (dateArr, key) {
+    handleDateRange(dateArr, key) {
       if (dateArr && dateArr[0] && dateArr[1]) {
         this.formData[key] = [...dateArr]
-      } else {
+      }
+      else {
         this.formData[key] = []
       }
       this.$emit('input', this.formData)
       this.$emit('search')
     },
     // 获取远程下拉框数据
-    async getRemoteData (i) {
+    async getRemoteData(i) {
       const res = await i.remote()
       this.$set(i, 'list', res)
     }
