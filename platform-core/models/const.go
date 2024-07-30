@@ -67,12 +67,14 @@ const (
 	PluginStatusEnabled  = "ENABLED"
 
 	// id prefix
-	IdPrefixSysVar       = "sys_var_"
-	IdPrefixPluCfgRol    = "p_conf_rol_"
-	IdPrefixPluCfg       = "p_config_"
-	IdPrefixPluCfgItf    = "p_conf_inf_"
-	IdPrefixPluCfgItfPar = "p_conf_inf_param_"
-	NewOidDataPrefix     = "OID_"
+	IdPrefixSysVar             = "sys_var_"
+	IdPrefixPluCfgRol          = "p_conf_rol_"
+	IdPrefixPluCfg             = "p_config_"
+	IdPrefixPluCfgItf          = "p_conf_inf_"
+	IdPrefixPluCfgItfPar       = "p_conf_inf_param_"
+	IdPrefixPluObjMeta         = "p_obj_meta_"
+	IdPrefixPluObjPropertyMeta = "p_obj_prop_meta_"
+	NewOidDataPrefix           = "OID_"
 
 	// system variable
 	SysVarMailSender   = "PLATFORM_MAIL_SENDER"

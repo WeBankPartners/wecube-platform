@@ -794,15 +794,35 @@ type RoleBindXML struct {
 	RoleName   string `xml:"roleName,attr" json:"roleName,omitempty"`
 }
 
+type ParamObjectXML struct {
+	Text         string         `xml:",chardata" json:"text,omitempty"`
+	Name         string         `xml:"name,attr" json:"name,omitempty"`
+	PackageName  string         `xml:"packageName,attr" json:"packagename,omitempty"`
+	Source       string         `xml:"source,attr" json:"source,omitempty"`
+	LatestSource string         `xml:"latestSource,attr" json:"latestsource,omitempty"`
+	Property     []*PropertyXML `xml:"property" json:"property,omitempty"`
+}
+
+type PropertyXML struct {
+	Text          string `xml:",chardata" json:"text,omitempty"`
+	Name          string `xml:"name,attr" json:"name,omitempty"`
+	DataType      string `xml:"dataType,attr" json:"datatype,omitempty"`
+	Multiple      string `xml:"multiple,attr" json:"multiple,omitempty"`
+	MapType       string `xml:"mapType,attr" json:"maptype,omitempty"`
+	SensitiveData string `xml:"sensitiveData,attr" json:"sensitivedata,omitempty"`
+	MapExpr       string `xml:"mapExpr,attr" json:"mapexpr,omitempty"`
+}
+
 type PluginXML struct {
-	Text                   string         `xml:",chardata" json:"text,omitempty"`
-	Name                   string         `xml:"name,attr" json:"name,omitempty"`
-	TargetPackage          string         `xml:"targetPackage,attr" json:"targetPackage,omitempty"`
-	TargetEntity           string         `xml:"targetEntity,attr" json:"targetEntity,omitempty"`
-	TargetEntityFilterRule string         `xml:"targetEntityFilterRule,attr" json:"targetEntityFilterRule,omitempty"`
-	RegisterName           string         `xml:"registerName,attr" json:"registerName,omitempty"`
-	Status                 string         `xml:"status,attr" json:"status,omitempty"`
-	Interface              []InterfaceXML `xml:"interface" json:"interface,omitempty"`
+	Text                   string            `xml:",chardata" json:"text,omitempty"`
+	Name                   string            `xml:"name,attr" json:"name,omitempty"`
+	TargetPackage          string            `xml:"targetPackage,attr" json:"targetPackage,omitempty"`
+	TargetEntity           string            `xml:"targetEntity,attr" json:"targetEntity,omitempty"`
+	TargetEntityFilterRule string            `xml:"targetEntityFilterRule,attr" json:"targetEntityFilterRule,omitempty"`
+	RegisterName           string            `xml:"registerName,attr" json:"registerName,omitempty"`
+	Status                 string            `xml:"status,attr" json:"status,omitempty"`
+	ParamObject            []*ParamObjectXML `xml:"paramObject" json:"paramobject,omitempty"`
+	Interface              []InterfaceXML    `xml:"interface" json:"interface,omitempty"`
 	RoleBinds              struct {
 		Text     string        `xml:",chardata" json:"text,omitempty"`
 		RoleBind []RoleBindXML `xml:"roleBind" json:"roleBind,omitempty"`
