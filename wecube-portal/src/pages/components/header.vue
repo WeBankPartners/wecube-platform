@@ -357,7 +357,9 @@ export default {
                   this.loadPlugin.isShow = false
                   window.isLoadingPlugin = false
                   this.$nextTick(() => {
-                    window.location.href = window.location.origin + '/#' + window.sessionStorage.currentPath
+                    window.location.href = window.location.origin
+                      + '/#'
+                      + (window.sessionStorage.currentPath ? window.sessionStorage.currentPath : '/')
                   })
                 }
               }, 0)
