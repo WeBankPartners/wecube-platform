@@ -225,7 +225,9 @@ export default {
           render: (h, params) => (
             <div style="display:flex;flex-direction:column">
               <span>{params.row.createdBy}</span>
-              <span>{params.row.permissionToRole.MGMTDisplayName && params.row.permissionToRole.MGMTDisplayName[0]}</span>
+              <span>
+                {params.row.permissionToRole.MGMTDisplayName && params.row.permissionToRole.MGMTDisplayName[0]}
+              </span>
             </div>
           )
         },
