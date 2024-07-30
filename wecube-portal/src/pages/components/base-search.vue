@@ -214,7 +214,7 @@ export default {
   },
   mounted() {
     this.options.forEach(i => {
-      if (i.component === 'custom-time') {
+      if (i.component === 'custom-time' && !i.dateType) {
         this.$set(i, 'dateType', i.initDateType)
       }
     })
