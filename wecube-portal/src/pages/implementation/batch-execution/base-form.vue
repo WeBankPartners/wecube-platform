@@ -21,7 +21,9 @@
         </FormItem>
         <template v-else>
           <!--预执行记录-->
-          <div v-if="!data.templateData.id" style="padding: 0 20px">{{ $t('be_pre_execute_record') }}</div>
+          <div v-if="!data.templateData || !data.templateData.id" style="padding: 0 20px">
+            {{ $t('be_pre_execute_record') }}
+          </div>
           <!--执行记录-->
           <div v-else class="template-info">
             <div class="item">
