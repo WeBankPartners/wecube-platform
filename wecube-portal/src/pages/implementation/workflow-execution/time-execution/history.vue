@@ -383,6 +383,8 @@ export default {
           vm.searchOptions = searchOptions
         }
       }
+      // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+      vm.initData()
     })
   },
   beforeDestroy() {
@@ -393,12 +395,12 @@ export default {
     }
     window.sessionStorage.setItem('search_timeExecution', JSON.stringify(storage))
   },
-  async mounted() {
-    this.MODALHEIGHT = document.body.scrollHeight - 220
-    this.getFlows()
-    this.getProcessInstances()
-  },
   methods: {
+    initData() {
+      this.MODALHEIGHT = document.body.scrollHeight - 220
+      this.getFlows()
+      this.getProcessInstances()
+    },
     handleQuery() {
       this.pageable.current = 1
       this.getProcessInstances()
