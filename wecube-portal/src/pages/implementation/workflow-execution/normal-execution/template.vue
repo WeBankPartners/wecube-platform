@@ -286,6 +286,8 @@ export default {
           vm.searchOptions = searchOptions
         }
       }
+      // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+      vm.getTemplateList()
     })
   },
   beforeDestroy() {
@@ -295,9 +297,6 @@ export default {
       searchOptions: this.searchOptions
     }
     window.sessionStorage.setItem('search_normalExecutionAdd', JSON.stringify(storage))
-  },
-  mounted() {
-    this.getTemplateList()
   },
   methods: {
     // 选择模板新建执行

@@ -424,6 +424,8 @@ export default {
           vm.searchOptions = searchOptions
         }
       }
+      // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+      vm.initData()
     })
   },
   beforeDestroy() {
@@ -434,13 +436,13 @@ export default {
     }
     window.sessionStorage.setItem('search_normalExecution', JSON.stringify(storage))
   },
-  async mounted() {
-    this.MODALHEIGHT = document.body.scrollHeight - 220
-    this.getFlows()
-    this.getProcessInstances()
-    this.getAllUsers()
-  },
   methods: {
+    initData() {
+      this.MODALHEIGHT = document.body.scrollHeight - 220
+      this.getFlows()
+      this.getProcessInstances()
+      this.getAllUsers()
+    },
     // 查看主编排
     viewParentFlowGraph(row) {
       window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
