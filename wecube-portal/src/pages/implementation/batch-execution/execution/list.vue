@@ -193,11 +193,34 @@ export default {
       expand: false
     }
   },
-  mounted() {
-    this.maxHeight = document.body.clientHeight - 150
-    this.getList()
+  beforeRouteEnter(to, from, next) {
+    next(vm => {
+      if (from.path === '/implementation/batch-execution/create-execution') {
+        // 读取列表搜索参数
+        const storage = window.sessionStorage.getItem('search_batchExecution') || ''
+        if (storage) {
+          const { searchParams, searchOptions } = JSON.parse(storage)
+          vm.form = searchParams
+          vm.searchOptions = searchOptions
+        }
+      }
+      // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+      vm.initData()
+    })
+  },
+  beforeDestroy() {
+    // 缓存列表搜索条件
+    const storage = {
+      searchParams: this.form,
+      searchOptions: this.searchOptions
+    }
+    window.sessionStorage.setItem('search_batchExecution', JSON.stringify(storage))
   },
   methods: {
+    initData() {
+      this.maxHeight = document.body.clientHeight - 150
+      this.getList()
+    },
     handleQuery() {
       this.pagination.currentPage = 1
       this.getList()

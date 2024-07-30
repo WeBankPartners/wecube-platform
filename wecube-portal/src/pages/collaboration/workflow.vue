@@ -310,6 +310,7 @@ export default {
         {
           title: this.$t('flow_name'),
           key: 'name',
+          minWidth: 100,
           render: (h, params) => (
             <div>
               <span>
@@ -329,7 +330,7 @@ export default {
         },
         {
           title: 'ID',
-          width: 100,
+          minWidth: 60,
           ellipsis: true,
           key: 'id',
           render: (h, params) => (
@@ -343,6 +344,7 @@ export default {
         {
           title: this.$t('authPlugin'),
           key: 'authPlugins',
+          minWidth: 60,
           render: (h, params) => {
             if (params.row.authPlugins.length > 0) {
               return params.row.authPlugins && params.row.authPlugins.map(i => <Tag>{i}</Tag>)
@@ -353,6 +355,7 @@ export default {
         {
           title: this.$t('instance_type'),
           key: 'rootEntity',
+          minWidth: 60,
           render: (h, params) => {
             if (params.row.rootEntity !== '') {
               return <div>{params.row.rootEntity}</div>
@@ -363,6 +366,7 @@ export default {
         {
           title: this.$t('use_role'),
           key: 'userRoles',
+          minWidth: 60,
           render: (h, params) => {
             if (params.row.userRolesDisplay.length > 0) {
               return params.row.userRolesDisplay && params.row.userRolesDisplay.map(i => <Tag>{i}</Tag>)
@@ -373,7 +377,7 @@ export default {
         {
           title: this.$t('conflict_test'),
           key: 'conflictCheck',
-          width: 90,
+          minWidth: 60,
           render: (h, params) => {
             const res = params.row.conflictCheck ? this.$t('yes') : this.$t('no')
             return <span>{res}</span>
@@ -382,7 +386,7 @@ export default {
         {
           title: this.$t('group'),
           key: 'scene',
-          width: 90,
+          minWidth: 60,
           render: (h, params) => {
             if (params.row.scene !== '') {
               return <div>{params.row.scene}</div>
@@ -582,7 +586,7 @@ export default {
           // 添加主编排列
           this.tableColumn.splice(3, 0, {
             title: this.$t('main_workflow'),
-            width: 100,
+            minWidth: 60,
             ellipsis: true,
             key: 'mainFlow',
             render: (h, params) => (
@@ -616,7 +620,7 @@ export default {
   },
   beforeRouteEnter(to, from, next) {
     next(vm => {
-      if (from.path === '/collaboration/workflow-mgmt' && from.query.editFlow === 'false') {
+      if (from.path === '/collaboration/workflow-mgmt') {
         // 读取列表搜索参数
         const storage = window.sessionStorage.getItem('search_workflow') || ''
         if (storage) {
@@ -625,6 +629,8 @@ export default {
           vm.searchOptions = searchOptions
         }
       }
+      // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+      vm.initData()
     })
   },
   beforeDestroy() {
@@ -635,18 +641,18 @@ export default {
     }
     window.sessionStorage.setItem('search_workflow', JSON.stringify(storage))
   },
-  mounted() {
-    if (this.$route.query.flowListTab) {
-      this.searchParams.status = this.$route.query.flowListTab
-    }
-    if (this.$route.query.subProc === 'true') {
-      this.searchParams.subProc = 'sub'
-    }
-    this.setHeaders()
-    this.getFlowList()
-    this.pluginList()
-  },
   methods: {
+    initData() {
+      if (this.$route.query.flowListTab) {
+        this.searchParams.status = this.$route.query.flowListTab
+      }
+      if (this.$route.query.subProc === 'true') {
+        this.searchParams.subProc = 'sub'
+      }
+      this.setHeaders()
+      this.getFlowList()
+      this.pluginList()
+    },
     setHeaders() {
       const lang = localStorage.getItem('lang') || 'zh-CN'
       const accessToken = getCookie('accessToken')
