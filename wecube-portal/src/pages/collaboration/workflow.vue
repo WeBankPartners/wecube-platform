@@ -616,7 +616,7 @@ export default {
   },
   beforeRouteEnter(to, from, next) {
     next(vm => {
-      if (from.path === '/collaboration/workflow-mgmt' && from.query.editFlow === 'false') {
+      if (from.path === '/collaboration/workflow-mgmt') {
         // 读取列表搜索参数
         const storage = window.sessionStorage.getItem('search_workflow') || ''
         if (storage) {
@@ -625,6 +625,8 @@ export default {
           vm.searchOptions = searchOptions
         }
       }
+      // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+      vm.initData()
     })
   },
   beforeDestroy() {
@@ -635,18 +637,18 @@ export default {
     }
     window.sessionStorage.setItem('search_workflow', JSON.stringify(storage))
   },
-  mounted() {
-    if (this.$route.query.flowListTab) {
-      this.searchParams.status = this.$route.query.flowListTab
-    }
-    if (this.$route.query.subProc === 'true') {
-      this.searchParams.subProc = 'sub'
-    }
-    this.setHeaders()
-    this.getFlowList()
-    this.pluginList()
-  },
   methods: {
+    initData() {
+      if (this.$route.query.flowListTab) {
+        this.searchParams.status = this.$route.query.flowListTab
+      }
+      if (this.$route.query.subProc === 'true') {
+        this.searchParams.subProc = 'sub'
+      }
+      this.setHeaders()
+      this.getFlowList()
+      this.pluginList()
+    },
     setHeaders() {
       const lang = localStorage.getItem('lang') || 'zh-CN'
       const accessToken = getCookie('accessToken')
