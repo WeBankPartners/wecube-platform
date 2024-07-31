@@ -1,0 +1,1 @@
+alter table plugin_object_meta modify id varchar(64) not null;
