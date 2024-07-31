@@ -369,7 +369,7 @@ export default {
           minWidth: 60,
           render: (h, params) => {
             if (params.row.userRolesDisplay.length > 0) {
-              return params.row.userRolesDisplay && params.row.userRolesDisplay.map(i => <Tag>{i}</Tag>)
+              return <ScrollTag list={params.row.userRolesDisplay} />
             }
             return <span>-</span>
           }
@@ -646,8 +646,8 @@ export default {
       if (this.$route.query.flowListTab) {
         this.searchParams.status = this.$route.query.flowListTab
       }
-      if (this.$route.query.subProc === 'true') {
-        this.searchParams.subProc = 'sub'
+      if (this.$route.query.subProc) {
+        this.searchParams.subProc = this.$route.query.subProc
       }
       this.setHeaders()
       this.getFlowList()
