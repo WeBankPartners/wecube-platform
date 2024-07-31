@@ -59,7 +59,7 @@ export default {
     return {
       nodeHasAlert: false,
       flowListTab: '', // 对应编排列表状态tab
-      subProc: '', // 对应编排列表是否主编排tab
+      subProc: '', // main主编排、sub子编排
       editFlow: true, // 在查看时隐藏按钮
       itemCustomInfo: {}
     }
@@ -69,7 +69,7 @@ export default {
       this.nodeHasAlert = false
       this.editFlow = editFlow
       this.flowListTab = flowListTab
-      this.subProc = data.subProc
+      this.subProc = data.subProc ? 'sub' : 'main'
       const defaultNode = {
         id: '',
         label: '', // 编排名称
