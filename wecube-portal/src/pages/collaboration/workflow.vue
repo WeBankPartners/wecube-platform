@@ -397,22 +397,22 @@ export default {
         {
           title: this.$t('createdBy'),
           key: 'createdBy',
-          width: 90
+          minWidth: 60
         },
         {
           title: this.$t('table_created_date'),
           key: 'createdTime',
-          width: 130
+          minWidth: 60
         },
         {
           title: this.$t('updatedBy'),
           key: 'updatedBy',
-          width: 90
+          minWidth: 60
         },
         {
           title: this.$t('table_updated_date'),
           key: 'updatedTime',
-          width: 130
+          minWidth: 60
         },
         {
           title: this.$t('table_action'),
@@ -1176,6 +1176,12 @@ th.ivu-table-column-center div.ivu-table-cell-with-selection {
 .workflow-design .ivu-radio-wrapper-checked {
   background-color: #2d8cf0 !important;
   color: #fff !important;
+}
+.workflow-design .ivu-tag {
+  display: inline-block;
+  line-height: 16px;
+  height: auto;
+  padding: 5px 6px;
 }
 </style>
 <style lang="scss" scoped>
