@@ -1310,6 +1310,16 @@ func GetLastEnablePluginInterface(ctx context.Context, serviceName string) (plug
 		} else {
 			pluginInterface.OutputParameters = append(pluginInterface.OutputParameters, row)
 		}
+
+		// handle object type
+		if row.DataType == models.PluginParamDataTypeObject {
+			coreObjMeta, tmpErr := QueryCoreObjectMetaV2(ctx, pluginInterface.PluginConfigId, row.RefObjectName)
+			if tmpErr != nil {
+				err = fmt.Errorf("query coreObjectMeta for interfaceParam:%s failed: %s", row.Id, tmpErr.Error())
+				return
+			}
+			row.RefObjectMeta = coreObjMeta
+		}
 	}
 	var pluginConfigRows []*models.PluginConfigs
 	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_configs where id=?", pluginInterface.PluginConfigId).Find(&pluginConfigRows)
