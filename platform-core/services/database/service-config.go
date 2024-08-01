@@ -173,6 +173,7 @@ func QueryCoreObjectMeta(ctx context.Context, packageName, objectName string, co
 
 	propertyMetaEntities, err := getPluginObjectPropertyMetaListByObjectMeta(ctx, objectMetaEntity.Id)
 	if err != nil {
+		log.Logger.Error("getPluginObjectPropertyMetaListByObjectMeta err", log.Error(err))
 		return nil
 	}
 	if len(propertyMetaEntities) == 0 {
@@ -194,6 +195,26 @@ func QueryCoreObjectMeta(ctx context.Context, packageName, objectName string, co
 	}
 	objectMetaEntity.PropertyMetas = propertyMetaEntities
 	return objectMetaEntity
+}
+
+func QueryCoreObjectMetaV2(ctx context.Context, pluginConfigId string, objectName string) (result *models.CoreObjectMeta, err error) {
+	var packageName string
+	existed, tmpErr := db.MysqlEngine.Context(ctx).SQL("select pkg.name from plugin_configs cfg left join plugin_packages pkg on cfg.plugin_package_id=pkg.id where cfg.id=?", pluginConfigId).Get(&packageName)
+	if tmpErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, tmpErr)
+		return
+	}
+	if !existed {
+		err = fmt.Errorf("can not find packageName by pluginConfigId: %s", pluginConfigId)
+		return
+	}
+
+	result = QueryCoreObjectMeta(ctx, packageName, objectName, pluginConfigId)
+	if result == nil {
+		err = fmt.Errorf("query coreObjectMeta by packageName: %s, objectName: %s, pluginConfigId: %s empty", packageName, objectName, pluginConfigId)
+		return
+	}
+	return
 }
 
 func GetConfigInterfaces(ctx context.Context, pluginConfigId string) (result []*models.PluginInterfaceQueryObj, err error) {

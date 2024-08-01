@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
@@ -493,6 +494,32 @@ func GetPluginConfigInterfaceById(id string, available bool) (result *models.Plu
 	}
 	result.InputParameters = inputParams
 	result.OutputParameters = outputParams
+
+	ctx := db.DBCtx("GetPluginConfigInterfaceById")
+	for _, row := range inputParams {
+		// handle object type
+		if row.DataType == models.PluginParamDataTypeObject {
+			coreObjMeta, tmpErr := QueryCoreObjectMetaV2(ctx, result.PluginConfigId, row.RefObjectName)
+			if tmpErr != nil {
+				result = nil
+				err = fmt.Errorf("query coreObjectMeta for interfaceParam:%s failed: %s", row.Id, tmpErr.Error())
+				return
+			}
+			row.RefObjectMeta = coreObjMeta
+		}
+	}
+	for _, row := range outputParams {
+		// handle object type
+		if row.DataType == models.PluginParamDataTypeObject {
+			coreObjMeta, tmpErr := QueryCoreObjectMetaV2(ctx, result.PluginConfigId, row.RefObjectName)
+			if tmpErr != nil {
+				result = nil
+				err = fmt.Errorf("query coreObjectMeta for interfaceParam:%s failed: %s", row.Id, tmpErr.Error())
+				return
+			}
+			row.RefObjectMeta = coreObjMeta
+		}
+	}
 	return
 }
 
