@@ -863,7 +863,8 @@ func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId, plugi
 
 func GetPluginResourceFiles(ctx context.Context) (result []*models.PluginPackageResourceFiles, err error) {
 	result = []*models.PluginPackageResourceFiles{}
-	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_resource_files where plugin_package_id in (SELECT t1.id FROM plugin_packages t1 where t1.ui_package_included=1 and t1.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t1.upload_timestamp = (SELECT MAX(t2.upload_timestamp) FROM plugin_packages t2 WHERE t2.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t2.name = t1.name GROUP BY t2.name))").Find(&result)
+	//err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_resource_files where plugin_package_id in (SELECT t1.id FROM plugin_packages t1 where t1.ui_package_included=1 and t1.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t1.upload_timestamp = (SELECT MAX(t2.upload_timestamp) FROM plugin_packages t2 WHERE t2.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t2.name = t1.name GROUP BY t2.name))").Find(&result)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_resource_files where plugin_package_id in (select id from plugin_packages where status='REGISTERED' and ui_active=1)").Find(&result)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	}
