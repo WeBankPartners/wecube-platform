@@ -85,9 +85,9 @@
               <div class="card-content-list mb-1" v-for="(keyItem, index) in cardContentList" :key="index">
                 <span style="min-width: 80px">{{ $t(keyItem.label) }}: </span>
                 <Tooltip v-if="keyItem.key === 'menus'" max-width="450" placement="left">
-                  <div slot="content" v-html="item[keyItem.key].length ? item[keyItem.key].join('</br>') : '-'"></div>
+                  <div slot="content" v-html="getMenuText(item).length ? getMenuText(item).join('</br>') : '-'"></div>
                   <div class="card-menu-content">
-                    {{ getMenuText(item) }}
+                    {{ getMenuText(item).length ? getMenuText(item).join(';') : '-' }}
                   </div>
                 </Tooltip>
                 <div v-else-if="keyItem.key === 'instances'">
@@ -790,10 +790,10 @@ export default {
     },
     getMenuText(item) {
       if (Vue.config.lang === 'zh-CN') {
-        return item.localMenus && item.localMenus.length ? item.localMenus.join(';') : '-'
+        return item.localMenus && item.localMenus.length ? item.localMenus : []
       }
 
-      return item.menus && item.menus.length ? item.menus.join(';') : '-'
+      return item.menus && item.menus.length ? item.menus : []
     }
   }
 }
