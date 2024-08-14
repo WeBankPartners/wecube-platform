@@ -22,13 +22,13 @@
       :loading="loading"
     ></Table>
     <!--查看详情-->
-    <BaseDrawer :title="$t('be_details')" :visible.sync="showModal" width="70%">
+    <BaseDrawer :title="$t('be_details')" :visible.sync="showModal" realWidth="70%">
       <template slot-scope="{maxHeight}" slot="content">
         <Table :columns="detailTableColums" size="small" :max-height="maxHeight" :data="detailTableData"></Table>
       </template>
     </BaseDrawer>
     <!--新增定时执行-->
-    <BaseDrawer :title="$t('full_word_add') + $t('timed_execution')" :visible.sync="timeConfig.isShow" :width="1000">
+    <BaseDrawer :title="$t('full_word_add') + $t('timed_execution')" :visible.sync="timeConfig.isShow" :realWidth="1000">
       <template slot="content">
         <Form :label-width="100" label-colon>
           <!--任务名-->
@@ -157,7 +157,6 @@
 </template>
 
 <script>
-import BaseDrawer from '@/pages/components/base-drawer.vue'
 import {
   getUserScheduledTasks,
   deleteUserScheduledTasks,
@@ -172,9 +171,6 @@ import {
 import { debounce } from '@/const/util'
 import dayjs from 'dayjs'
 export default {
-  components: {
-    BaseDrawer
-  },
   data() {
     return {
       showModal: false,
