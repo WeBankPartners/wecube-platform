@@ -2,7 +2,7 @@
 <template>
   <div class="normal-execution-template">
     <div class="search">
-      <Search :options="searchOptions" v-model="searchParams" @search="handleSearch"></Search>
+      <BaseSearch :options="searchOptions" v-model="searchParams" @search="handleSearch"></BaseSearch>
     </div>
     <div class="template-card">
       <Card :bordered="false" dis-hover :padding="0">
@@ -38,14 +38,10 @@
 </template>
 
 <script>
-import Search from '@/pages/components/base-search.vue'
 import { debounce, deepClone } from '@/const/util'
 import { flowList, collectFlow, unCollectFlow } from '@/api/server'
 import dayjs from 'dayjs'
 export default {
-  components: {
-    Search
-  },
   props: {
     from: {
       type: String,

@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="report-container">
-      <Search :options="searchOptions" v-model="searchConfig.params" @search="getFlowExecuteOverviews"></Search>
+      <BaseSearch :options="searchOptions" v-model="searchConfig.params" @search="getFlowExecuteOverviews"></BaseSearch>
       <!-- <div class="item">
         <DatePicker
           type="datetimerange"
@@ -46,13 +46,9 @@
 </template>
 
 <script>
-import Search from '@/pages/components/base-search.vue'
 import dayjs from 'dayjs'
 import { getFlowExecuteOverviews, getProcessList } from '@/api/server.js'
 export default {
-  components: {
-    Search
-  },
   data() {
     return {
       MODALHEIGHT: 0,
