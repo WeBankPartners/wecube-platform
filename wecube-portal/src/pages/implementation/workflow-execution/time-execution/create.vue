@@ -11,7 +11,7 @@
       </Button>
     </div>
     <div class="search">
-      <Search :options="searchOptions" v-model="searchConfig.params" @search="getUserScheduledTasks"></Search>
+      <BaseSearch :options="searchOptions" v-model="searchConfig.params" @search="getUserScheduledTasks"></BaseSearch>
     </div>
     <Table
       size="small"
@@ -157,7 +157,6 @@
 </template>
 
 <script>
-import Search from '@/pages/components/base-search.vue'
 import BaseDrawer from '@/pages/components/base-drawer.vue'
 import {
   getUserScheduledTasks,
@@ -174,7 +173,6 @@ import { debounce } from '@/const/util'
 import dayjs from 'dayjs'
 export default {
   components: {
-    Search,
     BaseDrawer
   },
   data() {
