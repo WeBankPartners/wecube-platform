@@ -199,7 +199,7 @@
       <Spin fix v-if="loading"></Spin>
     </Card>
     <!--左侧预览弹窗(新建)-->
-    <BaseDrawer :title="$t('overview')" :visible.sync="flowNodesWithDataModalVisible" width="70%" :scrollable="true">
+    <BaseDrawer :title="$t('overview')" :visible.sync="flowNodesWithDataModalVisible" realWidth="70%" :scrollable="true">
       <template slot-scope="{maxHeight}" slot="content">
         <Table
           border
@@ -220,7 +220,7 @@
     <BaseDrawer
       :title="targetWithFlowModalVisibleSingleTag ? targetWithFlowModalSingleTagTitle : $t('overview')"
       :visible.sync="targetWithFlowModalVisible"
-      width="70%"
+      realWidth="70%"
       :scrollable="true"
     >
       <template slot-scope="{maxHeight}" slot="content">
@@ -238,13 +238,13 @@
     <BaseDrawer
       :title="$t('select_an_operation')"
       :visible.sync="workflowActionModalVisible"
-      width="70%"
+      realWidth="70%"
       :scrollable="true"
       class="json-viewer"
     >
       <template slot="content">
         <!--节点操作-->
-        <HeaderTitle :title="$t('fe_nodeOperate')">
+        <BaseHeaderTitle :title="$t('fe_nodeOperate')">
           <div ref="action" style="padding-left: 20px">
             <div
               v-if="
@@ -326,18 +326,18 @@
               </div>
             </template>
           </div>
-        </HeaderTitle>
+        </BaseHeaderTitle>
         <!--节点信息-->
-        <HeaderTitle :title="$t('fe_nodeInfo')">
+        <BaseHeaderTitle :title="$t('fe_nodeInfo')">
           <template v-if="nodeDetailResponseHeader && Object.keys(nodeDetailResponseHeader).length > 0">
             <json-viewer :value="nodeDetailResponseHeader" :expand-depth="5"></json-viewer>
           </template>
           <div v-else class="no-data">{{ $t('noData') }}</div>
-        </HeaderTitle>
+        </BaseHeaderTitle>
         <!--API调用-->
-        <HeaderTitle :title="$t('fe_apiInfo')">
+        <BaseHeaderTitle :title="$t('fe_apiInfo')">
           <Table :columns="nodeDetailColumns" tooltip="true" :data="nodeDetailIO"> </Table>
-        </HeaderTitle>
+        </BaseHeaderTitle>
       </template>
     </BaseDrawer>
     <!--节点重试/反选数据弹窗(查看)-->
@@ -378,7 +378,7 @@
       </div>
     </Modal>
     <!--左侧编排节点弹窗(新建)-->
-    <BaseDrawer :title="currentNodeTitle" :visible.sync="targetModalVisible" width="70%" :scrollable="true">
+    <BaseDrawer :title="currentNodeTitle" :visible.sync="targetModalVisible" realWidth="70%" :scrollable="true">
       <template slot-scope="{maxHeight}" slot="content">
         <Input
           v-model="tableFilterParam"
@@ -576,8 +576,6 @@ import {
   unCollectFlow
 } from '@/api/server'
 import JsonViewer from 'vue-json-viewer'
-import HeaderTitle from '@/pages/components/header-title.vue'
-import BaseDrawer from '@/pages/components/base-drawer.vue'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
@@ -585,9 +583,7 @@ import { addEvent, removeEvent } from '@/pages/util/event.js'
 import { debounce, deepClone } from '@/const/util'
 export default {
   components: {
-    JsonViewer,
-    HeaderTitle,
-    BaseDrawer
+    JsonViewer
   },
   data() {
     return {

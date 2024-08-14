@@ -13,7 +13,6 @@ import viewDesignZh from 'view-design/dist/locale/zh-CN'
 
 import WeSelect from '../src/pages/components/select.vue'
 import WeTable from '../src/pages/components/table.js'
-import ScrollTag from '../src/pages/components/base-scroll-tag.vue'
 import indexCom from './pages/index'
 import req from './api/base'
 import implicitRoutes from './implicitRoutes.js'
@@ -28,7 +27,6 @@ const eventBus = new Vue()
 Vue.prototype.$eventBusP = eventBus
 Vue.component('WeSelect', WeSelect)
 Vue.component('WeTable', WeTable)
-Vue.component('ScrollTag', ScrollTag)
 Vue.config.productionTip = false
 
 Vue.use(ViewUI, {

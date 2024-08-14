@@ -367,7 +367,7 @@ export default {
           minWidth: 60,
           render: (h, params) => {
             if (params.row.userRolesDisplay.length > 0) {
-              return <ScrollTag list={params.row.userRolesDisplay} />
+              return <BaseScrollTag list={params.row.userRolesDisplay} />
             }
             return <span>-</span>
           }
