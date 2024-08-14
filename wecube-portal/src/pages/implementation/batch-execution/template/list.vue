@@ -2,7 +2,7 @@
 <template>
   <div class="batch-execution-template-list">
     <div class="search">
-      <Search :options="searchOptions" v-model="form" @search="handleSearch"></Search>
+      <BaseSearch :options="searchOptions" v-model="form" @search="handleSearch"></BaseSearch>
       <!--新建模板-->
       <Button type="success" class="create-template" @click="handleCreateTemplate">{{ $t('be_new_template') }}</Button>
     </div>
@@ -48,7 +48,6 @@
 </template>
 
 <script>
-import Search from '@/pages/components/base-search.vue'
 import AuthDialog from '@/pages/components/auth.vue'
 import {
   getBatchExecuteTemplateList,
@@ -60,7 +59,6 @@ import {
 import { debounce } from '@/const/util'
 export default {
   components: {
-    Search,
     AuthDialog
   },
   data() {
