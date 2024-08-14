@@ -1,7 +1,7 @@
 <template>
   <div class="normal-execution-history">
     <div class="search">
-      <Search :options="searchOptions" v-model="searchConfig.params" @search="handleQuery"></Search>
+      <BaseSearch :options="searchOptions" v-model="searchConfig.params" @search="handleQuery"></BaseSearch>
       <Button :disabled="selectData.length === 0" type="error" class="btn-right" @click="batchStopTask">
         {{ $t('fe_batchStop') }}
       </Button>
@@ -29,7 +29,6 @@
 </template>
 
 <script>
-import Search from '@/pages/components/base-search.vue'
 import {
   instancesWithPaging,
   getUserList,
@@ -40,9 +39,6 @@ import {
 } from '@/api/server'
 import dayjs from 'dayjs'
 export default {
-  components: {
-    Search
-  },
   data() {
     return {
       MODALHEIGHT: 0,
