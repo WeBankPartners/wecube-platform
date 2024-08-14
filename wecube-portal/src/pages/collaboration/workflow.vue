@@ -69,7 +69,7 @@
       </Button>
     </div>
     <div class="search">
-      <Search
+      <BaseSearch
         ref="search"
         :options="searchOptions"
         v-model="searchParams"
@@ -88,7 +88,7 @@
             <Radio label="sub">{{ $t('child_workflow') }}</Radio>
           </RadioGroup>
         </template>
-      </Search>
+      </BaseSearch>
     </div>
     <div>
       <Tabs :value="searchParams.status" @on-click="changeTab">
@@ -189,12 +189,10 @@ import {
   getParentFlowList
 } from '@/api/server.js'
 import FlowAuth from '@/pages/components/auth.vue'
-import Search from '@/pages/components/base-search.vue'
 import dayjs from 'dayjs'
 export default {
   components: {
-    FlowAuth,
-    Search
+    FlowAuth
   },
   data() {
     return {
