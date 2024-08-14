@@ -529,12 +529,14 @@ func RegisterPackage(c *gin.Context) {
 			middleware.ReturnError(c, err)
 			return
 		}
+		defer bash.RemoveTmpFile(uiFileLocalPath)
 		log.Logger.Debug("register plugin,start decompress ui.zip", log.String("uiFileLocalPath", uiFileLocalPath))
 		// 本地解压ui.zip
 		if uiDir, err = bash.DecompressFile(uiFileLocalPath, ""); err != nil {
 			middleware.ReturnError(c, err)
 			return
 		}
+		defer bash.RemoveTmpFile(uiDir)
 		// 把ui.zip用ssh传到静态资源服务器上并解压，如果有两台服务器，则每台都要上传与解压
 		for _, staticResourceObj := range models.Config.StaticResources {
 			targetPath := fmt.Sprintf("%s/%s/%s/ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
@@ -742,6 +744,7 @@ func LaunchPlugin(c *gin.Context) {
 					middleware.ReturnError(c, downloadErr)
 					return
 				}
+				defer bash.RemoveTmpFile(tmpFile)
 				intiSqlFile = tmpFile
 			}
 			if mysqlResource.UpgradeFileName != "" {
@@ -749,6 +752,7 @@ func LaunchPlugin(c *gin.Context) {
 				if downloadErr != nil {
 					log.Logger.Warn("plugin have no upgrade sql", log.String("plugin", pluginPackageObj.Name), log.String("version", pluginPackageObj.Version))
 				} else {
+					defer bash.RemoveTmpFile(tmpFile)
 					upgradeSqlFile = tmpFile
 				}
 			}
@@ -851,6 +855,7 @@ func LaunchPlugin(c *gin.Context) {
 		middleware.ReturnError(c, downloadImageErr)
 		return
 	}
+	defer bash.RemoveTmpFile(tmpImageFile)
 	// 把image.tar传到目标机器
 	targetImagePath := fmt.Sprintf("%s/%s_%s_image.tar", models.Config.Plugin.DeployPath, pluginPackageObj.Name, pluginPackageObj.Version)
 	if err = bash.RemoteSCP(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, tmpImageFile, targetImagePath); err != nil {
@@ -864,7 +869,7 @@ func LaunchPlugin(c *gin.Context) {
 	}
 	time.Sleep(1 * time.Second)
 	// 去目标机器上docker run起来，或使用docker-compose
-	dockerCmd := fmt.Sprintf("docker run -d --name %s ", dockerResource.ContainerName)
+	dockerCmd := fmt.Sprintf("docker run -d --name %s --restart=always ", dockerResource.ContainerName)
 	for _, v := range volumeBindList {
 		dockerCmd += fmt.Sprintf("--volume %s ", v)
 	}
@@ -1074,12 +1079,14 @@ func UIRegisterPackage(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	defer bash.RemoveTmpFile(uiFileLocalPath)
 	log.Logger.Debug("register plugin,start decompress ui.zip", log.String("uiFileLocalPath", uiFileLocalPath))
 	// 本地解压ui.zip
 	if uiDir, err = bash.DecompressFile(uiFileLocalPath, ""); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
+	defer bash.RemoveTmpFile(uiDir)
 	// 把ui.zip用ssh传到静态资源服务器上并解压，如果有两台服务器，则每台都要上传与解压
 	for _, staticResourceObj := range models.Config.StaticResources {
 		targetPath := fmt.Sprintf("%s/%s/%s/ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)

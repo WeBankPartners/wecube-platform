@@ -3,6 +3,8 @@ package bash
 import (
 	"context"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
+	"os"
 	"strings"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
@@ -89,4 +91,10 @@ func ListBucketFiles(bucket string) (datas []PlatformObjectInfo, err error) {
 		datas = append(datas, data)
 	}
 	return
+}
+
+func RemoveTmpFile(tmpFile string) {
+	if removeFileErr := os.RemoveAll(tmpFile); removeFileErr != nil {
+		log.Logger.Error("try to remove tmp file fail", log.String("file", tmpFile), log.Error(removeFileErr))
+	}
 }
