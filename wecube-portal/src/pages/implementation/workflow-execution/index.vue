@@ -4,17 +4,13 @@
       <transition name="fade" mode="out-in">
         <router-view class="pages" :key="$route.name"></router-view>
       </transition>
-      <BenchMenu :menuList="menuList"></BenchMenu>
+      <BaseMenu :menuList="menuList"></BaseMenu>
     </div>
   </div>
 </template>
 
 <script>
-import BenchMenu from '@/pages/components/bench-menu'
 export default {
-  components: {
-    BenchMenu
-  },
   data() {
     return {
       expand: true,
