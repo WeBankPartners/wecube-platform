@@ -2,7 +2,7 @@
 <template>
   <div class="batch-execution-template-list">
     <div class="search">
-      <Search :options="searchOptions" v-model="form" @search="handleSearch"></Search>
+      <BaseSearch :options="searchOptions" v-model="form" @search="handleSearch"></BaseSearch>
     </div>
     <div class="template-card">
       <Card :bordered="false" dis-hover :padding="0">
@@ -38,13 +38,9 @@
 </template>
 
 <script>
-import Search from '@/pages/components/base-search.vue'
 import { getBatchExecuteTemplateList, collectBatchTemplate, uncollectBatchTemplate } from '@/api/server'
 import { debounce } from '@/const/util'
 export default {
-  components: {
-    Search
-  },
   props: {
     from: {
       type: String,
