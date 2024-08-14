@@ -28,7 +28,11 @@
       </template>
     </BaseDrawer>
     <!--新增定时执行-->
-    <BaseDrawer :title="$t('full_word_add') + $t('timed_execution')" :visible.sync="timeConfig.isShow" :realWidth="1000">
+    <BaseDrawer
+      :title="$t('full_word_add') + $t('timed_execution')"
+      :visible.sync="timeConfig.isShow"
+      :realWidth="1000"
+    >
       <template slot="content">
         <Form :label-width="100" label-colon>
           <!--任务名-->

@@ -199,7 +199,12 @@
       <Spin fix v-if="loading"></Spin>
     </Card>
     <!--左侧预览弹窗(新建)-->
-    <BaseDrawer :title="$t('overview')" :visible.sync="flowNodesWithDataModalVisible" realWidth="70%" :scrollable="true">
+    <BaseDrawer
+      :title="$t('overview')"
+      :visible.sync="flowNodesWithDataModalVisible"
+      realWidth="70%"
+      :scrollable="true"
+    >
       <template slot-scope="{maxHeight}" slot="content">
         <Table
           border
