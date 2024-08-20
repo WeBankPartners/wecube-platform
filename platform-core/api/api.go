@@ -141,7 +141,7 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id", Method: "GET", HandlerFunc: process.GetProcessDefinition, ApiCode: "get-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/copy/:association", Method: "POST", HandlerFunc: process.CopyProcessDefinition, ApiCode: "copy-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions/list", Method: "POST", HandlerFunc: process.QueryProcessDefinitionList, ApiCode: "process-definition-list"},
-		&handlerFuncObj{Url: "/process/definitions/public", Method: "Get", HandlerFunc: process.GetProcessDefinitionByNameAndVersion, ApiCode: "process-definition-by-name"},
+		&handlerFuncObj{Url: "/public/process/definitions", Method: "Get", HandlerFunc: process.GetProcessDefinitionByNameAndVersion, ApiCode: "process-definition-by-name"},
 		&handlerFuncObj{Url: "/process/definitions/list/:plugin", Method: "GET", HandlerFunc: process.QueryPluginProcessDefinitionList, ApiCode: "plugin-process-definition-list"},
 		&handlerFuncObj{Url: "/process/definitions/status", Method: "POST", HandlerFunc: process.BatchUpdateProcessDefinitionStatus, ApiCode: "update-process-definition-status"},
 		&handlerFuncObj{Url: "/process/definitions/permission", Method: "POST", HandlerFunc: process.BatchUpdateProcessDefinitionPermission, ApiCode: "update-process-definition-permission"},
