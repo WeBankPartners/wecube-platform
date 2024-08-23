@@ -69,6 +69,7 @@ func validateNexusReqParam(reqParam *NexusReqParam, isUploadFile bool) (err erro
 	return
 }
 
+// nexus 上传
 func UploadFile(reqParam *NexusReqParam) (err error) {
 	err = validateNexusReqParam(reqParam, true)
 	if err != nil {
@@ -86,6 +87,7 @@ func UploadFile(reqParam *NexusReqParam) (err error) {
 	return
 }
 
+// nexus 下载
 func DownloadFile(reqParam *NexusReqParam) (err error) {
 	err = validateNexusReqParam(reqParam, false)
 	if err != nil {

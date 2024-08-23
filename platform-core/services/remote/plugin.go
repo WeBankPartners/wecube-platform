@@ -830,6 +830,7 @@ func UpdatentityDataWithExpr(ctx context.Context, authToken, packageName, entity
 	return nil
 }
 
+// nexus 推送物料包
 func PushPackage(ctx context.Context, token string, unitDesignId string, deployPackageId string) (result map[string]interface{}, err error) {
 	uri := fmt.Sprintf("%s/%s/unit-designs/%s/packages/%s/push", models.Config.Gateway.Url, models.PluginNameArtifacts, unitDesignId, deployPackageId)
 	if models.Config.HttpsEnable == "true" {
