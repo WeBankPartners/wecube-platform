@@ -1,5 +1,5 @@
 <template>
-  <div class="taskman-wrap monitor-wrap cmdb-wrap" id="wecube_app">
+  <div id="wecube_app">
     <transition name="fade" mode="out-in">
       <router-view class="pages"></router-view>
     </transition>
