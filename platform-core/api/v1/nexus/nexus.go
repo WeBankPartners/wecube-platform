@@ -204,8 +204,8 @@ func doDownloadFile(reqParam *NexusReqParam, downloadFileParam *NexusFileParam) 
 /*
 func main() {
 	uploadReqParam := &NexusReqParam{
-		UserName:   "admin",
-		Password:   "admin",
+		UserName:   "xx",
+		Password:   "xx",
 		RepoUrl:    "http://127.0.0.1:8081/repository",
 		Repository: "test",
 		TimeoutSec: 60,
@@ -229,8 +229,8 @@ func main() {
 	fmt.Printf("upload files successfully")
 
 	downloadReqParam := &NexusReqParam{
-		UserName:   "admin",
-		Password:   "admin",
+		UserName:   "xx",
+		Password:   "xx",
 		RepoUrl:    "http://127.0.0.1:8081/repository",
 		Repository: "test",
 		TimeoutSec: 60,
