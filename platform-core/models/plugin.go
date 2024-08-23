@@ -41,6 +41,7 @@ const (
 	PluginInterfaceTypeExecution   = "EXECUTION"
 
 	PluginNameItsdangerous = "itsdangerous"
+	PluginNameArtifacts    = "artifacts"
 )
 
 type PluginPackages struct {
@@ -893,4 +894,11 @@ type PluginVersionListObj struct {
 type InheritPluginConfigParam struct {
 	PluginPackageId  string `json:"pluginPackageId" binding:"required"`
 	InheritPackageId string `json:"inheritPackageId" binding:"required"`
+}
+
+type PluginArtifactsPushResult struct {
+	Code    int                    `json:"code"`
+	Message string                 `json:"message"`
+	Status  string                 `json:"status"`
+	Data    map[string]interface{} `json:"data"`
 }

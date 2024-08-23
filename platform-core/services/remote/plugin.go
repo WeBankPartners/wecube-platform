@@ -829,3 +829,72 @@ func UpdatentityDataWithExpr(ctx context.Context, authToken, packageName, entity
 	}
 	return nil
 }
+
+func PushPackage(ctx context.Context, token string, unitDesignId string, deployPackageId string) (result map[string]interface{}, err error) {
+	uri := fmt.Sprintf("%s/%s/unit-designs/%s/packages/%s/push", models.Config.Gateway.Url, models.PluginNameArtifacts, unitDesignId, deployPackageId)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+
+	urlObj, _ := url.Parse(uri)
+	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), nil)
+	if reqErr != nil {
+		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
+		return
+	}
+
+	reqId := "req_" + guid.CreateGuid()
+	var transId string
+	if ctx.Value(models.TransactionIdHeader) != nil {
+		transId = ctx.Value(models.TransactionIdHeader).(string)
+	} else {
+		transId = "trans_" + guid.CreateGuid()
+	}
+
+	req.Header.Set(models.RequestIdHeader, reqId)
+	req.Header.Set(models.TransactionIdHeader, transId)
+	req.Header.Set(models.AuthorizationHeader, token)
+	req.Header.Set("Content-type", "application/json")
+
+	startTime := time.Now()
+	log.Logger.Info("Start remote pushPackage request --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.JsonObj("Authorization", token))
+
+	resp, respErr := http.DefaultClient.Do(req)
+	if respErr != nil {
+		err = fmt.Errorf("do request fail,%s ", respErr.Error())
+		return
+	}
+
+	var response models.PluginArtifactsPushResult
+	respBody, readBodyErr := io.ReadAll(resp.Body)
+	defer func() {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
+		if err != nil {
+			log.Logger.Error("End remote pushPackage request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+		} else {
+			log.Logger.Info("End remote pushPackage request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+		}
+	}()
+
+	if readBodyErr != nil {
+		err = fmt.Errorf("read response body fail,%s ", readBodyErr.Error())
+		return
+	}
+
+	if err = json.Unmarshal(respBody, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+
+	if response.Code >= 400 {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	result = response.Data
+	return
+}
