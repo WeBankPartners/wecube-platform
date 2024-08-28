@@ -209,7 +209,7 @@ export default {
           key: 'product',
           minWidth: 160,
           render: (h, params) => {
-            <BaseScrollTag list={params.row.product}></BaseScrollTag>
+            ;<BaseScrollTag list={params.row.product}></BaseScrollTag>
           }
         },
         {
@@ -290,7 +290,7 @@ export default {
       this.pageable.current = 1
       this.getList()
     },
-    getList () {},
+    getList() {},
     changePageSize(pageSize) {
       this.pageable.current = 1
       this.pageable.pageSize = pageSize
