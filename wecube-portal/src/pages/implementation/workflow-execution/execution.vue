@@ -377,7 +377,8 @@
           $t('be_dynamic_binding_warning')
         }}</span>
         <Button @click="retryTargetModalVisible = false">{{ $t('cancel') }}</Button>
-        <Button type="primary" :disabled="isNodeCanBindData" @click="retryTargetModelConfirm">{{
+        <!--只有数据反选，并且为动态绑定节点，禁用提交按钮-->
+        <Button type="primary" :disabled="isNodeCanBindData && !['Faulted', 'Timeouted'].includes(currentNodeStatus)" @click="retryTargetModelConfirm">{{
           $t('submit')
         }}</Button>
       </div>
@@ -1092,8 +1093,8 @@ export default {
         currentUserRoles: []
       },
       pluginInfo: '',
-      nodesCannotBindData: [], // 初始化不能绑定数据的节点
-      isNodeCanBindData: false,
+      nodesCannotBindData: [], // 动态绑定的节点集合
+      isNodeCanBindData: false, // 节点绑定标识
       hasExecuteBranchVisible: false, // 同一编排在进入只进行一次展示
       manualSkipParams: {
         act: '', // 执行动作
@@ -1590,6 +1591,7 @@ export default {
               const res = {
                 ...d,
                 _checked: d.bound === 'Y',
+                _disabled: this.nodesCannotBindData.includes(flowNode.nodeDefId), // 动态绑定节点不支持修改
                 ...found,
                 entity: found.packageName + ':' + found.entityName,
                 nodeName: flowNode.nodeName,
@@ -1892,7 +1894,7 @@ export default {
           this.initFlowGraph(true)
           this.showExcution = false
           this.nodesCannotBindData = data.taskNodeInstances
-            .filter(d => [1, 2].includes(d.dynamicBind) && d.status === 'NotStarted')
+            .filter(d => [1, 2].includes(d.dynamicBind) && ['NotStarted', 'Risky', 'Faulted', 'Timeouted'].includes(d.status))
             .map(d => d.nodeId)
           this.subProcBindParentFlag = Boolean(data.parentProcIns && data.parentProcIns.procInsId)
         }
