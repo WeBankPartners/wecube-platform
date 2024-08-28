@@ -129,5 +129,45 @@ export default {
       'en-US': 'Conjoin',
       'zh-CN': '协同'
     }
+  },
+  'admin/base-migration/export': {
+    childBreadcrumb: {
+      'en-US': 'Create',
+      'zh-CN': '新建'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Base Migration',
+      'zh-CN': '底座迁移'
+    }
+  },
+  'admin/base-migration/export-history': {
+    childBreadcrumb: {
+      'en-US': 'History',
+      'zh-CN': '历史'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Base Migration',
+      'zh-CN': '底座迁移'
+    }
+  },
+  'admin/base-migration/import': {
+    childBreadcrumb: {
+      'en-US': 'Create',
+      'zh-CN': '新建'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Base Migration',
+      'zh-CN': '底座迁移'
+    }
+  },
+  'admin/base-migration/import-history': {
+    childBreadcrumb: {
+      'en-US': 'History',
+      'zh-CN': '历史'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Base Migration',
+      'zh-CN': '底座迁移'
+    }
   }
 }
