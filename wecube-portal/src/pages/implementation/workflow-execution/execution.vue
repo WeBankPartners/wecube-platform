@@ -378,9 +378,11 @@
         }}</span>
         <Button @click="retryTargetModalVisible = false">{{ $t('cancel') }}</Button>
         <!--只有数据反选，并且为动态绑定节点，禁用提交按钮-->
-        <Button type="primary" :disabled="isNodeCanBindData && !['Faulted', 'Timeouted'].includes(currentNodeStatus)" @click="retryTargetModelConfirm">{{
-          $t('submit')
-        }}</Button>
+        <Button
+          type="primary"
+          :disabled="isNodeCanBindData && !['Faulted', 'Timeouted'].includes(currentNodeStatus)"
+          @click="retryTargetModelConfirm"
+        >{{ $t('submit') }}</Button>
       </div>
     </Modal>
     <!--左侧编排节点弹窗(新建)-->
@@ -1894,7 +1896,9 @@ export default {
           this.initFlowGraph(true)
           this.showExcution = false
           this.nodesCannotBindData = data.taskNodeInstances
-            .filter(d => [1, 2].includes(d.dynamicBind) && ['NotStarted', 'Risky', 'Faulted', 'Timeouted'].includes(d.status))
+            .filter(
+              d => [1, 2].includes(d.dynamicBind) && ['NotStarted', 'Risky', 'Faulted', 'Timeouted'].includes(d.status)
+            )
             .map(d => d.nodeId)
           this.subProcBindParentFlag = Boolean(data.parentProcIns && data.parentProcIns.procInsId)
         }
