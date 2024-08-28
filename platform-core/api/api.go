@@ -214,6 +214,7 @@ func init() {
 		&handlerFuncObj{Url: "/batch-execution/:batchExecId", Method: "GET", HandlerFunc: batch_execution.GetBatchExec, ApiCode: "get-batch-execution"},
 		&handlerFuncObj{Url: "/batch-execution/job/run", Method: "POST", HandlerFunc: batch_execution.RunJob, ApiCode: "run-batch-execution-job"},
 		&handlerFuncObj{Url: "/batch-execution/seed", Method: "GET", HandlerFunc: batch_execution.GetSeed, ApiCode: "get-batch-execution-seed"},
+		&handlerFuncObj{Url: "/batch-execution/templates/export", Method: "POST", HandlerFunc: batch_execution.ExportTemplate, ApiCode: "export-batch-execution-template"},
 
 		// process schedule
 		&handlerFuncObj{Url: "/user-scheduled-tasks/query", Method: "POST", HandlerFunc: process.QueryProcScheduleList, ApiCode: "query_proc_schedule"},

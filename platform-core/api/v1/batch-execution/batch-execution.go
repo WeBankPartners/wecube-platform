@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -596,5 +597,46 @@ func GetSeed(c *gin.Context) {
 		middleware.ReturnError(c, err)
 	} else {
 		middleware.ReturnData(c, result)
+	}
+}
+
+// Export 导出批量执行模板
+func ExportTemplate(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	var param models.ExportBatchExecTemplateReqParam
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+
+	if len(param.BatchExecTemplateIds) == 0 {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("batchExecTemplateIds shoule not be empty")))
+		return
+	}
+
+	retData, err := database.ExportTemplate(c, &param)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		fileName := "empty"
+		if len(retData) > 0 {
+			fileName = fmt.Sprintf("%s et al.%d", retData[0].Id, len(retData))
+		}
+		fileName = fmt.Sprintf("%s-%s.json", fileName, time.Now().Format("20060102150405"))
+
+		retDataBytes, tmpErr := json.Marshal(retData)
+		if tmpErr != nil {
+			err = fmt.Errorf("marshal exportTemplate failed: %s", tmpErr.Error())
+			middleware.ReturnError(c, err)
+			return
+		}
+		c.Header("Content-Disposition", fmt.Sprintf("attachment;filename=%s", fileName))
+		c.Data(http.StatusOK, "application/octet-stream", retDataBytes)
 	}
 }
