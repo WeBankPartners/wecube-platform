@@ -1139,3 +1139,73 @@ func ValidateBatchExecName(c *gin.Context, batchExecReqParam *models.BatchExecRu
 	isValid = false
 	return
 }
+
+func ExportTemplate(c *gin.Context, reqParam *models.ExportBatchExecTemplateReqParam) (result []*models.BatchExecutionTemplate, err error) {
+	if len(reqParam.BatchExecTemplateIds) == 0 {
+		return
+	}
+
+	// query batchExecTemplate with id
+	var templateData []*models.BatchExecutionTemplate
+	idFilterSql, idFilterParam := db.CreateListParams(reqParam.BatchExecTemplateIds, "")
+	baseSql := db.CombineDBSql("SELECT * FROM ", models.TableNameBatchExecTemplate, " WHERE id IN ('", idFilterSql, "')")
+	err = db.MysqlEngine.Context(c).SQL(baseSql, idFilterParam...).Find(&templateData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	if len(templateData) == 0 {
+		err = fmt.Errorf("query batch execution template empty")
+		return
+	}
+
+	// query permission roles
+	var templateIds []string
+	for _, template := range templateData {
+		templateIds = append(templateIds, template.Id)
+
+		if template.ConfigDataStr != "" {
+			configData := models.BatchExecRun{}
+			err = json.Unmarshal([]byte(template.ConfigDataStr), &configData)
+			if err != nil {
+				err = fmt.Errorf("unmarshal templateId: %s configData error: %s", template.Id, err.Error())
+				return
+			}
+			template.ConfigData = &configData
+		}
+		template.CreatedTimeStr = template.CreatedTime.Format(models.DateTimeFormat)
+		template.UpdatedTimeStr = template.UpdatedTime.Format(models.DateTimeFormat)
+	}
+
+	var templateRoleData []*models.BatchExecutionTemplateRole
+	err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplateRole).
+		In("batch_execution_template_id", templateIds).
+		Find(&templateRoleData)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	templateIdMapRoleInfo := make(map[string]*models.BatchExecPermissionToRole)
+	for _, roleData := range templateRoleData {
+		if _, isExisted := templateIdMapRoleInfo[roleData.BatchExecutionTemplateId]; !isExisted {
+			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId] = &models.BatchExecPermissionToRole{}
+		}
+
+		if roleData.Permission == models.PermissionTypeMGMT {
+			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT = append(
+				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT, roleData.RoleName)
+		} else if roleData.Permission == models.PermissionTypeUSE {
+			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE = append(
+				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE, roleData.RoleName)
+		}
+	}
+
+	for _, template := range templateData {
+		template.PermissionToRole = templateIdMapRoleInfo[template.Id]
+	}
+
+	result = templateData
+	return
+}
