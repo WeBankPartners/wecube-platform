@@ -1148,7 +1148,7 @@ func ExportTemplate(c *gin.Context, reqParam *models.ExportBatchExecTemplateReqP
 	// query batchExecTemplate with id
 	var templateData []*models.BatchExecutionTemplate
 	idFilterSql, idFilterParam := db.CreateListParams(reqParam.BatchExecTemplateIds, "")
-	baseSql := db.CombineDBSql("SELECT * FROM ", models.TableNameBatchExecTemplate, " WHERE id IN ('", idFilterSql, "')")
+	baseSql := db.CombineDBSql("SELECT * FROM ", models.TableNameBatchExecTemplate, " WHERE id IN (", idFilterSql, ")")
 	err = db.MysqlEngine.Context(c).SQL(baseSql, idFilterParam...).Find(&templateData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
@@ -1207,5 +1207,121 @@ func ExportTemplate(c *gin.Context, reqParam *models.ExportBatchExecTemplateReqP
 	}
 
 	result = templateData
+	return
+}
+
+func ImportTemplate(c *gin.Context, batchExecTemplateData []*models.BatchExecutionTemplate) (err error) {
+	var actions []*db.ExecAction
+	now := time.Now()
+
+	if len(batchExecTemplateData) == 0 {
+		return
+	}
+	for _, templateInfo := range batchExecTemplateData {
+		configDataStr := ""
+		if templateInfo.ConfigData != nil {
+			templateInfo.ConfigData.IsDangerousBlock = templateInfo.IsDangerousBlock
+			configDataByte, tmpErr := json.Marshal(*templateInfo.ConfigData)
+			if tmpErr != nil {
+				err = fmt.Errorf("marshal templateInfo.Name: %s's configData error: %s", templateInfo.Name, tmpErr.Error())
+				return
+			}
+			configDataStr = string(configDataByte)
+		}
+
+		queryTemplateData := &models.BatchExecutionTemplate{}
+		var exists bool
+		exists, err = db.MysqlEngine.Context(c).Table(new(models.BatchExecutionTemplate)).
+			Where("name = ?", templateInfo.Name).
+			Get(queryTemplateData)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+
+		if !exists {
+			templateInfo.Id = guid.CreateGuid()
+			// insert
+			templateData := &models.BatchExecutionTemplate{
+				Id:               templateInfo.Id,
+				Name:             templateInfo.Name,
+				Status:           templateInfo.Status,
+				PublishStatus:    templateInfo.PublishStatus,
+				OperateObject:    templateInfo.OperateObject,
+				PluginService:    templateInfo.PluginService,
+				IsDangerousBlock: templateInfo.IsDangerousBlock,
+				ConfigDataStr:    configDataStr,
+				SourceData:       templateInfo.SourceData,
+				CreatedBy:        middleware.GetRequestUser(c),
+				UpdatedBy:        "",
+				CreatedTime:      &now,
+				UpdatedTime:      &now,
+			}
+			action, tmpErr := db.GetInsertTableExecAction(models.TableNameBatchExecTemplate, *templateData, nil)
+			if tmpErr != nil {
+				err = fmt.Errorf("get insert sql for templateInfo.Name: %s failed: %s", templateInfo.Name, tmpErr.Error())
+				return
+			}
+			actions = append(actions, action)
+		} else {
+			// update
+			updateColumnStr := "`publish_status`=?,`operate_object`=?,`plugin_service`=?,`is_dangerous_block`=?,`config_data`=?,`source_data`=?,`updated_by`=?,`updated_time`=?"
+			action := &db.ExecAction{
+				Sql: db.CombineDBSql("UPDATE ", models.TableNameBatchExecTemplate, " SET ", updateColumnStr, " WHERE id=?"),
+				Param: []interface{}{templateInfo.PublishStatus, templateInfo.OperateObject, templateInfo.PluginService, templateInfo.IsDangerousBlock,
+					configDataStr, templateInfo.SourceData, middleware.GetRequestUser(c), now, templateInfo.Id},
+			}
+			actions = append(actions, action)
+		}
+
+		batchExecTemplateId := templateInfo.Id
+		// update batchExecTemplateRole
+		// firstly delete original batchExecTemplateRole and then create new batchExecTemplateRole
+		action := &db.ExecAction{
+			Sql:   db.CombineDBSql("DELETE FROM ", models.TableNameBatchExecTemplateRole, " WHERE batch_execution_template_id=?"),
+			Param: []interface{}{batchExecTemplateId},
+		}
+		actions = append(actions, action)
+
+		var templateRoleDataList []*models.BatchExecutionTemplateRole
+		mgmtRoleNameMap := make(map[string]struct{})
+		for _, roleName := range templateInfo.PermissionToRole.MGMT {
+			if _, isExisted := mgmtRoleNameMap[roleName]; !isExisted {
+				mgmtRoleNameMap[roleName] = struct{}{}
+				templateRoleDataList = append(templateRoleDataList, &models.BatchExecutionTemplateRole{
+					Id:                       guid.CreateGuid(),
+					BatchExecutionTemplateId: batchExecTemplateId,
+					Permission:               models.PermissionTypeMGMT,
+					RoleName:                 roleName,
+				})
+			}
+		}
+		useRoleNameMap := make(map[string]struct{})
+		for _, roleName := range templateInfo.PermissionToRole.USE {
+			if _, isExisted := useRoleNameMap[roleName]; !isExisted {
+				useRoleNameMap[roleName] = struct{}{}
+				templateRoleDataList = append(templateRoleDataList, &models.BatchExecutionTemplateRole{
+					Id:                       guid.CreateGuid(),
+					BatchExecutionTemplateId: batchExecTemplateId,
+					Permission:               models.PermissionTypeUSE,
+					RoleName:                 roleName,
+				})
+			}
+		}
+		for i := range templateRoleDataList {
+			action, tmpErr := db.GetInsertTableExecAction(models.TableNameBatchExecTemplateRole, *templateRoleDataList[i], nil)
+			if tmpErr != nil {
+				err = fmt.Errorf("get insert sql of batchExecutionTemplateRole for templateInfo.Name: %s failed: %s", templateInfo.Name, tmpErr.Error())
+				return
+			}
+			actions = append(actions, action)
+		}
+	}
+
+	err = db.Transaction(actions, c)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		return
+	}
 	return
 }
