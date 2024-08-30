@@ -1264,6 +1264,7 @@ func ImportTemplate(c *gin.Context, batchExecTemplateData []*models.BatchExecuti
 			}
 			actions = append(actions, action)
 		} else {
+			templateInfo.Id = queryTemplateData.Id
 			// update
 			updateColumnStr := "`publish_status`=?,`operate_object`=?,`plugin_service`=?,`is_dangerous_block`=?,`config_data`=?,`source_data`=?,`updated_by`=?,`updated_time`=?"
 			action := &db.ExecAction{
