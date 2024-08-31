@@ -446,6 +446,19 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag b
 				return
 			}
 		}
+	} else if procDefNode.DynamicBind == 2 {
+		dataBindings, err = DynamicBindNodeInRuntime(ctx, procInsNode, procDefNode)
+		if err != nil {
+			err = fmt.Errorf("get runtime dynamic bind data fail,%s ", err.Error())
+			return
+		}
+		if len(dataBindings) > 0 {
+			err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
+			if err != nil {
+				err = fmt.Errorf("try to update runtime dynamic node binding data fail,%s ", err.Error())
+				return
+			}
+		}
 	}
 	pluginInterface, getIntErr := database.GetLastEnablePluginInterface(ctx, procDefNode.ServiceName)
 	if getIntErr != nil {
