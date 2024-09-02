@@ -5,7 +5,7 @@
     </div>
     <Row :gutter="20">
       <Col v-show="!expand" :span="8">
-        <Card :style="{ minHeight: maxHeight + 'px', maxHeight: maxHeight + 'px' }">
+        <Card :style="{minHeight: maxHeight + 'px', maxHeight: maxHeight + 'px'}">
           <!--执行记录列表-->
           <div class="title" slot="title">{{ $t('be_execute_record') }}</div>
           <Table
@@ -56,7 +56,7 @@ export default {
     Search,
     ExecuteResult
   },
-  data () {
+  data() {
     return {
       searchOptions: [
         {
@@ -69,8 +69,14 @@ export default {
           placeholder: this.$t('be_execute_status'),
           component: 'select',
           list: [
-            { label: this.$t('be_success'), value: '0' },
-            { label: this.$t('be_error'), value: '1' }
+            {
+              label: this.$t('be_success'),
+              value: '0'
+            },
+            {
+              label: this.$t('be_error'),
+              value: '1'
+            }
           ]
         },
         {
@@ -78,10 +84,28 @@ export default {
           label: this.$t('execute_date'),
           initDateType: 1,
           dateRange: [
-            { label: this.$t('be_threeDays_recent'), type: 'day', value: 3, dateType: 1 },
-            { label: this.$t('be_oneWeek_recent'), type: 'day', value: 7, dateType: 2 },
-            { label: this.$t('be_oneMonth_recent'), type: 'month', value: 1, dateType: 3 },
-            { label: this.$t('be_auto'), dateType: 4 } // 自定义
+            {
+              label: this.$t('be_threeDays_recent'),
+              type: 'day',
+              value: 3,
+              dateType: 1
+            },
+            {
+              label: this.$t('be_oneWeek_recent'),
+              type: 'day',
+              value: 7,
+              dateType: 2
+            },
+            {
+              label: this.$t('be_oneMonth_recent'),
+              type: 'month',
+              value: 1,
+              dateType: 3
+            },
+            {
+              label: this.$t('be_auto'),
+              dateType: 4
+            } // 自定义
           ],
           labelWidth: 110,
           component: 'custom-time'
@@ -91,7 +115,8 @@ export default {
         name: '',
         id: '',
         errorCode: '',
-        createdTimeT: [dayjs().subtract(3, 'day').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')]
+        createdTimeT: [dayjs().subtract(3, 'day')
+          .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')]
       },
       tableData: [],
       tableColumns: [
@@ -104,23 +129,19 @@ export default {
           title: this.$t('status'),
           minWidth: 80,
           key: 'errorCode',
-          render: (h, params) => {
-            return (
-              <Tooltip max-width="300" content={params.row.errorMessage || '--'}>
-                <Tag color={params.row.errorCode === '0' ? 'success' : 'error'}>
-                  {params.row.errorCode === '0' ? this.$t('be_success') : this.$t('be_error')}
-                </Tag>
-              </Tooltip>
-            )
-          }
+          render: (h, params) => (
+            <Tooltip max-width="300" content={params.row.errorMessage || '--'}>
+              <Tag color={params.row.errorCode === '0' ? 'success' : 'error'}>
+                {params.row.errorCode === '0' ? this.$t('be_success') : this.$t('be_error')}
+              </Tag>
+            </Tooltip>
+          )
         },
         {
           title: this.$t('execute_date'),
           minWidth: 150,
           key: 'createdTime',
-          render: (h, params) => {
-            return <span>{params.row.createdTime || '--'}</span>
-          }
+          render: (h, params) => <span>{params.row.createdTime || '--'}</span>
         },
         {
           title: this.$t('table_action'),
@@ -128,38 +149,36 @@ export default {
           width: 100,
           fixed: 'right',
           align: 'center',
-          render: (h, params) => {
-            return (
-              <div style="display:flex;">
-                {/* 执行详情 */}
-                <Tooltip content={this.$t('be_execute_detail')} placement="top">
-                  <Button
-                    size="small"
-                    type="info"
-                    onClick={() => {
-                      this.handleExecuteDetail(params.row)
-                    }}
-                    style="margin-right:5px;"
-                  >
-                    <Icon type="md-eye" size="16"></Icon>
-                  </Button>
-                </Tooltip>
-                {/* 重新发起 */}
-                <Tooltip content={this.$t('be_republish')} placement="top">
-                  <Button
-                    size="small"
-                    type="warning"
-                    onClick={() => {
-                      this.handleRelaunch(params.row)
-                    }}
-                    style="margin-right:5px;"
-                  >
-                    <Icon type="md-add-circle" size="16"></Icon>
-                  </Button>
-                </Tooltip>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div style="display:flex;">
+              {/* 执行详情 */}
+              <Tooltip content={this.$t('be_execute_detail')} placement="top">
+                <Button
+                  size="small"
+                  type="info"
+                  onClick={() => {
+                    this.handleExecuteDetail(params.row)
+                  }}
+                  style="margin-right:5px;"
+                >
+                  <Icon type="md-eye" size="16"></Icon>
+                </Button>
+              </Tooltip>
+              {/* 重新发起 */}
+              <Tooltip content={this.$t('be_republish')} placement="top">
+                <Button
+                  size="small"
+                  type="warning"
+                  onClick={() => {
+                    this.handleRelaunch(params.row)
+                  }}
+                  style="margin-right:5px;"
+                >
+                  <Icon type="md-add-circle" size="16"></Icon>
+                </Button>
+              </Tooltip>
+            </div>
+          )
         }
       ],
       loading: false,
@@ -174,25 +193,25 @@ export default {
       expand: false
     }
   },
-  mounted () {
+  mounted() {
     this.maxHeight = document.body.clientHeight - 150
     this.getList()
   },
   methods: {
-    handleQuery () {
+    handleQuery() {
       this.pagination.currentPage = 1
       this.getList()
     },
-    changPage (val) {
+    changPage(val) {
       this.pagination.currentPage = val
       this.getList()
     },
-    changePageSize (val) {
+    changePageSize(val) {
       this.pagination.currentPage = 1
       this.pagination.pageSize = val
       this.getList()
     },
-    async getList () {
+    async getList() {
       const params = {
         filters: [
           {
@@ -220,13 +239,15 @@ export default {
             operator: 'contains',
             value: this.form[key]
           })
-        } else if (key === 'errorCode' && this.form[key]) {
+        }
+        else if (key === 'errorCode' && this.form[key]) {
           params.filters.push({
             name: key,
             operator: 'eq',
             value: this.form[key]
           })
-        } else if (key === 'createdTimeT' && this.form[key] && this.form[key].length > 0) {
+        }
+        else if (key === 'createdTimeT' && this.form[key] && this.form[key].length > 0) {
           params.filters.push(
             ...[
               {
@@ -253,7 +274,8 @@ export default {
             this.rowId = data.contents[0].id
             this.$refs.executeResult.getList(data.contents[0].id)
             this.$refs.executeResult.reset()
-          } else {
+          }
+          else {
             this.$refs.executeResult.handleReset()
           }
         })
@@ -261,7 +283,7 @@ export default {
       }
     },
     // 执行详情
-    handleExecuteDetail (row) {
+    handleExecuteDetail(row) {
       this.$router.push({
         path: '/implementation/batch-execution/create-execution',
         query: {
@@ -272,7 +294,7 @@ export default {
       })
     },
     // 重新发起
-    handleRelaunch (row) {
+    handleRelaunch(row) {
       this.$router.push({
         path: '/implementation/batch-execution/create-execution',
         query: {
@@ -283,7 +305,7 @@ export default {
       })
     },
     // 执行历史
-    async handleExecuteHistory (row) {
+    async handleExecuteHistory(row) {
       this.rowId = row.id
       this.$refs.executeResult.getList(row.id)
       this.$refs.executeResult.reset()

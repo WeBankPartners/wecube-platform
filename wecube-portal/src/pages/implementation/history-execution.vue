@@ -26,9 +26,7 @@
           clearable
           style="width: 60%"
         >
-          <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId"
-            >{{ item.procDefName }} [{{ item.procDefVersion }}]</Option
-          >
+          <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">{{ item.procDefName }} [{{ item.procDefVersion }}]</Option>
         </Select>
       </div>
       <div class="item">
@@ -76,7 +74,7 @@ import {
 } from '@/api/server'
 export default {
   name: '',
-  data () {
+  data() {
     return {
       MODALHEIGHT: 0,
       statusOptions: ['NotStarted', 'InProgress', 'Completed', 'Faulted', 'Timeouted', 'InternallyTerminated', 'Stop'],
@@ -98,10 +96,22 @@ export default {
           status: ''
         },
         timingTypeOptions: [
-          { label: this.$t('Hourly'), value: 'Hourly' },
-          { label: this.$t('Daily'), value: 'Daily' },
-          { label: this.$t('Weekly'), value: 'Weekly' },
-          { label: this.$t('Monthly'), value: 'Monthly' }
+          {
+            label: this.$t('Hourly'),
+            value: 'Hourly'
+          },
+          {
+            label: this.$t('Daily'),
+            value: 'Daily'
+          },
+          {
+            label: this.$t('Weekly'),
+            value: 'Weekly'
+          },
+          {
+            label: this.$t('Monthly'),
+            value: 'Monthly'
+          }
         ]
       },
       allFlows: [],
@@ -120,16 +130,14 @@ export default {
         {
           title: this.$t('flow_name'),
           key: 'procInstName',
-          render: (h, params) => {
-            return (
-              <div>
-                <span>
-                  {params.row.procInstName}
-                  <Tag style="margin-left:2px">{params.row.version}</Tag>
-                </span>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span>
+                {params.row.procInstName}
+                <Tag style="margin-left:2px">{params.row.version}</Tag>
+              </span>
+            </div>
+          )
         },
         {
           title: this.$t('target_object'),
@@ -156,41 +164,39 @@ export default {
           width: 185,
           align: 'center',
           fixed: 'right',
-          render: (h, params) => {
-            return (
-              <div style="display:flex;justify-content:center;">
-                <Button onClick={() => this.jumpToHistory(params.row)} type="info" size="small" style="margin: 2px">
-                  {this.$t('be_details')}
+          render: (h, params) => (
+            <div style="display:flex;justify-content:center;">
+              <Button onClick={() => this.jumpToHistory(params.row)} type="info" size="small" style="margin: 2px">
+                {this.$t('be_details')}
+              </Button>
+              {params.row.status === 'InProgress' && (
+                <Button
+                  onClick={() => this.flowControlHandler('stop', params.row)}
+                  type="warning"
+                  size="small"
+                  style="margin: 2px;background-color: #826bea;border-color: #826bea;"
+                >
+                  {this.$t('pause')}
                 </Button>
-                {params.row.status === 'InProgress' && (
-                  <Button
-                    onClick={() => this.flowControlHandler('stop', params.row)}
-                    type="warning"
-                    size="small"
-                    style="margin: 2px;background-color: #826bea;border-color: #826bea;"
-                  >
-                    {this.$t('pause')}
-                  </Button>
-                )}
-                {params.row.status === 'InProgress' && (
-                  <Button onClick={() => this.stopTask(params.row)} type="warning" size="small" style="margin: 2px">
-                    {this.$t('stop_orch')}
-                  </Button>
-                )}
-                {params.row.status === 'Stop' && (
-                  <Button onClick={() => this.flowControlHandler('recover', params.row)} type="success" size="small">
-                    {this.$t('be_continue')}
-                  </Button>
-                )}
-              </div>
-            )
-          }
+              )}
+              {params.row.status === 'InProgress' && (
+                <Button onClick={() => this.stopTask(params.row)} type="warning" size="small" style="margin: 2px">
+                  {this.$t('stop_orch')}
+                </Button>
+              )}
+              {params.row.status === 'Stop' && (
+                <Button onClick={() => this.flowControlHandler('recover', params.row)} type="success" size="small">
+                  {this.$t('be_continue')}
+                </Button>
+              )}
+            </div>
+          )
         }
       ],
       users: []
     }
   },
-  async mounted () {
+  async mounted() {
     const cacheParams = localStorage.getItem('history-execution-search-params')
     if (cacheParams) {
       await this.getFlows()
@@ -208,13 +214,13 @@ export default {
     this.getProcessInstances()
     this.getAllUsers()
   },
-  beforeDestroy () {
+  beforeDestroy() {
     const selectParams = JSON.stringify(this.searchConfig.params)
     localStorage.setItem('history-execution-search-params', selectParams)
   },
   methods: {
     // #region 暂停、继续编排
-    async flowControlHandler (operateType, row) {
+    async flowControlHandler(operateType, row) {
       this.$Modal.confirm({
         title: this.$t('be_workflow_non_owner_title'),
         content: `${this.$t('be_workflow_non_owner_list_tip1')}[${row.operator}]${this.$t(
@@ -222,7 +228,7 @@ export default {
         )}`,
         'z-index': 1000000,
         onOk: async () => {
-          let payload = {
+          const payload = {
             procInstId: row.id,
             act: operateType
           }
@@ -239,7 +245,7 @@ export default {
       })
     },
     // 终止任务
-    stopTask (row) {
+    stopTask(row) {
       this.$Modal.confirm({
         title: this.$t('be_workflow_non_owner_title'),
         content: `${this.$t('be_workflow_non_owner_list_tip1')}[${row.operator}]${this.$t(
@@ -263,32 +269,36 @@ export default {
         onCancel: () => {}
       })
     },
-    async getFlows () {
-      let { status, data } = await getAllFlow(false)
+    async getFlows() {
+      const { status, data } = await getAllFlow(false)
       if (status === 'OK') {
         this.allFlows = data.sort((a, b) => {
-          let s = a.createdTime.toLowerCase()
-          let t = b.createdTime.toLowerCase()
-          if (s > t) return -1
-          if (s < t) return 1
+          const s = a.createdTime.toLowerCase()
+          const t = b.createdTime.toLowerCase()
+          if (s > t) {
+            return -1
+          }
+          if (s < t) {
+            return 1
+          }
         })
       }
     },
-    async getAllUsers () {
-      let { status, data } = await getUserList()
+    async getAllUsers() {
+      const { status, data } = await getUserList()
       if (status === 'OK') {
         this.users = data.map(_ => _.username)
       }
     },
-    changePageSize (pageSize) {
+    changePageSize(pageSize) {
       this.pageable.pageSize = pageSize
       this.getProcessInstances()
     },
-    changPage (current) {
+    changPage(current) {
       this.pageable.current = current
       this.getProcessInstances()
     },
-    async getProcessInstances () {
+    async getProcessInstances() {
       const params = {
         id: this.searchConfig.params.id !== '' ? this.searchConfig.params.id : undefined,
         procDefId: this.searchConfig.params.procDefId !== '' ? this.searchConfig.params.procDefId : undefined,
@@ -304,7 +314,7 @@ export default {
         }
       }
       this.tableData = []
-      let { status, data } = await instancesWithPaging(params)
+      const { status, data } = await instancesWithPaging(params)
       if (status === 'OK') {
         this.tableData = data.contents
         this.pageable.total = data.pageInfo.totalRows
@@ -312,7 +322,7 @@ export default {
         this.pageable.startIndex = data.pageInfo.startIndex
       }
     },
-    async jumpToHistory (row) {
+    async jumpToHistory(row) {
       const params = {
         id: row.id,
         pageable: {
@@ -320,7 +330,7 @@ export default {
           pageSize: 5000
         }
       }
-      let { status, data } = await instancesWithPaging(params)
+      const { status, data } = await instancesWithPaging(params)
       if (status === 'OK') {
         const detail = Array.isArray(data.contents) && data.contents[0]
         // 能获取到历史记录，跳转，否则给出提示
@@ -333,7 +343,7 @@ export default {
         desc: this.$t('no_detail_warning')
       })
     },
-    getDate (dateRange, type) {
+    getDate(dateRange, type) {
       if (type === 'date' && dateRange[1].slice(-8) === '00:00:00') {
         // type类型判断等于date,是为了防止用户手动选时间为 00:00:00 时触发，变成 '23:59:59'
         dateRange[1] = dateRange[1].slice(0, -8) + '23:59:59'

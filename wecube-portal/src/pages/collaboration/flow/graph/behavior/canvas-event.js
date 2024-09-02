@@ -1,12 +1,12 @@
 export default G6 => {
   G6.registerBehavior('canvas-event', {
-    getDefaultCfg () {
+    getDefaultCfg() {
       return {}
     },
-    shouldBegin (e) {
+    shouldBegin() {
       return true
     },
-    getEvents () {
+    getEvents() {
       return {
         'canvas:mousemove': 'onCanvasMouseMove',
         'canvas:mousedown': 'onCanvasMouseDown',
@@ -14,16 +14,16 @@ export default G6 => {
         'canvas:dragend': 'onCanvasDragEnd'
       }
     },
-    onCanvasMouseMove (e) {
+    onCanvasMouseMove(e) {
       e.target.get('el').style.cursor = 'grab'
     },
-    onCanvasMouseDown (e) {
+    onCanvasMouseDown(e) {
       e.target.get('el').style.cursor = 'grabbing'
     },
-    onCanvasMouseUp (e) {
+    onCanvasMouseUp(e) {
       e.target.get('el').style.cursor = 'grab'
     },
-    onCanvasDragEnd (e) {
+    onCanvasDragEnd(e) {
       e.target.get('el').style.cursor = 'grab'
       this.graph.emit('on-canvas-dragend', e)
     }

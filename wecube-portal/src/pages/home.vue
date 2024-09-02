@@ -1,6 +1,6 @@
 <template>
   <div>
-    <p style="margin-top: 20px; height: 200px; font-size: 24px !important;">
+    <p style="margin-top: 20px; height: 200px; font-size: 24px !important">
       {{ $t('wecube_desc') }}
     </p>
     <div class="graph_container">
@@ -38,17 +38,17 @@
 
 <script>
 export default {
-  data () {
+  data() {
     return {
       currentLanguage: '',
       toggle: true
     }
   },
-  async created () {
+  async created() {
     this.getLocalLang()
   },
   methods: {
-    getLocalLang () {
+    getLocalLang() {
       this.currentLanguage = localStorage.getItem('lang') || navigator.language
     }
   }
