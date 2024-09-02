@@ -42,14 +42,14 @@
 import FilterRules from './item-filter-rules.vue'
 export default {
   name: '',
-  data () {
+  data() {
     return {
       routineExpressionItem: []
     }
   },
   watch: {
     isBatch: {
-      handler (val) {
+      handler() {
         if (!this.isBatch) {
           this.$nextTick(() => {
             this.routineExpressionItem = [this.routineExpressionItem[0]]
@@ -60,24 +60,26 @@ export default {
     }
   },
   props: ['isBatch', 'allEntityType', 'routineExpression', 'currentSelectedEntity', 'disabled'],
-  mounted () {
+  mounted() {
     this.changeRoutineExpressionItem(this.routineExpression)
   },
   methods: {
-    setRoutineExpressionItem (routineExpression) {
+    setRoutineExpressionItem(routineExpression) {
       this.changeRoutineExpressionItem(routineExpression)
     },
-    filterRuleChanged (val) {
+    filterRuleChanged(val) {
       if (!this.isBatch) {
         if (val === '' || !val.startsWith(this.currentSelectedEntity)) {
           this.$nextTick(() => {
             this.routineExpressionItem[0].routineExpression = this.currentSelectedEntity
             this.$emit('filterRuleChanged', this.currentSelectedEntity)
           })
-        } else {
+        }
+        else {
           this.$emit('filterRuleChanged', val)
         }
-      } else {
+      }
+      else {
         this.$nextTick(() => {
           this.routineExpressionItem.forEach(item => {
             if (!item.routineExpression || !val.startsWith(this.currentSelectedEntity)) {
@@ -87,7 +89,7 @@ export default {
         })
       }
     },
-    changeRoutineExpressionItem (routineExpression) {
+    changeRoutineExpressionItem(routineExpression) {
       this.routineExpressionItem = []
       if (routineExpression !== '') {
         routineExpression.split('#DME#').forEach(item => {
@@ -99,13 +101,13 @@ export default {
         })
       }
     },
-    addFilterRule () {
+    addFilterRule() {
       this.routineExpressionItem.push({
         routineExpression: this.currentSelectedEntity,
         operate: ''
       })
     },
-    deleteFilterRule (index) {
+    deleteFilterRule(index) {
       this.routineExpressionItem.splice(index, 1)
     }
   },
