@@ -18,6 +18,11 @@ import req from './api/base'
 import implicitRoutes from './implicitRoutes.js'
 import { getChildRouters } from './pages/util/router.js'
 import { getGlobalMenus } from '@/const/util.js'
+// 引用wecube公共组件
+import commonUI from 'wecube-common-ui'
+import 'wecube-common-ui/lib/wecube-common-ui.css'
+Vue.use(commonUI)
+
 const eventBus = new Vue()
 Vue.prototype.$eventBusP = eventBus
 Vue.component('WeSelect', WeSelect)
