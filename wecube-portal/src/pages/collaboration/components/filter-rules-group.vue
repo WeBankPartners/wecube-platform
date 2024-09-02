@@ -47,14 +47,14 @@
 import FilterRules from '../../components/filter-rules.vue'
 export default {
   name: '',
-  data () {
+  data() {
     return {
       routineExpressionItem: []
     }
   },
   watch: {
     isBatch: {
-      handler (val) {
+      handler() {
         if (!this.isBatch) {
           this.$nextTick(() => {
             this.routineExpressionItem = [this.routineExpressionItem[0]]
@@ -65,16 +65,16 @@ export default {
     }
   },
   props: ['isBatch', 'allEntityType', 'routineExpression', 'currentSelectedEntity', 'disabled'],
-  mounted () {
+  mounted() {
     this.changeRoutineExpressionItem(this.routineExpression)
   },
   methods: {
-    filterRuleChanged (val) {
+    filterRuleChanged(val) {
       if (!this.isBatch) {
         this.$emit('filterRuleChanged', val)
       }
     },
-    changeRoutineExpressionItem (routineExpression) {
+    changeRoutineExpressionItem(routineExpression) {
       this.routineExpressionItem = []
       if (routineExpression) {
         routineExpression.split('#DME#').forEach(item => {
@@ -86,13 +86,13 @@ export default {
         })
       }
     },
-    addFilterRule () {
+    addFilterRule() {
       this.routineExpressionItem.push({
         routineExpression: this.currentSelectedEntity.split('{')[0],
         operate: ''
       })
     },
-    deleteFilterRule (index) {
+    deleteFilterRule(index) {
       this.routineExpressionItem.splice(index, 1)
     }
   },
