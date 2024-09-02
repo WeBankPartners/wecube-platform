@@ -1283,6 +1283,7 @@ export default {
     const id = this.$route.query.id || ''
     const templateId = this.$route.query.templateId || ''
     this.subProcId = this.$route.query.subProcId || ''
+    const targetId = this.$route.query.targetId || ''
     // 查看执行历史
     if (id) {
       this.querySelectedFlowInstanceId = id
@@ -1302,6 +1303,11 @@ export default {
       this.orchestrationSelectHandler()
       this.getAllFlow()
       this.selectedTarget = this.$route.query.entityDataId || ''
+      this.getTargetOptions()
+      this.onTargetSelectHandler()
+    }
+    if (targetId) {
+      this.selectedTarget = targetId
       this.getTargetOptions()
       this.onTargetSelectHandler()
     }
