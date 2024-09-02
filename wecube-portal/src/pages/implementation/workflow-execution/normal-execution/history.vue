@@ -432,6 +432,9 @@ export default {
     }
     window.sessionStorage.setItem('search_normalExecution', JSON.stringify(storage))
   },
+  mounted() {
+    this.searchConfig.params.entityDisplayName = this.$route.query.entityDisplayName || ''
+  },
   methods: {
     initData() {
       this.MODALHEIGHT = document.body.scrollHeight - 220
