@@ -67,7 +67,7 @@ export default {
           placeholder: '记录ID',
           component: 'input'
         },
-        // 导出状态
+        // 导入状态
         {
           key: 'status',
           placeholder: '导出状态',
@@ -115,7 +115,7 @@ export default {
             }
           ]
         },
-        // 导出产品
+        // 导入产品
         {
           key: 'product',
           placeholder: '导出产品',
