@@ -241,6 +241,15 @@ func QueryProcessDefinitionList(c *gin.Context) {
 	if param.PermissionType == "" {
 		param.PermissionType = "MGMT"
 	}
+	// 授权插件 传空返回空,查询所有 Plugins =platform
+	if len(param.Plugins) == 0 {
+		middleware.ReturnData(c, list)
+		return
+	}
+	// 包含 platform 表示查看所有插件,清空插件过滤.这样做法是防止其他服务绕过插件过滤逻辑
+	if strings.Contains(strings.Join(param.Plugins, ","), "platform") {
+		param.Plugins = []string{}
+	}
 	list, err = database.QueryProcessDefinitionList(c, param, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"), middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
