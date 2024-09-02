@@ -63,7 +63,7 @@ export default {
     Search,
     AuthDialog
   },
-  data () {
+  data() {
     return {
       form: {
         name: '',
@@ -110,46 +110,44 @@ export default {
           title: this.$t('be_template_name'),
           key: 'name',
           minWidth: 140,
-          render: (h, params) => {
-            return (
-              <div>
-                {
-                  /* 收藏 */
-                  params.row.isCollected === false && (
-                    <Tooltip content={this.$t('bc_save')} placement="top-start">
-                      <Icon
-                        style="cursor:pointer;margin-right:5px;"
-                        size="18"
-                        type="ios-star-outline"
-                        onClick={e => {
-                          e.stopPropagation()
-                          this.handleStar(params.row)
-                        }}
-                      />
-                    </Tooltip>
-                  )
-                }
-                {
-                  /* 取消收藏 */
-                  params.row.isCollected === true && (
-                    <Tooltip content={this.$t('be_cancel_save')} placement="top-start">
-                      <Icon
-                        style="cursor:pointer;margin-right:5px;"
-                        size="18"
-                        type="ios-star"
-                        color="#ebac42"
-                        onClick={e => {
-                          e.stopPropagation()
-                          this.handleStar(params.row)
-                        }}
-                      />
-                    </Tooltip>
-                  )
-                }
-                <span style="margin-right:2px">{params.row.name}</span>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              {
+                /* 收藏 */
+                params.row.isCollected === false && (
+                  <Tooltip content={this.$t('bc_save')} placement="top-start">
+                    <Icon
+                      style="cursor:pointer;margin-right:5px;"
+                      size="18"
+                      type="ios-star-outline"
+                      onClick={e => {
+                        e.stopPropagation()
+                        this.handleStar(params.row)
+                      }}
+                    />
+                  </Tooltip>
+                )
+              }
+              {
+                /* 取消收藏 */
+                params.row.isCollected === true && (
+                  <Tooltip content={this.$t('be_cancel_save')} placement="top-start">
+                    <Icon
+                      style="cursor:pointer;margin-right:5px;"
+                      size="18"
+                      type="ios-star"
+                      color="#ebac42"
+                      onClick={e => {
+                        e.stopPropagation()
+                        this.handleStar(params.row)
+                      }}
+                    />
+                  </Tooltip>
+                )
+              }
+              <span style="margin-right:2px">{params.row.name}</span>
+            </div>
+          )
         },
         id: {
           title: this.$t('be_template_id'),
@@ -165,9 +163,7 @@ export default {
           title: this.$t('be_instance_type'),
           key: 'operateObject',
           minWidth: 120,
-          render: (h, params) => {
-            return params.row.operateObject && <Tag color="default">{params.row.operateObject}</Tag>
-          }
+          render: (h, params) => params.row.operateObject && <Tag color="default">{params.row.operateObject}</Tag>
         },
         status: {
           title: this.$t('be_use_status'),
@@ -175,9 +171,21 @@ export default {
           minWidth: 90,
           render: (h, params) => {
             const list = [
-              { label: this.$t('be_status_use'), value: 'available', color: '#19be6b' },
-              { label: this.$t('be_status_draft'), value: 'draft', color: '#c5c8ce' },
-              { label: this.$t('be_status_role'), value: 'unauthorized', color: '#ed4014' }
+              {
+                label: this.$t('be_status_use'),
+                value: 'available',
+                color: '#19be6b'
+              },
+              {
+                label: this.$t('be_status_draft'),
+                value: 'draft',
+                color: '#c5c8ce'
+              },
+              {
+                label: this.$t('be_status_role'),
+                value: 'unauthorized',
+                color: '#ed4014'
+              }
             ]
             const item = list.find(i => i.value === params.row.status)
             return item && <Tag color={item.color}>{item.label}</Tag>
@@ -194,103 +202,101 @@ export default {
           width: 165,
           align: 'center',
           fixed: 'right',
-          render: (h, params) => {
-            return (
-              <div style="display:flex;justify-content:center;">
-                {
-                  /* 查看 */
-                  this.publishStatus === 'published' && (
-                    <Tooltip content={this.$t('view')} placement="top">
-                      <Button
-                        size="small"
-                        type="info"
-                        onClick={() => {
-                          this.handleView(params.row)
-                        }}
-                        style="margin-right:5px;"
-                      >
-                        <Icon type="md-eye" size="16"></Icon>
-                      </Button>
-                    </Tooltip>
-                  )
-                }
-                {
-                  /* 复制 */
-                  this.publishStatus === 'published' && (
-                    <Tooltip content={this.$t('copy')} placement="top">
-                      <Button
-                        size="small"
-                        type="success"
-                        onClick={() => {
-                          this.handleCopy(params.row)
-                        }}
-                        style="margin-right:5px;"
-                      >
-                        <Icon type="md-copy" size="16"></Icon>
-                      </Button>
-                    </Tooltip>
-                  )
-                }
-                {
-                  /* 编辑 */
-                  this.publishStatus === 'draft' && (
-                    <Tooltip content={this.$t('edit')} placement="top">
-                      <Button
-                        size="small"
-                        type="primary"
-                        onClick={() => {
-                          this.handleEdit(params.row)
-                        }}
-                        style="margin-right:5px;"
-                      >
-                        <Icon type="md-create" size="16"></Icon>
-                      </Button>
-                    </Tooltip>
-                  )
-                }
-                {
-                  /* 权限 */
-                  this.publishStatus === 'published' && (
-                    <Tooltip content={this.$t('config_permission')} placement="top">
-                      <Button
-                        size="small"
-                        type="warning"
-                        onClick={() => {
-                          this.editRow = params.row
-                          const mgmtRole = params.row.permissionToRole.MGMT || []
-                          const useRole = params.row.permissionToRole.USE || []
-                          this.$refs.authDialog.startAuth(mgmtRole, useRole)
-                        }}
-                        style="margin-right:5px;"
-                      >
-                        <Icon type="md-person" size="16"></Icon>
-                      </Button>
-                    </Tooltip>
-                  )
-                }
-                {
-                  /* 删除 */
-                  <Tooltip content={this.$t('delete')} placement="top">
+          render: (h, params) => (
+            <div style="display:flex;justify-content:center;">
+              {
+                /* 查看 */
+                this.publishStatus === 'published' && (
+                  <Tooltip content={this.$t('view')} placement="top">
                     <Button
                       size="small"
-                      type="error"
+                      type="info"
                       onClick={() => {
-                        this.handleDelete(params.row)
+                        this.handleView(params.row)
                       }}
                       style="margin-right:5px;"
                     >
-                      <Icon type="md-trash" size="16"></Icon>
+                      <Icon type="md-eye" size="16"></Icon>
                     </Button>
                   </Tooltip>
-                }
-              </div>
-            )
-          }
+                )
+              }
+              {
+                /* 复制 */
+                this.publishStatus === 'published' && (
+                  <Tooltip content={this.$t('copy')} placement="top">
+                    <Button
+                      size="small"
+                      type="success"
+                      onClick={() => {
+                        this.handleCopy(params.row)
+                      }}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="md-copy" size="16"></Icon>
+                    </Button>
+                  </Tooltip>
+                )
+              }
+              {
+                /* 编辑 */
+                this.publishStatus === 'draft' && (
+                  <Tooltip content={this.$t('edit')} placement="top">
+                    <Button
+                      size="small"
+                      type="primary"
+                      onClick={() => {
+                        this.handleEdit(params.row)
+                      }}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="md-create" size="16"></Icon>
+                    </Button>
+                  </Tooltip>
+                )
+              }
+              {
+                /* 权限 */
+                this.publishStatus === 'published' && (
+                  <Tooltip content={this.$t('config_permission')} placement="top">
+                    <Button
+                      size="small"
+                      type="warning"
+                      onClick={() => {
+                        this.editRow = params.row
+                        const mgmtRole = params.row.permissionToRole.MGMT || []
+                        const useRole = params.row.permissionToRole.USE || []
+                        this.$refs.authDialog.startAuth(mgmtRole, useRole)
+                      }}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="md-person" size="16"></Icon>
+                    </Button>
+                  </Tooltip>
+                )
+              }
+              {
+                /* 删除 */
+                <Tooltip content={this.$t('delete')} placement="top">
+                  <Button
+                    size="small"
+                    type="error"
+                    onClick={() => {
+                      this.handleDelete(params.row)
+                    }}
+                    style="margin-right:5px;"
+                  >
+                    <Icon type="md-trash" size="16"></Icon>
+                  </Button>
+                </Tooltip>
+              }
+            </div>
+          )
         }
       }
     }
   },
-  mounted () {
+  mounted() {
     // 模板管理页面
     this.tableColumns = [
       this.baseColumns.name,
@@ -301,16 +307,12 @@ export default {
         title: this.$t('use_role'),
         key: 'useRole',
         minWidth: 120,
-        render: (h, params) => {
-          return (
-            <div>
-              {params.row.permissionToRole.USEDisplayName &&
-                params.row.permissionToRole.USEDisplayName.map(item => {
-                  return <Tag color="default">{item}</Tag>
-                })}
-            </div>
-          )
-        }
+        render: (h, params) => (
+          <div>
+            {params.row.permissionToRole.USEDisplayName
+              && params.row.permissionToRole.USEDisplayName.map(item => <Tag color="default">{item}</Tag>)}
+          </div>
+        )
       },
       this.baseColumns.status,
       this.baseColumns.createdTime,
@@ -319,15 +321,15 @@ export default {
     this.getTemplateList()
   },
   methods: {
-    handleCreateTemplate () {
+    handleCreateTemplate() {
       this.$router.push({
         path: '/implementation/batch-execution/template-create'
       })
     },
-    handleSearch () {
+    handleSearch() {
       this.getTemplateList()
     },
-    async getTemplateList () {
+    async getTemplateList() {
       const params = {
         filters: [],
         paging: true,
@@ -374,7 +376,7 @@ export default {
           const group = {
             expand: true,
             data: [],
-            role: role
+            role
           }
           data.contents.forEach(item => {
             if (item.permissionToRole.MGMTDisplayName && item.permissionToRole.MGMTDisplayName.includes(role)) {
@@ -386,7 +388,7 @@ export default {
       }
     },
     // 展开收缩卡片
-    handleExpand (item) {
+    handleExpand(item) {
       item.expand = !item.expand
     },
     // 收藏or取消收藏
@@ -405,7 +407,7 @@ export default {
       }
     }, 300),
     // 查看
-    handleView (row) {
+    handleView(row) {
       this.$router.push({
         path: '/implementation/batch-execution/template-create',
         query: {
@@ -415,7 +417,7 @@ export default {
       })
     },
     // 复制
-    handleCopy (row) {
+    handleCopy(row) {
       this.$router.push({
         path: '/implementation/batch-execution/template-create',
         query: {
@@ -425,7 +427,7 @@ export default {
       })
     },
     // 编辑草稿
-    handleEdit (row) {
+    handleEdit(row) {
       this.$router.push({
         path: '/implementation/batch-execution/template-create',
         query: {
@@ -435,7 +437,7 @@ export default {
       })
     },
     // 更新权限
-    async handleUpdateRole (mgmtRole, useRole) {
+    async handleUpdateRole(mgmtRole, useRole) {
       const params = {
         id: this.editRow.id,
         permissionToRole: {
@@ -453,7 +455,7 @@ export default {
       }
     },
     // 删除
-    async handleDelete (row) {
+    async handleDelete(row) {
       this.$Modal.confirm({
         title: this.$t('confirm_to_delete'),
         'z-index': 1000000,
