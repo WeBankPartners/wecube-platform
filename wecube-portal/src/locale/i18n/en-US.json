@@ -897,5 +897,6 @@
   "p_destroy_tips": "Destroyed data cannot be restored, confirm execution?",
   "p_instance_destroy_failed": "Instance destruction failed",
   "p_instance_destroy": "Instance being destroyed",
-  "p_online_plugin_installation": "Online plugin installation"
+  "p_online_plugin_installation": "Online plugin installation",
+  "fd_platform": "Platform"
 }
