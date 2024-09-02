@@ -119,8 +119,7 @@
                     :disabled="!(!!currentPackageName && !!currentEntityName)"
                     type="primary"
                     ghost
-                    >{{ $t('bc_change_instance') }}</Button
-                  >
+                  >{{ $t('bc_change_instance') }}</Button>
                 </div>
               </Step>
               <Step :title="$t('bc_execution_plugin')" content="">
@@ -137,8 +136,7 @@
                     :disabled="!activeExecuteHistory.requestBody.resourceDatas.length > 0"
                     type="primary"
                     ghost
-                    >{{ $t('bc_change_plugin') }}</Button
-                  >
+                  >{{ $t('bc_change_plugin') }}</Button>
                 </div>
               </Step>
               <Step :title="$t('bc_execution_parameter')" content="">
@@ -162,8 +160,7 @@
                     :disabled="activeExecuteHistory.plugin.pluginParams.length === 0"
                     @click="changeParams"
                     ghost
-                    >{{ $t('bc_complement_parameters') }}</Button
-                  >
+                  >{{ $t('bc_complement_parameters') }}</Button>
                 </div>
               </Step>
               <Step :title="$t('bc_execute')" content="">
@@ -175,8 +172,7 @@
                     type="primary"
                     ghost
                     :loading="btnLoading"
-                    >{{ $t('bc_execute') }}</Button
-                  >
+                  >{{ $t('bc_execute') }}</Button>
                 </div>
               </Step>
             </Steps>
@@ -254,7 +250,7 @@
         <!-- 设置查询参数-开始 -->
         <section v-if="displaySearchZone" class="search">
           <Form :label-width="130" label-colon>
-            <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_query_path')">
+            <FormItem :rules="{required: true}" :show-message="false" :label="$t('bc_query_path')">
               <FilterRules
                 :allDataModelsWithAttrs="allEntityType"
                 :needNativeAttr="false"
@@ -265,7 +261,7 @@
             <FormItem :label="$t('bc_target_type')">
               <Input disabled :value="currentPackageName + ':' + currentEntityName"></Input>
             </FormItem>
-            <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_primary_key')">
+            <FormItem :rules="{required: true}" :show-message="false" :label="$t('bc_primary_key')">
               <Select filterable v-model="primatKeyAttr">
                 <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
                   entityAttr.name
@@ -307,14 +303,11 @@
                 <Row>
                   <Col span="8" v-for="(sp, spIndex) in searchParameters" :key="spIndex" style="padding: 0 8px">
                     <label class="search-params-label">
-                      {{ sp.packageName }}-{{ sp.entityName }}.{{ sp.description }}:</label
-                    >
+                      {{ sp.packageName }}-{{ sp.entityName }}.{{ sp.description }}:</label>
                     <Input v-model="sp.value" />
                   </Col>
                   <Col span="8" style="padding: 0 8px">
-                    <label class="search-params-label" style="visibility: hidden"
-                      >defaultdefaultdefaultdefaultdefault</label
-                    >
+                    <label class="search-params-label" style="visibility: hidden">defaultdefaultdefaultdefaultdefault</label>
                     <Button @click="clearParametes">{{ $t('bc_clear_condition') }}</Button>
                     <!-- <Button @click="resetParametes">{{ $t('bc_reset_query') }}</Button> -->
                   </Col>
@@ -357,7 +350,7 @@
         <!-- 选择插件配置参数-开始 -->
         <section v-if="batchActionModalVisible">
           <Form label-position="right" :label-width="150">
-            <FormItem :label="$t('plugin')" :rules="{ required: true }" :show-message="false">
+            <FormItem :label="$t('plugin')" :rules="{required: true}" :show-message="false">
               <Select filterable clearable v-model="pluginId" @on-clear="clearPlugin">
                 <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
                   item.serviceDisplayName
@@ -396,8 +389,7 @@
           v-if="displaySearchZone"
           :disabled="!(!!currentPackageName && !!currentEntityName && !!primatKeyAttr)"
           @click="excuteSearch"
-          >{{ $t('bc_execute_query') }}</Button
-        >
+        >{{ $t('bc_execute_query') }}</Button>
         <!-- 选择插件 -->
         <Button type="primary" v-if="displayResultTableZone" :disabled="!seletedRows.length" @click="batchAction">{{
           $t('bc_change_plugin')
@@ -490,7 +482,7 @@ const BATCH_EXECUTION_URL = '/platform/v1/batch-execution/run'
 
 export default {
   name: '',
-  data () {
+  data() {
     return {
       hasResult: false,
       showRequestData: {
@@ -585,8 +577,14 @@ export default {
       filterParams: null,
       filterType: 'str',
       filterTypeList: [
-        { label: this.$t('bc_filter_type_str'), value: 'str' },
-        { label: this.$t('bc_filter_type_regex'), value: 'regex' }
+        {
+          label: this.$t('bc_filter_type_str'),
+          value: 'str'
+        },
+        {
+          label: this.$t('bc_filter_type_regex'),
+          value: 'regex'
+        }
       ],
 
       selectedCollectionId: null,
@@ -615,18 +613,19 @@ export default {
       }
     }
   },
-  mounted () {
+  mounted() {
     this.MODALHEIGHT = document.body.scrollHeight - 200
   },
   computed: {
-    businessKeyContent: function () {
+    businessKeyContent() {
       if (this.activeResultKey && this.catchExecuteResult) {
         return this.catchExecuteResult[this.activeResultKey]
       }
+      return null
     }
   },
   watch: {
-    dataModelExpression: async function (val) {
+    async dataModelExpression(val) {
       if (val === ':' || !val) {
         return
       }
@@ -656,7 +655,7 @@ export default {
         })
       }
     },
-    pluginId: function (val) {
+    pluginId(val) {
       this.filteredPlugins.forEach(plugin => {
         if (plugin.serviceDisplayName === val) {
           this.selectedPluginParams = plugin.inputParameters
@@ -667,10 +666,10 @@ export default {
         return _
       })
     },
-    selectedCollectionId: function (val) {
+    selectedCollectionId(val) {
       this.isHistoryToBatchActionModal = !!val
     },
-    activeExecuteHistory: function (val) {
+    activeExecuteHistory(val) {
       this.filterParams = null
       this.businessKey = null
       if (!val) {
@@ -684,7 +683,7 @@ export default {
       this.catchFilterBusinessKeySet = val.filterBusinessKeySet
       this.dataModelExpression = val.requestBody.dataModelExpression
     },
-    businessKey: function (val) {
+    businessKey(val) {
       if (!val) {
         this.catchExecuteResult = this.activeExecuteHistory.executeResult
         this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
@@ -702,17 +701,15 @@ export default {
     }
   },
   methods: {
-    singleSelect (selection, row) {
+    singleSelect(selection, row) {
       this.seletedRows = this.seletedRows.concat(row)
     },
-    singleCancel (selection, row) {
-      const index = this.seletedRows.findIndex(cn => {
-        return cn.id === row.id
-      })
+    singleCancel(selection, row) {
+      const index = this.seletedRows.findIndex(cn => cn.id === row.id)
       this.seletedRows.splice(index, 1)
     },
-    selectAll (selection) {
-      let temp = []
+    selectAll(selection) {
+      const temp = []
       this.seletedRows.forEach(cntl => {
         temp.push(cntl.id)
       })
@@ -722,63 +719,56 @@ export default {
         }
       })
     },
-    selectAllCancel () {
-      let temp = []
+    selectAllCancel() {
+      const temp = []
       this.tartetModels.forEach(tm => {
         temp.push(tm.id)
       })
       if (this.tableFilterParam) {
-        this.seletedRows = this.seletedRows.filter(item => {
-          return !temp.includes(item.id)
-        })
-      } else {
+        this.seletedRows = this.seletedRows.filter(item => !temp.includes(item.id))
+      }
+      else {
         this.seletedRows = []
       }
     },
-    changeCollections (id) {
+    changeCollections(id) {
       if (!id) {
         return
       }
       this.activeExecuteHistoryKey = null
       this.activeExecuteHistory = null
-      this.selectedCollection = this.allCollections.find(_ => {
-        return _.favoritesId === id
-      })
+      this.selectedCollection = this.allCollections.find(_ => _.favoritesId === id)
       this.activeExecuteHistory = JSON.parse(this.selectedCollection.data)
       this.activeExecuteHistory.executeResult = null
       this.activeExecuteHistory.filterBusinessKeySet = []
     },
-    async getRoleList () {
+    async getRoleList() {
       const { status, data } = await getRoleList()
       if (status === 'OK') {
-        this.allRolesBackUp = data.map(_ => {
-          return {
-            ..._,
-            key: _.name,
-            label: _.displayName
-          }
-        })
+        this.allRolesBackUp = data.map(_ => ({
+          ..._,
+          key: _.name,
+          label: _.displayName
+        }))
       }
     },
-    async getRolesByCurrentUser () {
+    async getRolesByCurrentUser() {
       const { status, data } = await getRolesByCurrentUser()
       if (status === 'OK') {
-        this.allRoles = data.map(_ => {
-          return {
-            ..._,
-            key: _.name,
-            label: _.displayName
-          }
-        })
+        this.allRoles = data.map(_ => ({
+          ..._,
+          key: _.name,
+          label: _.displayName
+        }))
       }
     },
-    async getAllCollections () {
+    async getAllCollections() {
       const { status, data } = await getAllCollections()
       if (status === 'OK') {
         this.allCollections = data
       }
     },
-    openAddCollectionModal (key) {
+    openAddCollectionModal(key) {
       this.isAddCollect = true
       this.toBeCollectedParams = key
       this.getRoleList()
@@ -788,7 +778,7 @@ export default {
       this.collectionRoleManageModal = true
       this.editCollectionName = true
     },
-    openEditCollectionModal (collection) {
+    openEditCollectionModal(collection) {
       this.isAddCollect = false
       this.selectedCollection = collection
       this.getRoleList()
@@ -798,13 +788,13 @@ export default {
       this.collectionRoleManageModal = true
       this.editCollectionName = false
     },
-    async handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
+    async handleMgmtRoleTransferChange(newTargetKeys) {
       this.MGMT = newTargetKeys
     },
-    async handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
+    async handleUseRoleTransferChange(newTargetKeys) {
       this.USE = newTargetKeys
     },
-    showDeleteConfirm (id, name) {
+    showDeleteConfirm(id, name) {
       this.$Modal.confirm({
         title: this.$t('confirm_to_delete'),
         content: name,
@@ -814,16 +804,19 @@ export default {
         onCancel: () => {}
       })
     },
-    async deleteCollection (id) {
+    async deleteCollection(id) {
       const { status, message } = await deleteCollections(id)
       if (status === 'OK') {
         this.selectedCollectionId = null
         this.$Message.success(message)
       }
     },
-    async updateRoles (favoritesId) {
+    async updateRoles(favoritesId) {
       const payload = {
-        permissionToRole: { MGMT: this.MGMT, USE: this.USE }
+        permissionToRole: {
+          MGMT: this.MGMT,
+          USE: this.USE
+        }
       }
       const { status, message } = await addCollectionsRole(favoritesId, payload)
       if (status === 'OK') {
@@ -831,14 +824,15 @@ export default {
           title: 'Success',
           desc: message
         })
-      } else {
+      }
+      else {
         this.$Notice.error({
           title: 'Fail',
           desc: message
         })
       }
     },
-    async confirmCollection () {
+    async confirmCollection() {
       if (!this.isAddCollect) {
         await this.updateRoles(this.selectedCollection.favoritesId)
         this.collectionRoleManageModal = false
@@ -857,7 +851,7 @@ export default {
         requestBody.resourceDatas.forEach(item => {
           delete item.confirmToken
         })
-        let params = {
+        const params = {
           collectionName: this.collectionName.trim(),
           permissionToRole: {
             MGMT: this.MGMT,
@@ -873,8 +867,9 @@ export default {
           this.collectionRoleManageModal = false
           this.$Message.success(this.$t('save_successfully'))
         }
-      } else {
-        let params = JSON.parse(JSON.stringify(this.selectedCollection))
+      }
+      else {
+        const params = JSON.parse(JSON.stringify(this.selectedCollection))
         params.permissionToRole.MGMT = this.MGMT
         params.permissionToRole.USE = this.USE
         const { status } = await updateCollections(params)
@@ -884,12 +879,12 @@ export default {
       }
     },
 
-    filterTypeChange () {
+    filterTypeChange() {
       this.filterParams = null
       this.catchExecuteResult = this.activeExecuteHistory.executeResult
       this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
     },
-    filterResult () {
+    filterResult() {
       if (!this.filterParams) {
         this.catchExecuteResult = this.activeExecuteHistory.executeResult
         this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
@@ -905,26 +900,26 @@ export default {
             if (tmp.indexOf(this.filterParams) > -1) {
               this.catchFilterBusinessKeySet.push(key)
               const reg = new RegExp(this.filterParams, 'g')
-              tmp = tmp.replace(reg, "<span style='color:red'>" + this.filterParams + '</span>')
+              tmp = tmp.replace(reg, '<span style=\'color:red\'>' + this.filterParams + '</span>')
               this.catchExecuteResult[key] = JSON.parse(tmp)
             }
           })
-        } else {
+        }
+        else {
           let execRes = []
           let patt = null
           try {
             patt = new RegExp(this.filterParams, 'gmi')
-            let er = JSON.stringify(this.activeExecuteHistory.executeResult)
+            const er = JSON.stringify(this.activeExecuteHistory.executeResult)
             execRes = er.match(patt)
             execRes = this.unique(execRes)
             execRes.sort(function (a, b) {
               return b.length - a.length
             })
-            execRes = execRes.filter(s => {
-              return s && s.trim()
-            })
-          } catch (err) {
-            console.log(err)
+            execRes = execRes.filter(s => s && s.trim())
+          }
+          catch (err) {
+            console.error(err)
             this.$Message.error(this.$t('bc_filter_type_warn'))
             this.filterParams = null
             this.catchExecuteResult = this.activeExecuteHistory.executeResult
@@ -933,10 +928,10 @@ export default {
           }
           this.activeExecuteHistory.filterBusinessKeySet.forEach(key => {
             let str = JSON.stringify(this.activeExecuteHistory.executeResult[key])
-            let len = str.length
+            const len = str.length
             execRes.forEach(keyword => {
-              let reg = new RegExp(keyword, 'g')
-              str = str.replace(reg, "<span style='color:red'>" + keyword + '</span>')
+              const reg = new RegExp(keyword, 'g')
+              str = str.replace(reg, '<span style=\'color:red\'>' + keyword + '</span>')
             })
             if (str.length !== len) {
               this.catchFilterBusinessKeySet.push(key)
@@ -946,21 +941,21 @@ export default {
         }
       })
     },
-    unique (arr) {
+    unique(arr) {
       return Array.from(new Set(arr))
     },
-    formatResult (result) {
+    formatResult(result) {
       if (!result) {
         return
       }
-      for (let key in result) {
+      for (const key in result) {
         if (result[key] !== null && typeof result[key] === 'string') {
           result[key] = result[key].split('\n').join('<br/>            ')
         }
       }
       return JSON.stringify(result, null, 2)
     },
-    setSearchConditions () {
+    setSearchConditions() {
       this.getAllDataModels()
       if (document.querySelector('.wecube_attr-ul')) {
         document.querySelector('.wecube_attr-ul').style.width = '530px'
@@ -979,33 +974,36 @@ export default {
       this.seletedRows = []
       this.isShowSearchConditions = true
     },
-    changeEntityType () {
+    changeEntityType() {
       this.targetEntityAttr = []
     },
-    async getAllDataModels () {
+    async getAllDataModels() {
       this.selectedEntityType = null
       const { data, status } = await getAllDataModels()
       if (status === 'OK') {
         this.allEntityType = []
-        this.allEntityType = data.map(_ => {
+        this.allEntityType = data.map(_ =>
           // handle result sort by name
-          return {
+          ({
             ..._,
             entities: _.entities.sort(function (a, b) {
-              var s = a.name.toLowerCase()
-              var t = b.name.toLowerCase()
-              if (s < t) return -1
-              if (s > t) return 1
+              const s = a.name.toLowerCase()
+              const t = b.name.toLowerCase()
+              if (s < t) {
+                return -1
+              }
+              if (s > t) {
+                return 1
+              }
             })
-          }
-        })
+          }))
       }
     },
-    checkChange (totalChecked) {
+    checkChange(totalChecked) {
       this.targetEntityAttr = totalChecked
       this.searchParameters = this.targetEntityAttr
     },
-    saveSearchCondition () {
+    saveSearchCondition() {
       if (!this.primatKeyAttr) {
         this.$Message.warning(this.$t('bc_primary_key') + this.$t('bc_warn_empty'))
         return
@@ -1013,27 +1011,24 @@ export default {
       // this.isShowSearchConditions = false
       this.searchParameters = this.targetEntityAttr
     },
-    async excuteSearch () {
-      let { status, data } = await entityView(this.currentPackageName, this.currentEntityName)
+    async excuteSearch() {
+      const { status, data } = await entityView(this.currentPackageName, this.currentEntityName)
       if (status === 'OK') {
         if (this.userTableColumns.length) {
-          this.tableColumns = this.userTableColumns.map((_, i) => {
-            return {
-              title: _,
-              key: _,
-              width: 160,
-              displaySeqNo: i + 1
-            }
-          })
-        } else {
-          this.tableColumns = data.map((_, i) => {
-            return {
-              title: _.name,
-              key: _.name,
-              width: 160,
-              displaySeqNo: i + 1
-            }
-          })
+          this.tableColumns = this.userTableColumns.map((_, i) => ({
+            title: _,
+            key: _,
+            width: 160,
+            displaySeqNo: i + 1
+          }))
+        }
+        else {
+          this.tableColumns = data.map((_, i) => ({
+            title: _.name,
+            key: _.name,
+            width: 160,
+            displaySeqNo: i + 1
+          }))
         }
         this.tableColumns.unshift({
           type: 'selection',
@@ -1044,11 +1039,11 @@ export default {
         this.entityData()
       }
     },
-    filterTableData () {
+    filterTableData() {
       const filtersKeys = this.userTableColumns.length ? this.userTableColumns : Object.keys(this.originTableData[0])
       this.tableData = []
       if (this.filterTableParams) {
-        this.originTableData.forEach((item, index) => {
+        this.originTableData.forEach(item => {
           // eslint-disable-next-line no-unused-vars
           let tmp = []
           filtersKeys.forEach(key => {
@@ -1058,7 +1053,8 @@ export default {
             this.tableData.push(item)
           }
         })
-      } else {
+      }
+      else {
         this.tableData = this.originTableData
       }
       const selectTag = this.seletedRows.map(item => item.id)
@@ -1068,12 +1064,12 @@ export default {
         }
       })
     },
-    async entityData () {
+    async entityData() {
       const requestParameter = {
         dataModelExpression: this.dataModelExpression,
         filters: []
       }
-      let keySet = []
+      const keySet = []
       this.searchParameters.forEach(sParameter => {
         const index = keySet.indexOf(sParameter.key)
         if (index > -1) {
@@ -1085,9 +1081,12 @@ export default {
               operator: 'eq'
             })
           }
-        } else {
+        }
+        else {
           keySet.push(sParameter.key)
-          const { index, packageName, entityName, name, value } = sParameter
+          const {
+            index, packageName, entityName, name, value
+          } = sParameter
           if (value) {
             requestParameter.filters.push({
               index,
@@ -1118,28 +1117,29 @@ export default {
           this.originTableData = this.tableData
           this.displaySearchZone = false
           this.displayResultTableZone = true
-        } else {
+        }
+        else {
           this.$Message.warning(this.$t('bc_warn_empty'))
         }
         this.isLoading = false
       }
     },
-    clearParametes () {
+    clearParametes() {
       this.searchParameters.forEach(item => {
         item.value = ''
       })
     },
-    resetParametes () {
+    resetParametes() {
       this.dataModelExpression = ':'
       this.currentPackageName = null
       this.currentEntityName = null
       this.searchParameters = []
     },
-    reExcute (key) {
+    reExcute(key) {
       this.DelConfig.isDisplay = true
       this.DelConfig.key = key
     },
-    del () {
+    del() {
       this.DelConfig.isDisplay = false
 
       this.displaySearchZone = false
@@ -1148,13 +1148,11 @@ export default {
       this.businessKey = null
       this[this.DelConfig.key] = true
     },
-    batchAction () {
-      this.activeExecuteHistory.requestBody.resourceDatas = this.seletedRows.map(_ => {
-        return {
-          id: _.id,
-          businessKeyValue: _[this.activeExecuteHistory.requestBody.primatKeyAttr]
-        }
-      })
+    batchAction() {
+      this.activeExecuteHistory.requestBody.resourceDatas = this.seletedRows.map(_ => ({
+        id: _.id,
+        businessKeyValue: _[this.activeExecuteHistory.requestBody.primatKeyAttr]
+      }))
 
       this.displayResultTableZone = false
 
@@ -1163,7 +1161,7 @@ export default {
       this.selectedPluginParams = []
       this.pluginId = null
     },
-    async getFilteredPluginInterfaceList () {
+    async getFilteredPluginInterfaceList() {
       let pkg = ''
       let entity = ''
       let payload = {}
@@ -1177,7 +1175,8 @@ export default {
       if (isBy > 0) {
         entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
         pkg = current[0].split(')')[1]
-      } else {
+      }
+      else {
         entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
         pkg = last.match(/[^>]+(?=:)/)[0]
       }
@@ -1191,17 +1190,14 @@ export default {
         this.filteredPlugins = data
       }
     },
-    async excuteBatchAction () {
+    async excuteBatchAction() {
       let requestBody = {}
-      const plugin = this.filteredPlugins.find(_ => {
-        return _.serviceName === this.pluginId
-      })
+      const plugin = this.filteredPlugins.find(_ => _.serviceName === this.pluginId)
       const inputParameterDefinitions = this.selectedPluginParams.map(p => {
-        const inputParameterValue =
-          p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
+        const inputParameterValue = p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
         return {
           inputParameter: p,
-          inputParameterValue: inputParameterValue
+          inputParameterValue
         }
       })
       if (this.isHistoryToBatchActionModal) {
@@ -1225,16 +1221,13 @@ export default {
           businessKeyAttribute,
           resourceDatas
         }
-      } else {
-        let currentEntity = this.primatKeyAttrList.find(_ => {
-          return _.name === this.primatKeyAttr
-        })
-        const resourceDatas = this.seletedRows.map(_ => {
-          return {
-            id: _.id,
-            businessKeyValue: _[this.primatKeyAttr]
-          }
-        })
+      }
+      else {
+        const currentEntity = this.primatKeyAttrList.find(_ => _.name === this.primatKeyAttr)
+        const resourceDatas = this.seletedRows.map(_ => ({
+          id: _.id,
+          businessKeyValue: _[this.primatKeyAttr]
+        }))
         requestBody = {
           packageName: this.currentPackageName,
           entityName: this.currentEntityName,
@@ -1268,7 +1261,7 @@ export default {
         this.confirmModal.isShowConfirmModal = true
       }
     },
-    async confirmToExecution () {
+    async confirmToExecution() {
       const { status, data } = await batchExecution(
         BATCH_EXECUTION_URL + `?continue_token=${this.confirmModal.continueToken}`,
         this.confirmModal.requestBody
@@ -1278,7 +1271,7 @@ export default {
         this.confirmModal.isShowConfirmModal = false
       }
     },
-    manageExecutionResult (data, requestBody) {
+    manageExecutionResult(data, requestBody) {
       this.executeResult = data
       this.filterBusinessKeySet = []
       for (const key in data) {
@@ -1293,14 +1286,14 @@ export default {
           pluginName: this.pluginId,
           pluginParams: this.selectedPluginParams
         },
-        requestBody: requestBody,
+        requestBody,
         executeResult: data,
         filterBusinessKeySet: this.filterBusinessKeySet
       })
       this.activeExecuteHistoryKey = this.executeHistory.length - 1
       this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[this.activeExecuteHistoryKey]))
     },
-    getCurrentDate () {
+    getCurrentDate() {
       const timeStr = '-'
       const curDate = new Date()
       const curYear = curDate.getFullYear()
@@ -1312,7 +1305,7 @@ export default {
       const Current = curYear + timeStr + curMonth + timeStr + curDay + ' ' + curHour + ':' + curMinute + ':' + curSec
       return Current
     },
-    async executeAgain () {
+    async executeAgain() {
       this.hasResult = false
       this.showRequestData = {
         isShow: false,
@@ -1320,14 +1313,13 @@ export default {
         msg: {}
       }
       const inputParameterDefinitions = this.activeExecuteHistory.plugin.pluginParams.map(p => {
-        const inputParameterValue =
-          p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
+        const inputParameterValue = p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
         return {
           inputParameter: p,
-          inputParameterValue: inputParameterValue
+          inputParameterValue
         }
       })
-      let requestBody = this.activeExecuteHistory.requestBody
+      const requestBody = this.activeExecuteHistory.requestBody
       requestBody.inputParameterDefinitions = inputParameterDefinitions
       this.$Notice.success({
         title: 'Success',
@@ -1339,7 +1331,8 @@ export default {
         requestBody.resourceDatas.forEach(resData => {
           if (this.executeHistory[0].executeResult[resData.businessKeyValue].errorCode === '-1') {
             resData.confirmToken = 'Y'
-          } else {
+          }
+          else {
             resData.confirmToken = 'N'
           }
         })
@@ -1358,7 +1351,7 @@ export default {
         this.confirmModal.isShowConfirmModal = true
       }
     },
-    manageExecutionResultAgain (data, requestBody) {
+    manageExecutionResultAgain(data, requestBody) {
       this.setPluginParamsModal = false
       this.operaModal = false
       this.executeResult = data
@@ -1369,14 +1362,14 @@ export default {
       this.executeHistory.push({
         id: this.getCurrentDate(),
         plugin: this.activeExecuteHistory.plugin,
-        requestBody: requestBody,
+        requestBody,
         executeResult: data,
         filterBusinessKeySet: this.filterBusinessKeySet
       })
       this.activeExecuteHistoryKey = this.executeHistory.length - 1
       this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[this.activeExecuteHistoryKey]))
     },
-    changeActiveExecuteHistory (keyIndex) {
+    changeActiveExecuteHistory(keyIndex) {
       if (this.executeHistory.length === 0) {
         this.clearTableSelect()
         this.clearPlugin()
@@ -1389,19 +1382,19 @@ export default {
       this.selectedCollectionId = null
       this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[keyIndex]))
     },
-    changeActiveResultKey (key) {
+    changeActiveResultKey(key) {
       this.displaySearchZone = false
       this.displayResultTableZone = false
       this.activeResultKey = key
       this.hasResult = true
       this.showRequestData = {
         isShow: false,
-        key: key,
+        key,
         msg: this.executeHistory[0].executeResult[key].requestData
       }
       this.selectedCollectionId = null
     },
-    async changePlugin () {
+    async changePlugin() {
       let pkg = ''
       let entity = ''
       let payload = {}
@@ -1415,7 +1408,8 @@ export default {
       if (isBy > 0) {
         entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
         pkg = current[0].split(')')[1]
-      } else {
+      }
+      else {
         entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
         pkg = last.match(/[^>]+(?=:)/)[0]
       }
@@ -1444,7 +1438,7 @@ export default {
         this.operaModal = true
       }
     },
-    changeTargetObject () {
+    changeTargetObject() {
       this.clearTableSelect()
 
       this.userTableColumns = []
@@ -1460,7 +1454,7 @@ export default {
       this.setPluginParamsModal = false
       this.operaModal = true
     },
-    changeSearchParams () {
+    changeSearchParams() {
       // const { dataModelExpression, searchParameters } = this.activeExecuteHistory.requestBody
       // this.searchParameters = searchParameters
       // this.dataModelExpression = dataModelExpression
@@ -1475,7 +1469,7 @@ export default {
       this.setPluginParamsModal = false
       this.operaModal = true
     },
-    changeParams () {
+    changeParams() {
       this.displaySearchZone = false
       this.displayResultTableZone = false
       this.batchActionModalVisible = false
@@ -1483,24 +1477,24 @@ export default {
       this.setPluginParamsModal = true
       this.operaModal = true
     },
-    clearTableSelect () {
+    clearTableSelect() {
       this.seletedRows = []
       this.activeExecuteHistory.requestBody.resourceDatas = []
       this.clearPlugin()
     },
-    clearPlugin () {
+    clearPlugin() {
       this.pluginId = null
       // this.clearComplementParams()
       this.selectedPluginParams = []
       this.activeExecuteHistory.plugin.pluginName = ''
       this.activeExecuteHistory.plugin.pluginParams = []
     },
-    clearComplementParams () {
+    clearComplementParams() {
       this.activeExecuteHistory.plugin.pluginParams.forEach(item => {
         item.bindValue = ''
       })
     },
-    closeModal () {
+    closeModal() {
       this.operaModal = false
       this.changeActiveExecuteHistory(this.activeExecuteHistoryKey)
     }
