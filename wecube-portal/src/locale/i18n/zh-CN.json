@@ -873,7 +873,7 @@
   "p_services_list": "服务列表",
   "p_batch_configuration": "批量配置",
   "p_manage": "管理",
-  "p_delConfirm_tip": "删除数据将无法恢复,确认执行? ",
+  "p_delConfirm_tip": "删除数据将无法恢复,是否确认执行? ",
   "be_expireReset_tips": "有效期",
   "p_manageRole": "管理权限",
   "p_use_version": "使用版本",

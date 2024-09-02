@@ -1789,6 +1789,10 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 	} else if param.SubProc == "sub" {
 		filterSqlList = append(filterSqlList, "proc_def_id in (select id from proc_def where sub_proc=1)")
 	}
+	if param.Name != "" {
+		filterSqlList = append(filterSqlList, "id in (select proc_ins_id from proc_schedule_job where schedule_config_id in (select id from proc_schedule_config where name like ?))")
+		filterParams = append(filterParams, fmt.Sprintf("%%%s%%", param.Name))
+	}
 	filterSqlList = append(filterSqlList, "proc_def_id in (select proc_def_id from proc_def_permission where permission=? and role_id in ('"+strings.Join(userRoles, "','")+"'))")
 	filterParams = append(filterParams, models.PermissionTypeUSE)
 
@@ -2101,6 +2105,33 @@ func getScheduleProcInsConfigMap(ctx context.Context, procInsIdList []string) (s
 	}
 	for _, row := range procInsNodeRows {
 		scheduleConfigNameMap[row.ProcInsId] = row
+	}
+	return
+}
+
+func CheckProcDefStatus(ctx context.Context, procDefId string) (err error) {
+	procDefObj, getProcDefErr := GetSimpleProcDefRow(ctx, procDefId)
+	if getProcDefErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if procDefObj.Status != "deployed" {
+		err = fmt.Errorf("procDef:%s status:%s illegal", procDefObj.Name, procDefObj.Status)
+		return
+	}
+	var subProcDefRows []*models.ProcDef
+	err = db.MysqlEngine.Context(ctx).SQL("select id,name,status from proc_def where id in (select sub_proc_def_id from proc_def_node where proc_def_id=?)", procDefId).Find(&subProcDefRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(subProcDefRows) > 0 {
+		for _, row := range subProcDefRows {
+			if row.Status != "deployed" {
+				err = fmt.Errorf("subProcDef:%s status:%s illegal", row.Name, row.Status)
+				return
+			}
+		}
 	}
 	return
 }
