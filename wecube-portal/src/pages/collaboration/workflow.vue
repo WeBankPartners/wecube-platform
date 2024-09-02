@@ -723,6 +723,10 @@ export default {
               label: i,
               value: i
             }))
+            i.list.unshift({
+              label: this.$t('fd_platform'),
+              value: 'platform'
+            })
           }
         })
       }
