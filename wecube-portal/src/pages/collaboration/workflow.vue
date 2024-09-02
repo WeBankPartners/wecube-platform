@@ -716,7 +716,7 @@ export default {
     async pluginList() {
       const { data, status } = await getPluginList()
       if (status === 'OK') {
-        this.authPluginList = data
+        this.authPluginList = data || []
         this.searchOptions.forEach(i => {
           if (i.key === 'plugins') {
             i.list = this.authPluginList.map(i => ({
@@ -727,6 +727,7 @@ export default {
               label: this.$t('fd_platform'),
               value: 'platform'
             })
+            this.searchParams.plugins = ['platform']
           }
         })
       }
@@ -751,7 +752,7 @@ export default {
       const { data, status } = await flowList(params)
       this.spinShow = false
       if (status === 'OK') {
-        this.data = data
+        this.data = data || []
       }
     },
     // #region 按钮响应
