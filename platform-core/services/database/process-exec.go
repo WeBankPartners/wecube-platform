@@ -16,7 +16,7 @@ import (
 
 // ProcDefList
 // subProc -> all(全部) | main(主编排) | sub(子编排)
-func ProcDefList(ctx context.Context, includeDraft, permission, tag, plugin, subProc, operator string, userRoles []string) (result []*models.ProcDefListObj, err error) {
+func ProcDefList(ctx context.Context, includeDraft, permission, tag, plugin, subProc, operator, rootEntity string, userRoles []string) (result []*models.ProcDefListObj, err error) {
 	var procDefRows []*models.ProcDef
 	baseSql := "select * from proc_def"
 	var filterSqlList []string
@@ -39,6 +39,10 @@ func ProcDefList(ctx context.Context, includeDraft, permission, tag, plugin, sub
 	if plugin != "" {
 		filterSqlList = append(filterSqlList, "for_plugin like ?")
 		filterParams = append(filterParams, fmt.Sprintf("%%%s%%", plugin))
+	}
+	if rootEntity != "" {
+		filterSqlList = append(filterSqlList, "root_entity=?")
+		filterParams = append(filterParams, rootEntity)
 	}
 	if subProc == "main" {
 		filterSqlList = append(filterSqlList, "sub_proc=0")
@@ -1756,6 +1760,10 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 	if param.EntityDisplayName != "" {
 		filterSqlList = append(filterSqlList, "entity_data_name like ?")
 		filterParams = append(filterParams, "%"+param.EntityDisplayName+"%")
+	}
+	if param.RootEntityGuid != "" {
+		filterSqlList = append(filterSqlList, "entity_data_id=?")
+		filterParams = append(filterParams, param.RootEntityGuid)
 	}
 	if param.ProcInstName != "" {
 		filterSqlList = append(filterSqlList, "proc_def_name like ?")
