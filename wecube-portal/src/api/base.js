@@ -19,26 +19,25 @@ const throwError = res => {
 }
 
 req.interceptors.request.use(
-  config => {
-    return new Promise((resolve, reject) => {
+  config =>
+    new Promise(resolve => {
       const lang = localStorage.getItem('lang') || 'zh-CN'
       if (lang === 'zh-CN') {
         config.headers['Accept-Language'] = 'zh-CN,zh;q=0.9,en;q=0.8'
-      } else {
+      }
+      else {
         config.headers['Accept-Language'] = 'en-US,en;q=0.9,zh;q=0.8'
       }
       const accessToken = getCookie('accessToken')
       if (accessToken && config.url !== '/auth/v1/api/login') {
         config.headers.Authorization = 'Bearer ' + accessToken
         resolve(config)
-      } else {
+      }
+      else {
         resolve(config)
       }
-    })
-  },
-  error => {
-    return Promise.reject(error)
-  }
+    }),
+  error => Promise.reject(error)
 )
 
 req.interceptors.response.use(
@@ -55,8 +54,8 @@ req.interceptors.response.use(
         })
       }
       if (
-        res.headers['content-type'] === 'application/octet-stream' &&
-        res.request.responseURL.includes('/platform/')
+        res.headers['content-type'] === 'application/octet-stream'
+        && res.request.responseURL.includes('/platform/')
       ) {
         exportFile(res)
         Vue.prototype.$Notice.info({
@@ -67,18 +66,17 @@ req.interceptors.response.use(
         return
       }
       return res.data instanceof Array ? res.data : { ...res.data }
-    } else {
-      return {
-        data: throwError(res)
-      }
+    }
+    return {
+      data: throwError(res)
     }
   },
   err => {
     const { response } = err
     if (response.status === 401 && err.config.url !== '/auth/v1/api/login') {
-      let refreshToken = getCookie('refreshToken')
+      const refreshToken = getCookie('refreshToken')
       if (refreshToken.length > 0) {
-        let refreshRequest = axios.get('/auth/v1/api/token', {
+        const refreshRequest = axios.get('/auth/v1/api/token', {
           headers: {
             Authorization: 'Bearer ' + refreshToken
           }
@@ -88,7 +86,7 @@ req.interceptors.response.use(
             setCookie(resRefresh.data.data)
             // replace token with new one and replay request
             err.config.headers.Authorization = 'Bearer ' + getCookie('accessToken')
-            let retryRequest = axios(err.config)
+            const retryRequest = axios(err.config)
             return retryRequest.then(
               res => {
                 if (res.status === 200) {
@@ -104,8 +102,8 @@ req.interceptors.response.use(
                     })
                   }
                   if (
-                    res.headers['content-type'] === 'application/octet-stream' &&
-                    res.request.responseURL.includes('/platform/')
+                    res.headers['content-type'] === 'application/octet-stream'
+                    && res.request.responseURL.includes('/platform/')
                   ) {
                     exportFile(res)
                     Vue.prototype.$Notice.info({
@@ -116,15 +114,14 @@ req.interceptors.response.use(
                     return
                   }
                   return res.data instanceof Array ? res.data : { ...res.data }
-                } else {
-                  return {
-                    data: throwError(res)
-                  }
+                }
+                return {
+                  data: throwError(res)
                 }
               },
               err => {
                 const { response } = err
-                return new Promise((resolve, reject) => {
+                return new Promise(resolve => {
                   resolve({
                     data: throwError(response)
                   })
@@ -133,7 +130,7 @@ req.interceptors.response.use(
             )
           },
           // eslint-disable-next-line handle-callback-err
-          errRefresh => {
+          () => {
             clearCookie('refreshToken')
             window.location.href = window.location.origin + window.location.pathname + '#/login'
             return {
@@ -141,21 +138,20 @@ req.interceptors.response.use(
             }
           }
         )
-      } else {
-        window.location.href = window.location.origin + window.location.pathname + '#/login'
-        if (response.config.url === '/auth/v1/api/login') {
-          Vue.prototype.$Notice.warning({
-            title: 'Error',
-            desc: response.data.message || '401',
-            duration: 10
-          })
-        }
-        // throwInfo(response)
-        return response
       }
+      window.location.href = window.location.origin + window.location.pathname + '#/login'
+      if (response.config.url === '/auth/v1/api/login') {
+        Vue.prototype.$Notice.warning({
+          title: 'Error',
+          desc: response.data.message || '401',
+          duration: 10
+        })
+      }
+      // throwInfo(response)
+      return response
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       resolve({
         data: throwError(response)
       })
@@ -163,7 +159,7 @@ req.interceptors.response.use(
   }
 )
 
-function setHeaders (obj) {
+function setHeaders(obj) {
   Object.keys(obj).forEach(key => {
     req.defaults.headers.common[key] = obj[key]
   })

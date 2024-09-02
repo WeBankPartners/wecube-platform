@@ -8,15 +8,13 @@
     }}</Button>
     <Modal v-model="modelVisable" :title="$t('filter_rule')" @on-ok="okHandler" @on-cancel="cancelHandler">
       <Row style="margin-bottom: 10px" v-for="(rule, index) in currentPathFilterRules" :key="index">
-        <Col span="1" style="margin-top: 4px;"
-          ><Button
-            type="error"
-            :disabled="disabled"
-            icon="ios-trash-outline"
-            @click="deleteFilterRule(index)"
-            size="small"
-          ></Button
-        ></Col>
+        <Col span="1" style="margin-top: 4px"><Button
+          type="error"
+          :disabled="disabled"
+          icon="ios-trash-outline"
+          @click="deleteFilterRule(index)"
+          size="small"
+        ></Button></Col>
         <Col span="8" offset="1">
           <Select filterable :disabled="disabled" v-model="rule.attr" @on-change="attrChangeHandler($event, rule)">
             <Option v-for="(attr, index) in currentNodeEntityAttrs" :key="index" :value="attr.name">{{
@@ -61,7 +59,7 @@
 import { getTargetOptions } from '@/api/server'
 export default {
   name: 'InterfaceFilterRule',
-  data () {
+  data() {
     return {
       filterRuleOp: ['eq', 'neq', 'in', 'like', 'gt', 'lt', 'is', 'isnot'],
       currentPathFilterRules: [],
@@ -81,18 +79,18 @@ export default {
   },
   watch: {
     rootEntity: {
-      handler (val) {
+      handler() {
         this.$emit('input', '')
       }
     }
   },
   computed: {
-    allEntity () {
+    allEntity() {
       let entity = []
       this.allDataModelsWithAttrs.forEach(_ => {
         if (_.entities) {
           entity = entity.concat(_.entities).map(i => {
-            let noneFound = i.attributes.find(_ => _.name === 'NONE')
+            const noneFound = i.attributes.find(_ => _.name === 'NONE')
             return {
               ...i,
               attributes: noneFound
@@ -116,7 +114,7 @@ export default {
     }
   },
   methods: {
-    async attrChangeHandler (v, rule) {
+    async attrChangeHandler(v, rule) {
       const found = this.currentNodeEntityAttrs.find(_ => _.name === v)
       const isRef = found.dataType === 'ref'
       rule.isRef = isRef
@@ -127,14 +125,14 @@ export default {
         }
       }
     },
-    opChangeHandler (v, rule) {
+    opChangeHandler(v, rule) {
       const multiple = (v === 'in' || v === 'like') && rule.isRef
       rule.value = multiple ? [] : ''
     },
-    viewFilters () {
+    viewFilters() {
       this.addFilters()
     },
-    addFilters () {
+    addFilters() {
       if (this.rootEntity && this.rootEntity.length > 0) {
         this.currentPathFilterRules = []
         this.currentNodeEntityAttrs = this.allEntity.find(_ => _.name === this.rootEntity).attributes
@@ -143,6 +141,7 @@ export default {
           rules.forEach(async r => {
             let enums = []
             let isRef = false
+            // eslint-disable-next-line
             let [attr, op, value] = r.split(' ')
             const found = this.currentNodeEntityAttrs.find(a => a.name === attr)
             if (found.dataType === 'ref') {
@@ -152,26 +151,31 @@ export default {
                 isRef = true
               }
             }
-            value =
-              value.indexOf('[') > -1 && found.dataType === 'ref'
-                ? value
-                  .slice(1, -1)
-                  .split(',')
-                  .map(v => v.slice(1, -1))
-                : value.indexOf("'") > -1
-                  ? value.slice(1, -1)
-                  : value
-            this.currentPathFilterRules.push({ op, value, enums, isRef, attr })
+            value = value.indexOf('[') > -1 && found.dataType === 'ref'
+              ? value
+                .slice(1, -1)
+                .split(',')
+                .map(v => v.slice(1, -1))
+              : value.indexOf('\'') > -1
+                ? value.slice(1, -1)
+                : value
+            this.currentPathFilterRules.push({
+              op,
+              value,
+              enums,
+              isRef,
+              attr
+            })
           })
         }
         this.poptipVisable = false
         this.modelVisable = true
       }
     },
-    deleteFilterRule (index) {
+    deleteFilterRule(index) {
       this.currentPathFilterRules.splice(index, 1)
     },
-    addRules () {
+    addRules() {
       this.currentPathFilterRules.push({
         op: '',
         attr: '',
@@ -180,20 +184,22 @@ export default {
         isRef: false
       })
     },
-    okHandler () {
+    okHandler() {
       this.modelVisable = false
       if (!this.disabled) {
         let rules = ''
         this.currentPathFilterRules
           .filter(r => r.op && r.attr)
-          .forEach((rule, index) => {
+          .forEach(rule => {
             const isMultiple = Array.isArray(rule.value)
             let str = ''
             if (isMultiple) {
               str = `{${rule.attr} ${rule.op} [${rule.value.map(v => `'${v}'`)}]}`
-            } else if (rule.op === 'is' || rule.op === 'isnot') {
+            }
+            else if (rule.op === 'is' || rule.op === 'isnot') {
               str = `{${rule.attr} ${rule.op} NULL}`
-            } else {
+            }
+            else {
               const noQuotation = rule.op === 'gt' || rule.op === 'lt'
               str = noQuotation
                 ? `{${rule.attr} ${rule.op} ${rule.value}}`
@@ -205,7 +211,7 @@ export default {
         this.$emit('input', rules)
       }
     },
-    cancelHandler () {
+    cancelHandler() {
       this.modelVisable = false
       this.currentPathFilterRules = []
     }
