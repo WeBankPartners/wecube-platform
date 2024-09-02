@@ -1,19 +1,23 @@
 export default G6 => {
   G6.registerBehavior('delete-item', {
-    getEvents () {
+    getEvents() {
       return {
         keydown: 'onKeydown'
       }
     },
-    shouldBegin (e) {
+    shouldBegin() {
       return true
     },
-    onKeydown (e) {
+    onKeydown(e) {
       const { graph } = this
 
       // 实例化时监听了键盘事件, 防止在画布外仍然能监听到画布内的事件
-      if (graph.cfg.canvas.cfg.el.getAttribute('isFocused') !== 'true') return
-      if (!this.shouldBegin(e)) return
+      if (graph.cfg.canvas.cfg.el.getAttribute('isFocused') !== 'true') {
+        return
+      }
+      if (!this.shouldBegin(e)) {
+        return
+      }
 
       /**
        * TODO:
@@ -27,7 +31,7 @@ export default G6 => {
 
           graph.emit('before-node-removed', {
             target: $node,
-            callback (confirm) {
+            callback(confirm) {
               // 内部this已改变
               if (confirm) {
                 graph.remove($node)
@@ -48,7 +52,7 @@ export default G6 => {
 
           graph.emit('before-edge-removed', {
             target: $edge,
-            callback (confirm) {
+            callback(confirm) {
               if (confirm) {
                 graph.remove($edge)
                 graph.set('after-edge-selected', [])
