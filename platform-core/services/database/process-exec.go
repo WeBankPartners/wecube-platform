@@ -105,6 +105,8 @@ func PublicProcDefNodeList(ctx context.Context, procDefId string) (nodes []*mode
 		} else if row.NodeType == "data" {
 			nodeObj.TaskCategory = "SDTN"
 			nodeObj.NodeType = "subProcess"
+		} else if row.NodeType == "subProc" {
+			nodeObj.NodeType = "subProcess"
 		}
 		nodes = append(nodes, &nodeObj)
 	}
