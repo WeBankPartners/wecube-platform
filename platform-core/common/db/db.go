@@ -176,7 +176,7 @@ type ExecAction struct {
 func Transaction(actions []*ExecAction, ctx context.Context) error {
 	if len(actions) == 0 {
 		log.Logger.Warn("Transaction is empty,nothing to do")
-		return fmt.Errorf("SQL exec transaction is empty,nothing to do,please check server log ")
+		return nil
 	}
 	for i, action := range actions {
 		if action == nil {
