@@ -232,3 +232,24 @@ func InitPluginDockerHostSSH() {
 		log.Logger.Info("init platform docker ssh", log.String("server", staticResource.Server))
 	}
 }
+
+func CopyTmpFile(sourceFilePath string) (filePath, fileDir string, err error) {
+	if fileDir, err = newTmpDir(); err != nil {
+		return
+	}
+	var fileName string
+	if lastIndex := strings.LastIndex(sourceFilePath, "/"); lastIndex > 0 {
+		fileName = sourceFilePath[lastIndex+1:]
+	} else {
+		err = fmt.Errorf("sourceFilePath:%s illegal", sourceFilePath)
+		return
+	}
+	filePath = fmt.Sprintf("%s/%s", fileDir, fileName)
+	_, err = exec.Command("/bin/bash", "-c", fmt.Sprintf("cp %s %s", sourceFilePath, filePath)).Output()
+	if err != nil {
+		err = fmt.Errorf("cp file fail,%s ", err.Error())
+		return
+	}
+	log.Logger.Debug("cp file done", log.String("source", sourceFilePath), log.String("target", filePath))
+	return
+}
