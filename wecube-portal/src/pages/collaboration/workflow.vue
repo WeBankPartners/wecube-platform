@@ -201,7 +201,7 @@ export default {
       searchParams: {
         procDefId: '',
         procDefName: '',
-        plugins: [],
+        plugins: ['platform'],
         createdTime: [dayjs().subtract(3, 'month')
           .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
         createdTimeStart: '',
@@ -257,6 +257,7 @@ export default {
         {
           key: 'plugins',
           placeholder: this.$t('authPlugin'),
+          initValue: ['platform'],
           component: 'select',
           multiple: true,
           list: []
@@ -727,7 +728,6 @@ export default {
               label: this.$t('fd_platform'),
               value: 'platform'
             })
-            this.searchParams.plugins = ['platform']
           }
         })
       }
