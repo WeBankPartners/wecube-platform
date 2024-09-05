@@ -152,6 +152,26 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	return
 }
 
+func GetProcessDefinitionByName(ctx context.Context, name, version string) (procDefDto *models.ProcDefDto, err error) {
+	var usePermission []string
+	procDef := models.ProcDef{}
+	procDefDto = &models.ProcDefDto{}
+	if _, err = db.MysqlEngine.Context(ctx).SQL("select id,name,version from proc_def where name=? and version=?", name, version).Get(&procDef); err != nil {
+		return
+	}
+	if procDef.Id != "" {
+		if err = db.MysqlEngine.Context(ctx).SQL("select role_id from proc_def_permission where proc_def_id=? and permission=?",
+			procDef.Id, models.USE).Find(&usePermission); err != nil {
+			return
+		}
+		procDefDto.Id = procDef.Id
+		procDefDto.Name = procDef.Name
+		procDefDto.Version = procDef.Name
+		procDefDto.UseRoles = usePermission
+	}
+	return
+}
+
 func QueryPluginProcessDefinitionList(ctx context.Context, plugin string) (list []*models.ProcDef, err error) {
 	var allProcDefList []*models.ProcDef
 	list = make([]*models.ProcDef, 0)
