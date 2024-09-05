@@ -40,24 +40,25 @@ type ProcInsGraphNode struct {
 }
 
 type ProcDataBinding struct {
-	Id             string    `json:"id" xorm:"id"`                           // 唯一标识
-	ProcDefId      string    `json:"procDefId" xorm:"proc_def_id"`           // 编排定义id
-	ProcInsId      string    `json:"procInsId" xorm:"proc_ins_id"`           // 编排实例id
-	ProcDefNodeId  string    `json:"procDefNodeId" xorm:"proc_def_node_id"`  // 编排节点id
-	ProcInsNodeId  string    `json:"procInsNodeId" xorm:"proc_ins_node_id"`  // 编排实例节点id
-	EntityId       string    `json:"entityId" xorm:"entity_id"`              // 编排数据id
-	EntityDataId   string    `json:"entityDataId" xorm:"entity_data_id"`     // 数据id
-	EntityDataName string    `json:"entityDataName" xorm:"entity_data_name"` // 数据名称
-	EntityTypeId   string    `json:"entityTypeId" xorm:"entity_type_id"`     // 数据entity
-	BindFlag       bool      `json:"bindFlag" xorm:"bind_flag"`              // 是否绑定
-	BindType       string    `json:"bindType" xorm:"bind_type"`              // 编排(tasknode)还是节点(process)
-	FullDataId     string    `json:"fullDataId" xorm:"full_data_id"`         // 数据全路径
-	CreatedBy      string    `json:"createdBy" xorm:"created_by"`            // 创建人
-	CreatedTime    time.Time `json:"createdTime" xorm:"created_time"`        // 创建时间
-	UpdatedBy      string    `json:"updatedBy" xorm:"updated_by"`            // 更新人
-	UpdatedTime    time.Time `json:"updatedTime" xorm:"updated_time"`        // 更新时间
-	SubProcInsId   string    `json:"subProcInsId" xorm:"sub_proc_ins_id"`    // 子编排实例id
-	SubSessionId   string    `json:"subSessionId" xorm:"sub_session_id"`     // 子试算session
+	Id             string                 `json:"id" xorm:"id"`                           // 唯一标识
+	ProcDefId      string                 `json:"procDefId" xorm:"proc_def_id"`           // 编排定义id
+	ProcInsId      string                 `json:"procInsId" xorm:"proc_ins_id"`           // 编排实例id
+	ProcDefNodeId  string                 `json:"procDefNodeId" xorm:"proc_def_node_id"`  // 编排节点id
+	ProcInsNodeId  string                 `json:"procInsNodeId" xorm:"proc_ins_node_id"`  // 编排实例节点id
+	EntityId       string                 `json:"entityId" xorm:"entity_id"`              // 编排数据id
+	EntityDataId   string                 `json:"entityDataId" xorm:"entity_data_id"`     // 数据id
+	EntityDataName string                 `json:"entityDataName" xorm:"entity_data_name"` // 数据名称
+	EntityTypeId   string                 `json:"entityTypeId" xorm:"entity_type_id"`     // 数据entity
+	BindFlag       bool                   `json:"bindFlag" xorm:"bind_flag"`              // 是否绑定
+	BindType       string                 `json:"bindType" xorm:"bind_type"`              // 编排(tasknode)还是节点(process)
+	FullDataId     string                 `json:"fullDataId" xorm:"full_data_id"`         // 数据全路径
+	CreatedBy      string                 `json:"createdBy" xorm:"created_by"`            // 创建人
+	CreatedTime    time.Time              `json:"createdTime" xorm:"created_time"`        // 创建时间
+	UpdatedBy      string                 `json:"updatedBy" xorm:"updated_by"`            // 更新人
+	UpdatedTime    time.Time              `json:"updatedTime" xorm:"updated_time"`        // 更新时间
+	SubProcInsId   string                 `json:"subProcInsId" xorm:"sub_proc_ins_id"`    // 子编排实例id
+	SubSessionId   string                 `json:"subSessionId" xorm:"sub_session_id"`     // 子试算session
+	EntityData     map[string]interface{} `json:"-" xorm:"-"`
 }
 
 type ProcIns struct {
