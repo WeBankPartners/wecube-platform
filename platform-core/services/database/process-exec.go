@@ -838,7 +838,7 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 	orderIndex := 1
 	for _, node := range procDefNodes {
 		nodeOrderNo := ""
-		if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) {
+		if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) || node.NodeType == models.JobSubProcType {
 			nodeOrderNo = fmt.Sprintf("%d", orderIndex)
 			orderIndex += 1
 		}
