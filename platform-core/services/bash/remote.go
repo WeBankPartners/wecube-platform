@@ -73,6 +73,7 @@ func GetRemoteHostAvailablePort(resourceServer *models.ResourceServer) (port int
 	output, execErr := exec.Command("/bin/bash", "-c", commandString).Output()
 	if execErr != nil {
 		err = fmt.Errorf("run remote ssh command to get available port target %s fail,%s ", resourceServer.Host, execErr.Error())
+		log.Logger.Debug("get plugin host network port fail", log.String("commandString", commandString))
 		return
 	}
 	existPortLines := strings.Split(string(output), "\n")
