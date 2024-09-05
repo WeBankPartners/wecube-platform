@@ -249,6 +249,22 @@ func QueryProcessDefinitionList(c *gin.Context) {
 	middleware.ReturnData(c, list)
 }
 
+func GetProcessDefinitionByNameAndVersion(c *gin.Context) {
+	var procDefDto *models.ProcDefDto
+	var err error
+	name := c.Query("name")
+	version := c.Query("version")
+	if strings.TrimSpace(name) == "" || strings.TrimSpace(version) == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("name or version is empty")))
+		return
+	}
+	if procDefDto, err = database.GetProcessDefinitionByName(c, name, version); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnData(c, procDefDto)
+}
+
 // QueryPluginProcessDefinitionList 查询插件全量编排列表
 func QueryPluginProcessDefinitionList(c *gin.Context) {
 	var list []*models.ProcDef
