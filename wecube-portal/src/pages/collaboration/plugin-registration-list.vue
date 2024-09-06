@@ -105,14 +105,10 @@
                     <p>{{ $t('regist_plugin_tip2') }}</p>
                   </template>
                   <Button
-                    :disabled="!item.registerDone || isPluginRegistering || item.menus.length === 0"
+                    :disabled="!item.registerDone || item.menus.length === 0"
                     size="small"
                     v-if="keyItem.buttonText && keyItem.key === 'menus'"
-                    :type="
-                      !item.registerDone || isPluginRegistering || item.menus.length === 0
-                        ? 'default'
-                        : keyItem.buttonType
-                    "
+                    :type="!item.registerDone || item.menus.length === 0 ? 'default' : keyItem.buttonType"
                     @click="registPlugin(item.id)"
                   >
                     {{
@@ -339,7 +335,7 @@ export default {
   components: {
     BatchRegistModal
   },
-  data () {
+  data() {
     return {
       searchForm: cloneDeep(initSearchForm),
       deletedSearchForm: {
@@ -362,7 +358,7 @@ export default {
         {
           key: 'menus',
           label: 'p_running_menus',
-          buttonText: function (val) {
+          buttonText() {
             // return val === 'UNREGISTERED' ? 'regist' : 'p_register_again'
             return 'regist'
           },
@@ -388,7 +384,6 @@ export default {
       allowCreationIpPort: [],
       availableHostList: [],
       currentPluginId: '',
-      isPluginRegistering: false,
       isDeletedPluginModalShow: false,
       deletedPluginList: [],
       pluginListType: '',
@@ -430,7 +425,7 @@ export default {
       spinContent: ''
     }
   },
-  async mounted () {
+  async mounted() {
     if (window.pluginRegistrationListSearchForm) {
       this.searchForm = window.pluginRegistrationListSearchForm
     }
@@ -441,7 +436,7 @@ export default {
     onFilterConditionChange: debounce(async function () {
       await this.getViewList()
     }, 300),
-    async getViewList () {
+    async getViewList() {
       return new Promise(resolve => {
         const api = '/platform/v1/packages'
         let params = cloneDeep(this.searchForm)
@@ -452,43 +447,47 @@ export default {
           this.processOptionList(res.data, this.searchNameOptionList, 'name')
           if (this.pluginListType === 'isDeleted') {
             this.deletedPluginList = res.data || []
-          } else {
+          }
+          else {
             this.dataList = res.data || []
           }
           resolve(res.data)
         })
       })
     },
-    async getUpdatedByOptionList () {
+    async getUpdatedByOptionList() {
       const api = '/platform/v1/users/retrieve'
       const { data } = await req.get(api)
       this.processOptionList(data, this.updatedByOptionList, 'username')
     },
-    processOptionList (data = [], needFillArray = [], key = 'name') {
+    processOptionList(data = [], needFillArray = [], key = 'name') {
       if (!isEmpty(data)) {
         data.forEach(item => {
           if (!needFillArray.includes(item[key])) {
             needFillArray.push(item[key])
           }
         })
-      } else {
+      }
+      else {
+        // eslint-disable-next-line
         needFillArray = []
       }
     },
-    async showDeletedPlugin () {
+    async showDeletedPlugin() {
       this.deletedSearchForm.name = ''
       this.pluginListType = 'isDeleted'
       await this.getViewList()
       this.isDeletedPluginModalShow = true
     },
-    async onSuccess (response) {
+    async onSuccess(response) {
       if (response.status === 'OK') {
         this.$Notice.success({
           title: 'Success',
           desc: response.message || ''
         })
         this.startInstallPlugin(response.data.id)
-      } else {
+      }
+      else {
         this.$Notice.warning({
           title: 'Warning',
           desc: response.message || ''
@@ -497,24 +496,24 @@ export default {
       document.querySelector('.ivu-upload-list').style.display = 'none'
       this.showSuccess = false
     },
-    onProgress (event) {
+    onProgress(event) {
       if (event.percent === 100) {
         this.showSuccess = true
       }
     },
-    onError (file) {
+    onError(file) {
       this.$Notice.error({
         title: 'Error',
         desc: file.message || ''
       })
     },
-    async onDeleteCardConfirm (item) {
-      let { status } = await deletePluginPkg(item.id)
+    async onDeleteCardConfirm(item) {
+      const { status } = await deletePluginPkg(item.id)
       if (status === 'OK') {
         await this.getViewList()
       }
     },
-    async onCreateInstanceButtonClick (item) {
+    async onCreateInstanceButtonClick(item) {
       this.availableHostList = []
       const res = await getAvailableContainerHosts()
       this.availableHostList = res.data ? res.data : []
@@ -528,22 +527,22 @@ export default {
       })
       this.isAddInstanceModalShow = true
     },
-    addInstanceConfirm () {
+    addInstanceConfirm() {
       this.resetAddInstanceForm()
     },
-    resetAddInstanceForm () {
+    resetAddInstanceForm() {
       this.isAddInstanceModalShow = false
       this.selectedIp = []
       this.allowCreationIpPort = []
       this.allRunningInstances = []
     },
-    async onAddInstanceModalChange (state) {
+    async onAddInstanceModalChange(state) {
       if (!state) {
         await this.getViewList()
         this.resetAddInstanceForm()
       }
     },
-    async destroyInstance (instanceId) {
+    async destroyInstance(instanceId) {
       this.isSpinShow = true
       this.spinContent = this.$t('p_instance_destroy')
       let timeId = setTimeout(() => {
@@ -552,7 +551,7 @@ export default {
         this.$Message.error(this.$t('p_instance_destroy_failed'))
       }, 180000)
 
-      let { status, message } = await removePluginInstance(instanceId)
+      const { status, message } = await removePluginInstance(instanceId)
       this.allRunningInstances = cloneDeep(this.allRunningInstances).filter(item => item.id !== instanceId)
       this.isSpinShow = false
       clearTimeout(timeId)
@@ -564,7 +563,7 @@ export default {
         this.reloadPage()
       }
     },
-    getPortByHostIp () {
+    getPortByHostIp() {
       this.allowCreationIpPort = []
       this.selectedIp.forEach(async ip => {
         const { data, status } = await getAvailablePortByHostIp(ip)
@@ -576,7 +575,7 @@ export default {
         }
       })
     },
-    async createInstanceByIpPort (ip, port) {
+    async createInstanceByIpPort(ip, port) {
       this.isSpinShow = true
       this.spinContent = this.$t('p_instance_creation')
       let timeId = setTimeout(() => {
@@ -596,12 +595,13 @@ export default {
         this.allowCreationIpPort.splice(index, 1)
         await this.getAvailableInstancesByPackageId(this.currentPluginId)
         this.reloadPage()
-      } else {
+      }
+      else {
         this.isSpinShow = false
         clearTimeout(timeId)
       }
     },
-    reloadPage () {
+    reloadPage() {
       this.$Notice.info({
         title: this.$t('notify'),
         desc: this.$t('reload_notify')
@@ -610,32 +610,34 @@ export default {
         document.location.reload()
       }, 3000)
     },
-    async registPlugin (pluginId) {
-      this.isPluginRegistering = true
+    async registPlugin(pluginId) {
+      this.isSpinShow = true
+      this.spinContent = this.$t('plugin_registing')
       const api = '/platform/v1/packages/ui/register'
       const { status } = await req.post(api, {
         id: pluginId
       })
-      this.isPluginRegistering = false
+      this.isSpinShow = false
       if (status === 'OK') {
         this.$Message.success(this.$t('action_successful'))
         this.reloadPage()
-      } else {
+      }
+      else {
         this.$Message.error(this.$t('p_execute_fail'))
       }
     },
-    resetDeletePluginModal () {
+    resetDeletePluginModal() {
       this.isDeletedPluginModalShow = false
       this.deletedPluginList = []
       this.pluginListType = ''
     },
-    async onDeletePluginModalChange (state) {
+    async onDeletePluginModalChange(state) {
       if (!state) {
         this.resetDeletePluginModal()
         await this.getViewList()
       }
     },
-    async showOnlinePluginSelect () {
+    async showOnlinePluginSelect() {
       const { status, data } = await getPluginArtifacts()
       if (status === 'OK') {
         this.originPlugins = data
@@ -643,14 +645,15 @@ export default {
         data.forEach(item => {
           if (item.keyName.split('-v')[0] in this.originPluginsGroupFilter) {
             this.originPluginsGroupFilter[item.keyName.split('-v')[0]].push(item)
-          } else {
+          }
+          else {
             this.originPluginsGroupFilter[item.keyName.split('-v')[0]] = [item]
           }
         })
         this.isOnlinePluginSelectShow = true
       }
     },
-    filterOnlinePlugin (e) {
+    filterOnlinePlugin(e) {
       const filterKey = e.target.value
       this.originPluginsGroupFilter = {}
       this.originPlugins
@@ -658,12 +661,13 @@ export default {
         .forEach(item => {
           if (item.keyName.split('-v')[0] in this.originPluginsGroupFilter) {
             this.originPluginsGroupFilter[item.keyName.split('-v')[0]].push(item)
-          } else {
+          }
+          else {
             this.originPluginsGroupFilter[item.keyName.split('-v')[0]] = [item]
           }
         })
     },
-    async onOnlinePluginSelectModalConfirm () {
+    async onOnlinePluginSelectModalConfirm() {
       this.isSpinShow = true
       this.spinContent = this.$t('p_online_plugin_installation')
       let timeId = setTimeout(() => {
@@ -704,26 +708,27 @@ export default {
         })
       }
     },
-    resetOnlinePluginSelectModal () {
+    resetOnlinePluginSelectModal() {
       this.selectedOnlinePlugin = ''
       this.originPlugins = []
       this.originPluginsGroupFilter = {}
       this.filterOnlinePluginKeyWord = ''
       this.isOnlinePluginSelectShow = false
     },
-    onOnlinePluginSelectModalChange (state) {
+    onOnlinePluginSelectModalChange(state) {
       if (!state) {
         this.resetOnlinePluginSelectModal()
       }
     },
-    async onImportSuccess (response) {
+    async onImportSuccess(response) {
       if (response.status === 'OK') {
         this.$Notice.success({
           title: 'Success',
           desc: response.message
         })
         await this.getViewList()
-      } else {
+      }
+      else {
         this.$Notice.warning({
           title: 'Warning',
           desc: response.message
@@ -731,18 +736,21 @@ export default {
       }
       this.$refs.importXML.clearFiles()
     },
-    exportPluginFile (pluginId) {
+    exportPluginFile(pluginId) {
       this.currentPluginId = pluginId
       this.isBatchModalShow = true
     },
-    saveSearchForm () {
+    saveSearchForm() {
       window.pluginRegistrationListSearchForm = this.searchForm
     },
-    startInstallPlugin (pluginId) {
+    startInstallPlugin(pluginId) {
       this.saveSearchForm()
-      this.$router.push({ path: '/collaboration/registrationDetail', query: { pluginId } })
+      this.$router.push({
+        path: '/collaboration/registrationDetail',
+        query: { pluginId }
+      })
     },
-    enterSettingPage (pluginId, step) {
+    enterSettingPage(pluginId, step) {
       this.saveSearchForm()
       this.$router.push({
         path: '/collaboration/registrationDetail',
@@ -752,10 +760,10 @@ export default {
         }
       })
     },
-    onBatchRegistModalClose () {
+    onBatchRegistModalClose() {
       this.isBatchModalShow = false
     },
-    async getAvailableInstancesByPackageId (id) {
+    async getAvailableInstancesByPackageId(id) {
       return new Promise(resolve => {
         getAvailableInstancesByPackageId(id).then(res => {
           if (res.status === 'OK') {
@@ -774,16 +782,18 @@ export default {
         })
       })
     },
-    isButtonDisabled (item) {
-      if (item.registerDone) return false
+    isButtonDisabled(item) {
+      if (item.registerDone) {
+        return false
+      }
       return !(item.instances.length && item.uiActive && item.menus.length)
     },
-    getMenuText (item) {
+    getMenuText(item) {
       if (Vue.config.lang === 'zh-CN') {
         return item.localMenus && item.localMenus.length ? item.localMenus.join(';') : '-'
-      } else {
-        return item.menus && item.menus.length ? item.menus.join(';') : '-'
       }
+
+      return item.menus && item.menus.length ? item.menus.join(';') : '-'
     }
   }
 }

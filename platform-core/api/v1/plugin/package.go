@@ -52,18 +52,28 @@ func GetPackages(c *gin.Context) {
 
 // UploadPackage 上传插件
 func UploadPackage(c *gin.Context) {
-	// 接收插件zip文件
-	fileName, fileBytes, err := middleware.ReadFormFile(c, "zip-file")
-	if err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	log.Logger.Debug("zip-file", log.String("name", fileName))
-	// 解压插件zip包
 	var tmpFilePath, tmpFileDir string
-	if tmpFilePath, tmpFileDir, err = bash.SaveTmpFile(fileName, fileBytes); err != nil {
-		middleware.ReturnError(c, err)
-		return
+	var err error
+	localFilePath := c.GetHeader("Local-File-Path")
+	if localFilePath != "" {
+		tmpFilePath, tmpFileDir, err = bash.CopyTmpFile(localFilePath)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+	} else {
+		// 接收插件zip文件
+		fileName, fileBytes, readFileErr := middleware.ReadFormFile(c, "zip-file")
+		if readFileErr != nil {
+			middleware.ReturnError(c, readFileErr)
+			return
+		}
+		log.Logger.Debug("zip-file", log.String("name", fileName))
+		// 解压插件zip包
+		if tmpFilePath, tmpFileDir, err = bash.SaveTmpFile(fileName, fileBytes); err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
 	}
 	// fileBytes = []byte{}
 	log.Logger.Debug("tmpFile", log.String("tmpFilePath", tmpFilePath))
@@ -596,7 +606,7 @@ func RegisterPackage(c *gin.Context) {
 		}
 	}
 	// 把对应插件版本的系统变量置为active
-	if err = database.RegisterPlugin(c, pluginPackageObj.Name, pluginPackageObj.Version); err != nil {
+	if err = database.RegisterPlugin(c, pluginPackageObj.Name, pluginPackageObj.Version, middleware.GetRequestUser(c)); err != nil {
 		middleware.ReturnError(c, err)
 	} else {
 		middleware.ReturnData(c, models.PackageIdRespData{Id: pluginPackageId})
