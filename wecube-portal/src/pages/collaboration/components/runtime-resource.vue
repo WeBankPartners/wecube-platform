@@ -27,7 +27,7 @@
 import { getRuntimeResource } from '@/api/server'
 export default {
   name: 'runtime-resources',
-  data () {
+  data() {
     return {
       data: {}
     }
@@ -44,12 +44,12 @@ export default {
       required: true
     }
   },
-  created () {
+  created() {
     this.getData()
   },
   methods: {
-    async getData () {
-      let { status, data } = await getRuntimeResource(this.pkgId)
+    async getData() {
+      const { status, data } = await getRuntimeResource(this.pkgId)
       if (status === 'OK') {
         this.data = data
       }

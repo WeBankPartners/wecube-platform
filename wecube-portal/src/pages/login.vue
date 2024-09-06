@@ -50,10 +50,12 @@
 </template>
 <script>
 import CryptoJS from 'crypto-js'
-import { login, getApplyRoles, registerUser, getEncryptKey } from '../api/server'
+import {
+  login, getApplyRoles, registerUser, getEncryptKey
+} from '../api/server'
 import { setCookie, clearCookie } from './util/cookie'
 export default {
-  data () {
+  data() {
     return {
       username: '',
       ***REMOVED***
@@ -67,8 +69,16 @@ export default {
       },
       ruleValidate: {
         emailAddr: [
-          { required: true, message: `${this.$t('be_email')} ${this.$t('cannotBeEmpty')}`, trigger: 'blur' },
-          { type: 'email', message: this.$t('be_email_incorrect_format'), trigger: 'blur' }
+          {
+            required: true,
+            message: `${this.$t('be_email')} ${this.$t('cannotBeEmpty')}`,
+            trigger: 'blur'
+          },
+          {
+            type: 'email',
+            message: this.$t('be_email_incorrect_format'),
+            trigger: 'blur'
+          }
         ],
         roleIds: [
           {
@@ -85,8 +95,10 @@ export default {
   },
 
   methods: {
-    async login () {
-      if (!this.username || !this.password) return
+    async login() {
+      if (!this.username || !this.password) {
+        return
+      }
       this.loading = true
       await this.getEncryptKey()
       const key = CryptoJS.enc.Utf8.parse(this.encryptKey)
@@ -94,33 +106,34 @@ export default {
         iv: CryptoJS.enc.Utf8.parse(Math.trunc(new Date() / 100000) * 100000000),
         mode: CryptoJS.mode.CBC
       }
-      let encryptedPassword = CryptoJS.AES.encrypt(this.password, key, config).toString()
+      const encryptedPassword = CryptoJS.AES.encrypt(this.password, key, config).toString()
       const payload = {
         username: this.username,
         password: encryptedPassword
       }
       const { status, data } = await login(payload)
       if (status === 'OK') {
-        let localStorage = window.localStorage
+        const localStorage = window.localStorage
         setCookie(data)
         localStorage.setItem('username', this.username)
         const needRegister = data.needRegister || false
         if (needRegister) {
           this.showRoleApply = true
           this.formValidate.userName = this.username
-        } else {
+        }
+        else {
           this.$router.push('/homepage')
         }
       }
       this.loading = false
     },
-    async getEncryptKey () {
+    async getEncryptKey() {
       const { status, data } = await getEncryptKey()
       if (status === 'OK') {
         this.encryptKey = data
       }
     },
-    async getApplyRoles () {
+    async getApplyRoles() {
       const params = {
         all: 'N', // Y:所有(包括未激活和已删除的) N:激活的
         roleAdmin: false
@@ -130,7 +143,7 @@ export default {
         this.roleList = data || []
       }
     },
-    handleSubmit (name) {
+    handleSubmit(name) {
       this.$refs[name].validate(async valid => {
         if (valid) {
           const { status } = await registerUser(this.formValidate)
@@ -144,18 +157,18 @@ export default {
         }
       })
     },
-    handleReset (name) {
+    handleReset(name) {
       this.$refs[name].resetFields()
       this.showRoleApply = false
     },
-    clearData () {
-      let localStorage = window.localStorage
+    clearData() {
+      const localStorage = window.localStorage
       localStorage.removeItem('username')
       clearCookie()
       window.needReLoad = true
     }
   },
-  mounted () {
+  mounted() {
     this.clearData()
   }
 }

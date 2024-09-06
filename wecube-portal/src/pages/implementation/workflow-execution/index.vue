@@ -15,7 +15,7 @@ export default {
   components: {
     BenchMenu
   },
-  data () {
+  data() {
     return {
       expand: true,
       menuList: [
@@ -24,8 +24,16 @@ export default {
           icon: 'ios-hammer',
           name: '1',
           children: [
-            { title: this.$t('create'), path: '/implementation/workflow-execution/normal-template', name: '1-1' },
-            { title: this.$t('fe_history'), path: '/implementation/workflow-execution/normal-history', name: '1-2' }
+            {
+              title: this.$t('create'),
+              path: '/implementation/workflow-execution/normal-template',
+              name: '1-1'
+            },
+            {
+              title: this.$t('fe_history'),
+              path: '/implementation/workflow-execution/normal-history',
+              name: '1-2'
+            }
           ]
         },
         {
@@ -33,21 +41,29 @@ export default {
           icon: 'ios-time',
           name: '2',
           children: [
-            { title: this.$t('create'), path: '/implementation/workflow-execution/time-create', name: '2-1' },
-            { title: this.$t('fe_history'), path: '/implementation/workflow-execution/time-history', name: '2-2' }
+            {
+              title: this.$t('create'),
+              path: '/implementation/workflow-execution/time-create',
+              name: '2-1'
+            },
+            {
+              title: this.$t('fe_history'),
+              path: '/implementation/workflow-execution/time-history',
+              name: '2-2'
+            }
           ]
         }
       ]
     }
   },
   computed: {
-    benchStyle () {
+    benchStyle() {
       return {
         paddingLeft: this.expand ? '140px' : '0px'
       }
     }
   },
-  mounted () {
+  mounted() {
     this.$eventBusP.$on('expand-menu', val => {
       this.expand = val
     })

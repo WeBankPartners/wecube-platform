@@ -51,7 +51,7 @@ export default {
       default: 'template'
     }
   },
-  data () {
+  data() {
     return {
       form: {
         name: '',
@@ -98,46 +98,44 @@ export default {
           title: this.$t('be_template_name'),
           key: 'name',
           minWidth: 140,
-          render: (h, params) => {
-            return (
-              <div>
-                {
-                  /* 收藏 */
-                  params.row.isCollected === false && (
-                    <Tooltip content={this.$t('bc_save')} placement="top-start">
-                      <Icon
-                        style="cursor:pointer;margin-right:5px;"
-                        size="18"
-                        type="ios-star-outline"
-                        onClick={e => {
-                          e.stopPropagation()
-                          this.handleStar(params.row)
-                        }}
-                      />
-                    </Tooltip>
-                  )
-                }
-                {
-                  /* 取消收藏 */
-                  params.row.isCollected === true && (
-                    <Tooltip content={this.$t('be_cancel_save')} placement="top-start">
-                      <Icon
-                        style="cursor:pointer;margin-right:5px;"
-                        size="18"
-                        type="ios-star"
-                        color="#ebac42"
-                        onClick={e => {
-                          e.stopPropagation()
-                          this.handleStar(params.row)
-                        }}
-                      />
-                    </Tooltip>
-                  )
-                }
-                <span style="margin-right:2px">{params.row.name}</span>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              {
+                /* 收藏 */
+                params.row.isCollected === false && (
+                  <Tooltip content={this.$t('bc_save')} placement="top-start">
+                    <Icon
+                      style="cursor:pointer;margin-right:5px;"
+                      size="18"
+                      type="ios-star-outline"
+                      onClick={e => {
+                        e.stopPropagation()
+                        this.handleStar(params.row)
+                      }}
+                    />
+                  </Tooltip>
+                )
+              }
+              {
+                /* 取消收藏 */
+                params.row.isCollected === true && (
+                  <Tooltip content={this.$t('be_cancel_save')} placement="top-start">
+                    <Icon
+                      style="cursor:pointer;margin-right:5px;"
+                      size="18"
+                      type="ios-star"
+                      color="#ebac42"
+                      onClick={e => {
+                        e.stopPropagation()
+                        this.handleStar(params.row)
+                      }}
+                    />
+                  </Tooltip>
+                )
+              }
+              <span style="margin-right:2px">{params.row.name}</span>
+            </div>
+          )
         },
         id: {
           title: this.$t('be_template_id'),
@@ -153,9 +151,7 @@ export default {
           title: this.$t('be_instance_type'),
           key: 'operateObject',
           minWidth: 120,
-          render: (h, params) => {
-            return params.row.operateObject && <Tag color="default">{params.row.operateObject}</Tag>
-          }
+          render: (h, params) => params.row.operateObject && <Tag color="default">{params.row.operateObject}</Tag>
         },
         status: {
           title: this.$t('be_use_status'),
@@ -163,9 +159,21 @@ export default {
           minWidth: 90,
           render: (h, params) => {
             const list = [
-              { label: this.$t('be_status_use'), value: 'available', color: '#19be6b' },
-              { label: this.$t('be_status_draft'), value: 'draft', color: '#c5c8ce' },
-              { label: this.$t('be_status_role'), value: 'unauthorized', color: '#ed4014' }
+              {
+                label: this.$t('be_status_use'),
+                value: 'available',
+                color: '#19be6b'
+              },
+              {
+                label: this.$t('be_status_draft'),
+                value: 'draft',
+                color: '#c5c8ce'
+              },
+              {
+                label: this.$t('be_status_role'),
+                value: 'unauthorized',
+                color: '#ed4014'
+              }
             ]
             const item = list.find(i => i.value === params.row.status)
             return item && <Tag color={item.color}>{item.label}</Tag>
@@ -179,7 +187,7 @@ export default {
       }
     }
   },
-  mounted () {
+  mounted() {
     // 新建执行页面
     this.tableColumns = [
       this.baseColumns.name,
@@ -190,16 +198,12 @@ export default {
         title: this.$t('be_createby_role'),
         key: 'createdBy',
         minWidth: 90,
-        render: (h, params) => {
-          return (
-            <div style="display:flex;flex-direction:column">
-              <span>{params.row.createdBy}</span>
-              <span>
-                {params.row.permissionToRole.MGMTDisplayName && params.row.permissionToRole.MGMTDisplayName[0]}
-              </span>
-            </div>
-          )
-        }
+        render: (h, params) => (
+          <div style="display:flex;flex-direction:column">
+            <span>{params.row.createdBy}</span>
+            <span>{params.row.permissionToRole.MGMTDisplayName && params.row.permissionToRole.MGMTDisplayName[0]}</span>
+          </div>
+        )
       },
       this.baseColumns.status,
       this.baseColumns.createdTime
@@ -208,7 +212,7 @@ export default {
   },
   methods: {
     // 选择模板新建执行
-    handleChooseTemplate (row) {
+    handleChooseTemplate(row) {
       if (row.status === 'unauthorized') {
         return this.$Notice.warning({
           title: this.$t('warning'),
@@ -223,10 +227,10 @@ export default {
         }
       })
     },
-    handleSearch () {
+    handleSearch() {
       this.getTemplateList()
     },
-    async getTemplateList () {
+    async getTemplateList() {
       const params = {
         filters: [],
         paging: true,
@@ -272,7 +276,7 @@ export default {
           const group = {
             expand: true,
             data: [],
-            role: role
+            role
           }
           data.contents.forEach(item => {
             if (item.permissionToRole.USEDisplayName && item.permissionToRole.USEDisplayName.includes(role)) {
@@ -284,7 +288,7 @@ export default {
       }
     },
     // 展开收缩卡片
-    handleExpand (item) {
+    handleExpand(item) {
       item.expand = !item.expand
     },
     // 收藏or取消收藏

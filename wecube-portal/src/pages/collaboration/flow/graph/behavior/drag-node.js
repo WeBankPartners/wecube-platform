@@ -1,6 +1,6 @@
 export default G6 => {
   G6.registerBehavior('drag-shadow-node', {
-    getDefaultCfg () {
+    getDefaultCfg() {
       return {
         isGragging: false,
         sourceAnchorIndex: 0,
@@ -10,7 +10,7 @@ export default G6 => {
         distance: [] // 鼠标距离节点中心位置的距离
       }
     },
-    getEvents () {
+    getEvents() {
       return {
         'node:mousedown': 'onMousedown',
         'node:mouseup': 'onMouseup',
@@ -20,12 +20,14 @@ export default G6 => {
         'node:drop': 'onDrop'
       }
     },
-    shouldBegin (e) {
+    shouldBegin() {
       return true
     },
     // 鼠标按下显示锚点光圈
-    onMousedown (e) {
-      if (!this.shouldBegin(e)) return
+    onMousedown(e) {
+      if (!this.shouldBegin(e)) {
+        return
+      }
       this._clearSelected(e)
       if (e.target.cfg.isAnchor) {
         // 拖拽锚点
@@ -42,8 +44,10 @@ export default G6 => {
       }
       this.graph.emit('on-node-mousedown', e)
     },
-    onMouseup (e) {
-      if (!this.shouldBegin(e)) return
+    onMouseup(e) {
+      if (!this.shouldBegin(e)) {
+        return
+      }
       if (this.dragTarget === 'anchor') {
         const nodes = this.graph.findAll('node', node => node)
 
@@ -54,8 +58,10 @@ export default G6 => {
       this.graph.emit('on-node-mouseup', e)
     },
     // 拖拽开始
-    onDragStart (e) {
-      if (!this.shouldBegin(e)) return
+    onDragStart(e) {
+      if (!this.shouldBegin(e)) {
+        return
+      }
       const group = e.item.getContainer()
 
       this.isGragging = true
@@ -66,7 +72,8 @@ export default G6 => {
       if (e.target.get('isAnchor')) {
         // 拖拽锚点, 记录当前点击的锚点 index
         this.sourceAnchorIndex = e.target.get('index')
-      } else if (group.getFirst().cfg.xShapeNode) {
+      }
+      else if (group.getFirst().cfg.xShapeNode) {
         // 拖拽自定义节点
         e.item.toFront()
         this.dragTarget = 'node'
@@ -75,8 +82,10 @@ export default G6 => {
       this.graph.emit('on-node-dragstart', e)
     },
     // 拖拽中
-    onDrag (e) {
-      if (!this.shouldBegin(e)) return
+    onDrag(e) {
+      if (!this.shouldBegin(e)) {
+        return
+      }
       if (this.isGragging) {
         const group = e.item.getContainer()
 
@@ -87,8 +96,10 @@ export default G6 => {
       }
     },
     // 拖拽结束
-    onDragEnd (e) {
-      if (!this.shouldBegin(e)) return
+    onDragEnd(e) {
+      if (!this.shouldBegin(e)) {
+        return
+      }
       const group = e.item.getContainer()
 
       this.isGragging = false
@@ -98,14 +109,17 @@ export default G6 => {
         nodes.forEach(node => {
           node.clearStates('anchorActived')
         })
-      } else if (this.dragTarget === 'node' && group.getFirst().cfg.xShapeNode) {
+      }
+      else if (this.dragTarget === 'node' && group.getFirst().cfg.xShapeNode) {
         this._nodeOnDragEnd(e, group)
       }
       this.graph.emit('on-node-dragend', e)
     },
     // 锚点拖拽结束添加边
-    onDrop (e) {
-      if (!this.shouldBegin(e)) return
+    onDrop(e) {
+      if (!this.shouldBegin(e)) {
+        return
+      }
       // e.item 当前拖拽节点 | e.target 当前释放节点
       if (this.dragStartNode.id && e.target.cfg.isAnchor && this.dragStartNode.id !== e.target.cfg.nodeId) {
         const sourceNode = this.dragStartNode.group.get('item')
@@ -116,11 +130,11 @@ export default G6 => {
         const hasLinked = edges.find(edge => {
           // sourceAnchorIndex === targetAnchorIndex, edge.source.id === source.id, edget.target.id === target.id
           if (
-            (edge.get('source').get('id') === sourceNode.get('id') &&
-              edge.get('target').get('id') === e.target.cfg.nodeId &&
-              edge.get('sourceAnchorIndex') === this.sourceAnchorIndex &&
-              edge.get('targetAnchorIndex') === targetAnchorIndex) ||
-            (singleEdge && edge.get('target').get('id') === e.target.cfg.nodeId)
+            (edge.get('source').get('id') === sourceNode.get('id')
+              && edge.get('target').get('id') === e.target.cfg.nodeId
+              && edge.get('sourceAnchorIndex') === this.sourceAnchorIndex
+              && edge.get('targetAnchorIndex') === targetAnchorIndex)
+            || (singleEdge && edge.get('target').get('id') === e.target.cfg.nodeId)
           ) {
             return true
           }
@@ -141,7 +155,7 @@ export default G6 => {
     /**
      * @description 判断当前画布模式是否启用了内置的 drag-node, 因为有冲突
      */
-    _dragNodeModeCheck () {
+    _dragNodeModeCheck() {
       const currentMode = this.graph.get('modes')[this.graph.getCurrentMode()]
 
       if (currentMode.includes('drag-node')) {
@@ -156,7 +170,7 @@ export default G6 => {
     /**
      * @description 节点拖拽开始事件
      */
-    _nodeOnDragStart (e, group) {
+    _nodeOnDragStart(e, group) {
       this._dragNodeModeCheck()
       this._addShadowNode(e, group)
     },
@@ -164,12 +178,14 @@ export default G6 => {
     /**
      * @description 添加虚拟节点
      */
-    _addShadowNode (e, group) {
+    _addShadowNode(e, group) {
       const item = group.get('item')
       const model = item.get('model')
       const { radius } = item.get('originStyle')
       const currentShape = item.get('currentShape')
-      const { width, height, centerX, centerY } = item.getBBox()
+      const {
+        width, height, centerX, centerY
+      } = item.getBBox()
       const shapes = item.get('shapeFactory')[currentShape]
 
       let { shapeType } = shapes || {}
@@ -201,7 +217,9 @@ export default G6 => {
             y: -height / 2,
             r: width / 2
           }
-          if (radius) attrs.radius = radius
+          if (radius) {
+            attrs.radius = radius
+          }
           break
         case 'ellipse':
           this.distance = [e.x - centerX, e.y - centerY]
@@ -242,11 +260,13 @@ export default G6 => {
     /**
      * @description 节点拖拽事件
      */
-    _nodeOnDrag (e, group) {
+    _nodeOnDrag(e, group) {
       // 记录鼠标拖拽时与图形中心点坐标的距离
       const item = group.get('item')
       const pathAttrs = group.getFirst()
-      const { width, height, centerX, centerY } = item.getBBox()
+      const {
+        width, height, centerX, centerY
+      } = item.getBBox()
       const shadowNode = pathAttrs.cfg.xShapeNode ? group.$getItem('shadow-node') : null
       const shapes = item.get('shapeFactory')[item.get('currentShape')]
       const { shapeType } = shapes || {}
@@ -278,7 +298,8 @@ export default G6 => {
               path.unshift(
                 ['M', dx, dy - height] // 上顶点
               )
-            } else {
+            }
+            else {
               path.unshift(
                 ['M', dx, dy + height] // 下顶点
               )
@@ -289,7 +310,8 @@ export default G6 => {
         shadowNode.attr({
           path
         })
-      } else {
+      }
+      else {
         shadowNode.attr({
           x: e.x - centerX - this.distance[0],
           y: e.y - centerY - this.distance[1]
@@ -302,7 +324,7 @@ export default G6 => {
     /**
      * @description 节点拖拽结束事件
      */
-    _nodeOnDragEnd (e, group) {
+    _nodeOnDragEnd(e, group) {
       const { graph } = this
       const model = e.item.getModel()
       const shadowNode = group.getFirst().cfg.xShapeNode ? group.$getItem('shadow-node') : null
@@ -324,7 +346,7 @@ export default G6 => {
       }
     },
     // 清空已选的边
-    _clearSelected (e) {
+    _clearSelected() {
       const selectedEdges = this.graph.findAllByState('edge', 'edgeState:selected')
 
       selectedEdges.forEach(edge => {

@@ -1,4 +1,5 @@
+// eslint-disable-next-line
 module.exports = {
-  presets: ["@vue/app"],
-  ignore: ["src/bpmn/*"]
-};
+  presets: ['@vue/app', '@babel/preset-env'],
+  ignore: ['src/bpmn/*']
+}

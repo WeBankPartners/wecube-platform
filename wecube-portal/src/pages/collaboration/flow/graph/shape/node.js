@@ -6,10 +6,12 @@
  */
 import defaultStyles from './defaultStyles'
 
-const { iconStyles, nodeStyles, anchorPointStyles, nodeLabelStyles } = defaultStyles
+const {
+  iconStyles, nodeStyles, anchorPointStyles, nodeLabelStyles
+} = defaultStyles
 
-function getStyle (options, cfg) {
-  let xx = {
+function getStyle(options, cfg) {
+  const xx = {
     ...cfg,
     // 自定义默认样式
     ...nodeStyles,
@@ -49,7 +51,7 @@ export default G6 => {
     {
       shapeType: 'rect',
       // 当前节点的样式集合
-      getShapeStyle (cfg) {
+      getShapeStyle(cfg) {
         const width = cfg.style.width || 80
         const height = cfg.style.height || 40
 
@@ -75,7 +77,7 @@ export default G6 => {
     'circle-node',
     {
       shapeType: 'circle',
-      getShapeStyle (cfg) {
+      getShapeStyle(cfg) {
         const r = cfg.style.r || 24
         const xx = getStyle.call(
           this,
@@ -98,7 +100,7 @@ export default G6 => {
     'ellipse-node',
     {
       shapeType: 'ellipse',
-      getShapeStyle (cfg) {
+      getShapeStyle(cfg) {
         return getStyle.call(
           this,
           {
@@ -120,7 +122,7 @@ export default G6 => {
     'modelRect-node',
     {
       shapeType: 'rect',
-      getShapeStyle (cfg) {
+      getShapeStyle(cfg) {
         const width = cfg.style.width || 200
         const height = cfg.style.height || 80
 
@@ -146,7 +148,7 @@ export default G6 => {
     'diamond-node',
     {
       shapeType: 'path', // 非内置 shape 要指定为path
-      getShapeStyle (cfg) {
+      getShapeStyle(cfg) {
         const path = this.getPath(cfg)
 
         return getStyle.call(
@@ -160,7 +162,7 @@ export default G6 => {
         )
       },
       // 返回菱形的路径
-      getPath (cfg) {
+      getPath(cfg) {
         const size = cfg.style.size || [50, 50] // 如果没有 size 时的默认大小
         const width = size[0]
         const height = size[1]
@@ -185,7 +187,7 @@ export default G6 => {
     'triangle-node',
     {
       shapeType: 'path',
-      getShapeStyle (cfg) {
+      getShapeStyle(cfg) {
         const path = this.getPath(cfg)
 
         return getStyle.call(
@@ -199,7 +201,7 @@ export default G6 => {
           cfg
         )
       },
-      getPath (cfg) {
+      getPath(cfg) {
         const direction = cfg.direction || 'up'
         const size = cfg.style.size || [60, 100] // 如果没有 size 时的默认大小
         const width = size[0]
@@ -218,7 +220,8 @@ export default G6 => {
             ['L', -width / 2, 0], // 左侧顶点
             ['L', width / 2, 0] // 右侧顶点
           )
-        } else {
+        }
+        else {
           path.unshift(
             ['M', 0, height / 2],
             ['L', -width / 2, 0], // 左侧顶点
@@ -228,7 +231,7 @@ export default G6 => {
 
         return path
       },
-      getAnchorPoints (cfg) {
+      getAnchorPoints(cfg) {
         return (
           cfg.anchorPoints || [
             [0.5, 0],

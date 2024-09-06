@@ -2,12 +2,12 @@ import defaultComp from './home.vue'
 import './home-page.scss'
 export default {
   name: 'homepage',
-  data () {
+  data() {
     return {
       comps: []
     }
   },
-  created () {
+  created() {
     this.comps = window.homepageComponent.data
     this.$eventBusP.$on('allMenus', menues => {
       window.homepageComponent.on('change', () => {
@@ -16,20 +16,13 @@ export default {
     })
   },
   methods: {
-    filterHomePageByRole (menues) {
+    filterHomePageByRole(menues) {
       // this.comps = window.homepageComponent.data
       // 首页根据菜单权限隐藏相关页面
       window.homepageComponent.data.forEach(c => {
         c.deleteFalg = false
         if (c.code && Array.isArray(menues) && menues.length > 0) {
-          const hasMenu = menues.some(i => {
-            return (
-              i.code === c.code ||
-              i.submenus.some(j => {
-                return j.code === c.code
-              })
-            )
-          })
+          const hasMenu = menues.some(i => i.code === c.code || i.submenus.some(j => j.code === c.code))
           if (!hasMenu) {
             c.deleteFalg = true
           }
@@ -39,7 +32,7 @@ export default {
       this.comps = window.homepageComponent.data
     }
   },
-  render () {
+  render() {
     // const comps = window.homepageComponent || []
     const len = this.comps.length
     return (
@@ -47,16 +40,14 @@ export default {
         {len === 0 && <defaultComp />}
         {len > 0 && (
           <Tabs name="home">
-            {this.comps.map(c => {
-              return (
-                <TabPane label={c.name()} tab="home">
-                  <c.component />
-                  {/* <div style={{ 'padding-top': '40px' }} >
+            {this.comps.map(c => (
+              <TabPane label={c.name()} tab="home">
+                <c.component />
+                {/* <div style={{ 'padding-top': '40px' }} >
                     <c.component />
                   </div> */}
-                </TabPane>
-              )
-            })}
+              </TabPane>
+            ))}
           </Tabs>
         )}
       </div>
