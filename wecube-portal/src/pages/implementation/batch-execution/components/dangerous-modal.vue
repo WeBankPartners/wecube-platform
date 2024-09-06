@@ -33,14 +33,14 @@ export default {
       default: () => {}
     }
   },
-  data () {
+  data() {
     return {
       checked: false
     }
   },
   methods: {
     // 提交高危检测
-    async confirmDangerous () {
+    async confirmDangerous() {
       this.$Spin.show()
       const { status, data } = await saveBatchExecute(
         `/platform/v1/batch-execution/job/run?continueToken=${this.data.continueToken}`,
