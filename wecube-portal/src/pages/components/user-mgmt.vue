@@ -46,7 +46,7 @@
         <Col span="8">
           <Card>
             <p slot="title" style="height: 18px">{{ $t('role') }}</p>
-            <div class="tagContainers" :style="{ minHeight: 300 + 'px', maxHeight: tableHeight + 'px' }">
+            <div class="tagContainers" :style="{minHeight: 300 + 'px', maxHeight: tableHeight + 'px'}">
               <div class="role-item" v-for="item in roleList" :key="item.id">
                 <div
                   class="item-style"
@@ -66,7 +66,7 @@
             <div
               v-if="activeRole"
               class="tagContainers"
-              :style="{ minHeight: 300 + 'px', maxHeight: tableHeight + 'px' }"
+              :style="{minHeight: 300 + 'px', maxHeight: tableHeight + 'px'}"
             >
               <div class="add-user">
                 <Form inline>
@@ -156,7 +156,7 @@ import {
 } from '@/api/server.js'
 
 export default {
-  data () {
+  data() {
     return {
       showModal: false,
       isfullscreen: false,
@@ -169,9 +169,7 @@ export default {
         {
           title: this.$t('be_apply_roles'),
           key: 'roleId',
-          render: (h, params) => {
-            return <div>{params.row.role.displayName}</div>
-          }
+          render: (h, params) => <div>{params.row.role.displayName}</div>
         },
         {
           title: this.$t('be_application_time'),
@@ -181,35 +179,31 @@ export default {
           title: this.$t('role_invalidDate'),
           key: 'expireTime',
           minWidth: 80,
-          render: (h, params) => {
-            return <span>{params.row.expireTime || this.$t('be_forever')}</span>
-          }
+          render: (h, params) => <span>{params.row.expireTime || this.$t('be_forever')}</span>
         },
         {
           title: this.$t('actions'),
           key: 'address',
-          render: (h, params) => {
-            return (
-              <div style="text-align: left; cursor: pointer;display: inline-flex;">
-                <Button
-                  size="small"
-                  type="primary"
-                  onClick={() => this.handle(params.row, 'approve')}
-                  style="margin-right:5px;"
-                >
-                  {this.$t('be_approve')}
-                </Button>
-                <Button
-                  size="small"
-                  type="error"
-                  onClick={() => this.handle(params.row, 'deny')}
-                  style="margin-right:5px;"
-                >
-                  {this.$t('be_reject')}
-                </Button>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div style="text-align: left; cursor: pointer;display: inline-flex;">
+              <Button
+                size="small"
+                type="primary"
+                onClick={() => this.handle(params.row, 'approve')}
+                style="margin-right:5px;"
+              >
+                {this.$t('be_approve')}
+              </Button>
+              <Button
+                size="small"
+                type="error"
+                onClick={() => this.handle(params.row, 'deny')}
+                style="margin-right:5px;"
+              >
+                {this.$t('be_reject')}
+              </Button>
+            </div>
+          )
         }
       ],
       processedColumns: [
@@ -220,9 +214,7 @@ export default {
         {
           title: this.$t('be_apply_roles'),
           key: 'roleId',
-          render: (h, params) => {
-            return <div>{params.row.role.displayName}</div>
-          }
+          render: (h, params) => <div>{params.row.role.displayName}</div>
         },
         {
           title: this.$t('be_processing_time'),
@@ -240,9 +232,8 @@ export default {
                   {`${params.row.expireTime}${expireFlag ? this.$t('be_hasExpired') : ''}`}
                 </span>
               )
-            } else {
-              return <span>{this.$t('be_forever')}</span>
             }
+            return <span>{this.$t('be_forever')}</span>
           }
         },
         {
@@ -266,36 +257,41 @@ export default {
     }
   },
   computed: {
-    tableHeight () {
+    tableHeight() {
       const innerHeight = window.innerHeight
       return this.isfullscreen ? innerHeight - 540 : innerHeight - 700
     },
-    getExpireStyle () {
+    getExpireStyle() {
       return function ({ status }) {
         let color = ''
         if (status === 'preExpired') {
           color = '#ff9900'
-        } else if (status === 'expire') {
+        }
+        else if (status === 'expire') {
           color = '#ed4014'
-        } else {
+        }
+        else {
           color = '#19be6b'
         }
-        return { color: color }
+        return { color }
       }
     },
-    getExpireTips () {
+    getExpireTips() {
       return function ({ status, expireTime }) {
         let text = ''
         if (status === 'preExpired') {
           // 即将到期
           text = `${expireTime}${this.$t('be_willExpire')}`
-        } else if (status === 'expire') {
+        }
+        else if (status === 'expire') {
           // 已过期
           text = `${expireTime}${this.$t('be_hasExpired')}`
-        } else if (expireTime) {
+        }
+        else if (expireTime) {
           // 到期时间
           text = `${expireTime}${this.$t('be_expire')}`
-        } else if (!expireTime) {
+        }
+        else if (!expireTime) {
           // 永久有效
           text = `${this.$t('be_forever')}`
         }
@@ -304,16 +300,16 @@ export default {
     }
   },
   methods: {
-    openModal () {
+    openModal() {
       this.showModal = true
       this.pendingUser = []
       this.pengdingExpireTime = ''
       this.getTableData()
       this.getRoles()
     },
-    async getTableData () {
+    async getTableData() {
       this.tableData = []
-      let statusArr = this.activeTab === 'pending' ? ['init'] : ['approve', 'deny']
+      const statusArr = this.activeTab === 'pending' ? ['init'] : ['approve', 'deny']
 
       const params = {
         filters: [
@@ -340,7 +336,7 @@ export default {
         this.tableData = data.contents || []
       }
     },
-    async getRoles () {
+    async getRoles() {
       const params = {
         all: 'N', // Y:所有(包括未激活和已删除的) N:激活的
         roleAdmin: true
@@ -354,19 +350,19 @@ export default {
         }
       }
     },
-    async getUserByRole (roleId) {
+    async getUserByRole(roleId) {
       const { status, data } = await getUserByRole(roleId)
       if (status === 'OK') {
         this.userList = data || []
       }
     },
-    async handleRoleClick (item) {
+    async handleRoleClick(item) {
       this.activeRole = item.id
       this.pendingUser = []
       this.pengdingExpireTime = ''
       this.getUserByRole(this.activeRole)
     },
-    async removeUser (item) {
+    async removeUser(item) {
       this.$Modal.confirm({
         title: this.$t('confirm_delete'),
         content: `${this.$t('confirm_delete_content')}${item.username}`,
@@ -374,12 +370,12 @@ export default {
         loading: true,
         onOk: async () => {
           this.$Modal.remove()
-          let data = [
+          const data = [
             {
               id: item.id
             }
           ]
-          let res = await removeUserFromRole(this.activeRole, data)
+          const res = await removeUserFromRole(this.activeRole, data)
           if (res.status === 'OK') {
             this.$Notice.success({
               title: this.$t('successful'),
@@ -391,12 +387,12 @@ export default {
         onCancel: () => {}
       })
     },
-    startAddUser () {
+    startAddUser() {
       this.showSelectModel = true
       this.pendingUser = []
     },
     // 获取待添加用户列表
-    async getPendingUserOptions () {
+    async getPendingUserOptions() {
       const { status, data } = await getAllUser()
       if (status === 'OK') {
         this.pendingUserOptions = (data || []).filter(user => {
@@ -407,16 +403,14 @@ export default {
         })
       }
     },
-    async okSelect () {
+    async okSelect() {
       if (this.pengdingExpireTime && !dayjs(this.pengdingExpireTime).isAfter(dayjs())) {
         return this.$Message.warning(this.$t('role_invalidDateValidate'))
       }
-      let data = this.pendingUser.map(userId => {
-        return {
-          id: userId,
-          expireTime: this.pengdingExpireTime
-        }
-      })
+      const data = this.pendingUser.map(userId => ({
+        id: userId,
+        expireTime: this.pengdingExpireTime
+      }))
       const { status } = await addUserForRole(this.activeRole, data)
       if (status === 'OK') {
         this.$Notice.success({
@@ -430,8 +424,8 @@ export default {
       }
     },
     // 处理申请
-    async handle (item, statusCode) {
-      let data = [
+    async handle(item, statusCode) {
+      const data = [
         {
           id: item.id,
           status: statusCode,
@@ -450,7 +444,7 @@ export default {
         this.$bus.$emit('fetchApplyCount')
       }
     },
-    tabChange (val) {
+    tabChange(val) {
       this.activeTab = val
       this.getTableData()
     }
