@@ -42,7 +42,7 @@ export default {
   components: {
     Search
   },
-  data () {
+  data() {
     return {
       MODALHEIGHT: 0,
       searchOptions: [
@@ -52,10 +52,28 @@ export default {
           label: this.$t('execute_date'),
           initDateType: 1,
           dateRange: [
-            { label: this.$t('be_threeDays_recent'), type: 'day', value: 3, dateType: 1 },
-            { label: this.$t('be_oneWeek_recent'), type: 'day', value: 7, dateType: 2 },
-            { label: this.$t('be_oneMonth_recent'), type: 'month', value: 1, dateType: 3 },
-            { label: this.$t('be_auto'), dateType: 4 } // 自定义
+            {
+              label: this.$t('be_threeDays_recent'),
+              type: 'day',
+              value: 3,
+              dateType: 1
+            },
+            {
+              label: this.$t('be_oneWeek_recent'),
+              type: 'day',
+              value: 7,
+              dateType: 2
+            },
+            {
+              label: this.$t('be_oneMonth_recent'),
+              type: 'month',
+              value: 1,
+              dateType: 3
+            },
+            {
+              label: this.$t('be_auto'),
+              dateType: 4
+            } // 自定义
           ],
           labelWidth: 110,
           component: 'custom-time'
@@ -85,14 +103,46 @@ export default {
           placeholder: this.$t('flow_status'),
           component: 'tag-select',
           list: [
-            { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
-            { label: this.$t('fe_stop'), value: 'Stop', color: '#ed4014' },
-            { label: this.$t('fe_inProgressFaulted'), value: 'InProgress(Faulted)', color: '#ed4014' },
-            { label: this.$t('fe_inProgressTimeouted'), value: 'InProgress(Timeouted)', color: '#ed4014' },
-            { label: this.$t('fe_inProgress'), value: 'InProgress', color: '#1990ff' },
-            { label: this.$t('fe_completed'), value: 'Completed', color: '#7ac756' },
-            { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
-            { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
+            {
+              label: this.$t('fe_notStart'),
+              value: 'NotStarted',
+              color: '#808695'
+            },
+            {
+              label: this.$t('fe_stop'),
+              value: 'Stop',
+              color: '#ed4014'
+            },
+            {
+              label: this.$t('fe_inProgressFaulted'),
+              value: 'InProgress(Faulted)',
+              color: '#ed4014'
+            },
+            {
+              label: this.$t('fe_inProgressTimeouted'),
+              value: 'InProgress(Timeouted)',
+              color: '#ed4014'
+            },
+            {
+              label: this.$t('fe_inProgress'),
+              value: 'InProgress',
+              color: '#1990ff'
+            },
+            {
+              label: this.$t('fe_completed'),
+              value: 'Completed',
+              color: '#7ac756'
+            },
+            {
+              label: this.$t('fe_faulted'),
+              value: 'Faulted',
+              color: '#e29836'
+            },
+            {
+              label: this.$t('fe_internallyTerminated'),
+              value: 'InternallyTerminated',
+              color: '#e29836'
+            }
           ]
         },
         // 操作对象
@@ -106,7 +156,8 @@ export default {
         params: {
           name: '',
           id: '',
-          time: [dayjs().subtract(3, 'day').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+          time: [dayjs().subtract(3, 'day')
+            .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
           startTime: '',
           endTime: '',
           procDefId: '',
@@ -147,25 +198,22 @@ export default {
                   {params.row.scheduleJobName}
                 </span>
               )
-            } else {
-              return <span>-</span>
             }
+            return <span>-</span>
           }
         },
         {
           title: this.$t('flow_name'),
           minWidth: 200,
           key: 'procInstName',
-          render: (h, params) => {
-            return (
-              <div>
-                <span>
-                  {params.row.procInstName}
-                  <Tag style="margin-left:2px">{params.row.version}</Tag>
-                </span>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span>
+                {params.row.procInstName}
+                <Tag style="margin-left:2px">{params.row.version}</Tag>
+              </span>
+            </div>
+          )
         },
         {
           title: this.$t('fe_flowInstanceId'),
@@ -178,14 +226,46 @@ export default {
           minWidth: 140,
           render: (h, params) => {
             const list = [
-              { label: this.$t('fe_notStart'), value: 'NotStarted', color: '#808695' },
-              { label: this.$t('fe_inProgressFaulted'), value: 'InProgress(Faulted)', color: '#ed4014' },
-              { label: this.$t('fe_inProgressTimeouted'), value: 'InProgress(Timeouted)', color: '#ed4014' },
-              { label: this.$t('fe_stop'), value: 'Stop', color: '#ed4014' },
-              { label: this.$t('fe_inProgress'), value: 'InProgress', color: '#1990ff' },
-              { label: this.$t('fe_completed'), value: 'Completed', color: '#7ac756' },
-              { label: this.$t('fe_faulted'), value: 'Faulted', color: '#e29836' },
-              { label: this.$t('fe_internallyTerminated'), value: 'InternallyTerminated', color: '#e29836' }
+              {
+                label: this.$t('fe_notStart'),
+                value: 'NotStarted',
+                color: '#808695'
+              },
+              {
+                label: this.$t('fe_inProgressFaulted'),
+                value: 'InProgress(Faulted)',
+                color: '#ed4014'
+              },
+              {
+                label: this.$t('fe_inProgressTimeouted'),
+                value: 'InProgress(Timeouted)',
+                color: '#ed4014'
+              },
+              {
+                label: this.$t('fe_stop'),
+                value: 'Stop',
+                color: '#ed4014'
+              },
+              {
+                label: this.$t('fe_inProgress'),
+                value: 'InProgress',
+                color: '#1990ff'
+              },
+              {
+                label: this.$t('fe_completed'),
+                value: 'Completed',
+                color: '#7ac756'
+              },
+              {
+                label: this.$t('fe_faulted'),
+                value: 'Faulted',
+                color: '#e29836'
+              },
+              {
+                label: this.$t('fe_internallyTerminated'),
+                value: 'InternallyTerminated',
+                color: '#e29836'
+              }
             ]
             const findObj = list.find(item => item.value === params.row.status) || {}
             return <Tag color={findObj.color}>{findObj.label}</Tag>
@@ -199,9 +279,8 @@ export default {
           render: (h, params) => {
             if (params.row.entityDisplayName !== '') {
               return <span>{params.row.entityDisplayName}</span>
-            } else {
-              return <span>-</span>
             }
+            return <span>-</span>
           }
         },
         {
@@ -230,86 +309,105 @@ export default {
           width: 130,
           align: 'center',
           fixed: 'right',
-          render: (h, params) => {
-            return (
-              <div style="display:flex;justify-content:center;">
-                <Tooltip content={this.$t('be_details')} placement="top">
+          render: (h, params) => (
+            <div style="display:flex;justify-content:center;">
+              <Tooltip content={this.$t('be_details')} placement="top">
+                <Button
+                  size="small"
+                  type="info"
+                  onClick={() => {
+                    this.jumpToHistory(params.row) // 查看
+                  }}
+                  style="margin-right:5px;"
+                >
+                  <Icon type="md-eye" size="16"></Icon>
+                </Button>
+              </Tooltip>
+              {['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)'].includes(params.row.status) && (
+                <Tooltip content={this.$t('pause')} placement="top">
                   <Button
                     size="small"
-                    type="info"
+                    type="warning"
                     onClick={() => {
-                      this.jumpToHistory(params.row) // 查看
+                      this.flowControlHandler('stop', params.row) // 暂停
                     }}
                     style="margin-right:5px;"
                   >
-                    <Icon type="md-eye" size="16"></Icon>
+                    <Icon type="md-pause" size="16"></Icon>
                   </Button>
                 </Tooltip>
-                {['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)'].includes(params.row.status) && (
-                  <Tooltip content={this.$t('pause')} placement="top">
-                    <Button
-                      size="small"
-                      type="warning"
-                      onClick={() => {
-                        this.flowControlHandler('stop', params.row) // 暂停
-                      }}
-                      style="margin-right:5px;"
-                    >
-                      <Icon type="md-pause" size="16"></Icon>
-                    </Button>
-                  </Tooltip>
-                )}
-                {params.row.status === 'Stop' && (
-                  <Tooltip content={this.$t('be_continue')} placement="top">
-                    <Button
-                      size="small"
-                      type="success"
-                      onClick={() => {
-                        this.flowControlHandler('recover', params.row) // 继续
-                      }}
-                      style="margin-right:5px;"
-                    >
-                      <Icon type="md-play" size="16"></Icon>
-                    </Button>
-                  </Tooltip>
-                )}
-                {['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(params.row.status) && (
-                  <Tooltip content={this.$t('stop_orch')} placement="top">
-                    <Button
-                      size="small"
-                      type="error"
-                      onClick={() => {
-                        this.stopTask(params.row) // 终止
-                      }}
-                      style="margin-right:5px;"
-                    >
-                      <Icon type="md-power" size="16"></Icon>
-                    </Button>
-                  </Tooltip>
-                )}
-              </div>
-            )
-          }
+              )}
+              {params.row.status === 'Stop' && (
+                <Tooltip content={this.$t('be_continue')} placement="top">
+                  <Button
+                    size="small"
+                    type="success"
+                    onClick={() => {
+                      this.flowControlHandler('recover', params.row) // 继续
+                    }}
+                    style="margin-right:5px;"
+                  >
+                    <Icon type="md-play" size="16"></Icon>
+                  </Button>
+                </Tooltip>
+              )}
+              {['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(params.row.status) && (
+                <Tooltip content={this.$t('stop_orch')} placement="top">
+                  <Button
+                    size="small"
+                    type="error"
+                    onClick={() => {
+                      this.stopTask(params.row) // 终止
+                    }}
+                    style="margin-right:5px;"
+                  >
+                    <Icon type="md-power" size="16"></Icon>
+                  </Button>
+                </Tooltip>
+              )}
+            </div>
+          )
         }
       ],
       users: []
     }
   },
-  async mounted () {
+  beforeRouteEnter(to, from, next) {
+    next(vm => {
+      if (from.path === '/implementation/workflow-execution/view-execution') {
+        // 读取列表搜索参数
+        const storage = window.sessionStorage.getItem('search_timeExecution') || ''
+        if (storage) {
+          const { searchParams, searchOptions } = JSON.parse(storage)
+          vm.searchConfig = searchParams
+          vm.searchOptions = searchOptions
+        }
+      }
+    })
+  },
+  beforeDestroy() {
+    // 缓存列表搜索条件
+    const storage = {
+      searchParams: this.searchConfig,
+      searchOptions: this.searchOptions
+    }
+    window.sessionStorage.setItem('search_timeExecution', JSON.stringify(storage))
+  },
+  async mounted() {
     this.MODALHEIGHT = document.body.scrollHeight - 220
     this.getFlows()
     this.getProcessInstances()
   },
   methods: {
-    handleQuery () {
+    handleQuery() {
       this.pageable.current = 1
       this.getProcessInstances()
     },
-    selectionChange (val) {
+    selectionChange(val) {
       this.selectData = val
     },
     // #region 暂停、继续编排
-    async flowControlHandler (operateType, row) {
+    async flowControlHandler(operateType, row) {
       this.$Modal.confirm({
         title:
           localStorage.getItem('username') !== row.operator
@@ -323,7 +421,7 @@ export default {
             : '',
         'z-index': 1000000,
         onOk: async () => {
-          let payload = {
+          const payload = {
             procInstId: row.id,
             act: operateType
           }
@@ -342,7 +440,7 @@ export default {
       })
     },
     // 终止任务
-    stopTask (row) {
+    stopTask(row) {
       this.$Modal.confirm({
         title:
           localStorage.getItem('username') !== row.operator
@@ -375,7 +473,7 @@ export default {
       })
     },
     // 批量终止
-    batchStopTask () {
+    batchStopTask() {
       const list = this.selectData.filter(i => i.operator !== localStorage.getItem('username')) || []
       const operatorList = list.map(i => i.operator) || []
       const tips = Array.from(new Set(operatorList)).join('、')
@@ -386,11 +484,9 @@ export default {
           : '',
         'z-index': 1000000,
         onOk: async () => {
-          const params = this.selectData.map(i => {
-            return {
-              id: i.id
-            }
-          })
+          const params = this.selectData.map(i => ({
+            id: i.id
+          }))
           this.loading = true
           const { status } = await batchWorkflowInstanceTermination(params)
           this.loading = false
@@ -405,21 +501,23 @@ export default {
         onCancel: () => {}
       })
     },
-    async getFlows () {
-      let { status, data } = await getAllFlow(false)
+    async getFlows() {
+      const { status, data } = await getAllFlow(false)
       if (status === 'OK') {
         this.allFlows = data.sort((a, b) => {
-          let s = a.createdTime.toLowerCase()
-          let t = b.createdTime.toLowerCase()
-          if (s > t) return -1
-          if (s < t) return 1
-        })
-        this.allFlows = this.allFlows.map(item => {
-          return {
-            label: `${item.procDefName} [${item.procDefVersion}]`,
-            value: item.procDefId
+          const s = a.createdTime.toLowerCase()
+          const t = b.createdTime.toLowerCase()
+          if (s > t) {
+            return -1
+          }
+          if (s < t) {
+            return 1
           }
         })
+        this.allFlows = this.allFlows.map(item => ({
+          label: `${item.procDefName} [${item.procDefVersion}]`,
+          value: item.procDefId
+        }))
         this.searchOptions.forEach(item => {
           if (item.key === 'procDefId') {
             item.list = this.allFlows
@@ -427,16 +525,16 @@ export default {
         })
       }
     },
-    changePageSize (pageSize) {
+    changePageSize(pageSize) {
       this.pageable.current = 1
       this.pageable.pageSize = pageSize
       this.getProcessInstances()
     },
-    changPage (current) {
+    changPage(current) {
       this.pageable.current = current
       this.getProcessInstances()
     },
-    async getProcessInstances () {
+    async getProcessInstances() {
       const params = {
         name: this.searchConfig.params.name !== '' ? this.searchConfig.params.name : undefined,
         id: this.searchConfig.params.id !== '' ? this.searchConfig.params.id : undefined,
@@ -456,7 +554,7 @@ export default {
       this.tableData = []
       this.selectData = []
       this.loading = true
-      let { status, data } = await instancesWithPaging(params)
+      const { status, data } = await instancesWithPaging(params)
       this.loading = false
       if (status === 'OK') {
         this.tableData = data.contents
@@ -464,8 +562,8 @@ export default {
           // 禁用不能终止的表格复选框
           if (
             !(
-              ['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(i.status) &&
-              !(i.parentProcIns && i.parentProcIns.procInsId)
+              ['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(i.status)
+              && !(i.parentProcIns && i.parentProcIns.procInsId)
             )
           ) {
             i._disabled = true
@@ -476,7 +574,7 @@ export default {
         this.pageable.startIndex = data.pageInfo.startIndex
       }
     },
-    async jumpToHistory (row) {
+    async jumpToHistory(row) {
       const params = {
         id: row.id,
         operator: 'systemCron',
@@ -485,7 +583,7 @@ export default {
           pageSize: 5000
         }
       }
-      let { status, data } = await instancesWithPaging(params)
+      const { status, data } = await instancesWithPaging(params)
       if (status === 'OK') {
         const detail = Array.isArray(data.contents) && data.contents[0]
         // 能获取到历史记录，跳转，否则给出提示
