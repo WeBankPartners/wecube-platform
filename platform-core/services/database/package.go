@@ -291,34 +291,14 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 			}})
 			for _, interfaceParam := range pluginConfigInterface.InputParameters.Parameter {
 				interfaceParamId := "p_conf_inf_param_" + guid.CreateGuid()
-				required, sensitive, multiple := false, false, false
-				if interfaceParam.Required == "Y" {
-					required = true
-				}
-				if interfaceParam.SensitiveData == "Y" {
-					sensitive = true
-				}
-				if interfaceParam.Multiple == "Y" {
-					multiple = true
-				}
 				actions = append(actions, &db.ExecAction{Sql: "insert into plugin_config_interface_parameters (id,plugin_config_interface_id,type,name,data_type,mapping_type,mapping_entity_expression,mapping_system_variable_name,required,sensitive_data,description,mapping_val,ref_object_name,multiple ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-					interfaceParamId, pluginConfigInterfaceId, models.PluginParamTypeInput, interfaceParam.Text, interfaceParam.Datatype, interfaceParam.MappingType, interfaceParam.MappingEntityExpression, interfaceParam.MappingSystemVariableName, required, sensitive, interfaceParam.Description, interfaceParam.MappingVal, interfaceParam.RefObjectName, multiple,
+					interfaceParamId, pluginConfigInterfaceId, models.PluginParamTypeInput, interfaceParam.Text, interfaceParam.Datatype, interfaceParam.MappingType, interfaceParam.MappingEntityExpression, interfaceParam.MappingSystemVariableName, interfaceParam.Required, interfaceParam.SensitiveData, interfaceParam.Description, interfaceParam.MappingVal, interfaceParam.RefObjectName, interfaceParam.Multiple,
 				}})
 			}
 			for _, interfaceParam := range pluginConfigInterface.OutputParameters.Parameter {
 				interfaceParamId := "p_conf_inf_param_" + guid.CreateGuid()
-				required, sensitive, multiple := false, false, false
-				if interfaceParam.Required == "Y" {
-					required = true
-				}
-				if interfaceParam.SensitiveData == "Y" {
-					sensitive = true
-				}
-				if interfaceParam.Multiple == "Y" {
-					multiple = true
-				}
 				actions = append(actions, &db.ExecAction{Sql: "insert into plugin_config_interface_parameters (id,plugin_config_interface_id,type,name,data_type,mapping_type,mapping_entity_expression,mapping_system_variable_name,required,sensitive_data,description,mapping_val,ref_object_name,multiple ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-					interfaceParamId, pluginConfigInterfaceId, models.PluginParamTypeOutput, interfaceParam.Text, interfaceParam.Datatype, interfaceParam.MappingType, interfaceParam.MappingEntityExpression, interfaceParam.MappingSystemVariableName, required, sensitive, interfaceParam.Description, interfaceParam.MappingVal, interfaceParam.RefObjectName, multiple,
+					interfaceParamId, pluginConfigInterfaceId, models.PluginParamTypeOutput, interfaceParam.Text, interfaceParam.Datatype, interfaceParam.MappingType, interfaceParam.MappingEntityExpression, interfaceParam.MappingSystemVariableName, interfaceParam.Required, interfaceParam.SensitiveData, interfaceParam.Description, interfaceParam.MappingVal, interfaceParam.RefObjectName, interfaceParam.Multiple,
 				}})
 			}
 		}
@@ -863,7 +843,8 @@ func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId, plugi
 
 func GetPluginResourceFiles(ctx context.Context) (result []*models.PluginPackageResourceFiles, err error) {
 	result = []*models.PluginPackageResourceFiles{}
-	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_resource_files where plugin_package_id in (SELECT t1.id FROM plugin_packages t1 where t1.ui_package_included=1 and t1.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t1.upload_timestamp = (SELECT MAX(t2.upload_timestamp) FROM plugin_packages t2 WHERE t2.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t2.name = t1.name GROUP BY t2.name))").Find(&result)
+	//err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_resource_files where plugin_package_id in (SELECT t1.id FROM plugin_packages t1 where t1.ui_package_included=1 and t1.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t1.upload_timestamp = (SELECT MAX(t2.upload_timestamp) FROM plugin_packages t2 WHERE t2.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t2.name = t1.name GROUP BY t2.name))").Find(&result)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_resource_files where plugin_package_id in (select id from plugin_packages where status='REGISTERED' and ui_active=1)").Find(&result)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	}
