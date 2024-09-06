@@ -83,8 +83,7 @@
                                   size="small"
                                   type="success"
                                   @click="createInstanceByIpPort(item.ip, item.port)"
-                                  >{{ $t('create') }}</Button
-                                >
+                                >{{ $t('create') }}</Button>
                               </div>
                             </div>
                           </div>
@@ -181,8 +180,8 @@
       </div>
     </div>
     <div class="footer-button">
-      <Dropdown placement="bottom-start" @on-click="onInheritedVersionSelected">
-        <Button v-if="currentStep === 2" type="info" class="mr-3">
+      <Dropdown v-if="currentStep === 2" placement="bottom-start" @on-click="onInheritedVersionSelected">
+        <Button type="info" class="mr-3">
           {{ $t('p_inherited_version') }}
           <Icon type="ios-arrow-down"></Icon>
         </Button>
@@ -239,7 +238,7 @@
               :disabled="typeof item.disabled === 'function' ? item.disabled() : item.disabled"
               class="mr-3"
               @click="onFooterButtonClick(item.key)"
-              >{{ item.label }}
+            >{{ item.label }}
             </Button>
           </div>
         </div>
@@ -284,7 +283,7 @@ export default {
     RuntimesResources,
     AuthSettings
   },
-  data () {
+  data() {
     return {
       pluginId: '',
       pluginItemDetail: {
@@ -349,9 +348,7 @@ export default {
             label: this.$t('p_sixth_step_title'),
             buttonType: 'primary',
             key: 'finish',
-            disabled: () => {
-              return this.allInstances.length === 0
-            }
+            disabled: () => this.allInstances.length === 0
           }
         ]
       },
@@ -410,14 +407,15 @@ export default {
       spinContent: ''
     }
   },
-  created () {
+  created() {
     this.pluginId = this.$route.query.pluginId || ''
     if (hasIn(this.$route.query, 'step') && this.$route.query.step) {
       const step = this.$route.query.step
-      if (['1', '2'].includes(step)) {
+      if ([1, 2].includes(step)) {
         this.isJustShowRightContent = true
         this.currentStep = Number(this.$route.query.step)
-      } else {
+      }
+      else {
         this.returnPreviousPage()
       }
     }
@@ -425,7 +423,7 @@ export default {
     this.getOptionList()
   },
   methods: {
-    async getPluginItemDetail () {
+    async getPluginItemDetail() {
       if (!this.pluginId) {
         this.$router.push({ path: '/collaboration/plugin-management' })
       }
@@ -436,12 +434,13 @@ export default {
       const { data, status } = await req.get(api, { params })
       if (status === 'OK') {
         this.pluginItemDetail = data[0]
-      } else {
+      }
+      else {
         this.$Message.error(this.$t('p_request_fail'))
       }
       this.stepContent[0].title += this.pluginItemDetail.name + '_' + this.pluginItemDetail.version
     },
-    async getOptionList () {
+    async getOptionList() {
       const api = '/platform/v1/plugins/packages/version/get'
       const params = {
         id: this.pluginId
@@ -449,34 +448,33 @@ export default {
       const res = await req.get(api, { params })
       if (res.status === 'OK') {
         this.inheritedVersionOptionList = res.data || []
-      } else {
+      }
+      else {
         this.inheritedVersionOptionList = []
         this.$Message.error(res.message)
       }
       this.availableHostList = (await getAvailableContainerHosts()).data || []
       const { status, data } = await queryStorageFilesByPackageId(this.pluginId)
       if (status === 'OK') {
-        this.storageServiceData = data.map(_ => {
-          return {
-            file: _[0],
-            path: _[1],
-            hash: _[2],
-            uploadTime: _[3]
-          }
-        })
+        this.storageServiceData = data.map(_ => ({
+          file: _[0],
+          path: _[1],
+          hash: _[2],
+          uploadTime: _[3]
+        }))
       }
       this.getAvailableInstances(this.pluginId)
     },
-    returnPreviousPage () {
+    returnPreviousPage() {
       this.$router.push({ path: '/collaboration/plugin-management' })
     },
-    handleTabClick (name) {
+    handleTabClick(name) {
       this.currentTabName = name
     },
-    onFooterButtonClick (key) {
+    onFooterButtonClick(key) {
       this[this.buttonFunctionMap[key]]()
     },
-    getAllServiceById () {
+    getAllServiceById() {
       return new Promise(resolve => {
         getPluginConfigsByPackageId(this.pluginId).then(res => {
           if (res.status === 'OK') {
@@ -485,7 +483,7 @@ export default {
         })
       })
     },
-    async enterNextStep () {
+    async enterNextStep() {
       if (this.currentStep === 1) {
         const data = await this.getAllServiceById()
         if (!data || isEmpty(data)) {
@@ -496,22 +494,24 @@ export default {
         if (!isEmpty(this.inheritedVersionOptionList)) {
           this.onInheritedVersionSelected(JSON.stringify(this.inheritedVersionOptionList[0]))
         }
-      } else if (this.currentStep === 2) {
+      }
+      else if (this.currentStep === 2) {
         if (!this.pluginItemDetail.menus || isEmpty(this.pluginItemDetail.menus)) {
           this.currentStep += 1
           this.enterNextStep()
           return
         }
         this.currentTabName = '1'
-      } else if (this.currentStep === 3) {
+      }
+      else if (this.currentStep === 3) {
         this.currentTabName = '6'
       }
       this.currentStep += 1
     },
-    batchRegist () {
+    batchRegist() {
       this.$refs.pluginRegister.batchRegist()
     },
-    async onInheritedVersionSelected (item) {
+    async onInheritedVersionSelected(item) {
       if (item) {
         const versionObj = JSON.parse(item)
         const api = '/platform/v1/plugins/packages/version/inherit'
@@ -523,12 +523,13 @@ export default {
           this.selectedVersion = versionObj.version
           this.$refs.pluginRegister.startRegister()
           this.batchRegist()
-        } else {
+        }
+        else {
           this.$Message.error(this.$t('p_execute_fail'))
         }
       }
     },
-    onImportSuccess (response) {
+    onImportSuccess(response) {
       if (response.status === 'OK') {
         this.$Notice.success({
           title: 'Success',
@@ -537,7 +538,8 @@ export default {
         this.selectedVersion = this.$t('p_new_config')
         this.$refs.pluginRegister.startRegister()
         this.batchRegist()
-      } else {
+      }
+      else {
         this.$Notice.warning({
           title: 'Warning',
           desc: response.message
@@ -545,14 +547,14 @@ export default {
       }
       this.$refs.importXML.clearFiles()
     },
-    onError (file) {
+    onError(file) {
       this.$Notice.error({
         title: 'Error',
         desc: file.message
       })
     },
-    async oldRegistItem () {
-      let { status } = await registPluginPackage(this.pluginId)
+    async oldRegistItem() {
+      const { status } = await registPluginPackage(this.pluginId)
       if (status === 'OK') {
         this.$Notice.success({
           title: 'Success',
@@ -561,7 +563,7 @@ export default {
         this.enterNextStep()
       }
     },
-    async registItem () {
+    async registItem() {
       const api = '/platform/v1/packages/ui/register'
       const { status } = await req.post(api, {
         id: this.pluginId
@@ -570,11 +572,12 @@ export default {
         this.$Message.success(this.$t('action_successful'))
         this.getAvailableInstances(this.pluginId)
         this.enterNextStep()
-      } else {
+      }
+      else {
         this.$Message.error(this.$t('p_execute_fail'))
       }
     },
-    getPortByHostIp () {
+    getPortByHostIp() {
       this.allowCreationIpPort = []
       this.selectedIp.forEach(async ip => {
         const { data, status } = await getAvailablePortByHostIp(ip)
@@ -586,7 +589,7 @@ export default {
         }
       })
     },
-    async createInstanceByIpPort (ip, port) {
+    async createInstanceByIpPort(ip, port) {
       this.isSpinShow = true
       this.spinContent = this.$t('p_instance_creation')
       const timeId = setTimeout(() => {
@@ -606,13 +609,14 @@ export default {
         this.allowCreationIpPort.splice(index, 1)
         this.getAvailableInstances(this.pluginId)
         this.selectedIp = []
-      } else {
+      }
+      else {
         this.isSpinShow = false
         clearTimeout(timeId)
       }
     },
-    async getAvailableInstances (id) {
-      let { data, status } = await getAvailableInstancesByPackageId(id)
+    async getAvailableInstances(id) {
+      const { data, status } = await getAvailableInstancesByPackageId(id)
       if (status === 'OK') {
         this.allInstances = data.map(_ => {
           if (_.status !== 'REMOVED') {
@@ -633,7 +637,7 @@ export default {
         })
       }
     },
-    async removePlugin (instanceId) {
+    async removePlugin(instanceId) {
       this.isSpinShow = true
       this.spinContent = this.$t('p_instance_destroy')
       const timeId = setTimeout(() => {
@@ -641,7 +645,7 @@ export default {
         this.timeId = null
         this.$Message.error(this.$t('p_instance_destroy_failed'))
       }, 180000)
-      let { status, message } = await removePluginInstance(instanceId)
+      const { status, message } = await removePluginInstance(instanceId)
       this.isSpinShow = false
       clearTimeout(timeId)
       if (status === 'OK') {
@@ -653,29 +657,27 @@ export default {
         this.updateMenus()
       }
     },
-    updateMenus () {
+    updateMenus() {
       this.$eventBusP.$emit('updateMenus')
     },
-    async getDBTableData () {
-      let payload = {
+    async getDBTableData() {
+      const payload = {
         sqlQuery: this.dbQueryCommandString,
         pageable: {
           pageSize: this.dbTablePagination.pageSize,
           startIndex: this.dbTablePagination.pageSize * (this.dbTablePagination.currentPage - 1)
         }
       }
-      let { status, data } = await queryDataBaseByPackageId(this.pluginId, payload)
+      const { status, data } = await queryDataBaseByPackageId(this.pluginId, payload)
       if (status === 'OK') {
         this.dbTablePagination.total = data.pageInfo.totalRows
-        this.dbQueryColumns = data.headers.map(_ => {
-          return {
-            key: _,
-            title: _,
-            minWidth: 170
-          }
-        })
+        this.dbQueryColumns = data.headers.map(_ => ({
+          key: _,
+          title: _,
+          minWidth: 170
+        }))
         this.dbQueryData = data.contents.map(_ => {
-          let tempObj = {}
+          const tempObj = {}
           _.forEach((i, index) => {
             tempObj[this.dbQueryColumns[index].key] = i
           })
@@ -683,15 +685,15 @@ export default {
         })
       }
     },
-    onDBTablePageChange (currentPage) {
+    onDBTablePageChange(currentPage) {
       this.dbTablePagination.currentPage = currentPage
       this.getDBTableData()
     },
-    onDBTablePageSizeChange (pageSize) {
+    onDBTablePageSizeChange(pageSize) {
       this.dbTablePagination.pageSize = pageSize
       this.getDBTableData()
     },
-    async installFinish () {
+    async installFinish() {
       const api = '/platform/v1/packages/register-done'
       const { status } = await req.post(api, {
         id: this.pluginId
@@ -702,10 +704,10 @@ export default {
         this.reloadPage()
       }
     },
-    reloadPage () {
+    reloadPage() {
       document.location.reload()
     },
-    onServiceListGet (data = []) {
+    onServiceListGet(data = []) {
       if (!isEmpty(data)) {
         this.isServiceActionNotEmpty = false
         for (let i = 0; i < data.length; i++) {
@@ -716,11 +718,12 @@ export default {
             }
           }
         }
-      } else {
+      }
+      else {
         this.isServiceActionNotEmpty = false
       }
     },
-    onRegisteSuccess () {
+    onRegisteSuccess() {
       this.inheritedVersion = this.selectedVersion
     }
   }
