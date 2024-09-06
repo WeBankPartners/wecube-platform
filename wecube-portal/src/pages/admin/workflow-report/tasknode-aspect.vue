@@ -2,14 +2,15 @@
   <div class="">
     <div class="report-container">
       <div class="item">
-        <DatePicker
+        <!-- <DatePicker
           type="datetimerange"
           format="yyyy-MM-dd HH:mm:ss"
           :placeholder="$t('datetime_range')"
           style="width: 300px"
           split-panels
           @on-change="getDate"
-        ></DatePicker>
+        ></DatePicker> -->
+        <DateGroup :label="$t('datetime_range')" :typeList="dateTypeList" @change="getDate"></DateGroup>
       </div>
       <div class="item">
         <Select
@@ -41,8 +42,7 @@
             v-for="(item, itenIndex) in searchConfig.tasknodeOptions"
             :value="item.nodeDefId"
             :key="item.nodeDefId + itenIndex"
-            >{{ item.nodeName }}</Option
-          >
+          >{{ item.nodeName }}</Option>
         </Select>
       </div>
       <div class="item">
@@ -61,8 +61,7 @@
             v-for="(item, itemIndex) in searchConfig.tasknodeBindingOptions"
             :value="item.entityDataId"
             :key="item.entityDataId + itemIndex"
-            >{{ item.entityDisplayName || item.entityDataId }}</Option
-          >
+          >{{ item.entityDisplayName || item.entityDataId }}</Option>
         </Select>
       </div>
       <div class="item">
@@ -94,6 +93,7 @@
 
 <script>
 import ReportDetail from './show-report-detail'
+import DateGroup from '@/pages/components/date-group'
 import {
   getProcessList,
   getTasknodesList,
@@ -102,8 +102,11 @@ import {
   getReportDetails
 } from '@/api/server.js'
 export default {
-  name: '',
-  data () {
+  components: {
+    DateGroup,
+    ReportDetail
+  },
+  data() {
     return {
       MODALHEIGHT: 0,
       searchParams: {},
@@ -148,73 +151,94 @@ export default {
         {
           title: this.$t('task_node_bindings'),
           // key: 'entityDataName',
-          render: (h, params) => {
-            return <span>{params.row.entityDataName || params.row.entityDataId}</span>
-          }
+          render: (h, params) => <span>{params.row.entityDataName || params.row.entityDataId}</span>
         },
         {
           title: this.$t('failure_count'),
           sortable: 'custom',
           key: 'failureCount',
-          render: (h, params) => {
-            return (
-              <div>
-                <span style="color:red">{params.row.failureCount}</span>
-                {params.row.failureCount > 0 && (
-                  <Button
-                    style="margin-left:8px"
-                    size="small"
-                    type="primary"
-                    ghost
-                    onClick={() => this.getReportDetails(params.row, 'Faulted')}
-                    icon="ios-search"
-                  ></Button>
-                )}
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span style="color:red">{params.row.failureCount}</span>
+              {params.row.failureCount > 0 && (
+                <Button
+                  style="margin-left:8px"
+                  size="small"
+                  type="primary"
+                  ghost
+                  onClick={() => this.getReportDetails(params.row, 'Faulted')}
+                  icon="ios-search"
+                ></Button>
+              )}
+            </div>
+          )
         },
         {
           title: this.$t('success_count'),
           sortable: 'custom',
           key: 'successCount',
-          render: (h, params) => {
-            return (
-              <div>
-                <span style="color:#2d8cf0">{params.row.successCount}</span>
-                {params.row.successCount > 0 && (
-                  <Button
-                    style="margin-left:8px"
-                    size="small"
-                    type="primary"
-                    ghost
-                    onClick={() => this.getReportDetails(params.row, 'Completed')}
-                    icon="ios-search"
-                  ></Button>
-                )}
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span style="color:#2d8cf0">{params.row.successCount}</span>
+              {params.row.successCount > 0 && (
+                <Button
+                  style="margin-left:8px"
+                  size="small"
+                  type="primary"
+                  ghost
+                  onClick={() => this.getReportDetails(params.row, 'Completed')}
+                  icon="ios-search"
+                ></Button>
+              )}
+            </div>
+          )
         }
+      ],
+      dateTypeList: [
+        {
+          label: this.$t('be_threeDays_recent'),
+          type: 'day',
+          value: 3,
+          dateType: 1
+        },
+        {
+          label: this.$t('be_oneWeek_recent'),
+          type: 'day',
+          value: 7,
+          dateType: 2
+        },
+        {
+          label: this.$t('be_oneMonth_recent'),
+          type: 'month',
+          value: 1,
+          dateType: 3
+        },
+        {
+          label: this.$t('be_auto'),
+          dateType: 4
+        } // 自定义
       ]
     }
   },
-  mounted () {
+  mounted() {
     this.MODALHEIGHT = document.body.scrollHeight - 300
   },
   methods: {
-    async sortTable (column) {
-      this.searchConfig.params.sorting = { asc: column.order === 'asc', field: column.key }
+    async sortTable(column) {
+      this.searchConfig.params.sorting = {
+        asc: column.order === 'asc',
+        field: column.key
+      }
       const { status, data } = await getTasknodesReport(this.searchConfig.params)
       if (status === 'OK') {
         this.tableData = data.contents
         this.totalRows = data.pageInfo.totalRows
       }
     },
-    async getReportDetails (val, type) {
+    async getReportDetails(val, type) {
       const params = {
-        endDate: this.searchConfig.params.endDate,
         startDate: this.searchConfig.params.startDate,
+        endDate: this.searchConfig.params.endDate,
         status: type,
         entityDataName: val.entityDataName,
         serviceId: val.serviceId,
@@ -227,8 +251,8 @@ export default {
         this.$refs.reportDetail.initData(data)
       }
     },
-    async getReport () {
-      let copyParams = JSON.parse(JSON.stringify(this.searchConfig.params))
+    async getReport() {
+      const copyParams = JSON.parse(JSON.stringify(this.searchConfig.params))
       copyParams.procDefIds = [copyParams.procDefIds]
       const { status, data, message } = await getTasknodesReport(copyParams)
       if (status === 'OK') {
@@ -239,48 +263,45 @@ export default {
         this.tableData = data.contents
       }
     },
-    disableBtn () {
+    disableBtn() {
       return (
-        this.searchConfig.params.startDate !== '' &&
-        this.searchConfig.params.endDate !== '' &&
-        this.searchConfig.params.taskNodeIds.length !== 0 &&
-        this.searchConfig.params.taskNodeIds.length !== 0 &&
-        this.searchConfig.params.procDefIds !== ''
+        this.searchConfig.params.startDate !== ''
+        && this.searchConfig.params.endDate !== ''
+        && this.searchConfig.params.taskNodeIds.length !== 0
+        && this.searchConfig.params.taskNodeIds.length !== 0
+        && this.searchConfig.params.procDefIds !== ''
       )
     },
-    getDate (dateRange) {
-      this.searchConfig.params.startDate = dateRange[0]
-      this.searchConfig.params.endDate = dateRange[1]
+    getDate(dateRange) {
+      this.searchConfig.params.startDate = dateRange[0] ? dateRange[0] + ' 00:00:00' : ''
+      this.searchConfig.params.endDate = dateRange[1] ? dateRange[1] + ' 23:59:59' : ''
     },
-    async getProcess () {
+    async getProcess() {
       const { status, data } = await getProcessList()
       if (status === 'OK') {
         this.searchConfig.processOptions = data
       }
     },
-    changeProcess () {
+    changeProcess() {
       this.searchConfig.params.taskNodeIds = []
       this.searchConfig.params.entityDataIds = []
     },
-    async getTasknodes () {
+    async getTasknodes() {
       const { status, data } = await getTasknodesList([this.searchConfig.params.procDefIds])
       if (status === 'OK') {
         this.searchConfig.tasknodeOptions = data
       }
     },
-    changeTasknodes () {
+    changeTasknodes() {
       this.searchConfig.params.entityDataIds = []
     },
-    async getTasknodesBindings () {
+    async getTasknodesBindings() {
       const { status, data } = await getTasknodesBindings(this.searchConfig.params.taskNodeIds)
       if (status === 'OK') {
         this.searchConfig.tasknodeBindingOptions = data
       }
     },
-    changeTasknodesBindings () {}
-  },
-  components: {
-    ReportDetail
+    changeTasknodesBindings() {}
   }
 }
 </script>
