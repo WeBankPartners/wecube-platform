@@ -23,13 +23,13 @@ export default {
       default: ''
     }
   },
-  data () {
+  data() {
     return {
       expand: true
     }
   },
   methods: {
-    handleExpand () {
+    handleExpand() {
       this.expand = !this.expand
     }
   }

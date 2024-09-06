@@ -169,6 +169,7 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/root-entities", Method: "GET", HandlerFunc: process.ProcDefRootEntities, ApiCode: "process-def-root-entity"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/preview/entities/:entityDataId", Method: "GET", HandlerFunc: process.ProcDefPreview, ApiCode: "process-def-preview"},
 		&handlerFuncObj{Url: "/public/process/definitions", Method: "GET", HandlerFunc: process.PublicProcDefList, ApiCode: "public-list-process-def"},
+		&handlerFuncObj{Url: "/public/process/definitions/detail", Method: "GET", HandlerFunc: process.GetProcessDefinitionByNameAndVersion, ApiCode: "process-definition-by-name"},
 		&handlerFuncObj{Url: "/public/process/definitions/:proc-def-id/preview/entities/:entityDataId", Method: "GET", HandlerFunc: process.PublicProcDefPreview, ApiCode: "process-def-preview"},
 		&handlerFuncObj{Url: "/public/process/definitions/:proc-def-id/tasknodes", Method: "GET", HandlerFunc: process.PublicProcDefTaskNodes, ApiCode: "get-process-definition-tasknodes"},
 		&handlerFuncObj{Url: "/process/instances/tasknodes/session/:sessionId/tasknode-bindings", Method: "GET", HandlerFunc: process.ProcInsTaskNodeBindings, ApiCode: "process-ins-binding"},
