@@ -101,6 +101,9 @@ func PublicProcDefNodeList(ctx context.Context, procDefId string) (nodes []*mode
 		} else if row.NodeType == "data" {
 			nodeObj.TaskCategory = "SDTN"
 			nodeObj.NodeType = "subProcess"
+		} else if row.NodeType == "subProc" {
+			nodeObj.TaskCategory = "SMTN"
+			nodeObj.NodeType = "subProcess"
 		}
 		nodes = append(nodes, &nodeObj)
 	}
@@ -835,7 +838,7 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 	orderIndex := 1
 	for _, node := range procDefNodes {
 		nodeOrderNo := ""
-		if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) {
+		if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) || node.NodeType == models.JobSubProcType {
 			nodeOrderNo = fmt.Sprintf("%d", orderIndex)
 			orderIndex += 1
 		}
@@ -1615,7 +1618,7 @@ func GetSimpleProcNodeReq(ctx context.Context, procInsNodeId, reqId, procRunNode
 	return
 }
 
-func UpdateProcCacheData(ctx context.Context, procInsId string, taskFormList []*models.PluginTaskFormDto) (err error) {
+func UpdateProcCacheDataByTaskForm(ctx context.Context, procInsId string, taskFormList []*models.PluginTaskFormDto) (err error) {
 	var cacheDataRows []*models.ProcDataCache
 	err = db.MysqlEngine.Context(ctx).SQL("select id,entity_id,entity_data_id,entity_type_id,data_value from proc_data_cache where proc_ins_id=?", procInsId).Find(&cacheDataRows)
 	if err != nil {
@@ -1788,6 +1791,10 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 		filterSqlList = append(filterSqlList, "proc_def_id in (select id from proc_def where sub_proc=0)")
 	} else if param.SubProc == "sub" {
 		filterSqlList = append(filterSqlList, "proc_def_id in (select id from proc_def where sub_proc=1)")
+	}
+	if param.Name != "" {
+		filterSqlList = append(filterSqlList, "id in (select proc_ins_id from proc_schedule_job where schedule_config_id in (select id from proc_schedule_config where name like ?))")
+		filterParams = append(filterParams, fmt.Sprintf("%%%s%%", param.Name))
 	}
 	filterSqlList = append(filterSqlList, "proc_def_id in (select proc_def_id from proc_def_permission where permission=? and role_id in ('"+strings.Join(userRoles, "','")+"'))")
 	filterParams = append(filterParams, models.PermissionTypeUSE)
@@ -2101,6 +2108,87 @@ func getScheduleProcInsConfigMap(ctx context.Context, procInsIdList []string) (s
 	}
 	for _, row := range procInsNodeRows {
 		scheduleConfigNameMap[row.ProcInsId] = row
+	}
+	return
+}
+
+func CheckProcDefStatus(ctx context.Context, procDefId string) (err error) {
+	procDefObj, getProcDefErr := GetSimpleProcDefRow(ctx, procDefId)
+	if getProcDefErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if procDefObj.Status != "deployed" {
+		err = fmt.Errorf("procDef:%s status:%s illegal", procDefObj.Name, procDefObj.Status)
+		return
+	}
+	var subProcDefRows []*models.ProcDef
+	err = db.MysqlEngine.Context(ctx).SQL("select id,name,status from proc_def where id in (select sub_proc_def_id from proc_def_node where proc_def_id=?)", procDefId).Find(&subProcDefRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(subProcDefRows) > 0 {
+		for _, row := range subProcDefRows {
+			if row.Status != "deployed" {
+				err = fmt.Errorf("subProcDef:%s status:%s illegal", row.Name, row.Status)
+				return
+			}
+		}
+	}
+	return
+}
+
+func UpdateProcCacheData(ctx context.Context, procInsId string, dataBinding []*models.ProcDataBinding) (err error) {
+	if len(dataBinding) == 0 {
+		return
+	}
+	var cacheDataRows []*models.ProcDataCache
+	err = db.MysqlEngine.Context(ctx).SQL("select id,entity_id,entity_data_id,entity_type_id,data_value from proc_data_cache where proc_ins_id=?", procInsId).Find(&cacheDataRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	var actions []*db.ExecAction
+	nowTime := time.Now()
+	for _, v := range dataBinding {
+		existCacheId, existCacheValue := "", ""
+		for _, row := range cacheDataRows {
+			if row.EntityTypeId == v.EntityTypeId && row.EntityDataId == v.EntityDataId {
+				existCacheId = row.Id
+				existCacheValue = row.DataValue
+				break
+			}
+		}
+		if existCacheId == "" {
+			actions = append(actions, &db.ExecAction{Sql: "insert into proc_data_cache(id,proc_ins_id,entity_id,entity_data_id,entity_data_name,entity_type_id,full_data_id,created_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+				"p_cache_" + guid.CreateGuid(), procInsId, v.EntityId, v.EntityDataId, v.EntityDataName, v.EntityTypeId, v.FullDataId, nowTime,
+			}})
+		} else {
+			if existCacheValue != "" && existCacheValue != "{}" {
+				if v.EntityData != nil {
+					existMap := make(map[string]interface{})
+					if tmpUnmarshalErr := json.Unmarshal([]byte(existCacheValue), &existMap); tmpUnmarshalErr == nil {
+						for dataKey, _ := range existMap {
+							if newDataValue, ok := v.EntityData[dataKey]; ok {
+								existMap[dataKey] = newDataValue
+							}
+						}
+						entityDataBytes, _ := json.Marshal(existMap)
+						actions = append(actions, &db.ExecAction{Sql: "update proc_data_cache set data_value=?,updated_time=? where id=?", Param: []interface{}{string(entityDataBytes), nowTime, existCacheId}})
+					} else {
+						log.Logger.Warn("json unmarshal proc data cache dataValue fail", log.String("dataValue", existCacheValue), log.Error(tmpUnmarshalErr))
+					}
+				}
+			}
+		}
+	}
+	if len(actions) > 0 {
+		err = db.Transaction(actions, ctx)
+		if err != nil {
+			log.Logger.Error("UpdateProcCacheData fail", log.Error(err))
+			err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+		}
 	}
 	return
 }
