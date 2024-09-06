@@ -660,6 +660,16 @@ func (n *WorkNode) doSubProcessJob(retry bool) (output string, err error) {
 	var subWorkflowList []*Workflow
 	var subWorkNodeList [][]*models.ProcRunNode
 	var subProcWorkflowList []*models.ProcRunNodeSubProc
+	for _, dataRow := range dataBindings {
+		if dataRow.SubSessionId == "" {
+			subPreviewResult, subPreviewErr := execution.BuildProcPreviewData(ctx, procDefNode.SubProcDefId, dataRow.EntityDataId, operator)
+			if subPreviewErr != nil {
+				err = fmt.Errorf("try to build sub proc preview data fail,%s ", subPreviewErr.Error())
+				return
+			}
+			dataRow.SubSessionId = subPreviewResult.ProcessSessionId
+		}
+	}
 	for i, dataRow := range dataBindings {
 		if dataRow.SubSessionId == "" {
 			continue

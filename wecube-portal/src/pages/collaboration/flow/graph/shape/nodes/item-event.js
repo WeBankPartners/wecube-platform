@@ -9,20 +9,21 @@
 /**
  * @description 恢复节点/边/锚点默认样式
  */
-function setStyle (item, nodeStyle, text, textStyle) {
+function setStyle(item, nodeStyle, text, textStyle) {
   item.attr(nodeStyle)
   if (text) {
     text.attr(textStyle)
   }
 }
 
-function getItemStyle (type, group, state = 'hover') {
+function getItemStyle(type, group, state = 'hover') {
   const item = group.get('item')
   const attrs = group.getFirst().attr()
   const originStyle = type === 'node' ? item.get('originStyle') : item.get('originStyle')['edge-shape']
   const activeStyle = attrs[`${type}State:${state}`]
   const defaultStyle = attrs[`${type}State:default`]
 
+  // eslint-disable-next-line
   if (type === 'edge' && defaultStyle && defaultStyle.lineWidth == null) {
     defaultStyle.lineWidth = 1
   }
@@ -39,18 +40,21 @@ const events = {
    * @description 锚点事件
    * 显示/隐藏锚点
    */
-  anchorShow (value, group) {
+  anchorShow(value, group) {
     // 锚点全局开关
     // changeData 时由于实例没销毁, 这里需要处理异常
     if (group.get('children')) {
       const { anchorControls } = group.get('children')[0].cfg.attrs
 
-      if (anchorControls && anchorControls.hide) return false
+      if (anchorControls && anchorControls.hide) {
+        return false
+      }
     }
 
     if (value) {
       group.showAnchor(group)
-    } else {
+    }
+    else {
       group.clearAnchor(group)
     }
   },
@@ -58,12 +62,14 @@ const events = {
   /**
    * @description 锚点激活事件
    */
-  anchorActived (value, group) {
+  anchorActived(value, group) {
     // 锚点全局开关
     if (group.get('children')) {
       const { anchorControls } = group.get('children')[0].cfg.attrs
 
-      if (anchorControls && anchorControls.hide) return false
+      if (anchorControls && anchorControls.hide) {
+        return false
+      }
     }
 
     if (value) {
@@ -116,7 +122,8 @@ const events = {
           item.toFront()
         }
       })
-    } else {
+    }
+    else {
       // 移除
       group.clearAnchor(group)
     }
@@ -125,11 +132,12 @@ const events = {
   /**
    * @description 边多状态事件
    */
-  nodeState (value, group) {
+  nodeState(value, group) {
     if (value === false) {
       // 清除所有状态
       events['nodeState:default'].call(this, true, group)
-    } else {
+    }
+    else {
       events[`nodeState:${value}`] && events[`nodeState:${value}`].call(this, value, group)
     }
   },
@@ -137,13 +145,15 @@ const events = {
   /**
    * @description 节点恢复默认状态事件
    */
-  'nodeState:default' (value, group) {
+  'nodeState:default': function (value, group) {
     if (value) {
       const node = group.getChildByIndex(0)
       const text = group.getChildByIndex(1)
       const { defaultStyle } = getItemStyle.call(this, 'node', group)
 
-      if (!defaultStyle) return
+      if (!defaultStyle) {
+        return
+      }
       const textStyle = defaultStyle.labelCfg && defaultStyle.labelCfg.style ? defaultStyle.labelCfg.style : {}
 
       setStyle(node, defaultStyle, text, textStyle)
@@ -153,17 +163,20 @@ const events = {
   /**
    * @description 节点selected事件
    */
-  'nodeState:selected' (value, group) {
+  'nodeState:selected': function (value, group) {
     const node = group.getChildByIndex(0)
     const text = group.getChildByIndex(1)
-    let { activeStyle, defaultStyle } = getItemStyle.call(this, 'node', group, 'selected')
-    if (!activeStyle) return
+    const { activeStyle, defaultStyle } = getItemStyle.call(this, 'node', group, 'selected')
+    if (!activeStyle) {
+      return
+    }
 
     if (value) {
       const textStyle = activeStyle.labelCfg && activeStyle.labelCfg.style ? activeStyle.labelCfg.style : {}
 
       setStyle(node, activeStyle, text, textStyle)
-    } else {
+    }
+    else {
       const textStyle = defaultStyle.labelCfg && defaultStyle.labelCfg.style ? defaultStyle.labelCfg.style : {}
 
       setStyle(node, defaultStyle, text, textStyle)
@@ -173,14 +186,17 @@ const events = {
   /**
    * @description 节点hover事件
    */
-  'nodeState:hover' (value, group) {
+  'nodeState:hover': function (value, group) {
     const node = group.getChildByIndex(0)
     const { activeStyle, defaultStyle } = getItemStyle.call(this, 'node', group, 'hover')
 
-    if (!activeStyle) return
+    if (!activeStyle) {
+      return
+    }
     if (value) {
       setStyle(node, activeStyle)
-    } else {
+    }
+    else {
       setStyle(node, defaultStyle)
     }
   },
@@ -188,11 +204,12 @@ const events = {
   /**
    * @description 边多状态事件
    */
-  edgeState (value, group) {
+  edgeState(value, group) {
     if (value === false) {
       // 清除所有状态
       events['edgeState:default'].call(this, true, group)
-    } else {
+    }
+    else {
       events[`edgeState:${value}`] && events[`edgeState:${value}`].call(this, value, group)
     }
   },
@@ -200,7 +217,7 @@ const events = {
   /**
    * @description 边恢复默认状态事件
    */
-  'edgeState:default' (value, group) {
+  'edgeState:default': function (value, group) {
     if (value) {
       const { activeStyle, defaultStyle, originStyle } = getItemStyle.call(this, 'edge', group)
       const edge = group.getChildByIndex(0)
@@ -209,7 +226,10 @@ const events = {
       if (defaultStyle) {
         // 停止内部动画
         this.stopAnimate(group, activeStyle && activeStyle.animationType ? activeStyle.animationType : 'dash')
-        setStyle(edge, { ...defaultStyle, animationType: activeStyle.animationType || 'dash' })
+        setStyle(edge, {
+          ...defaultStyle,
+          animationType: activeStyle.animationType || 'dash'
+        })
 
         if (endArrow) {
           edge.attr(
@@ -240,18 +260,22 @@ const events = {
   /**
    * @description edge hover事件
    */
-  'edgeState:hover' (value, group) {
+  'edgeState:hover': function (value, group) {
     const path = group.getChildByIndex(0)
     const { endArrow, startArrow } = path.get('attrs')
     const { activeStyle, defaultStyle, originStyle } = getItemStyle.call(this, 'edge', group, 'hover')
 
-    if (!activeStyle) return
+    if (!activeStyle) {
+      return
+    }
     if (value) {
       if (activeStyle.animate === true) {
         this.runAnimate(group, activeStyle.animationType || 'dash')
-      } else if (typeof activeStyle.animate === 'function') {
+      }
+      else if (typeof activeStyle.animate === 'function') {
         activeStyle.animate.call(this, group)
-      } else {
+      }
+      else {
         setStyle(path, activeStyle)
         if (endArrow) {
           path.attr(
@@ -276,13 +300,16 @@ const events = {
           )
         }
       }
-    } else {
+    }
+    else {
       if (activeStyle.animate === true) {
         // 停止动画
         this.stopAnimate(group, activeStyle.animationType || 'dash')
-      } else if (typeof activeStyle.animate === 'function') {
+      }
+      else if (typeof activeStyle.animate === 'function') {
         activeStyle.animate.call(this, group, 'stop')
-      } else {
+      }
+      else {
         setStyle(path, defaultStyle)
         if (endArrow) {
           path.attr(
@@ -313,19 +340,23 @@ const events = {
   /**
    * @description edge 选中事件
    */
-  'edgeState:selected' (value, group) {
+  'edgeState:selected': function (value, group) {
     const path = group.getChildByIndex(0)
     const { endArrow, startArrow } = path.get('attrs')
     const { activeStyle, defaultStyle, originStyle } = getItemStyle.call(this, 'edge', group, 'selected')
-    if (!activeStyle) return
+    if (!activeStyle) {
+      return
+    }
     if (value) {
       if (activeStyle.animate === true) {
         // 执行内部动画
         this.runAnimate(group, activeStyle.animationType || 'dash')
-      } else if (typeof activeStyle.animate === 'function') {
+      }
+      else if (typeof activeStyle.animate === 'function') {
         // 执行外部动画
         activeStyle.animate.call(this, group)
-      } else {
+      }
+      else {
         setStyle(path, activeStyle)
         if (endArrow) {
           path.attr(
@@ -350,14 +381,17 @@ const events = {
           )
         }
       }
-    } else {
+    }
+    else {
       if (activeStyle.animate === true) {
         // 停止内部动画
         this.stopAnimate(group, activeStyle.animationType || 'dash')
-      } else if (typeof activeStyle.animate === 'function') {
+      }
+      else if (typeof activeStyle.animate === 'function') {
         // 停止外部动画
         activeStyle.animate.call(this, group, 'stop')
-      } else {
+      }
+      else {
         setStyle(path, defaultStyle)
         if (endArrow) {
           path.attr(
