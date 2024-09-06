@@ -366,9 +366,9 @@ func QueryProcScheduleInstance(ctx context.Context, psConfigId, status string) (
 	procDefName := scheduleConfigRows[0].ProcDefName
 	var procInsRows []*models.ScheduleProcInsQueryRow
 	if status == "" {
-		err = db.MysqlEngine.Context(ctx).SQL("select t3.id,t3.status,t2.created_time,t3.proc_def_id,t3.proc_def_name,t2.error_msg from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id=?", psConfigId).Find(&procInsRows)
+		err = db.MysqlEngine.Context(ctx).SQL("select t3.id,t3.status,t2.created_time,t3.proc_def_id,t3.proc_def_name,t2.error_msg from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id=? order by t2.created_time desc", psConfigId).Find(&procInsRows)
 	} else {
-		err = db.MysqlEngine.Context(ctx).SQL("select t3.id,t3.status,t3.created_time,t3.proc_def_id,t3.proc_def_name from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id=? and t3.status=?", psConfigId, status).Find(&procInsRows)
+		err = db.MysqlEngine.Context(ctx).SQL("select t3.id,t3.status,t3.created_time,t3.proc_def_id,t3.proc_def_name from proc_schedule_config t1 left join proc_schedule_job t2 on t1.id=t2.schedule_config_id left join proc_ins t3 on t2.proc_ins_id=t3.id where t1.id=? and t3.status=? order by t2.created_time desc", psConfigId, status).Find(&procInsRows)
 	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
