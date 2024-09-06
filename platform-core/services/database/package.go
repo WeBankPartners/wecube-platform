@@ -291,34 +291,14 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 			}})
 			for _, interfaceParam := range pluginConfigInterface.InputParameters.Parameter {
 				interfaceParamId := "p_conf_inf_param_" + guid.CreateGuid()
-				required, sensitive, multiple := false, false, false
-				if interfaceParam.Required == "Y" {
-					required = true
-				}
-				if interfaceParam.SensitiveData == "Y" {
-					sensitive = true
-				}
-				if interfaceParam.Multiple == "Y" {
-					multiple = true
-				}
 				actions = append(actions, &db.ExecAction{Sql: "insert into plugin_config_interface_parameters (id,plugin_config_interface_id,type,name,data_type,mapping_type,mapping_entity_expression,mapping_system_variable_name,required,sensitive_data,description,mapping_val,ref_object_name,multiple ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-					interfaceParamId, pluginConfigInterfaceId, models.PluginParamTypeInput, interfaceParam.Text, interfaceParam.Datatype, interfaceParam.MappingType, interfaceParam.MappingEntityExpression, interfaceParam.MappingSystemVariableName, required, sensitive, interfaceParam.Description, interfaceParam.MappingVal, interfaceParam.RefObjectName, multiple,
+					interfaceParamId, pluginConfigInterfaceId, models.PluginParamTypeInput, interfaceParam.Text, interfaceParam.Datatype, interfaceParam.MappingType, interfaceParam.MappingEntityExpression, interfaceParam.MappingSystemVariableName, interfaceParam.Required, interfaceParam.SensitiveData, interfaceParam.Description, interfaceParam.MappingVal, interfaceParam.RefObjectName, interfaceParam.Multiple,
 				}})
 			}
 			for _, interfaceParam := range pluginConfigInterface.OutputParameters.Parameter {
 				interfaceParamId := "p_conf_inf_param_" + guid.CreateGuid()
-				required, sensitive, multiple := false, false, false
-				if interfaceParam.Required == "Y" {
-					required = true
-				}
-				if interfaceParam.SensitiveData == "Y" {
-					sensitive = true
-				}
-				if interfaceParam.Multiple == "Y" {
-					multiple = true
-				}
 				actions = append(actions, &db.ExecAction{Sql: "insert into plugin_config_interface_parameters (id,plugin_config_interface_id,type,name,data_type,mapping_type,mapping_entity_expression,mapping_system_variable_name,required,sensitive_data,description,mapping_val,ref_object_name,multiple ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-					interfaceParamId, pluginConfigInterfaceId, models.PluginParamTypeOutput, interfaceParam.Text, interfaceParam.Datatype, interfaceParam.MappingType, interfaceParam.MappingEntityExpression, interfaceParam.MappingSystemVariableName, required, sensitive, interfaceParam.Description, interfaceParam.MappingVal, interfaceParam.RefObjectName, multiple,
+					interfaceParamId, pluginConfigInterfaceId, models.PluginParamTypeOutput, interfaceParam.Text, interfaceParam.Datatype, interfaceParam.MappingType, interfaceParam.MappingEntityExpression, interfaceParam.MappingSystemVariableName, interfaceParam.Required, interfaceParam.SensitiveData, interfaceParam.Description, interfaceParam.MappingVal, interfaceParam.RefObjectName, interfaceParam.Multiple,
 				}})
 			}
 		}
@@ -354,6 +334,27 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_runtime_resources_s3 (id,plugin_package_id,bucket_name,additional_properties) values  (?,?,?,NULL)", Param: []interface{}{
 			"p_res_s3_" + guid.CreateGuid(), pluginPackageId, registerConfig.ResourceDependencies.S3.BucketName,
 		}})
+	}
+	if registerConfig.Authorities.Authority.SystemRoleName != "" && len(registerConfig.Authorities.Authority.Menu) > 0 {
+		var roleMenuRows []*models.RoleMenu
+		err = db.MysqlEngine.Context(ctx).SQL("select distinct menu_code from role_menu where role_name=?", registerConfig.Authorities.Authority.SystemRoleName).Find(&roleMenuRows)
+		if err != nil {
+			return
+		}
+		roleMenuMap := make(map[string]int)
+		for _, row := range roleMenuRows {
+			roleMenuMap[row.MenuCode] = 1
+		}
+		for _, authMenu := range registerConfig.Authorities.Authority.Menu {
+			actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_authorities (id,plugin_package_id,role_name,menu_code) values (?,?,?,?)", Param: []interface{}{
+				"p_auth_" + guid.CreateGuid(), pluginPackageId, registerConfig.Authorities.Authority.SystemRoleName, authMenu.Code,
+			}})
+			if _, existFlag := roleMenuMap[authMenu.Code]; !existFlag {
+				actions = append(actions, &db.ExecAction{Sql: "INSERT INTO role_menu (id,role_name,menu_code) values (?,?,?)", Param: []interface{}{
+					"role_menu_" + guid.CreateGuid(), registerConfig.Authorities.Authority.SystemRoleName, authMenu.Code,
+				}})
+			}
+		}
 	}
 	if len(registerConfig.DataModel.Entity) > 0 {
 		maxVersion, getVersionErr := getMaxDataModelVersion(registerConfig.Name)
@@ -842,7 +843,8 @@ func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId, plugi
 
 func GetPluginResourceFiles(ctx context.Context) (result []*models.PluginPackageResourceFiles, err error) {
 	result = []*models.PluginPackageResourceFiles{}
-	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_resource_files where plugin_package_id in (SELECT t1.id FROM plugin_packages t1 where t1.ui_package_included=1 and t1.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t1.upload_timestamp = (SELECT MAX(t2.upload_timestamp) FROM plugin_packages t2 WHERE t2.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t2.name = t1.name GROUP BY t2.name))").Find(&result)
+	//err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_resource_files where plugin_package_id in (SELECT t1.id FROM plugin_packages t1 where t1.ui_package_included=1 and t1.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t1.upload_timestamp = (SELECT MAX(t2.upload_timestamp) FROM plugin_packages t2 WHERE t2.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t2.name = t1.name GROUP BY t2.name))").Find(&result)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_resource_files where plugin_package_id in (select id from plugin_packages where status='REGISTERED' and ui_active=1)").Find(&result)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	}
@@ -999,7 +1001,7 @@ func DisableAllPluginConfigsByPackageId(ctx context.Context, pluginPackageId str
 	return
 }
 
-func DecommissionPluginPackage(ctx context.Context, pluginPackageId string) (err error) {
+func DecommissionPluginPackage(ctx context.Context, pluginPackageId, operator string) (err error) {
 	session := db.MysqlEngine.NewSession().Context(ctx)
 	defer session.Close()
 	err = session.Begin()
@@ -1009,6 +1011,8 @@ func DecommissionPluginPackage(ctx context.Context, pluginPackageId string) (err
 	}
 	updateData := make(map[string]interface{})
 	updateData["status"] = models.PluginStatusDecommissioned
+	updateData["updated_time"] = time.Now().Format(models.DateTimeFormat)
+	updateData["updated_by"] = operator
 	_, err = session.Table(new(models.PluginPackages)).Where("id = ?", pluginPackageId).Update(updateData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
