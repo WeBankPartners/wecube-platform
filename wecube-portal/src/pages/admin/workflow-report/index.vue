@@ -7,7 +7,7 @@
       <TabPane :label="$t('workflow_task_node_aspect')" name="tasknodeAspect">
         <TasknodeAspect></TasknodeAspect>
       </TabPane>
-      <TabPane :label="$t('pluginService ')" name="pluginAspect">
+      <TabPane :label="$t('pluginService')" name="pluginAspect">
         <PluginAspect></PluginAspect>
       </TabPane>
     </Tabs>

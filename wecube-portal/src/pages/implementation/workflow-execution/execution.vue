@@ -199,7 +199,12 @@
       <Spin fix v-if="loading"></Spin>
     </Card>
     <!--左侧预览弹窗(新建)-->
-    <BaseDrawer :title="$t('overview')" :visible.sync="flowNodesWithDataModalVisible" width="70%" :scrollable="true">
+    <BaseDrawer
+      :title="$t('overview')"
+      :visible.sync="flowNodesWithDataModalVisible"
+      realWidth="70%"
+      :scrollable="true"
+    >
       <template slot-scope="{maxHeight}" slot="content">
         <Table
           border
@@ -220,7 +225,7 @@
     <BaseDrawer
       :title="targetWithFlowModalVisibleSingleTag ? targetWithFlowModalSingleTagTitle : $t('overview')"
       :visible.sync="targetWithFlowModalVisible"
-      width="70%"
+      realWidth="70%"
       :scrollable="true"
     >
       <template slot-scope="{maxHeight}" slot="content">
@@ -238,13 +243,13 @@
     <BaseDrawer
       :title="$t('select_an_operation')"
       :visible.sync="workflowActionModalVisible"
-      width="70%"
+      realWidth="70%"
       :scrollable="true"
       class="json-viewer"
     >
       <template slot="content">
         <!--节点操作-->
-        <HeaderTitle :title="$t('fe_nodeOperate')">
+        <BaseHeaderTitle :title="$t('fe_nodeOperate')">
           <div ref="action" style="padding-left: 20px">
             <div
               v-if="
@@ -326,18 +331,18 @@
               </div>
             </template>
           </div>
-        </HeaderTitle>
+        </BaseHeaderTitle>
         <!--节点信息-->
-        <HeaderTitle :title="$t('fe_nodeInfo')">
+        <BaseHeaderTitle :title="$t('fe_nodeInfo')">
           <template v-if="nodeDetailResponseHeader && Object.keys(nodeDetailResponseHeader).length > 0">
             <json-viewer :value="nodeDetailResponseHeader" :expand-depth="5"></json-viewer>
           </template>
           <div v-else class="no-data">{{ $t('noData') }}</div>
-        </HeaderTitle>
+        </BaseHeaderTitle>
         <!--API调用-->
-        <HeaderTitle :title="$t('fe_apiInfo')">
+        <BaseHeaderTitle :title="$t('fe_apiInfo')">
           <Table :columns="nodeDetailColumns" tooltip="true" :data="nodeDetailIO"> </Table>
-        </HeaderTitle>
+        </BaseHeaderTitle>
       </template>
     </BaseDrawer>
     <!--节点重试/反选数据弹窗(查看)-->
@@ -372,13 +377,16 @@
           $t('be_dynamic_binding_warning')
         }}</span>
         <Button @click="retryTargetModalVisible = false">{{ $t('cancel') }}</Button>
-        <Button type="primary" :disabled="isNodeCanBindData" @click="retryTargetModelConfirm">{{
-          $t('submit')
-        }}</Button>
+        <!--只有数据反选，并且为动态绑定节点，禁用提交按钮-->
+        <Button
+          type="primary"
+          :disabled="isNodeCanBindData && !['Faulted', 'Timeouted'].includes(currentNodeStatus)"
+          @click="retryTargetModelConfirm"
+        >{{ $t('submit') }}</Button>
       </div>
     </Modal>
     <!--左侧编排节点弹窗(新建)-->
-    <BaseDrawer :title="currentNodeTitle" :visible.sync="targetModalVisible" width="70%" :scrollable="true">
+    <BaseDrawer :title="currentNodeTitle" :visible.sync="targetModalVisible" realWidth="70%" :scrollable="true">
       <template slot-scope="{maxHeight}" slot="content">
         <Input
           v-model="tableFilterParam"
@@ -576,8 +584,6 @@ import {
   unCollectFlow
 } from '@/api/server'
 import JsonViewer from 'vue-json-viewer'
-import HeaderTitle from '@/pages/components/header-title.vue'
-import BaseDrawer from '@/pages/components/base-drawer.vue'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
@@ -585,9 +591,7 @@ import { addEvent, removeEvent } from '@/pages/util/event.js'
 import { debounce, deepClone } from '@/const/util'
 export default {
   components: {
-    JsonViewer,
-    HeaderTitle,
-    BaseDrawer
+    JsonViewer
   },
   data() {
     return {
@@ -1091,8 +1095,8 @@ export default {
         currentUserRoles: []
       },
       pluginInfo: '',
-      nodesCannotBindData: [], // 初始化不能绑定数据的节点
-      isNodeCanBindData: false,
+      nodesCannotBindData: [], // 动态绑定的节点集合
+      isNodeCanBindData: false, // 节点绑定标识
       hasExecuteBranchVisible: false, // 同一编排在进入只进行一次展示
       manualSkipParams: {
         act: '', // 执行动作
@@ -1279,6 +1283,7 @@ export default {
     const id = this.$route.query.id || ''
     const templateId = this.$route.query.templateId || ''
     this.subProcId = this.$route.query.subProcId || ''
+    const targetId = this.$route.query.targetId || ''
     // 查看执行历史
     if (id) {
       this.querySelectedFlowInstanceId = id
@@ -1298,6 +1303,11 @@ export default {
       this.orchestrationSelectHandler()
       this.getAllFlow()
       this.selectedTarget = this.$route.query.entityDataId || ''
+      this.getTargetOptions()
+      this.onTargetSelectHandler()
+    }
+    if (targetId) {
+      this.selectedTarget = targetId
       this.getTargetOptions()
       this.onTargetSelectHandler()
     }
@@ -1589,6 +1599,7 @@ export default {
               const res = {
                 ...d,
                 _checked: d.bound === 'Y',
+                _disabled: this.nodesCannotBindData.includes(flowNode.nodeDefId), // 动态绑定节点不支持修改
                 ...found,
                 entity: found.packageName + ':' + found.entityName,
                 nodeName: flowNode.nodeName,
@@ -1891,7 +1902,9 @@ export default {
           this.initFlowGraph(true)
           this.showExcution = false
           this.nodesCannotBindData = data.taskNodeInstances
-            .filter(d => [1, 2].includes(d.dynamicBind) && d.status === 'NotStarted')
+            .filter(
+              d => [1, 2].includes(d.dynamicBind) && ['NotStarted', 'Risky', 'Faulted', 'Timeouted'].includes(d.status)
+            )
             .map(d => d.nodeId)
           this.subProcBindParentFlag = Boolean(data.parentProcIns && data.parentProcIns.procInsId)
         }
@@ -2389,6 +2402,13 @@ export default {
       const { status, data } = await getProcessInstance(found.id)
       if (status === 'OK') {
         this.currentInstanceStatusForNodeOperation = data.status
+        // 定时刷新详情数据时，同步刷新执行历史下拉列表状态字段
+        this.allFlowInstances.forEach(i => {
+          if (i.id === data.id) {
+            i.displayStatus = data.displayStatus
+            i.status = data.status
+          }
+        })
         if (
           !this.flowData.flowNodes
           || (this.flowData.flowNodes && this.comparativeData(this.flowData.flowNodes, data.taskNodeInstances))

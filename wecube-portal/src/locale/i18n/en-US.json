@@ -602,7 +602,7 @@
   "controlOfExecution": "Control of execution",
   "dataBinding": "Data binding",
   "calledPluginService": "Called plug-in service",
-  "pluginService": "Plug-in service",
+  "pluginService": "Plugin Service",
   "sourceNodeList": "Set [fill value source-node] list",
   "parameterskey": "parameters key",
   "sourceVale": "Value",

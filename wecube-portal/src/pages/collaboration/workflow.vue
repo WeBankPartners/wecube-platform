@@ -1171,6 +1171,11 @@ th.ivu-table-column-center div.ivu-table-cell-with-selection {
   background-color: #2d8cf0 !important;
   color: #fff !important;
 }
+.workflow-design .ivu-table .ivu-tag {
+  display: inline-block;
+  line-height: 16px;
+  height: auto;
+}
 </style>
 <style lang="scss" scoped>
 .search {
