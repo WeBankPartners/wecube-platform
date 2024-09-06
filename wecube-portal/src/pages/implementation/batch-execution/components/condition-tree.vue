@@ -9,7 +9,7 @@
       @on-close="handleCancel"
       class="condition-tree-drawer"
     >
-      <div class="content" :style="{ maxHeight: maxHeight + 'px' }">
+      <div class="content" :style="{maxHeight: maxHeight + 'px'}">
         <Tree :data="treeData" show-checkbox multiple></Tree>
       </div>
       <div class="drawer-footer">
@@ -39,15 +39,15 @@ export default {
   },
   computed: {
     drawerVisible: {
-      get () {
+      get() {
         return this.visible
       },
-      set (val) {
+      set(val) {
         this.$emit('update:visible', val)
       }
     }
   },
-  data () {
+  data() {
     return {
       maxHeight: 500,
       treeData: [],
@@ -56,7 +56,7 @@ export default {
   },
   watch: {
     data: {
-      handler (val) {
+      handler(val) {
         this.treeData = deepClone(val)
         this.treeData.forEach(i => {
           this.$set(i, 'expand', true)
@@ -72,41 +72,37 @@ export default {
                   j.operator = select.operator
                 }
               })
-              j.render = (h, { data }) => {
-                return (
-                  <div class="tree-item">
-                    <span>{data.title}</span>
-                    {data.checked && (
-                      <div style="display:flex;justify-content:flex-start;width:280px;">
-                        <Select
-                          v-model={data.operator}
-                          style="width:90px;"
-                          class={{ 'ivu-form-item-error': !data.operator }}
-                          on-on-change={() => {
-                            data.value = ''
-                          }}
-                        >
-                          {this.operatorList.map((item, index) => {
-                            return (
-                              <Option value={item} key={index}>
-                                {item}
-                              </Option>
-                            )
-                          })}
-                        </Select>
-                        {!['notNull', 'null'].includes(data.operator) && (
-                          <Input
-                            v-model={data.value}
-                            style="width:180px;margin-left:5px;"
-                            class={{ 'ivu-form-item-error': !data.value }}
-                            placeholder={`${data.operator === 'in' ? 'eg：a,b,c' : ''}`}
-                          />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )
-              }
+              j.render = (h, { data }) => (
+                <div class="tree-item">
+                  <span>{data.title}</span>
+                  {data.checked && (
+                    <div style="display:flex;justify-content:flex-start;width:280px;">
+                      <Select
+                        v-model={data.operator}
+                        style="width:90px;"
+                        class={{ 'ivu-form-item-error': !data.operator }}
+                        on-on-change={() => {
+                          data.value = ''
+                        }}
+                      >
+                        {this.operatorList.map((item, index) => (
+                          <Option value={item} key={index}>
+                            {item}
+                          </Option>
+                        ))}
+                      </Select>
+                      {!['notNull', 'null'].includes(data.operator) && (
+                        <Input
+                          v-model={data.value}
+                          style="width:180px;margin-left:5px;"
+                          class={{ 'ivu-form-item-error': !data.value }}
+                          placeholder={`${data.operator === 'in' ? 'eg：a,b,c' : ''}`}
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
             })
           }
         })
@@ -115,7 +111,7 @@ export default {
       immediate: true
     }
   },
-  mounted () {
+  mounted() {
     this.maxHeight = document.body.clientHeight - 150
     window.addEventListener(
       'resize',
@@ -129,7 +125,7 @@ export default {
     //   // 去除全选时最外层数据
     //   this.selectData = totalChecked.filter(i => i.nodeKey !== 0)
     // },
-    handleSubmit () {
+    handleSubmit() {
       const selectData = []
       this.treeData.forEach(i => {
         i.children.forEach(j => {
@@ -138,20 +134,19 @@ export default {
           }
         })
       })
-      const flag = selectData.every(i => {
-        return ['notNull', 'null'].includes(i.operator) || i.value
-      })
+      const flag = selectData.every(i => ['notNull', 'null'].includes(i.operator) || i.value)
       if (flag) {
         this.$emit('update:visible', false)
         this.$emit('submit', selectData)
-      } else {
+      }
+      else {
         return this.$Notice.warning({
           title: this.$t('warning'),
           desc: this.$t('be_required_tips')
         })
       }
     },
-    handleCancel () {
+    handleCancel() {
       this.$emit('update:visible', false)
     }
   }
