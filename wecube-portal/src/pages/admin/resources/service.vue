@@ -35,7 +35,7 @@ export default {
   props: {
     servers: {}
   },
-  data () {
+  data() {
     return {
       payload: {
         filters: [],
@@ -159,7 +159,7 @@ export default {
     }
   },
   watch: {
-    servers (val) {
+    servers(val) {
       let statusIndex
       this.tableColumns.find((_, i) => {
         if (_.key === 'resourceServer') {
@@ -170,7 +170,7 @@ export default {
     }
   },
   methods: {
-    async queryData () {
+    async queryData() {
       this.payload.pageable.pageSize = this.pagination.pageSize
       this.payload.pageable.startIndex = (this.pagination.currentPage - 1) * this.pagination.pageSize
       const { status, data } = await retrieveItems(this.payload)
@@ -185,7 +185,7 @@ export default {
         this.pagination.total = data.pageInfo.totalRows
       }
     },
-    handleSubmit (data) {
+    handleSubmit(data) {
       this.payload.filters = data.map(_ => {
         if (_.name === 'createdDate' || _.name === 'updatedDate') {
           _.value = +new Date(_.value)
@@ -197,10 +197,11 @@ export default {
       })
       this.queryData()
     },
-    sortHandler (data) {
+    sortHandler(data) {
       if (data.order === 'normal') {
         delete this.payload.sorting
-      } else {
+      }
+      else {
         this.payload.sorting = {
           asc: data.order === 'asc',
           field: data.key
@@ -208,44 +209,42 @@ export default {
       }
       this.queryData()
     },
-    pageChange (current) {
+    pageChange(current) {
       this.pagination.currentPage = current
       this.queryData()
     },
-    pageSizeChange (size) {
+    pageSizeChange(size) {
       this.pagination.pageSize = size
       this.queryData()
     },
-    async getResourceItemStatus () {
+    async getResourceItemStatus() {
       const { status, data } = await getResourceItemStatus({})
       if (status === 'OK') {
         this.setOptions(data, 'status')
       }
     },
-    async getResourceItemType () {
+    async getResourceItemType() {
       const { status, data } = await getResourceItemType({})
       if (status === 'OK') {
         this.setOptions(data, 'type')
       }
     },
-    setOptions (data, column) {
+    setOptions(data, column) {
       let statusIndex
       this.tableColumns.find((_, i) => {
         if (_.key === column) {
           statusIndex = i
         }
       })
-      const options = data.map(_ => {
-        return {
-          label: _,
-          value: _,
-          key: _
-        }
-      })
+      const options = data.map(_ => ({
+        label: _,
+        value: _,
+        key: _
+      }))
       this.$set(this.tableColumns[statusIndex], 'options', options)
     }
   },
-  mounted () {
+  mounted() {
     this.getResourceItemStatus()
     this.getResourceItemType()
     this.queryData()
