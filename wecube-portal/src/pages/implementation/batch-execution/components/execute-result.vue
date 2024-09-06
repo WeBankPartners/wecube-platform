@@ -2,13 +2,13 @@
   <!--执行结果-->
   <div class="batch-execute-result">
     <!--执行历史列表-->
-    <Card v-if="from === 'list'" :style="{ minHeight: maxHeight + 'px' }">
+    <Card v-if="from === 'list'" :style="{minHeight: maxHeight + 'px'}">
       <div class="custom-header" slot="title">
         <Icon
           size="28"
           type="md-reorder"
           class="expand"
-          :style="{ transform: `rotate(${expand ? 90 : 0}deg)` }"
+          :style="{transform: `rotate(${expand ? 90 : 0}deg)`}"
           @click="handleExpand"
         />
         <span class="title">{{ $t('bc_execution_result') }}</span>
@@ -112,7 +112,7 @@
       @on-close="handleCancel"
       class="json-drawer"
     >
-      <div class="content" :style="{ maxHeight: maxHeight + 'px' }">
+      <div class="content" :style="{maxHeight: maxHeight + 'px'}">
         <div>
           <a @click="isShow = !isShow">show requestData</a>
           <span v-if="isShow">
@@ -134,13 +134,9 @@
 </template>
 
 <script>
-import JsonViewer from 'vue-json-viewer'
 import { batchExecuteHistory } from '@/api/server'
 import { debounce } from '@/const/util'
 export default {
-  components: {
-    JsonViewer
-  },
   props: {
     id: {
       type: String,
@@ -152,7 +148,7 @@ export default {
       default: 'list'
     }
   },
-  data () {
+  data() {
     return {
       form: {
         operateObject: '',
@@ -161,12 +157,24 @@ export default {
         filterType: 'str'
       },
       filterTypeList: [
-        { label: this.$t('bc_filter_type_str'), value: 'str' },
-        { label: this.$t('bc_filter_type_regex'), value: 'regex' }
+        {
+          label: this.$t('bc_filter_type_str'),
+          value: 'str'
+        },
+        {
+          label: this.$t('bc_filter_type_regex'),
+          value: 'regex'
+        }
       ],
       statusList: [
-        { label: this.$t('be_success'), value: '0' },
-        { label: this.$t('be_error'), value: '1' }
+        {
+          label: this.$t('be_success'),
+          value: '0'
+        },
+        {
+          label: this.$t('be_error'),
+          value: '1'
+        }
       ],
       tableColumns: [],
       tableData: [],
@@ -185,7 +193,7 @@ export default {
   },
   watch: {
     id: {
-      handler (val) {
+      handler(val) {
         if (val) {
           this.getList(val)
         }
@@ -193,16 +201,16 @@ export default {
       immediate: true
     }
   },
-  mounted () {
+  mounted() {
     this.maxHeight = document.body.clientHeight - 150
   },
   methods: {
-    handleExpand () {
+    handleExpand() {
       this.$emit('expand')
       this.expand = !this.expand
     },
     // 提供给父组件调用
-    handleReset () {
+    handleReset() {
       this.tableColumns = []
       this.tableData = []
       this.sourceData = []
@@ -215,18 +223,21 @@ export default {
       }
     },
     handleSearch: debounce(function () {
-      const { errorCode, operateObject, filterType, filterParams } = this.form
+      const {
+        errorCode, operateObject, filterType, filterParams
+      } = this.form
       this.tableData = this.sourceData.filter(item => {
-        let errorCodeFlag = !errorCode || errorCode === item.errorCode
-        let businessKeyFlag = item.businessKey.indexOf(operateObject) > -1
+        const errorCodeFlag = !errorCode || errorCode === item.errorCode
+        const businessKeyFlag = item.businessKey.indexOf(operateObject) > -1
         let returnJsonFlag = true
         // 字符串匹配
         if (filterType === 'str') {
           if (filterParams) {
             returnJsonFlag = item.returnJson.indexOf(filterParams) > -1
             const reg = new RegExp(filterParams, 'g')
-            item.returnJsonFormat = item.returnJson.replace(reg, "<span style='color:red'>" + filterParams + '</span>')
-          } else {
+            item.returnJsonFormat = item.returnJson.replace(reg, '<span style=\'color:red\'>' + filterParams + '</span>')
+          }
+          else {
             item.returnJsonFormat = item.returnJson
           }
         }
@@ -242,35 +253,36 @@ export default {
               execRes.sort(function (a, b) {
                 return b.length - a.length
               })
-              execRes = execRes.filter(s => {
-                return s && s.trim()
-              })
-            } catch (err) {
-              console.log(err)
+              execRes = execRes.filter(s => s && s.trim())
+            }
+            catch (err) {
+              console.error(err)
               this.$Message.error(this.$t('bc_filter_type_warn'))
               this.form.filterParams = null
               return
             }
             let str = item.returnJson
-            let len = str.length
+            const len = str.length
             execRes.forEach(keyword => {
-              let reg = new RegExp(keyword, 'g')
-              str = str.replace(reg, "<span style='color:red'>" + keyword + '</span>')
+              const reg = new RegExp(keyword, 'g')
+              str = str.replace(reg, '<span style=\'color:red\'>' + keyword + '</span>')
             })
             if (str.length !== len) {
               returnJsonFlag = true
               item.returnJsonFormat = str
-            } else {
+            }
+            else {
               returnJsonFlag = false
             }
-          } else {
+          }
+          else {
             item.returnJsonFormat = item.returnJson
           }
         }
         return errorCodeFlag && businessKeyFlag && returnJsonFlag
       })
     }, 200),
-    async getList (id) {
+    async getList(id) {
       this.loading = true
       const { status, data } = await batchExecuteHistory(id)
       this.loading = false
@@ -286,22 +298,18 @@ export default {
               // 操作对象
               title: this.$t('bc_execution_instance'),
               width: 200,
-              render: (h, params) => {
-                return <span>{params.row.businessKey || '--'}</span>
-              }
+              render: (h, params) => <span>{params.row.businessKey || '--'}</span>
             },
             {
               // 执行状态
               title: this.$t('be_execute_status'),
               minWidth: 100,
               key: 'errorCode',
-              render: (h, params) => {
-                return (
-                  <Tag color={params.row.errorCode === '0' ? 'success' : 'error'}>
-                    {params.row.errorCode === '0' ? this.$t('be_success') : this.$t('be_error')}
-                  </Tag>
-                )
-              }
+              render: (h, params) => (
+                <Tag color={params.row.errorCode === '0' ? 'success' : 'error'}>
+                  {params.row.errorCode === '0' ? this.$t('be_success') : this.$t('be_error')}
+                </Tag>
+              )
             }
           ]
         )
@@ -322,43 +330,41 @@ export default {
           width: 80,
           fixed: 'right',
           align: 'center',
-          render: (h, params) => {
-            return (
-              // 查看完整输入输出
-              <Tooltip content={this.$t('be_view_allinput')} placement="top">
-                <Button
-                  size="small"
-                  type="info"
-                  disabled={false}
-                  onClick={() => {
-                    this.handleJsonDetail(params.row)
-                  }}
-                  style="margin-right:5px;"
-                >
-                  <Icon type="md-eye" size="16"></Icon>
-                </Button>
-              </Tooltip>
-            )
-          }
+          render: (h, params) => (
+            // 查看完整输入输出
+            <Tooltip content={this.$t('be_view_allinput')} placement="top">
+              <Button
+                size="small"
+                type="info"
+                disabled={false}
+                onClick={() => {
+                  this.handleJsonDetail(params.row)
+                }}
+                style="margin-right:5px;"
+              >
+                <Icon type="md-eye" size="16"></Icon>
+              </Button>
+            </Tooltip>
+          )
         })
       }
     },
-    handleJsonDetail (row) {
+    handleJsonDetail(row) {
       this.visible = true
       this.jsonData.input = JSON.parse(row.inputJson)
       this.jsonData.output = row.returnJsonFormat ? JSON.parse(row.returnJsonFormat) : JSON.parse(row.returnJson)
     },
-    handleCancel () {
+    handleCancel() {
       this.visible = false
     },
-    filterTypeChange () {
+    filterTypeChange() {
       this.form.filterParams = null
     },
-    formatResult (result) {
+    formatResult(result) {
       if (!result) {
         return
       }
-      for (let key in result) {
+      for (const key in result) {
         if (result[key] !== null && typeof result[key] === 'string') {
           result[key] = result[key].split('\n').join('<br/>            ')
         }
@@ -366,7 +372,7 @@ export default {
       return JSON.stringify(result, null, 2)
     },
     // 提供给父组件使用
-    reset () {
+    reset() {
       this.form = {
         operateObject: '',
         errorCode: '',

@@ -5,12 +5,12 @@
         <h6 slot="header">{{ menuGroup.displayName }}</h6>
         <ListItem v-for="(menu, index) in menuGroup.children" :key="index" style="padding-right: 10px">
           <Tooltip
-            :content="$lang === 'zh-CN' ? menu.localDisplayName : menu.displayName"
+            :content="$i18n.locale === 'zh-CN' ? menu.localDisplayName : menu.displayName"
             placement="bottom"
             style="width: 100%"
           >
             <p :class="menu.source === 'SYSTEM' ? 'menu-injection_menu-item' : 'menu-injection_menu-item_new'">
-              {{ $lang === 'zh-CN' ? menu.localDisplayName : menu.displayName }}
+              {{ $i18n.locale === 'zh-CN' ? menu.localDisplayName : menu.displayName }}
             </p>
           </Tooltip>
         </ListItem>
@@ -25,14 +25,14 @@ import { MENUS } from '../../../const/menus.js'
 
 export default {
   name: 'menu-injection',
-  data () {
+  data() {
     return {
       menus: []
     }
   },
   watch: {
     pkgId: {
-      handler: function (val) {
+      handler(val) {
         val && this.getData(val)
       }
     }
@@ -42,21 +42,21 @@ export default {
       required: true
     }
   },
-  mounted () {
+  mounted() {
     this.getData(this.pkgId)
   },
   methods: {
-    async getData (pkgId) {
-      let { status, data } = await getMenuInjection(pkgId)
+    async getData(pkgId) {
+      const { status, data } = await getMenuInjection(pkgId)
       if (status === 'OK') {
-        let allCats = []
-        data.forEach((_, index) => {
+        const allCats = []
+        data.forEach(_ => {
           if (!_.category) {
             const found = MENUS.find(m => m.code === _.code)
             allCats.push({
               id: _.id,
               code: _.code,
-              displayName: this.$lang === 'zh-CN' ? found.cnName : found.enName,
+              displayName: this.$i18n.locale === 'zh-CN' ? found.cnName : found.enName,
               children: []
             })
           }

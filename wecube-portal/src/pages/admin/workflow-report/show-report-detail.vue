@@ -54,7 +54,7 @@
 <script>
 export default {
   name: '',
-  data () {
+  data() {
     return {
       showModal: false,
       MODALHEIGHT: 200,
@@ -69,14 +69,14 @@ export default {
       filterCol: []
     }
   },
-  mounted () {
+  mounted() {
     this.MODALHEIGHT = document.body.scrollHeight - 200
     document.getElementById('detailTable').classList.add('wer')
   },
   methods: {
-    changeParamsGroup () {
+    changeParamsGroup() {
       this.detailTableData = JSON.parse(JSON.stringify(this.oriDetailTableData))
-      let filterCol = []
+      const filterCol = []
       this.detailTableColums.forEach(col => {
         if (!['#', 'type', 'title'].includes(col.key) && col.isDisplay === true) {
           filterCol.push(col.key)
@@ -94,17 +94,17 @@ export default {
         }
       })
     },
-    filterColumns (filterCol) {
+    filterColumns(filterCol) {
       if (filterCol.length === 1) {
         return
       }
-      let params = {}
+      const params = {}
       filterCol.forEach(col => {
         params[col] = 'remark'
       })
       this.detailTableData.forEach(row => {
         row.cellClassName = {}
-        let set = new Set()
+        const set = new Set()
         filterCol.forEach(col => {
           set.add(row[col])
         })
@@ -113,13 +113,14 @@ export default {
         }
       })
     },
-    hideSameData (filterCol) {
+    hideSameData(filterCol) {
       this.detailTableData = []
       if (filterCol.length === 1) {
         this.detailTableData = JSON.parse(JSON.stringify(this.oriDetailTableData))
-      } else {
+      }
+      else {
         this.oriDetailTableData.forEach(row => {
-          let set = new Set()
+          const set = new Set()
           filterCol.forEach(col => {
             set.add(row[col])
           })
@@ -132,17 +133,15 @@ export default {
         row.cellClassName = {}
       })
     },
-    changeColumns () {
+    changeColumns() {
       this.paramsGroup = []
       this.detailTableData.forEach(row => {
         row.cellClassName = {}
       })
       this.detailTableData = JSON.parse(JSON.stringify(this.oriDetailTableData))
-      this.detailTableColums = this.oriDetailTableColums.filter(col => {
-        return this.disabledGroup.includes(col.key)
-      })
+      this.detailTableColums = this.oriDetailTableColums.filter(col => this.disabledGroup.includes(col.key))
     },
-    initData (data) {
+    initData(data) {
       this.disabledGroup = ['#', 'type', 'title']
       this.paramsGroup = []
       this.oriDetailTableData = []
@@ -182,45 +181,44 @@ export default {
           disabled: false,
           isDisplay: true,
           other: d,
-          renderHeader: (h, params) => {
-            return (
-              <Tooltip content="">
-                <span>{params.column.title}</span>
-                <div slot="content">
-                  <p>
-                    {this.$t('flow_name')}:{params.column.other.procDefName}
-                  </p>
-                  <p>
-                    {this.$t('execute_date')}:{params.column.other.execDate}
-                  </p>
-                  <p>
-                    {this.$t('executor')}:{params.column.other.procExecOper}
-                  </p>
-                  <p>
-                    {this.$t('flow_status')}:{params.column.other.procStatus}
-                  </p>
-                  <p>
-                    {this.$t('node_execute_date')}:{params.column.other.nodeExecDate}
-                  </p>
-                  <p>
-                    {this.$t('node_status')}:{params.column.other.nodeStatus}
-                  </p>
-                </div>
-              </Tooltip>
-            )
-          }
+          renderHeader: (h, params) => (
+            <Tooltip content="">
+              <span>{params.column.title}</span>
+              <div slot="content">
+                <p>
+                  {this.$t('flow_name')}:{params.column.other.procDefName}
+                </p>
+                <p>
+                  {this.$t('execute_date')}:{params.column.other.execDate}
+                </p>
+                <p>
+                  {this.$t('executor')}:{params.column.other.procExecOper}
+                </p>
+                <p>
+                  {this.$t('flow_status')}:{params.column.other.procStatus}
+                </p>
+                <p>
+                  {this.$t('node_execute_date')}:{params.column.other.nodeExecDate}
+                </p>
+                <p>
+                  {this.$t('node_status')}:{params.column.other.nodeStatus}
+                </p>
+              </div>
+            </Tooltip>
+          )
         })
         if (this.oriDetailTableData.length === 0) {
           d.execParams.forEach(p => {
-            let row = {}
+            const row = {}
             row.title = p.paramName
             row.type = p.paramType
             row['value' + index] = p.paramDataValue
             this.oriDetailTableData.push(row)
           })
-        } else {
+        }
+        else {
           d.execParams.forEach(p => {
-            let find = this.oriDetailTableData.find(tp => tp.title === p.paramName && tp.type === p.paramType)
+            const find = this.oriDetailTableData.find(tp => tp.title === p.paramName && tp.type === p.paramType)
             find['value' + index] = p.paramDataValue
           })
         }

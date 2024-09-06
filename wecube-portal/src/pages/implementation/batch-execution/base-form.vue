@@ -44,16 +44,16 @@
               <span>{{ $t('mgmt_role') }}：</span>
               <span>{{
                 data.templateData.permissionToRole &&
-                data.templateData.permissionToRole.MGMTDisplayName &&
-                data.templateData.permissionToRole.MGMTDisplayName.join('，')
+                  data.templateData.permissionToRole.MGMTDisplayName &&
+                  data.templateData.permissionToRole.MGMTDisplayName.join('，')
               }}</span>
             </div>
             <div class="item">
               <span>{{ $t('use_role') }}：</span>
               <span>{{
                 data.templateData.permissionToRole &&
-                data.templateData.permissionToRole.USEDisplayName &&
-                data.templateData.permissionToRole.USEDisplayName.join('，')
+                  data.templateData.permissionToRole.USEDisplayName &&
+                  data.templateData.permissionToRole.USEDisplayName.join('，')
               }}</span>
             </div>
           </div>
@@ -202,10 +202,9 @@
           <Row v-if="pluginInputParams && pluginInputParams.length > 0" class="border-box form-item">
             <Col v-for="(item, index) in pluginInputParams" :key="index" :span="24" style="margin-bottom: 12px">
               <span
-                :class="{ required: item.required === 'Y' && item.mappingType === 'constant' }"
+                :class="{required: item.required === 'Y' && item.mappingType === 'constant'}"
                 style="display: inline-block; width: 100px"
-                >{{ item.name }}</span
-              >
+              >{{ item.name }}</span>
               <Input v-if="item.mappingType === 'constant'" style="width: 600px" v-model="item.bindValue" />
               <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
             </Col>
@@ -273,7 +272,7 @@ export default {
       default: () => {}
     }
   },
-  data () {
+  data() {
     return {
       showResult: false, // 预执行后显示执行历史
       // 步骤一字段
@@ -303,7 +302,7 @@ export default {
     }
   },
   watch: {
-    dataModelExpression: async function (val) {
+    async dataModelExpression(val) {
       this.showResult = false
       // 清空查询路径操作
       if (val === ':' || !val) {
@@ -353,9 +352,11 @@ export default {
       }
     },
     data: {
-      handler (val) {
+      handler(val) {
         if (val && val.id) {
-          const { name, isDangerousBlock, configData, sourceData } = val
+          const {
+            name, isDangerousBlock, configData, sourceData
+          } = val
           this.name = name
           this.dataModelExpression = configData.dataModelExpression
           this.currentPackageName = configData.packageName
@@ -378,12 +379,12 @@ export default {
       deep: true
     }
   },
-  mounted () {
+  mounted() {
     this.getAllDataModels()
   },
   methods: {
     // 选择插件
-    choosePlugin (val) {
+    choosePlugin(val) {
       this.showResult = false
       this.pluginOptions.forEach(plugin => {
         if (plugin.serviceDisplayName === val) {
@@ -398,46 +399,52 @@ export default {
       this.resultTableParams = this.pluginOutputParams.map(item => item.name) || []
     },
     // 获取批量执行结果
-    getExecuteResult (id) {
+    getExecuteResult(id) {
       this.$refs.executeResult.getList(id)
     },
-    async getAllDataModels () {
+    async getAllDataModels() {
       this.selectedEntityType = null
       const { data, status } = await getAllDataModels()
       if (status === 'OK') {
         this.allEntityType = []
-        this.allEntityType = data.map(_ => {
-          return {
-            ..._,
-            entities: _.entities.sort(function (a, b) {
-              var s = a.name.toLowerCase()
-              var t = b.name.toLowerCase()
-              if (s < t) return -1
-              if (s > t) return 1
-            })
-          }
-        })
+        this.allEntityType = data.map(_ => ({
+          ..._,
+          entities: _.entities.sort(function (a, b) {
+            const s = a.name.toLowerCase()
+            const t = b.name.toLowerCase()
+            if (s < t) {
+              return -1
+            }
+            if (s > t) {
+              return 1
+            }
+          })
+        }))
       }
     },
-    editSearchParameters () {
+    editSearchParameters() {
       this.editSearchParamsVisible = true
     },
-    clearSearchParameters () {
+    clearSearchParameters() {
       this.searchParameters = []
       this.excuteSearch()
     },
     // 设置过滤条件
-    handleSearchParamsChange (val) {
-      if (this.dataModelExpression === ':' || !this.dataModelExpression) return
+    handleSearchParamsChange(val) {
+      if (this.dataModelExpression === ':' || !this.dataModelExpression) {
+        return
+      }
       this.searchParameters = val
       this.excuteSearch()
     },
     // 更新执行实例表格
-    handleRefreshSearch (val) {
-      if (!val || (val && val.length === 0)) return
+    handleRefreshSearch(val) {
+      if (!val || (val && val.length === 0)) {
+        return
+      }
       this.excuteSearch()
     },
-    clearPlugin () {
+    clearPlugin() {
       this.showResult = false
       this.pluginId = null
       this.pluginInputParams = []
@@ -445,7 +452,7 @@ export default {
       this.pluginOutputParams = []
     },
     // 获取插件下拉列表
-    async getFilteredPluginList () {
+    async getFilteredPluginList() {
       let pkg = ''
       let entity = ''
       let payload = {}
@@ -459,7 +466,8 @@ export default {
       if (isBy > 0) {
         entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
         pkg = current[0].split(')')[1]
-      } else {
+      }
+      else {
         entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
         pkg = last.match(/[^>]+(?=:)/)[0]
       }
@@ -487,11 +495,11 @@ export default {
       }
     },
     // 根据过滤条件获取执行实例表格列
-    async excuteSearch () {
-      let { status, data } = await entityView(this.currentPackageName, this.currentEntityName)
+    async excuteSearch() {
+      const { status, data } = await entityView(this.currentPackageName, this.currentEntityName)
       if (status === 'OK') {
         if (this.userTableColumns.length || this.primatKeyAttr) {
-          let combineColumns = [...this.userTableColumns]
+          const combineColumns = [...this.userTableColumns]
           if (this.userTableColumns.includes(this.primatKeyAttr)) {
             const index = this.userTableColumns.findIndex(i => i === this.primatKeyAttr)
             combineColumns.splice(index, 1)
@@ -500,37 +508,30 @@ export default {
           if (!this.userTableColumns.includes(this.primatKeyAttr) && this.primatKeyAttr) {
             combineColumns.unshift(this.primatKeyAttr)
           }
-          this.tableColumns = combineColumns.map(_ => {
-            return {
-              title: _,
-              key: _,
-              width: 200,
-              render: (h, params) => {
-                return (
-                  <Tooltip max-width="300" content={params.row[_].toString()}>
-                    <span class="word-ellipsis">{params.row[_] || '--'}</span>
-                  </Tooltip>
-                )
-              }
-            }
-          })
-        } else {
-          this.tableColumns = data.map(_ => {
-            return {
-              title: _.name,
-              key: _.name,
-              width: 200,
-              render: (h, params) => {
-                return (
-                  <div style="height:32px;">
-                    <Tooltip max-width="300" content={params.row[_.name].toString()}>
-                      <span class="word-ellipsis">{params.row[_.name] || '--'}</span>
-                    </Tooltip>
-                  </div>
-                )
-              }
-            }
-          })
+          this.tableColumns = combineColumns.map(_ => ({
+            title: _,
+            key: _,
+            width: 200,
+            render: (h, params) => (
+              <Tooltip max-width="300" content={params.row[_].toString()}>
+                <span class="word-ellipsis">{params.row[_] || '--'}</span>
+              </Tooltip>
+            )
+          }))
+        }
+        else {
+          this.tableColumns = data.map(_ => ({
+            title: _.name,
+            key: _.name,
+            width: 200,
+            render: (h, params) => (
+              <div style="height:32px;">
+                <Tooltip max-width="300" content={params.row[_.name].toString()}>
+                  <span class="word-ellipsis">{params.row[_.name] || '--'}</span>
+                </Tooltip>
+              </div>
+            )
+          }))
         }
         this.tableColumns.unshift({
           type: 'selection',
@@ -541,12 +542,12 @@ export default {
         this.entityData()
       }
     },
-    async entityData () {
+    async entityData() {
       const requestParameter = {
         dataModelExpression: this.dataModelExpression,
         filters: []
       }
-      let keySet = []
+      const keySet = []
       this.searchParameters.forEach(sParameter => {
         const index = keySet.indexOf(sParameter.key)
         if (index > -1) {
@@ -558,9 +559,12 @@ export default {
               operator: operator || 'contains'
             })
           }
-        } else {
+        }
+        else {
           keySet.push(sParameter.key)
-          const { index, packageName, entityName, name, value, operator } = sParameter
+          const {
+            index, packageName, entityName, name, value, operator
+          } = sParameter
           if (value) {
             requestParameter.filters.push({
               index,

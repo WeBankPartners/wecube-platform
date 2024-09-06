@@ -7,7 +7,7 @@
     v-model="isVisible"
     :title="$t('enum_management')"
   >
-    <div style="border-bottom: 1px solid grey;">
+    <div style="border-bottom: 1px solid grey">
       <Form>
         <Row>
           <Col span="5">
@@ -35,7 +35,7 @@
         </Row>
       </Form>
     </div>
-    <div class="modalTable" style="padding:40px 10px;">
+    <div class="modalTable" style="padding: 40px 10px">
       <baseData v-if="categoryId > -1" ref="enumModal" :catId="categoryId"></baseData>
     </div>
   </Modal>
@@ -47,7 +47,7 @@ export default {
   components: {
     baseData
   },
-  data () {
+  data() {
     return {
       form: {
         catName: '',
@@ -69,11 +69,11 @@ export default {
     }
   },
   watch: {
-    enumGroupVisible (val) {
+    enumGroupVisible(val) {
       this.isVisible = val
     },
     category: {
-      handler (val) {
+      handler(val) {
         if (val) {
           this.form = {
             ...this.form,
@@ -82,7 +82,8 @@ export default {
             catGroupId: val.groupTypeId
           }
           this.categoryId = val.catId
-        } else {
+        }
+        else {
           this.form = {
             catName: '',
             catTypeId: '',
@@ -102,7 +103,7 @@ export default {
   },
   computed: {},
   methods: {
-    async saveCategoryHandler () {
+    async saveCategoryHandler() {
       const type = this.allEnumCategoryTypes.find(_ => _.ciTypeId === this.currentCiType.ciTypeId)
       if (this.category) {
         // update
@@ -121,7 +122,8 @@ export default {
           this.$refs.enumModal.$refs.table.form.catId = this.categoryId
           this.$refs.enumModal.getGroupList(this.categoryId)
         }
-      } else {
+      }
+      else {
         // create
         const payload = {
           catName: this.form.catName,
@@ -143,7 +145,7 @@ export default {
         }
       }
     },
-    visibleChangeHandler (status) {
+    visibleChangeHandler(status) {
       if (!status) {
         this.$emit('hideHandler')
         this.form = {

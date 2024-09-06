@@ -1,4 +1,3 @@
-import Vue from 'vue'
 export const components = {
   number: {
     component: 'Input',
@@ -34,7 +33,7 @@ export const components = {
 }
 export const outerActions = [
   {
-    label: Vue.t('add'),
+    label: window.vm.$i18n.t('add'),
     props: {
       type: 'success',
       icon: 'md-add',
@@ -43,7 +42,7 @@ export const outerActions = [
     actionType: 'add'
   },
   {
-    label: Vue.t('save'),
+    label: window.vm.$i18n.t('save'),
     props: {
       type: 'info',
       icon: 'md-checkmark',
@@ -52,7 +51,7 @@ export const outerActions = [
     actionType: 'save'
   },
   {
-    label: Vue.t('edit'),
+    label: window.vm.$i18n.t('edit'),
     props: {
       type: 'info',
       icon: 'ios-build',
@@ -61,7 +60,7 @@ export const outerActions = [
     actionType: 'edit'
   },
   {
-    label: Vue.t('delete'),
+    label: window.vm.$i18n.t('delete'),
     props: {
       type: 'error',
       icon: 'ios-trash-outline',
@@ -70,7 +69,7 @@ export const outerActions = [
     actionType: 'delete'
   },
   {
-    label: Vue.t('cancel'),
+    label: window.vm.$i18n.t('cancel'),
     props: {
       type: 'warning',
       icon: 'md-undo'
@@ -78,7 +77,7 @@ export const outerActions = [
     actionType: 'cancel'
   },
   {
-    label: Vue.t('export'),
+    label: window.vm.$i18n.t('export'),
     props: {
       type: 'primary',
       icon: 'ios-download-outline'
@@ -86,7 +85,7 @@ export const outerActions = [
     actionType: 'export'
   },
   {
-    label: Vue.t('filter_columns'),
+    label: window.vm.$i18n.t('filter_columns'),
     props: {
       type: 'primary',
       icon: 'ios-funnel',
@@ -98,7 +97,7 @@ export const outerActions = [
 ]
 export const innerActions = [
   {
-    label: Vue.t('cancel'),
+    label: window.vm.$i18n.t('cancel'),
     props: {
       type: 'warning',
       size: 'small'

@@ -668,6 +668,9 @@ func buildSensitiveData(inputValue interface{}, dataId string) (output string) {
 	ctx := db.DBCtx(fmt.Sprintf("%d", time.Now().Unix()))
 	inputString := fmt.Sprintf("%v", inputValue)
 	output = inputString
+	if inputString == "" {
+		return
+	}
 	seed, err := database.GetEncryptSeed(ctx)
 	if err != nil {
 		log.Logger.Error("buildSensitiveData fail with get seed error", log.Error(err))

@@ -53,14 +53,15 @@ export default {
   components: {
     Search
   },
-  data () {
+  data() {
     return {
       MODALHEIGHT: 0,
       tableData: [],
       loading: false,
       searchConfig: {
         params: {
-          time: [dayjs().subtract(3, 'day').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+          time: [dayjs().subtract(3, 'day')
+            .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
           startDate: '',
           endDate: '',
           procDefIds: [],
@@ -76,10 +77,28 @@ export default {
           label: this.$t('datetime_range'),
           initDateType: 1,
           dateRange: [
-            { label: this.$t('be_threeDays_recent'), type: 'day', value: 3, dateType: 1 },
-            { label: this.$t('be_oneWeek_recent'), type: 'day', value: 7, dateType: 2 },
-            { label: this.$t('be_oneMonth_recent'), type: 'month', value: 1, dateType: 3 },
-            { label: this.$t('be_auto'), dateType: 4 } // 自定义
+            {
+              label: this.$t('be_threeDays_recent'),
+              type: 'day',
+              value: 3,
+              dateType: 1
+            },
+            {
+              label: this.$t('be_oneWeek_recent'),
+              type: 'day',
+              value: 7,
+              dateType: 2
+            },
+            {
+              label: this.$t('be_oneMonth_recent'),
+              type: 'month',
+              value: 1,
+              dateType: 3
+            },
+            {
+              label: this.$t('be_auto'),
+              dateType: 4
+            } // 自定义
           ],
           labelWidth: 110,
           component: 'custom-time'
@@ -98,10 +117,22 @@ export default {
           placeholder: this.$t('display_number'),
           component: 'select',
           list: [
-            { label: '100', value: 100 },
-            { label: '300', value: 300 },
-            { label: '500', value: 500 },
-            { label: '1000', value: 1000 }
+            {
+              label: '100',
+              value: 100
+            },
+            {
+              label: '300',
+              value: 300
+            },
+            {
+              label: '500',
+              value: 500
+            },
+            {
+              label: '1000',
+              value: 1000
+            }
           ]
         }
       ],
@@ -118,35 +149,29 @@ export default {
         {
           title: this.$t('success_count'),
           key: 'totalCompletedInstances',
-          render: (h, params) => {
-            return (
-              <div>
-                <span style="color:#2d8cf0">{params.row.totalCompletedInstances}</span>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span style="color:#2d8cf0">{params.row.totalCompletedInstances}</span>
+            </div>
+          )
         },
         {
           title: this.$t('failure_count'),
           key: 'totalFaultedInstances',
-          render: (h, params) => {
-            return (
-              <div>
-                <span style="color:red">{params.row.totalFaultedInstances}</span>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span style="color:red">{params.row.totalFaultedInstances}</span>
+            </div>
+          )
         },
         {
           title: this.$t('in_progress_count'),
           key: 'totalInProgressInstances',
-          render: (h, params) => {
-            return (
-              <div>
-                <span style="color:#19be6b">{params.row.totalInProgressInstances}</span>
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div>
+              <span style="color:#19be6b">{params.row.totalInProgressInstances}</span>
+            </div>
+          )
         },
         {
           title: this.$t('count'),
@@ -155,13 +180,13 @@ export default {
       ]
     }
   },
-  mounted () {
+  mounted() {
     this.MODALHEIGHT = document.body.scrollHeight - 300
     this.getProcess()
     this.getFlowExecuteOverviews()
   },
   methods: {
-    async getFlowExecuteOverviews () {
+    async getFlowExecuteOverviews() {
       const params = {
         procDefIds: this.searchConfig.params.procDefIds,
         startTime: this.searchConfig.params.time[0] ? this.searchConfig.params.time[0] + ' 00:00:00' : '',
@@ -182,15 +207,13 @@ export default {
         this.tableData = data
       }
     },
-    async getProcess () {
+    async getProcess() {
       const { status, data } = await getProcessList()
       if (status === 'OK') {
-        this.searchConfig.processOptions = data.map(i => {
-          return {
-            label: i.procDefName,
-            value: i.procDefId
-          }
-        })
+        this.searchConfig.processOptions = data.map(i => ({
+          label: i.procDefName,
+          value: i.procDefId
+        }))
         this.searchOptions.forEach(item => {
           if (item.key === 'procDefIds') {
             item.list = this.searchConfig.processOptions

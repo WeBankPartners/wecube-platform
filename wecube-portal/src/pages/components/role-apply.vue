@@ -120,10 +120,12 @@
   </div>
 </template>
 <script>
-import { getApplyRoles, startApply, getApplyList, deleteApplyData } from '@/api/server.js'
+import {
+  getApplyRoles, startApply, getApplyList, deleteApplyData
+} from '@/api/server.js'
 import dayjs from 'dayjs'
 export default {
-  data () {
+  data() {
     return {
       showModal: false,
       isfullscreen: false,
@@ -141,9 +143,8 @@ export default {
           render: (h, params) => {
             if (params.row.role.displayName) {
               return <div>{params.row.role.displayName}</div>
-            } else {
-              return <div style="color:#ed4014">{this.$t('be_roleDelete')}</div>
             }
+            return <div style="color:#ed4014">{this.$t('be_roleDelete')}</div>
           }
         },
         createdTime: {
@@ -153,25 +154,23 @@ export default {
         expireTime: {
           title: this.$t('role_invalidDate'),
           key: 'expireTime',
-          render: (h, params) => {
-            return (
-              <div style={this.getExpireStyle(params.row)}>
-                <span>{this.getExpireTips(params.row)}</span>
-                {['expire'].includes(params.row.status) &&
-                  !['pending', 'inEffect', 'deny', 'deleted'].includes(this.activeTab) && (
-                  <Icon
-                    type="md-time"
-                    size="24"
-                    color="#ed4014"
-                    style="cursor:pointer;margin-left:5px"
-                    onClick={() => {
-                      this.openTimeModal(params.row)
-                    }}
-                  />
-                )}
-              </div>
-            )
-          }
+          render: (h, params) => (
+            <div style={this.getExpireStyle(params.row)}>
+              <span>{this.getExpireTips(params.row)}</span>
+              {['expire'].includes(params.row.status)
+                && !['pending', 'inEffect', 'deny', 'deleted'].includes(this.activeTab) && (
+                <Icon
+                  type="md-time"
+                  size="24"
+                  color="#ed4014"
+                  style="cursor:pointer;margin-left:5px"
+                  onClick={() => {
+                    this.openTimeModal(params.row)
+                  }}
+                />
+              )}
+            </div>
+          )
         }
       },
       pendingColumns: [],
@@ -179,41 +178,51 @@ export default {
     }
   },
   computed: {
-    tableHeight () {
+    tableHeight() {
       const innerHeight = window.innerHeight
       return this.isfullscreen ? innerHeight - 300 : 400
     },
-    getExpireStyle () {
+    getExpireStyle() {
       return function ({ status }) {
         let color = ''
         if (this.activeTab !== 'pending') {
           if (status === 'preExpired') {
             color = '#ff9900'
-          } else if (status === 'expire') {
+          }
+          else if (status === 'expire') {
             color = '#ed4014'
-          } else {
+          }
+          else {
             color = '#19be6b'
           }
         }
-        return { color: color, display: 'flex', alignItems: 'center' }
+        return {
+          color,
+          display: 'flex',
+          alignItems: 'center'
+        }
       }
     },
-    getExpireTips () {
+    getExpireTips() {
       return function ({ status, expireTime }) {
         let text = ''
         if (this.activeTab === 'pending') {
           text = expireTime || this.$t('be_forever')
-        } else {
+        }
+        else {
           if (status === 'preExpired') {
             // 即将到期
             text = `${expireTime}${this.$t('be_willExpire')}`
-          } else if (status === 'expire') {
+          }
+          else if (status === 'expire') {
             // 已过期
             text = `${expireTime}${this.$t('be_hasExpired')}`
-          } else if (expireTime) {
+          }
+          else if (expireTime) {
             // 到期时间
             text = `${expireTime}${this.$t('be_expire')}`
-          } else if (!expireTime) {
+          }
+          else if (!expireTime) {
             // 永久有效
             text = `${this.$t('be_forever')}`
           }
@@ -222,7 +231,7 @@ export default {
       }
     }
   },
-  mounted () {
+  mounted() {
     this.pendingColumns = [
       {
         title: this.$t('be_account'),
@@ -244,28 +253,32 @@ export default {
     ]
   },
   methods: {
-    openModal () {
+    openModal() {
       this.showModal = true
       this.selectedRole = []
       this.expireTime = ''
       this.getTableData()
     },
-    tabChange (val) {
+    tabChange(val) {
       this.activeTab = val
       this.getTableData()
     },
-    async getTableData () {
+    async getTableData() {
       this.tableData = []
       let statusArr = []
       if (this.activeTab === 'pending') {
         statusArr = ['init']
-      } else if (this.activeTab === 'inEffect') {
+      }
+      else if (this.activeTab === 'inEffect') {
         statusArr = ['inEffect']
-      } else if (this.activeTab === 'expire') {
+      }
+      else if (this.activeTab === 'expire') {
         statusArr = ['expire']
-      } else if (this.activeTab === 'deny') {
+      }
+      else if (this.activeTab === 'deny') {
         statusArr = ['deny']
-      } else if (this.activeTab === 'deleted') {
+      }
+      else if (this.activeTab === 'deleted') {
         statusArr = ['deleted']
       }
       const params = {
@@ -296,11 +309,11 @@ export default {
         this.tableData = data.contents || []
       }
     },
-    async apply () {
+    async apply() {
       if (this.expireTime && !dayjs(this.expireTime).isAfter(dayjs())) {
         return this.$Message.warning(this.$t('role_invalidDateValidate'))
       }
-      let data = {
+      const data = {
         userName: localStorage.getItem('username'),
         roleIds: this.selectedRole,
         expireTime: this.expireTime
@@ -315,7 +328,7 @@ export default {
         this.getTableData()
       }
     },
-    async getApplyRoles () {
+    async getApplyRoles() {
       const params = {
         all: 'N', // Y:所有(包括未激活和已删除的) N:激活的
         roleAdmin: false
@@ -325,17 +338,17 @@ export default {
         this.roleList = data || []
       }
     },
-    openTimeModal (row) {
+    openTimeModal(row) {
       this.modalExpireTime = ''
       this.timeModalVisible = true
       this.editRow = row
     },
     // 有效期续期操作
-    async handleExtendTime () {
+    async handleExtendTime() {
       if (this.modalExpireTime && !dayjs(this.modalExpireTime).isAfter(dayjs())) {
         return this.$Message.warning(this.$t('role_invalidDateValidate'))
       }
-      let data = {
+      const data = {
         userName: localStorage.getItem('username'),
         roleIds: [this.editRow.role.id],
         expireTime: this.modalExpireTime

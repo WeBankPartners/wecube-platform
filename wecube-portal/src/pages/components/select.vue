@@ -31,24 +31,24 @@ export default {
     maxTags: { default: () => DEFAULT_TAG_NUMBER },
     filterParams: {}
   },
-  data () {
+  data() {
     return {
       filterOpts: []
     }
   },
   watch: {},
   computed: {
-    opts () {
+    opts() {
       if (this.filterParams) {
         return this.filterOpts
-      } else {
-        return this.options
       }
+
+      return this.options
     }
   },
-  mounted () {},
+  mounted() {},
   methods: {
-    changeValue (val) {
+    changeValue(val) {
       this.$emit('input', val || null)
       this.$emit('change', val || null)
     }
