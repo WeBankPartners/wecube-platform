@@ -354,6 +354,11 @@ func ProcInsStart(c *gin.Context) {
 		return
 	}
 	operator := middleware.GetRequestUser(c)
+	// 检测编排定义状态是否合法
+	if err := database.CheckProcDefStatus(c, param.ProcDefId); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
 	// 检测是不是子编排
 	isSubSession, queryErr := database.CheckSubProcStart(c, param.ProcessSessionId)
 	if queryErr != nil {
