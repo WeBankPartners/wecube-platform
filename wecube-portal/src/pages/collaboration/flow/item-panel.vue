@@ -182,7 +182,7 @@
         <div
           class="item-tool"
           :draggable="editFlow && subProc === 0"
-          :style="{ cursor: subProc === 1 ? 'not-allowed' : 'move' }"
+          :style="{cursor: subProc === 1 ? 'not-allowed' : 'move'}"
           node-type="human"
           :data-label="$t('artificial')"
           data-shape="rect-node"
@@ -260,7 +260,7 @@
       <Tooltip :maxWidth="400" placement="right" :delay="1000">
         <div
           class="item-tool"
-          :style="{ cursor: subProc === 1 ? 'not-allowed' : 'move' }"
+          :style="{cursor: subProc === 1 ? 'not-allowed' : 'move'}"
           :draggable="editFlow && subProc === 0"
           node-type="subProc"
           :data-label="$t('fe_childFlow')"
@@ -340,14 +340,14 @@
 <script>
 export default {
   name: 'ItemPanel',
-  data () {
+  data() {
     return {
       itemVisible: false,
       editFlow: true,
       subProc: 0 // 是否子编排
     }
   },
-  mounted () {
+  mounted() {
     const icons = [...this.$refs.itemPanel.querySelectorAll('.item-tool')]
 
     icons.forEach(icon => {
@@ -387,7 +387,7 @@ export default {
     })
   },
   methods: {
-    setEditFlowStatus (editFlow) {
+    setEditFlowStatus(editFlow) {
       this.editFlow = editFlow
     }
   }
