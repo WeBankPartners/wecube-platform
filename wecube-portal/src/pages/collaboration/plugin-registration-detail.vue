@@ -768,7 +768,7 @@ export default {
         flex: 1;
         max-height: 800px;
         height: 100%;
-        overflow-y: scroll;
+        overflow-y: auto;
         .right-title {
           margin-top: 5px;
           margin-left: 10px;
