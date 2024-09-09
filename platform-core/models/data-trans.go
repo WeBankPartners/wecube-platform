@@ -57,6 +57,18 @@ type SysCiTypeAttrTable struct {
 	EditGroupValues         string `json:"editGroupValues" xorm:"edit_group_value"`
 }
 
+type TransExportTable struct {
+	Id          string `json:"id" xorm:"id"`
+	Services    string `json:"services" xorm:"services"`
+	Environment string `json:"environment" xorm:"environment"`
+	Status      string `json:"status" xorm:"status"`
+	OutputUrl   string `json:"outputUrl" xorm:"output_url"`
+	CreatedUser string `json:"createdUser" xorm:"created_user"`
+	CreatedTime string `json:"createdTime" xorm:"created_time"`
+	UpdatedUser string `json:"updatedUser" xorm:"updated_user"`
+	UpdatedTime string `json:"updatedTime" xorm:"updated_time"`
+}
+
 type TransDataVariableConfig struct {
 	BusinessCiType string `json:"businessCiType"`
 	EnvCiType      string `json:"envCiType"`
@@ -75,4 +87,18 @@ type CiTypeDataFilter struct {
 	CiType    string   `json:"ciType"`
 	Condition string   `json:"condition"` // in | notIn
 	GuidList  []string `json:"guidList"`
+}
+
+type QueryBusinessParam struct {
+	Env       string `json:"env"`       //环境
+	Business  string `json:"business"`  // 业务名称
+	ProductId string `json:"productId"` //产品ID
+}
+
+type CreateExportParam struct {
+	PIds []string `json:"pIds"` //产品ID
+	Env  string   `json:"env"`  //环境
+}
+
+type DataTransExportParam struct {
 }
