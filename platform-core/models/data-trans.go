@@ -63,3 +63,15 @@ type TransDataVariableConfig struct {
 	NexusUser      string `json:"nexusUser"`
 	NexusPwd       string `json:"nexusPwd"`
 }
+
+type CiTypeData struct {
+	CiType     *SysCiTypeTable              `json:"ciType"`
+	Attributes []*SysCiTypeAttrTable        `json:"attributes"`
+	DataMap    map[string]map[string]string `json:"dataMap"` // key=ciDataGuid value=ciDataColumnKV
+}
+
+type CiTypeDataFilter struct {
+	CiType    string   `json:"ciType"`
+	Condition string   `json:"condition"` // in | notIn
+	GuidList  []string `json:"guidList"`
+}
