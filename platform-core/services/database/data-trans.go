@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"strings"
 	"time"
 	"xorm.io/xorm"
@@ -324,5 +325,52 @@ func getInsertAnalyzeCMDBActions(transExportId string, ciTypeDataMap map[string]
 			"ex_aly_" + guid.CreateGuid(), transExportId, "wecmdb", ciType, ciTypeData.CiType.DisplayName, string(rowDataBytes), nowTime,
 		}})
 	}
+	return
+}
+
+func getInsertTransExport(transExport models.TransExportTable) (actions []*db.ExecAction) {
+	nowTime := time.Now()
+	actions = []*db.ExecAction{}
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export(id,services,environment,status,output_url,created_user,created_time,updated_user,updated_time) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		transExport.Id, transExport.Services, transExport.Environment, transExport.Status, transExport.OutputUrl, transExport.CreatedUser, nowTime, transExport.UpdatedUser, nowTime,
+	}})
+	return
+}
+
+func QueryBusinessList(c context.Context, userToken, language string, param models.QueryBusinessParam) (result []map[string]interface{}, err error) {
+	var query models.QueryBusinessListParam
+	var dataTransVariableConfig *models.TransDataVariableConfig
+	if dataTransVariableConfig, err = getDataTransVariableMap(c); err != nil {
+		return
+	}
+	if dataTransVariableConfig == nil {
+		return
+	}
+	query = models.QueryBusinessListParam{
+		PackageName:      dataTransVariableConfig.BusinessCiType,
+		Entity:           dataTransVariableConfig.EnvCiType,
+		UserToken:        userToken,
+		Language:         language,
+		EntityQueryParam: models.EntityQueryParam{},
+	}
+	result, err = remote.QueryBusinessList(query)
+	return
+}
+
+func CreateExport(c context.Context, param models.CreateExportParam, operator string) (transExportId string, err error) {
+	var actions, addTransExportActions []*db.ExecAction
+	transExportId = guid.CreateGuid()
+	transExport := models.TransExportTable{
+		Id:          transExportId,
+		Environment: param.Env,
+		Services:    strings.Join(param.PIds, ","),
+		Status:      string(models.TransExportStatusStart),
+		CreatedUser: operator,
+		UpdatedUser: operator,
+	}
+	if addTransExportActions = getInsertTransExport(transExport); len(addTransExportActions) > 0 {
+		actions = append(actions, addTransExportActions...)
+	}
+	//AnalyzeCMDBDataExport()
 	return
 }
