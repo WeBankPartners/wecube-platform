@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"fmt"
+	data_trans "github.com/WeBankPartners/wecube-platform/platform-core/api/v1/data-trans"
 	"io"
 	"net/http"
 	"strings"
@@ -239,6 +240,15 @@ func init() {
 		&handlerFuncObj{Url: "/statistics/process/definitions/service-ids/tasknode-bindings/query", Method: "POST", HandlerFunc: process.StatisticsBindingsEntityByService, ApiCode: "statistics-bindings-entity-by-service"},
 		&handlerFuncObj{Url: "/statistics/process/definitions/executions/plugin/reports/query", Method: "POST", HandlerFunc: process.StatisticsPluginExec, ApiCode: "statistics-plugin-exec"},
 		&handlerFuncObj{Url: "/statistics/process/definitions/executions/plugin/report-details/query", Method: "POST", HandlerFunc: process.StatisticsPluginExecDetails, ApiCode: "statistics-plugin-exec-details"},
+
+		// 底座导入导出
+		&handlerFuncObj{Url: "/data/transfer/business/list", Method: "POST", HandlerFunc: data_trans.QueryBusinessList, ApiCode: "data-transfer-business-list"},
+		&handlerFuncObj{Url: "/data/transfer/export/create", Method: "POST", HandlerFunc: data_trans.CreateExport, ApiCode: "data-transfer-export-create"},
+		&handlerFuncObj{Url: "/data/transfer/monitor", Method: "GET", HandlerFunc: data_trans.GetExportMonitor, ApiCode: "data-transfer-monitor"},
+		&handlerFuncObj{Url: "/data/transfer/plugin", Method: "GET", HandlerFunc: data_trans.GetExportPlugin, ApiCode: "data-transfer-plugin"},
+		&handlerFuncObj{Url: "/data/transfer/export", Method: "POST", HandlerFunc: data_trans.ExecExport, ApiCode: "data-transfer-export"},
+		&handlerFuncObj{Url: "/data/transfer/export/detail", Method: "GET", HandlerFunc: data_trans.ExportDetail, ApiCode: "data-transfer-export-detail"},
+		&handlerFuncObj{Url: "/data/transfer/export/list", Method: "POST", HandlerFunc: data_trans.ExportList, ApiCode: "data-transfer-export-list"},
 	)
 }
 
