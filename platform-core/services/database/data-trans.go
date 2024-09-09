@@ -4,15 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	"os"
 	"strings"
 	"time"
 	"xorm.io/xorm"
 )
 
+// AnalyzeCMDBDataExport 分析cmdb数据并写入自动分析表
 func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransParam) (err error) {
 	cmdbEngine, getDBErr := getCMDBPluginDBResource(ctx)
 	if getDBErr != nil {
@@ -30,6 +31,10 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 	if err != nil {
 		err = fmt.Errorf("query ci type attribute table fail,%s ", err.Error())
 		return
+	}
+	ciTypeMap := make(map[string]*models.SysCiTypeTable)
+	for _, row := range ciTypeRows {
+		ciTypeMap[row.Id] = row
 	}
 	ciTypeAttrMap := make(map[string][]*models.SysCiTypeAttrTable)
 	for _, row := range ciTypeAttrRows {
@@ -53,10 +58,14 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 		return err
 	}
 	log.Logger.Info("<--- done analyzeCMDBData --->")
-	dmBytes, _ := json.Marshal(ciTypeDataMap)
-	if wfErr := os.WriteFile(fmt.Sprintf("/mnt/d/tmp/wecmdb/cmdb_%d.json", time.Now().Unix()), dmBytes, 0666); wfErr != nil {
-		log.Logger.Error("try to write ciTypeDataMap to json file fail", log.Error(wfErr))
+	for k, v := range ciTypeDataMap {
+		v.CiType = ciTypeMap[k]
 	}
+	// 分析监控数据
+	// 分析物料包数据
+	// 写入cmdb ci数据
+	insertActions := getInsertAnalyzeCMDBActions(param.TransExportId, ciTypeDataMap)
+	err = db.Transaction(insertActions, ctx)
 	return
 }
 
@@ -303,6 +312,17 @@ func getCMDBMultiRefGuidList(ciType, attrName, condition string, fromGuidList, t
 	}
 	for _, row := range queryResult {
 		resultGuidList = append(resultGuidList, row[resultColumn])
+	}
+	return
+}
+
+func getInsertAnalyzeCMDBActions(transExportId string, ciTypeDataMap map[string]*models.CiTypeData) (actions []*db.ExecAction) {
+	nowTime := time.Now()
+	for ciType, ciTypeData := range ciTypeDataMap {
+		rowDataBytes, _ := json.Marshal(ciTypeData.DataMap)
+		actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data,start_time) values (?,?,?,?,?,?,?)", Param: []interface{}{
+			"ex_aly_" + guid.CreateGuid(), transExportId, "wecmdb", ciType, ciTypeData.CiType.DisplayName, string(rowDataBytes), nowTime,
+		}})
 	}
 	return
 }
