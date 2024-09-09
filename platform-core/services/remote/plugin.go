@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/network"
 	"io"
 	"net/http"
 	"net/url"
@@ -897,5 +898,30 @@ func PushPackage(ctx context.Context, token string, unitDesignId string, deployP
 		return
 	}
 	result = response.Data
+	return
+}
+
+func QueryBusinessList(query models.QueryBusinessListParam) (result []map[string]interface{}, err error) {
+	var responseBodyBytes []byte
+	var response models.EntityResponse
+	uri := fmt.Sprintf("%s/%s/entities/%s/query", models.Config.Gateway.Url, query.PackageName, query.Entity)
+	postBytes, _ := json.Marshal(query.EntityQueryParam)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	if responseBodyBytes, err = network.HttpPost(uri, query.UserToken, query.Language, postBytes); err != nil {
+		return
+	}
+	if err = json.Unmarshal(responseBodyBytes, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+	if response.Status != models.DefaultHttpSuccessCode {
+		err = fmt.Errorf(response.Message)
+	} else {
+		result = response.Data
+	}
 	return
 }
