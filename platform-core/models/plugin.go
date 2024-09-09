@@ -902,3 +902,11 @@ type PluginArtifactsPushResult struct {
 	Status  string                 `json:"status"`
 	Data    map[string]interface{} `json:"data"`
 }
+
+type QueryBusinessListParam struct {
+	PackageName      string
+	Entity           string
+	UserToken        string
+	Language         string
+	EntityQueryParam EntityQueryParam
+}

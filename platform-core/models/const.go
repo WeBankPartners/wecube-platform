@@ -96,3 +96,13 @@ const (
 var (
 	UrlPrefix = fmt.Sprintf("/%s", GlobalProjectName)
 )
+
+// TransExportStatus 导出状态枚举
+type TransExportStatus string
+
+const (
+	TransExportStatusStart   TransExportStatus = "start"
+	TransExportStatusDoing   TransExportStatus = "doing"
+	TransExportStatusSuccess TransExportStatus = "success"
+	TransExportStatusFail    TransExportStatus = "fail"
+)
