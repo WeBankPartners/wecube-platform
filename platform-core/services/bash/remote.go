@@ -52,6 +52,7 @@ func RemoteSCP(targetIp, user, pwd, port, localFile, targetPath string) (err err
 	_, err = exec.Command("/bin/bash", "-c", mkDirCommandString).Output()
 	if err != nil {
 		err = fmt.Errorf("scp file,try to mkdir target dir path %s in %s fail,%s ", targetDir, targetIp, err.Error())
+		log.Logger.Debug("scp mkdir error", log.String("mkDirCommandString", mkDirCommandString))
 		return
 	}
 	commandString := fmt.Sprintf("sshpass -p '%s' scp -P %s %s %s@%s:%s", pwd, port, localFile, user, targetIp, targetPath)
@@ -72,6 +73,7 @@ func GetRemoteHostAvailablePort(resourceServer *models.ResourceServer) (port int
 	output, execErr := exec.Command("/bin/bash", "-c", commandString).Output()
 	if execErr != nil {
 		err = fmt.Errorf("run remote ssh command to get available port target %s fail,%s ", resourceServer.Host, execErr.Error())
+		log.Logger.Debug("get plugin host network port fail", log.String("commandString", commandString))
 		return
 	}
 	existPortLines := strings.Split(string(output), "\n")
