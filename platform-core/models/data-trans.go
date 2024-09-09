@@ -1,8 +1,9 @@
 package models
 
 type AnalyzeDataTransParam struct {
-	Business []string `json:"business"`
-	Env      string   `json:"env"`
+	TransExportId string   `json:"transExportId"`
+	Business      []string `json:"business"`
+	Env           string   `json:"env"`
 }
 
 type SysCiTypeTable struct {
