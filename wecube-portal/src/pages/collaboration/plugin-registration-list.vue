@@ -836,12 +836,16 @@ export default {
 }
 
 .card-content {
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+  width: 100%;
   .no-card-tips {
     display: flex;
     justify-content: center;
     margin-top: 50px;
   }
   .all-card-item {
+    width: 100%;
     .panal-list {
       margin-bottom: 10px;
       .panal-list-card {

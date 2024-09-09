@@ -201,7 +201,7 @@ export default {
       searchParams: {
         procDefId: '',
         procDefName: '',
-        plugins: [],
+        plugins: ['platform'],
         createdTime: [dayjs().subtract(3, 'month')
           .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
         createdTimeStart: '',
@@ -257,6 +257,7 @@ export default {
         {
           key: 'plugins',
           placeholder: this.$t('authPlugin'),
+          initValue: ['platform'],
           component: 'select',
           multiple: true,
           list: []
@@ -716,7 +717,7 @@ export default {
     async pluginList() {
       const { data, status } = await getPluginList()
       if (status === 'OK') {
-        this.authPluginList = data
+        this.authPluginList = data || []
         this.searchOptions.forEach(i => {
           if (i.key === 'plugins') {
             i.list = this.authPluginList.map(i => ({
@@ -751,7 +752,7 @@ export default {
       const { data, status } = await flowList(params)
       this.spinShow = false
       if (status === 'OK') {
-        this.data = data
+        this.data = data || []
       }
     },
     // #region 按钮响应
@@ -1179,11 +1180,10 @@ th.ivu-table-column-center div.ivu-table-cell-with-selection {
   background-color: #2d8cf0 !important;
   color: #fff !important;
 }
-.workflow-design .ivu-tag {
+.workflow-design .ivu-table .ivu-tag {
   display: inline-block;
   line-height: 16px;
   height: auto;
-  padding: 5px 6px;
 }
 </style>
 <style lang="scss" scoped>

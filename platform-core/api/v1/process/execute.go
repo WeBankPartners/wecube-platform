@@ -59,6 +59,11 @@ func PublicProcDefList(c *gin.Context) {
 	if subProc == "" {
 		subProc = "main"
 	}
+	// 如果插件属主不传则返回空
+	if plugin == "" {
+		middleware.ReturnData(c, []*models.PublicProcDefObj{})
+		return
+	}
 	log.Logger.Debug("public procDefList", log.String(permission, "permission"), log.String("tag", tag))
 	procList, err := database.ProcDefList(c, "0", permission, tag, plugin, subProc, middleware.GetRequestUser(c), rootEntity, middleware.GetRequestRoles(c))
 	if err != nil {
