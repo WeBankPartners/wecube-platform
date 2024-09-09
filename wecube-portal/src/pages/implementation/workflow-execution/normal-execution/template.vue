@@ -53,7 +53,7 @@ export default {
       searchParams: {
         procDefId: '',
         procDefName: '',
-        plugins: [],
+        plugins: ['platform'],
         createdTime: [dayjs().subtract(3, 'month')
           .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
         createdTimeStart: '',
