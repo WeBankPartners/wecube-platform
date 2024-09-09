@@ -1184,7 +1184,6 @@ th.ivu-table-column-center div.ivu-table-cell-with-selection {
   display: inline-block;
   line-height: 16px;
   height: auto;
-  padding: 5px 6px;
 }
 </style>
 <style lang="scss" scoped>
