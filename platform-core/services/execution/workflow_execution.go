@@ -458,6 +458,11 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag b
 				err = fmt.Errorf("try to update runtime dynamic node binding data fail,%s ", err.Error())
 				return
 			}
+			err = database.UpdateProcCacheData(ctx, procInsNode.ProcInsId, dataBindings)
+			if err != nil {
+				err = fmt.Errorf("try to udpate runtime proc data cache fail,%s ", err.Error())
+				return
+			}
 		}
 	}
 	pluginInterface, getIntErr := database.GetLastEnablePluginInterface(ctx, procDefNode.ServiceName)
@@ -744,7 +749,7 @@ func HandleCallbackHumanJob(ctx context.Context, procRunNodeId string, callbackD
 		}
 	}
 	if len(taskFormList) > 0 {
-		err = database.UpdateProcCacheData(ctx, procInsNode.ProcInsId, taskFormList)
+		err = database.UpdateProcCacheDataByTaskForm(ctx, procInsNode.ProcInsId, taskFormList)
 	}
 	return
 }
@@ -1057,7 +1062,7 @@ func DynamicBindNodeInRuntime(ctx context.Context, procInsNode *models.ProcInsNo
 	rootEntityNode := models.ProcPreviewEntityNode{DataId: rootEntityDataId, FullDataId: rootEntityDataId}
 	for _, nodeExpression := range nodeExpressionList {
 		tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: nodeExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
-		tmpNodeDataList, tmpErr := QueryProcPreviewNodeData(ctx, &tmpQueryDataParam, &rootEntityNode, false, interfaceFilters)
+		tmpNodeDataList, tmpErr := QueryProcPreviewNodeData(ctx, &tmpQueryDataParam, &rootEntityNode, true, interfaceFilters)
 		if tmpErr != nil {
 			err = tmpErr
 			break
@@ -1083,6 +1088,7 @@ func DynamicBindNodeInRuntime(ctx context.Context, procInsNode *models.ProcInsNo
 				ProcDefNodeId:  procDefNode.NodeId,
 				CreatedBy:      "system",
 				CreatedTime:    nowTime,
+				EntityData:     nodeDataObj.EntityData,
 			}
 			dataBinding = append(dataBinding, &tmpPreviewRow)
 		}

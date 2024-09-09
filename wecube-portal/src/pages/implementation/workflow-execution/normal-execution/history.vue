@@ -177,7 +177,8 @@ export default {
           procDefId: '',
           entityDisplayName: '',
           operator: '',
-          status: ''
+          status: '',
+          rootEntityGuid: ''
         }
       },
       pageable: {
@@ -434,6 +435,7 @@ export default {
   },
   mounted() {
     this.searchConfig.params.entityDisplayName = this.$route.query.entityDisplayName || ''
+    this.searchConfig.params.rootEntityGuid = this.$route.query.rootEntityGuid || ''
   },
   methods: {
     initData() {
@@ -604,6 +606,8 @@ export default {
         procDefId: this.searchConfig.params.procDefId !== '' ? this.searchConfig.params.procDefId : undefined,
         entityDisplayName:
           this.searchConfig.params.entityDisplayName !== '' ? this.searchConfig.params.entityDisplayName : undefined,
+        rootEntityGuid:
+          this.searchConfig.params.rootEntityGuid !== '' ? this.searchConfig.params.rootEntityGuid : undefined,
         operator: this.searchConfig.params.operator !== '' ? this.searchConfig.params.operator : undefined,
         status: this.searchConfig.params.status !== '' ? this.searchConfig.params.status : undefined,
         startTime: this.searchConfig.params.time[0] ? this.searchConfig.params.time[0] + ' 00:00:00' : undefined,
