@@ -162,8 +162,7 @@ router.beforeEach(async (to, from, next) => {
   if (!found) {
     window.sessionStorage.setItem('currentPath', to.fullPath)
     next('/homepage')
-  }
-  else {
+  } else {
     if (window.myMenus || ((await getGlobalMenus()) && window.myMenus)) {
       const isHasPermission = []
         .concat(...window.myMenus.map(_ => _.submenus), window.childRouters)
@@ -178,13 +177,11 @@ router.beforeEach(async (to, from, next) => {
           to.path === '/404' || to.path === '/login' ? '/homepage' : to.fullPath
         )
         next()
-      }
-      else {
+      } else {
         /* has no permission */
         next('/404')
       }
-    }
-    else {
+    } else {
       next('/login')
     }
   }
