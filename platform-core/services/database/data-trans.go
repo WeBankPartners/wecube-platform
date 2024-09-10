@@ -357,6 +357,7 @@ func QueryBusinessList(c context.Context, userToken, language string, param mode
 	if param.QueryMode == "env" {
 		query.Entity = dataTransVariableConfig.EnvCiType
 	} else {
+		query.Entity = dataTransVariableConfig.BusinessCiType
 		if strings.TrimSpace(param.ID) != "" {
 			query.EntityQueryParam.AdditionalFilters = append(query.EntityQueryParam.AdditionalFilters, &models.EntityQueryObj{
 				AttrName:  "id",
