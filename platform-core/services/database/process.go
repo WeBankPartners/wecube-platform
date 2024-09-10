@@ -156,7 +156,6 @@ func GetProcessDefinitionAll(ctx context.Context, userToken, language string) (l
 	var response models.QueryRolesResponse
 	var procDefList []*models.ProcDef
 	var permissionList []*models.ProcDefPermission
-	var manageRoles, userRoles, manageRolesDisplay, userRolesDisplay []string
 	var roleDisplayNameMap = make(map[string]string)
 	list = []*models.ProcDefDto{}
 	if procDefList, err = getAllProcessDefinition(ctx); err != nil {
@@ -174,6 +173,7 @@ func GetProcessDefinitionAll(ctx context.Context, userToken, language string) (l
 		}
 	}
 	for _, procDef := range procDefList {
+		var manageRoles, userRoles, manageRolesDisplay, userRolesDisplay []string
 		permissionList, err = GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id})
 		for _, permission := range permissionList {
 			if permission.Permission == "MGMT" {
