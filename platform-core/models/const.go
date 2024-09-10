@@ -101,8 +101,22 @@ var (
 type TransExportStatus string
 
 const (
-	TransExportStatusStart   TransExportStatus = "start"
-	TransExportStatusDoing   TransExportStatus = "doing"
-	TransExportStatusSuccess TransExportStatus = "success"
-	TransExportStatusFail    TransExportStatus = "fail"
+	TransExportStatusNotStart TransExportStatus = "notStart"
+	TransExportStatusStart    TransExportStatus = "start"
+	TransExportStatusDoing    TransExportStatus = "doing"
+	TransExportStatusSuccess  TransExportStatus = "success"
+	TransExportStatusFail     TransExportStatus = "fail"
+)
+
+// TransExportStep 导出步骤
+type TransExportStep int
+
+const (
+	TransExportStepRole            TransExportStep = 1 // 导出角色
+	TransExportStepWorkflow        TransExportStep = 2 // 导出编排
+	TransExportStepBatchExecution  TransExportStep = 3 // 导出批量执行
+	TransExportStepRequestTemplate TransExportStep = 4 // 导出请求模版
+	TransExportStepCmdbCI          TransExportStep = 5 // 导出CMDB CI
+	TransExportStepArtifacts       TransExportStep = 6 // 导出物料包
+	TransExportStepMonitor         TransExportStep = 7 // 导出监控
 )
