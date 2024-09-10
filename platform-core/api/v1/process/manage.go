@@ -258,6 +258,16 @@ func QueryProcessDefinitionList(c *gin.Context) {
 	middleware.ReturnData(c, list)
 }
 
+func QueryAllProcessDefinitionList(c *gin.Context) {
+	var list []*models.ProcDefDto
+	var err error
+	if list, err = database.GetProcessDefinitionAll(c, c.GetHeader("Authorization"), c.GetHeader("Accept-Language")); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnData(c, list)
+}
+
 func GetProcessDefinitionByNameAndVersion(c *gin.Context) {
 	var procDefDto *models.ProcDefDto
 	var err error
