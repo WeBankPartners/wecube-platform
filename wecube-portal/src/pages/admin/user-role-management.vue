@@ -311,8 +311,7 @@ export default {
         }
         if (val1 < val2) {
           return -1
-        }
-        else if (val1 > val2) {
+        } else if (val1 > val2) {
           return 1
         }
         return 0
@@ -515,8 +514,7 @@ export default {
             }
           })
         }
-      }
-      else {
+      } else {
         this.roles.forEach(_ => {
           _.checked = false
         })
@@ -551,8 +549,7 @@ export default {
             }
           })
         }
-      }
-      else {
+      } else {
         this.users.forEach(_ => {
           _.checked = false
         })
@@ -568,8 +565,7 @@ export default {
           })
           this.usersKeyBySelectedRole = newTargetKeys
         }
-      }
-      else {
+      } else {
         const { status, message } = await revokeRolesForUser(moveKeys, this.selectedRole)
         if (status === 'OK') {
           this.$Notice.success({
@@ -642,8 +638,7 @@ export default {
       if (!this.addedUser.email) {
         this.$Message.warning(`${this.$t('email')}${this.$t('cannotBeEmpty')}`)
         return
-      }
-      else if (!emailRegex.test(this.addedUser.email)) {
+      } else if (!emailRegex.test(this.addedUser.email)) {
         this.$Message.warning(`${this.$t('email')}${this.$t('invalidFormat')}`)
         return
       }
@@ -674,8 +669,7 @@ export default {
       if (!this.addedRole.params.email) {
         this.$Message.warning(`${this.$t('email')}${this.$t('cannotBeEmpty')}`)
         return
-      }
-      else if (!emailRegex.test(this.addedRole.params.email)) {
+      } else if (!emailRegex.test(this.addedRole.params.email)) {
         this.$Message.warning(`${this.$t('email')}${this.$t('invalidFormat')}`)
         return
       }
@@ -710,8 +704,7 @@ export default {
       this.addedRole.params = { ...item }
       if (item.status === 'Deleted') {
         this.addedRole.params.status = true
-      }
-      else {
+      } else {
         this.addedRole.params.status = false
       }
       this.addedRole.isShow = true

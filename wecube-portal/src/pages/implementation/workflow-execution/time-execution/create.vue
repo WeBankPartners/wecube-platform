@@ -1026,8 +1026,7 @@ export default {
         if (this.timeConfig.params.scheduleMode === 'Hourly') {
           scheduleExpr = this.timeConfig.params.time.substring(3)
         }
-      }
-      else {
+      } else {
         scheduleExpr = this.timeConfig.params.cycle + ' ' + this.timeConfig.params.time
       }
       const params = {

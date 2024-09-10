@@ -24,8 +24,7 @@ export const getAllFlow = (isIncludeDraft = true) => {
     params = {
       permission: 'MGMT'
     }
-  }
-  else {
+  } else {
     params = {
       includeDraft: 0,
       permission: 'USE'

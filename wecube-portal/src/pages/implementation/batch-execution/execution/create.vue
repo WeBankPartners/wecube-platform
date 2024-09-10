@@ -53,8 +53,7 @@ export default {
     if (this.$route.query.id) {
       if (this.$route.query.from === 'template') {
         this.handleChooseTemplate() // 选择模板创建执行
-      }
-      else {
+      } else {
         this.getExecuteDetail() // 获取执行详情
       }
     }
@@ -95,8 +94,7 @@ export default {
             isDangerousBlock: data.configData.isDangerousBlock,
             templateData
           }
-        }
-        else {
+        } else {
           // 预执行数据(无模板ID)
           this.detailData = {
             ...data,
@@ -218,8 +216,7 @@ export default {
           desc: this.$t('successful')
         })
         this.$router.push('/implementation/batch-execution/execution-history')
-      }
-      else if (status === 'CONFIRM') {
+      } else if (status === 'CONFIRM') {
         // 高危检测命中，则弹窗让用户手动确认是否继续执行，若继续，则带id和continueToken再执行一次
         if (data.dangerousCheckResult) {
           params.batchExecId = data.batchExecId

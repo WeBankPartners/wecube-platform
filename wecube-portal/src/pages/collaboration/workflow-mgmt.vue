@@ -129,8 +129,7 @@ export default {
         this.initGraphEvent()
         this.openCanvasPanel()
       })
-    }
-    else {
+    } else {
       this.$router.push({
         path: '/collaboration/workflow',
         query: { flowListTab: this.flowListTab }
@@ -873,8 +872,7 @@ export default {
         for (let i = 0; i < len; i++) {
           uuid[i] = chars[0 | (Math.random() * radix)]
         }
-      }
-      else {
+      } else {
         let r
         uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-'
         uuid[14] = '4'

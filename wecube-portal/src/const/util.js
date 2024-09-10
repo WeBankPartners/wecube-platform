@@ -49,8 +49,7 @@ export const deepClone = obj => {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
         if (obj[key] && typeof obj[key] === 'object') {
           objClone[key] = deepClone(obj[key])
-        }
-        else {
+        } else {
           objClone[key] = obj[key]
         }
       }
@@ -77,8 +76,7 @@ export const getGlobalMenus = () =>
                 ..._,
                 ...menuObj
               })
-            }
-            else {
+            } else {
               menus.push({
                 title: _.code,
                 id: _.id,
@@ -104,8 +102,7 @@ export const getGlobalMenus = () =>
                   })
                 }
               })
-            }
-            else {
+            } else {
               // Plugins Menus
               menus.forEach(h => {
                 if (_.category === '' + h.id) {
@@ -123,8 +120,7 @@ export const getGlobalMenus = () =>
 
         window.myMenus = menus
         resolve(menus)
-      }
-      else {
+      } else {
         resolve()
       }
     })
