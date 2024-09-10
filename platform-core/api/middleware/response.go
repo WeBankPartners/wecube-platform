@@ -11,6 +11,16 @@ import (
 
 const AcceptLanguageHeader = "Accept-Language"
 
+func ReturnPageData(c *gin.Context, pageInfo models.PageInfo, contents interface{}) {
+	if contents == nil {
+		contents = []string{}
+	}
+	obj := models.ResponseJson{HttpResponseMeta: models.HttpResponseMeta{Code: 0, Status: models.DefaultHttpSuccessCode}, Data: models.ResponsePageData{PageInfo: pageInfo, Contents: contents}}
+	bodyBytes, _ := json.Marshal(obj)
+	c.Set("responseBody", string(bodyBytes))
+	c.JSON(http.StatusOK, obj)
+}
+
 func ReturnData(c *gin.Context, data interface{}) {
 	returnObj := models.ResponseJson{HttpResponseMeta: models.HttpResponseMeta{Code: 0, Status: models.DefaultHttpSuccessCode}, Data: data}
 	if log.DebugEnable {
