@@ -120,8 +120,7 @@ export default {
         if (needRegister) {
           this.showRoleApply = true
           this.formValidate.userName = this.username
-        }
-        else {
+        } else {
           this.$router.push('/homepage')
         }
       }
