@@ -129,15 +129,13 @@ export default {
             }
             if (filename === null || filename === undefined || filename === '') {
               filename = 'file'
-            }
-            else {
+            } else {
               filename = decodeURI(filename)
             }
             const blob = content
             if ('msSaveOrOpenBlob' in navigator) {
               window.navigator.msSaveOrOpenBlob(blob, filename)
-            }
-            else {
+            } else {
               if ('download' in document.createElement('a')) {
                 // 非IE下载
                 const elink = document.createElement('a')
@@ -148,8 +146,7 @@ export default {
                 elink.click()
                 URL.revokeObjectURL(elink.href) // 释放URL 对象
                 document.body.removeChild(elink)
-              }
-              else {
+              } else {
                 // IE10+下载
                 navigator.msSaveOrOpenBlob(blob, filename)
               }
@@ -202,13 +199,11 @@ export default {
               window.location.href = window.location.origin + window.location.pathname + '#/login'
             }
           )
-        }
-        else {
+        } else {
           this.setUploadActionHeader()
           // this.$refs.uploadButton.handleClick()
         }
-      }
-      else {
+      } else {
         window.location.href = window.location.origin + window.location.pathname + '#/login'
       }
     },
@@ -224,8 +219,7 @@ export default {
           desc: response.message || ''
         })
         this.getTableData()
-      }
-      else {
+      } else {
         this.$Notice.warning({
           title: 'Warning',
           desc: response.message || ''
