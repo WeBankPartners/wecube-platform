@@ -716,8 +716,7 @@ export default {
       handler(val) {
         if (val && val.length > 0) {
           this.clearedEntityType = val.split('{')[0]
-        }
-        else {
+        } else {
           this.clearedEntityType = ''
         }
       }
@@ -796,8 +795,7 @@ export default {
       // 以 '>' 分割
       if (lastIndexOfA >= lastIndexOfB) {
         this.objectRootEntity = expression.split('>').pop()
-      }
-      else {
+      } else {
         // 以 '~' 分割
         this.objectRootEntity = expression.split('~').pop()
           .split(')')
@@ -815,8 +813,7 @@ export default {
       const findIndex = val.indexOf('{')
       if (findIndex === -1) {
         this.currentPluginObj.filterRule = ''
-      }
-      else {
+      } else {
         const rule = val.substring(findIndex, val.length)
         this.currentPluginObj.filterRule = rule
       }
@@ -982,8 +979,7 @@ export default {
         this.$refs.useRoles.leftCheckedKeys = []
         this.currentPluginForPermission = config
         this.isAddOrCopy = 'new'
-      }
-      else {
+      } else {
         this.$Message.warning(this.$t('no_permission_to_mgmt'))
       }
     },
@@ -993,16 +989,13 @@ export default {
           // await this.updatePermission(this.newPluginConfig)
           await this.exectCopyPluginConfigDto()
           this.configRoleManageModal = false
-        }
-        else if (this.isAddOrCopy === 'add') {
+        } else if (this.isAddOrCopy === 'add') {
           this.exectAddPluginConfigDto()
           this.configRoleManageModal = false
-        }
-        else if (this.isAddOrCopy === 'new') {
+        } else if (this.isAddOrCopy === 'new') {
           await this.updatePermission(this.currentPluginForPermission.id)
         }
-      }
-      else {
+      } else {
         this.$Message.warning(this.$t('mgmt_role_warning'))
       }
     },

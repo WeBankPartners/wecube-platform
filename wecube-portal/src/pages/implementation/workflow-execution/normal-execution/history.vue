@@ -402,8 +402,7 @@ export default {
               }
             })
           }
-        }
-        else if (val === 'main') {
+        } else if (val === 'main') {
           this.tableColumns = this.tableColumns.filter(i => i.key !== 'parentProcIns')
         }
       },
