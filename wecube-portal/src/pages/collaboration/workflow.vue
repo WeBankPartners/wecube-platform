@@ -600,8 +600,7 @@ export default {
               </Button>
             )
           })
-        }
-        else if (val === 'main') {
+        } else if (val === 'main') {
           this.tableColumn = this.tableColumn.filter(i => i.key !== 'mainFlow')
         }
       },
@@ -761,8 +760,7 @@ export default {
       this.authTo = 'batchAuth'
       if (this.selectedParams.length === 1) {
         this.$refs.flowAuthRef.startAuth(this.selectedParams[0].mgmtRole, this.selectedParams[0].useRole)
-      }
-      else {
+      } else {
         this.$refs.flowAuthRef.startAuth([], [])
       }
     },
@@ -791,8 +789,7 @@ export default {
           },
           onCancel: () => {}
         })
-      }
-      else if (this.authTo === 'createFlow') {
+      } else if (this.authTo === 'createFlow') {
         const params = {
           id: '',
           name: `${this.$t('workflow_report_aspect')}_${dayjs().format('YYMMDDHHmmss')}`,
@@ -862,8 +859,7 @@ export default {
             this.$nextTick(() => {
               if (state === 'disabled') {
                 this.searchParams.status = 'disabled'
-              }
-              else if (state === 'enabled') {
+              } else if (state === 'enabled') {
                 this.searchParams.status = 'deployed'
               }
               this.getFlowList()
@@ -969,8 +965,7 @@ export default {
     changeRoleTableStatus(index, type) {
       if (type === 'in') {
         this.hideRoles.push(index)
-      }
-      else if (type === 'out') {
+      } else if (type === 'out') {
         const findIndex = this.hideRoles.findIndex(rIndex => rIndex === index)
         this.hideRoles.splice(findIndex, 1)
       }
@@ -1035,8 +1030,7 @@ export default {
             const blob = new Blob([response.data])
             if ('msSaveOrOpenBlob' in navigator) {
               window.navigator.msSaveOrOpenBlob(blob, fileName)
-            }
-            else {
+            } else {
               if ('download' in document.createElement('a')) {
                 // 非IE下载
                 const elink = document.createElement('a')
@@ -1047,8 +1041,7 @@ export default {
                 elink.click()
                 URL.revokeObjectURL(elink.href) // 释放URL 对象
                 document.body.removeChild(elink)
-              }
-              else {
+              } else {
                 // IE10+下载
                 navigator.msSaveOrOpenBlob(blob, fileName)
               }

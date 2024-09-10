@@ -195,11 +195,9 @@ export default {
             let str = ''
             if (isMultiple) {
               str = `{${rule.attr} ${rule.op} [${rule.value.map(v => `'${v}'`)}]}`
-            }
-            else if (rule.op === 'is' || rule.op === 'isnot') {
+            } else if (rule.op === 'is' || rule.op === 'isnot') {
               str = `{${rule.attr} ${rule.op} NULL}`
-            }
-            else {
+            } else {
               const noQuotation = rule.op === 'gt' || rule.op === 'lt'
               str = noQuotation
                 ? `{${rule.attr} ${rule.op} ${rule.value}}`
