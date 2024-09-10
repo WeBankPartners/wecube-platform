@@ -1,6 +1,7 @@
 package data_trans
 
 import (
+	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
@@ -56,17 +57,55 @@ func ExecExport(c *gin.Context) {
 }
 
 func ExportDetail(c *gin.Context) {
+	transExportId := c.Query("transExportId")
+	if strings.TrimSpace(transExportId) == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("transExportId is empty")))
+		return
+	}
+}
 
+func GetExportListOptions(c *gin.Context) {
+	var TransExportHistoryOptions models.TransExportHistoryOptions
+	var err error
+	if TransExportHistoryOptions, err = database.GetAllTransExportOptions(c); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnData(c, TransExportHistoryOptions)
 }
 
 func ExportList(c *gin.Context) {
-
+	var param models.TransExportHistoryParam
+	var pageInfo models.PageInfo
+	var list []*models.TransExportTable
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if param.PageSize == 0 {
+		param.PageSize = 10
+	}
+	if pageInfo, list, err = database.QueryTransExportByCondition(c, param); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnPageData(c, pageInfo, list)
 }
 
 func GetExportMonitor(c *gin.Context) {
+	transExportId := c.Query("transExportId")
+	if strings.TrimSpace(transExportId) == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("transExportId is empty")))
+		return
+	}
 
 }
 
 func GetExportPlugin(c *gin.Context) {
-
+	transExportId := c.Query("transExportId")
+	if strings.TrimSpace(transExportId) == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("transExportId is empty")))
+		return
+	}
 }

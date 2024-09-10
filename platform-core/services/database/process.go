@@ -152,6 +152,48 @@ func QueryProcessDefinitionList(ctx context.Context, param models.QueryProcessDe
 	return
 }
 
+func GetProcessDefinitionAll(ctx context.Context, userToken, language string) (list []*models.ProcDefDto, err error) {
+	var response models.QueryRolesResponse
+	var procDefList []*models.ProcDef
+	var permissionList []*models.ProcDefPermission
+	var manageRoles, userRoles, manageRolesDisplay, userRolesDisplay []string
+	var roleDisplayNameMap = make(map[string]string)
+	list = []*models.ProcDefDto{}
+	if procDefList, err = getAllProcessDefinition(ctx); err != nil {
+		return
+	}
+	if len(procDefList) == 0 {
+		return
+	}
+	if response, err = remote.RetrieveAllLocalRoles("Y", userToken, language, false); err != nil {
+		return
+	}
+	if len(response.Data) > 0 {
+		for _, roleDto := range response.Data {
+			roleDisplayNameMap[roleDto.Name] = roleDto.DisplayName
+		}
+	}
+	for _, procDef := range procDefList {
+		permissionList, err = GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id})
+		for _, permission := range permissionList {
+			if permission.Permission == "MGMT" {
+				manageRoles = append(manageRoles, permission.RoleName)
+				manageRolesDisplay = append(manageRolesDisplay, roleDisplayNameMap[permission.RoleName])
+			} else if permission.Permission == "USE" {
+				userRoles = append(userRoles, permission.RoleName)
+				userRolesDisplay = append(userRolesDisplay, roleDisplayNameMap[permission.RoleName])
+			}
+		}
+		list = append(list, models.BuildProcDefDto(procDef, userRoles, manageRoles, userRolesDisplay, manageRolesDisplay, false, map[string]string{}))
+	}
+	return
+}
+
+func getAllProcessDefinition(ctx context.Context) (list []*models.ProcDef, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def").Find(&list)
+	return
+}
+
 func GetProcessDefinitionByName(ctx context.Context, name, version string) (procDefDto *models.ProcDefDto, err error) {
 	var usePermission []string
 	procDef := models.ProcDef{}
