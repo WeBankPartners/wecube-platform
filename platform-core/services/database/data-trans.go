@@ -347,11 +347,30 @@ func QueryBusinessList(c context.Context, userToken, language string, param mode
 		return
 	}
 	query = models.QueryBusinessListParam{
-		PackageName:      dataTransVariableConfig.BusinessCiType,
-		Entity:           dataTransVariableConfig.EnvCiType,
-		UserToken:        userToken,
-		Language:         language,
-		EntityQueryParam: models.EntityQueryParam{},
+		PackageName: "wecmdb",
+		UserToken:   userToken,
+		Language:    language,
+		EntityQueryParam: models.EntityQueryParam{
+			AdditionalFilters: make([]*models.EntityQueryObj, 0),
+		},
+	}
+	if param.QueryMode == "env" {
+		query.Entity = dataTransVariableConfig.EnvCiType
+	} else {
+		if strings.TrimSpace(param.ID) != "" {
+			query.EntityQueryParam.AdditionalFilters = append(query.EntityQueryParam.AdditionalFilters, &models.EntityQueryObj{
+				AttrName:  "id",
+				Op:        "like",
+				Condition: param.ID,
+			})
+		}
+		if strings.TrimSpace(param.DisplayName) != "" {
+			query.EntityQueryParam.AdditionalFilters = append(query.EntityQueryParam.AdditionalFilters, &models.EntityQueryObj{
+				AttrName:  "displayName",
+				Op:        "like",
+				Condition: param.DisplayName,
+			})
+		}
 	}
 	result, err = remote.QueryBusinessList(query)
 	return
@@ -371,6 +390,5 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 	if addTransExportActions = getInsertTransExport(transExport); len(addTransExportActions) > 0 {
 		actions = append(actions, addTransExportActions...)
 	}
-	//AnalyzeCMDBDataExport()
 	return
 }

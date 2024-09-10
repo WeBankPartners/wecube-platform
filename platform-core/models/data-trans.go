@@ -90,9 +90,9 @@ type CiTypeDataFilter struct {
 }
 
 type QueryBusinessParam struct {
-	Env       string `json:"env"`       //环境
-	Business  string `json:"business"`  // 业务名称
-	ProductId string `json:"productId"` //产品ID
+	ID          string `json:"id"`          // 产品ID
+	DisplayName string `json:"displayName"` // 业务名称
+	QueryMode   string `json:"queryMode"`   // env 查询环境
 }
 
 type CreateExportParam struct {
