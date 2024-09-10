@@ -142,6 +142,7 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id", Method: "GET", HandlerFunc: process.GetProcessDefinition, ApiCode: "get-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/copy/:association", Method: "POST", HandlerFunc: process.CopyProcessDefinition, ApiCode: "copy-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions/list", Method: "POST", HandlerFunc: process.QueryProcessDefinitionList, ApiCode: "process-definition-list"},
+		&handlerFuncObj{Url: "/process/definitions/all", Method: "GET", HandlerFunc: process.QueryAllProcessDefinitionList, ApiCode: "process-definition-all"},
 		&handlerFuncObj{Url: "/process/definitions/list/:plugin", Method: "GET", HandlerFunc: process.QueryPluginProcessDefinitionList, ApiCode: "plugin-process-definition-list"},
 		&handlerFuncObj{Url: "/process/definitions/status", Method: "POST", HandlerFunc: process.BatchUpdateProcessDefinitionStatus, ApiCode: "update-process-definition-status"},
 		&handlerFuncObj{Url: "/process/definitions/permission", Method: "POST", HandlerFunc: process.BatchUpdateProcessDefinitionPermission, ApiCode: "update-process-definition-permission"},
@@ -205,6 +206,7 @@ func init() {
 		// batch-execution
 		&handlerFuncObj{Url: "/batch-execution/templates", Method: "POST", HandlerFunc: batch_execution.CreateOrUpdateTemplate, ApiCode: "create-update-batch-execution-template"},
 		&handlerFuncObj{Url: "/batch-execution/templates/list", Method: "POST", HandlerFunc: batch_execution.RetrieveTemplate, ApiCode: "retrieve-batch-execution-template"},
+		&handlerFuncObj{Url: "/batch-execution/templates/all", Method: "GET", HandlerFunc: batch_execution.GetAllTemplate, ApiCode: "retrieve-batch-execution-template"},
 		&handlerFuncObj{Url: "/batch-execution/templates/:templateId", Method: "GET", HandlerFunc: batch_execution.GetTemplate, ApiCode: "get-batch-execution-template"},
 		&handlerFuncObj{Url: "/batch-execution/templates/:templateId", Method: "DELETE", HandlerFunc: batch_execution.DeleteTemplate, ApiCode: "delete-batch-execution-template"},
 		&handlerFuncObj{Url: "/batch-execution/templates/collect", Method: "POST", HandlerFunc: batch_execution.CollectTemplate, ApiCode: "collect-batch-execution-template"},
@@ -248,6 +250,7 @@ func init() {
 		&handlerFuncObj{Url: "/data/transfer/plugin", Method: "GET", HandlerFunc: data_trans.GetExportPlugin, ApiCode: "data-transfer-plugin"},
 		&handlerFuncObj{Url: "/data/transfer/export", Method: "POST", HandlerFunc: data_trans.ExecExport, ApiCode: "data-transfer-export"},
 		&handlerFuncObj{Url: "/data/transfer/export/detail", Method: "GET", HandlerFunc: data_trans.ExportDetail, ApiCode: "data-transfer-export-detail"},
+		&handlerFuncObj{Url: "/data/transfer/export/list/options", Method: "GET", HandlerFunc: data_trans.GetExportListOptions, ApiCode: "data-transfer-export-options"},
 		&handlerFuncObj{Url: "/data/transfer/export/list", Method: "POST", HandlerFunc: data_trans.ExportList, ApiCode: "data-transfer-export-list"},
 	)
 }

@@ -115,4 +115,23 @@ type CreateExportParam struct {
 }
 
 type DataTransExportParam struct {
+	Roles              []string `json:"roles"`              // 角色
+	WorkflowIds        []string `json:"workflowIds"`        // 编排Ids
+	BatchExecutionIds  []string `json:"batchExecutionIds"`  // 批量执行Ids
+	RequestTemplateIds []string `json:"requestTemplateIds"` // 模版Ids
+}
+
+type TransExportHistoryParam struct {
+	Id         string   `json:"id"`
+	Status     []string `json:"status"`
+	Services   []string `json:"services"`  //产品
+	Operators  []string `json:"operators"` //操作人
+	ExecTime   string   `json:"execTime"`  //执行时间
+	StartIndex int      `json:"startIndex"`
+	PageSize   int      `json:"pageSize"`
+}
+
+type TransExportHistoryOptions struct {
+	Services  []string `json:"services"`  // 导出产品
+	Operators []string `json:"operators"` //操作人
 }
