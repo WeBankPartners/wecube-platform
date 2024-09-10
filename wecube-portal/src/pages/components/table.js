@@ -65,8 +65,7 @@ export default {
                 this.$set(this.form, j.inputKey, '')
               }
             })
-          }
-          else {
+          } else {
             if (!_.isNotFilterable) {
               this.$set(this.form, _.inputKey, '')
             }
@@ -161,8 +160,7 @@ export default {
           ) {
             _[i] = _['weTableForm'][i].codeId || _['weTableForm'][i].guid
             _['weTableForm'][i] = _['weTableForm'][i].value || _['weTableForm'][i].key_name || _['weTableForm'][i].name
-          }
-          else {
+          } else {
             if (Array.isArray(_['weTableForm'][i]) && i !== 'nextOperations') {
               // _['weTableForm'][i] = _['weTableForm'][i]
               const found = this.tableColumns.find(q => q.inputKey === i)
@@ -249,8 +247,7 @@ export default {
                     generateFilters(j.inputType, i)
                   }
                 })
-              }
-              else {
+              } else {
                 if (i === _.inputKey) {
                   generateFilters(_.inputType, i)
                 }
@@ -268,8 +265,7 @@ export default {
               this.form[j.inputKey] = ''
             }
           })
-        }
-        else {
+        } else {
           if (!_.isNotFilterable) {
             this.form[_.inputKey] = ''
           }
@@ -671,8 +667,7 @@ export default {
             if (params.column.inputType === 'multiRef') {
               content = params.row.weTableForm[col.key].map(_ => _.key_name).toString()
             }
-          }
-          else {
+          } else {
             content = params.row.weTableForm[col.key]
           }
 
