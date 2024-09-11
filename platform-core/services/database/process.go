@@ -1235,6 +1235,64 @@ func DelProcDefCollect(ctx context.Context, procDefId, operator string) (err err
 	return
 }
 
+func GetProcDefDetailByProcDefId(ctx context.Context, procDefId string) (procDefDto *models.ProcessDefinitionDto, err error) {
+	procDefDto = &models.ProcessDefinitionDto{}
+	// 节点
+	var nodes []*models.ProcDefNodeResultDto
+
+	var nodeList []*models.ProcDefNode
+	// 线
+	var edges []*models.ProcDefNodeLinkDto
+
+	procDef, err := GetProcessDefinition(ctx, procDefId)
+	if err != nil {
+		return
+	}
+	if procDef == nil {
+		err = fmt.Errorf("procDefId is invalid")
+		return
+	}
+	procDefDto.ProcDef = models.ConvertProcDef2Dto(procDef)
+	historyList, err := GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Key: procDef.Key, Name: procDef.Name})
+	if err != nil {
+		return
+	}
+	if len(historyList) <= 1 {
+		procDefDto.ProcDef.EnableModifyName = true
+	}
+	list, err := GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDefId})
+	if err != nil {
+		return
+	}
+	if len(list) > 0 {
+		for _, procDefPermission := range list {
+			if procDefPermission.Permission == string(models.MGMT) {
+				procDefDto.PermissionToRole.MGMT = append(procDefDto.PermissionToRole.MGMT, procDefPermission.RoleName)
+			} else if procDefPermission.Permission == string(models.USE) {
+				procDefDto.PermissionToRole.USE = append(procDefDto.PermissionToRole.USE, procDefPermission.RoleName)
+			}
+		}
+	}
+	nodeList, nodes, err = GetProcDefNodeByProcDefId(ctx, procDefId)
+	if err != nil {
+		return
+	}
+	linkList, err := GetProcDefNodeLinkListByProcDefId(ctx, procDefId)
+	if err != nil {
+		return
+	}
+	if len(linkList) > 0 {
+		for _, link := range linkList {
+			edges = append(edges, models.ConvertProcDefNodeLink2Dto(link, nodeList))
+		}
+	}
+	procDefDto.ProcDefNodeExtend = &models.ProcDefNodeExtendDto{
+		Nodes: nodes,
+		Edges: edges,
+	}
+	return
+}
+
 func getUserProcDefCollectMap(ctx context.Context, userId string) (procDefMap map[string]string, err error) {
 	var collectRows []*models.ProcDefCollect
 	err = db.MysqlEngine.Context(ctx).SQL("select proc_def_id from proc_def_collect where user_id=?", userId).Find(&collectRows)
