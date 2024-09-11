@@ -67,7 +67,7 @@
           :columns="roleTableColumns"
           :max-height="400"
           :data="roleTableData"
-          @on-selection-change="(selection) => handleSelectChange('role', selection)"
+          @on-selection-change="selection => handleSelectChange('role', selection)"
         >
         </Table>
       </div>
@@ -89,7 +89,7 @@
           :columns="flowTableColumns"
           :max-height="400"
           :data="flowTableData"
-          @on-selection-change="(selection) => handleSelectChange('flow', selection)"
+          @on-selection-change="selection => handleSelectChange('flow', selection)"
         >
         </Table>
       </div>
@@ -111,7 +111,7 @@
           :columns="batchTableColumns"
           :max-height="400"
           :data="batchTableData"
-          @on-selection-change="(selection) => handleSelectChange('execution', selection)"
+          @on-selection-change="selection => handleSelectChange('execution', selection)"
         >
         </Table>
       </div>
@@ -133,7 +133,7 @@
           :columns="itsmTableColumns"
           :max-height="400"
           :data="itsmTableData"
-          @on-selection-change="(selection) => handleSelectChange('itsm', selection)"
+          @on-selection-change="selection => handleSelectChange('itsm', selection)"
         >
         </Table>
       </div>
