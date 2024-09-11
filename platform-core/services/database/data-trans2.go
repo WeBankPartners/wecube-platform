@@ -6,6 +6,7 @@ import (
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"strings"
 )
 
@@ -114,6 +115,47 @@ func QueryTransExportByCondition(ctx context.Context, param models.TransExportHi
 	sql += pageSql
 	queryParam = append(queryParam, pageParam...)
 	err = db.MysqlEngine.Context(ctx).SQL(sql, queryParam...).Find(&list)
+	return
+}
+
+// AutoAppendExportRoles 自动追加导出角色
+func AutoAppendExportRoles(ctx context.Context, userToken, language string, param models.DataTransExportParam) (newCheckRoles []string, err error) {
+	var procDefPermissionList []*models.ProcDefPermission
+	var batchExecutionTemplateRoles []*models.BatchExecutionTemplateRole
+	var requestTemplateRoles models.QueryRequestTemplateRolesResponse
+	var allCheckRoleMap = make(map[string]bool)
+	newCheckRoles = []string{}
+	// 1.角色校验,编排、批量执行、请求模版的角色.需要的角色自动加入
+	if procDefPermissionList, err = GetProcDefPermissionByIds(ctx, param.WorkflowIds); err != nil {
+		return
+	}
+	if len(procDefPermissionList) > 0 {
+		for _, permission := range procDefPermissionList {
+			allCheckRoleMap[permission.Permission] = true
+		}
+	}
+	if batchExecutionTemplateRoles, err = GetBatchExecutionTemplatePermissionByIds(ctx, param.BatchExecutionIds); err != nil {
+		return
+	}
+	if len(batchExecutionTemplateRoles) > 0 {
+		for _, templateRole := range batchExecutionTemplateRoles {
+			allCheckRoleMap[templateRole.RoleName] = true
+		}
+	}
+	if requestTemplateRoles, err = remote.GetRequestTemplateRoles(models.GetRequestTemplateRolesDto{RequestTemplateIds: param.RequestTemplateIds}, userToken, language); err != nil {
+		return
+	}
+	if len(requestTemplateRoles.Roles) > 0 {
+		for _, role := range requestTemplateRoles.Roles {
+			allCheckRoleMap[role] = true
+		}
+	}
+	if len(param.Roles) > 0 {
+		newCheckRoles = append(newCheckRoles, param.Roles...)
+	}
+	for role, _ := range allCheckRoleMap {
+		newCheckRoles = append(newCheckRoles, role)
+	}
 	return
 }
 
