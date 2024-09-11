@@ -56,105 +56,184 @@
         </div>
       </card>
     </div>
+    <!--角色列表-->
     <div class="item">
-      <span class="title">角色：已选<span class="number">{{ 10 }}</span></span>
+      <span class="title">角色：已选<span class="number">{{ roleSelectionList.length }}</span></span>
       <div>
         <Table
           :border="false"
           size="small"
           :loading="roleTableLoading"
           :columns="roleTableColumns"
-          :max-height="500"
+          :max-height="400"
           :data="roleTableData"
-          @on-selection-change="handleSelectChange('role')"
+          @on-selection-change="(selection) => handleSelectChange('role', selection)"
         >
         </Table>
       </div>
     </div>
+    <!--编排列表-->
     <div class="item">
       <span class="title">编排：已选<span class="number">{{ 10 }}</span></span>
       <div>
         <BaseSearch
-          :showBtn="false"
+          :onlyShowReset="true"
           :options="flowSearchOptions"
           v-model="flowSearchParams"
-          @search="getTableList('flow')"
+          @search="searchTable('flow')"
         ></BaseSearch>
         <Table
           :border="false"
           size="small"
           :loading="flowTableLoading"
           :columns="flowTableColumns"
-          :max-height="500"
+          :max-height="400"
           :data="flowTableData"
-          @on-selection-change="handleSelectChange('flow')"
+          @on-selection-change="(selection) => handleSelectChange('flow', selection)"
         >
         </Table>
       </div>
     </div>
+    <!--批量执行列表-->
     <div class="item">
       <span class="title">批量执行：已选<span class="number">{{ 10 }}</span></span>
       <div>
         <BaseSearch
-          :showBtn="false"
-          :options="flowSearchOptions"
-          v-model="flowSearchParams"
-          @search="getTableList('flow')"
+          :onlyShowReset="true"
+          :options="batchSearchOptions"
+          v-model="batchSearchParams"
+          @search="searchTable('batch')"
         ></BaseSearch>
         <Table
           :border="false"
           size="small"
-          :loading="flowTableLoading"
-          :columns="flowTableColumns"
-          :max-height="500"
-          :data="flowTableData"
-          @on-selection-change="handleSelectChange('flow')"
+          :loading="batchTableLoading"
+          :columns="batchTableColumns"
+          :max-height="400"
+          :data="batchTableData"
+          @on-selection-change="(selection) => handleSelectChange('execution', selection)"
+        >
+        </Table>
+      </div>
+    </div>
+    <!--ITSM列表-->
+    <div class="item">
+      <span class="title">ITSM流程：已选<span class="number">{{ 10 }}</span></span>
+      <div>
+        <BaseSearch
+          :onlyShowReset="true"
+          :options="itsmSearchOptions"
+          v-model="itsmSearchParams"
+          @search="searchTable('itsm')"
+        ></BaseSearch>
+        <Table
+          :border="false"
+          size="small"
+          :loading="itsmTableLoading"
+          :columns="itsmTableColumns"
+          :max-height="400"
+          :data="itsmTableData"
+          @on-selection-change="(selection) => handleSelectChange('itsm', selection)"
         >
         </Table>
       </div>
     </div>
     <div class="item">
-      <span class="title">ITSM流程：已选<span class="number">{{ 10 }}</span></span>
-      <div>
-        <BaseSearch
-          :showBtn="false"
-          :options="flowSearchOptions"
-          v-model="flowSearchParams"
-          @search="getTableList('flow')"
-        ></BaseSearch>
-        <Table
-          :border="false"
-          size="small"
-          :loading="flowTableLoading"
-          :columns="flowTableColumns"
-          :max-height="500"
-          :data="flowTableData"
-          @on-selection-change="handleSelectChange('flow')"
-        >
-        </Table>
-      </div>
+      <span class="title">
+        CMDB：<span class="sub-title">
+          已选 CI<span class="number">{{ 10 }}</span> 视图<span class="number">{{ 10 }}</span> 报表<span
+            class="number"
+          >{{ 10 }}</span>
+        </span>
+      </span>
+      <Row :gutter="10">
+        <Col :span="10">
+          <Card title="CI">
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbTableData">
+            </Table>
+          </Card>
+        </Col>
+        <Col :span="7">
+          <Card title="视图">
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbTableData">
+            </Table>
+          </Card>
+        </Col>
+        <Col :span="7">
+          <Card title="报表">
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbTableData">
+            </Table>
+          </Card>
+        </Col>
+      </Row>
     </div>
-    <StaticData></StaticData>
+    <div class="item">
+      <span class="title">
+        物料包：已选<span class="number">{{ 10 }}</span>
+      </span>
+      <Row :gutter="10">
+        <Col :span="17">
+          <Card>
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbTableData">
+            </Table>
+          </Card>
+        </Col>
+      </Row>
+    </div>
+    <div class="item">
+      <span class="title">
+        监控配置：<span class="sub-title">
+          已选配置类型<span class="number">{{ 10 }}</span> 总条数<span class="number">{{ 10 }}</span>
+        </span>
+      </span>
+      <Row :gutter="10">
+        <Col :span="17">
+          <Card>
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbTableData">
+            </Table>
+          </Card>
+        </Col>
+      </Row>
+    </div>
   </div>
 </template>
 
 <script>
-import StaticData from './static-data.vue'
-import tableConfig from '../selection-table'
+import selectTableConfig from '../selection-table'
+import staticTableConfig from '../static-table'
+import { getCurrentUserRoles } from '@/api/server.js'
 export default {
-  components: {
-    StaticData
-  },
-  mixins: [tableConfig],
+  mixins: [selectTableConfig, staticTableConfig],
   props: {
     status: String
   },
   data() {
     return {}
   },
+  mounted() {
+    this.getRoleTableList()
+  },
   methods: {
-    handleSelectChange() {},
-    getTableList() {}
+    // 表格数据勾选
+    handleSelectChange(type, selection) {
+      if (type === 'role') {
+        this.roleSelectionList = selection
+      }
+    },
+    // 表格搜索
+    handleSearchTable(type) {
+      //
+    },
+    async getRoleTableList() {
+      const { status, data } = await getCurrentUserRoles()
+      if (status === 'OK') {
+        this.roleTableData = data.map(_ => ({
+          ..._,
+          _checked: true
+        }))
+        this.roleSelectionList = this.roleTableData
+      }
+    }
   }
 }
 </script>
@@ -167,7 +246,7 @@ export default {
   .item {
     display: flex;
     flex-direction: column;
-    margin-bottom: 30px;
+    margin-bottom: 50px;
     &-header {
       &-t {
         font-weight: bold;
@@ -223,6 +302,9 @@ export default {
   }
   .ivu-alert-with-desc.ivu-alert-with-icon {
     padding: 10px 16px 10px 55px;
+  }
+  .common-base-search-button {
+    width: fit-content;
   }
 }
 </style>
