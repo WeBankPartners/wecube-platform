@@ -190,7 +190,7 @@ func GetProcessDefinitionAll(ctx context.Context, userToken, language string) (l
 }
 
 func getAllProcessDefinition(ctx context.Context) (list []*models.ProcDef, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def").Find(&list)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def order by updated_time desc ").Find(&list)
 	return
 }
 
@@ -878,6 +878,18 @@ func UpdateProcDefNodeOrder(ctx context.Context, nodeIndexMap map[string]int) (e
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
+func GetProcDefPermissionByIds(ctx context.Context, procDefIds []string) (list []*models.ProcDefPermission, err error) {
+	if len(procDefIds) == 0 {
+		return
+	}
+	sql := "select * from proc_def_permission where proc_def_id in (" + getSQL(procDefIds) + ")"
+	err = db.MysqlEngine.Context(ctx).SQL(sql).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	}
 	return
 }
