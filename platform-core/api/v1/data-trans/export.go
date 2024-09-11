@@ -19,7 +19,7 @@ func QueryBusinessList(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	if result, err = database.QueryBusinessList(c, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"), param); err != nil {
+	if result, err = database.QueryBusinessList(c, c.GetHeader("Authorization"), c.GetHeader(middleware.AcceptLanguageHeader), param); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
@@ -50,8 +50,20 @@ func CreateExport(c *gin.Context) {
 // ExecExport 执行底座导出
 func ExecExport(c *gin.Context) {
 	var param models.DataTransExportParam
-	if err := c.ShouldBindJSON(&param); err != nil {
+	//var queryRolesResponse models.QueryRolesResponse
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	userToken := c.GetHeader("Authorization")
+	language := c.GetHeader(middleware.AcceptLanguageHeader)
+	/*if queryRolesResponse, err = remote.RetrieveAllLocalRoles("Y", userToken, language, false); err != nil {
+		return
+	}*/
+	// 1. 根据选中编排、批量执行、请求模版角色追加到模版角色
+	if param.Roles, err = database.AutoAppendExportRoles(c, userToken, language, param); err != nil {
+		middleware.ReturnError(c, err)
 		return
 	}
 }

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -279,7 +280,7 @@ func CheckCollectBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecuti
 }
 
 func GetAllTemplate(c *gin.Context) (templateData []*models.BatchExecutionTemplate, err error) {
-	baseSql := db.CombineDBSql("SELECT * FROM ", models.TableNameBatchExecTemplate)
+	baseSql := db.CombineDBSql("SELECT * FROM ", models.TableNameBatchExecTemplate, " order by updated_time desc")
 	if err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplate).SQL(baseSql).Find(&templateData); err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -1372,6 +1373,18 @@ func ImportTemplate(c *gin.Context, batchExecTemplateData []*models.BatchExecuti
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		return
+	}
+	return
+}
+
+func GetBatchExecutionTemplatePermissionByIds(ctx context.Context, batchExecutionTemplates []string) (list []*models.BatchExecutionTemplateRole, err error) {
+	if len(batchExecutionTemplates) == 0 {
+		return
+	}
+	sql := "select * from batch_execution_template_role where batch_execution_template_id in (" + getSQL(batchExecutionTemplates) + ")"
+	err = db.MysqlEngine.Context(ctx).SQL(sql).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	}
 	return
 }

@@ -36,6 +36,11 @@ type SysLogTable struct {
 	Response    string `json:"response" xorm:"response"`
 }
 
+type QueryRequestTemplateRolesResponse struct {
+	HttpResponseMeta
+	Roles []string `json:"data"`
+}
+
 type QueryUserResponse struct {
 	HttpResponseMeta
 	Data []*SimpleLocalUserDto `json:"data"`

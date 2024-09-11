@@ -115,6 +115,7 @@ type CreateExportParam struct {
 }
 
 type DataTransExportParam struct {
+	TransExportId      string   `json:"transExportId"`      // 导出Id
 	Roles              []string `json:"roles"`              // 角色
 	WorkflowIds        []string `json:"workflowIds"`        // 编排Ids
 	BatchExecutionIds  []string `json:"batchExecutionIds"`  // 批量执行Ids
