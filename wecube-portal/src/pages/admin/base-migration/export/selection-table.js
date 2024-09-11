@@ -253,11 +253,7 @@ export default {
           resizable: true,
           width: 200,
           key: 'name',
-          render: (h, params) => {
-            return (
-              <span>{params.row.name}</span>
-            )
-          }
+          render: (h, params) => <span>{params.row.name}</span>
         },
         {
           title: this.$t('version'),
@@ -266,9 +262,9 @@ export default {
           render: (h, params) => {
             if (params.row.version) {
               return <Tag>{params.row.version}</Tag>
-            } else {
-              return <span>-</span>
             }
+            return <span>-</span>
+
           }
         },
         {
@@ -296,9 +292,9 @@ export default {
                   )}
                 </span>
               )
-            } else {
-              return <span>-</span>
             }
+            return <span>-</span>
+
           }
         },
         {
@@ -308,9 +304,9 @@ export default {
           render: (h, params) => {
             if (params.row.tags) {
               return <Tag>{params.row.tags}</Tag>
-            } else {
-              return <span>-</span>
             }
+            return <span>-</span>
+
           }
         },
         {
@@ -318,28 +314,20 @@ export default {
           resizable: true,
           minWidth: 120,
           key: 'description',
-          render: (h, params) => {
-            return <BaseEllipsis content={params.row.description}></BaseEllipsis>
-          }
+          render: (h, params) => <BaseEllipsis content={params.row.description}></BaseEllipsis>
         },
         {
           title: this.$t('tw_template_owner_role'),
           minWidth: 120,
           key: 'mgmtRoles',
-          render: (h, params) => {
-            return params.row.mgmtRoles.map(item => {
-              return <Tag>{item.displayName}</Tag>
-            })
-          }
+          render: (h, params) => params.row.mgmtRoles.map(item => <Tag>{item.displayName}</Tag>)
         },
         {
           title: this.$t('useRoles'),
           minWidth: 120,
           key: 'mgmtRoles',
           render: (h, params) => {
-            const list = params.row.useRoles.map(item => {
-              return item.displayName
-            })
+            const list = params.row.useRoles.map(item => item.displayName)
             return <BaseScrollTag list={list} />
           }
         },
@@ -368,7 +356,7 @@ export default {
           component: 'input'
         }
       ],
-      itsmSearchParams: {},
+      itsmSearchParams: {}
     }
   }
 }
