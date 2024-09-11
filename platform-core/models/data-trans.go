@@ -59,7 +59,7 @@ type SysCiTypeAttrTable struct {
 
 type TransExportTable struct {
 	Id          string `json:"id" xorm:"id"`
-	Services    string `json:"services" xorm:"services"`
+	Business    string `json:"business" xorm:"business"`
 	Environment string `json:"environment" xorm:"environment"`
 	Status      string `json:"status" xorm:"status"`
 	OutputUrl   string `json:"outputUrl" xorm:"output_url"`
