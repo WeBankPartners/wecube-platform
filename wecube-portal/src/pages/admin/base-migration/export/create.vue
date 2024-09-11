@@ -10,13 +10,13 @@
       </BaseHeaderTitle>
     </div>
     <div class="content">
-      <BaseHeaderTitle v-show="activeStep === 0" title="导出产品">
+      <BaseHeaderTitle v-if="activeStep === 0" title="导出产品">
         <stepEnviroment></stepEnviroment>
       </BaseHeaderTitle>
-      <BaseHeaderTitle v-show="activeStep === 1" title="导出数据">
+      <BaseHeaderTitle v-if="activeStep === 1" title="导出数据">
         <stepSelectData></stepSelectData>
       </BaseHeaderTitle>
-      <BaseHeaderTitle v-show="activeStep === 2" title="导出结果">
+      <BaseHeaderTitle v-if="activeStep === 2" title="导出结果">
         <stepSelectData :status="status"></stepSelectData>
       </BaseHeaderTitle>
       <div class="footer">
