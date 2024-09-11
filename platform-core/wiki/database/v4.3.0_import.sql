@@ -1,7 +1,7 @@
 CREATE TABLE `trans_export`
 (
     `id`           varchar(64) COLLATE utf8_bin   NOT NULL,
-    `services`     varchar(1024) COLLATE utf8_bin NOT NULL COMMENT '业务',
+    `business`     varchar(1024) COLLATE utf8_bin NOT NULL COMMENT '业务',
     `environment`  varchar(64) COLLATE utf8_bin   NOT NULL COMMENT '环境',
     `status`       varchar(32) COLLATE utf8_bin   NOT NULL COMMENT '状态: start开始,doing执行中,success成功,fail失败',
     `output_url`   varchar(1024) COLLATE utf8_bin DEFAULT NULL COMMENT '输出nexus地址',

@@ -30,7 +30,7 @@ func CreateExport2(c context.Context, param models.CreateExportParam, operator s
 	transExport := models.TransExportTable{
 		Id:          transExportId,
 		Environment: param.Env,
-		Services:    strings.Join(param.PIds, ","),
+		Business:    strings.Join(param.PIds, ","),
 		Status:      string(models.TransExportStatusStart),
 		CreatedUser: operator,
 		UpdatedUser: operator,
@@ -43,14 +43,17 @@ func CreateExport2(c context.Context, param models.CreateExportParam, operator s
 	if addTransExportDetailActions = getInsertTransExportDetail(transExportId); len(addTransExportDetailActions) > 0 {
 		actions = append(actions, addTransExportDetailActions...)
 	}
-	dataTransParam := &models.AnalyzeDataTransParam{
+	/*dataTransParam := &models.AnalyzeDataTransParam{
 		TransExportId: transExportId,
 		Business:      param.PIds,
 		Env:           param.Env,
-	}
-	if err = AnalyzeCMDBDataExport(c, dataTransParam); err != nil {
+	}*/
+	if err = db.Transaction(actions, c); err != nil {
 		return
 	}
+	/*if err = AnalyzeCMDBDataExport(c, dataTransParam); err != nil {
+		return
+	}*/
 	return
 }
 
@@ -63,7 +66,7 @@ func GetAllTransExportOptions(ctx context.Context) (options models.TransExportHi
 	}
 	if len(list) > 0 {
 		for _, transExport := range list {
-			strArr := strings.Split(transExport.Services, ",")
+			strArr := strings.Split(transExport.Business, ",")
 			if len(strArr) > 0 {
 				for _, s2 := range strArr {
 					serviceHashMap[s2] = true
