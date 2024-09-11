@@ -165,7 +165,7 @@ func GetProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("proc-def-id is empty")))
 		return
 	}
-	procDefDto, err := getProcDefDetailByProcDefId(c, procDefId)
+	procDefDto, err := database.GetProcDefDetailByProcDefId(c, procDefId)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -455,7 +455,7 @@ func ExportProcessDefinition(c *gin.Context) {
 			log.Logger.Info("procDef is draft", log.String("procDefId", procDef.Id))
 			continue
 		}
-		procDefDto, err2 := getProcDefDetailByProcDefId(c, procDef.Id)
+		procDefDto, err2 := database.GetProcDefDetailByProcDefId(c, procDef.Id)
 		if err2 != nil {
 			middleware.ReturnError(c, err2)
 			return
@@ -1265,64 +1265,6 @@ func enrichPluginConfigInterfaces(ctx context.Context, configInterface *models.P
 		}
 	}
 	return configInterface
-}
-
-func getProcDefDetailByProcDefId(ctx context.Context, procDefId string) (procDefDto *models.ProcessDefinitionDto, err error) {
-	procDefDto = &models.ProcessDefinitionDto{}
-	// 节点
-	var nodes []*models.ProcDefNodeResultDto
-
-	var nodeList []*models.ProcDefNode
-	// 线
-	var edges []*models.ProcDefNodeLinkDto
-
-	procDef, err := database.GetProcessDefinition(ctx, procDefId)
-	if err != nil {
-		return
-	}
-	if procDef == nil {
-		err = fmt.Errorf("procDefId is invalid")
-		return
-	}
-	procDefDto.ProcDef = models.ConvertProcDef2Dto(procDef)
-	historyList, err := database.GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Key: procDef.Key, Name: procDef.Name})
-	if err != nil {
-		return
-	}
-	if len(historyList) <= 1 {
-		procDefDto.ProcDef.EnableModifyName = true
-	}
-	list, err := database.GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDefId})
-	if err != nil {
-		return
-	}
-	if len(list) > 0 {
-		for _, procDefPermission := range list {
-			if procDefPermission.Permission == string(models.MGMT) {
-				procDefDto.PermissionToRole.MGMT = append(procDefDto.PermissionToRole.MGMT, procDefPermission.RoleName)
-			} else if procDefPermission.Permission == string(models.USE) {
-				procDefDto.PermissionToRole.USE = append(procDefDto.PermissionToRole.USE, procDefPermission.RoleName)
-			}
-		}
-	}
-	nodeList, nodes, err = database.GetProcDefNodeByProcDefId(ctx, procDefId)
-	if err != nil {
-		return
-	}
-	linkList, err := database.GetProcDefNodeLinkListByProcDefId(ctx, procDefId)
-	if err != nil {
-		return
-	}
-	if len(linkList) > 0 {
-		for _, link := range linkList {
-			edges = append(edges, models.ConvertProcDefNodeLink2Dto(link, nodeList))
-		}
-	}
-	procDefDto.ProcDefNodeExtend = &models.ProcDefNodeExtendDto{
-		Nodes: nodes,
-		Edges: edges,
-	}
-	return
 }
 
 func convertProcDefNodeSimpleMap2Dto(hashMap map[string]*models.ProcDefNodeSimpleDto) []*models.ProcDefNodeSimpleDto {
