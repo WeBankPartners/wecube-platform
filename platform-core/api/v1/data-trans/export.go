@@ -50,22 +50,26 @@ func CreateExport(c *gin.Context) {
 // ExecExport 执行底座导出
 func ExecExport(c *gin.Context) {
 	var param models.DataTransExportParam
-	//var queryRolesResponse models.QueryRolesResponse
 	var err error
 	if err = c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
+	if strings.TrimSpace(param.TransExportId) == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("TransExportId is empty")))
+		return
+	}
 	userToken := c.GetHeader("Authorization")
 	language := c.GetHeader(middleware.AcceptLanguageHeader)
-	/*if queryRolesResponse, err = remote.RetrieveAllLocalRoles("Y", userToken, language, false); err != nil {
-		return
-	}*/
 	// 1. 根据选中编排、批量执行、请求模版角色追加到模版角色
 	if param.Roles, err = database.AutoAppendExportRoles(c, userToken, language, param); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
+	// 2.开始导出,采用异步导出方式
+	go database.ExecTransExport(c, param, userToken, language)
+	middleware.ReturnData(c, param.TransExportId)
+	return
 }
 
 func ExportDetail(c *gin.Context) {

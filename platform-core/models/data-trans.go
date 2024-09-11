@@ -74,13 +74,17 @@ type TransExportDetailTable struct {
 	TransExport *string `json:"transExport" xorm:"trans_export"`
 	Name        string  `json:"name" xorm:"name"`
 	AnalyzeData *string `json:"analyzeData" xorm:"analyze_data"`
-	Step        string  `json:"step" xorm:"step"`
+	Step        int     `json:"step" xorm:"step"`
 	Status      string  `json:"status" xorm:"status"`
 	Input       string  `json:"input" xorm:"input"`
 	Output      string  `json:"output" xorm:"output"`
 	ErrorMsg    string  `json:"errorMsg" xorm:"error_msg"`
 	StartTime   string  `json:"startTime" xorm:"start_time"`
 	EndTime     string  `json:"endTime" xorm:"end_time"`
+}
+
+func (TransExportDetailTable) TableName() string {
+	return "trans_export_detail"
 }
 
 type TransDataVariableConfig struct {

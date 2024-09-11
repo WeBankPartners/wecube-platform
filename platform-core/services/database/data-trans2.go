@@ -2,12 +2,16 @@ package database
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
+	"os"
 	"strings"
+	"time"
 )
 
 var transExportDetailMap = map[int]string{
@@ -159,6 +163,85 @@ func AutoAppendExportRoles(ctx context.Context, userToken, language string, para
 	return
 }
 
+// ExecTransExport 执行导出
+func ExecTransExport(ctx context.Context, param models.DataTransExportParam, userToken, language string) {
+	var queryRolesResponse models.QueryRolesResponse
+	var procDefDto *models.ProcessDefinitionDto
+	var procDefExportList []*models.ProcessDefinitionDto
+	var err error
+	if queryRolesResponse, err = remote.RetrieveAllLocalRoles("Y", userToken, language, false); err != nil {
+		log.Logger.Error("remote retrieveAllLocalRoles error", log.Error(err))
+		return
+	}
+	// 更新迁移导出表记录状态为执行中
+	if err = updateTransExportStatus(ctx, param.TransExportId, string(models.TransExportStatusDoing)); err != nil {
+		log.Logger.Error("updateTransExportStatus error", log.Error(err))
+		return
+	}
+	// 如果有报错,更新导出记录状态失败
+	defer func() {
+		if err != nil {
+			updateTransExportStatus(ctx, param.TransExportId, string(models.TransExportStatusFail))
+		}
+	}()
+	// 1. 导出选中角色
+	if err = execStepExport(ctx, param.TransExportId, int(models.TransExportStepRole), queryRolesResponse.Data); err != nil {
+		return
+	}
+	// 2. 导出编排
+	for _, procDefId := range param.WorkflowIds {
+		if procDefDto, err = GetProcDefDetailByProcDefId(ctx, procDefId); err != nil {
+			log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err))
+			return
+		}
+		procDefExportList = append(procDefExportList, procDefDto)
+	}
+	if err = execStepExport(ctx, param.TransExportId, int(models.TransExportStepWorkflow), procDefExportList); err != nil {
+		return
+	}
+	// 3.导出批量执行
+
+}
+
+// execStepExport 执行每步导出
+func execStepExport(ctx context.Context, transExportId string, step int, data interface{}) (err error) {
+	if data == nil {
+		return
+	}
+	transExportDetail := models.TransExportDetailTable{
+		TransExport: &transExportId,
+		Step:        step,
+		StartTime:   time.Now().Format(models.DateTimeFormat),
+		Status:      string(models.TransExportStatusSuccess),
+	}
+	byteArr, _ := json.Marshal(data)
+	transExportDetail.Output = string(byteArr)
+	if err = WriteJsonData2File(fmt.Sprintf("%s_%s", transExportDetailMap[step], transExportId), data); err != nil {
+		log.Logger.Error("WriteJsonData2File error", log.String("module", transExportDetailMap[step]), log.Error(err))
+		transExportDetail.Status = string(models.TransExportStatusFail)
+		transExportDetail.ErrorMsg = err.Error()
+		transExportDetail.EndTime = time.Now().Format(models.DateTimeFormat)
+		updateTransExportDetail(ctx, transExportDetail)
+		return
+	}
+	transExportDetail.EndTime = time.Now().Format(models.DateTimeFormat)
+	updateTransExportDetail(ctx, transExportDetail)
+	return
+}
+
+func updateTransExportStatus(ctx context.Context, id, status string) (err error) {
+	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_export set status=? where id=?", status, id)
+	return
+}
+
+func updateTransExportDetail(ctx context.Context, transExportDetail models.TransExportDetailTable) (err error) {
+	if transExportDetail.TransExport == nil || transExportDetail.Step == 0 {
+		return
+	}
+	_, err = db.MysqlEngine.Context(ctx).Where("trans_export=? and step=?", transExportDetail.TransExport, transExportDetail.Step).Update(transExportDetail)
+	return
+}
+
 func getInsertTransExportDetail(transExportId string) (actions []*db.ExecAction) {
 	actions = []*db.ExecAction{}
 	guids := guid.CreateGuidList(len(transExportDetailMap))
@@ -193,4 +276,22 @@ func convertMap2Array(hashMap map[string]bool) []string {
 		options = append(options, s)
 	}
 	return options
+}
+
+func WriteJsonData2File(path string, inter interface{}) (err error) {
+	var file *os.File
+	// 打开文件
+	if file, err = os.Create(path); err != nil {
+		return
+	}
+	defer file.Close()
+
+	// 创建json编码器
+	encoder := json.NewEncoder(file)
+
+	// 将json实例编码到文件
+	if err = encoder.Encode(inter); err != nil {
+		return
+	}
+	return
 }
