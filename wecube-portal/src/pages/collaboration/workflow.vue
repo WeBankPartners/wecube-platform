@@ -204,8 +204,7 @@ export default {
         procDefId: '',
         procDefName: '',
         plugins: [],
-        createdTime: [dayjs().subtract(3, 'month')
-          .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+        createdTime: [],
         createdTimeStart: '',
         createdTimeEnd: '',
         createdBy: '',
@@ -218,7 +217,7 @@ export default {
         {
           key: 'createdTime',
           label: this.$t('table_created_date'),
-          initDateType: 1,
+          initDateType: 4,
           dateRange: [
             {
               label: this.$t('fe_recent3Months'),
@@ -743,7 +742,7 @@ export default {
       const { data, status } = await flowList(params)
       this.spinShow = false
       if (status === 'OK') {
-        this.data = data
+        this.data = data || []
       }
     },
     // #region 按钮响应
