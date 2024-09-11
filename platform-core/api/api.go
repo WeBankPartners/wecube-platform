@@ -268,7 +268,7 @@ func InitHttpServer() {
 		if !strings.HasPrefix(funcObj.Url, "/resource/") {
 			funcObj.Url = "/v1" + funcObj.Url
 		}
-		apiCodeMap[fmt.Sprintf("%s_%s", funcObj.Method, funcObj.Url)] = funcObj.ApiCode
+		apiCodeMap[fmt.Sprintf("%s_%s%s", funcObj.Method, models.UrlPrefix, funcObj.Url)] = funcObj.ApiCode
 		handleFuncList := []gin.HandlerFunc{funcObj.HandlerFunc}
 		if funcObj.PreHandle != nil {
 			handleFuncList = append([]gin.HandlerFunc{funcObj.PreHandle}, funcObj.HandlerFunc)
