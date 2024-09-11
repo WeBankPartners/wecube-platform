@@ -348,3 +348,6 @@ export const executeBranch = data => req.post('/platform/v1/process/instances/pr
 
 // 编排执行-暂停、继续
 export const pauseAndContinueFlow = data => req.post('/platform/v1/process/instances/proceed', data)
+
+// 底座迁移
+export const getEnviromentList = () => req.get('/platform/v1/data/transfer/business/list')
