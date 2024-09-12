@@ -41,6 +41,11 @@ type QueryRequestTemplateRolesResponse struct {
 	Roles      []string `json:"data"`
 }
 
+type QueryRequestTemplatesResponse struct {
+	StatusCode string      `json:"statusCode"`
+	Data       interface{} `json:"data"`
+}
+
 type QueryUserResponse struct {
 	HttpResponseMeta
 	Data []*SimpleLocalUserDto `json:"data"`
