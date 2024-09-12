@@ -27,6 +27,12 @@ type NexusFileParam struct {
 	DestFilePath   string `json:"destFilePath"`   // 目标文件的路径
 }
 
+type NexusUploadFileRet struct {
+	SourceFilePath string `json:"sourceFilePath"` // 源文件的路径
+	DestFilePath   string `json:"destFilePath"`   // 目标文件的路径
+	StorePath      string `json:"storePath"`      // 文件存储的地址
+}
+
 func validateNexusReqParam(reqParam *NexusReqParam, isUploadFile bool) (err error) {
 	if isUploadFile {
 		if reqParam.RepoUrl == "" {
@@ -70,7 +76,7 @@ func validateNexusReqParam(reqParam *NexusReqParam, isUploadFile bool) (err erro
 }
 
 // nexus 上传
-func UploadFile(reqParam *NexusReqParam) (err error) {
+func UploadFile(reqParam *NexusReqParam) (result []*NexusUploadFileRet, err error) {
 	err = validateNexusReqParam(reqParam, true)
 	if err != nil {
 		err = fmt.Errorf("validate nexus req param failed: %s", err.Error())
@@ -78,11 +84,17 @@ func UploadFile(reqParam *NexusReqParam) (err error) {
 	}
 
 	for _, uploadFileParam := range reqParam.FileParams {
-		tmpErr := doUploadFile(reqParam, uploadFileParam)
+		storePath, tmpErr := doUploadFile(reqParam, uploadFileParam)
 		if tmpErr != nil {
 			err = fmt.Errorf("doUploadFile for %s failed: %s", uploadFileParam.SourceFilePath, tmpErr.Error())
 			return
 		}
+
+		result = append(result, &NexusUploadFileRet{
+			SourceFilePath: uploadFileParam.SourceFilePath,
+			DestFilePath:   uploadFileParam.DestFilePath,
+			StorePath:      storePath,
+		})
 	}
 	return
 }
@@ -105,7 +117,7 @@ func DownloadFile(reqParam *NexusReqParam) (err error) {
 	return
 }
 
-func doUploadFile(reqParam *NexusReqParam, uploadFileParam *NexusFileParam) (err error) {
+func doUploadFile(reqParam *NexusReqParam, uploadFileParam *NexusFileParam) (storePath string, err error) {
 	srcFilePath := uploadFileParam.SourceFilePath
 	log.Logger.Info(fmt.Sprintf("start to upload file: %s", srcFilePath))
 
@@ -145,6 +157,8 @@ func doUploadFile(reqParam *NexusReqParam, uploadFileParam *NexusFileParam) (err
 		err = fmt.Errorf("upload file: %s failed, resp.Status: %s", srcFilePath, resp.Status)
 		return
 	}
+
+	storePath = fmt.Sprintf("%s/%s/%s", reqParam.RepoUrl, reqParam.Repository, uploadFileParam.DestFilePath)
 
 	log.Logger.Info(fmt.Sprintf("upload file: %s successfully: %s", srcFilePath, bodyBytes))
 	return
@@ -223,12 +237,12 @@ func main() {
 		},
 	}
 
-	err := UploadFile(uploadReqParam)
+	uploadFileRet, err := UploadFile(uploadReqParam)
 	if err != nil {
 		fmt.Printf("upload files failed: %s", err.Error())
 		return
 	}
-	fmt.Printf("upload files successfully")
+	fmt.Printf("upload files successfully: %v", uploadFileRet)
 
 	downloadReqParam := &NexusReqParam{
 		UserName:   "xx",
