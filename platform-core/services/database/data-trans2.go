@@ -259,7 +259,8 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	if uploadUrl, err = tools.CreateZipCompressAndUpload(path); err != nil {
 		return
 	}
-	fmt.Printf(uploadUrl)
+	err = updateTransExportSuccess(ctx, param.TransExportId, uploadUrl)
+	return
 }
 
 // execStepExport 执行每步导出
@@ -290,6 +291,12 @@ func execStepExport(param models.StepExportParam) (err error) {
 
 func updateTransExportStatus(ctx context.Context, id, status string) (err error) {
 	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_export set status=? where id=?", status, id)
+	return
+}
+
+func updateTransExportSuccess(ctx context.Context, id, uploadUrl string) (err error) {
+	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_export set status=?,output_url=?,updated_time=? where id=?",
+		models.TransExportStatusSuccess, uploadUrl, time.Now().Format(models.DateTimeFormat), id)
 	return
 }
 
