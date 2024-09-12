@@ -190,7 +190,7 @@ func GetProcessDefinitionAll(ctx context.Context, userToken, language string) (l
 }
 
 func getAllProcessDefinition(ctx context.Context) (list []*models.ProcDef, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def order by updated_time desc ").Find(&list)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def where status = ? order by updated_time desc ", models.Deployed).Find(&list)
 	return
 }
 
