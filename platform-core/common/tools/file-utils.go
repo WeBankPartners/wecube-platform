@@ -10,7 +10,7 @@ import (
 )
 
 func GetPath(path string) string {
-	exist, err := pathExist(path)
+	exist, err := PathExist(path)
 	if err != nil {
 		panic(err)
 	}
@@ -23,7 +23,7 @@ func GetPath(path string) string {
 	return path
 }
 
-func pathExist(path string) (bool, error) {
+func PathExist(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
 		return true, nil
@@ -34,11 +34,11 @@ func pathExist(path string) (bool, error) {
 	return false, err
 }
 
-func CreateZipCompressAndUpload(dirPath string) (url string, err error) {
+func CreateZipCompressAndUpload(dirPath, fileName string, uploadReqParam *NexusReqParam) (url string, err error) {
 	// 创建一个新的zip文件
 	var result []*NexusUploadFileRet
 	var zipFile *os.File
-	zipFile, err = os.Create("export.zip")
+	zipFile, err = os.Create(fmt.Sprintf("%s/%s", dirPath, fileName))
 	if err != nil {
 		panic(err)
 	}
@@ -69,34 +69,20 @@ func CreateZipCompressAndUpload(dirPath string) (url string, err error) {
 		defer file.Close()
 
 		// 将文件内容复制到zipFile
-		_, err = io.Copy(zipFile, file)
-		if err != nil {
+		if _, err = io.Copy(zipFile, file); err != nil {
 			return err
 		}
-
 		return nil
 	})
 	if err != nil {
 		panic(err)
 	}
-	uploadReqParam := &NexusReqParam{
-		UserName:   "xx",
-		Password:   "xx",
-		RepoUrl:    "http://127.0.0.1:8081/repository",
-		Repository: "test",
-		TimeoutSec: 60,
-		FileParams: []*NexusFileParam{
-			{
-				SourceFilePath: "/Users/apple/Downloads/ecies.zip",
-				DestFilePath:   "ecies/ecies.zip",
-			},
-		},
-	}
-
 	if result, err = UploadFile(uploadReqParam); err != nil {
 		return
 	}
-	fmt.Println(result)
+	if len(result) > 0 {
+		url = result[0].StorePath
+	}
 	return
 }
 
