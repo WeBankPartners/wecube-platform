@@ -9,14 +9,20 @@ import (
 
 const (
 	// pathRequestTemplateRoles 查询taskman模版角色
-	pathRequestTemplateRoles = "/taskman/api/v1/request-template/roles "
+	pathRequestTemplateRoles = "/taskman/api/v1/request-template/roles"
 )
 
 // GetRequestTemplateRoles 查询taskman模版角色
 func GetRequestTemplateRoles(dto models.GetRequestTemplateRolesDto, userToken, language string) (response models.QueryRequestTemplateRolesResponse, err error) {
 	var byteArr []byte
 	postBytes, _ := json.Marshal(dto)
-	byteArr, err = network.HttpPost(models.Config.Gateway.Url+pathRequestTemplateRoles, userToken, language, postBytes)
+	uri := models.Config.Gateway.Url + pathRequestTemplateRoles
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	byteArr, err = network.HttpPost(uri, userToken, language, postBytes)
 	if err != nil {
 		return
 	}

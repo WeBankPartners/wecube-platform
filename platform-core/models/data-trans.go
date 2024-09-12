@@ -127,16 +127,17 @@ type DataTransExportParam struct {
 }
 
 type TransExportHistoryParam struct {
-	Id         string   `json:"id"`
-	Status     []string `json:"status"`
-	Services   []string `json:"services"`  //产品
-	Operators  []string `json:"operators"` //操作人
-	ExecTime   string   `json:"execTime"`  //执行时间
-	StartIndex int      `json:"startIndex"`
-	PageSize   int      `json:"pageSize"`
+	Id            string   `json:"id"`
+	Status        []string `json:"status"`
+	Business      []string `json:"business"`  //产品
+	Operators     []string `json:"operators"` //操作人
+	StartIndex    int      `json:"startIndex"`
+	PageSize      int      `json:"pageSize"`
+	ExecTimeStart string   `json:"execTimeStart" ` // 执行时间-开始时间
+	ExecTimeEnd   string   `json:"ExecTimeEnd" `   // 执行时间-结束时间
 }
 
 type TransExportHistoryOptions struct {
-	Services  []string `json:"services"`  // 导出产品
+	Business  []string `json:"business"`  // 导出产品
 	Operators []string `json:"operators"` //操作人
 }
