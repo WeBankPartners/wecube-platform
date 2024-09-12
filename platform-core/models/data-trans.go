@@ -1,5 +1,7 @@
 package models
 
+import "context"
+
 type AnalyzeDataTransParam struct {
 	TransExportId string   `json:"transExportId"`
 	Business      []string `json:"business"`
@@ -140,4 +142,13 @@ type TransExportHistoryParam struct {
 type TransExportHistoryOptions struct {
 	Business  []string `json:"business"`  // 导出产品
 	Operators []string `json:"operators"` //操作人
+}
+
+type StepExportParam struct {
+	Ctx           context.Context
+	Path          string
+	TransExportId string
+	StartTime     string
+	Step          int
+	Data          interface{}
 }

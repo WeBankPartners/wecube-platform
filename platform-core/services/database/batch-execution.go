@@ -280,7 +280,7 @@ func CheckCollectBatchExecTemplate(c *gin.Context, reqParam *models.BatchExecuti
 }
 
 func GetAllTemplate(c *gin.Context) (templateData []*models.BatchExecutionTemplate, err error) {
-	baseSql := db.CombineDBSql("SELECT * FROM ", models.TableNameBatchExecTemplate, " order by updated_time desc")
+	baseSql := db.CombineDBSql("SELECT * FROM ", models.TableNameBatchExecTemplate, " where publish_status = 'published' order by updated_time desc")
 	if err = db.MysqlEngine.Context(c).Table(models.TableNameBatchExecTemplate).SQL(baseSql).Find(&templateData); err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -1190,7 +1190,7 @@ func ValidateBatchExecName(c *gin.Context, batchExecReqParam *models.BatchExecRu
 	return
 }
 
-func ExportTemplate(c *gin.Context, reqParam *models.ExportBatchExecTemplateReqParam) (result []*models.BatchExecutionTemplate, err error) {
+func ExportTemplate(c context.Context, reqParam *models.ExportBatchExecTemplateReqParam) (result []*models.BatchExecutionTemplate, err error) {
 	if len(reqParam.BatchExecTemplateIds) == 0 {
 		return
 	}
