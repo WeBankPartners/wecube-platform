@@ -10,6 +10,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
+	"os"
 	"strings"
 	"time"
 )
@@ -23,6 +24,10 @@ var transExportDetailMap = map[int]string{
 	int(models.TransExportStepArtifacts):       "artifacts",
 	int(models.TransExportStepMonitor):         "monitor",
 }
+
+const (
+	zipFile = "export.zip"
+)
 
 func CreateExport2(c context.Context, param models.CreateExportParam, operator string) (transExportId string, err error) {
 	var actions, addTransExportActions, addTransExportDetailActions []*db.ExecAction
@@ -168,6 +173,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	var procDefDto *models.ProcessDefinitionDto
 	var procDefExportList []*models.ProcessDefinitionDto
 	var batchExecutionTemplateList []*models.BatchExecutionTemplate
+	var transDataVariableConfig *models.TransDataVariableConfig
 	var uploadUrl string
 	var err error
 	path := tools.GetPath(fmt.Sprintf("/tmp/wecube/%s", param.TransExportId))
@@ -180,6 +186,10 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	defer func() {
 		if err != nil {
 			updateTransExportStatus(ctx, param.TransExportId, string(models.TransExportStatusFail))
+		}
+		// 删除导出目录
+		if err = os.RemoveAll(path); err != nil {
+			log.Logger.Error("delete fail", log.String("path", path), log.Error(err))
 		}
 	}()
 	// 1. 导出选中角色
@@ -256,7 +266,27 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		}
 	}
 	// 7. json文件压缩并上传nexus
-	if uploadUrl, err = tools.CreateZipCompressAndUpload(path); err != nil {
+	if transDataVariableConfig, err = getDataTransVariableMap(ctx); err != nil {
+		return
+	}
+	if transDataVariableConfig == nil {
+		err = fmt.Errorf("cmdb transVariableMap is empty")
+		return
+	}
+	uploadReqParam := &tools.NexusReqParam{
+		UserName:   transDataVariableConfig.NexusUser,
+		Password:   transDataVariableConfig.NexusPwd,
+		RepoUrl:    transDataVariableConfig.NexusUrl,
+		Repository: "test",
+		TimeoutSec: 60,
+		FileParams: []*tools.NexusFileParam{
+			{
+				SourceFilePath: fmt.Sprintf("%s/%s", path, zipFile),
+				DestFilePath:   fmt.Sprintf("%s/%s", param.TransExportId, zipFile),
+			},
+		},
+	}
+	if uploadUrl, err = tools.CreateZipCompressAndUpload(path, zipFile, uploadReqParam); err != nil {
 		return
 	}
 	err = updateTransExportSuccess(ctx, param.TransExportId, uploadUrl)
