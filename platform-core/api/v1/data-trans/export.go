@@ -108,20 +108,3 @@ func ExportList(c *gin.Context) {
 	}
 	middleware.ReturnPageData(c, pageInfo, list)
 }
-
-func GetExportMonitor(c *gin.Context) {
-	transExportId := c.Query("transExportId")
-	if strings.TrimSpace(transExportId) == "" {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("transExportId is empty")))
-		return
-	}
-
-}
-
-func GetExportPlugin(c *gin.Context) {
-	transExportId := c.Query("transExportId")
-	if strings.TrimSpace(transExportId) == "" {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("transExportId is empty")))
-		return
-	}
-}
