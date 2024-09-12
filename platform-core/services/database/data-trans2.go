@@ -277,7 +277,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		UserName:   transDataVariableConfig.NexusUser,
 		Password:   transDataVariableConfig.NexusPwd,
 		RepoUrl:    transDataVariableConfig.NexusUrl,
-		Repository: "test",
+		Repository: "artifacts",
 		TimeoutSec: 60,
 		FileParams: []*tools.NexusFileParam{
 			{
