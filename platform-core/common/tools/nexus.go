@@ -1,4 +1,4 @@
-package main
+package tools
 
 import (
 	"bytes"
@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"os"
 	"time"
-
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 )
 
 type NexusReqParam struct {
@@ -69,7 +67,7 @@ func validateNexusReqParam(reqParam *NexusReqParam, isUploadFile bool) (err erro
 	return
 }
 
-// nexus 上传
+// UploadFile nexus 上传
 func UploadFile(reqParam *NexusReqParam) (err error) {
 	err = validateNexusReqParam(reqParam, true)
 	if err != nil {
@@ -87,7 +85,7 @@ func UploadFile(reqParam *NexusReqParam) (err error) {
 	return
 }
 
-// nexus 下载
+// DownloadFile nexus 下载
 func DownloadFile(reqParam *NexusReqParam) (err error) {
 	err = validateNexusReqParam(reqParam, false)
 	if err != nil {
@@ -107,7 +105,7 @@ func DownloadFile(reqParam *NexusReqParam) (err error) {
 
 func doUploadFile(reqParam *NexusReqParam, uploadFileParam *NexusFileParam) (err error) {
 	srcFilePath := uploadFileParam.SourceFilePath
-	log.Logger.Info(fmt.Sprintf("start to upload file: %s", srcFilePath))
+	//log.Logger.Info(fmt.Sprintf("start to upload file: %s", srcFilePath))
 
 	// 打开文件
 	file, tmpErr := os.Open(srcFilePath)
@@ -145,14 +143,14 @@ func doUploadFile(reqParam *NexusReqParam, uploadFileParam *NexusFileParam) (err
 		err = fmt.Errorf("upload file: %s failed, resp.Status: %s", srcFilePath, resp.Status)
 		return
 	}
-
-	log.Logger.Info(fmt.Sprintf("upload file: %s successfully: %s", srcFilePath, bodyBytes))
+	fmt.Printf("upload file: %s successfully: %s", srcFilePath, bodyBytes)
+	//log.Logger.Info(fmt.Sprintf("upload file: %s successfully: %s", srcFilePath, bodyBytes))
 	return
 }
 
 func doDownloadFile(reqParam *NexusReqParam, downloadFileParam *NexusFileParam) (err error) {
 	srcFilePath := downloadFileParam.SourceFilePath
-	log.Logger.Info(fmt.Sprintf("start to download file: %s", srcFilePath))
+	//log.Logger.Info(fmt.Sprintf("start to download file: %s", srcFilePath))
 
 	// 创建 HTTP 请求
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Duration(reqParam.TimeoutSec)*time.Second)
@@ -198,62 +196,6 @@ func doDownloadFile(reqParam *NexusReqParam, downloadFileParam *NexusFileParam) 
 		return
 	}
 
-	log.Logger.Info(fmt.Sprintf("download file: %s successfully", srcFilePath))
+	//log.Logger.Info(fmt.Sprintf("download file: %s successfully", srcFilePath))
 	return
 }
-
-// for test
-/*
-func main() {
-	uploadReqParam := &NexusReqParam{
-		UserName:   "xx",
-		Password:   "xx",
-		RepoUrl:    "http://127.0.0.1:8081/repository",
-		Repository: "test",
-		TimeoutSec: 60,
-		FileParams: []*NexusFileParam{
-			{
-				SourceFilePath: "/Users/apple/Downloads/ecies.zip",
-				DestFilePath:   "ecies/ecies.zip",
-			},
-			{
-				SourceFilePath: "/Users/apple/Downloads/pic.png",
-				DestFilePath:   "pic/pic.png",
-			},
-		},
-	}
-
-	err := UploadFile(uploadReqParam)
-	if err != nil {
-		fmt.Printf("upload files failed: %s", err.Error())
-		return
-	}
-	fmt.Printf("upload files successfully")
-
-	downloadReqParam := &NexusReqParam{
-		UserName:   "xx",
-		Password:   "xx",
-		RepoUrl:    "http://127.0.0.1:8081/repository",
-		Repository: "test",
-		TimeoutSec: 60,
-		FileParams: []*NexusFileParam{
-			{
-				SourceFilePath: "http://127.0.0.1:8081/repository/test/ecies/ecies.zip",
-				DestFilePath:   "/tmp/ecies.zip",
-			},
-			{
-				SourceFilePath: "http://127.0.0.1:8081/repository/test/pic/pic.png",
-				DestFilePath:   "/tmp/pic.png",
-			},
-		},
-	}
-
-	err = DownloadFile(downloadReqParam)
-	if err != nil {
-		fmt.Printf("download files failed: %s", err.Error())
-		return
-	}
-	fmt.Printf("download files successfully")
-	return
-}
-*/
