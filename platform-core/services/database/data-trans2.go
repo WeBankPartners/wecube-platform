@@ -7,9 +7,9 @@ import (
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
-	"os"
 	"strings"
 	"time"
 )
@@ -164,13 +164,13 @@ func AutoAppendExportRoles(ctx context.Context, userToken, language string, para
 // ExecTransExport 执行导出
 func ExecTransExport(ctx context.Context, param models.DataTransExportParam, userToken, language string) {
 	var queryRolesResponse models.QueryRolesResponse
+	var queryRequestTemplatesResponse models.QueryRequestTemplatesResponse
 	var procDefDto *models.ProcessDefinitionDto
 	var procDefExportList []*models.ProcessDefinitionDto
+	var batchExecutionTemplateList []*models.BatchExecutionTemplate
+	var uploadUrl string
 	var err error
-	if queryRolesResponse, err = remote.RetrieveAllLocalRoles("Y", userToken, language, false); err != nil {
-		log.Logger.Error("remote retrieveAllLocalRoles error", log.Error(err))
-		return
-	}
+	path := tools.GetPath(fmt.Sprintf("/tmp/wecube/%s", param.TransExportId))
 	// 更新迁移导出表记录状态为执行中
 	if err = updateTransExportStatus(ctx, param.TransExportId, string(models.TransExportStatusDoing)); err != nil {
 		log.Logger.Error("updateTransExportStatus error", log.Error(err))
@@ -183,10 +183,24 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		}
 	}()
 	// 1. 导出选中角色
-	if err = execStepExport(ctx, param.TransExportId, int(models.TransExportStepRole), queryRolesResponse.Data); err != nil {
+	exportRoleStartTime := time.Now().Format(models.DateTimeFormat)
+	if queryRolesResponse, err = remote.RetrieveAllLocalRoles("Y", userToken, language, false); err != nil {
+		log.Logger.Error("remote retrieveAllLocalRoles error", log.Error(err))
+		return
+	}
+	exportRoleParam := models.StepExportParam{
+		Ctx:           ctx,
+		Path:          path,
+		TransExportId: param.TransExportId,
+		StartTime:     exportRoleStartTime,
+		Step:          int(models.TransExportStepRole),
+		Data:          queryRolesResponse.Data,
+	}
+	if err = execStepExport(exportRoleParam); err != nil {
 		return
 	}
 	// 2. 导出编排
+	exportWorkflowStartTime := time.Now().Format(models.DateTimeFormat)
 	for _, procDefId := range param.WorkflowIds {
 		if procDefDto, err = GetProcDefDetailByProcDefId(ctx, procDefId); err != nil {
 			log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err))
@@ -194,36 +208,83 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		}
 		procDefExportList = append(procDefExportList, procDefDto)
 	}
-	if err = execStepExport(ctx, param.TransExportId, int(models.TransExportStepWorkflow), procDefExportList); err != nil {
+	exportWorkflowParam := models.StepExportParam{
+		Ctx:           ctx,
+		Path:          path,
+		TransExportId: param.TransExportId,
+		StartTime:     exportWorkflowStartTime,
+		Step:          int(models.TransExportStepWorkflow),
+		Data:          procDefExportList,
+	}
+	if err = execStepExport(exportWorkflowParam); err != nil {
 		return
 	}
 	// 3.导出批量执行
-
+	exportBatchExecutionStartTime := time.Now().Format(models.DateTimeFormat)
+	if batchExecutionTemplateList, err = ExportTemplate(ctx, &models.ExportBatchExecTemplateReqParam{BatchExecTemplateIds: param.BatchExecutionIds}); err != nil {
+		log.Logger.Error("ExportTemplate error", log.Error(err))
+		return
+	}
+	exportBatchExecutionParam := models.StepExportParam{
+		Ctx:           ctx,
+		Path:          path,
+		TransExportId: param.TransExportId,
+		StartTime:     exportBatchExecutionStartTime,
+		Step:          int(models.TransExportStepBatchExecution),
+		Data:          batchExecutionTemplateList,
+	}
+	if err = execStepExport(exportBatchExecutionParam); err != nil {
+		return
+	}
+	// 4.导出请求模版
+	if len(param.RequestTemplateIds) > 0 {
+		exportRequestTemplateStartTime := time.Now().Format(models.DateTimeFormat)
+		if queryRequestTemplatesResponse, err = remote.GetRequestTemplates(models.GetRequestTemplatesDto{RequestTemplateIds: param.RequestTemplateIds}, userToken, language); err != nil {
+			log.Logger.Error("remote GetRequestTemplates error", log.Error(err))
+			return
+		}
+		exportRequestTemplateParam := models.StepExportParam{
+			Ctx:           ctx,
+			Path:          path,
+			TransExportId: param.TransExportId,
+			StartTime:     exportRequestTemplateStartTime,
+			Step:          int(models.TransExportStepRequestTemplate),
+			Data:          queryRequestTemplatesResponse.Data,
+		}
+		if err = execStepExport(exportRequestTemplateParam); err != nil {
+			return
+		}
+	}
+	// 7. json文件压缩并上传nexus
+	if uploadUrl, err = tools.CreateZipCompressAndUpload(path); err != nil {
+		return
+	}
+	fmt.Printf(uploadUrl)
 }
 
 // execStepExport 执行每步导出
-func execStepExport(ctx context.Context, transExportId string, step int, data interface{}) (err error) {
-	if data == nil {
+func execStepExport(param models.StepExportParam) (err error) {
+	if param.Data == nil {
 		return
 	}
 	transExportDetail := models.TransExportDetailTable{
-		TransExport: &transExportId,
-		Step:        step,
-		StartTime:   time.Now().Format(models.DateTimeFormat),
+		TransExport: &param.TransExportId,
+		Step:        param.Step,
+		StartTime:   param.StartTime,
 		Status:      string(models.TransExportStatusSuccess),
 	}
-	byteArr, _ := json.Marshal(data)
+	byteArr, _ := json.Marshal(param.Data)
 	transExportDetail.Output = string(byteArr)
-	if err = WriteJsonData2File(fmt.Sprintf("/Users/tangjiawei/Desktop/%s_%s.json", transExportDetailMap[step], transExportId), data); err != nil {
-		log.Logger.Error("WriteJsonData2File error", log.String("module", transExportDetailMap[step]), log.Error(err))
+	if err = tools.WriteJsonData2File(getExportJsonFile(param.Path, transExportDetailMap[param.Step]), param.Data); err != nil {
+		log.Logger.Error("WriteJsonData2File error", log.String("name", transExportDetailMap[param.Step]), log.Error(err))
 		transExportDetail.Status = string(models.TransExportStatusFail)
 		transExportDetail.ErrorMsg = err.Error()
 		transExportDetail.EndTime = time.Now().Format(models.DateTimeFormat)
-		updateTransExportDetail(ctx, transExportDetail)
+		updateTransExportDetail(param.Ctx, transExportDetail)
 		return
 	}
 	transExportDetail.EndTime = time.Now().Format(models.DateTimeFormat)
-	updateTransExportDetail(ctx, transExportDetail)
+	updateTransExportDetail(param.Ctx, transExportDetail)
 	return
 }
 
@@ -253,6 +314,10 @@ func getInsertTransExportDetail(transExportId string) (actions []*db.ExecAction)
 	return
 }
 
+func getExportJsonFile(path, name string) string {
+	return fmt.Sprintf("%s/%s.json", path, name)
+}
+
 func getSQL(status []string) string {
 	var sql string
 	for i := 0; i < len(status); i++ {
@@ -274,22 +339,4 @@ func convertMap2Array(hashMap map[string]bool) []string {
 		options = append(options, s)
 	}
 	return options
-}
-
-func WriteJsonData2File(path string, inter interface{}) (err error) {
-	var file *os.File
-	// 打开文件
-	if file, err = os.Create(path); err != nil {
-		return
-	}
-	defer file.Close()
-
-	// 创建json编码器
-	encoder := json.NewEncoder(file)
-
-	// 将json实例编码到文件
-	if err = encoder.Encode(inter); err != nil {
-		return
-	}
-	return
 }
