@@ -41,7 +41,6 @@
 import Search from '@/pages/components/base-search.vue'
 import { debounce, deepClone } from '@/const/util'
 import { flowList, collectFlow, unCollectFlow } from '@/api/server'
-import dayjs from 'dayjs'
 export default {
   components: {
     Search
@@ -58,8 +57,7 @@ export default {
         procDefId: '',
         procDefName: '',
         plugins: [],
-        createdTime: [dayjs().subtract(3, 'month')
-          .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+        createdTime: [],
         createdTimeStart: '',
         createdTimeEnd: '',
         createdBy: '',
@@ -94,7 +92,7 @@ export default {
         {
           key: 'createdTime',
           label: this.$t('table_created_date'),
-          initDateType: 1,
+          initDateType: 4,
           dateRange: [
             {
               label: this.$t('fe_recent3Months'),
@@ -329,10 +327,12 @@ export default {
       const { data, status } = await flowList(params)
       this.spinShow = false
       if (status === 'OK') {
-        this.cardList = data.map(item => ({
-          ...item,
-          expand: true
-        }))
+        this.cardList = (data
+            && data.map(item => ({
+              ...item,
+              expand: true
+            })))
+          || []
       }
     },
     // 展开收缩卡片
