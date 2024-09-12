@@ -58,7 +58,7 @@ func CreateExport2(c context.Context, param models.CreateExportParam, operator s
 }
 
 func GetAllTransExportOptions(ctx context.Context) (options models.TransExportHistoryOptions, err error) {
-	var serviceHashMap = make(map[string]bool)
+	var BusinessHashMap = make(map[string]bool)
 	var operatorHashMap = make(map[string]bool)
 	var list []*models.TransExportTable
 	if list, err = GetAllTransExport(ctx); err != nil {
@@ -69,13 +69,13 @@ func GetAllTransExportOptions(ctx context.Context) (options models.TransExportHi
 			strArr := strings.Split(transExport.Business, ",")
 			if len(strArr) > 0 {
 				for _, s2 := range strArr {
-					serviceHashMap[s2] = true
+					BusinessHashMap[s2] = true
 				}
 			}
 			operatorHashMap[transExport.UpdatedUser] = true
 		}
 	}
-	options.Services = convertMap2Array(serviceHashMap)
+	options.Business = convertMap2Array(BusinessHashMap)
 	options.Operators = convertMap2Array(operatorHashMap)
 	return
 }
@@ -99,20 +99,23 @@ func QueryTransExportByCondition(ctx context.Context, param models.TransExportHi
 	if len(param.Status) > 0 {
 		sql += " and status in (" + getSQL(param.Status) + ")"
 	}
-	if len(param.Services) > 0 {
+	if len(param.Business) > 0 {
 		sql += " and ("
-		for i, service := range param.Services {
+		for i, business := range param.Business {
 			if i == 0 {
-				sql += " services like ?"
+				sql += " business like ?"
 			} else {
-				sql += " or services like ?"
+				sql += " or business like ?"
 			}
-			queryParam = append(queryParam, fmt.Sprintf("%%%s%%", service))
+			queryParam = append(queryParam, fmt.Sprintf("%%%s%%", business))
 		}
 		sql += " )"
 	}
 	if len(param.Operators) > 0 {
 		sql += " and updated_user in (" + getSQL(param.Operators) + ")"
+	}
+	if param.ExecTimeStart != "" && param.ExecTimeEnd != "" {
+		sql += " and updated_time >= '" + param.ExecTimeStart + "' and updated_time <= '" + param.ExecTimeEnd + "'"
 	}
 	pageInfo.TotalRows = queryCount(ctx, sql, queryParam...)
 	// 排序
@@ -136,30 +139,22 @@ func AutoAppendExportRoles(ctx context.Context, userToken, language string, para
 	if procDefPermissionList, err = GetProcDefPermissionByIds(ctx, param.WorkflowIds); err != nil {
 		return
 	}
-	if len(procDefPermissionList) > 0 {
-		for _, permission := range procDefPermissionList {
-			allCheckRoleMap[permission.Permission] = true
-		}
+	for _, permission := range procDefPermissionList {
+		allCheckRoleMap[permission.Permission] = true
 	}
 	if batchExecutionTemplateRoles, err = GetBatchExecutionTemplatePermissionByIds(ctx, param.BatchExecutionIds); err != nil {
 		return
 	}
-	if len(batchExecutionTemplateRoles) > 0 {
-		for _, templateRole := range batchExecutionTemplateRoles {
-			allCheckRoleMap[templateRole.RoleName] = true
-		}
+	for _, templateRole := range batchExecutionTemplateRoles {
+		allCheckRoleMap[templateRole.RoleName] = true
 	}
 	if requestTemplateRoles, err = remote.GetRequestTemplateRoles(models.GetRequestTemplateRolesDto{RequestTemplateIds: param.RequestTemplateIds}, userToken, language); err != nil {
 		return
 	}
-	if len(requestTemplateRoles.Roles) > 0 {
-		for _, role := range requestTemplateRoles.Roles {
-			allCheckRoleMap[role] = true
-		}
+	for _, role := range requestTemplateRoles.Roles {
+		allCheckRoleMap[role] = true
 	}
-	if len(param.Roles) > 0 {
-		newCheckRoles = append(newCheckRoles, param.Roles...)
-	}
+	newCheckRoles = append(newCheckRoles, param.Roles...)
 	for role, _ := range allCheckRoleMap {
 		newCheckRoles = append(newCheckRoles, role)
 	}
@@ -219,7 +214,7 @@ func execStepExport(ctx context.Context, transExportId string, step int, data in
 	}
 	byteArr, _ := json.Marshal(data)
 	transExportDetail.Output = string(byteArr)
-	if err = WriteJsonData2File(fmt.Sprintf("%s_%s", transExportDetailMap[step], transExportId), data); err != nil {
+	if err = WriteJsonData2File(fmt.Sprintf("/Users/tangjiawei/Desktop/%s_%s.json", transExportDetailMap[step], transExportId), data); err != nil {
 		log.Logger.Error("WriteJsonData2File error", log.String("module", transExportDetailMap[step]), log.Error(err))
 		transExportDetail.Status = string(models.TransExportStatusFail)
 		transExportDetail.ErrorMsg = err.Error()
