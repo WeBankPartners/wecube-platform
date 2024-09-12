@@ -37,8 +37,8 @@ type SysLogTable struct {
 }
 
 type QueryRequestTemplateRolesResponse struct {
-	HttpResponseMeta
-	Roles []string `json:"data"`
+	StatusCode string   `json:"statusCode"`
+	Roles      []string `json:"data"`
 }
 
 type QueryUserResponse struct {
