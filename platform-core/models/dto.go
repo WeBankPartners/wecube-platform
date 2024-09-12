@@ -143,6 +143,10 @@ type GetRequestTemplateRolesDto struct {
 	RequestTemplateIds []string `json:"requestTemplateIds"`
 }
 
+type GetRequestTemplatesDto struct {
+	RequestTemplateIds []string `json:"requestTemplateIds"`
+}
+
 type RoleMenuDto struct {
 	RoleId   string         `json:"roleId"`
 	RoleName string         `json:"roleName"`
