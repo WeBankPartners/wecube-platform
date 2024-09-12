@@ -30,18 +30,17 @@ CREATE TABLE `trans_export_analyze_data`
 
 CREATE TABLE `trans_export_detail`
 (
-    `id`           varchar(64) COLLATE utf8_bin NOT NULL,
-    `trans_export` varchar(64) COLLATE utf8_bin NOT NULL COMMENT '导出记录id',
-    `name`         varchar(64) COLLATE utf8_bin NOT NULL COMMENT '名称',
-    `analyze_data` varchar(64) COLLATE utf8_bin DEFAULT NULL COMMENT '关联分析数据',
-    `step`         tinyint(2) COLLATE utf8_bin NOT NULL COMMENT '第几步',
-    `status`       varchar(32) COLLATE utf8_bin NOT NULL COMMENT '导出状态: notStart未开始,success成功,fail失败',
-    `input`        text COLLATE utf8_bin        DEFAULT NULL COMMENT '输入',
-    `output`       text COLLATE utf8_bin        DEFAULT NULL COMMENT '输出',
-    `error_msg`    text COLLATE utf8_bin        DEFAULT NULL COMMENT '导出报错信息',
-    `start_time`   datetime                     default NULL COMMENT '开始时间',
-    `end_time`     datetime                     default NULL COMMENT '结束时间',
+    `id`                  varchar(64) COLLATE utf8_bin NOT NULL,
+    `trans_export`        varchar(64) COLLATE utf8_bin NOT NULL COMMENT '导出记录id',
+    `name`                varchar(64) COLLATE utf8_bin NOT NULL COMMENT '名称',
+    `analyze_data_source` varchar(64) COLLATE utf8_bin DEFAULT NULL COMMENT '关联分析数据',
+    `step`                tinyint(2) COLLATE utf8_bin NOT NULL COMMENT '第几步',
+    `status`              varchar(32) COLLATE utf8_bin NOT NULL COMMENT '导出状态: notStart未开始,success成功,fail失败',
+    `input`               text COLLATE utf8_bin        DEFAULT NULL COMMENT '输入',
+    `output`              text COLLATE utf8_bin        DEFAULT NULL COMMENT '输出',
+    `error_msg`           text COLLATE utf8_bin        DEFAULT NULL COMMENT '导出报错信息',
+    `start_time`          datetime                     default NULL COMMENT '开始时间',
+    `end_time`            datetime                     default NULL COMMENT '结束时间',
     PRIMARY KEY (`id`),
-    CONSTRAINT `trans_export_detail_force_trans_export` FOREIGN KEY (`trans_export`) REFERENCES `trans_export` (`id`),
-    CONSTRAINT `trans_export_detail_force_analyze_data` FOREIGN KEY (`analyze_data`) REFERENCES `trans_export_analyze_data` (`id`)
+    CONSTRAINT `trans_export_detail_force_trans_export` FOREIGN KEY (`trans_export`) REFERENCES `trans_export` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '数据迁移导出记录表';
