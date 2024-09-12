@@ -15,7 +15,7 @@ import (
 )
 
 // AnalyzeCMDBDataExport 分析cmdb数据并写入自动分析表
-func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransParam) (err error) {
+func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransParam) (actions []*db.ExecAction, err error) {
 	cmdbEngine, getDBErr := getCMDBPluginDBResource(ctx)
 	if getDBErr != nil {
 		err = getDBErr
@@ -53,10 +53,10 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 	ciTypeDataMap := make(map[string]*models.CiTypeData)
 	filters := []*models.CiTypeDataFilter{{CiType: transConfig.EnvCiType, Condition: "in", GuidList: []string{param.Env}}}
 	log.Logger.Info("<--- start analyzeCMDBData --->")
-	err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine)
+	err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig)
 	if err != nil {
 		log.Logger.Error("<--- fail analyzeCMDBData --->", log.Error(err))
-		return err
+		return
 	}
 	log.Logger.Info("<--- done analyzeCMDBData --->")
 	for k, v := range ciTypeDataMap {
@@ -65,12 +65,11 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 	// 分析监控数据
 	// 分析物料包数据
 	// 写入cmdb ci数据
-	insertActions := getInsertAnalyzeCMDBActions(param.TransExportId, ciTypeDataMap)
-	err = db.Transaction(insertActions, ctx)
+	actions = getInsertAnalyzeCMDBActions(param.TransExportId, ciTypeDataMap)
 	return
 }
 
-func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine) (err error) {
+func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig) (err error) {
 	log.Logger.Info("analyzeCMDBData", log.String("ciType", ciType), log.StringList("guidList", ciDataGuidList))
 	if len(ciDataGuidList) == 0 {
 		return
@@ -129,6 +128,9 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 	// 往下分析数据行的依赖
 	for _, attr := range ciTypeAttributes {
 		if attr.InputType == "ref" {
+			if checkArtifactCiTypeRefIllegal(ciType, attr.RefCiType, transConfig) {
+				continue
+			}
 			refCiTypeGuidList := []string{}
 			for _, row := range newRows {
 				tmpRefCiDataGuid := row[attr.RefCiType]
@@ -137,18 +139,21 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 				}
 			}
 			if len(refCiTypeGuidList) > 0 {
-				if err = analyzeCMDBData(attr.RefCiType, refCiTypeGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine); err != nil {
+				if err = analyzeCMDBData(attr.RefCiType, refCiTypeGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig); err != nil {
 					break
 				}
 			}
 		} else if attr.InputType == "multiRef" {
+			if checkArtifactCiTypeRefIllegal(ciType, attr.RefCiType, transConfig) {
+				continue
+			}
 			toGuidList, getMultiToGuidErr := getCMDBMultiRefGuidList(ciType, attr.Name, "in", newRowsGuidList, []string{}, cmdbEngine)
 			if getMultiToGuidErr != nil {
 				err = fmt.Errorf("try to analyze ciType:%s dependent multiRef attr:%s error:%s ", ciType, attr.Name, getMultiToGuidErr.Error())
 				break
 			}
 			if len(toGuidList) > 0 {
-				if err = analyzeCMDBData(attr.RefCiType, toGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine); err != nil {
+				if err = analyzeCMDBData(attr.RefCiType, toGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig); err != nil {
 					break
 				}
 			}
@@ -172,7 +177,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 						for _, row := range queryDepCiGuidRows {
 							depCiGuidList = append(depCiGuidList, row["guid"])
 						}
-						if err = analyzeCMDBData(depCiType, depCiGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine); err != nil {
+						if err = analyzeCMDBData(depCiType, depCiGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig); err != nil {
 							break
 						}
 					}
@@ -183,7 +188,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 						break
 					}
 					if len(depFromGuidList) > 0 {
-						if err = analyzeCMDBData(depCiType, depFromGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine); err != nil {
+						if err = analyzeCMDBData(depCiType, depFromGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig); err != nil {
 							break
 						}
 					}
@@ -259,6 +264,14 @@ func getDataTransVariableMap(ctx context.Context) (result *models.TransDataVaria
 			result.NexusUser = tmpValue
 		case "PLATFORM_EXPORT_NEXUS_PWD":
 			result.NexusPwd = tmpValue
+		case "PLATFORM_EXPORT_NEXUS_REPO":
+			result.NexusRepo = tmpValue
+		case "PLATFORM_EXPORT_CI_ARTIFACT_INSTANCE":
+			if tmpValue != "" {
+				result.ArtifactInstanceCiTypeList = strings.Split(tmpValue, ",")
+			}
+		case "PLATFORM_EXPORT_CI_ARTIFACT_PACKAGE":
+			result.ArtifactPackageCiType = tmpValue
 		}
 	}
 	return
@@ -390,6 +403,23 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 	}
 	if addTransExportActions = getInsertTransExport(transExport); len(addTransExportActions) > 0 {
 		actions = append(actions, addTransExportActions...)
+	}
+	return
+}
+
+func checkArtifactCiTypeRefIllegal(sourceCiType, refCiType string, transConfig *models.TransDataVariableConfig) (illegal bool) {
+	illegal = false
+	if refCiType == transConfig.ArtifactPackageCiType {
+		matchFlag := false
+		for _, v := range transConfig.ArtifactInstanceCiTypeList {
+			if sourceCiType == v {
+				matchFlag = true
+				break
+			}
+		}
+		if !matchFlag {
+			illegal = true
+		}
 	}
 	return
 }
