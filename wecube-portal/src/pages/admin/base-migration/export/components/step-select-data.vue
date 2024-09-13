@@ -149,19 +149,19 @@
       <Row :gutter="10">
         <Col :span="10">
           <Card title="CI">
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbTableData">
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData">
             </Table>
           </Card>
         </Col>
         <Col :span="7">
           <Card title="视图">
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbTableData">
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData">
             </Table>
           </Card>
         </Col>
         <Col :span="7">
           <Card title="报表">
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbTableData">
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData">
             </Table>
           </Card>
         </Col>
@@ -174,7 +174,7 @@
       <Row :gutter="10">
         <Col :span="17">
           <Card>
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbTableData">
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData">
             </Table>
           </Card>
         </Col>
@@ -189,7 +189,7 @@
       <Row :gutter="10">
         <Col :span="17">
           <Card>
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbTableData">
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData">
             </Table>
           </Card>
         </Col>
@@ -273,6 +273,11 @@ export default {
           _checked: true
         }))
         this.itsmSelectionList = this.itsmTableData
+        this.itsmSelectionList.push({
+          id: 'taskman_component_library',
+          name: '组件库',
+          _checked: true
+        })
       }
     }
   }
