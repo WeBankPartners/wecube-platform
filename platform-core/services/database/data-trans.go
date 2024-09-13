@@ -272,6 +272,10 @@ func getDataTransVariableMap(ctx context.Context) (result *models.TransDataVaria
 			}
 		case "PLATFORM_EXPORT_CI_ARTIFACT_PACKAGE":
 			result.ArtifactPackageCiType = tmpValue
+		case "PLATFORM_EXPORT_CI_SYSTEM":
+			result.ArtifactCiSystem = tmpValue
+		case "PLATFORM_EXPORT_CI_TECH_PRODUCT":
+			result.ArtifactCiTechProduct = tmpValue
 		}
 	}
 	return
@@ -344,8 +348,8 @@ func getInsertAnalyzeCMDBActions(transExportId string, ciTypeDataMap map[string]
 func getInsertTransExport(transExport models.TransExportTable) (actions []*db.ExecAction) {
 	nowTime := time.Now()
 	actions = []*db.ExecAction{}
-	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export(id,business,environment,status,output_url,created_user,created_time,updated_user,updated_time) values (?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-		transExport.Id, transExport.Business, transExport.Environment, transExport.Status, transExport.OutputUrl, transExport.CreatedUser, nowTime, transExport.UpdatedUser, nowTime,
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export(id,business,business_name,environment,status,output_url,created_user,created_time,updated_user,updated_time) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		transExport.Id, transExport.Business, transExport.BusinessName, transExport.Environment, transExport.Status, transExport.OutputUrl, transExport.CreatedUser, nowTime, transExport.UpdatedUser, nowTime,
 	}})
 	return
 }
