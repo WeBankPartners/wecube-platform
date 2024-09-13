@@ -324,6 +324,7 @@ export default {
       this.loading = false
       if (status === 'OK') {
         this.tableData = (data && data.contents) || []
+        this.pageable.total = data.pageInfo.totalRows || 0
       }
     },
     changePageSize(pageSize) {
