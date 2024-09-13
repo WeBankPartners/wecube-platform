@@ -15,7 +15,7 @@ func GetPath(path string) (newPath string, err error) {
 		return newPath, err
 	}
 	if !exist {
-		if err = os.Mkdir(path, 0755); err != nil {
+		if err = os.MkdirAll(path, 0755); err != nil {
 			return
 		}
 	}
