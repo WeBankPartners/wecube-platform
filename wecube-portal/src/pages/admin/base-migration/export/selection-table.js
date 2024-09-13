@@ -129,47 +129,14 @@ export default {
       batchTableLoading: false,
       batchTableColumns: [
         {
+          type: 'selection',
+          width: 55,
+          align: 'center'
+        },
+        {
           title: this.$t('be_template_name'),
           key: 'name',
-          minWidth: 140,
-          render: (h, params) => (
-            <div>
-              {
-                /* 收藏 */
-                params.row.isCollected === false && (
-                  <Tooltip content={this.$t('bc_save')} placement="top-start">
-                    <Icon
-                      style="cursor:pointer;margin-right:5px;"
-                      size="18"
-                      type="ios-star-outline"
-                      onClick={e => {
-                        e.stopPropagation()
-                        this.handleStar(params.row)
-                      }}
-                    />
-                  </Tooltip>
-                )
-              }
-              {
-                /* 取消收藏 */
-                params.row.isCollected === true && (
-                  <Tooltip content={this.$t('be_cancel_save')} placement="top-start">
-                    <Icon
-                      style="cursor:pointer;margin-right:5px;"
-                      size="18"
-                      type="ios-star"
-                      color="#ebac42"
-                      onClick={e => {
-                        e.stopPropagation()
-                        this.handleStar(params.row)
-                      }}
-                    />
-                  </Tooltip>
-                )
-              }
-              <span style="margin-right:2px">{params.row.name}</span>
-            </div>
-          )
+          minWidth: 140
         },
         {
           title: this.$t('be_template_id'),
@@ -191,12 +158,7 @@ export default {
           title: this.$t('use_role'),
           key: 'useRole',
           minWidth: 120,
-          render: (h, params) => (
-            <div>
-              {params.row.permissionToRole.USEDisplayName
-                && params.row.permissionToRole.USEDisplayName.map(item => <Tag color="default">{item}</Tag>)}
-            </div>
-          )
+          render: (h, params) => <BaseScrollTag list={params.row.permissionToRole.USEDisplayName}></BaseScrollTag>
         },
         {
           title: this.$t('be_use_status'),
@@ -244,10 +206,18 @@ export default {
           component: 'input'
         }
       ],
-      batchSearchParams: {},
+      batchSearchParams: {
+        name: '',
+        id: ''
+      },
       // ITSM表
       itsmTableLoading: false,
       itsmTableColumns: [
+        {
+          type: 'selection',
+          width: 55,
+          align: 'center'
+        },
         {
           title: this.$t('name'),
           resizable: true,
@@ -264,15 +234,36 @@ export default {
               return <Tag>{params.row.version}</Tag>
             }
             return <span>-</span>
-
           }
         },
         {
-          title: this.$t('tw_useScene'),
+          title: '使用场景',
           minWidth: 80,
           key: 'type',
           render: (h, params) => {
-            const find = this.typeList.find(i => i.value === String(params.row.type)) || {}
+            const typeList = [
+              {
+                value: '1',
+                label: '发布' // 发布
+              },
+              {
+                value: '2',
+                label: '请求' // 请求
+              },
+              {
+                value: '3',
+                label: '问题' // 问题
+              },
+              {
+                value: '4',
+                label: '事件' // 事件
+              },
+              {
+                value: '5',
+                label: '变更' // 变更
+              }
+            ]
+            const find = typeList.find(i => i.value === String(params.row.type)) || {}
             return (find.label && <Tag>{find.label}</Tag>) || <span>-</span>
           }
         },
@@ -294,7 +285,6 @@ export default {
               )
             }
             return <span>-</span>
-
           }
         },
         {
@@ -306,7 +296,6 @@ export default {
               return <Tag>{params.row.tags}</Tag>
             }
             return <span>-</span>
-
           }
         },
         {
@@ -320,7 +309,10 @@ export default {
           title: this.$t('tw_template_owner_role'),
           minWidth: 120,
           key: 'mgmtRoles',
-          render: (h, params) => params.row.mgmtRoles.map(item => <Tag>{item.displayName}</Tag>)
+          render: (h, params) => {
+            const list = params.row.mgmtRoles.map(item => item.displayName)
+            return <BaseScrollTag list={list} />
+          }
         },
         {
           title: this.$t('useRoles'),
@@ -353,10 +345,35 @@ export default {
         {
           key: 'scene',
           placeholder: '场景',
-          component: 'input'
+          component: 'select',
+          list: [
+            {
+              value: '1',
+              label: '发布' // 发布
+            },
+            {
+              value: '2',
+              label: '请求' // 请求
+            },
+            {
+              value: '3',
+              label: '问题' // 问题
+            },
+            {
+              value: '4',
+              label: '事件' // 事件
+            },
+            {
+              value: '5',
+              label: '变更' // 变更
+            }
+          ]
         }
       ],
-      itsmSearchParams: {}
+      itsmSearchParams: {
+        name: '',
+        scene: ''
+      }
     }
   }
 }
