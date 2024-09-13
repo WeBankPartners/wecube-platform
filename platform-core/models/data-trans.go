@@ -64,6 +64,7 @@ type TransExportTable struct {
 	Business                string   `json:"business" xorm:"business"`
 	BusinessName            string   `json:"businessName" xorm:"business_name"`
 	Environment             string   `json:"environment" xorm:"environment"`
+	EnvironmentName         string   `json:"environmentName" xorm:"environment_name"`
 	Status                  string   `json:"status" xorm:"status"`
 	OutputUrl               string   `json:"outputUrl" xorm:"output_url"`
 	CreatedUser             string   `json:"createdUser" xorm:"created_user"`
@@ -95,6 +96,7 @@ type TransExportAnalyzeDataTable struct {
 	DataType     string  `json:"dataType" xorm:"data_type"`
 	DataTypeName string  `json:"dataTypeName" xorm:"data_type_name"`
 	Data         string  `json:"data" xorm:"data"`
+	DataLen      int     `json:"dataLen" xorm:"data_len"`
 	ErrorMsg     string  `json:"errorMsg" xorm:"error_msg"`
 	StartTime    string  `json:"startTime" xorm:"start_time"`
 	EndTime      string  `json:"endTime" xorm:"end_time"`
@@ -150,17 +152,27 @@ type QueryBusinessParam struct {
 }
 
 type CreateExportParam struct {
-	PIds   []string `json:"pIds"`   // 产品ID
-	PNames []string `json:"pNames"` // 产品名称
-	Env    string   `json:"env"`    // 环境
+	PIds    []string `json:"pIds"`    // 产品ID
+	PNames  []string `json:"pNames"`  // 产品名称
+	Env     string   `json:"env"`     // 环境
+	EnvName string   `json:"envName"` // 环境名称
+}
+
+type UpdateExportParam struct {
+	TransExportId string   `json:"transExportId"` // 导出Id
+	PIds          []string `json:"pIds"`          // 产品ID
+	PNames        []string `json:"pNames"`        // 产品名称
+	Env           string   `json:"env"`           // 环境
+	EnvName       string   `json:"envName"`       // 环境名称
 }
 
 type DataTransExportParam struct {
-	TransExportId      string   `json:"transExportId"`      // 导出Id
-	Roles              []string `json:"roles"`              // 角色
-	WorkflowIds        []string `json:"workflowIds"`        // 编排Ids
-	BatchExecutionIds  []string `json:"batchExecutionIds"`  // 批量执行Ids
-	RequestTemplateIds []string `json:"requestTemplateIds"` // 模版Ids
+	TransExportId          string   `json:"transExportId"`          // 导出Id
+	Roles                  []string `json:"roles"`                  // 角色
+	WorkflowIds            []string `json:"workflowIds"`            // 编排Ids
+	BatchExecutionIds      []string `json:"batchExecutionIds"`      // 批量执行Ids
+	RequestTemplateIds     []string `json:"requestTemplateIds"`     // 模版Ids
+	ExportComponentLibrary bool     `json:"exportComponentLibrary"` // 是否导出组件库
 }
 
 type TransExportHistoryParam struct {
@@ -190,13 +202,34 @@ type StepExportParam struct {
 }
 
 type RequestTemplateExport struct {
-	RequestTemplate      RequestTemplateDto `json:"requestTemplate"`
-	FormTemplate         interface{}        `json:"formTemplate"`
-	FormItemTemplate     interface{}        `json:"formItemTemplate"`
-	RequestTemplateRole  interface{}        `json:"requestTemplateRole"`
-	TaskTemplate         interface{}        `json:"taskTemplate"`
-	TaskHandleTemplate   interface{}        `json:"taskHandleTemplate"`
-	RequestTemplateGroup interface{}        `json:"requestTemplateGroup"`
+	RequestTemplate      RequestTemplateDto          `json:"requestTemplate"`
+	FormTemplate         interface{}                 `json:"formTemplate"`
+	FormItemTemplate     interface{}                 `json:"formItemTemplate"`
+	RequestTemplateRole  []*RequestTemplateRoleTable `json:"requestTemplateRole"`
+	TaskTemplate         interface{}                 `json:"taskTemplate"`
+	TaskHandleTemplate   interface{}                 `json:"taskHandleTemplate"`
+	RequestTemplateGroup interface{}                 `json:"requestTemplateGroup"`
+}
+
+type RequestTemplateRoleTable struct {
+	Id              string `json:"id"`
+	RequestTemplate string `json:"requestTemplate"`
+	Role            string `json:"role"`
+	RoleType        string `json:"roleType"`
+}
+
+type RequestTemplateSimpleQuery struct {
+	RequestTemplateDto
+	MGMTRoles []*RoleTable `json:"mgmtRoles"`
+	USERoles  []*RoleTable `json:"useRoles"`
+}
+
+type RoleTable struct {
+	Id          string `json:"id"`
+	DisplayName string `json:"displayName"`
+	UpdatedTime string `json:"updatedTime"`
+	CoreId      string `json:"coreId"`
+	Email       string `json:"email"`
 }
 
 type RequestTemplateDto struct {
@@ -240,4 +273,18 @@ type RequestTemplateDto struct {
 type TransExportDetail struct {
 	TransExport       *TransExportTable         `json:"transExport"`
 	TransExportDetail []*TransExportDetailTable `json:"detail"`
+	CmdbCI            []*CommonNameCount        `json:"cmdbCI"`
+	CmdbView          []*CommonNameUser         `json:"cmdbView"`
+	CmdbReportForm    []*CommonNameUser         `json:"cmdbReportForm"`
+	Artifacts         []*CommonNameCount        `json:"artifacts"`
+}
+
+type CommonNameCount struct {
+	Name  string `json:"name"`
+	Count int    `json:"count"`
+}
+
+type CommonNameUser struct {
+	Name        string `json:"name"`
+	CreatedUser string `json:"createdUser"`
 }
