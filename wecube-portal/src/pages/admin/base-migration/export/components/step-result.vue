@@ -1,16 +1,16 @@
 <template>
   <div class="export-step-data">
     <div class="export-message">
-      <Alert v-if="status === 'doing'" type="warning" show-icon>
+      <Alert v-if="detailData.status === 'doing'" type="warning" show-icon>
         <template #desc> 正在导出内容，请稍后... </template>
       </Alert>
-      <Alert v-else-if="status === 'fail'" type="error" show-icon>
+      <Alert v-else-if="detailData.status === 'fail'" type="error" show-icon>
         导出失败！
         <template #desc>
           角色已选3条数据,导出失败1条数据,角色-【角色key】失败,失败信息:xxxx请查看导出信息,修复问题之后重新发起导入
         </template>
       </Alert>
-      <Alert v-else-if="status === 'success'" type="success" show-icon>
+      <Alert v-else-if="detailData.status === 'success'" type="success" show-icon>
         导出成功！
         <template #desc>
           <div>
@@ -58,23 +58,15 @@
     </div>
     <!--角色列表-->
     <div class="item">
-      <span class="title">角色：已选<span class="number">{{ roleSelectionList.length }}</span></span>
+      <span class="title">角色：已选<span class="number">{{ 10 }}</span></span>
       <div>
-        <Table
-          :border="false"
-          size="small"
-          :loading="roleTableLoading"
-          :columns="roleTableColumns"
-          :max-height="400"
-          :data="roleTableData"
-          @on-selection-change="selection => handleSelectChange('role', selection)"
-        >
+        <Table :border="false" size="small" :columns="roleTableColumns" :max-height="400" :data="roleTableData">
         </Table>
       </div>
     </div>
     <!--编排列表-->
     <div class="item">
-      <span class="title">编排：已选<span class="number">{{ flowSelectionList.length }}</span></span>
+      <span class="title">编排：已选<span class="number">{{ 10 }}</span></span>
       <div>
         <BaseSearch
           :onlyShowReset="true"
@@ -82,21 +74,13 @@
           v-model="flowSearchParams"
           @search="handleSearchTable('flow')"
         ></BaseSearch>
-        <Table
-          :border="false"
-          size="small"
-          :loading="flowTableLoading"
-          :columns="flowTableColumns"
-          :max-height="400"
-          :data="flowTableData"
-          @on-selection-change="selection => handleSelectChange('flow', selection)"
-        >
+        <Table :border="false" size="small" :columns="flowTableColumns" :max-height="400" :data="flowTableData">
         </Table>
       </div>
     </div>
     <!--批量执行列表-->
     <div class="item">
-      <span class="title">批量执行：已选<span class="number">{{ batchSelectionList.length }}</span></span>
+      <span class="title">批量执行：已选<span class="number">{{ 10 }}</span></span>
       <div>
         <BaseSearch
           :onlyShowReset="true"
@@ -104,21 +88,13 @@
           v-model="batchSearchParams"
           @search="handleSearchTable('batch')"
         ></BaseSearch>
-        <Table
-          :border="false"
-          size="small"
-          :loading="batchTableLoading"
-          :columns="batchTableColumns"
-          :max-height="400"
-          :data="batchTableData"
-          @on-selection-change="selection => handleSelectChange('execution', selection)"
-        >
+        <Table :border="false" size="small" :columns="batchTableColumns" :max-height="400" :data="batchTableData">
         </Table>
       </div>
     </div>
     <!--ITSM列表-->
     <div class="item">
-      <span class="title">ITSM流程：已选<span class="number">{{ itsmSelectionList.length }}</span></span>
+      <span class="title">ITSM流程：已选<span class="number">{{ 10 }}</span></span>
       <div>
         <BaseSearch
           :onlyShowReset="true"
@@ -126,15 +102,7 @@
           v-model="itsmSearchParams"
           @search="handleSearchTable('itsm')"
         ></BaseSearch>
-        <Table
-          :border="false"
-          size="small"
-          :loading="itsmTableLoading"
-          :columns="itsmTableColumns"
-          :max-height="400"
-          :data="itsmTableData"
-          @on-selection-change="selection => handleSelectChange('itsm', selection)"
-        >
+        <Table :border="false" size="small" :columns="itsmTableColumns" :max-height="400" :data="itsmTableData">
         </Table>
       </div>
     </div>
@@ -201,78 +169,41 @@
 <script>
 import selectTableConfig from '../selection-table'
 import staticTableConfig from '../static-table'
-import {
-  getCurrentUserRoles, getAllExportFlows, getAllExportBatch, getAllExportItsm
-} from '@/api/server.js'
+import { getExportDetail } from '@/api/server.js'
 export default {
   mixins: [selectTableConfig, staticTableConfig],
   props: {
-    status: String
+    id: String
   },
   data() {
-    return {}
+    return {
+      detailData: {}
+    }
   },
   mounted() {
-    this.getRoleTableList()
-    this.getFlowTableList()
-    this.getBatchTableList()
-    this.getItsmTableList()
+    this.getDetailData()
+    // 去掉表格复选框
+    this.roleTableColumns = this.roleTableColumns.splice(0, 1)
+    this.flowTableColumns = this.flowTableColumns.splice(0, 1)
+    this.batchTableColumns = this.batchTableColumns.splice(0, 1)
+    this.itsmTableColumns = this.itsmTableColumns.splice(0, 1)
   },
   methods: {
-    // 表格数据勾选
-    handleSelectChange(type, selection) {
-      if (type === 'role') {
-        this.roleSelectionList = selection
-      }
-    },
     // 表格搜索
     handleSearchTable(type) {
       if (type === 'itsm') {
         //
       }
     },
-    // 获取角色
-    async getRoleTableList() {
-      const { status, data } = await getCurrentUserRoles()
-      if (status === 'OK') {
-        this.roleTableData = data.map(_ => ({
-          ..._,
-          _checked: true
-        }))
-        this.roleSelectionList = this.roleTableData
+    async getDetailData() {
+      const params = {
+        params: {
+          transExportId: this.id
+        }
       }
-    },
-    // 获取编排
-    async getFlowTableList() {
-      const { status, data } = await getAllExportFlows()
+      const { status, data } = await getExportDetail(params)
       if (status === 'OK') {
-        this.flowTableData = data.map(_ => ({
-          ..._,
-          _checked: true
-        }))
-        this.flowSelectionList = this.flowTableData
-      }
-    },
-    // 获取批量执行
-    async getBatchTableList() {
-      const { status, data } = await getAllExportBatch()
-      if (status === 'OK') {
-        this.batchTableData = data.map(_ => ({
-          ..._,
-          _checked: true
-        }))
-        this.batchSelectionList = this.batchTableData
-      }
-    },
-    // 获取ITSM
-    async getItsmTableList() {
-      const { statusCode, data } = await getAllExportItsm()
-      if (statusCode === 'OK') {
-        this.itsmTableData = data.map(_ => ({
-          ..._,
-          _checked: true
-        }))
-        this.itsmSelectionList = this.itsmTableData
+        this.detailData = data || {}
       }
     }
   }

@@ -42,8 +42,8 @@ type QueryRequestTemplateRolesResponse struct {
 }
 
 type QueryRequestTemplatesResponse struct {
-	StatusCode string      `json:"statusCode"`
-	Data       interface{} `json:"data"`
+	StatusCode string                  `json:"statusCode"`
+	Data       []RequestTemplateExport `json:"data"`
 }
 
 type QueryUserResponse struct {

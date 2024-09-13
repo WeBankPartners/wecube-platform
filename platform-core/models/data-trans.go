@@ -89,12 +89,29 @@ func (TransExportDetailTable) TableName() string {
 	return "trans_export_detail"
 }
 
+type TransExportDetailTableSort []*TransExportDetailTable
+
+func (q TransExportDetailTableSort) Len() int {
+	return len(q)
+}
+
+func (q TransExportDetailTableSort) Less(i, j int) bool {
+	return q[i].Step-q[j].Step < 0
+}
+
+func (q TransExportDetailTableSort) Swap(i, j int) {
+	q[i], q[j] = q[j], q[i]
+}
+
 type TransDataVariableConfig struct {
-	BusinessCiType string `json:"businessCiType"`
-	EnvCiType      string `json:"envCiType"`
-	NexusUrl       string `json:"nexusUrl"`
-	NexusUser      string `json:"nexusUser"`
-	NexusPwd       string `json:"nexusPwd"`
+	BusinessCiType             string   `json:"businessCiType"`
+	EnvCiType                  string   `json:"envCiType"`
+	NexusUrl                   string   `json:"nexusUrl"`
+	NexusUser                  string   `json:"nexusUser"`
+	NexusPwd                   string   `json:"nexusPwd"`
+	NexusRepo                  string   `json:"nexusRepo"`
+	ArtifactInstanceCiTypeList []string `json:"artifactInstanceCiTypeList"`
+	ArtifactPackageCiType      string   `json:"artifactPackageCiType"`
 }
 
 type CiTypeData struct {
@@ -150,5 +167,59 @@ type StepExportParam struct {
 	TransExportId string
 	StartTime     string
 	Step          int
+	Input         interface{}
 	Data          interface{}
+}
+
+type RequestTemplateExport struct {
+	RequestTemplate      RequestTemplateDto `json:"requestTemplate"`
+	FormTemplate         interface{}        `json:"formTemplate"`
+	FormItemTemplate     interface{}        `json:"formItemTemplate"`
+	RequestTemplateRole  interface{}        `json:"requestTemplateRole"`
+	TaskTemplate         interface{}        `json:"taskTemplate"`
+	TaskHandleTemplate   interface{}        `json:"taskHandleTemplate"`
+	RequestTemplateGroup interface{}        `json:"requestTemplateGroup"`
+}
+
+type RequestTemplateDto struct {
+	Id               string `json:"id"`
+	Group            string `json:"group"`
+	Name             string `json:"name"`
+	Description      string `json:"description"`
+	FormTemplate     string `json:"formTemplate"`
+	Tags             string `json:"tags"`
+	Status           string `json:"status"`
+	RecordId         string `json:"recordId"`
+	Version          string `json:"version"`
+	ConfirmTime      string `json:"confirmTime"`
+	PackageName      string `json:"packageName"`
+	EntityName       string `json:"entityName"`
+	ProcDefKey       string `json:"procDefKey"`
+	ProcDefId        string `json:"procDefId"`
+	ProcDefName      string `json:"procDefName"`
+	ProcDefVersion   string `json:"procDefVersion"`
+	CreatedBy        string `json:"createdBy"`
+	CreatedTime      string `json:"createdTime"`
+	UpdatedBy        string `json:"updatedBy"`
+	UpdatedTime      string `json:"updatedTime"`
+	EntityAttrs      string `json:"entityAttrs"`
+	ExpireDay        int    `json:"expireDay"`
+	Handler          string `json:"handler"`
+	DelFlag          int    `json:"delFlag"`
+	Type             int    `json:"type"`             // 请求类型,0表示请求,1表示发布
+	OperatorObjType  string `json:"operatorObjType"`  // 操作对象类型
+	ParentId         string `json:"parentId"`         // 父类ID
+	ApproveBy        string `json:"approveBy"`        // 模板发布审批人
+	CheckSwitch      bool   `json:"pendingSwitch"`    // 是否加入确认定版流程
+	CheckRole        string `json:"pendingRole"`      // 定版角色
+	CheckExpireDay   int    `json:"pendingExpireDay"` // 定版时效
+	CheckHandler     string `json:"pendingHandler"`   // 定版处理人
+	ConfirmSwitch    bool   `json:"confirmSwitch"`    // 是否加入确认流程
+	ConfirmExpireDay int    `json:"confirmExpireDay"` // 确认过期时间
+	BackDesc         string `json:"rollbackDesc"`     // 退回理由
+}
+
+type TransExportDetail struct {
+	TransExport       *TransExportTable         `json:"transExport"`
+	TransExportDetail []*TransExportDetailTable `json:"detail"`
 }

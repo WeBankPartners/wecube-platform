@@ -66,18 +66,24 @@ func ExecExport(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	// 2.开始导出,采用异步导出方式
+	// 3.开始导出,采用异步导出方式
 	go database.ExecTransExport(c, param, userToken, language)
-	middleware.ReturnData(c, param.TransExportId)
-	return
+	middleware.ReturnSuccess(c)
 }
 
 func ExportDetail(c *gin.Context) {
 	transExportId := c.Query("transExportId")
+	var detail *models.TransExportDetail
+	var err error
 	if strings.TrimSpace(transExportId) == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("transExportId is empty")))
 		return
 	}
+	if detail, err = database.GetTransExportDetail(c, transExportId); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnData(c, detail)
 }
 
 func GetExportListOptions(c *gin.Context) {
@@ -107,21 +113,4 @@ func ExportList(c *gin.Context) {
 		return
 	}
 	middleware.ReturnPageData(c, pageInfo, list)
-}
-
-func GetExportMonitor(c *gin.Context) {
-	transExportId := c.Query("transExportId")
-	if strings.TrimSpace(transExportId) == "" {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("transExportId is empty")))
-		return
-	}
-
-}
-
-func GetExportPlugin(c *gin.Context) {
-	transExportId := c.Query("transExportId")
-	if strings.TrimSpace(transExportId) == "" {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("transExportId is empty")))
-		return
-	}
 }

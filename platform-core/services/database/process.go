@@ -158,7 +158,7 @@ func GetProcessDefinitionAll(ctx context.Context, userToken, language string) (l
 	var permissionList []*models.ProcDefPermission
 	var roleDisplayNameMap = make(map[string]string)
 	list = []*models.ProcDefDto{}
-	if procDefList, err = getAllProcessDefinition(ctx); err != nil {
+	if procDefList, err = getAllMainProcessDefinition(ctx); err != nil {
 		return
 	}
 	if len(procDefList) == 0 {
@@ -189,8 +189,8 @@ func GetProcessDefinitionAll(ctx context.Context, userToken, language string) (l
 	return
 }
 
-func getAllProcessDefinition(ctx context.Context) (list []*models.ProcDef, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def where status = ? order by updated_time desc ", models.Deployed).Find(&list)
+func getAllMainProcessDefinition(ctx context.Context) (list []*models.ProcDef, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def where status = ? and sub_proc =0 order by updated_time desc ", models.Deployed).Find(&list)
 	return
 }
 

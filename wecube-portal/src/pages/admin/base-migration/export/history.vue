@@ -24,6 +24,7 @@
 
 <script>
 import dayjs from 'dayjs'
+import { getBaseMigrationExportList, getBaseMigrationExportQuery } from '@/api/server'
 export default {
   data() {
     return {
@@ -72,71 +73,56 @@ export default {
           key: 'status',
           placeholder: '导出状态',
           component: 'tag-select',
+          multiple: true,
           list: [
             {
-              label: this.$t('fe_notStart'),
-              value: 'NotStarted',
+              label: '草稿',
+              value: 'start',
               color: '#808695'
             },
             {
-              label: this.$t('fe_stop'),
-              value: 'Stop',
+              label: '进行中',
+              value: 'doing',
+              color: '#ff9900'
+            },
+            {
+              label: '成功',
+              value: 'success',
+              color: '#19be6b'
+            },
+            {
+              label: '失败',
+              value: 'fail',
               color: '#ed4014'
-            },
-            {
-              label: this.$t('fe_inProgressFaulted'),
-              value: 'InProgress(Faulted)',
-              color: '#ed4014'
-            },
-            {
-              label: this.$t('fe_inProgressTimeouted'),
-              value: 'InProgress(Timeouted)',
-              color: '#ed4014'
-            },
-            {
-              label: this.$t('fe_inProgress'),
-              value: 'InProgress',
-              color: '#1990ff'
-            },
-            {
-              label: this.$t('fe_completed'),
-              value: 'Completed',
-              color: '#7ac756'
-            },
-            {
-              label: this.$t('fe_faulted'),
-              value: 'Faulted',
-              color: '#e29836'
-            },
-            {
-              label: this.$t('fe_internallyTerminated'),
-              value: 'InternallyTerminated',
-              color: '#e29836'
             }
           ]
         },
         // 导出产品
         {
-          key: 'product',
+          key: 'business',
           placeholder: '导出产品',
-          component: 'input'
+          multiple: true,
+          component: 'select',
+          list: []
         },
         // 执行人
         {
-          key: 'operator',
+          key: 'operators',
           placeholder: '执行人',
-          component: 'input'
+          multiple: true,
+          component: 'select',
+          list: []
         }
       ],
       searchParams: {
         id: '',
         time: [dayjs().subtract(1, 'month')
           .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
-        startTime: '',
-        endTime: '',
-        status: '',
-        product: '',
-        operator: ''
+        execTimeStart: '',
+        execTimeEnd: '',
+        status: [],
+        business: [],
+        operators: []
       },
       pageable: {
         pageSize: 10,
@@ -155,48 +141,28 @@ export default {
         {
           title: '导出状态',
           key: 'status',
-          minWidth: 140,
+          minWidth: 120,
           render: (h, params) => {
             const list = [
               {
-                label: this.$t('fe_notStart'),
-                value: 'NotStarted',
+                label: '草稿',
+                value: 'start',
                 color: '#808695'
               },
               {
-                label: this.$t('fe_inProgressFaulted'),
-                value: 'InProgress(Faulted)',
+                label: '进行中',
+                value: 'doing',
+                color: '#ff9900'
+              },
+              {
+                label: '成功',
+                value: 'success',
+                color: '#19be6b'
+              },
+              {
+                label: '失败',
+                value: 'fail',
                 color: '#ed4014'
-              },
-              {
-                label: this.$t('fe_inProgressTimeouted'),
-                value: 'InProgress(Timeouted)',
-                color: '#ed4014'
-              },
-              {
-                label: this.$t('fe_stop'),
-                value: 'Stop',
-                color: '#ed4014'
-              },
-              {
-                label: this.$t('fe_inProgress'),
-                value: 'InProgress',
-                color: '#1990ff'
-              },
-              {
-                label: this.$t('fe_completed'),
-                value: 'Completed',
-                color: '#7ac756'
-              },
-              {
-                label: this.$t('fe_faulted'),
-                value: 'Faulted',
-                color: '#e29836'
-              },
-              {
-                label: this.$t('fe_internallyTerminated'),
-                value: 'InternallyTerminated',
-                color: '#e29836'
               }
             ]
             const findObj = list.find(item => item.value === params.row.status) || {}
@@ -206,15 +172,13 @@ export default {
         // 导入产品
         {
           title: '导入产品',
-          key: 'product',
-          minWidth: 160,
-          render: (h, params) => {
-            ;<BaseScrollTag list={params.row.product}></BaseScrollTag>
-          }
+          key: 'business',
+          minWidth: 200,
+          render: (h, params) => <span>{params.row.business || '-'}</span>
         },
         {
           title: '执行人',
-          key: 'operator',
+          key: 'createdUser',
           minWidth: 120
         },
         {
@@ -224,7 +188,7 @@ export default {
         },
         {
           title: this.$t('updatedBy'),
-          key: 'updatedBy',
+          key: 'updatedUser',
           minWidth: 120
         },
         {
@@ -235,7 +199,7 @@ export default {
         {
           title: this.$t('table_action'),
           key: 'action',
-          width: 80,
+          width: 110,
           align: 'center',
           fixed: 'right',
           render: (h, params) => (
@@ -251,6 +215,20 @@ export default {
                   <Icon type="md-eye" size="16"></Icon>
                 </Button>
               </Tooltip>
+              {['success', 'fail'].includes(params.row.status) && (
+                <Tooltip content={this.$t('be_republish')} placement="top">
+                  <Button
+                    type="success"
+                    size="small"
+                    onClick={() => {
+                      this.handleRepub(params.row)
+                    }}
+                    style="margin-left:5px;"
+                  >
+                    <Icon type="ios-refresh" size="16"></Icon>
+                  </Button>
+                </Tooltip>
+              )}
             </div>
           )
         }
@@ -285,12 +263,53 @@ export default {
     initData() {
       this.MODALHEIGHT = document.body.scrollHeight - 220
       this.getList()
+      this.getSearchParams()
     },
     handleQuery() {
       this.pageable.current = 1
       this.getList()
     },
-    getList() {},
+    async getSearchParams() {
+      const { status, data } = await getBaseMigrationExportQuery()
+      if (status === 'OK') {
+        this.searchOptions.forEach(item => {
+          if (item.key === 'business') {
+            item.list = (data.business
+                && data.business.map(item => ({
+                  label: item,
+                  value: item
+                })))
+              || []
+          }
+          if (item.key === 'operators') {
+            item.list = (data.operators
+                && data.operators.map(item => ({
+                  label: item,
+                  value: item
+                })))
+              || []
+          }
+        })
+      }
+    },
+    async getList() {
+      const params = {
+        id: this.searchParams.id,
+        status: this.searchParams.status,
+        business: this.searchParams.business,
+        operators: this.searchParams.operators,
+        startIndex: (this.pageable.current - 1) * this.pageable.pageSize,
+        pageSize: this.pageable.pageSize,
+        execTimeStart: this.searchParams.time[0] ? this.searchParams.time[0] + ' 00:00:00' : undefined,
+        execTimeEnd: this.searchParams.time[1] ? this.searchParams.time[1] + ' 23:59:59' : undefined
+      }
+      this.loading = true
+      const { status, data } = await getBaseMigrationExportList(params)
+      this.loading = false
+      if (status === 'OK') {
+        this.tableData = (data && data.contents) || []
+      }
+    },
     changePageSize(pageSize) {
       this.pageable.current = 1
       this.pageable.pageSize = pageSize
@@ -300,7 +319,28 @@ export default {
       this.pageable.current = current
       this.getList()
     },
-    handleView() {}
+    // 查看
+    handleView(row) {
+      this.$router.push({
+        path: '/admin/base-migration/export',
+        query: {
+          type: 'detail',
+          status: row.status,
+          id: row.id
+        }
+      })
+    },
+    // 重新发起
+    handleRepub(row) {
+      this.$router.push({
+        path: '/admin/base-migration/export',
+        query: {
+          type: 'republish',
+          status: row.status,
+          id: row.id
+        }
+      })
+    }
   }
 }
 </script>
