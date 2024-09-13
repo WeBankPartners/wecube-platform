@@ -9,18 +9,18 @@ import (
 	"path/filepath"
 )
 
-func GetPath(path string) string {
-	exist, err := PathExist(path)
-	if err != nil {
-		panic(err)
+func GetPath(path string) (newPath string, err error) {
+	var exist bool
+	if exist, err = PathExist(path); err != nil {
+		return newPath, err
 	}
 	if !exist {
-		err := os.Mkdir(path, 0755)
-		if err != nil {
-			panic(err)
+		if err = os.Mkdir(path, 0755); err != nil {
+			return
 		}
 	}
-	return path
+	newPath = path
+	return
 }
 
 func PathExist(path string) (bool, error) {
@@ -75,7 +75,7 @@ func CreateZipCompressAndUpload(dirPath, fileName string, uploadReqParam *NexusR
 		return nil
 	})
 	if err != nil {
-		panic(err)
+		return
 	}
 	if result, err = UploadFile(uploadReqParam); err != nil {
 		return

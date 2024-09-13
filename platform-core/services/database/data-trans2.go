@@ -193,9 +193,12 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	var batchExecutionTemplateList []*models.BatchExecutionTemplate
 	var transDataVariableConfig *models.TransDataVariableConfig
 	var subProcDefIds []string
-	var uploadUrl string
+	var uploadUrl, path string
 	var err error
-	path := tools.GetPath(fmt.Sprintf("/tmp/wecube/%s", param.TransExportId))
+	if path, err = tools.GetPath(fmt.Sprintf("/tmp/wecube/%s", param.TransExportId)); err != nil {
+		log.Logger.Error("getPath error", log.Error(err))
+		return
+	}
 	// 更新迁移导出表记录状态为执行中
 	if err = updateTransExportStatus(ctx, param.TransExportId, string(models.TransExportStatusDoing)); err != nil {
 		log.Logger.Error("updateTransExportStatus error", log.Error(err))
@@ -324,7 +327,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		UserName:   transDataVariableConfig.NexusUser,
 		Password:   transDataVariableConfig.NexusPwd,
 		RepoUrl:    transDataVariableConfig.NexusUrl,
-		Repository: "artifacts",
+		Repository: transDataVariableConfig.NexusRepo,
 		TimeoutSec: 60,
 		FileParams: []*tools.NexusFileParam{
 			{
@@ -334,9 +337,10 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		},
 	}
 	if uploadUrl, err = tools.CreateZipCompressAndUpload(path, zipFile, uploadReqParam); err != nil {
+		log.Logger.Error("CreateZipCompressAndUpload error", log.Error(err))
 		return
 	}
-	err = updateTransExportSuccess(ctx, param.TransExportId, uploadUrl)
+	updateTransExportSuccess(ctx, param.TransExportId, uploadUrl)
 	return
 }
 
