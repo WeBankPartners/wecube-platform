@@ -1,14 +1,15 @@
 CREATE TABLE `trans_export`
 (
-    `id`           varchar(64) COLLATE utf8_bin   NOT NULL,
-    `business`     varchar(1024) COLLATE utf8_bin NOT NULL COMMENT '业务',
-    `environment`  varchar(64) COLLATE utf8_bin   NOT NULL COMMENT '环境',
-    `status`       varchar(32) COLLATE utf8_bin   NOT NULL COMMENT '状态: start开始,doing执行中,success成功,fail失败',
-    `output_url`   varchar(1024) COLLATE utf8_bin DEFAULT NULL COMMENT '输出nexus地址',
-    `created_user` varchar(45) COLLATE utf8_bin   DEFAULT NULL COMMENT '创建人',
-    `created_time` datetime                       NOT NULL,
-    `updated_user` varchar(45) COLLATE utf8_bin   DEFAULT NULL,
-    `updated_time` datetime                       DEFAULT NULL,
+    `id`            varchar(64) COLLATE utf8_bin   NOT NULL,
+    `business`      varchar(1024) COLLATE utf8_bin NOT NULL COMMENT '业务',
+    `business_name` varchar(1024) COLLATE utf8_bin NOT NULL COMMENT '业务名称',
+    `environment`   varchar(64) COLLATE utf8_bin   NOT NULL COMMENT '环境',
+    `status`        varchar(32) COLLATE utf8_bin   NOT NULL COMMENT '状态: start开始,doing执行中,success成功,fail失败',
+    `output_url`    varchar(1024) COLLATE utf8_bin DEFAULT NULL COMMENT '输出nexus地址',
+    `created_user`  varchar(45) COLLATE utf8_bin   DEFAULT NULL COMMENT '创建人',
+    `created_time`  datetime                       NOT NULL,
+    `updated_user`  varchar(45) COLLATE utf8_bin   DEFAULT NULL,
+    `updated_time`  datetime                       DEFAULT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '数据迁移导出记录表';
 
@@ -20,6 +21,7 @@ CREATE TABLE `trans_export_analyze_data`
     `data_type`      varchar(64) COLLATE utf8_bin NOT NULL COMMENT '关联分析数据',
     `data_type_name` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT '数据类型显示名',
     `data`           mediumtext COLLATE utf8_bin null COMMENT '输入',
+    `data_len`       int(11) utf8_bin default 0 COMMENT '数据总数',
     `error_msg`      text COLLATE utf8_bin         DEFAULT NULL COMMENT '导出报错信息',
     `start_time`     datetime                      default NULL COMMENT '开始时间',
     `end_time`       datetime                      default NULL COMMENT '结束时间',
