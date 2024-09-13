@@ -350,4 +350,21 @@ export const executeBranch = data => req.post('/platform/v1/process/instances/pr
 export const pauseAndContinueFlow = data => req.post('/platform/v1/process/instances/proceed', data)
 
 // 底座迁移
-export const getEnviromentList = () => req.get('/platform/v1/data/transfer/business/list')
+// 导出历史列表
+export const getBaseMigrationExportList = data => req.post('/platform/v1/data/transfer/export/list', data)
+// 导出列表查询条件
+export const getBaseMigrationExportQuery = () => req.get('/platform/v1/data/transfer/export/list/options')
+// 获取环境和产品
+export const getExportBusinessList = data => req.post('/platform/v1/data/transfer/business/list', data)
+// 保存环境和产品
+export const saveEnvBusiness = data => req.post('/platform/v1/data/transfer/export/create', data)
+// 查询所有编排设计
+export const getAllExportFlows = () => req.get('/platform/v1/process/definitions/all')
+// 查询所有批量执行
+export const getAllExportBatch = () => req.get('/platform/v1/batch-execution/templates/all')
+// 查询所有ITSM
+export const getAllExportItsm = () => req.get('/taskman/api/v1/request-template/all')
+// 执行导出
+export const exportBaseMigration = (data) => req.post('/platform/v1/data/transfer/export', data)
+// 导出详情
+export const getExportDetail = (params) => req.get('/platform/v1/data/transfer/export/detail', params)
