@@ -30,7 +30,7 @@ const (
 )
 
 func CreateExport2(c context.Context, param models.CreateExportParam, operator string) (transExportId string, err error) {
-	var actions, addTransExportActions, addTransExportDetailActions []*db.ExecAction
+	var actions, addTransExportActions, addTransExportDetailActions, analyzeDataActions []*db.ExecAction
 	transExportId = guid.CreateGuid()
 	transExport := models.TransExportTable{
 		Id:          transExportId,
@@ -48,17 +48,16 @@ func CreateExport2(c context.Context, param models.CreateExportParam, operator s
 	if addTransExportDetailActions = getInsertTransExportDetail(transExportId); len(addTransExportDetailActions) > 0 {
 		actions = append(actions, addTransExportDetailActions...)
 	}
-	/*dataTransParam := &models.AnalyzeDataTransParam{
+	dataTransParam := &models.AnalyzeDataTransParam{
 		TransExportId: transExportId,
 		Business:      param.PIds,
 		Env:           param.Env,
-	}*/
-	if err = db.Transaction(actions, c); err != nil {
+	}
+	if analyzeDataActions, err = AnalyzeCMDBDataExport(c, dataTransParam); err != nil {
 		return
 	}
-	/*if err = AnalyzeCMDBDataExport(c, dataTransParam); err != nil {
-		return
-	}*/
+	actions = append(actions, analyzeDataActions...)
+	err = db.Transaction(actions, c)
 	return
 }
 
@@ -162,6 +161,22 @@ func AutoAppendExportRoles(ctx context.Context, userToken, language string, para
 	newCheckRoles = append(newCheckRoles, param.Roles...)
 	for role, _ := range allCheckRoleMap {
 		newCheckRoles = append(newCheckRoles, role)
+	}
+	return
+}
+
+func GetTransExportDetail(ctx context.Context, transExportId string) (detail *models.TransExportDetail, err error) {
+	var transExport models.TransExportTable
+	var transExportDetailList []*models.TransExportDetailTable
+	if _, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export where id=?", transExportId).Get(&transExport); err != nil {
+		return
+	}
+	if err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_detail where trans_export=?", transExport).Find(&transExportDetailList); err != nil {
+		return
+	}
+	detail = &models.TransExportDetail{
+		TransExport:       &transExport,
+		TransExportDetail: transExportDetailList,
 	}
 	return
 }

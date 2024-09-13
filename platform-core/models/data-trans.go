@@ -204,3 +204,8 @@ type RequestTemplateDto struct {
 	ConfirmExpireDay int    `json:"confirmExpireDay"` // 确认过期时间
 	BackDesc         string `json:"rollbackDesc"`     // 退回理由
 }
+
+type TransExportDetail struct {
+	TransExport       *TransExportTable         `json:"transExport"`
+	TransExportDetail []*TransExportDetailTable `json:"detail"`
+}
