@@ -3,7 +3,7 @@
   <div id="base-migration">
     <div :style="benchStyle">
       <transition name="fade" mode="out-in">
-        <router-view></router-view>
+        <router-view :key="$route.fullPath"></router-view>
       </transition>
       <BaseMenu :menuList="menuList"></BaseMenu>
     </div>
