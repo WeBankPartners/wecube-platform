@@ -33,19 +33,13 @@
 <script>
 import { getExportBusinessList } from '@/api/server'
 export default {
+  props: {
+    detailData: Object
+  },
   data() {
     return {
-      env: 0,
-      envList: [
-        {
-          label: 'PRD_生产环境',
-          value: 0
-        },
-        {
-          label: 'DEV_开发环境',
-          value: 1
-        }
-      ],
+      env: '',
+      envList: [],
       searchParams: {
         displayName: '',
         id: ''
@@ -110,9 +104,30 @@ export default {
       loading: false
     }
   },
-  mounted() {
-    this.getProductList()
-    this.getEnviromentList()
+  watch: {
+    detailData: {
+      handler(val) {
+        if (val && val.environment) {
+          this.env = val.environment
+        }
+      },
+      immediate: true,
+      deep: true
+    }
+  },
+  async mounted() {
+    await this.getProductList()
+    await this.getEnviromentList()
+    if (this.detailData && this.detailData.environment) {
+      this.env = this.detailData.environment
+      const selectIds = this.detailData.business.split(',')
+      this.tableData.forEach(i => {
+        if (selectIds.includes(i.id)) {
+          this.$set(i, '_checked', true)
+        }
+      })
+      this.selectionList = this.tableData.filter(i => i._checked)
+    }
   },
   methods: {
     onSelectionChange(selection) {
@@ -130,7 +145,9 @@ export default {
             label: item.displayName,
             value: item.id
           }))
-        this.env = this.envList[0].value
+        if (!this.env) {
+          this.env = this.envList[0].value
+        }
       }
     },
     // 获取产品列表
