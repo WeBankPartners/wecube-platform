@@ -90,11 +90,14 @@ func (TransExportDetailTable) TableName() string {
 }
 
 type TransDataVariableConfig struct {
-	BusinessCiType string `json:"businessCiType"`
-	EnvCiType      string `json:"envCiType"`
-	NexusUrl       string `json:"nexusUrl"`
-	NexusUser      string `json:"nexusUser"`
-	NexusPwd       string `json:"nexusPwd"`
+	BusinessCiType             string   `json:"businessCiType"`
+	EnvCiType                  string   `json:"envCiType"`
+	NexusUrl                   string   `json:"nexusUrl"`
+	NexusUser                  string   `json:"nexusUser"`
+	NexusPwd                   string   `json:"nexusPwd"`
+	NexusRepo                  string   `json:"nexusRepo"`
+	ArtifactInstanceCiTypeList []string `json:"artifactInstanceCiTypeList"`
+	ArtifactPackageCiType      string   `json:"artifactPackageCiType"`
 }
 
 type CiTypeData struct {
