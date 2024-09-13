@@ -9,6 +9,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
+	"sort"
 	"strings"
 	"time"
 	"xorm.io/xorm"
@@ -59,13 +60,29 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 		return
 	}
 	log.Logger.Info("<--- done analyzeCMDBData --->")
-	for k, v := range ciTypeDataMap {
-		v.CiType = ciTypeMap[k]
-	}
-	// 分析监控数据
-	// 分析物料包数据
 	// 写入cmdb ci数据
+	for k, ciData := range ciTypeDataMap {
+		ciData.CiType = ciTypeMap[k]
+		ciData.Attributes = ciTypeAttrMap[k]
+	}
 	actions = getInsertAnalyzeCMDBActions(param.TransExportId, ciTypeDataMap)
+	// 分析监控数据
+	var endpointList, serviceGroupList []string
+	for _, ciData := range ciTypeDataMap {
+		for _, attr := range ciData.Attributes {
+			if attr.ExtRefEntity == "monitor:endpoint" {
+				for _, rowData := range ciData.DataMap {
+					endpointList = append(endpointList, rowData[attr.Name])
+				}
+			} else if attr.ExtRefEntity == "monitor:service_group" {
+				for _, rowData := range ciData.DataMap {
+					serviceGroupList = append(serviceGroupList, rowData[attr.Name])
+				}
+			}
+		}
+	}
+	monitorActions := analyzePluginMonitorExportData(trimAndSortStringList(endpointList), trimAndSortStringList(serviceGroupList))
+	actions = append(actions, monitorActions...)
 	return
 }
 
@@ -338,8 +355,8 @@ func getInsertAnalyzeCMDBActions(transExportId string, ciTypeDataMap map[string]
 	nowTime := time.Now()
 	for ciType, ciTypeData := range ciTypeDataMap {
 		rowDataBytes, _ := json.Marshal(ciTypeData.DataMap)
-		actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data,start_time) values (?,?,?,?,?,?,?)", Param: []interface{}{
-			"ex_aly_" + guid.CreateGuid(), transExportId, "wecmdb", ciType, ciTypeData.CiType.DisplayName, string(rowDataBytes), nowTime,
+		actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data,data_len,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+			"ex_aly_" + guid.CreateGuid(), transExportId, "wecmdb", ciType, ciTypeData.CiType.DisplayName, string(rowDataBytes), len(ciTypeData.DataMap), nowTime,
 		}})
 	}
 	return
@@ -425,5 +442,21 @@ func checkArtifactCiTypeRefIllegal(sourceCiType, refCiType string, transConfig *
 			illegal = true
 		}
 	}
+	return
+}
+
+func trimAndSortStringList(input []string) (output []string) {
+	for _, v := range input {
+		if v == "" {
+			continue
+		}
+		output = append(output, v)
+	}
+	sort.Strings(output)
+	return
+}
+
+func analyzePluginMonitorExportData(endpointList, serviceGroupList []string) (actions []*db.ExecAction) {
+
 	return
 }
