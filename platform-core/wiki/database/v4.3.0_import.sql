@@ -1,15 +1,16 @@
 CREATE TABLE `trans_export`
 (
-    `id`            varchar(64) COLLATE utf8_bin   NOT NULL,
-    `business`      varchar(1024) COLLATE utf8_bin NOT NULL COMMENT '业务',
-    `business_name` varchar(1024) COLLATE utf8_bin NOT NULL COMMENT '业务名称',
-    `environment`   varchar(64) COLLATE utf8_bin   NOT NULL COMMENT '环境',
-    `status`        varchar(32) COLLATE utf8_bin   NOT NULL COMMENT '状态: start开始,doing执行中,success成功,fail失败',
-    `output_url`    varchar(1024) COLLATE utf8_bin DEFAULT NULL COMMENT '输出nexus地址',
-    `created_user`  varchar(45) COLLATE utf8_bin   DEFAULT NULL COMMENT '创建人',
-    `created_time`  datetime                       NOT NULL,
-    `updated_user`  varchar(45) COLLATE utf8_bin   DEFAULT NULL,
-    `updated_time`  datetime                       DEFAULT NULL,
+    `id`               varchar(64) COLLATE utf8_bin   NOT NULL,
+    `business`         varchar(1024) COLLATE utf8_bin NOT NULL COMMENT '业务',
+    `business_name`    varchar(1024) COLLATE utf8_bin NOT NULL COMMENT '业务名称',
+    `environment`      varchar(64) COLLATE utf8_bin   NOT NULL COMMENT '环境',
+    `environment_name` varchar(64) COLLATE utf8_bin   NOT NULL COMMENT '环境名称',
+    `status`           varchar(32) COLLATE utf8_bin   NOT NULL COMMENT '状态: start开始,doing执行中,success成功,fail失败',
+    `output_url`       varchar(1024) COLLATE utf8_bin DEFAULT NULL COMMENT '输出nexus地址',
+    `created_user`     varchar(45) COLLATE utf8_bin   DEFAULT NULL COMMENT '创建人',
+    `created_time`     datetime                       NOT NULL,
+    `updated_user`     varchar(45) COLLATE utf8_bin   DEFAULT NULL,
+    `updated_time`     datetime                       DEFAULT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '数据迁移导出记录表';
 
