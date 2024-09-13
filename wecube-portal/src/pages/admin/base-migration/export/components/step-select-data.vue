@@ -202,16 +202,10 @@
 import selectTableConfig from '../selection-table'
 import staticTableConfig from '../static-table'
 import {
-  getCurrentUserRoles,
-  getAllExportFlows,
-  getAllExportBatch,
-  getAllExportItsm
+  getCurrentUserRoles, getAllExportFlows, getAllExportBatch, getAllExportItsm
 } from '@/api/server.js'
 export default {
-  mixins: [
-    selectTableConfig,
-    staticTableConfig
-  ],
+  mixins: [selectTableConfig, staticTableConfig],
   props: {
     status: String
   },

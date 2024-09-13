@@ -125,10 +125,11 @@ export default {
       }
       const { status, data } = await getExportBusinessList(params)
       if (status === 'OK') {
-        this.envList = data && data.map(item => ({
-          label: item.displayName,
-          value: item.id
-        }))
+        this.envList = data
+          && data.map(item => ({
+            label: item.displayName,
+            value: item.id
+          }))
         this.env = this.envList[0].value
       }
     },

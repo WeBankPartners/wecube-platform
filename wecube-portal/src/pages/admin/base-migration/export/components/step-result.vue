@@ -60,13 +60,7 @@
     <div class="item">
       <span class="title">角色：已选<span class="number">{{ 10 }}</span></span>
       <div>
-        <Table
-          :border="false"
-          size="small"
-          :columns="roleTableColumns"
-          :max-height="400"
-          :data="roleTableData"
-        >
+        <Table :border="false" size="small" :columns="roleTableColumns" :max-height="400" :data="roleTableData">
         </Table>
       </div>
     </div>
@@ -80,13 +74,7 @@
           v-model="flowSearchParams"
           @search="handleSearchTable('flow')"
         ></BaseSearch>
-        <Table
-          :border="false"
-          size="small"
-          :columns="flowTableColumns"
-          :max-height="400"
-          :data="flowTableData"
-        >
+        <Table :border="false" size="small" :columns="flowTableColumns" :max-height="400" :data="flowTableData">
         </Table>
       </div>
     </div>
@@ -100,13 +88,7 @@
           v-model="batchSearchParams"
           @search="handleSearchTable('batch')"
         ></BaseSearch>
-        <Table
-          :border="false"
-          size="small"
-          :columns="batchTableColumns"
-          :max-height="400"
-          :data="batchTableData"
-        >
+        <Table :border="false" size="small" :columns="batchTableColumns" :max-height="400" :data="batchTableData">
         </Table>
       </div>
     </div>
@@ -120,13 +102,7 @@
           v-model="itsmSearchParams"
           @search="handleSearchTable('itsm')"
         ></BaseSearch>
-        <Table
-          :border="false"
-          size="small"
-          :columns="itsmTableColumns"
-          :max-height="400"
-          :data="itsmTableData"
-        >
+        <Table :border="false" size="small" :columns="itsmTableColumns" :max-height="400" :data="itsmTableData">
         </Table>
       </div>
     </div>
@@ -193,14 +169,9 @@
 <script>
 import selectTableConfig from '../selection-table'
 import staticTableConfig from '../static-table'
-import {
-  getExportDetail
-} from '@/api/server.js'
+import { getExportDetail } from '@/api/server.js'
 export default {
-  mixins: [
-    selectTableConfig,
-    staticTableConfig
-  ],
+  mixins: [selectTableConfig, staticTableConfig],
   props: {
     id: String
   },
@@ -213,7 +184,7 @@ export default {
     this.getDetailData()
     // 去掉表格复选框
     this.roleTableColumns = this.roleTableColumns.splice(0, 1)
-    this.flowTableColumns = this.flowTableColumns.splice(0 ,1)
+    this.flowTableColumns = this.flowTableColumns.splice(0, 1)
     this.batchTableColumns = this.batchTableColumns.splice(0, 1)
     this.itsmTableColumns = this.itsmTableColumns.splice(0, 1)
   },
