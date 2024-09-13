@@ -66,7 +66,7 @@ func ExecExport(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	// 2.开始导出,采用异步导出方式
+	// 3.开始导出,采用异步导出方式
 	go database.ExecTransExport(c, param, userToken, language)
 	middleware.ReturnData(c, param.TransExportId)
 	return

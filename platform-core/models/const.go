@@ -113,9 +113,9 @@ type TransExportStep int
 
 const (
 	TransExportStepRole            TransExportStep = 1 // 导出角色
-	TransExportStepWorkflow        TransExportStep = 2 // 导出编排
-	TransExportStepBatchExecution  TransExportStep = 3 // 导出批量执行
-	TransExportStepRequestTemplate TransExportStep = 4 // 导出请求模版
+	TransExportStepRequestTemplate TransExportStep = 2 // 导出请求模版
+	TransExportStepWorkflow        TransExportStep = 3 // 导出编排
+	TransExportStepBatchExecution  TransExportStep = 4 // 导出批量执行
 	TransExportStepCmdbCI          TransExportStep = 5 // 导出CMDB CI
 	TransExportStepArtifacts       TransExportStep = 6 // 导出物料包
 	TransExportStepMonitor         TransExportStep = 7 // 导出监控
