@@ -18,13 +18,14 @@ import (
 )
 
 var transExportDetailMap = map[int]string{
-	int(models.TransExportStepRole):            "role",
-	int(models.TransExportStepWorkflow):        "workflow",
-	int(models.TransExportStepBatchExecution):  "batchExecution",
-	int(models.TransExportStepRequestTemplate): "requestTemplate",
-	int(models.TransExportStepCmdb):            "wecmdb",
-	int(models.TransExportStepArtifacts):       "artifacts",
-	int(models.TransExportStepMonitor):         "monitor",
+	int(models.TransExportStepRole):             "role",
+	int(models.TransExportStepWorkflow):         "workflow",
+	int(models.TransExportStepComponentLibrary): "componentLibrary",
+	int(models.TransExportStepBatchExecution):   "batchExecution",
+	int(models.TransExportStepRequestTemplate):  "requestTemplate",
+	int(models.TransExportStepCmdb):             "wecmdb",
+	int(models.TransExportStepArtifacts):        "artifacts",
+	int(models.TransExportStepMonitor):          "monitor",
 }
 
 const (
@@ -35,13 +36,14 @@ func CreateExport2(c context.Context, param models.CreateExportParam, operator s
 	var actions, addTransExportActions, addTransExportDetailActions, analyzeDataActions []*db.ExecAction
 	transExportId = guid.CreateGuid()
 	transExport := models.TransExportTable{
-		Id:           transExportId,
-		Environment:  param.Env,
-		Business:     strings.Join(param.PIds, ","),
-		BusinessName: strings.Join(param.PNames, ","),
-		Status:       string(models.TransExportStatusStart),
-		CreatedUser:  operator,
-		UpdatedUser:  operator,
+		Id:              transExportId,
+		Environment:     param.Env,
+		EnvironmentName: param.EnvName,
+		Business:        strings.Join(param.PIds, ","),
+		BusinessName:    strings.Join(param.PNames, ","),
+		Status:          string(models.TransExportStatusStart),
+		CreatedUser:     operator,
+		UpdatedUser:     operator,
 	}
 	// 新增导出记录
 	if addTransExportActions = getInsertTransExport(transExport); len(addTransExportActions) > 0 {
@@ -53,6 +55,38 @@ func CreateExport2(c context.Context, param models.CreateExportParam, operator s
 	}
 	dataTransParam := &models.AnalyzeDataTransParam{
 		TransExportId: transExportId,
+		Business:      param.PIds,
+		Env:           param.Env,
+	}
+	if analyzeDataActions, err = AnalyzeCMDBDataExport(c, dataTransParam); err != nil {
+		return
+	}
+	actions = append(actions, analyzeDataActions...)
+	err = db.Transaction(actions, c)
+	return
+}
+
+func UpdateExport(c context.Context, param models.UpdateExportParam, operator string) (err error) {
+	var actions, addTransExportActions, deleteAnalyzeDataActions, analyzeDataActions []*db.ExecAction
+	transExport := models.TransExportTable{
+		Id:              param.TransExportId,
+		Environment:     param.Env,
+		EnvironmentName: param.EnvName,
+		Business:        strings.Join(param.PIds, ","),
+		BusinessName:    strings.Join(param.PNames, ","),
+		Status:          string(models.TransExportStatusStart),
+		UpdatedUser:     operator,
+	}
+	// 更新导出记录
+	if addTransExportActions = getUpdateTransExport(transExport); len(addTransExportActions) > 0 {
+		actions = append(actions, addTransExportActions...)
+	}
+	// 先删除分析数据
+	if deleteAnalyzeDataActions = getDeleteTransExportAnalyzeDataActions(c, param.TransExportId); len(deleteAnalyzeDataActions) > 0 {
+		actions = append(actions, deleteAnalyzeDataActions...)
+	}
+	dataTransParam := &models.AnalyzeDataTransParam{
+		TransExportId: param.TransExportId,
 		Business:      param.PIds,
 		Env:           param.Env,
 	}
@@ -168,11 +202,18 @@ func AutoAppendExportRoles(ctx context.Context, userToken, language string, para
 	return
 }
 
+func GetSimpleTranExport(ctx context.Context, transExportId string) (transExport models.TransExportTable, err error) {
+	_, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export where id=?", transExportId).Get(&transExport)
+	return
+}
+
 func GetTransExportDetail(ctx context.Context, transExportId string) (detail *models.TransExportDetail, err error) {
 	var transExport models.TransExportTable
 	var dataTransVariableConfig *models.TransDataVariableConfig
 	var transExportDetailList []*models.TransExportDetailTable
 	var systemAnalyzeData, productAnalyzeData models.TransExportAnalyzeDataTable
+	var systemAnalyzeDataMap, productAnalyzeDataMap map[string]map[string]string
+	var transExportAnalyzeDataList []*models.TransExportAnalyzeDataTable
 	if _, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export where id=?", transExportId).Get(&transExport); err != nil {
 		return
 	}
@@ -189,19 +230,56 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 	if productAnalyzeData, err = GetTransExportAnalyzeDataByCond(ctx, transExportId, dataTransVariableConfig.ArtifactCiTechProduct); err != nil {
 		return
 	}
-	fmt.Println(productAnalyzeData)
+	if productAnalyzeData.Data != "" {
+		if err = json.Unmarshal([]byte(productAnalyzeData.Data), &productAnalyzeDataMap); err != nil {
+			return
+		}
+		if len(productAnalyzeDataMap) > 0 {
+			transExport.AssociationTechProducts = []string{}
+			for _, productAnalyzeItemMap := range productAnalyzeDataMap {
+				for key, value := range productAnalyzeItemMap {
+					if key == "key_name" {
+						transExport.AssociationTechProducts = append(transExport.AssociationTechProducts, value)
+					}
+				}
+			}
+		}
+	}
 	// 查询关联系统
 	if systemAnalyzeData, err = GetTransExportAnalyzeDataByCond(ctx, transExportId, dataTransVariableConfig.ArtifactCiSystem); err != nil {
 		return
 	}
-	fmt.Println(systemAnalyzeData)
-	transExport.AssociationTechProducts = []string{"1", "2"}
-	transExport.AssociationSystems = []string{"4", "5"}
+	if systemAnalyzeData.Data != "" {
+		if err = json.Unmarshal([]byte(systemAnalyzeData.Data), &systemAnalyzeDataMap); err != nil {
+			return
+		}
+		if len(systemAnalyzeDataMap) > 0 {
+			transExport.AssociationSystems = []string{}
+			for _, systemAnalyzeItemMap := range systemAnalyzeDataMap {
+				for key, value := range systemAnalyzeItemMap {
+					if key == "key_name" {
+						transExport.AssociationSystems = append(transExport.AssociationSystems, value)
+					}
+				}
+			}
+		}
+	}
 	// 按步骤排序
 	sort.Sort(models.TransExportDetailTableSort(transExportDetailList))
 	detail = &models.TransExportDetail{
 		TransExport:       &transExport,
 		TransExportDetail: transExportDetailList,
+		CmdbCI:            make([]*models.CommonNameCount, 0),
+	}
+	// 查询CMDB CI信息
+	if transExportAnalyzeDataList, err = QuerySimpleTransExportAnalyzeDataByTransExport(ctx, transExportId); err != nil {
+		return
+	}
+	for _, transExportAnalyze := range transExportAnalyzeDataList {
+		detail.CmdbCI = append(detail.CmdbCI, &models.CommonNameCount{
+			Name:  transExportAnalyze.DataTypeName,
+			Count: transExportAnalyze.DataLen,
+		})
 	}
 	return
 }
@@ -211,10 +289,16 @@ func GetTransExportAnalyzeDataByCond(ctx context.Context, transExportId string, 
 	return
 }
 
+func QuerySimpleTransExportAnalyzeDataByTransExport(ctx context.Context, transExportId string) (result []*models.TransExportAnalyzeDataTable, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select data_type_name,data_len from trans_export_analyze_data where trans_export=?", transExportId).Find(&result)
+	return
+}
+
 // ExecTransExport 执行导出
 func ExecTransExport(ctx context.Context, param models.DataTransExportParam, userToken, language string) {
 	var queryRolesResponse models.QueryRolesResponse
 	var queryRequestTemplatesResponse models.QueryRequestTemplatesResponse
+	var queryComponentLibraryResponse models.QueryComponentLibraryResponse
 	var procDefDto *models.ProcessDefinitionDto
 	var procDefExportList []*models.ProcessDefinitionDto
 	var batchExecutionTemplateList []*models.BatchExecutionTemplate
@@ -259,7 +343,8 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	if err = execStepExport(exportRoleParam); err != nil {
 		return
 	}
-	// 2.导出请求模版
+
+	// 2.导出请求模版&组件库
 	if len(param.RequestTemplateIds) > 0 {
 		exportRequestTemplateStartTime := time.Now().Format(models.DateTimeFormat)
 		if queryRequestTemplatesResponse, err = remote.GetRequestTemplates(models.GetRequestTemplatesDto{RequestTemplateIds: param.RequestTemplateIds}, userToken, language); err != nil {
@@ -273,7 +358,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			StartTime:     exportRequestTemplateStartTime,
 			Step:          int(models.TransExportStepRequestTemplate),
 			Input:         param.RequestTemplateIds,
-			Data:          queryRequestTemplatesResponse.Data,
+			Data:          convertRequestTemplateExportDto2List(queryRequestTemplatesResponse.Data, queryRolesResponse.Data),
 		}
 		if err = execStepExport(exportRequestTemplateParam); err != nil {
 			return
@@ -285,7 +370,26 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			}
 		}
 	}
-	// 3. 导出编排
+	// 3. 导出组件库
+	if param.ExportComponentLibrary {
+		if queryComponentLibraryResponse, err = remote.GetComponentLibrary(userToken, language); err != nil {
+			log.Logger.Error("remote GetComponentLibrary error", log.Error(err))
+			return
+		}
+		exportComponentLibraryStartTime := time.Now().Format(models.DateTimeFormat)
+		exportComponentLibraryParam := models.StepExportParam{
+			Ctx:           ctx,
+			Path:          path,
+			TransExportId: param.TransExportId,
+			StartTime:     exportComponentLibraryStartTime,
+			Step:          int(models.TransExportStepComponentLibrary),
+			Data:          queryComponentLibraryResponse.Data,
+		}
+		if err = execStepExport(exportComponentLibraryParam); err != nil {
+			return
+		}
+	}
+	// 4. 导出编排
 	exportWorkflowStartTime := time.Now().Format(models.DateTimeFormat)
 	for _, procDefId := range param.WorkflowIds {
 		if procDefDto, err = GetProcDefDetailByProcDefId(ctx, procDefId); err != nil {
@@ -324,7 +428,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	if err = execStepExport(exportWorkflowParam); err != nil {
 		return
 	}
-	// 4.导出批量执行
+	// 5.导出批量执行
 	exportBatchExecutionStartTime := time.Now().Format(models.DateTimeFormat)
 	if batchExecutionTemplateList, err = ExportTemplate(ctx, &models.ExportBatchExecTemplateReqParam{BatchExecTemplateIds: param.BatchExecutionIds}); err != nil {
 		log.Logger.Error("ExportTemplate error", log.Error(err))
@@ -418,6 +522,12 @@ func updateTransExportDetail(ctx context.Context, transExportDetail models.Trans
 	return
 }
 
+func getDeleteTransExportAnalyzeDataActions(ctx context.Context, transExportId string) (actions []*db.ExecAction) {
+	actions = []*db.ExecAction{}
+	actions = append(actions, &db.ExecAction{Sql: "delete from trans_export_analyze_data where trans_export=?", Param: []interface{}{transExportId}})
+	return
+}
+
 func getInsertTransExportDetail(transExportId string) (actions []*db.ExecAction) {
 	actions = []*db.ExecAction{}
 	guids := guid.CreateGuidList(len(transExportDetailMap))
@@ -433,6 +543,38 @@ func getInsertTransExportDetail(transExportId string) (actions []*db.ExecAction)
 		i++
 	}
 	return
+}
+
+func convertRequestTemplateExportDto2List(exportList []models.RequestTemplateExport, allRoleList []*models.SimpleLocalRoleDto) []*models.RequestTemplateSimpleQuery {
+	var list []*models.RequestTemplateSimpleQuery
+	var mgmtRoles, useRoles []*models.RoleTable
+	var allRoleMap = make(map[string]*models.SimpleLocalRoleDto)
+	var displayName string
+	for _, roleDto := range allRoleList {
+		allRoleMap[roleDto.Name] = roleDto
+	}
+	for _, export := range exportList {
+		mgmtRoles = []*models.RoleTable{}
+		useRoles = []*models.RoleTable{}
+		for _, templateRole := range export.RequestTemplateRole {
+			if v, ok := allRoleMap[templateRole.Role]; ok {
+				displayName = v.DisplayName
+			} else {
+				displayName = ""
+			}
+			if templateRole.RoleType == string(models.MGMT) {
+				mgmtRoles = append(mgmtRoles, &models.RoleTable{Id: templateRole.Role, DisplayName: displayName})
+			} else if templateRole.RoleType == string(models.USE) {
+				useRoles = append(useRoles, &models.RoleTable{Id: templateRole.Role, DisplayName: displayName})
+			}
+		}
+		list = append(list, &models.RequestTemplateSimpleQuery{
+			RequestTemplateDto: export.RequestTemplate,
+			MGMTRoles:          mgmtRoles,
+			USERoles:           useRoles,
+		})
+	}
+	return list
 }
 
 func getExportJsonFile(path, name string) string {

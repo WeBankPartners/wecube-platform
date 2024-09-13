@@ -112,11 +112,12 @@ const (
 type TransExportStep int
 
 const (
-	TransExportStepRole            TransExportStep = 1 // 导出角色
-	TransExportStepRequestTemplate TransExportStep = 2 // 导出请求模版
-	TransExportStepWorkflow        TransExportStep = 3 // 导出编排
-	TransExportStepBatchExecution  TransExportStep = 4 // 导出批量执行
-	TransExportStepCmdb            TransExportStep = 5 // 导出CMDB
-	TransExportStepArtifacts       TransExportStep = 6 // 导出物料包
-	TransExportStepMonitor         TransExportStep = 7 // 导出监控
+	TransExportStepRole             TransExportStep = 1 // 导出角色
+	TransExportStepRequestTemplate  TransExportStep = 2 // 导出请求模版
+	TransExportStepComponentLibrary TransExportStep = 3 // 导出表单组件库
+	TransExportStepWorkflow         TransExportStep = 4 // 导出编排
+	TransExportStepBatchExecution   TransExportStep = 5 // 导出批量执行
+	TransExportStepCmdb             TransExportStep = 6 // 导出CMDB
+	TransExportStepArtifacts        TransExportStep = 7 // 导出物料包
+	TransExportStepMonitor          TransExportStep = 8 // 导出监控
 )
