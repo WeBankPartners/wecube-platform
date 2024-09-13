@@ -204,28 +204,44 @@ export default {
           fixed: 'right',
           render: (h, params) => (
             <div style="display:flex;justify-content:center;">
-              <Tooltip content={this.$t('be_details')} placement="top">
-                <Button
-                  size="small"
-                  type="info"
-                  onClick={() => {
-                    this.handleView(params.row) // 查看
-                  }}
-                >
-                  <Icon type="md-eye" size="16"></Icon>
-                </Button>
-              </Tooltip>
+              {params.row.status !== 'start' && (
+                <Tooltip content={this.$t('be_details')} placement="top">
+                  <Button
+                    size="small"
+                    type="info"
+                    onClick={() => {
+                      this.handleView(params.row) // 查看
+                    }}
+                  >
+                    <Icon type="md-eye" size="16"></Icon>
+                  </Button>
+                </Tooltip>
+              )}
               {['success', 'fail'].includes(params.row.status) && (
                 <Tooltip content={this.$t('be_republish')} placement="top">
                   <Button
                     type="success"
                     size="small"
                     onClick={() => {
-                      this.handleRepub(params.row)
+                      this.handleRepub(params.row) // 重新发起
                     }}
                     style="margin-left:5px;"
                   >
                     <Icon type="ios-refresh" size="16"></Icon>
+                  </Button>
+                </Tooltip>
+              )}
+              {params.row.status === 'start' && (
+                <Tooltip content={this.$t('edit')} placement="top">
+                  <Button
+                    size="small"
+                    type="primary"
+                    onClick={() => {
+                      this.handleEdit(params.row) // 编辑
+                    }}
+                    style="margin-right:5px;"
+                  >
+                    <Icon type="md-create" size="16"></Icon>
                   </Button>
                 </Tooltip>
               )}
@@ -308,6 +324,7 @@ export default {
       this.loading = false
       if (status === 'OK') {
         this.tableData = (data && data.contents) || []
+        this.pageable.total = data.pageInfo.totalRows || 0
       }
     },
     changePageSize(pageSize) {
@@ -325,7 +342,15 @@ export default {
         path: '/admin/base-migration/export',
         query: {
           type: 'detail',
-          status: row.status,
+          id: row.id
+        }
+      })
+    },
+    handleEdit(row) {
+      this.$router.push({
+        path: '/admin/base-migration/export',
+        query: {
+          type: 'edit',
           id: row.id
         }
       })
@@ -336,7 +361,6 @@ export default {
         path: '/admin/base-migration/export',
         query: {
           type: 'republish',
-          status: row.status,
           id: row.id
         }
       })

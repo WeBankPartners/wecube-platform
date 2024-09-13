@@ -58,43 +58,15 @@
     </div>
     <!--角色列表-->
     <div class="item">
-      <span class="title">角色：已选<span class="number">{{ 10 }}</span></span>
+      <span class="title">角色：已选<span class="number">{{ detailData.roleData && detailData.roleData.length }}</span></span>
       <div>
-        <Table :border="false" size="small" :columns="roleTableColumns" :max-height="400" :data="roleTableData">
-        </Table>
-      </div>
-    </div>
-    <!--编排列表-->
-    <div class="item">
-      <span class="title">编排：已选<span class="number">{{ 10 }}</span></span>
-      <div>
-        <BaseSearch
-          :onlyShowReset="true"
-          :options="flowSearchOptions"
-          v-model="flowSearchParams"
-          @search="handleSearchTable('flow')"
-        ></BaseSearch>
-        <Table :border="false" size="small" :columns="flowTableColumns" :max-height="400" :data="flowTableData">
-        </Table>
-      </div>
-    </div>
-    <!--批量执行列表-->
-    <div class="item">
-      <span class="title">批量执行：已选<span class="number">{{ 10 }}</span></span>
-      <div>
-        <BaseSearch
-          :onlyShowReset="true"
-          :options="batchSearchOptions"
-          v-model="batchSearchParams"
-          @search="handleSearchTable('batch')"
-        ></BaseSearch>
-        <Table :border="false" size="small" :columns="batchTableColumns" :max-height="400" :data="batchTableData">
+        <Table :border="false" size="small" :columns="roleTableColumns" :max-height="400" :data="detailData.roleData">
         </Table>
       </div>
     </div>
     <!--ITSM列表-->
     <div class="item">
-      <span class="title">ITSM流程：已选<span class="number">{{ 10 }}</span></span>
+      <span class="title">ITSM流程：已选<span class="number">{{ detailData.itsmData && detailData.itsmData.length }}</span></span>
       <div>
         <BaseSearch
           :onlyShowReset="true"
@@ -102,7 +74,35 @@
           v-model="itsmSearchParams"
           @search="handleSearchTable('itsm')"
         ></BaseSearch>
-        <Table :border="false" size="small" :columns="itsmTableColumns" :max-height="400" :data="itsmTableData">
+        <Table :border="false" size="small" :columns="itsmTableColumns" :max-height="400" :data="detailData.itsmData">
+        </Table>
+      </div>
+    </div>
+    <!--编排列表-->
+    <div class="item">
+      <span class="title">编排：已选<span class="number">{{ detailData.flowData && detailData.flowData.length }}</span></span>
+      <div>
+        <BaseSearch
+          :onlyShowReset="true"
+          :options="flowSearchOptions"
+          v-model="flowSearchParams"
+          @search="handleSearchTable('flow')"
+        ></BaseSearch>
+        <Table :border="false" size="small" :columns="flowTableColumns" :max-height="400" :data="detailData.flowData">
+        </Table>
+      </div>
+    </div>
+    <!--批量执行列表-->
+    <div class="item">
+      <span class="title">批量执行：已选<span class="number">{{ detailData.batchData && detailData.batchData.length }}</span></span>
+      <div>
+        <BaseSearch
+          :onlyShowReset="true"
+          :options="batchSearchOptions"
+          v-model="batchSearchParams"
+          @search="handleSearchTable('batch')"
+        ></BaseSearch>
+        <Table :border="false" size="small" :columns="batchTableColumns" :max-height="400" :data="detailData.batchData">
         </Table>
       </div>
     </div>
@@ -117,20 +117,17 @@
       <Row :gutter="10">
         <Col :span="10">
           <Card title="CI">
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbTableData">
-            </Table>
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData"> </Table>
           </Card>
         </Col>
         <Col :span="7">
           <Card title="视图">
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbTableData">
-            </Table>
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData"> </Table>
           </Card>
         </Col>
         <Col :span="7">
           <Card title="报表">
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbTableData">
-            </Table>
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData"> </Table>
           </Card>
         </Col>
       </Row>
@@ -142,8 +139,7 @@
       <Row :gutter="10">
         <Col :span="17">
           <Card>
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbTableData">
-            </Table>
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData"> </Table>
           </Card>
         </Col>
       </Row>
@@ -157,8 +153,7 @@
       <Row :gutter="10">
         <Col :span="17">
           <Card>
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbTableData">
-            </Table>
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData"> </Table>
           </Card>
         </Col>
       </Row>
@@ -169,41 +164,26 @@
 <script>
 import selectTableConfig from '../selection-table'
 import staticTableConfig from '../static-table'
-import { getExportDetail } from '@/api/server.js'
 export default {
   mixins: [selectTableConfig, staticTableConfig],
   props: {
-    id: String
+    detailData: Object
   },
   data() {
-    return {
-      detailData: {}
-    }
+    return {}
   },
   mounted() {
-    this.getDetailData()
     // 去掉表格复选框
-    this.roleTableColumns = this.roleTableColumns.splice(0, 1)
-    this.flowTableColumns = this.flowTableColumns.splice(0, 1)
-    this.batchTableColumns = this.batchTableColumns.splice(0, 1)
-    this.itsmTableColumns = this.itsmTableColumns.splice(0, 1)
+    this.roleTableColumns.splice(0, 1)
+    this.flowTableColumns.splice(0, 1)
+    this.batchTableColumns.splice(0, 1)
+    this.itsmTableColumns.splice(0, 1)
   },
   methods: {
     // 表格搜索
     handleSearchTable(type) {
       if (type === 'itsm') {
         //
-      }
-    },
-    async getDetailData() {
-      const params = {
-        params: {
-          transExportId: this.id
-        }
-      }
-      const { status, data } = await getExportDetail(params)
-      if (status === 'OK') {
-        this.detailData = data || {}
       }
     }
   }

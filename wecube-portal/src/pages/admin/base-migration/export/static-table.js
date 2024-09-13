@@ -1,6 +1,7 @@
 export default {
   data() {
     return {
+      // cmdb数据
       cmdbTableColumns: [
         {
           title: 'CI层级',
@@ -39,7 +40,13 @@ export default {
           )
         }
       ],
-      cmdbTableData: []
+      cmdbData: [],
+      // 物料包数据
+      artifactsColumns: [],
+      artifactsData: [],
+      // 监控数据
+      monitorColumns: [],
+      monitorData: []
     }
   }
 }
