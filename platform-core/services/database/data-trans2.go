@@ -4,16 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
-	"os"
-	"sort"
-	"strings"
-	"time"
 )
 
 var transExportDetailMap = map[int]string{
@@ -21,7 +22,7 @@ var transExportDetailMap = map[int]string{
 	int(models.TransExportStepWorkflow):        "workflow",
 	int(models.TransExportStepBatchExecution):  "batchExecution",
 	int(models.TransExportStepRequestTemplate): "requestTemplate",
-	int(models.TransExportStepCmdbCI):          "cmdbCI",
+	int(models.TransExportStepCmdb):            "wecmdb",
 	int(models.TransExportStepArtifacts):       "artifacts",
 	int(models.TransExportStepMonitor):         "monitor",
 }
@@ -34,12 +35,13 @@ func CreateExport2(c context.Context, param models.CreateExportParam, operator s
 	var actions, addTransExportActions, addTransExportDetailActions, analyzeDataActions []*db.ExecAction
 	transExportId = guid.CreateGuid()
 	transExport := models.TransExportTable{
-		Id:          transExportId,
-		Environment: param.Env,
-		Business:    strings.Join(param.PIds, ","),
-		Status:      string(models.TransExportStatusStart),
-		CreatedUser: operator,
-		UpdatedUser: operator,
+		Id:           transExportId,
+		Environment:  param.Env,
+		Business:     strings.Join(param.PIds, ","),
+		BusinessName: strings.Join(param.PNames, ","),
+		Status:       string(models.TransExportStatusStart),
+		CreatedUser:  operator,
+		UpdatedUser:  operator,
 	}
 	// 新增导出记录
 	if addTransExportActions = getInsertTransExport(transExport); len(addTransExportActions) > 0 {
@@ -168,19 +170,44 @@ func AutoAppendExportRoles(ctx context.Context, userToken, language string, para
 
 func GetTransExportDetail(ctx context.Context, transExportId string) (detail *models.TransExportDetail, err error) {
 	var transExport models.TransExportTable
+	var dataTransVariableConfig *models.TransDataVariableConfig
 	var transExportDetailList []*models.TransExportDetailTable
+	var systemAnalyzeData, productAnalyzeData models.TransExportAnalyzeDataTable
 	if _, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export where id=?", transExportId).Get(&transExport); err != nil {
 		return
 	}
 	if err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_detail where trans_export=?", transExportId).Find(&transExportDetailList); err != nil {
 		return
 	}
+	if dataTransVariableConfig, err = getDataTransVariableMap(ctx); err != nil {
+		return
+	}
+	if dataTransVariableConfig == nil {
+		return
+	}
+	// 查询关联底座产品
+	if productAnalyzeData, err = GetTransExportAnalyzeDataByCond(ctx, transExportId, dataTransVariableConfig.ArtifactCiTechProduct); err != nil {
+		return
+	}
+	fmt.Println(productAnalyzeData)
+	// 查询关联系统
+	if systemAnalyzeData, err = GetTransExportAnalyzeDataByCond(ctx, transExportId, dataTransVariableConfig.ArtifactCiSystem); err != nil {
+		return
+	}
+	fmt.Println(systemAnalyzeData)
+	transExport.AssociationTechProducts = []string{"1", "2"}
+	transExport.AssociationSystems = []string{"4", "5"}
 	// 按步骤排序
 	sort.Sort(models.TransExportDetailTableSort(transExportDetailList))
 	detail = &models.TransExportDetail{
 		TransExport:       &transExport,
 		TransExportDetail: transExportDetailList,
 	}
+	return
+}
+
+func GetTransExportAnalyzeDataByCond(ctx context.Context, transExportId string, dataType string) (analyzeData models.TransExportAnalyzeDataTable, err error) {
+	_, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_analyze_data where trans_export=? and data_type=? limit 1", transExportId, dataType).Get(&analyzeData)
 	return
 }
 
@@ -195,15 +222,6 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	var subProcDefIds []string
 	var uploadUrl, path string
 	var err error
-	if path, err = tools.GetPath(fmt.Sprintf("/tmp/wecube/%s", param.TransExportId)); err != nil {
-		log.Logger.Error("getPath error", log.Error(err))
-		return
-	}
-	// 更新迁移导出表记录状态为执行中
-	if err = updateTransExportStatus(ctx, param.TransExportId, string(models.TransExportStatusDoing)); err != nil {
-		log.Logger.Error("updateTransExportStatus error", log.Error(err))
-		return
-	}
 	// 如果有报错,更新导出记录状态失败
 	defer func() {
 		if err != nil {
@@ -214,6 +232,15 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			log.Logger.Error("delete fail", log.String("path", path), log.Error(err))
 		}
 	}()
+	if path, err = tools.GetPath(fmt.Sprintf("/tmp/wecube/%s", param.TransExportId)); err != nil {
+		log.Logger.Error("getPath error", log.Error(err))
+		return
+	}
+	// 更新迁移导出表记录状态为执行中
+	if err = updateTransExportStatus(ctx, param.TransExportId, string(models.TransExportStatusDoing)); err != nil {
+		log.Logger.Error("updateTransExportStatus error", log.Error(err))
+		return
+	}
 	// 1. 导出选中角色
 	exportRoleStartTime := time.Now().Format(models.DateTimeFormat)
 	if queryRolesResponse, err = remote.RetrieveAllLocalRoles("Y", userToken, language, false); err != nil {
@@ -396,8 +423,12 @@ func getInsertTransExportDetail(transExportId string) (actions []*db.ExecAction)
 	guids := guid.CreateGuidList(len(transExportDetailMap))
 	i := 0
 	for step, name := range transExportDetailMap {
-		actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_detail(id,trans_export,name,step,status) values (?,?,?,?,?)", Param: []interface{}{
-			guids[i], transExportId, name, step, models.TransExportStatusNotStart,
+		var dataSource string
+		if step == int(models.TransExportStepCmdb) || step == int(models.TransExportStepArtifacts) || step == int(models.TransExportStepMonitor) {
+			dataSource = name
+		}
+		actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_detail(id,trans_export,name,analyze_data_source,step,status) values (?,?,?,?,?,?)", Param: []interface{}{
+			guids[i], transExportId, name, dataSource, step, models.TransExportStatusNotStart,
 		}})
 		i++
 	}
