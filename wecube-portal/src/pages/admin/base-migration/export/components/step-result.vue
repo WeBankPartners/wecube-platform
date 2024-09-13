@@ -64,7 +64,7 @@
         </Table>
       </div>
     </div>
-     <!--ITSM列表-->
+    <!--ITSM列表-->
     <div class="item">
       <span class="title">ITSM流程：已选<span class="number">{{ detailData.itsmData && detailData.itsmData.length }}</span></span>
       <div>
@@ -117,20 +117,17 @@
       <Row :gutter="10">
         <Col :span="10">
           <Card title="CI">
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData">
-            </Table>
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData"> </Table>
           </Card>
         </Col>
         <Col :span="7">
           <Card title="视图">
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData">
-            </Table>
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData"> </Table>
           </Card>
         </Col>
         <Col :span="7">
           <Card title="报表">
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData">
-            </Table>
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData"> </Table>
           </Card>
         </Col>
       </Row>
@@ -142,8 +139,7 @@
       <Row :gutter="10">
         <Col :span="17">
           <Card>
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData">
-            </Table>
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData"> </Table>
           </Card>
         </Col>
       </Row>
@@ -157,8 +153,7 @@
       <Row :gutter="10">
         <Col :span="17">
           <Card>
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData">
-            </Table>
+            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData"> </Table>
           </Card>
         </Col>
       </Row>
