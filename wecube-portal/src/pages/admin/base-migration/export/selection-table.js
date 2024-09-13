@@ -234,7 +234,6 @@ export default {
               return <Tag>{params.row.version}</Tag>
             }
             return <span>-</span>
-
           }
         },
         {
@@ -286,7 +285,6 @@ export default {
               )
             }
             return <span>-</span>
-
           }
         },
         {
@@ -298,7 +296,6 @@ export default {
               return <Tag>{params.row.tags}</Tag>
             }
             return <span>-</span>
-
           }
         },
         {

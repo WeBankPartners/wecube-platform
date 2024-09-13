@@ -215,18 +215,20 @@ export default {
                   <Icon type="md-eye" size="16"></Icon>
                 </Button>
               </Tooltip>
-              {['success', 'fail'].includes(params.row.status) && <Tooltip content={this.$t('be_republish')} placement="top">
-                <Button
-                  type="success"
-                  size="small"
-                  onClick={() => {
-                    this.handleRepub(params.row)
-                  }}
-                  style="margin-left:5px;"
-                >
-                  <Icon type="ios-refresh" size="16"></Icon>
-                </Button>
-              </Tooltip>}
+              {['success', 'fail'].includes(params.row.status) && (
+                <Tooltip content={this.$t('be_republish')} placement="top">
+                  <Button
+                    type="success"
+                    size="small"
+                    onClick={() => {
+                      this.handleRepub(params.row)
+                    }}
+                    style="margin-left:5px;"
+                  >
+                    <Icon type="ios-refresh" size="16"></Icon>
+                  </Button>
+                </Tooltip>
+              )}
             </div>
           )
         }
@@ -272,16 +274,20 @@ export default {
       if (status === 'OK') {
         this.searchOptions.forEach(item => {
           if (item.key === 'business') {
-            item.list = data.business && data.business.map(item => ({
-              label: item,
-              value: item
-            })) || []
+            item.list = (data.business
+                && data.business.map(item => ({
+                  label: item,
+                  value: item
+                })))
+              || []
           }
           if (item.key === 'operators') {
-            item.list = data.operators && data.operators.map(item => ({
-              label: item,
-              value: item
-            })) || []
+            item.list = (data.operators
+                && data.operators.map(item => ({
+                  label: item,
+                  value: item
+                })))
+              || []
           }
         })
       }
