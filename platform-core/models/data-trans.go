@@ -60,15 +60,18 @@ type SysCiTypeAttrTable struct {
 }
 
 type TransExportTable struct {
-	Id          string `json:"id" xorm:"id"`
-	Business    string `json:"business" xorm:"business"`
-	Environment string `json:"environment" xorm:"environment"`
-	Status      string `json:"status" xorm:"status"`
-	OutputUrl   string `json:"outputUrl" xorm:"output_url"`
-	CreatedUser string `json:"createdUser" xorm:"created_user"`
-	CreatedTime string `json:"createdTime" xorm:"created_time"`
-	UpdatedUser string `json:"updatedUser" xorm:"updated_user"`
-	UpdatedTime string `json:"updatedTime" xorm:"updated_time"`
+	Id                      string   `json:"id" xorm:"id"`
+	Business                string   `json:"business" xorm:"business"`
+	BusinessName            string   `json:"businessName" xorm:"business_name"`
+	Environment             string   `json:"environment" xorm:"environment"`
+	Status                  string   `json:"status" xorm:"status"`
+	OutputUrl               string   `json:"outputUrl" xorm:"output_url"`
+	CreatedUser             string   `json:"createdUser" xorm:"created_user"`
+	CreatedTime             string   `json:"createdTime" xorm:"created_time"`
+	UpdatedUser             string   `json:"updatedUser" xorm:"updated_user"`
+	UpdatedTime             string   `json:"updatedTime" xorm:"updated_time"`
+	AssociationSystems      []string `json:"associationSystems" xorm:"-"`      // 关联系统
+	AssociationTechProducts []string `json:"associationTechProducts" xorm:"-"` // 关联产品
 }
 
 type TransExportDetailTable struct {
@@ -83,6 +86,18 @@ type TransExportDetailTable struct {
 	ErrorMsg    string  `json:"errorMsg" xorm:"error_msg"`
 	StartTime   string  `json:"startTime" xorm:"start_time"`
 	EndTime     string  `json:"endTime" xorm:"end_time"`
+}
+
+type TransExportAnalyzeDataTable struct {
+	Id           string  `json:"id" xorm:"id"`
+	TransExport  *string `json:"transExport" xorm:"trans_export"`
+	Source       string  `json:"source" xorm:"source"`
+	DataType     string  `json:"dataType" xorm:"data_type"`
+	DataTypeName string  `json:"dataTypeName" xorm:"data_type_name"`
+	Data         string  `json:"data" xorm:"data"`
+	ErrorMsg     string  `json:"errorMsg" xorm:"error_msg"`
+	StartTime    string  `json:"startTime" xorm:"start_time"`
+	EndTime      string  `json:"endTime" xorm:"end_time"`
 }
 
 func (TransExportDetailTable) TableName() string {
@@ -112,6 +127,8 @@ type TransDataVariableConfig struct {
 	NexusRepo                  string   `json:"nexusRepo"`
 	ArtifactInstanceCiTypeList []string `json:"artifactInstanceCiTypeList"`
 	ArtifactPackageCiType      string   `json:"artifactPackageCiType"`
+	ArtifactCiSystem           string   `json:"artifactCiSystem"`
+	ArtifactCiTechProduct      string   `json:"ArtifactCiTechProduct"`
 }
 
 type CiTypeData struct {
@@ -133,8 +150,9 @@ type QueryBusinessParam struct {
 }
 
 type CreateExportParam struct {
-	PIds []string `json:"pIds"` //产品ID
-	Env  string   `json:"env"`  //环境
+	PIds   []string `json:"pIds"`   // 产品ID
+	PNames []string `json:"pNames"` // 产品名称
+	Env    string   `json:"env"`    // 环境
 }
 
 type DataTransExportParam struct {

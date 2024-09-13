@@ -116,7 +116,7 @@ const (
 	TransExportStepRequestTemplate TransExportStep = 2 // 导出请求模版
 	TransExportStepWorkflow        TransExportStep = 3 // 导出编排
 	TransExportStepBatchExecution  TransExportStep = 4 // 导出批量执行
-	TransExportStepCmdbCI          TransExportStep = 5 // 导出CMDB CI
+	TransExportStepCmdb            TransExportStep = 5 // 导出CMDB
 	TransExportStepArtifacts       TransExportStep = 6 // 导出物料包
 	TransExportStepMonitor         TransExportStep = 7 // 导出监控
 )
