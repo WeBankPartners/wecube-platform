@@ -65,10 +65,12 @@ export default {
       await this.getDetailData()
       if (this.detailData.status === 'start') {
         this.activeStep = 1
-      } else if (['doing', 'success', 'fail'].includes(this.detailData.status)) {
+      }
+      else if (['doing', 'success', 'fail'].includes(this.detailData.status)) {
         this.activeStep = 2
       }
-    } else {
+    }
+    else {
       this.activeStep = 0
     }
   },
@@ -83,12 +85,13 @@ export default {
       const { status, data } = await getExportDetail(params)
       if (status === 'OK') {
         const tableData = data.detail || []
-        const getTableData = (key) => {
+        const getTableData = key => {
           const obj = tableData.find(i => i.name === key) || {}
           let arr = []
           try {
             arr = JSON.parse(obj.output)
-          } catch {
+          }
+          catch {
             arr = []
           }
           return arr
@@ -132,7 +135,7 @@ export default {
           path: '/admin/base-migration/export',
           query: {
             type: 'edit',
-            id: this.id,
+            id: this.id
           }
         })
       }
