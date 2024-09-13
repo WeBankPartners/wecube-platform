@@ -2,15 +2,15 @@
   <div class="export-step-enviroment">
     <div class="item">
       <span class="title">选择环境：</span>
-      <RadioGroup v-model="form.environment" type="button" button-style="solid">
-        <Radio v-for="(j, idx) in environmentList" :label="j.value" :key="idx" border>{{ j.label }}</Radio>
+      <RadioGroup v-model="env" type="button" button-style="solid">
+        <Radio v-for="(j, idx) in envList" :label="j.value" :key="idx" border>{{ j.label }}</Radio>
       </RadioGroup>
     </div>
     <div class="item">
-      <span class="title">选择产品<span class="number">{{ selectionList.length }}</span>：</span>
+      <span class="title">选择产品<span class="number">{{ selectionList.length }}</span></span>
       <div>
         <BaseSearch
-          :showBtn="false"
+          :onlyShowReset="true"
           :options="searchOptions"
           v-model="searchParams"
           @search="getProductList"
@@ -22,7 +22,7 @@
           :columns="tableColumns"
           :max-height="500"
           :data="tableData"
-          @on-selection-change="handleSelectChange"
+          @on-selection-change="onSelectionChange"
         >
         </Table>
       </div>
@@ -31,13 +31,12 @@
 </template>
 
 <script>
+import { getExportBusinessList } from '@/api/server'
 export default {
   data() {
     return {
-      form: {
-        environment: 0
-      },
-      environmentList: [
+      env: 0,
+      envList: [
         {
           label: 'PRD_生产环境',
           value: 0
@@ -48,12 +47,12 @@ export default {
         }
       ],
       searchParams: {
-        name: '',
+        displayName: '',
         id: ''
       },
       searchOptions: [
         {
-          key: 'name',
+          key: 'displayName',
           placeholder: '业务产品名',
           component: 'input'
         },
@@ -80,7 +79,7 @@ export default {
                 this.jumpToHistory(params.row)
               }}
             >
-              {params.row.name}
+              {params.row.displayName}
             </span>
           )
         },
@@ -92,16 +91,17 @@ export default {
         {
           title: '产品描述',
           key: 'description',
-          minWidth: 140
+          minWidth: 140,
+          render: (h, params) => <span>{params.row.description || '-'}</span>
         },
         {
           title: this.$t('updatedBy'),
-          key: 'updatedBy',
+          key: 'update_user',
           minWidth: 120
         },
         {
           title: this.$t('table_updated_date'),
-          key: 'updatedTime',
+          key: 'update_time',
           minWidth: 150
         }
       ],
@@ -110,9 +110,42 @@ export default {
       loading: false
     }
   },
+  mounted() {
+    this.getProductList()
+    this.getEnviromentList()
+  },
   methods: {
-    handleSelectChange() {},
-    getProductList() {},
+    onSelectionChange(selection) {
+      this.selectionList = selection
+    },
+    // 获取环境列表
+    async getEnviromentList() {
+      const params = {
+        queryMode: 'env' // env代表查询环境，空代表查询产品
+      }
+      const { status, data } = await getExportBusinessList(params)
+      if (status === 'OK') {
+        this.envList = data && data.map(item => ({
+          label: item.displayName,
+          value: item.id
+        }))
+        this.env = this.envList[0].value
+      }
+    },
+    // 获取产品列表
+    async getProductList() {
+      const params = {
+        id: this.searchParams.id,
+        displayName: this.searchParams.displayName,
+        queryMode: '' // env代表查询环境，空代表查询产品
+      }
+      this.loading = true
+      const { status, data } = await getExportBusinessList(params)
+      this.loading = false
+      if (status === 'OK') {
+        this.tableData = data || []
+      }
+    },
     jumpToHistory() {}
   }
 }
@@ -135,6 +168,13 @@ export default {
         margin-left: 6px;
       }
     }
+  }
+}
+</style>
+<style lang="scss">
+.export-step-enviroment {
+  .common-base-search-button {
+    width: fit-content;
   }
 }
 </style>
