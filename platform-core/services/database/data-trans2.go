@@ -174,6 +174,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	var procDefExportList []*models.ProcessDefinitionDto
 	var batchExecutionTemplateList []*models.BatchExecutionTemplate
 	var transDataVariableConfig *models.TransDataVariableConfig
+	var subProcDefIds []string
 	var uploadUrl string
 	var err error
 	path := tools.GetPath(fmt.Sprintf("/tmp/wecube/%s", param.TransExportId))
@@ -204,49 +205,13 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		TransExportId: param.TransExportId,
 		StartTime:     exportRoleStartTime,
 		Step:          int(models.TransExportStepRole),
+		Input:         param.Roles,
 		Data:          queryRolesResponse.Data,
 	}
 	if err = execStepExport(exportRoleParam); err != nil {
 		return
 	}
-	// 2. 导出编排
-	exportWorkflowStartTime := time.Now().Format(models.DateTimeFormat)
-	for _, procDefId := range param.WorkflowIds {
-		if procDefDto, err = GetProcDefDetailByProcDefId(ctx, procDefId); err != nil {
-			log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err))
-			return
-		}
-		procDefExportList = append(procDefExportList, procDefDto)
-	}
-	exportWorkflowParam := models.StepExportParam{
-		Ctx:           ctx,
-		Path:          path,
-		TransExportId: param.TransExportId,
-		StartTime:     exportWorkflowStartTime,
-		Step:          int(models.TransExportStepWorkflow),
-		Data:          procDefExportList,
-	}
-	if err = execStepExport(exportWorkflowParam); err != nil {
-		return
-	}
-	// 3.导出批量执行
-	exportBatchExecutionStartTime := time.Now().Format(models.DateTimeFormat)
-	if batchExecutionTemplateList, err = ExportTemplate(ctx, &models.ExportBatchExecTemplateReqParam{BatchExecTemplateIds: param.BatchExecutionIds}); err != nil {
-		log.Logger.Error("ExportTemplate error", log.Error(err))
-		return
-	}
-	exportBatchExecutionParam := models.StepExportParam{
-		Ctx:           ctx,
-		Path:          path,
-		TransExportId: param.TransExportId,
-		StartTime:     exportBatchExecutionStartTime,
-		Step:          int(models.TransExportStepBatchExecution),
-		Data:          batchExecutionTemplateList,
-	}
-	if err = execStepExport(exportBatchExecutionParam); err != nil {
-		return
-	}
-	// 4.导出请求模版
+	// 2.导出请求模版
 	if len(param.RequestTemplateIds) > 0 {
 		exportRequestTemplateStartTime := time.Now().Format(models.DateTimeFormat)
 		if queryRequestTemplatesResponse, err = remote.GetRequestTemplates(models.GetRequestTemplatesDto{RequestTemplateIds: param.RequestTemplateIds}, userToken, language); err != nil {
@@ -259,11 +224,75 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			TransExportId: param.TransExportId,
 			StartTime:     exportRequestTemplateStartTime,
 			Step:          int(models.TransExportStepRequestTemplate),
+			Input:         param.RequestTemplateIds,
 			Data:          queryRequestTemplatesResponse.Data,
 		}
 		if err = execStepExport(exportRequestTemplateParam); err != nil {
 			return
 		}
+		// 请求模版关联的编排 自动加入 导出编排
+		for _, requestTemplateExport := range queryRequestTemplatesResponse.Data {
+			if strings.TrimSpace(requestTemplateExport.RequestTemplate.ProcDefId) != "" && !contains(param.WorkflowIds, requestTemplateExport.RequestTemplate.ProcDefId) {
+				param.WorkflowIds = append(param.WorkflowIds, requestTemplateExport.RequestTemplate.ProcDefId)
+			}
+		}
+	}
+	// 3. 导出编排
+	exportWorkflowStartTime := time.Now().Format(models.DateTimeFormat)
+	for _, procDefId := range param.WorkflowIds {
+		if procDefDto, err = GetProcDefDetailByProcDefId(ctx, procDefId); err != nil {
+			log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err))
+			return
+		}
+		procDefExportList = append(procDefExportList, procDefDto)
+		// 导出编排节点里面如果关联子编排,子编排也需要导出
+		if procDefDto.ProcDefNodeExtend != nil && len(procDefDto.ProcDefNodeExtend.Nodes) > 0 {
+			for _, node := range procDefDto.ProcDefNodeExtend.Nodes {
+				if node.ProcDefNodeCustomAttrs != nil && node.ProcDefNodeCustomAttrs.SubProcDefId != "" {
+					subProcDefIds = append(subProcDefIds, node.ProcDefNodeCustomAttrs.SubProcDefId)
+				}
+			}
+		}
+		for _, subProcDefId := range subProcDefIds {
+			if !contains(param.WorkflowIds, subProcDefId) {
+				if procDefDto, err = GetProcDefDetailByProcDefId(ctx, subProcDefId); err != nil {
+					log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err))
+					return
+				}
+				param.WorkflowIds = append(param.WorkflowIds, subProcDefId)
+				procDefExportList = append(procDefExportList, procDefDto)
+			}
+		}
+	}
+	exportWorkflowParam := models.StepExportParam{
+		Ctx:           ctx,
+		Path:          path,
+		TransExportId: param.TransExportId,
+		StartTime:     exportWorkflowStartTime,
+		Step:          int(models.TransExportStepWorkflow),
+		Input:         param.WorkflowIds,
+		Data:          procDefExportList,
+	}
+	if err = execStepExport(exportWorkflowParam); err != nil {
+		return
+	}
+	// 4.导出批量执行
+	exportBatchExecutionStartTime := time.Now().Format(models.DateTimeFormat)
+	if batchExecutionTemplateList, err = ExportTemplate(ctx, &models.ExportBatchExecTemplateReqParam{BatchExecTemplateIds: param.BatchExecutionIds}); err != nil {
+		log.Logger.Error("ExportTemplate error", log.Error(err))
+		return
+	}
+	exportBatchExecutionParam := models.StepExportParam{
+		Ctx:           ctx,
+		Path:          path,
+		TransExportId: param.TransExportId,
+		StartTime:     exportBatchExecutionStartTime,
+		Step:          int(models.TransExportStepBatchExecution),
+		Input:         param.BatchExecutionIds,
+		Data:          batchExecutionTemplateList,
+	}
+	if err = execStepExport(exportBatchExecutionParam); err != nil {
+		return
 	}
 	// 7. json文件压缩并上传nexus
 	if transDataVariableConfig, err = getDataTransVariableMap(ctx); err != nil {
@@ -304,8 +333,10 @@ func execStepExport(param models.StepExportParam) (err error) {
 		StartTime:   param.StartTime,
 		Status:      string(models.TransExportStatusSuccess),
 	}
-	byteArr, _ := json.Marshal(param.Data)
-	transExportDetail.Output = string(byteArr)
+	inputByteArr, _ := json.Marshal(param.Input)
+	transExportDetail.Input = string(inputByteArr)
+	outputByteArr, _ := json.Marshal(param.Data)
+	transExportDetail.Output = string(outputByteArr)
 	if err = tools.WriteJsonData2File(getExportJsonFile(param.Path, transExportDetailMap[param.Step]), param.Data); err != nil {
 		log.Logger.Error("WriteJsonData2File error", log.String("name", transExportDetailMap[param.Step]), log.Error(err))
 		transExportDetail.Status = string(models.TransExportStatusFail)
@@ -376,4 +407,12 @@ func convertMap2Array(hashMap map[string]bool) []string {
 		options = append(options, s)
 	}
 	return options
+}
+
+func contains(arr []string, val string) bool {
+	elementMap := make(map[string]bool)
+	for _, s := range arr {
+		elementMap[s] = true
+	}
+	return elementMap[val]
 }
