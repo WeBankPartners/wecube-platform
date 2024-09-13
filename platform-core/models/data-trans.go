@@ -89,6 +89,20 @@ func (TransExportDetailTable) TableName() string {
 	return "trans_export_detail"
 }
 
+type TransExportDetailTableSort []*TransExportDetailTable
+
+func (q TransExportDetailTableSort) Len() int {
+	return len(q)
+}
+
+func (q TransExportDetailTableSort) Less(i, j int) bool {
+	return q[i].Step-q[j].Step < 0
+}
+
+func (q TransExportDetailTableSort) Swap(i, j int) {
+	q[i], q[j] = q[j], q[i]
+}
+
 type TransDataVariableConfig struct {
 	BusinessCiType             string   `json:"businessCiType"`
 	EnvCiType                  string   `json:"envCiType"`

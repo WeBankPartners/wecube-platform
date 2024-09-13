@@ -11,6 +11,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"os"
+	"sort"
 	"strings"
 	"time"
 )
@@ -171,9 +172,11 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 	if _, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export where id=?", transExportId).Get(&transExport); err != nil {
 		return
 	}
-	if err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_detail where trans_export=?", transExport).Find(&transExportDetailList); err != nil {
+	if err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_detail where trans_export=?", transExportId).Find(&transExportDetailList); err != nil {
 		return
 	}
+	// 按步骤排序
+	sort.Sort(models.TransExportDetailTableSort(transExportDetailList))
 	detail = &models.TransExportDetail{
 		TransExport:       &transExport,
 		TransExportDetail: transExportDetailList,
