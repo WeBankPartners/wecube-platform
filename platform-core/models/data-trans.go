@@ -57,6 +57,7 @@ type SysCiTypeAttrTable struct {
 	AutofillType            string `json:"autoFillType" xorm:"autofill_type"`
 	EditGroupControl        string `json:"editGroupControl" xorm:"edit_group_control"`
 	EditGroupValues         string `json:"editGroupValues" xorm:"edit_group_value"`
+	ExtRefEntity            string `json:"extRefEntity" xorm:"ext_ref_entity"`
 }
 
 type TransExportTable struct {
