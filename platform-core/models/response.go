@@ -46,6 +46,11 @@ type QueryRequestTemplatesResponse struct {
 	Data       []RequestTemplateExport `json:"data"`
 }
 
+type QueryComponentLibraryResponse struct {
+	StatusCode string      `json:"statusCode"`
+	Data       interface{} `json:"data"`
+}
+
 type QueryUserResponse struct {
 	HttpResponseMeta
 	Data []*SimpleLocalUserDto `json:"data"`
