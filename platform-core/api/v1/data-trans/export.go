@@ -44,7 +44,34 @@ func CreateExport(c *gin.Context) {
 		middleware.ReturnError(c, err)
 	}
 	middleware.ReturnData(c, transExportId)
-	return
+}
+
+// UpdateExport 更新导出
+func UpdateExport(c *gin.Context) {
+	var param models.UpdateExportParam
+	var transExport models.TransExportTable
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if len(param.TransExportId) == 0 || len(param.PIds) == 0 || strings.TrimSpace(param.Env) == "" || len(param.PNames) == 0 {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if transExport, err = database.GetSimpleTranExport(c, param.TransExportId); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if transExport.Status != string(models.TransExportStatusStart) {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("this transExport has run,not allow edit")))
+		return
+	}
+	if err = database.UpdateExport(c, param, middleware.GetRequestUser(c)); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnSuccess(c)
 }
 
 // ExecExport 执行底座导出
