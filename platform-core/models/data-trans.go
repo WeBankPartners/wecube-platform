@@ -295,8 +295,9 @@ type CommonNameUser struct {
 }
 
 type CommonOutput struct {
-	Ids    []string `json:"ids"`
-	Status string   `json:"status"`
+	Ids    []string    `json:"ids"`
+	Status string      `json:"status"`
+	Output interface{} `json:"data"`
 }
 
 type AnalyzeTransParam struct {
