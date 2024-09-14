@@ -358,6 +358,8 @@ export const getBaseMigrationExportQuery = () => req.get('/platform/v1/data/tran
 export const getExportBusinessList = data => req.post('/platform/v1/data/transfer/business/list', data)
 // 保存环境和产品
 export const saveEnvBusiness = data => req.post('/platform/v1/data/transfer/export/create', data)
+// 更新环境和产品
+export const updateEnvBusiness = data => req.post('/platform/v1/data/transfer/export/update', data)
 // 查询所有编排设计
 export const getAllExportFlows = () => req.get('/platform/v1/process/definitions/all')
 // 查询所有批量执行
