@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"sort"
 	"strings"
 	"time"
 
@@ -264,12 +263,33 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			}
 		}
 	}
-	// 按步骤排序
-	sort.Sort(models.TransExportDetailTableSort(transExportDetailList))
 	detail = &models.TransExportDetail{
-		TransExport:       &transExport,
-		TransExportDetail: transExportDetailList,
-		CmdbCI:            make([]*models.CommonNameCount, 0),
+		TransExport: &transExport,
+		CmdbCI:      make([]*models.CommonNameCount, 0),
+	}
+	for _, transExportDetail := range transExportDetailList {
+		var tempArr []string
+		if strings.TrimSpace(transExportDetail.Input) != "" {
+			if err = json.Unmarshal([]byte(transExportDetail.Input), &tempArr); err != nil {
+				log.Logger.Error("json Unmarshal err", log.Error(err))
+			}
+		}
+		output := &models.CommonOutput{
+			Ids:    tempArr,
+			Status: transExportDetail.Status,
+		}
+		switch transExportDetail.Step {
+		case int(models.TransExportStepRole):
+			detail.Roles = output
+		case int(models.TransExportStepRequestTemplate):
+			detail.RequestTemplates = output
+		case int(models.TransExportStepComponentLibrary):
+			detail.ComponentLibrary = output
+		case int(models.TransExportStepWorkflow):
+			detail.Workflows = output
+		case int(models.TransExportStepBatchExecution):
+			detail.BatchExecution = output
+		}
 	}
 	// 查询CMDB CI信息
 	if transExportAnalyzeDataList, err = QuerySimpleTransExportAnalyzeDataByTransExport(ctx, transExportId); err != nil {

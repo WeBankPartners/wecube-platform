@@ -272,12 +272,16 @@ type RequestTemplateDto struct {
 }
 
 type TransExportDetail struct {
-	TransExport       *TransExportTable         `json:"transExport"`
-	TransExportDetail []*TransExportDetailTable `json:"detail"`
-	CmdbCI            []*CommonNameCount        `json:"cmdbCI"`
-	CmdbView          []*CommonNameUser         `json:"cmdbView"`
-	CmdbReportForm    []*CommonNameUser         `json:"cmdbReportForm"`
-	Artifacts         []*CommonNameCount        `json:"artifacts"`
+	TransExport      *TransExportTable  `json:"transExport"`
+	CmdbCI           []*CommonNameCount `json:"cmdbCI"`
+	CmdbView         []*CommonNameUser  `json:"cmdbView"`
+	CmdbReportForm   []*CommonNameUser  `json:"cmdbReportForm"`
+	Artifacts        []*CommonNameCount `json:"artifacts"`
+	Roles            *CommonOutput      `json:"roles"`
+	Workflows        *CommonOutput      `json:"workflows"`
+	BatchExecution   *CommonOutput      `json:"batchExecutions"`
+	RequestTemplates *CommonOutput      `json:"requestTemplates"`
+	ComponentLibrary *CommonOutput      `json:"componentLibrary"`
 }
 
 type CommonNameCount struct {
@@ -288,4 +292,9 @@ type CommonNameCount struct {
 type CommonNameUser struct {
 	Name        string `json:"name"`
 	CreatedUser string `json:"createdUser"`
+}
+
+type CommonOutput struct {
+	Ids    []string `json:"ids"`
+	Status string   `json:"status"`
 }
