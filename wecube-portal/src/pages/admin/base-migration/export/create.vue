@@ -30,7 +30,12 @@
           </template>
           <template v-else-if="activeStep === 2">
             <Button type="default" @click="handleToHistory" style="margin-left: 10px">历史列表</Button>
-            <Button type="primary" @click="handleReLauch" style="margin-left: 10px">重新发起</Button>
+            <Button
+              v-if="['success', 'fail'].includes(detailData.status)"
+              type="primary"
+              @click="handleReLauch"
+              style="margin-left: 10px"
+            >重新发起</Button>
           </template>
         </div>
       </div>
@@ -44,7 +49,9 @@ import stepEnviroment from './components/step-enviroment.vue'
 import stepSelectData from './components/step-select-data.vue'
 import stepResult from './components/step-result.vue'
 import { debounce } from '@/const/util'
-import { saveEnvBusiness, exportBaseMigration, getExportDetail } from '@/api/server'
+import {
+  saveEnvBusiness, updateEnvBusiness, exportBaseMigration, getExportDetail
+} from '@/api/server'
 export default {
   components: {
     stepEnviroment,
@@ -61,7 +68,9 @@ export default {
     }
   },
   async mounted() {
-    if (this.$route.query.id) {
+    const _id = this.$route.query.id
+    const _type = this.$route.query.type
+    if (_id && _type !== 'republish') {
       await this.getDetailData()
       if (this.detailData.status === 'start') {
         this.activeStep = 1
@@ -70,7 +79,13 @@ export default {
         this.activeStep = 2
       }
     }
-    else {
+    // 重新发起
+    if (_id && _type === 'republish') {
+      await this.getDetailData()
+      this.activeStep = 0
+    }
+    // 新建操作
+    if (!_id) {
       this.activeStep = 0
     }
   },
@@ -84,27 +99,18 @@ export default {
       }
       const { status, data } = await getExportDetail(params)
       if (status === 'OK') {
-        const tableData = data.detail || []
-        const getTableData = key => {
-          const obj = tableData.find(i => i.name === key) || {}
-          let arr = []
-          try {
-            arr = JSON.parse(obj.output)
-          }
-          catch {
-            arr = []
-          }
-          return arr
-        }
         this.detailData = {
-          roleData: getTableData('role'),
-          flowData: getTableData('workflow'),
-          batchData: getTableData('batchExecution'),
-          itsmData: getTableData('requestTemplate'),
-          cmdbData: getTableData('cmdb'),
-          artifactsData: getTableData('artifacts'),
-          monitorData: getTableData('monitor'),
-          ...data.transExport
+          roleData: data.roles.data || [],
+          flowData: data.workflows.data || [],
+          batchData: data.batchExecutions.data || [],
+          itsmData: data.requestTemplates.data || [],
+          cmdbCIData: data.cmdbCI || [],
+          cmdbViewData: data.cmdbView || [],
+          cmdbReportData: data.cmdbReportForm || [],
+          artifactsData: data.artifacts || [],
+          monitorData: data.monitor || [],
+          ...data.transExport,
+          componentLibrary: Boolean(data.componentLibrary.data)
         }
         // 成功或失败，取消轮询查状态
         if (['success', 'fail'].includes(this.detailData.status)) {
@@ -112,30 +118,41 @@ export default {
         }
       }
     },
-    // 保存环境和产品
+    // 保存or更新环境和产品
     handleSaveEnvBusiness: debounce(async function () {
-      const { env, selectionList } = this.$refs.env
-      const pIds = (selectionList && selectionList.map(item => item.id)) || []
+      const { env, envList, selectionList } = this.$refs.env
+      const pIds = selectionList.map(item => item.id)
+      const pNames = selectionList.map(item => item.displayName)
+      const envName = envList.find(item => item.value === env).label
       if (pIds.length === 0) {
         return this.$Message.warning('至少勾选一条产品数据')
       }
       const params = {
         pIds,
-        pNames: (selectionList && selectionList.map(item => item.displayName)) || [],
-        env
+        pNames,
+        env,
+        envName
       }
       this.loading = true
-      const { status, data } = await saveEnvBusiness(params)
+      const { status, data } = await (this.id
+        ? updateEnvBusiness({
+          ...params,
+          transExportId: this.id
+        })
+        : saveEnvBusiness(params))
       this.loading = false
       if (status === 'OK') {
         // 保存第一步会返回id
-        this.id = data
+        if (!this.id) {
+          this.id = data
+        }
         // 这里通过路由跳转到下一步，避免页面刷新，丢失id
-        this.$router.push({
+        this.$router.replace({
           path: '/admin/base-migration/export',
           query: {
             type: 'edit',
-            id: this.id
+            id: this.id,
+            timestamp: new Date().getTime() // 解决页面fullpath一样，不刷新问题
           }
         })
       }
@@ -147,7 +164,7 @@ export default {
     // 执行导出
     handleSaveExport: debounce(async function () {
       const {
-        roleSelectionList, itsmSelectionList, flowSelectionList, batchSelectionList
+        roleSelectionList, itsmSelectionList, flowSelectionList, batchSelectionList, exportComponentLibrary
       } = this.$refs.data
       const roleArr = (roleSelectionList && roleSelectionList.map(item => item.name)) || []
       const itsmArr = (itsmSelectionList && itsmSelectionList.map(item => item.id)) || []
@@ -155,6 +172,7 @@ export default {
       const batchArr = (batchSelectionList && batchSelectionList.map(item => item.id)) || []
       const params = {
         transExportId: this.id,
+        exportComponentLibrary,
         roles: roleArr,
         workflowIds: flowArr,
         batchExecutionIds: batchArr,
@@ -169,7 +187,7 @@ export default {
         // 定时查询导出状态
         this.interval = setInterval(() => {
           this.getDetailData()
-        }, 60 * 1000)
+        }, 30 * 1000)
       }
     }, 500),
     // 跳转到历史列表
@@ -180,7 +198,7 @@ export default {
     },
     // 重新发起
     handleReLauch() {
-      this.$router.push({
+      this.$router.replace({
         path: '/admin/base-migration/export',
         query: {
           type: 'republish',
