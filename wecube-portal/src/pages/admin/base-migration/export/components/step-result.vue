@@ -6,17 +6,21 @@
       </Alert>
       <Alert v-else-if="detailData.status === 'fail'" type="error" show-icon>
         导出失败！
-        <template #desc>
-          角色已选3条数据,导出失败1条数据,角色-【角色key】失败,失败信息:xxxx请查看导出信息,修复问题之后重新发起导入
-        </template>
+        <template #desc></template>
       </Alert>
       <Alert v-else-if="detailData.status === 'success'" type="success" show-icon>
         导出成功！
         <template #desc>
           <div>
             恭喜！全部数据已导出成功,nexus链接:
-            <span class="link">http://106.52.160.142:9000/minio/wecube-plugin-package-bucket/</span>
-            <Icon type="md-copy" size="22" color="#2d8cf0" />
+            <span class="link">{{ detailData.outputUrl || '-' }}</span>
+            <Icon
+              type="md-copy"
+              size="22"
+              color="#2d8cf0"
+              style="cursor: pointer"
+              @click="copyText(detailData.outputUrl)"
+            />
           </div>
           <div>请打开需要迁移环境的wecube,进入【系统-一键迁移-一键导入】,粘贴当前链接,执行导入</div>
         </template>
@@ -25,33 +29,33 @@
     <div class="item">
       <div class="item-header">
         <span class="item-header-t">环境产品系统<Icon type="ios-information-circle" size="20" /></span>
-        <span class="item-header-e">环境<span class="number">DEV_开发环境</span></span>
-        <span class="item-header-p">产品<span class="number">10</span></span>
-        <span class="item-header-s">系统<span class="number">100</span></span>
+        <span class="item-header-e">环境<span class="number">{{ detailData.environmentName || '-' }}</span></span>
+        <span class="item-header-p">产品<span class="number">{{ detailData.businessName.split(',').length || 0 }}</span></span>
+        <span class="item-header-s">系统<span class="number">{{ detailData.associationSystems.length || 0 }}</span></span>
       </div>
       <card style="margin-top: 5px">
         <div class="content">
           <div class="content-list">
             <span>已选环境</span>
-            <Tag>DEV_开发环境</Tag>
+            <Tag>{{ detailData.environmentName || '-' }}</Tag>
           </div>
           <div class="content-list">
             <span>已选业务产品</span>
-            <Tag class="tag">零售新产品</Tag>
-            <Tag class="tag">外汇新产品</Tag>
-            <Tag class="tag">存款新产品</Tag>
+            <Tag v-for="(i, index) in detailData.businessName.split(',')" class="tag" :key="index">
+              {{ i }}
+            </Tag>
           </div>
           <div class="content-list">
             <span>关联底座产品(自动分析)</span>
-            <Tag class="tag">零售新产品</Tag>
-            <Tag class="tag">外汇新产品</Tag>
-            <Tag class="tag">存款新产品</Tag>
+            <Tag v-for="(i, index) in detailData.associationTechProducts" class="tag" :key="index">
+              {{ i }}
+            </Tag>
           </div>
           <div class="content-list">
             <span>关联系统(自动分析)</span>
-            <Tag class="tag">零售新产品</Tag>
-            <Tag class="tag">外汇新产品</Tag>
-            <Tag class="tag">存款新产品</Tag>
+            <Tag v-for="(i, index) in detailData.associationSystems" class="tag" :key="index">
+              {{ i }}
+            </Tag>
           </div>
         </div>
       </card>
@@ -67,13 +71,16 @@
     <!--ITSM列表-->
     <div class="item">
       <span class="title">ITSM流程：已选<span class="number">{{ detailData.itsmData && detailData.itsmData.length }}</span></span>
+      <div style="margin: 10px 0">
+        是否导出组件库：<i-switch v-model="detailData.exportComponentLibrary"></i-switch>
+      </div>
       <div>
-        <BaseSearch
+        <!-- <BaseSearch
           :onlyShowReset="true"
           :options="itsmSearchOptions"
           v-model="itsmSearchParams"
           @search="handleSearchTable('itsm')"
-        ></BaseSearch>
+        ></BaseSearch> -->
         <Table :border="false" size="small" :columns="itsmTableColumns" :max-height="400" :data="detailData.itsmData">
         </Table>
       </div>
@@ -82,12 +89,12 @@
     <div class="item">
       <span class="title">编排：已选<span class="number">{{ detailData.flowData && detailData.flowData.length }}</span></span>
       <div>
-        <BaseSearch
+        <!-- <BaseSearch
           :onlyShowReset="true"
           :options="flowSearchOptions"
           v-model="flowSearchParams"
           @search="handleSearchTable('flow')"
-        ></BaseSearch>
+        ></BaseSearch> -->
         <Table :border="false" size="small" :columns="flowTableColumns" :max-height="400" :data="detailData.flowData">
         </Table>
       </div>
@@ -96,54 +103,82 @@
     <div class="item">
       <span class="title">批量执行：已选<span class="number">{{ detailData.batchData && detailData.batchData.length }}</span></span>
       <div>
-        <BaseSearch
+        <!-- <BaseSearch
           :onlyShowReset="true"
           :options="batchSearchOptions"
           v-model="batchSearchParams"
           @search="handleSearchTable('batch')"
-        ></BaseSearch>
+        ></BaseSearch> -->
         <Table :border="false" size="small" :columns="batchTableColumns" :max-height="400" :data="detailData.batchData">
         </Table>
       </div>
     </div>
+    <!--CMDB-->
     <div class="item">
       <span class="title">
         CMDB：<span class="sub-title">
-          已选 CI<span class="number">{{ 10 }}</span> 视图<span class="number">{{ 10 }}</span> 报表<span
+          已选 CI<span class="number">{{ detailData.cmdbCIData && detailData.cmdbCIData.length }}</span> / 视图<span
             class="number"
-          >{{ 10 }}</span>
+          >{{ detailData.cmdbViewData && detailData.cmdbViewData.length }}</span>
+          / 报表<span class="number">{{ detailData.cmdbReportData && detailData.cmdbReportData.length }}</span>
         </span>
       </span>
       <Row :gutter="10">
-        <Col :span="10">
+        <Col :span="8">
           <Card title="CI">
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData"> </Table>
+            <Table
+              :border="false"
+              size="small"
+              :columns="cmdbCIColumns"
+              :max-height="360"
+              :data="detailData.cmdbCIData"
+            />
           </Card>
         </Col>
-        <Col :span="7">
+        <Col :span="8">
           <Card title="视图">
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData"> </Table>
+            <Table
+              :border="false"
+              size="small"
+              :columns="cmdbCIColumns"
+              :max-height="360"
+              :data="detailData.cmdbViewData"
+            />
           </Card>
         </Col>
-        <Col :span="7">
+        <Col :span="8">
           <Card title="报表">
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData"> </Table>
+            <Table
+              :border="false"
+              size="small"
+              :columns="cmdbCIColumns"
+              :max-height="360"
+              :data="detailData.cmdbReportData"
+            />
           </Card>
         </Col>
       </Row>
     </div>
+    <!--物料包-->
     <div class="item">
       <span class="title">
-        物料包：已选<span class="number">{{ 10 }}</span>
+        物料包：已选<span class="number">{{ detailData.artifactsData && detailData.artifactsData.length }}</span>
       </span>
       <Row :gutter="10">
-        <Col :span="17">
+        <Col :span="12">
           <Card>
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData"> </Table>
+            <Table
+              :border="false"
+              size="small"
+              :columns="artifactsColumns"
+              :max-height="360"
+              :data="detailData.artifactsData"
+            />
           </Card>
         </Col>
       </Row>
     </div>
+    <!--监控-->
     <div class="item">
       <span class="title">
         监控配置：<span class="sub-title">
@@ -151,9 +186,15 @@
         </span>
       </span>
       <Row :gutter="10">
-        <Col :span="17">
+        <Col :span="12">
           <Card>
-            <Table :border="false" size="small" :columns="cmdbTableColumns" :max-height="360" :data="cmdbData"> </Table>
+            <Table
+              :border="false"
+              size="small"
+              :columns="monitorColumns"
+              :max-height="360"
+              :data="detailData.monitorData"
+            />
           </Card>
         </Col>
       </Row>
@@ -185,6 +226,20 @@ export default {
       if (type === 'itsm') {
         //
       }
+    },
+    copyText(val) {
+      const textArea = document.createElement('textarea')
+      textArea.value = val
+      document.body.appendChild(textArea)
+      textArea.select()
+      try {
+        document.execCommand('copy')
+        this.$Message.success('复制成功')
+      }
+      catch (err) {
+        console.error('复制失败:', err)
+      }
+      document.body.removeChild(textArea)
     }
   }
 }
@@ -240,8 +295,11 @@ export default {
 </style>
 <style lang="scss">
 .export-step-data {
+  .ivu-card-head {
+    padding: 10px;
+  }
   .ivu-card-body {
-    padding: 12px;
+    padding: 10px;
   }
   .ivu-alert-with-desc .ivu-alert-icon {
     left: 16px;
