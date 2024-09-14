@@ -9,6 +9,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote/monitor"
 	"sort"
 	"strings"
 	"time"
@@ -81,7 +82,13 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 			}
 		}
 	}
-	monitorActions := analyzePluginMonitorExportData(trimAndSortStringList(endpointList), trimAndSortStringList(serviceGroupList))
+	monitorActions, analyzeMonitorErr := analyzePluginMonitorExportData(param.TransExportId, trimAndSortStringList(endpointList), trimAndSortStringList(serviceGroupList))
+	if analyzeMonitorErr != nil {
+		err = fmt.Errorf("analyze monitor export data fail,%s ", analyzeMonitorErr.Error())
+		return
+	}
+	// 分析物料包数据
+
 	actions = append(actions, monitorActions...)
 	return
 }
@@ -461,7 +468,51 @@ func trimAndSortStringList(input []string) (output []string) {
 	return
 }
 
-func analyzePluginMonitorExportData(endpointList, serviceGroupList []string) (actions []*db.ExecAction) {
+func analyzePluginMonitorExportData(transExportId string, endpointList, serviceGroupList []string) (actions []*db.ExecAction, err error) {
+	analyzeResult, analyzeErr := monitor.GetMonitorExportAnalyzeData(endpointList, serviceGroupList)
+	if analyzeErr != nil {
+		err = analyzeErr
+		return
+	}
+	nowTime := time.Now()
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "monitor_type", "monitor_type", len(analyzeResult.MonitorType), parseStringListToJsonString(analyzeResult.MonitorType), nowTime,
+	}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "endpoint_group", "endpoint_group", len(analyzeResult.EndpointGroup), parseStringListToJsonString(analyzeResult.EndpointGroup), nowTime,
+	}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "custom_metric_service_group", "monitor_type", len(analyzeResult.CustomMetricServiceGroup), parseStringListToJsonString(analyzeResult.CustomMetricServiceGroup), nowTime,
+	}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "custom_metric_endpoint_group", "custom_metric_endpoint_group", len(analyzeResult.CustomMetricEndpointGroup), parseStringListToJsonString(analyzeResult.CustomMetricEndpointGroup), nowTime,
+	}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "custom_metric_monitor_type", "custom_metric_monitor_type", len(analyzeResult.CustomMetricMonitorType), parseStringListToJsonString(analyzeResult.CustomMetricMonitorType), nowTime,
+	}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "log_monitor_service_group", "log_monitor_service_group", len(analyzeResult.LogMonitorServiceGroup), parseStringListToJsonString(analyzeResult.LogMonitorServiceGroup), nowTime,
+	}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "log_monitor_template", "log_monitor_template", len(analyzeResult.LogMonitorTemplate), parseStringListToJsonString(analyzeResult.LogMonitorTemplate), nowTime,
+	}})
 
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "strategy_service_group", "strategy_service_group", len(analyzeResult.StrategyServiceGroup), parseStringListToJsonString(analyzeResult.StrategyServiceGroup), nowTime,
+	}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "strategy_endpoint_group", "strategy_endpoint_group", len(analyzeResult.StrategyEndpointGroup), parseStringListToJsonString(analyzeResult.StrategyEndpointGroup), nowTime,
+	}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "logKeyword_service_group", "logKeyword_service_group", len(analyzeResult.LogKeywordServiceGroup), parseStringListToJsonString(analyzeResult.LogKeywordServiceGroup), nowTime,
+	}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "dashboard", "dashboard", len(analyzeResult.DashboardIdList), parseStringListToJsonString(analyzeResult.DashboardIdList), nowTime,
+	}})
 	return
+}
+
+func parseStringListToJsonString(input []string) string {
+	b, _ := json.Marshal(input)
+	return string(b)
 }
