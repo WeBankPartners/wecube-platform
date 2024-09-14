@@ -269,14 +269,21 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 	}
 	for _, transExportDetail := range transExportDetailList {
 		var tempArr []string
+		var data interface{}
 		if strings.TrimSpace(transExportDetail.Input) != "" {
 			if err = json.Unmarshal([]byte(transExportDetail.Input), &tempArr); err != nil {
-				log.Logger.Error("json Unmarshal err", log.Error(err))
+				log.Logger.Error("json Unmarshal Input err", log.Error(err))
+			}
+		}
+		if strings.TrimSpace(transExportDetail.Output) != "" {
+			if err = json.Unmarshal([]byte(transExportDetail.Output), &data); err != nil {
+				log.Logger.Error("json Unmarshal Output err", log.Error(err))
 			}
 		}
 		output := &models.CommonOutput{
 			Ids:    tempArr,
 			Status: transExportDetail.Status,
+			Output: data,
 		}
 		switch transExportDetail.Step {
 		case int(models.TransExportStepRole):
