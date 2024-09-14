@@ -2,10 +2,10 @@ export default {
   data() {
     return {
       // cmdb数据
-      cmdbTableColumns: [
+      cmdbCIColumns: [
         {
-          title: 'CI层级',
-          key: 'level',
+          title: 'CI名称',
+          key: 'name',
           render: (h, params) => (
             <span
               style="cursor:pointer;color:#5cadff;"
@@ -18,16 +18,12 @@ export default {
           )
         },
         {
-          title: 'CI名称',
-          key: 'name'
-        },
-        {
           title: '总数',
           key: 'total',
-          width: 80,
+          width: 90,
           render: (h, params) => (
-            <span style="display:flex;align-items:center;">
-              {params.row.total}
+            <span style="display:flex;align-items:center;justify-content:space-between;">
+              {params.row.count}
               <Icon
                 type="ios-list"
                 size="36"
@@ -40,13 +36,81 @@ export default {
           )
         }
       ],
-      cmdbData: [],
       // 物料包数据
-      artifactsColumns: [],
-      artifactsData: [],
+      artifactsColumns: [
+        {
+          title: '底座产品',
+          key: 'name',
+          render: (h, params) => (
+            <span
+              style="cursor:pointer;color:#5cadff;"
+              onClick={() => {
+                this.jumpToHistory(params.row)
+              }}
+            >
+              {params.row.name}
+            </span>
+          )
+        },
+        {
+          title: '总包数',
+          key: 'total',
+          width: 80,
+          render: (h, params) => (
+            <span style="display:flex;align-items:center;">
+              {params.row.count}
+              <Icon
+                type="ios-list"
+                size="36"
+                style="cursor:pointer;"
+                onClick={() => {
+                  this.handleDetai(params.row, 'artifacts')
+                }}
+              />
+            </span>
+          )
+        }
+      ],
       // 监控数据
-      monitorColumns: [],
-      monitorData: []
+      monitorColumns: [
+        {
+          title: '数据类型',
+          key: 'name',
+          render: (h, params) => (
+            <span
+              style="cursor:pointer;color:#5cadff;"
+              onClick={() => {
+                this.jumpToHistory(params.row)
+              }}
+            >
+              {params.row.name}
+            </span>
+          )
+        },
+        {
+          title: '已选',
+          key: 'total',
+          width: 80,
+          render: (h, params) => (
+            <span style="display:flex;align-items:center;">
+              {params.row.count}
+              <Icon
+                type="ios-list"
+                size="36"
+                style="cursor:pointer;"
+                onClick={() => {
+                  this.handleDetai(params.row, 'monitor')
+                }}
+              />
+            </span>
+          )
+        },
+        {
+          title: '监控配置查询条件',
+          key: 'conditions',
+          render: (h, params) => <span>{params.row.conditions || '-'}</span>
+        }
+      ]
     }
   }
 }
