@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	analyzeMonitorExportDataUrl  = "/monitor/api/v1/trans-export/analyze"
 	queryMonitorEndpointTypeUrl  = "/monitor/api/v1/dashboard/endpoint/type"
 	queryMonitorEndpointGroupUrl = "/monitor/api/v1/alarm/endpoint/list"
 	queryMonitorLogMetricUrl     = "/monitor/api/v2/service/log_metric/list/group/%s"
@@ -19,6 +20,25 @@ const (
 	queryDbKeywordUrl            = "/monitor/api/v2/service/db_keyword/list?type=service&guid=%s"
 	jsonUnmarshalErrTemplate     = "json unmarshal http response body fail,body:%s,error:%s"
 )
+
+func GetMonitorExportAnalyzeData(endpointList, serviceGroupList []string) (data *models.AnalyzeTransData, err error) {
+	requestParam := models.AnalyzeTransParam{EndpointList: endpointList, ServiceGroupList: serviceGroupList}
+	var responseBytes []byte
+	if responseBytes, err = requestMonitorPlugin(analyzeMonitorExportDataUrl, http.MethodPost, requestParam); err != nil {
+		return
+	}
+	var response models.AnalyzeTransResp
+	if err = json.Unmarshal(responseBytes, &response); err != nil {
+		err = fmt.Errorf(jsonUnmarshalErrTemplate, string(responseBytes), err.Error())
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	data = response.Data
+	return
+}
 
 func GetMonitorEndpointType() (monitorTypeList []string, err error) {
 	var responseBytes []byte
