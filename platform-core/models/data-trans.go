@@ -298,3 +298,27 @@ type CommonOutput struct {
 	Ids    []string `json:"ids"`
 	Status string   `json:"status"`
 }
+
+type AnalyzeTransParam struct {
+	EndpointList     []string `json:"endpointList"`
+	ServiceGroupList []string `json:"serviceGroupList"`
+}
+
+type AnalyzeTransResp struct {
+	HttpResponseMeta
+	Data *AnalyzeTransData `json:"data"`
+}
+
+type AnalyzeTransData struct {
+	MonitorType               []string `json:"monitorType"`
+	EndpointGroup             []string `json:"endpointGroup"`
+	CustomMetricServiceGroup  []string `json:"customMetricServiceGroup"`
+	CustomMetricEndpointGroup []string `json:"customMetricEndpointGroup"`
+	CustomMetricMonitorType   []string `json:"CustomMetricMonitorType"`
+	LogMonitorServiceGroup    []string `json:"logMonitorServiceGroup"`
+	LogMonitorTemplate        []string `json:"logMonitorTemplate"`
+	StrategyServiceGroup      []string `json:"strategyServiceGroup"`
+	StrategyEndpointGroup     []string `json:"strategyEndpointGroup"`
+	LogKeywordServiceGroup    []string `json:"logKeywordServiceGroup"`
+	DashboardIdList           []string `json:"dashboardIdList"`
+}
