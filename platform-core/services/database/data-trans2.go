@@ -32,7 +32,7 @@ const (
 )
 
 func CreateExport2(c context.Context, param models.CreateExportParam, operator string) (transExportId string, err error) {
-	var actions, addTransExportActions, addTransExportDetailActions, analyzeDataActions []*db.ExecAction
+	var actions, addTransExportActions, addTransExportDetailActions []*db.ExecAction
 	transExportId = guid.CreateGuid()
 	transExport := models.TransExportTable{
 		Id:              transExportId,
@@ -52,15 +52,15 @@ func CreateExport2(c context.Context, param models.CreateExportParam, operator s
 	if addTransExportDetailActions = getInsertTransExportDetail(transExportId); len(addTransExportDetailActions) > 0 {
 		actions = append(actions, addTransExportDetailActions...)
 	}
-	dataTransParam := &models.AnalyzeDataTransParam{
-		TransExportId: transExportId,
-		Business:      param.PIds,
-		Env:           param.Env,
-	}
-	if analyzeDataActions, err = AnalyzeCMDBDataExport(c, dataTransParam); err != nil {
-		return
-	}
-	actions = append(actions, analyzeDataActions...)
+	/*	dataTransParam := &models.AnalyzeDataTransParam{
+			TransExportId: transExportId,
+			Business:      param.PIds,
+			Env:           param.Env,
+		}
+		if analyzeDataActions, err = AnalyzeCMDBDataExport(c, dataTransParam); err != nil {
+			return
+		}
+		actions = append(actions, analyzeDataActions...)*/
 	err = db.Transaction(actions, c)
 	return
 }
