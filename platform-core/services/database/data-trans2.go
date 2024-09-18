@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote/monitor"
 	"os"
 	"strings"
 	"time"
@@ -550,7 +551,12 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	if err = execStepExport(exportBatchExecutionParam); err != nil {
 		return
 	}
-	// 7. json文件压缩并上传nexus
+	// 8. 导出监控
+	step = models.TransExportStepMonitor
+	if err = exportMonitor(ctx, param.TransExportId, path); err != nil {
+		return
+	}
+	// 9. json文件压缩并上传nexus
 	if transDataVariableConfig, err = getDataTransVariableMap(ctx); err != nil {
 		return
 	}
@@ -604,6 +610,114 @@ func execStepExport(param models.StepExportParam) (err error) {
 	}
 	transExportDetail.EndTime = time.Now().Format(models.DateTimeFormat)
 	updateTransExportDetail(param.Ctx, transExportDetail)
+	return
+}
+
+// exportMonitor 导出监控
+func exportMonitor(ctx context.Context, transExportId, path string) (err error) {
+	var analyzeList []*models.TransExportAnalyzeDataTable
+	var analyzeMap = make(map[string]*models.TransExportAnalyzeDataTable)
+	var monitorTypeList, endpointGroupList, monitoryTypeMetricList, serviceGroupMetricList, endpointGroupMetricList []string
+	var allMonitorEndpointGroupList, exportMonitorEndpointGroupList []*monitor.EndpointGroupTable
+	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_analyze_data where trans_export=? and source=?",
+		transExportId, models.TransExportAnalyzeSourceMonitor).Find(&analyzeList)
+	if err != nil {
+		return
+	}
+	analyzeMap = convertTransExportAnalyzeDataList2Map(analyzeList)
+	// 1. 导出基础类型
+	if v, ok := analyzeMap[string(models.TransExportAnalyzeMonitorDataTypeMonitorType)]; ok {
+		if err = json.Unmarshal([]byte(v.Data), &monitorTypeList); err != nil {
+			log.Logger.Error("monitorType json Unmarshal err", log.Error(err))
+			return
+		}
+		filePath := fmt.Sprintf("%s/%s.json", path, models.TransExportAnalyzeMonitorDataTypeMonitorType)
+		if len(monitorTypeList) > 0 {
+			if err = tools.WriteJsonData2File(filePath, monitorTypeList); err != nil {
+				log.Logger.Error("WriteJsonData2File error", log.String("name", string(models.TransExportAnalyzeMonitorDataTypeMonitorType)), log.Error(err))
+				return
+			}
+		}
+	}
+	// 2. 导出对象组
+	if v, ok := analyzeMap[string(models.TransExportAnalyzeMonitorDataTypeEndpointGroup)]; ok {
+		if err = json.Unmarshal([]byte(v.Data), &endpointGroupList); err != nil {
+			log.Logger.Error("endpointGroupList json Unmarshal err", log.Error(err))
+			return
+		}
+		if len(endpointGroupList) > 0 {
+			if allMonitorEndpointGroupList, err = monitor.GetMonitorEndpointGroup(); err != nil {
+				log.Logger.Error("GetMonitorEndpointGroup  err", log.Error(err))
+				return
+			}
+			for _, endpointGroupObj := range allMonitorEndpointGroupList {
+				for _, eg := range endpointGroupList {
+					if endpointGroupObj.DisplayName == eg {
+						exportMonitorEndpointGroupList = append(exportMonitorEndpointGroupList, endpointGroupObj)
+					}
+				}
+			}
+		}
+		filePath := fmt.Sprintf("%s/%s.json", path, models.TransExportAnalyzeMonitorDataTypeEndpointGroup)
+		if err = tools.WriteJsonData2File(filePath, exportMonitorEndpointGroupList); err != nil {
+			log.Logger.Error("WriteJsonData2File error", log.String("name", string(models.TransExportAnalyzeMonitorDataTypeEndpointGroup)), log.Error(err))
+			return
+		}
+	}
+	// 3.导出指标配置(包括基础指标、层级对象、对象组指标列表)&同环比指标也需要导出
+	if v, ok := analyzeMap[string(models.TransExportAnalyzeMonitorDataTypeCustomMetricMonitorType)]; ok {
+		if err = json.Unmarshal([]byte(v.Data), &monitoryTypeMetricList); err != nil {
+			log.Logger.Error("monitoryTypeMetricList json Unmarshal err", log.Error(err))
+			return
+		}
+	}
+	if v, ok := analyzeMap[string(models.TransExportAnalyzeMonitorDataTypeCustomMetricServiceGroup)]; ok {
+		if err = json.Unmarshal([]byte(v.Data), &serviceGroupMetricList); err != nil {
+			log.Logger.Error("serviceGroupMetricList json Unmarshal err", log.Error(err))
+			return
+		}
+	}
+	if v, ok := analyzeMap[string(models.TransExportAnalyzeMonitorDataTypeCustomMetricEndpointGroup)]; ok {
+		if err = json.Unmarshal([]byte(v.Data), &endpointGroupMetricList); err != nil {
+			log.Logger.Error("serviceGroupMetricList json Unmarshal err", log.Error(err))
+			return
+		}
+	}
+	if err = exportMetricList(monitoryTypeMetricList, serviceGroupMetricList, endpointGroupMetricList, path); err != nil {
+		return
+	}
+	return
+}
+
+func exportMetricList(monitoryTypeMetricList, serviceGroupMetricList, endpointGroupMetricList []string, path string) (err error) {
+	var responseBytes []byte
+	var requestParam []monitor.ExportMetricParam
+	for _, s := range monitoryTypeMetricList {
+		requestParam = append(requestParam, []monitor.ExportMetricParam{{MonitorType: s, Comparison: "N"}, {MonitorType: s, Comparison: "Y"}}...)
+	}
+	for _, s := range serviceGroupMetricList {
+		requestParam = append(requestParam, []monitor.ExportMetricParam{{ServiceGroup: s, Comparison: "N"}, {ServiceGroup: s, Comparison: "Y"}}...)
+	}
+	for _, s := range endpointGroupMetricList {
+		requestParam = append(requestParam, []monitor.ExportMetricParam{{EndpointGroup: s, Comparison: "N"}, {EndpointGroup: s, Comparison: "Y"}}...)
+	}
+	for index, requestParam := range requestParam {
+		filePath := fmt.Sprintf("%s/metric_list_%d.json", path, index+1)
+		if requestParam.Comparison == "Y" {
+			// 导出同环比
+			filePath = fmt.Sprintf("%s/metric_comparison_list_%d.json", path, index+1)
+		}
+		if responseBytes, err = monitor.ExportMetricList(requestParam); err != nil {
+			log.Logger.Error("ExportMetricList err", log.JsonObj("requestParam", requestParam), log.Error(err))
+			return
+		}
+		if string(responseBytes) != "" {
+			if err = tools.WriteJsonData2File(filePath, responseBytes); err != nil {
+				log.Logger.Error("WriteJsonData2File error", log.JsonObj("requestParam", requestParam), log.Error(err))
+				return
+			}
+		}
+	}
 	return
 }
 
@@ -720,4 +834,12 @@ func contains(arr []string, val string) bool {
 		elementMap[s] = true
 	}
 	return elementMap[val]
+}
+
+func convertTransExportAnalyzeDataList2Map(analyzeList []*models.TransExportAnalyzeDataTable) map[string]*models.TransExportAnalyzeDataTable {
+	var analyzeMap = make(map[string]*models.TransExportAnalyzeDataTable, 0)
+	for _, analyzeData := range analyzeList {
+		analyzeMap[analyzeData.DataType] = analyzeData
+	}
+	return analyzeMap
 }
