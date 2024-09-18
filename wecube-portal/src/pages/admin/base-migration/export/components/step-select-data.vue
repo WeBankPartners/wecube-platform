@@ -242,11 +242,14 @@ export default {
     handleSelectChange(type, selection) {
       if (type === 'role') {
         this.roleSelectionList = selection
-      } else if (type === 'itsm') {
+      }
+      else if (type === 'itsm') {
         this.itsmSelectionList = selection
-      } else if (type === 'flow') {
+      }
+      else if (type === 'flow') {
         this.flowOriginTableData = selection
-      } else if (type === 'batch') {
+      }
+      else if (type === 'batch') {
         this.batchOriginTableData = selection
       }
     },
@@ -260,7 +263,8 @@ export default {
             return true
           }
         })
-      } else if (type === 'flow') {
+      }
+      else if (type === 'flow') {
         this.flowTableData = this.flowOriginTableData.filter(item => {
           const nameFlag = item.name.toLowerCase().indexOf(this.flowSearchParams.name.toLowerCase()) > -1
           const idFlag = item.id.indexOf(this.flowSearchParams.id) > -1
@@ -268,7 +272,8 @@ export default {
             return true
           }
         })
-      } else if (type === 'batch') {
+      }
+      else if (type === 'batch') {
         this.batchTableData = this.batchOriginTableData.filter(item => {
           const nameFlag = item.name.toLowerCase().indexOf(this.batchSearchParams.name.toLowerCase()) > -1
           const idFlag = item.id.indexOf(this.batchSearchParams.id) > -1
