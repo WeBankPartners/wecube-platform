@@ -13,7 +13,7 @@ import (
 const (
 	analyzeMonitorExportDataUrl  = "/monitor/api/v2/trans-export/analyze"
 	exportMetricListUrl          = "/monitor/api/v2/monitor/metric/export?serviceGroup=%s&monitorType=%s&endpointGroup=%s&comparison=%s"
-	queryMonitorEndpointGroupUrl = "/monitor/api/v1/alarm/endpoint_group/query"
+	queryMonitorEndpointGroupUrl = "/monitor/api/v2/alarm/endpoint_group/query"
 	queryMonitorLogMetricUrl     = "/monitor/api/v2/service/log_metric/list/group/%s"
 	queryAlarmStrategyUrl        = "/monitor/api/v2/alarm/strategy/query"
 	queryLogKeywordUrl           = "/monitor/api/v2/service/log_keyword/list?type=service&guid=%s"
@@ -40,17 +40,15 @@ func GetMonitorExportAnalyzeData(endpointList, serviceGroupList []string) (data 
 	return
 }
 
-func ExportMetricList(param ExportMetricParam) (responseBytes []byte, err error) {
+func ExportMetricList(param ExportMetricParam, token string) (responseBytes []byte, err error) {
 	url := fmt.Sprintf(exportMetricListUrl, param.ServiceGroup, param.MonitorType, param.EndpointGroup, param.Comparison)
-	if responseBytes, err = requestMonitorPlugin(url, http.MethodGet, nil); err != nil {
-		return
-	}
+	responseBytes, err = requestMonitorPluginV2(url, http.MethodGet, token, nil)
 	return
 }
 
-func GetMonitorEndpointGroup() (monitorEndpointGroupList []*EndpointGroupTable, err error) {
+func GetMonitorEndpointGroup(token string) (monitorEndpointGroupList []*EndpointGroupTable, err error) {
 	var responseBytes []byte
-	if responseBytes, err = requestMonitorPlugin(queryMonitorEndpointGroupUrl, http.MethodGet, nil); err != nil {
+	if responseBytes, err = requestMonitorPluginV2(queryMonitorEndpointGroupUrl, http.MethodGet, token, nil); err != nil {
 		return
 	}
 	var response GetMonitorEndpointGroupResp
@@ -62,7 +60,9 @@ func GetMonitorEndpointGroup() (monitorEndpointGroupList []*EndpointGroupTable, 
 		err = fmt.Errorf(response.Message)
 		return
 	}
-	monitorEndpointGroupList = response.Data
+	if response.Data != nil {
+		monitorEndpointGroupList = response.Data.Data
+	}
 	return
 }
 
@@ -235,7 +235,12 @@ func analyzeDbKeywordIfNeedExport(serviceGroup string) (containConfigFlag bool, 
 	return
 }
 
-func requestMonitorPlugin(url, method string, postData interface{}) (responseBytes []byte, err error) {
+func requestMonitorPlugin(url, method string, postData interface{}) ([]byte, error) {
+	token := remote.GetToken()
+	return requestMonitorPluginV2(url, method, token, postData)
+}
+
+func requestMonitorPluginV2(url, method, token string, postData interface{}) (responseBytes []byte, err error) {
 	var req *http.Request
 	if method == http.MethodGet {
 		req, err = http.NewRequest(http.MethodGet, "http://"+models.Config.Gateway.Url+url, nil)
@@ -251,7 +256,10 @@ func requestMonitorPlugin(url, method string, postData interface{}) (responseByt
 		err = fmt.Errorf("Start new request to platform fail:%s ", err.Error())
 		return
 	}
-	req.Header.Set("Authorization", remote.GetToken())
+	if token == "" {
+		token = remote.GetToken()
+	}
+	req.Header.Set("Authorization", token)
 	req.Header.Set("Content-Type", "application/json")
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
