@@ -56,9 +56,7 @@ export default {
           title: '创建人',
           key: 'createdBy',
           width: 90,
-          render: (h, params) => (
-            <span>{params.row.createdBy || '-'}</span>
-          )
+          render: (h, params) => <span>{params.row.createdBy || '-'}</span>
         }
       ],
       // cmdb报表
@@ -81,9 +79,7 @@ export default {
           title: '创建人',
           key: 'createdBy',
           width: 90,
-          render: (h, params) => (
-            <span>{params.row.createdBy || '-'}</span>
-          )
+          render: (h, params) => <span>{params.row.createdBy || '-'}</span>
         }
       ],
       // 物料包数据
