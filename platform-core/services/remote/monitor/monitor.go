@@ -12,8 +12,8 @@ import (
 
 const (
 	analyzeMonitorExportDataUrl  = "/monitor/api/v2/trans-export/analyze"
-	queryMonitorEndpointTypeUrl  = "/monitor/api/v1/dashboard/endpoint/type"
-	queryMonitorEndpointGroupUrl = "/monitor/api/v1/alarm/endpoint/list"
+	exportMetricListUrl          = "/monitor/api/v2/monitor/metric/export?serviceGroup=%s&monitorType=%s&endpointGroup=%s&comparison=%s"
+	queryMonitorEndpointGroupUrl = "/monitor/api/v1/alarm/endpoint_group/query"
 	queryMonitorLogMetricUrl     = "/monitor/api/v2/service/log_metric/list/group/%s"
 	queryAlarmStrategyUrl        = "/monitor/api/v2/alarm/strategy/query"
 	queryLogKeywordUrl           = "/monitor/api/v2/service/log_keyword/list?type=service&guid=%s"
@@ -40,31 +40,17 @@ func GetMonitorExportAnalyzeData(endpointList, serviceGroupList []string) (data 
 	return
 }
 
-func GetMonitorEndpointType() (monitorTypeList []string, err error) {
-	var responseBytes []byte
-	if responseBytes, err = requestMonitorPlugin(queryMonitorEndpointTypeUrl, http.MethodGet, nil); err != nil {
+func ExportMetricList(param ExportMetricParam) (responseBytes []byte, err error) {
+	url := fmt.Sprintf(exportMetricListUrl, param.ServiceGroup, param.MonitorType, param.EndpointGroup, param.Comparison)
+	if responseBytes, err = requestMonitorPlugin(url, http.MethodGet, nil); err != nil {
 		return
 	}
-	var response GetMonitorEndpointTypeResp
-	if err = json.Unmarshal(responseBytes, &response); err != nil {
-		err = fmt.Errorf(jsonUnmarshalErrTemplate, string(responseBytes), err.Error())
-		return
-	}
-	if response.Status != "OK" {
-		err = fmt.Errorf(response.Message)
-		return
-	}
-	monitorTypeList = response.Data
 	return
 }
 
-func GetMonitorEndpointGroup(endpointList []string) (monitorEndpointGroupList []string, err error) {
-	if len(endpointList) == 0 {
-		return
-	}
-	requestParam := GetMonitorEndpointGroupParam{Page: 1, Size: 1000000}
+func GetMonitorEndpointGroup() (monitorEndpointGroupList []*EndpointGroupTable, err error) {
 	var responseBytes []byte
-	if responseBytes, err = requestMonitorPlugin(queryMonitorEndpointGroupUrl, http.MethodPost, requestParam); err != nil {
+	if responseBytes, err = requestMonitorPlugin(queryMonitorEndpointGroupUrl, http.MethodGet, nil); err != nil {
 		return
 	}
 	var response GetMonitorEndpointGroupResp
@@ -76,22 +62,7 @@ func GetMonitorEndpointGroup(endpointList []string) (monitorEndpointGroupList []
 		err = fmt.Errorf(response.Message)
 		return
 	}
-	endpointMap := make(map[string]int)
-	for _, v := range endpointList {
-		endpointMap[v] = 1
-	}
-	distinctMap := make(map[string]int)
-	for _, endpoint := range response.Data.Data {
-		if _, matchEndpointFlag := endpointMap[endpoint.Guid]; !matchEndpointFlag {
-			continue
-		}
-		for _, endpointGroup := range endpoint.Groups {
-			if _, ok := distinctMap[endpointGroup.Name]; !ok {
-				monitorEndpointGroupList = append(monitorEndpointGroupList, endpointGroup.Name)
-				distinctMap[endpointGroup.Name] = 1
-			}
-		}
-	}
+	monitorEndpointGroupList = response.Data
 	return
 }
 
