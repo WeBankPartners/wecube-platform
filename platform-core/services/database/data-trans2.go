@@ -333,26 +333,30 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	var subProcDefIds []string
 	var uploadUrl, path string
 	var err error
+	var step models.TransExportStep
 	// 如果有报错,更新导出记录状态失败
-	defer func() {
+	defer func(step *models.TransExportStep) {
 		if err != nil {
-			updateTransExportStatus(ctx, param.TransExportId, string(models.TransExportStatusFail))
+			// 查询是哪一步报错
+			updateTransExportDetailFail(ctx, param.TransExportId, *step, err.Error())
+			updateTransExportStatus(ctx, param.TransExportId, models.TransExportStatusFail)
 		}
 		// 删除导出目录
 		if err = os.RemoveAll(path); err != nil {
 			log.Logger.Error("delete fail", log.String("path", path), log.Error(err))
 		}
-	}()
+	}(&step)
 	if path, err = tools.GetPath(fmt.Sprintf("/tmp/wecube/%s", param.TransExportId)); err != nil {
 		log.Logger.Error("getPath error", log.Error(err))
 		return
 	}
 	// 更新迁移导出表记录状态为执行中
-	if err = updateTransExportStatus(ctx, param.TransExportId, string(models.TransExportStatusDoing)); err != nil {
+	if err = updateTransExportStatus(ctx, param.TransExportId, models.TransExportStatusDoing); err != nil {
 		log.Logger.Error("updateTransExportStatus error", log.Error(err))
 		return
 	}
 	// 1. 导出选中角色
+	step = models.TransExportStepRole
 	exportRoleStartTime := time.Now().Format(models.DateTimeFormat)
 	if queryRolesResponse, err = remote.RetrieveAllLocalRoles("Y", userToken, language, false); err != nil {
 		log.Logger.Error("remote retrieveAllLocalRoles error", log.Error(err))
@@ -363,7 +367,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		Path:          path,
 		TransExportId: param.TransExportId,
 		StartTime:     exportRoleStartTime,
-		Step:          int(models.TransExportStepRole),
+		Step:          step,
 		Input:         param.Roles,
 		Data:          queryRolesResponse.Data,
 	}
@@ -373,6 +377,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 
 	// 2.导出请求模版&组件库
 	if len(param.RequestTemplateIds) > 0 {
+		step = models.TransExportStepRequestTemplate
 		exportRequestTemplateStartTime := time.Now().Format(models.DateTimeFormat)
 		if queryRequestTemplatesResponse, err = remote.GetRequestTemplates(models.GetRequestTemplatesDto{RequestTemplateIds: param.RequestTemplateIds}, userToken, language); err != nil {
 			log.Logger.Error("remote GetRequestTemplates error", log.Error(err))
@@ -383,7 +388,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			Path:          path,
 			TransExportId: param.TransExportId,
 			StartTime:     exportRequestTemplateStartTime,
-			Step:          int(models.TransExportStepRequestTemplate),
+			Step:          step,
 			Input:         param.RequestTemplateIds,
 			Data:          convertRequestTemplateExportDto2List(queryRequestTemplatesResponse.Data, queryRolesResponse.Data),
 		}
@@ -393,12 +398,19 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		// 请求模版关联的编排 自动加入 导出编排
 		for _, requestTemplateExport := range queryRequestTemplatesResponse.Data {
 			if strings.TrimSpace(requestTemplateExport.RequestTemplate.ProcDefId) != "" && !contains(param.WorkflowIds, requestTemplateExport.RequestTemplate.ProcDefId) {
-				param.WorkflowIds = append(param.WorkflowIds, requestTemplateExport.RequestTemplate.ProcDefId)
+				// 调用编排查询下数据是否真实存在
+				if procDefDto, err = GetProcDefDetailByProcDefId(ctx, requestTemplateExport.RequestTemplate.ProcDefId); err != nil {
+					continue
+				}
+				if procDefDto != nil && procDefDto.ProcDef != nil && procDefDto.ProcDef.Id != "" {
+					param.WorkflowIds = append(param.WorkflowIds, requestTemplateExport.RequestTemplate.ProcDefId)
+				}
 			}
 		}
 	}
 	// 3. 导出组件库
 	if param.ExportComponentLibrary {
+		step = models.TransExportStepComponentLibrary
 		if queryComponentLibraryResponse, err = remote.GetComponentLibrary(userToken, language); err != nil {
 			log.Logger.Error("remote GetComponentLibrary error", log.Error(err))
 			return
@@ -409,7 +421,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			Path:          path,
 			TransExportId: param.TransExportId,
 			StartTime:     exportComponentLibraryStartTime,
-			Step:          int(models.TransExportStepComponentLibrary),
+			Step:          step,
 			Data:          queryComponentLibraryResponse.Data,
 		}
 		if err = execStepExport(exportComponentLibraryParam); err != nil {
@@ -417,6 +429,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		}
 	}
 	// 4. 导出编排
+	step = models.TransExportStepWorkflow
 	exportWorkflowStartTime := time.Now().Format(models.DateTimeFormat)
 	for _, procDefId := range param.WorkflowIds {
 		if procDefDto, err = GetProcDefDetailByProcDefId(ctx, procDefId); err != nil {
@@ -448,7 +461,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		Path:          path,
 		TransExportId: param.TransExportId,
 		StartTime:     exportWorkflowStartTime,
-		Step:          int(models.TransExportStepWorkflow),
+		Step:          step,
 		Input:         param.WorkflowIds,
 		Data:          procDefExportList,
 	}
@@ -456,6 +469,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		return
 	}
 	// 5.导出批量执行
+	step = models.TransExportStepBatchExecution
 	exportBatchExecutionStartTime := time.Now().Format(models.DateTimeFormat)
 	if batchExecutionTemplateList, err = ExportTemplate(ctx, &models.ExportBatchExecTemplateReqParam{BatchExecTemplateIds: param.BatchExecutionIds}); err != nil {
 		log.Logger.Error("ExportTemplate error", log.Error(err))
@@ -466,7 +480,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		Path:          path,
 		TransExportId: param.TransExportId,
 		StartTime:     exportBatchExecutionStartTime,
-		Step:          int(models.TransExportStepBatchExecution),
+		Step:          step,
 		Input:         param.BatchExecutionIds,
 		Data:          batchExecutionTemplateList,
 	}
@@ -509,20 +523,20 @@ func execStepExport(param models.StepExportParam) (err error) {
 	}
 	transExportDetail := models.TransExportDetailTable{
 		TransExport: &param.TransExportId,
-		Step:        param.Step,
+		Step:        int(param.Step),
 		StartTime:   param.StartTime,
 		Status:      string(models.TransExportStatusSuccess),
 	}
-	inputByteArr, _ := json.Marshal(param.Input)
-	transExportDetail.Input = string(inputByteArr)
-	outputByteArr, _ := json.Marshal(param.Data)
-	transExportDetail.Output = string(outputByteArr)
-	if err = tools.WriteJsonData2File(getExportJsonFile(param.Path, transExportDetailMap[param.Step]), param.Data); err != nil {
-		log.Logger.Error("WriteJsonData2File error", log.String("name", transExportDetailMap[param.Step]), log.Error(err))
-		transExportDetail.Status = string(models.TransExportStatusFail)
-		transExportDetail.ErrorMsg = err.Error()
-		transExportDetail.EndTime = time.Now().Format(models.DateTimeFormat)
-		updateTransExportDetail(param.Ctx, transExportDetail)
+	if param.Input != nil {
+		inputByteArr, _ := json.Marshal(param.Input)
+		transExportDetail.Input = string(inputByteArr)
+	}
+	if param.Data != nil {
+		outputByteArr, _ := json.Marshal(param.Data)
+		transExportDetail.Output = string(outputByteArr)
+	}
+	if err = tools.WriteJsonData2File(getExportJsonFile(param.Path, transExportDetailMap[int(param.Step)]), param.Data); err != nil {
+		log.Logger.Error("WriteJsonData2File error", log.String("name", transExportDetailMap[int(param.Step)]), log.Error(err))
 		return
 	}
 	transExportDetail.EndTime = time.Now().Format(models.DateTimeFormat)
@@ -530,7 +544,7 @@ func execStepExport(param models.StepExportParam) (err error) {
 	return
 }
 
-func updateTransExportStatus(ctx context.Context, id, status string) (err error) {
+func updateTransExportStatus(ctx context.Context, id string, status models.TransExportStatus) (err error) {
 	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_export set status=? where id=?", status, id)
 	return
 }
@@ -546,6 +560,12 @@ func updateTransExportDetail(ctx context.Context, transExportDetail models.Trans
 		return
 	}
 	_, err = db.MysqlEngine.Context(ctx).Where("trans_export=? and step=?", transExportDetail.TransExport, transExportDetail.Step).Update(transExportDetail)
+	return
+}
+
+func updateTransExportDetailFail(ctx context.Context, transExportId string, step models.TransExportStep, errMsg string) (err error) {
+	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_export_detail set status=?,error_msg=?,end_time=? where trans_export=? and step =?",
+		models.TransExportStatusFail, errMsg, time.Now().Format(models.DateTimeFormat), transExportId, step)
 	return
 }
 
