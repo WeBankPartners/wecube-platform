@@ -121,3 +121,14 @@ const (
 	TransExportStepArtifacts        TransExportStep = 7 // 导出物料包
 	TransExportStepMonitor          TransExportStep = 8 // 导出监控
 )
+
+// TransExportAnalyzeSource 分析来源
+type TransExportAnalyzeSource string
+
+const (
+	TransExportAnalyzeSourceWeCmdb       TransExportAnalyzeSource = "wecmdb"        // CMDB
+	TransExportAnalyzeSourceWeCmdbReport TransExportAnalyzeSource = "wecmdb_report" // report
+	TransExportAnalyzeSourceWeCmdbView   TransExportAnalyzeSource = "wecmdb_view"   // view
+	TransExportAnalyzeSourceMonitor      TransExportAnalyzeSource = "monitor"       // monitor
+	TransExportAnalyzeSourceArtifact     TransExportAnalyzeSource = "artifact"      // artifact
+)
