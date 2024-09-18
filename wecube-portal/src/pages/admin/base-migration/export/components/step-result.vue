@@ -62,7 +62,7 @@
     </div>
     <!--角色列表-->
     <div class="item">
-      <span class="title">角色：已选<span class="number">{{ detailData.roleData && detailData.roleData.length }}</span></span>
+      <span class="title">角色：已选<span class="number">{{ detailData.roleData.length }}</span></span>
       <div>
         <Table :border="false" size="small" :columns="roleTableColumns" :max-height="400" :data="detailData.roleData">
         </Table>
@@ -70,9 +70,9 @@
     </div>
     <!--ITSM列表-->
     <div class="item">
-      <span class="title">ITSM流程：已选<span class="number">{{ detailData.itsmData && detailData.itsmData.length }}</span></span>
+      <span class="title">ITSM流程：已选<span class="number">{{ detailData.itsmData.length }}</span></span>
       <div style="margin: 10px 0">
-        是否导出组件库：<i-switch v-model="detailData.exportComponentLibrary"></i-switch>
+        是否导出组件库：<i-switch disabled v-model="detailData.exportComponentLibrary"></i-switch>
       </div>
       <div>
         <!-- <BaseSearch
@@ -87,7 +87,7 @@
     </div>
     <!--编排列表-->
     <div class="item">
-      <span class="title">编排：已选<span class="number">{{ detailData.flowData && detailData.flowData.length }}</span></span>
+      <span class="title">编排：已选<span class="number">{{ detailData.flowData.length }}</span></span>
       <div>
         <!-- <BaseSearch
           :onlyShowReset="true"
@@ -101,7 +101,7 @@
     </div>
     <!--批量执行列表-->
     <div class="item">
-      <span class="title">批量执行：已选<span class="number">{{ detailData.batchData && detailData.batchData.length }}</span></span>
+      <span class="title">批量执行：已选<span class="number">{{ detailData.batchData.length }}</span></span>
       <div>
         <!-- <BaseSearch
           :onlyShowReset="true"
@@ -117,10 +117,10 @@
     <div class="item">
       <span class="title">
         CMDB：<span class="sub-title">
-          已选 CI<span class="number">{{ detailData.cmdbCIData && detailData.cmdbCIData.length }}</span> / 视图<span
+          已选 CI<span class="number">{{ detailData.cmdbCIData.length }}</span> / 视图<span
             class="number"
-          >{{ detailData.cmdbViewData && detailData.cmdbViewData.length }}</span>
-          / 报表<span class="number">{{ detailData.cmdbReportData && detailData.cmdbReportData.length }}</span>
+          >{{ detailData.cmdbViewData.length }}</span>
+          / 报表<span class="number">{{ detailData.cmdbReportData.length }}</span>
         </span>
       </span>
       <Row :gutter="10">
@@ -162,7 +162,7 @@
     <!--物料包-->
     <div class="item">
       <span class="title">
-        物料包：已选<span class="number">{{ detailData.artifactsData && detailData.artifactsData.length }}</span>
+        物料包：已选<span class="number">{{ detailData.artifactsData.length }}</span>
       </span>
       <Row :gutter="10">
         <Col :span="12">
