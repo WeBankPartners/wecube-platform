@@ -274,21 +274,29 @@ type RequestTemplateDto struct {
 }
 
 type TransExportDetail struct {
-	TransExport      *TransExportTable  `json:"transExport"`
-	CmdbCI           []*CommonNameCount `json:"cmdbCI"`
-	CmdbView         []*CommonNameUser  `json:"cmdbView"`
-	CmdbReportForm   []*CommonNameUser  `json:"cmdbReportForm"`
-	Artifacts        []*CommonNameCount `json:"artifacts"`
-	Roles            *CommonOutput      `json:"roles"`
-	Workflows        *CommonOutput      `json:"workflows"`
-	BatchExecution   *CommonOutput      `json:"batchExecutions"`
-	RequestTemplates *CommonOutput      `json:"requestTemplates"`
-	ComponentLibrary *CommonOutput      `json:"componentLibrary"`
+	TransExport         *TransExportTable    `json:"transExport"`
+	CmdbCI              []*CommonNameCount   `json:"cmdbCI"`
+	CmdbView            []*CommonNameCreator `json:"cmdbView"`
+	CmdbViewCount       int                  `json:"cmdbViewCount"`
+	CmdbReportForm      []*CommonNameCreator `json:"cmdbReportForm"`
+	CmdbReportFormCount int                  `json:"cmdbReportFormCount"`
+	Artifacts           []*CommonNameCount   `json:"artifacts"`
+	Roles               *CommonOutput        `json:"roles"`
+	Workflows           *CommonOutput        `json:"workflows"`
+	BatchExecution      *CommonOutput        `json:"batchExecutions"`
+	RequestTemplates    *CommonOutput        `json:"requestTemplates"`
+	ComponentLibrary    *CommonOutput        `json:"componentLibrary"`
+	Monitor             []*CommonNameCount   `json:"monitor"`
 }
 
 type CommonNameCount struct {
 	Name  string `json:"name"`
 	Count int    `json:"count"`
+}
+
+type CommonNameCreator struct {
+	Name    string `json:"name"`
+	Creator string `json:"creator"`
 }
 
 type CommonNameUser struct {

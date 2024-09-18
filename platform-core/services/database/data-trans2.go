@@ -30,7 +30,7 @@ var transExportDetailMap = map[int]string{
 const (
 	zipFile           = "export.zip"
 	tempWeCubeDataDir = "/tmp/wecube/%s/data"
-	tempWeCubeZipDir  = "/tmp"
+	tempWeCubeZipDir  = "/tmp/wecube/zip"
 )
 
 func CreateExport2(c context.Context, param models.CreateExportParam, operator string) (transExportId string, err error) {
@@ -266,8 +266,11 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 		}
 	}
 	detail = &models.TransExportDetail{
-		TransExport: &transExport,
-		CmdbCI:      make([]*models.CommonNameCount, 0),
+		TransExport:    &transExport,
+		CmdbCI:         make([]*models.CommonNameCount, 0),
+		CmdbView:       make([]*models.CommonNameCreator, 0),
+		CmdbReportForm: make([]*models.CommonNameCreator, 0),
+		Monitor:        make([]*models.CommonNameCount, 0),
 	}
 	for _, transExportDetail := range transExportDetailList {
 		var tempArr []string
@@ -305,10 +308,32 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 		return
 	}
 	for _, transExportAnalyze := range transExportAnalyzeDataList {
-		detail.CmdbCI = append(detail.CmdbCI, &models.CommonNameCount{
-			Name:  transExportAnalyze.DataTypeName,
-			Count: transExportAnalyze.DataLen,
-		})
+		switch transExportAnalyze.Source {
+		case string(models.TransExportAnalyzeSourceWeCmdb):
+			detail.CmdbCI = append(detail.CmdbCI, &models.CommonNameCount{
+				Name:  transExportAnalyze.DataTypeName,
+				Count: transExportAnalyze.DataLen,
+			})
+		case string(models.TransExportAnalyzeSourceWeCmdbReport):
+			detail.CmdbReportForm = append(detail.CmdbReportForm, &models.CommonNameCreator{
+				Name:    transExportAnalyze.DataTypeName,
+				Creator: "",
+			})
+			detail.CmdbReportFormCount = transExportAnalyze.DataLen
+		case string(models.TransExportAnalyzeSourceWeCmdbView):
+			detail.CmdbView = append(detail.CmdbView, &models.CommonNameCreator{
+				Name:    transExportAnalyze.DataTypeName,
+				Creator: "",
+			})
+			detail.CmdbViewCount = transExportAnalyze.DataLen
+		case string(models.TransExportAnalyzeSourceMonitor):
+
+		case string(models.TransExportAnalyzeSourceArtifact):
+			detail.Monitor = append(detail.Monitor, &models.CommonNameCount{
+				Name:  transExportAnalyze.DataTypeName,
+				Count: transExportAnalyze.DataLen,
+			})
+		}
 	}
 	return
 }
