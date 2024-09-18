@@ -182,7 +182,9 @@
     <div class="item">
       <span class="title">
         监控配置：<span class="sub-title">
-          已选配置类型<span class="number">{{ detailData.monitorData.length }}</span> 总条数<span class="number">{{ '-' }}</span>
+          已选配置类型<span class="number">{{ detailData.monitorData.length }}</span> 总条数<span class="number">{{
+            '-'
+          }}</span>
         </span>
       </span>
       <Row :gutter="10">
@@ -210,7 +212,7 @@ export default {
   props: {
     detailData: {
       type: Object,
-      default: function() {
+      default() {
         return {
           roleData: [],
           flowData: [],
