@@ -344,7 +344,7 @@ func GetTransExportAnalyzeDataByCond(ctx context.Context, transExportId string, 
 }
 
 func QuerySimpleTransExportAnalyzeDataByTransExport(ctx context.Context, transExportId string) (result []*models.TransExportAnalyzeDataTable, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select data_type_name,data_len from trans_export_analyze_data where trans_export=?", transExportId).Find(&result)
+	err = db.MysqlEngine.Context(ctx).SQL("select data_type_name,data_len,source from trans_export_analyze_data where trans_export=?", transExportId).Find(&result)
 	return
 }
 
