@@ -132,3 +132,19 @@ const (
 	TransExportAnalyzeSourceMonitor      TransExportAnalyzeSource = "monitor"       // monitor
 	TransExportAnalyzeSourceArtifact     TransExportAnalyzeSource = "artifact"      // artifact
 )
+
+type TransExportAnalyzeMonitorDataType string
+
+const (
+	TransExportAnalyzeMonitorDataTypeMonitorType               TransExportAnalyzeMonitorDataType = "monitor_type"
+	TransExportAnalyzeMonitorDataTypeEndpointGroup             TransExportAnalyzeMonitorDataType = "endpoint_group"               // 对象组
+	TransExportAnalyzeMonitorDataTypeCustomMetricServiceGroup  TransExportAnalyzeMonitorDataType = "custom_metric_service_group"  // 指标列表-层级对象
+	TransExportAnalyzeMonitorDataTypeCustomMetricEndpointGroup TransExportAnalyzeMonitorDataType = "custom_metric_endpoint_group" // 指标列表-对象组
+	TransExportAnalyzeMonitorDataTypeCustomMetricMonitorType   TransExportAnalyzeMonitorDataType = "custom_metric_monitor_type"   // 指标列表-基础指标
+	TransExportAnalyzeMonitorDataTypeLogMonitorServiceGroup    TransExportAnalyzeMonitorDataType = "log_monitor_service_group"
+	TransExportAnalyzeMonitorDataTypeLogMonitorTemplate        TransExportAnalyzeMonitorDataType = "log_monitor_template"
+	TransExportAnalyzeMonitorDataTypeStrategyServiceGroup      TransExportAnalyzeMonitorDataType = "strategy_service_group"
+	TransExportAnalyzeMonitorDataTypeStrategyEndpointGroup     TransExportAnalyzeMonitorDataType = "strategy_endpoint_group"
+	TransExportAnalyzeMonitorDataTypeLogKeywordServiceGroup    TransExportAnalyzeMonitorDataType = "logKeyword_service_group"
+	TransExportAnalyzeMonitorDataTypeDashboard                 TransExportAnalyzeMonitorDataType = "dashboard"
+)
