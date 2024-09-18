@@ -267,14 +267,14 @@ func analyzeDbKeywordIfNeedExport(serviceGroup string) (containConfigFlag bool, 
 func requestMonitorPlugin(url, method string, postData interface{}) (responseBytes []byte, err error) {
 	var req *http.Request
 	if method == http.MethodGet {
-		req, err = http.NewRequest(http.MethodGet, models.Config.Gateway.Url+url, nil)
+		req, err = http.NewRequest(http.MethodGet, "http://"+models.Config.Gateway.Url+url, nil)
 	} else if method == http.MethodPost {
 		postBytes, jsonParseErr := json.Marshal(postData)
 		if jsonParseErr != nil {
 			err = fmt.Errorf("json marshal postData fail,%s ", jsonParseErr.Error())
 			return
 		}
-		req, err = http.NewRequest(http.MethodPost, models.Config.Gateway.Url+url, bytes.NewReader(postBytes))
+		req, err = http.NewRequest(http.MethodPost, "http://"+models.Config.Gateway.Url+url, bytes.NewReader(postBytes))
 	}
 	if err != nil {
 		err = fmt.Errorf("Start new request to platform fail:%s ", err.Error())
