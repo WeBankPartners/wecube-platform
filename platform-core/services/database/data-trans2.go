@@ -297,6 +297,9 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			detail.RequestTemplates = output
 		case int(models.TransExportStepComponentLibrary):
 			detail.ComponentLibrary = output
+			if transExportDetail.Status != string(models.TransExportStatusNotStart) {
+				detail.ExportComponentLibrary = true
+			}
 		case int(models.TransExportStepWorkflow):
 			detail.Workflows = output
 		case int(models.TransExportStepBatchExecution):
@@ -315,24 +318,39 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 				Count: transExportAnalyze.DataLen,
 			})
 		case string(models.TransExportAnalyzeSourceWeCmdbReport):
-			detail.CmdbReportForm = append(detail.CmdbReportForm, &models.CommonNameCreator{
-				Name:    transExportAnalyze.DataTypeName,
-				Creator: "",
-			})
+			var tempArr []map[string]interface{}
+			if transExportAnalyze.Data != "" {
+				json.Unmarshal([]byte(transExportAnalyze.Data), &tempArr)
+				if len(tempArr) > 0 {
+					for _, dataMap := range tempArr {
+						detail.CmdbReportForm = append(detail.CmdbReportForm, &models.CommonNameCreator{
+							Name:    fmt.Sprintf("%v", dataMap["name"]),
+							Creator: "",
+						})
+					}
+				}
+			}
 			detail.CmdbReportFormCount = transExportAnalyze.DataLen
 		case string(models.TransExportAnalyzeSourceWeCmdbView):
-			detail.CmdbView = append(detail.CmdbView, &models.CommonNameCreator{
-				Name:    transExportAnalyze.DataTypeName,
-				Creator: "",
-			})
+			var tempArr []map[string]interface{}
+			if transExportAnalyze.Data != "" {
+				json.Unmarshal([]byte(transExportAnalyze.Data), &tempArr)
+				if len(tempArr) > 0 {
+					for _, dataMap := range tempArr {
+						detail.CmdbView = append(detail.CmdbReportForm, &models.CommonNameCreator{
+							Name:    fmt.Sprintf("%v", dataMap["name"]),
+							Creator: "",
+						})
+					}
+				}
+			}
 			detail.CmdbViewCount = transExportAnalyze.DataLen
 		case string(models.TransExportAnalyzeSourceMonitor):
-
-		case string(models.TransExportAnalyzeSourceArtifact):
 			detail.Monitor = append(detail.Monitor, &models.CommonNameCount{
 				Name:  transExportAnalyze.DataTypeName,
 				Count: transExportAnalyze.DataLen,
 			})
+		case string(models.TransExportAnalyzeSourceArtifact):
 		}
 	}
 	return
@@ -344,7 +362,7 @@ func GetTransExportAnalyzeDataByCond(ctx context.Context, transExportId string, 
 }
 
 func QuerySimpleTransExportAnalyzeDataByTransExport(ctx context.Context, transExportId string) (result []*models.TransExportAnalyzeDataTable, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select data_type_name,data_len,source from trans_export_analyze_data where trans_export=?", transExportId).Find(&result)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_analyze_data where trans_export=?", transExportId).Find(&result)
 	return
 }
 
