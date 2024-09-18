@@ -101,18 +101,22 @@ export default {
       const { status, data } = await getExportDetail(params)
       if (status === 'OK') {
         this.detailData = {
-          roleData: data.roles.data || [],
-          flowData: data.workflows.data || [],
-          batchData: data.batchExecutions.data || [],
-          itsmData: data.requestTemplates.data || [],
-          cmdbCIData: data.cmdbCI || [],
-          cmdbViewData: data.cmdbView || [],
-          cmdbReportData: data.cmdbReportForm || [],
-          artifactsData: data.artifacts || [],
-          monitorData: data.monitor || [],
+          roleData: data.roles.data || [], // 用户角色
+          flowData: data.workflows.data || [], // 编排
+          batchData: data.batchExecutions.data || [], // 批量执行
+          itsmData: data.requestTemplates.data || [], // itsm流程
+          cmdbCIData: data.cmdbCI || [], // cmdb CI
+          cmdbViewData: data.cmdbView || [], // cmdb视图
+          cmdbReportData: data.cmdbReportForm || [], // cmdb报表
+          artifactsData: data.artifacts || [], // 物料包
+          monitorData: data.monitor || [], // 监控
+          componentLibrary: Boolean(data.componentLibrary.data), // 组件库
           ...data.transExport,
-          componentLibrary: Boolean(data.componentLibrary.data)
         }
+        this.detailData.associationSystems = this.detailData.associationSystems || []
+        this.detailData.associationTechProducts = this.detailData.associationTechProducts || []
+        this.detailData.businessName = this.detailData.businessName || ''
+        this.detailData.business = this.detailData.business || ''
         // 成功或失败，取消轮询查状态
         if (['success', 'fail'].includes(this.detailData.status)) {
           clearInterval(this.interval)
