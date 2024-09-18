@@ -1305,3 +1305,18 @@ func getUserProcDefCollectMap(ctx context.Context, userId string) (procDefMap ma
 	}
 	return
 }
+
+func buildProcDefDto(procDef *models.ProcessDefinitionDto, roleDisplayNameMap map[string]string) *models.ProcDefDto {
+	newProcDefDto := procDef.ProcDef
+	newProcDefDto.UseRolesDisplay = make([]string, 0)
+	newProcDefDto.MgmtRolesDisplay = make([]string, 0)
+	newProcDefDto.UseRoles = procDef.PermissionToRole.USE
+	newProcDefDto.MgmtRoles = procDef.PermissionToRole.MGMT
+	for _, s := range procDef.PermissionToRole.USE {
+		newProcDefDto.UseRolesDisplay = append(newProcDefDto.UseRolesDisplay, roleDisplayNameMap[s])
+	}
+	for _, s := range procDef.PermissionToRole.MGMT {
+		newProcDefDto.MgmtRolesDisplay = append(newProcDefDto.MgmtRolesDisplay, roleDisplayNameMap[s])
+	}
+	return newProcDefDto
+}
