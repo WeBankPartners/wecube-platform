@@ -21,6 +21,10 @@ type GetMonitorEndpointGroupParam struct {
 
 type GetMonitorEndpointGroupResp struct {
 	models.HttpResponseMeta
+	Data *EndpointGroupTableData `json:"data"`
+}
+
+type EndpointGroupTableData struct {
 	Data []*EndpointGroupTable `json:"data"`
 }
 
@@ -174,4 +178,5 @@ type ExportMetricParam struct {
 	MonitorType   string
 	EndpointGroup string
 	Comparison    string
+	Token         string
 }
