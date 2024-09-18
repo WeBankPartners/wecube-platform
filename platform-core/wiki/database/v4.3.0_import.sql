@@ -40,10 +40,10 @@ CREATE TABLE `trans_export_detail`
     `step`                tinyint(2) COLLATE utf8_bin NOT NULL COMMENT '第几步',
     `status`              varchar(32) COLLATE utf8_bin NOT NULL COMMENT '导出状态: notStart未开始,success成功,fail失败',
     `input`               text COLLATE utf8_bin        DEFAULT NULL COMMENT '输入',
-    `output`              text COLLATE utf8_bin        DEFAULT NULL COMMENT '输出',
+    `output`              longtext COLLATE utf8_bin    DEFAULT NULL COMMENT '输出',
     `error_msg`           text COLLATE utf8_bin        DEFAULT NULL COMMENT '导出报错信息',
     `start_time`          datetime                     default NULL COMMENT '开始时间',
     `end_time`            datetime                     default NULL COMMENT '结束时间',
-    PRIMARY KEY (`id`),
+    PRIMARY KEY (`id`),s
     CONSTRAINT `trans_export_detail_force_trans_export` FOREIGN KEY (`trans_export`) REFERENCES `trans_export` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '数据迁移导出记录表';
