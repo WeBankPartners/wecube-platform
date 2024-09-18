@@ -117,10 +117,10 @@
     <div class="item">
       <span class="title">
         CMDB：<span class="sub-title">
-          已选 CI<span class="number">{{ detailData.cmdbCIData.length }}</span> / 视图<span
-            class="number"
-          >{{ detailData.cmdbViewData.length }}</span>
-          / 报表<span class="number">{{ detailData.cmdbReportData.length }}</span>
+          已选
+          <span class="name">CI</span><span class="number">{{ detailData.cmdbCIData.length }}</span>
+          <span class="name">视图</span><span class="number">{{ detailData.cmdbViewData.length }}</span>
+          <span class="name">报表</span><span class="number">{{ detailData.cmdbReportData.length }}</span>
         </span>
       </span>
       <Row :gutter="10">
@@ -140,7 +140,7 @@
             <Table
               :border="false"
               size="small"
-              :columns="cmdbCIColumns"
+              :columns="cmdbViewColumns"
               :max-height="360"
               :data="detailData.cmdbViewData"
             />
@@ -151,7 +151,7 @@
             <Table
               :border="false"
               size="small"
-              :columns="cmdbCIColumns"
+              :columns="cmdbReportColumns"
               :max-height="360"
               :data="detailData.cmdbReportData"
             />
@@ -182,7 +182,7 @@
     <div class="item">
       <span class="title">
         监控配置：<span class="sub-title">
-          已选配置类型<span class="number">{{ 10 }}</span> 总条数<span class="number">{{ 10 }}</span>
+          已选配置类型<span class="number">{{ detailData.monitorData.length }}</span> 总条数<span class="number">{{ '-' }}</span>
         </span>
       </span>
       <Row :gutter="10">
@@ -208,7 +208,27 @@ import staticTableConfig from '../static-table'
 export default {
   mixins: [selectTableConfig, staticTableConfig],
   props: {
-    detailData: Object
+    detailData: {
+      type: Object,
+      default: function() {
+        return {
+          roleData: [],
+          flowData: [],
+          batchData: [],
+          itsmData: [],
+          cmdbCIData: [],
+          cmdbViewData: [],
+          cmdbReportData: [],
+          artifactsData: [],
+          monitorData: [],
+          componentLibrary: false,
+          associationSystems: [],
+          associationTechProducts: [],
+          businessName: '',
+          business: ''
+        }
+      }
+    }
   },
   data() {
     return {}
@@ -249,6 +269,7 @@ export default {
 .export-step-data {
   .export-message {
     margin-top: -10px;
+    margin-bottom: 16px;
   }
   .item {
     display: flex;
@@ -273,6 +294,9 @@ export default {
       font-size: 14px;
       margin-bottom: 5px;
       font-weight: 600;
+      .name {
+        margin-left: 10px;
+      }
       .number {
         font-size: 18px;
         color: #2d8cf0;
@@ -296,15 +320,18 @@ export default {
 <style lang="scss">
 .export-step-data {
   .ivu-card-head {
-    padding: 10px;
+    padding: 8px 10px;
+    p {
+      font-size: 14px;
+    }
   }
   .ivu-card-body {
     padding: 10px;
   }
   .ivu-alert-with-desc .ivu-alert-icon {
     left: 16px;
-    margin-top: -20px;
-    font-size: 26px;
+    top: 24px;
+    font-size: 28px;
   }
   .ivu-alert-with-desc.ivu-alert-with-icon {
     padding: 10px 16px 10px 55px;
