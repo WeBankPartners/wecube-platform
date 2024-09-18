@@ -1,6 +1,8 @@
 package models
 
-import "context"
+import (
+	"context"
+)
 
 type AnalyzeDataTransParam struct {
 	TransExportId string   `json:"transExportId"`
@@ -322,4 +324,16 @@ type AnalyzeTransData struct {
 	StrategyEndpointGroup     []string `json:"strategyEndpointGroup"`
 	LogKeywordServiceGroup    []string `json:"logKeywordServiceGroup"`
 	DashboardIdList           []string `json:"dashboardIdList"`
+}
+
+type SysReportTable struct {
+	Id     string `json:"id" xorm:"id"`
+	Name   string `json:"name" xorm:"name"`
+	CiType string `json:"ciType" xorm:"ci_type"`
+}
+
+type SysViewTable struct {
+	Id     string `json:"viewId" xorm:"id"`
+	Name   string `json:"name" xorm:"name"`
+	Report string `json:"report" xorm:"report"`
 }

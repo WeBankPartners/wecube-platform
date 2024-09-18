@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	analyzeMonitorExportDataUrl  = "/monitor/api/v1/trans-export/analyze"
+	analyzeMonitorExportDataUrl  = "/monitor/api/v2/trans-export/analyze"
 	queryMonitorEndpointTypeUrl  = "/monitor/api/v1/dashboard/endpoint/type"
 	queryMonitorEndpointGroupUrl = "/monitor/api/v1/alarm/endpoint/list"
 	queryMonitorLogMetricUrl     = "/monitor/api/v2/service/log_metric/list/group/%s"
