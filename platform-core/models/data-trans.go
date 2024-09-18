@@ -197,7 +197,7 @@ type StepExportParam struct {
 	Path          string
 	TransExportId string
 	StartTime     string
-	Step          int
+	Step          TransExportStep
 	Input         interface{}
 	Data          interface{}
 }
