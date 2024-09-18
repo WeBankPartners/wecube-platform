@@ -360,3 +360,10 @@ type SysViewTable struct {
 	FilterAttr    string    `json:"filterAttr" xorm:"filter_attr"`
 	FilterValue   string    `json:"filterValue" xorm:"filter_value"`
 }
+
+type DataTransPluginExportData struct {
+	PluginPackageId    string `json:"PluginPackageId" xorm:"plugin_package_id"`
+	PluginInterfaceNum int    `json:"PluginInterfaceNum" xorm:"plugin_interface_num"`
+	SystemVariableNum  int    `json:"SystemVariableNum" xorm:"system_variable_num"`
+	Source             string `json:"Source" json:"source"`
+}

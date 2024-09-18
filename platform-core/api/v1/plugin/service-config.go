@@ -274,7 +274,7 @@ func ExportPluginConfigs(c *gin.Context) {
 		}
 	}
 
-	retData, err := database.ExportPluginConfigs(c, pluginPackageId, reqParam)
+	retData, err := database.ExportPluginConfigs(c, pluginPackageId, reqParam, middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return

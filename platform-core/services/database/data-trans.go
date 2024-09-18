@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
@@ -12,7 +13,6 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote/monitor"
-	"local/zgy-tools/wecube"
 	"os"
 	"sort"
 	"strings"
@@ -499,7 +499,7 @@ func analyzePluginMonitorExportData(transExportId string, endpointList, serviceG
 		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "endpoint_group", "endpoint_group", len(analyzeResult.EndpointGroup), parseStringListToJsonString(analyzeResult.EndpointGroup), nowTime,
 	}})
 	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
-		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "custom_metric_service_group", "monitor_type", len(analyzeResult.CustomMetricServiceGroup), parseStringListToJsonString(analyzeResult.CustomMetricServiceGroup), nowTime,
+		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "custom_metric_service_group", "custom_metric_service_group", len(analyzeResult.CustomMetricServiceGroup), parseStringListToJsonString(analyzeResult.CustomMetricServiceGroup), nowTime,
 	}})
 	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
 		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "custom_metric_endpoint_group", "custom_metric_endpoint_group", len(analyzeResult.CustomMetricEndpointGroup), parseStringListToJsonString(analyzeResult.CustomMetricEndpointGroup), nowTime,
@@ -791,8 +791,8 @@ func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableNa
 	return
 }
 
-func DataTransImportCMDBData(inputFile string) (err error) {
-	cmdbEngine, getDBErr := wecube.InitCmdbEngine()
+func DataTransImportCMDBData(ctx context.Context, inputFile string) (err error) {
+	cmdbEngine, getDBErr := getCMDBPluginDBResource(ctx)
 	if getDBErr != nil {
 		err = getDBErr
 		return
@@ -842,5 +842,96 @@ func DataTransExportMonitorData(transExportId string) (tmpFilePathList []string,
 
 func DataTransExportArtifactData(transExportId string) (tmpFilePathList []string, err error) {
 
+	return
+}
+
+// AnalyzePluginConfigDataExport 分析插件服务和系统数据数据
+func AnalyzePluginConfigDataExport(ctx context.Context, transExportId string) (actions []*db.ExecAction, err error) {
+	var pluginPackageRows []*models.PluginPackages
+	err = db.MysqlEngine.Context(ctx).SQL("select id,name,`version` from plugin_packages where status='REGISTERED' and id in (select package_id from plugin_instances where container_status='RUNNING')").Find(&pluginPackageRows)
+	if err != nil {
+		err = fmt.Errorf("query export plugin package table fail,%s ", err.Error())
+		return
+	}
+	if len(pluginPackageRows) == 0 {
+		return
+	}
+	var analyzeData []*models.DataTransPluginExportData
+	var pluginPackageIdList, variableSourceList []string
+	for _, row := range pluginPackageRows {
+		tmpSource := fmt.Sprintf("%s__%s", row.Name, row.Version)
+		tmpAnalyzeData := models.DataTransPluginExportData{PluginPackageId: row.Id, Source: tmpSource}
+		analyzeData = append(analyzeData, &tmpAnalyzeData)
+		pluginPackageIdList = append(pluginPackageIdList, row.Id)
+		variableSourceList = append(variableSourceList, tmpSource)
+	}
+	filterSql, filterParam := db.CreateListParams(pluginPackageIdList, "")
+	var interfaceQueryRows []*models.DataTransPluginExportData
+	err = db.MysqlEngine.Context(ctx).SQL("select t3.plugin_package_id,count(1) as plugin_interface_num from (select t1.id,t2.plugin_package_id from plugin_config_interfaces t1 left join plugin_configs t2 on t1.plugin_config_id=t2.id where t2.plugin_package_id in ("+filterSql+")) t3 group by t3.plugin_package_id", filterParam...).Find(&interfaceQueryRows)
+	if err != nil {
+		err = fmt.Errorf("query plugin config interface table fail,%s ", err.Error())
+		return
+	}
+	for _, v := range analyzeData {
+		for _, row := range interfaceQueryRows {
+			if v.PluginPackageId == row.PluginPackageId {
+				v.PluginInterfaceNum = row.PluginInterfaceNum
+				break
+			}
+		}
+	}
+	var variableQueryRows []*models.DataTransPluginExportData
+	sourceFilterSql, sourceFilterParam := db.CreateListParams(variableSourceList, "")
+	err = db.MysqlEngine.Context(ctx).SQL("select source,count(1) as system_variable_num from system_variables where source in ('"+sourceFilterSql+"') group by source", sourceFilterParam...).Find(&variableQueryRows)
+	if err != nil {
+		err = fmt.Errorf("query plugin system variable table fail,%s ", err.Error())
+		return
+	}
+	for _, v := range analyzeData {
+		for _, row := range variableQueryRows {
+			if v.Source == row.Source {
+				v.SystemVariableNum = row.SystemVariableNum
+				break
+			}
+		}
+	}
+	analyzeBytes, _ := json.Marshal(analyzeData)
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), transExportId, "plugin_package", "plugin_package", "plugin_package", len(analyzeData), string(analyzeBytes), time.Now(),
+	}})
+	return
+}
+
+func DataTransExportPluginConfig(ctx context.Context, transExportId string) (tmpFilePathList []string, err error) {
+	// 读analyze表plugin_package数据
+	var transExportAnalyzeRows []*models.TransExportAnalyzeDataTable
+	err = db.MysqlEngine.Context(ctx).SQL("select `source`,data_type,`data`,data_len from trans_export_analyze_data where trans_export=? and `source`='plugin_package'", transExportId).Find(&transExportAnalyzeRows)
+	if err != nil {
+		err = fmt.Errorf("query trans export analyze table data fail,%s ", err.Error())
+		return
+	}
+	if len(transExportAnalyzeRows) == 0 {
+		log.Logger.Warn("no analyze plugin package data found in database", log.String("transExportId", transExportId))
+		return
+	}
+	var analyzeData []*models.DataTransPluginExportData
+	if err = json.Unmarshal([]byte(transExportAnalyzeRows[0].Data), &analyzeData); err != nil {
+		err = fmt.Errorf("json unmarshal export plugin package data fail,%s ", err.Error())
+		return
+	}
+	for _, row := range analyzeData {
+		retData, tmpErr := ExportPluginConfigs(ctx, row.PluginPackageId, []*models.PluginConfigsBatchEnable{}, []string{"SUPER_ADMIN"})
+		if tmpErr != nil {
+			err = fmt.Errorf("build plugin export config fail,pluginPackageId:%s,error:%s ", row.PluginPackageId, tmpErr.Error())
+			break
+		}
+		fileName := fmt.Sprintf("/tmp/%s/plugin-%s-%s-%s.xml", transExportId, retData.Name, retData.Version, time.Now().Format("20060102150405"))
+		retDataBytes, _ := xml.MarshalIndent(retData, "", "    ")
+		if err = os.WriteFile(fileName, retDataBytes, 0666); err != nil {
+			err = fmt.Errorf("wirte export plugin config xml file fail,%s ", err.Error())
+			break
+		}
+		tmpFilePathList = append(tmpFilePathList, fileName)
+	}
 	return
 }
