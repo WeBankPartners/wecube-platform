@@ -1,7 +1,7 @@
 export default {
   data() {
     return {
-      // cmdb数据
+      // cmdb CI
       cmdbCIColumns: [
         {
           title: 'CI名称',
@@ -23,7 +23,7 @@ export default {
           width: 90,
           render: (h, params) => (
             <span style="display:flex;align-items:center;justify-content:space-between;">
-              {params.row.count}
+              <div style="width:20px">{params.row.count}</div>
               <Icon
                 type="ios-list"
                 size="36"
@@ -36,10 +36,60 @@ export default {
           )
         }
       ],
+      // cmdb视图
+      cmdbViewColumns: [
+        {
+          title: '视图名',
+          key: 'name',
+          render: (h, params) => (
+            <span
+              style="cursor:pointer;color:#5cadff;"
+              onClick={() => {
+                this.jumpToHistory(params.row)
+              }}
+            >
+              {params.row.name}
+            </span>
+          )
+        },
+        {
+          title: '创建人',
+          key: 'createdBy',
+          width: 90,
+          render: (h, params) => (
+            <span>{params.row.createdBy || '-'}</span>
+          )
+        }
+      ],
+      // cmdb报表
+      cmdbReportColumns: [
+        {
+          title: '报表名',
+          key: 'name',
+          render: (h, params) => (
+            <span
+              style="cursor:pointer;color:#5cadff;"
+              onClick={() => {
+                this.jumpToHistory(params.row)
+              }}
+            >
+              {params.row.name}
+            </span>
+          )
+        },
+        {
+          title: '创建人',
+          key: 'createdBy',
+          width: 90,
+          render: (h, params) => (
+            <span>{params.row.createdBy || '-'}</span>
+          )
+        }
+      ],
       // 物料包数据
       artifactsColumns: [
         {
-          title: '底座产品',
+          title: '所属单元设计',
           key: 'name',
           render: (h, params) => (
             <span
@@ -58,7 +108,7 @@ export default {
           width: 80,
           render: (h, params) => (
             <span style="display:flex;align-items:center;">
-              {params.row.count}
+              <div style="width:20px">{params.row.count}</div>
               <Icon
                 type="ios-list"
                 size="36"
@@ -90,10 +140,10 @@ export default {
         {
           title: '已选',
           key: 'total',
-          width: 80,
+          width: 100,
           render: (h, params) => (
             <span style="display:flex;align-items:center;">
-              {params.row.count}
+              <div style="width:20px">{params.row.count}</div>
               <Icon
                 type="ios-list"
                 size="36"
