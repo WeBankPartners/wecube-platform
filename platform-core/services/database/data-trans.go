@@ -67,6 +67,13 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 		ciData.Attributes = ciTypeAttrMap[k]
 	}
 	actions = getInsertAnalyzeCMDBActions(param.TransExportId, ciTypeDataMap)
+	// 写入cmdb 报表和视图列表
+	reportViewActions, reportViewErr := analyzeCMDBReportViewData(param.TransExportId, cmdbEngine)
+	if reportViewErr != nil {
+		err = reportViewErr
+		return
+	}
+	actions = append(actions, reportViewActions...)
 	// 分析监控数据
 	var endpointList, serviceGroupList []string
 	for _, ciData := range ciTypeDataMap {
@@ -87,9 +94,14 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 		err = fmt.Errorf("analyze monitor export data fail,%s ", analyzeMonitorErr.Error())
 		return
 	}
-	// 分析物料包数据
-
 	actions = append(actions, monitorActions...)
+	// 分析物料包数据
+	artifactActions, analyzeArtifactErr := analyzeArtifactExportData(param.TransExportId, ciTypeDataMap, transConfig)
+	if analyzeArtifactErr != nil {
+		err = fmt.Errorf("analyze artifact export data fail,%s ", analyzeArtifactErr.Error())
+		return
+	}
+	actions = append(actions, artifactActions...)
 	return
 }
 
@@ -515,4 +527,55 @@ func analyzePluginMonitorExportData(transExportId string, endpointList, serviceG
 func parseStringListToJsonString(input []string) string {
 	b, _ := json.Marshal(input)
 	return string(b)
+}
+
+func analyzeArtifactExportData(transExportId string, ciTypeDataMap map[string]*models.CiTypeData, transConfig *models.TransDataVariableConfig) (actions []*db.ExecAction, err error) {
+	nowTime := time.Now()
+	if ciTypeData, ok := ciTypeDataMap[transConfig.ArtifactPackageCiType]; ok {
+		b, _ := json.Marshal(ciTypeData.DataMap)
+		actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+			"ex_aly_" + guid.CreateGuid(), transExportId, "artifact", "deploy_package", "deploy_package", len(ciTypeData.DataMap), string(b), nowTime,
+		}})
+	}
+	return
+}
+
+func analyzeCMDBReportViewData(transExportId string, cmdbEngine *xorm.Engine) (actions []*db.ExecAction, err error) {
+	nowTime := time.Now()
+	var reportRows []*models.SysReportTable
+	err = cmdbEngine.SQL("select id,name,ci_type from sys_report").Find(&reportRows)
+	if err != nil {
+		err = fmt.Errorf("query cmdb sys report table fail,%s", err.Error())
+		return
+	}
+	var viewRows []*models.SysViewTable
+	err = cmdbEngine.SQL("select id,name,report from sys_view").Find(&viewRows)
+	if err != nil {
+		err = fmt.Errorf("query cmdb sys view table fail,%s", err.Error())
+		return
+	}
+	reportRowBytes, _ := json.Marshal(reportRows)
+	viewRowBytes, _ := json.Marshal(viewRows)
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), transExportId, "wecmdb_report", "report", "report", len(reportRows), string(reportRowBytes), nowTime,
+	}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), transExportId, "wecmdb_view", "view", "view", len(viewRows), string(viewRowBytes), nowTime,
+	}})
+	return
+}
+
+func DataTransExportCMDBData(transExportId string) (tmpFilePathList []string, err error) {
+
+	return
+}
+
+func DataTransExportMonitorData(transExportId string) (tmpFilePathList []string, err error) {
+
+	return
+}
+
+func DataTransExportArtifactData(transExportId string) (tmpFilePathList []string, err error) {
+
+	return
 }
