@@ -34,13 +34,12 @@ func PathExist(path string) (bool, error) {
 	return false, err
 }
 
-func CreateZipCompressAndUpload(dirPath, fileName string, uploadReqParam *NexusReqParam) (url string, err error) {
+func CreateZipCompressAndUpload(zipPath, dirPath, fileName string, uploadReqParam *NexusReqParam) (url string, err error) {
 	// 创建一个新的zip文件
 	var result []*NexusUploadFileRet
 	var zipFile *os.File
-	zipFile, err = os.Create(fmt.Sprintf("%s/%s", dirPath, fileName))
-	if err != nil {
-		panic(err)
+	if zipFile, err = os.Create(fmt.Sprintf("%s/%s", zipPath, fileName)); err != nil {
+		return
 	}
 	defer zipFile.Close()
 
