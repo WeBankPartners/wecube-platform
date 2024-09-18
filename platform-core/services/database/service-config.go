@@ -1128,7 +1128,7 @@ func DeletePluginConfig(c *gin.Context, pluginConfigId string) (err error) {
 	return
 }
 
-func GetPluginConfigsWithInterfaces(c *gin.Context, pluginPackageId string, roles []string, pluginConfigId string) (result []*models.PluginConfigQueryObj, err error) {
+func GetPluginConfigsWithInterfaces(c context.Context, pluginPackageId string, roles []string, pluginConfigId string) (result []*models.PluginConfigQueryObj, err error) {
 	result, err = GetPluginConfigs(c, pluginPackageId, roles, pluginConfigId)
 	if err != nil {
 		return
@@ -1177,7 +1177,7 @@ func GetPluginConfigQueryObjById(c *gin.Context, pluginConfigId string) (result 
 	return
 }
 
-func enrichPluginConfigInterfaces(c *gin.Context, pluginConfigQueryObjList []*models.PluginConfigQueryObj) (err error) {
+func enrichPluginConfigInterfaces(c context.Context, pluginConfigQueryObjList []*models.PluginConfigQueryObj) (err error) {
 	for _, pluginConfigQueryObj := range pluginConfigQueryObjList {
 		for _, pluginConfigDto := range pluginConfigQueryObj.PluginConfigDtoList {
 			pluginInterfaceQueryObjList, tmpErr := GetConfigInterfaces(c, pluginConfigDto.Id)
@@ -1474,7 +1474,7 @@ func getImportPluginConfigData(pluginPackageId string, packagePluginsXmlData *mo
 	return
 }
 
-func handleExportObjectParameter(c *gin.Context, pluginConfigId string) (result []*models.ParamObjectXML, err error) {
+func handleExportObjectParameter(c context.Context, pluginConfigId string) (result []*models.ParamObjectXML, err error) {
 	var pluginObjectMetaList []*models.CoreObjectMeta
 	err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where config_id = ?", models.TableNamePluginObjectMeta), pluginConfigId).Find(&pluginObjectMetaList)
 	if err != nil {
@@ -1530,7 +1530,7 @@ func handleExportObjectParameter(c *gin.Context, pluginConfigId string) (result 
 	return
 }
 
-func ExportPluginConfigs(c *gin.Context, pluginPackageId string, exportConfigList []*models.PluginConfigsBatchEnable) (result *models.PackagePluginsXML, err error) {
+func ExportPluginConfigs(c context.Context, pluginPackageId string, exportConfigList []*models.PluginConfigsBatchEnable, userRoles []string) (result *models.PackagePluginsXML, err error) {
 	// validate pluginPackageId
 	pluginPackageData := &models.PluginPackages{}
 	var exists bool
@@ -1563,7 +1563,7 @@ func ExportPluginConfigs(c *gin.Context, pluginPackageId string, exportConfigLis
 		}
 	}
 	// query pluginConfigs by pluginPackageId
-	pluginConfigQueryObjList, err := GetPluginConfigsWithInterfaces(c, pluginPackageId, middleware.GetRequestRoles(c), "")
+	pluginConfigQueryObjList, err := GetPluginConfigsWithInterfaces(c, pluginPackageId, userRoles, "")
 	if err != nil {
 		return
 	}
