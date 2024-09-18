@@ -327,13 +327,14 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	var queryRequestTemplatesResponse models.QueryRequestTemplatesResponse
 	var queryComponentLibraryResponse models.QueryComponentLibraryResponse
 	var procDefDto *models.ProcessDefinitionDto
-	var procDefExportList []*models.ProcessDefinitionDto
+	var procDefExportList []*models.ProcDefDto
 	var batchExecutionTemplateList []*models.BatchExecutionTemplate
 	var transDataVariableConfig *models.TransDataVariableConfig
 	var subProcDefIds []string
 	var uploadUrl, path string
 	var err error
 	var step models.TransExportStep
+	var roleDisplayNameMap = make(map[string]string)
 	// 如果有报错,更新导出记录状态失败
 	defer func(step *models.TransExportStep) {
 		if err != nil {
@@ -361,6 +362,11 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	if queryRolesResponse, err = remote.RetrieveAllLocalRoles("Y", userToken, language, false); err != nil {
 		log.Logger.Error("remote retrieveAllLocalRoles error", log.Error(err))
 		return
+	}
+	if len(queryRolesResponse.Data) > 0 {
+		for _, role := range queryRolesResponse.Data {
+			roleDisplayNameMap[role.Name] = role.DisplayName
+		}
 	}
 	exportRoleParam := models.StepExportParam{
 		Ctx:           ctx,
@@ -436,7 +442,9 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err))
 			return
 		}
-		procDefExportList = append(procDefExportList, procDefDto)
+		if procDefDto != nil && procDefDto.ProcDef != nil {
+			procDefExportList = append(procDefExportList, buildProcDefDto(procDefDto, roleDisplayNameMap))
+		}
 		// 导出编排节点里面如果关联子编排,子编排也需要导出
 		if procDefDto.ProcDefNodeExtend != nil && len(procDefDto.ProcDefNodeExtend.Nodes) > 0 {
 			for _, node := range procDefDto.ProcDefNodeExtend.Nodes {
@@ -452,7 +460,9 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 					return
 				}
 				param.WorkflowIds = append(param.WorkflowIds, subProcDefId)
-				procDefExportList = append(procDefExportList, procDefDto)
+				if procDefDto != nil && procDefDto.ProcDef != nil {
+					procDefExportList = append(procDefExportList, buildProcDefDto(procDefDto, roleDisplayNameMap))
+				}
 			}
 		}
 	}
