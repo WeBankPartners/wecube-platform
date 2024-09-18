@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"time"
 )
 
 type AnalyzeDataTransParam struct {
@@ -336,13 +337,26 @@ type AnalyzeTransData struct {
 }
 
 type SysReportTable struct {
-	Id     string `json:"id" xorm:"id"`
-	Name   string `json:"name" xorm:"name"`
-	CiType string `json:"ciType" xorm:"ci_type"`
+	Id         string `json:"id" xorm:"id"`
+	Name       string `json:"name" xorm:"name"`
+	CiType     string `json:"ciType" xorm:"ci_type"`
+	CreateTime string `json:"createTime" xorm:"create_time"`
+	CreateUser string `json:"createUser" xorm:"create_user"`
+	UpdateTime string `json:"updateTime" xorm:"update_time"`
+	UpdateUser string `json:"updateUser" xorm:"update_user"`
 }
 
 type SysViewTable struct {
-	Id     string `json:"viewId" xorm:"id"`
-	Name   string `json:"name" xorm:"name"`
-	Report string `json:"report" xorm:"report"`
+	Id            string    `json:"viewId" xorm:"id"`
+	Name          string    `json:"name" xorm:"name"`
+	Report        string    `json:"report" xorm:"report"`
+	Editable      string    `json:"editable" xorm:"editable"`
+	SuportVersion string    `json:"suportVersion" xorm:"suport_version"`
+	Multiple      string    `json:"multiple" xorm:"multiple"`
+	CreateTime    time.Time `json:"createTime" xorm:"create_time"`
+	CreateUser    string    `json:"createUser" xorm:"create_user"`
+	UpdateTime    time.Time `json:"updateTime" xorm:"update_time"`
+	UpdateUser    string    `json:"updateUser" xorm:"update_user"`
+	FilterAttr    string    `json:"filterAttr" xorm:"filter_attr"`
+	FilterValue   string    `json:"filterValue" xorm:"filter_value"`
 }

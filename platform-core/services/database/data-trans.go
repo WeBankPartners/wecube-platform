@@ -1,7 +1,9 @@
 package database
 
 import (
+	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
@@ -10,10 +12,13 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote/monitor"
+	"local/zgy-tools/wecube"
+	"os"
 	"sort"
 	"strings"
 	"time"
 	"xorm.io/xorm"
+	"xorm.io/xorm/schemas"
 )
 
 // AnalyzeCMDBDataExport 分析cmdb数据并写入自动分析表
@@ -543,13 +548,13 @@ func analyzeArtifactExportData(transExportId string, ciTypeDataMap map[string]*m
 func analyzeCMDBReportViewData(transExportId string, cmdbEngine *xorm.Engine) (actions []*db.ExecAction, err error) {
 	nowTime := time.Now()
 	var reportRows []*models.SysReportTable
-	err = cmdbEngine.SQL("select id,name,ci_type from sys_report").Find(&reportRows)
+	err = cmdbEngine.SQL("select * from sys_report").Find(&reportRows)
 	if err != nil {
 		err = fmt.Errorf("query cmdb sys report table fail,%s", err.Error())
 		return
 	}
 	var viewRows []*models.SysViewTable
-	err = cmdbEngine.SQL("select id,name,report from sys_view").Find(&viewRows)
+	err = cmdbEngine.SQL("select * from sys_view").Find(&viewRows)
 	if err != nil {
 		err = fmt.Errorf("query cmdb sys view table fail,%s", err.Error())
 		return
@@ -565,8 +570,268 @@ func analyzeCMDBReportViewData(transExportId string, cmdbEngine *xorm.Engine) (a
 	return
 }
 
-func DataTransExportCMDBData(transExportId string) (tmpFilePathList []string, err error) {
+func DataTransExportCMDBData(ctx context.Context, transExportId string) (tmpFilePathList []string, err error) {
+	if err = os.MkdirAll(fmt.Sprintf("/tmp/"+transExportId), 0700); err != nil {
+		err = fmt.Errorf("mkdir tmp path fail,%s ", err.Error())
+		return
+	}
+	cmdbEngine, getDBErr := getCMDBPluginDBResource(ctx)
+	if getDBErr != nil {
+		err = getDBErr
+		return
+	}
+	var sqlBytes []byte
+	sqlBuffer := bytes.NewBuffer(sqlBytes)
+	var ciTypeList, reportList, viewList []string
+	// 读analyze表cmdb数据
+	var transExportAnalyzeRows []*models.TransExportAnalyzeDataTable
+	err = db.MysqlEngine.Context(ctx).SQL("select `source`,data_type,`data`,data_len from trans_export_analyze_data where trans_export=? and `source` in ('wecmdb','wecmdb_report','wecmdb_view') order by data_type", transExportId).Find(&transExportAnalyzeRows)
+	if err != nil {
+		err = fmt.Errorf("query trans export analyze table data fail,%s ", err.Error())
+		return
+	}
+	ciDataGuidMap := make(map[string][]string)
+	for _, row := range transExportAnalyzeRows {
+		if row.Source == "wecmdb_report" {
+			tmpReportList := []*models.SysReportTable{}
+			if tmpErr := json.Unmarshal([]byte(row.Data), &tmpReportList); tmpErr != nil {
+				err = fmt.Errorf("json unmarshal report data fail,%s ", tmpErr.Error())
+				break
+			}
+			for _, v := range tmpReportList {
+				reportList = append(reportList, v.Id)
+			}
+		} else if row.Source == "wecmdb_view" {
+			tmpViewList := []*models.SysViewTable{}
+			if tmpErr := json.Unmarshal([]byte(row.Data), &tmpViewList); tmpErr != nil {
+				err = fmt.Errorf("json unmarshal view data fail,%s ", tmpErr.Error())
+				break
+			}
+			for _, v := range tmpViewList {
+				reportList = append(reportList, v.Id)
+			}
+		} else {
+			tmpDataMap := make(map[string]interface{})
+			if tmpErr := json.Unmarshal([]byte(row.Data), &tmpDataMap); tmpErr != nil {
+				err = fmt.Errorf("json unmarshal ciType:%s data fail,%s ", row.DataType, tmpErr.Error())
+				break
+			}
+			ciTypeList = append(ciTypeList, row.DataType)
+			tmpCiDataGuidList := []string{}
+			for k, _ := range tmpDataMap {
+				tmpCiDataGuidList = append(tmpCiDataGuidList, k)
+			}
+			ciDataGuidMap[row.DataType] = tmpCiDataGuidList
+		}
+	}
+	if err != nil {
+		return
+	}
+	tables, getDBMetaErr := cmdbEngine.DBMetas()
+	if getDBMetaErr != nil {
+		err = fmt.Errorf("get db meta error:%s ", getDBMetaErr.Error())
+		return
+	}
+	ciTypeFilterSql := strings.Join(ciTypeList, "','")
+	reportFilterSql := strings.Join(reportList, "','")
+	viewFilterSql := strings.Join(viewList, "','")
+	sqlBuffer.WriteString("SET FOREIGN_KEY_CHECKS=0;\n")
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_basekey_cat", "", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_basekey_code", "", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_files", "select * from sys_files where guid in (select image_file from sys_ci_type where id in ('"+ciTypeFilterSql+"'))", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_state_machine", "select * from sys_state_machine where id in (select state_machine from sys_ci_template where id in (select ci_template from sys_ci_type where id in ('"+ciTypeFilterSql+"')))", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_state", "select * from sys_state where state_machine in (select state_machine from sys_ci_template where id in (select ci_template from sys_ci_type where id in ('"+ciTypeFilterSql+"')))", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_state_transition", "select * from sys_state_transition where state_machine in (select state_machine from sys_ci_template where id in (select ci_template from sys_ci_type where id in ('"+ciTypeFilterSql+"')))", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_ci_template", "select * from sys_ci_template where id in (select ci_template from sys_ci_type where id in ('"+ciTypeFilterSql+"'))", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_ci_template_attr", "select * from sys_ci_template_attr where ci_template in (select ci_template from sys_ci_type where id in ('"+ciTypeFilterSql+"'))", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_ci_type", "select * from sys_ci_type where id in ('"+ciTypeFilterSql+"')", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_ci_type_attr", "select * from sys_ci_type_attr where ci_type in ('"+ciTypeFilterSql+"')", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role", "select * from sys_role", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_ci_type", "select * from sys_role_ci_type where ci_type in ('"+ciTypeFilterSql+"')", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_ci_type_condition", "select * from sys_role_ci_type_condition where role_ci_type in (select guid from sys_role_ci_type where ci_type in ('"+ciTypeFilterSql+"'))", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_ci_type_condition_filter", "select * from sys_role_ci_type_condition_filter where role_ci_type_condition in (select guid from sys_role_ci_type_condition where role_ci_type in (select guid from sys_role_ci_type where ci_type in ('"+ciTypeFilterSql+"')))", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_ci_type_list", "select * from sys_role_ci_type_list where role_ci_type in (select guid from sys_role_ci_type where ci_type in ('"+ciTypeFilterSql+"'))", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_report", "select * from sys_report where id in ('"+reportFilterSql+"')", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_report_object", "select * from sys_report_object where report in ('"+reportFilterSql+"')", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_report_object_attr", "select * from sys_report_object_attr where report_object in (select id from sys_report_object where report in ('"+reportFilterSql+"'))", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_report", "select * from sys_role_report where report in ('"+reportFilterSql+"')", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_view", "select * from sys_view where id in ('"+viewFilterSql+"')", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_graph", "select * from sys_graph where `view` in ('"+viewFilterSql+"')", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_graph_element", "select * from sys_graph_element where graph in (select id from sys_graph where `view` in ('"+viewFilterSql+"'))", sqlBuffer); err != nil {
+		return
+	}
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_view", "select * from sys_role_view where `view` in ('"+viewFilterSql+"')", sqlBuffer); err != nil {
+		return
+	}
+	for _, ciType := range ciTypeList {
+		tmpQuerySql := "select * from " + ciType
+		if tmpGuidList, ok := ciDataGuidMap[ciType]; ok {
+			tmpQuerySql += " where guid in ('" + strings.Join(tmpGuidList, "','") + "')"
+		}
+		if err = dumpCMDBTableData(cmdbEngine, tables, ciType, tmpQuerySql, sqlBuffer); err != nil {
+			return
+		}
+		if err = dumpCMDBTableData(cmdbEngine, tables, "history_"+ciType, tmpQuerySql, sqlBuffer); err != nil {
+			return
+		}
+	}
+	sqlBuffer.WriteString("\nSET FOREIGN_KEY_CHECKS=1;\n")
+	tmpFilePath := fmt.Sprintf("/tmp/%s/wecmdb_data.sql", transExportId)
+	err = os.WriteFile(tmpFilePath, sqlBuffer.Bytes(), 0666)
+	if err != nil {
+		err = fmt.Errorf("try to write cmdb database dump file fail,%s ", err.Error())
+	} else {
+		tmpFilePathList = append(tmpFilePathList, tmpFilePath)
+	}
+	return
+}
 
+func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableName, querySql string, bf *bytes.Buffer) (err error) {
+	var columnNameList []string
+	var tableObj *schemas.Table
+	for _, t := range tables {
+		if t.Name == tableName {
+			tableObj = t
+			for _, c := range t.Columns() {
+				columnNameList = append(columnNameList, c.Name)
+			}
+		}
+	}
+	if tableObj == nil {
+		err = fmt.Errorf("tableName:%s illegal", tableName)
+		return
+	}
+	if !strings.HasPrefix(tableName, "sys_") {
+		// 如果不是系统表，要把表结构导出来
+		queryTableRows, queryTableErr := cmdbEngine.QueryString("show create table " + tableName)
+		if queryTableErr != nil {
+			err = fmt.Errorf("query cmdb table %s struct fail,error:%s ", tableName, queryTableErr.Error())
+			return
+		}
+		if len(queryTableRows) > 0 {
+			bf.WriteString(queryTableRows[0]["Create Table"] + ";\n")
+		} else {
+			err = fmt.Errorf("can not find table %s struct", tableName)
+			return
+		}
+	}
+	if strings.HasPrefix(tableName, "history_") {
+		return
+	}
+	if querySql == "" {
+		querySql = fmt.Sprintf("select * from " + tableName)
+	}
+	queryRows, queryErr := cmdbEngine.Query(querySql)
+	if queryErr != nil {
+		err = fmt.Errorf("query cmdb table %s data fail,%s ", tableName, queryErr.Error())
+		return
+	}
+	var rowValueList []string
+	for _, row := range queryRows {
+		tmpValueList := []string{}
+		for _, c := range tableObj.Columns() {
+			if c.SQLType.IsBlob() {
+				tmpValueList = append(tmpValueList, "0x"+hex.EncodeToString(row[c.Name]))
+				continue
+			}
+			tmpStringValue := string(row[c.Name])
+			tmpStringValue = strings.ReplaceAll(tmpStringValue, "'", "\\'")
+			tmpValueList = append(tmpValueList, "'"+tmpStringValue+"'")
+		}
+		rowValueList = append(rowValueList, strings.Join(tmpValueList, ","))
+	}
+	if len(rowValueList) == 0 {
+		return
+	}
+	for _, v := range rowValueList {
+		bf.WriteString("INSERT INTO " + tableName + " (`" + strings.Join(columnNameList, "`,`") + "`) VALUES (" + v + ");\n")
+	}
+	return
+}
+
+func DataTransImportCMDBData(inputFile string) (err error) {
+	cmdbEngine, getDBErr := wecube.InitCmdbEngine()
+	if getDBErr != nil {
+		err = getDBErr
+		return
+	}
+	session := cmdbEngine.NewSession()
+	session.Begin()
+	fileBytes, openFileErr := os.ReadFile(inputFile)
+	if openFileErr != nil {
+		err = openFileErr
+		return
+	}
+	for _, lineSql := range strings.Split(string(fileBytes), ";\n") {
+		if lineSql == "" {
+			continue
+		}
+		_, tmpErr := session.Exec(lineSql)
+		if tmpErr != nil {
+			if strings.Contains(tmpErr.Error(), "Duplicate entry") {
+				continue
+			}
+			err = tmpErr
+			break
+		}
+	}
+	if err != nil {
+		fmt.Printf("error:%s \n", err.Error())
+		if rollbackErr := session.Rollback(); rollbackErr != nil {
+			fmt.Printf("rollback err:%s \n", rollbackErr.Error())
+		} else {
+			fmt.Println("rollback done")
+		}
+	} else {
+		if commitErr := session.Commit(); commitErr != nil {
+			fmt.Printf("commit err:%s \n", commitErr.Error())
+		} else {
+			fmt.Println("commit done")
+		}
+	}
+	session.Close()
 	return
 }
 
