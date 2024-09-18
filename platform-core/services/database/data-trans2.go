@@ -400,7 +400,8 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		if err = os.RemoveAll(path); err != nil {
 			log.Logger.Error("delete fail", log.String("path", path), log.Error(err))
 		}
-		// 删除zip文件
+		// 延迟 删除zip文件
+		time.Sleep(2 * time.Second)
 		if err = os.Remove(zipPath + "/" + zipFile); err != nil {
 			log.Logger.Error("delete fail", log.String("filePath", zipPath), log.Error(err))
 		}
@@ -553,7 +554,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	}
 	// 8. 导出监控
 	step = models.TransExportStepMonitor
-	if err = exportMonitor(ctx, param.TransExportId, path); err != nil {
+	if err = exportMonitor(ctx, param.TransExportId, path, userToken); err != nil {
 		return
 	}
 	// 9. json文件压缩并上传nexus
@@ -614,7 +615,7 @@ func execStepExport(param models.StepExportParam) (err error) {
 }
 
 // exportMonitor 导出监控
-func exportMonitor(ctx context.Context, transExportId, path string) (err error) {
+func exportMonitor(ctx context.Context, transExportId, path, token string) (err error) {
 	var analyzeList []*models.TransExportAnalyzeDataTable
 	var analyzeMap = make(map[string]*models.TransExportAnalyzeDataTable)
 	var monitorTypeList, endpointGroupList, monitoryTypeMetricList, serviceGroupMetricList, endpointGroupMetricList []string
@@ -646,7 +647,7 @@ func exportMonitor(ctx context.Context, transExportId, path string) (err error) 
 			return
 		}
 		if len(endpointGroupList) > 0 {
-			if allMonitorEndpointGroupList, err = monitor.GetMonitorEndpointGroup(); err != nil {
+			if allMonitorEndpointGroupList, err = monitor.GetMonitorEndpointGroup(token); err != nil {
 				log.Logger.Error("GetMonitorEndpointGroup  err", log.Error(err))
 				return
 			}
@@ -683,13 +684,13 @@ func exportMonitor(ctx context.Context, transExportId, path string) (err error) 
 			return
 		}
 	}
-	if err = exportMetricList(monitoryTypeMetricList, serviceGroupMetricList, endpointGroupMetricList, path); err != nil {
+	if err = exportMetricList(monitoryTypeMetricList, serviceGroupMetricList, endpointGroupMetricList, path, token); err != nil {
 		return
 	}
 	return
 }
 
-func exportMetricList(monitoryTypeMetricList, serviceGroupMetricList, endpointGroupMetricList []string, path string) (err error) {
+func exportMetricList(monitoryTypeMetricList, serviceGroupMetricList, endpointGroupMetricList []string, path, token string) (err error) {
 	var responseBytes []byte
 	var requestParam []monitor.ExportMetricParam
 	for _, s := range monitoryTypeMetricList {
@@ -707,12 +708,14 @@ func exportMetricList(monitoryTypeMetricList, serviceGroupMetricList, endpointGr
 			// 导出同环比
 			filePath = fmt.Sprintf("%s/metric_comparison_list_%d.json", path, index+1)
 		}
-		if responseBytes, err = monitor.ExportMetricList(requestParam); err != nil {
+		if responseBytes, err = monitor.ExportMetricList(requestParam, token); err != nil {
 			log.Logger.Error("ExportMetricList err", log.JsonObj("requestParam", requestParam), log.Error(err))
 			return
 		}
 		if string(responseBytes) != "" {
-			if err = tools.WriteJsonData2File(filePath, responseBytes); err != nil {
+			var temp interface{}
+			json.Unmarshal(responseBytes, &temp)
+			if err = tools.WriteJsonData2File(filePath, temp); err != nil {
 				log.Logger.Error("WriteJsonData2File error", log.JsonObj("requestParam", requestParam), log.Error(err))
 				return
 			}
