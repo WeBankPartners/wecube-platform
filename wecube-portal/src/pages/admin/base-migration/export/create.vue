@@ -61,6 +61,7 @@ export default {
   data() {
     return {
       id: this.$route.query.id || '',
+      type: this.$route.query.type || '',
       activeStep: -1,
       // 导出状态start草稿、doing执行中、success成功、fail失败
       loading: false,
@@ -134,7 +135,7 @@ export default {
         envName
       }
       this.loading = true
-      const { status, data } = await (this.id
+      const { status, data } = await (this.id && this.type !== 'republish'
         ? updateEnvBusiness({
           ...params,
           transExportId: this.id
