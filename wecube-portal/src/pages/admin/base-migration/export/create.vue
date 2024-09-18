@@ -10,7 +10,7 @@
           </Steps>
         </BaseHeaderTitle>
       </div>
-      <div class="content">
+      <div class="content" ref="scrollView">
         <BaseHeaderTitle v-if="activeStep === 0" title="导出产品">
           <stepEnviroment ref="env" :detailData="detailData"></stepEnviroment>
         </BaseHeaderTitle>
@@ -72,7 +72,9 @@ export default {
     const _id = this.$route.query.id
     const _type = this.$route.query.type
     if (_id && _type !== 'republish') {
+      this.loading = true
       await this.getDetailData()
+      this.loading = false
       if (this.detailData.status === 'start') {
         this.activeStep = 1
       }
@@ -110,8 +112,8 @@ export default {
           cmdbReportData: data.cmdbReportForm || [], // cmdb报表
           artifactsData: data.artifacts || [], // 物料包
           monitorData: data.monitor || [], // 监控
-          componentLibrary: Boolean(data.componentLibrary.data), // 组件库
-          ...data.transExport,
+          exportComponentLibrary: data.exportComponentLibrary, // 组件库
+          ...data.transExport
         }
         this.detailData.associationSystems = this.detailData.associationSystems || []
         this.detailData.associationTechProducts = this.detailData.associationTechProducts || []
@@ -189,6 +191,7 @@ export default {
       if (status === 'OK') {
         this.activeStep++
         this.getDetailData()
+        this.$refs.scrollView.scrollTop = 0
         // 定时查询导出状态
         this.interval = setInterval(() => {
           this.getDetailData()
