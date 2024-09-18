@@ -28,7 +28,9 @@ var transExportDetailMap = map[int]string{
 }
 
 const (
-	zipFile = "export.zip"
+	zipFile           = "export.zip"
+	tempWeCubeDataDir = "/tmp/wecube/%s/data"
+	tempWeCubeZipDir  = "/tmp"
 )
 
 func CreateExport2(c context.Context, param models.CreateExportParam, operator string) (transExportId string, err error) {
@@ -331,10 +333,18 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	var batchExecutionTemplateList []*models.BatchExecutionTemplate
 	var transDataVariableConfig *models.TransDataVariableConfig
 	var subProcDefIds []string
-	var uploadUrl, path string
+	var uploadUrl, path, zipPath string
 	var err error
 	var step models.TransExportStep
 	var roleDisplayNameMap = make(map[string]string)
+	if path, err = tools.GetPath(fmt.Sprintf(tempWeCubeDataDir, param.TransExportId)); err != nil {
+		log.Logger.Error("getPath error", log.Error(err))
+		return
+	}
+	if zipPath, err = tools.GetPath(tempWeCubeZipDir); err != nil {
+		log.Logger.Error("getPath error", log.Error(err))
+		return
+	}
 	// 如果有报错,更新导出记录状态失败
 	defer func(step *models.TransExportStep) {
 		if err != nil {
@@ -346,11 +356,11 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		if err = os.RemoveAll(path); err != nil {
 			log.Logger.Error("delete fail", log.String("path", path), log.Error(err))
 		}
+		// 删除zip文件
+		if err = os.Remove(zipPath + "/" + zipFile); err != nil {
+			log.Logger.Error("delete fail", log.String("filePath", zipPath), log.Error(err))
+		}
 	}(&step)
-	if path, err = tools.GetPath(fmt.Sprintf("/tmp/wecube/%s", param.TransExportId)); err != nil {
-		log.Logger.Error("getPath error", log.Error(err))
-		return
-	}
 	// 更新迁移导出表记录状态为执行中
 	if err = updateTransExportStatus(ctx, param.TransExportId, models.TransExportStatusDoing); err != nil {
 		log.Logger.Error("updateTransExportStatus error", log.Error(err))
@@ -513,12 +523,12 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		TimeoutSec: 60,
 		FileParams: []*tools.NexusFileParam{
 			{
-				SourceFilePath: fmt.Sprintf("%s/%s", path, zipFile),
+				SourceFilePath: fmt.Sprintf("%s/%s", zipPath, zipFile),
 				DestFilePath:   fmt.Sprintf("%s/%s", param.TransExportId, zipFile),
 			},
 		},
 	}
-	if uploadUrl, err = tools.CreateZipCompressAndUpload(path, zipFile, uploadReqParam); err != nil {
+	if uploadUrl, err = tools.CreateZipCompressAndUpload(zipPath, path, zipFile, uploadReqParam); err != nil {
 		log.Logger.Error("CreateZipCompressAndUpload error", log.Error(err))
 		return
 	}
