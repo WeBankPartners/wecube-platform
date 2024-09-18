@@ -45,7 +45,7 @@
           size="small"
           :loading="roleTableLoading"
           :columns="roleTableColumns"
-          :max-height="400"
+          :max-height="460"
           :data="roleTableData"
           @on-selection-change="selection => handleSelectChange('role', selection)"
         >
@@ -68,7 +68,7 @@
           size="small"
           :loading="itsmTableLoading"
           :columns="itsmTableColumns"
-          :max-height="400"
+          :max-height="460"
           :data="itsmTableData"
           @on-selection-change="selection => handleSelectChange('itsm', selection)"
         >
@@ -90,7 +90,7 @@
           size="small"
           :loading="flowTableLoading"
           :columns="flowTableColumns"
-          :max-height="400"
+          :max-height="460"
           :data="flowTableData"
           @on-selection-change="selection => handleSelectChange('flow', selection)"
         >
@@ -112,7 +112,7 @@
           size="small"
           :loading="batchTableLoading"
           :columns="batchTableColumns"
-          :max-height="400"
+          :max-height="460"
           :data="batchTableData"
           @on-selection-change="selection => handleSelectChange('execution', selection)"
         >
@@ -136,7 +136,7 @@
               :border="false"
               size="small"
               :columns="cmdbCIColumns"
-              :max-height="360"
+              :max-height="460"
               :data="detailData.cmdbCIData"
             />
           </Card>
@@ -147,7 +147,7 @@
               :border="false"
               size="small"
               :columns="cmdbCIColumns"
-              :max-height="360"
+              :max-height="460"
               :data="detailData.cmdbViewData"
             />
           </Card>
@@ -158,7 +158,7 @@
               :border="false"
               size="small"
               :columns="cmdbCIColumns"
-              :max-height="360"
+              :max-height="460"
               :data="detailData.cmdbReportData"
             />
           </Card>
@@ -177,7 +177,7 @@
               :border="false"
               size="small"
               :columns="artifactsColumns"
-              :max-height="360"
+              :max-height="460"
               :data="detailData.artifactsData"
             />
           </Card>
@@ -198,7 +198,7 @@
               :border="false"
               size="small"
               :columns="monitorColumns"
-              :max-height="360"
+              :max-height="460"
               :data="detailData.monitorData"
             />
           </Card>
@@ -211,6 +211,7 @@
 <script>
 import selectTableConfig from '../selection-table'
 import staticTableConfig from '../static-table'
+import { deepClone } from '@/const/util'
 import {
   getCurrentUserRoles, getAllExportFlows, getAllExportBatch, getAllExportItsm
 } from '@/api/server.js'
@@ -223,7 +224,11 @@ export default {
   },
   data() {
     return {
-      exportComponentLibrary: true
+      exportComponentLibrary: true,
+      roleOriginTableData: [],
+      itsmOriginTableData: [],
+      flowOriginTableData: [],
+      batchOriginTableData: []
     }
   },
   mounted() {
@@ -237,12 +242,40 @@ export default {
     handleSelectChange(type, selection) {
       if (type === 'role') {
         this.roleSelectionList = selection
+      } else if (type === 'itsm') {
+        this.itsmSelectionList = selection
+      } else if (type === 'flow') {
+        this.flowOriginTableData = selection
+      } else if (type === 'batch') {
+        this.batchOriginTableData = selection
       }
     },
     // 表格搜索
     handleSearchTable(type) {
       if (type === 'itsm') {
-        //
+        this.itsmTableData = this.itsmOriginTableData.filter(item => {
+          const nameFlag = item.name.toLowerCase().indexOf(this.itsmSearchParams.name.toLowerCase()) > -1
+          const sceneFlag = !this.itsmSearchParams.scene || item.type.toString() === this.itsmSearchParams.scene
+          if (nameFlag && sceneFlag) {
+            return true
+          }
+        })
+      } else if (type === 'flow') {
+        this.flowTableData = this.flowOriginTableData.filter(item => {
+          const nameFlag = item.name.toLowerCase().indexOf(this.flowSearchParams.name.toLowerCase()) > -1
+          const idFlag = item.id.indexOf(this.flowSearchParams.id) > -1
+          if (nameFlag && idFlag) {
+            return true
+          }
+        })
+      } else if (type === 'batch') {
+        this.batchTableData = this.batchOriginTableData.filter(item => {
+          const nameFlag = item.name.toLowerCase().indexOf(this.batchSearchParams.name.toLowerCase()) > -1
+          const idFlag = item.id.indexOf(this.batchSearchParams.id) > -1
+          if (nameFlag && idFlag) {
+            return true
+          }
+        })
       }
     },
     // 获取角色
@@ -253,6 +286,7 @@ export default {
           ..._,
           _checked: true
         }))
+        this.roleOriginTableData = deepClone(this.roleTableData)
         this.roleSelectionList = this.roleTableData
       }
     },
@@ -264,6 +298,7 @@ export default {
           ..._,
           _checked: true
         }))
+        this.flowOriginTableData = deepClone(this.flowTableData)
         this.flowSelectionList = this.flowTableData
       }
     },
@@ -275,6 +310,7 @@ export default {
           ..._,
           _checked: true
         }))
+        this.batchOriginTableData = deepClone(this.batchTableData)
         this.batchSelectionList = this.batchTableData
       }
     },
@@ -286,6 +322,7 @@ export default {
           ..._,
           _checked: true
         }))
+        this.itsmOriginTableData = deepClone(this.itsmTableData)
         this.itsmSelectionList = this.itsmTableData
       }
     }
