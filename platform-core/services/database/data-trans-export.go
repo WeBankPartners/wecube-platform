@@ -443,10 +443,14 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 						switch dataMap["PluginInterfaceNum"].(type) {
 						case int, int32, int64:
 							pluginInterfaceNum = dataMap["PluginInterfaceNum"].(int)
+						case float64, float32:
+							pluginInterfaceNum = int(dataMap["PluginInterfaceNum"].(float64))
 						}
 						switch dataMap["SystemVariableNum"].(type) {
 						case int, int32, int64:
 							systemVariableNum = dataMap["SystemVariableNum"].(int)
+						case float64, float32:
+							systemVariableNum = int(dataMap["SystemVariableNum"].(float64))
 						}
 						detail.Plugins = append(detail.Plugins, &models.PluginPackageCount{
 							Name:               fmt.Sprintf("%v", dataMap["PluginPackageName"]),
