@@ -530,7 +530,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		StartTime:     exportRoleStartTime,
 		Step:          step,
 		Input:         param.Roles,
-		Data:          param.Roles,
+		Data:          buildRoleResultData(param.Roles, queryRolesResponse.Data),
 	}
 	if err = execStepExport(exportRoleParam); err != nil {
 		return
@@ -748,6 +748,19 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	}
 	updateTransExportSuccess(ctx, param.TransExportId, uploadUrl)
 	return
+}
+
+func buildRoleResultData(roles []string, data []*models.SimpleLocalRoleDto) []*models.SimpleLocalRoleDto {
+	var result []*models.SimpleLocalRoleDto
+	for _, item := range data {
+		for _, role := range roles {
+			if item.Name == role {
+				result = append(result, item)
+				break
+			}
+		}
+	}
+	return result
 }
 
 // execStepExport 执行每步导出
