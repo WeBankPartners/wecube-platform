@@ -974,7 +974,7 @@ func exportMetricList(monitoryTypeMetricList, serviceGroupMetricList, endpointGr
 }
 
 func updateTransExportStatus(ctx context.Context, id string, status models.TransExportStatus) (err error) {
-	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_export set status=?,update_time=? where id=?", status, time.Now().Format(models.DateTimeFormat), id)
+	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_export set status=?,updated_time=? where id=?", status, time.Now().Format(models.DateTimeFormat), id)
 	return
 }
 
