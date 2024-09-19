@@ -105,6 +105,9 @@ func QueryCustomDashboard(id int, token string) (dashboard *CustomDashboardDto, 
 }
 
 func QueryCustomChartPermissionBatch(ids []string, token string) (roles []string, err error) {
+	if len(ids) == 0 {
+		return
+	}
 	var response ChartPermissionBatchResp
 	var responseBytes []byte
 	param := ChartPermissionBatchParam{Ids: ids}
