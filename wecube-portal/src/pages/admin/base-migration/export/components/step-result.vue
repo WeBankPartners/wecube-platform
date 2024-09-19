@@ -174,7 +174,7 @@
     <!--物料包-->
     <div class="item">
       <span class="title">
-        物料包：已选<span class="number">{{ detailData.artifactsData.length }}</span>
+        物料包：已选<span class="number">{{ detailData.artifactsCount }}</span>
       </span>
       <Row :gutter="10">
         <Col :span="12">
