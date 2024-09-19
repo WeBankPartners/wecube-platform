@@ -104,14 +104,20 @@ export default {
       if (status === 'OK') {
         this.detailData = {
           roleData: data.roles.data || [], // 用户角色
+          roleStatus: data.roles.status,
           flowData: data.workflows.data || [], // 编排
+          flowStatus: data.workflows.status,
           batchData: data.batchExecutions.data || [], // 批量执行
+          batchStatus: data.batchExecutions.status,
           itsmData: data.requestTemplates.data || [], // itsm流程
+          itsmStatus: data.requestTemplates.status,
           cmdbCIData: data.cmdbCI || [], // cmdb CI
           cmdbViewData: data.cmdbView || [], // cmdb视图
           cmdbReportData: data.cmdbReportForm || [], // cmdb报表
           artifactsData: data.artifacts || [], // 物料包
           monitorData: data.monitor || [], // 监控
+          cmdbReportFormCount: data.cmdbReportFormCount || 0,
+          cmdbViewCount: data.cmdbViewCount || 0,
           exportComponentLibrary: data.exportComponentLibrary, // 组件库
           ...data.transExport
         }
@@ -119,6 +125,7 @@ export default {
         this.detailData.associationTechProducts = this.detailData.associationTechProducts || []
         this.detailData.businessName = this.detailData.businessName || ''
         this.detailData.business = this.detailData.business || ''
+        this.detailData.cmdbCICount = this.detailData.cmdbCIData.reduce((sum, cur) => sum + cur.count, 0)
         // 成功或失败，取消轮询查状态
         if (['success', 'fail'].includes(this.detailData.status)) {
           clearInterval(this.interval)
@@ -233,7 +240,6 @@ export default {
     width: calc(100% - 260px);
     padding-left: 15px;
     overflow-y: auto;
-    padding-bottom: 60px;
     .footer {
       position: fixed;
       bottom: 10px;

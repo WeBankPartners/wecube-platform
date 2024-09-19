@@ -62,7 +62,10 @@
     </div>
     <!--角色列表-->
     <div class="item">
-      <span class="title">角色：已选<span class="number">{{ detailData.roleData.length }}</span></span>
+      <span class="title">
+        角色：已选<span class="number">{{ detailData.roleData.length }}</span>
+        <Alert v-if="detailData.roleStatus === 'fail'" type="error" show-icon>导出失败</Alert>
+      </span>
       <div>
         <Table :border="false" size="small" :columns="roleTableColumns" :max-height="400" :data="detailData.roleData">
         </Table>
@@ -70,7 +73,10 @@
     </div>
     <!--ITSM列表-->
     <div class="item">
-      <span class="title">ITSM流程：已选<span class="number">{{ detailData.itsmData.length }}</span></span>
+      <span class="title">
+        ITSM流程：已选<span class="number">{{ detailData.itsmData.length }}</span>
+        <Alert v-if="detailData.itsmStatus === 'fail'" type="error" show-icon>导出失败</Alert>
+      </span>
       <div style="margin: 10px 0">
         是否导出组件库：<i-switch disabled v-model="detailData.exportComponentLibrary"></i-switch>
       </div>
@@ -87,7 +93,10 @@
     </div>
     <!--编排列表-->
     <div class="item">
-      <span class="title">编排：已选<span class="number">{{ detailData.flowData.length }}</span></span>
+      <span class="title">
+        编排：已选<span class="number">{{ detailData.flowData.length }}</span>
+        <Alert v-if="detailData.flowStatus === 'fail'" type="error" show-icon>导出失败</Alert>
+      </span>
       <div>
         <!-- <BaseSearch
           :onlyShowReset="true"
@@ -101,7 +110,10 @@
     </div>
     <!--批量执行列表-->
     <div class="item">
-      <span class="title">批量执行：已选<span class="number">{{ detailData.batchData.length }}</span></span>
+      <span class="title">
+        批量执行：已选<span class="number">{{ detailData.batchData.length }}</span>
+        <Alert v-if="detailData.batchStatus === 'fail'" type="error" show-icon>导出失败</Alert>
+      </span>
       <div>
         <!-- <BaseSearch
           :onlyShowReset="true"
@@ -118,9 +130,9 @@
       <span class="title">
         CMDB：<span class="sub-title">
           已选
-          <span class="name">CI</span><span class="number">{{ detailData.cmdbCIData.length }}</span>
-          <span class="name">视图</span><span class="number">{{ detailData.cmdbViewData.length }}</span>
-          <span class="name">报表</span><span class="number">{{ detailData.cmdbReportData.length }}</span>
+          <span class="name">CI</span><span class="number">{{ detailData.cmdbCICount }}</span>
+          <span class="name">视图</span><span class="number">{{ detailData.cmdbViewCount }}</span>
+          <span class="name">报表</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
         </span>
       </span>
       <Row :gutter="10">
@@ -130,7 +142,7 @@
               :border="false"
               size="small"
               :columns="cmdbCIColumns"
-              :max-height="360"
+              :max-height="400"
               :data="detailData.cmdbCIData"
             />
           </Card>
@@ -141,7 +153,7 @@
               :border="false"
               size="small"
               :columns="cmdbViewColumns"
-              :max-height="360"
+              :max-height="400"
               :data="detailData.cmdbViewData"
             />
           </Card>
@@ -152,7 +164,7 @@
               :border="false"
               size="small"
               :columns="cmdbReportColumns"
-              :max-height="360"
+              :max-height="400"
               :data="detailData.cmdbReportData"
             />
           </Card>
@@ -171,7 +183,7 @@
               :border="false"
               size="small"
               :columns="artifactsColumns"
-              :max-height="360"
+              :max-height="400"
               :data="detailData.artifactsData"
             />
           </Card>
@@ -194,7 +206,28 @@
               :border="false"
               size="small"
               :columns="monitorColumns"
-              :max-height="360"
+              :max-height="400"
+              :data="detailData.monitorData"
+            />
+          </Card>
+        </Col>
+      </Row>
+    </div>
+    <!--插件服务-->
+    <div class="item">
+      <span class="title">
+        插件服务：<span class="sub-title">
+          已选配置类型<span class="number">{{ 10 }}</span>
+        </span>
+      </span>
+      <Row :gutter="10">
+        <Col :span="12">
+          <Card>
+            <Table
+              :border="false"
+              size="small"
+              :columns="pluginColumns"
+              :max-height="400"
               :data="detailData.monitorData"
             />
           </Card>
