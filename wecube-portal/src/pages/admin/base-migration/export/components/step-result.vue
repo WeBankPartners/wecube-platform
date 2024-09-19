@@ -1,7 +1,7 @@
 <template>
   <div class="export-step-data">
     <div class="export-message">
-      <Alert v-if="detailData.status === 'doing'" type="warning" show-icon>
+      <Alert v-if="detailData.status === 'doing'" type="info" show-icon>
         <template #desc> 正在导出内容，请稍后... </template>
       </Alert>
       <Alert v-else-if="detailData.status === 'fail'" type="error" show-icon>
@@ -64,7 +64,8 @@
     <div class="item">
       <span class="title">
         角色：已选<span class="number">{{ detailData.roleData.length }}</span>
-        <Alert v-if="detailData.roleStatus === 'fail'" type="error" show-icon>导出失败</Alert>
+        <Alert v-if="detailData.roleStatus === 'fail'" type="error" show-icon>导出失败<template #desc>{{ detailData.roleErrMsg }}</template></Alert>
+        <Alert v-if="detailData.roleStatus === 'success'" type="success" show-icon>导出成功</Alert>
       </span>
       <div>
         <Table :border="false" size="small" :columns="roleTableColumns" :max-height="400" :data="detailData.roleData">
@@ -75,7 +76,8 @@
     <div class="item">
       <span class="title">
         ITSM流程：已选<span class="number">{{ detailData.itsmData.length }}</span>
-        <Alert v-if="detailData.itsmStatus === 'fail'" type="error" show-icon>导出失败</Alert>
+        <Alert v-if="detailData.itsmStatus === 'fail'" type="error" show-icon>导出失败<template #desc>{{ detailData.itsmErrMsg }}</template></Alert>
+        <Alert v-if="detailData.itsmStatus === 'success'" type="success" show-icon>导出成功</Alert>
       </span>
       <div style="margin: 10px 0">
         是否导出组件库：<i-switch disabled v-model="detailData.exportComponentLibrary"></i-switch>
@@ -95,7 +97,8 @@
     <div class="item">
       <span class="title">
         编排：已选<span class="number">{{ detailData.flowData.length }}</span>
-        <Alert v-if="detailData.flowStatus === 'fail'" type="error" show-icon>导出失败</Alert>
+        <Alert v-if="detailData.flowStatus === 'fail'" type="error" show-icon>导出失败<template #desc>{{ detailData.flowErrMsg }}</template></Alert>
+        <Alert v-if="detailData.flowStatus === 'success'" type="success" show-icon>导出成功</Alert>
       </span>
       <div>
         <!-- <BaseSearch
@@ -112,7 +115,8 @@
     <div class="item">
       <span class="title">
         批量执行：已选<span class="number">{{ detailData.batchData.length }}</span>
-        <Alert v-if="detailData.batchStatus === 'fail'" type="error" show-icon>导出失败</Alert>
+        <Alert v-if="detailData.batchStatus === 'fail'" type="error" show-icon>导出失败<template #desc>{{ detailData.batchErrMsg }}</template></Alert>
+        <Alert v-if="detailData.batchStatus === 'success'" type="success" show-icon>导出成功</Alert>
       </span>
       <div>
         <!-- <BaseSearch
@@ -129,10 +133,7 @@
     <div class="item">
       <span class="title">
         CMDB：<span class="sub-title">
-          已选
-          <span class="name">CI</span><span class="number">{{ detailData.cmdbCICount }}</span>
-          <span class="name">视图</span><span class="number">{{ detailData.cmdbViewCount }}</span>
-          <span class="name">报表</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
+          已选CI<span class="number">{{ detailData.cmdbCICount }}</span> <span class="name">视图</span><span class="number">{{ detailData.cmdbViewCount }}</span> <span class="name">报表</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
         </span>
       </span>
       <Row :gutter="10">
@@ -215,7 +216,7 @@
     <div class="item">
       <span class="title">
         插件服务：<span class="sub-title">
-          已选配置类型<span class="number">{{ 10 }}</span>
+          已选配置类型<span class="number">{{ detailData.pluginsData.length }}</span>
         </span>
       </span>
       <Row :gutter="10">
@@ -318,6 +319,7 @@ export default {
         margin-left: 16px;
         .number {
           font-size: 18px;
+          font-weight: bold;
           color: #2d8cf0;
           margin-left: 6px;
         }
