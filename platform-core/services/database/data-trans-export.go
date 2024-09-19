@@ -19,15 +19,16 @@ import (
 
 // transExportDetailMap 导出map
 var transExportDetailMap = map[models.TransExportStep]string{
-	models.TransExportStepRole:             "role",
-	models.TransExportStepWorkflow:         "workflow",
-	models.TransExportStepComponentLibrary: "componentLibrary",
-	models.TransExportStepBatchExecution:   "batchExecution",
-	models.TransExportStepRequestTemplate:  "requestTemplate",
-	models.TransExportStepCmdb:             "wecmdb",
-	models.TransExportStepArtifacts:        "artifacts",
-	models.TransExportStepMonitor:          "monitor",
-	models.TransExportStepPluginConfig:     "pluginConfig",
+	models.TransExportStepRole:                "role",
+	models.TransExportStepWorkflow:            "workflow",
+	models.TransExportStepComponentLibrary:    "componentLibrary",
+	models.TransExportStepBatchExecution:      "batchExecution",
+	models.TransExportStepRequestTemplate:     "requestTemplate",
+	models.TransExportStepCmdb:                "wecmdb",
+	models.TransExportStepArtifacts:           "artifacts",
+	models.TransExportStepMonitor:             "monitor",
+	models.TransExportStepPluginConfig:        "pluginConfig",
+	models.TransExportStepCreateAndUploadFile: "createAndUploadFile",
 }
 
 const (
@@ -86,6 +87,7 @@ func UpdateExport(c context.Context, param models.UpdateExportParam, operator st
 		BusinessName:    strings.Join(param.PNames, ","),
 		Status:          string(models.TransExportStatusStart),
 		UpdatedUser:     operator,
+		UpdatedTime:     time.Now().Format(models.DateTimeFormat),
 	}
 	// 更新导出记录
 	if addTransExportActions = getUpdateTransExport(transExport); len(addTransExportActions) > 0 {
@@ -350,21 +352,24 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			Ids:    tempArr,
 			Status: transExportDetail.Status,
 			Output: data,
+			ErrMsg: transExportDetail.ErrorMsg,
 		}
-		switch transExportDetail.Step {
-		case int(models.TransExportStepRole):
+		switch models.TransExportStep(transExportDetail.Step) {
+		case models.TransExportStepRole:
 			detail.Roles = output
-		case int(models.TransExportStepRequestTemplate):
+		case models.TransExportStepRequestTemplate:
 			detail.RequestTemplates = output
-		case int(models.TransExportStepComponentLibrary):
+		case models.TransExportStepComponentLibrary:
 			detail.ComponentLibrary = output
 			if transExportDetail.Status != string(models.TransExportStatusNotStart) {
 				detail.ExportComponentLibrary = true
 			}
-		case int(models.TransExportStepWorkflow):
+		case models.TransExportStepWorkflow:
 			detail.Workflows = output
-		case int(models.TransExportStepBatchExecution):
+		case models.TransExportStepBatchExecution:
 			detail.BatchExecution = output
+		case models.TransExportStepCreateAndUploadFile:
+			detail.CreateAndUploadFile = output
 		}
 	}
 	// 查询CMDB CI信息
@@ -515,7 +520,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		StartTime:     exportRoleStartTime,
 		Step:          step,
 		Input:         param.Roles,
-		Data:          queryRolesResponse.Data,
+		Data:          param.Roles,
 	}
 	if err = execStepExport(exportRoleParam); err != nil {
 		return
@@ -673,7 +678,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	}
 	updateTransExportDetail(ctx, transExportCmdbDataDetail)
 
-	// 8. 导出监控
+	// 9. 导出监控
 	step = models.TransExportStepMonitor
 	exportMonitorStartTime := time.Now().Format(models.DateTimeFormat)
 	if err = exportMonitor(ctx, param.TransExportId, path, userToken, param.ExportDashboardMap); err != nil {
@@ -688,7 +693,8 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	}
 	updateTransExportDetail(ctx, transExportMonitorDetail)
 
-	// 9. json文件压缩并上传nexus
+	// 10. json文件压缩并上传nexus
+	step = models.TransExportStepCreateAndUploadFile
 	if transDataVariableConfig, err = getDataTransVariableMap(ctx); err != nil {
 		return
 	}
@@ -714,6 +720,14 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		log.Logger.Error("CreateZipCompress error", log.Error(err))
 		return
 	}
+	transExportCreateAndUploadFile := models.TransExportDetailTable{
+		TransExport: &param.TransExportId,
+		Step:        int(step),
+		StartTime:   exportMonitorStartTime,
+		Status:      string(models.TransExportStatusSuccess),
+		EndTime:     time.Now().Format(models.DateTimeFormat),
+	}
+	updateTransExportDetail(ctx, transExportCreateAndUploadFile)
 	var result []*tools.NexusUploadFileRet
 	if result, err = tools.UploadFile(uploadReqParam); err != nil {
 		return
@@ -738,11 +752,15 @@ func execStepExport(param models.StepExportParam) (err error) {
 	}
 	if param.Input != nil {
 		inputByteArr, _ := json.Marshal(param.Input)
-		transExportDetail.Input = string(inputByteArr)
+		if string(inputByteArr) != "null" {
+			transExportDetail.Input = string(inputByteArr)
+		}
 	}
 	if param.Data != nil {
 		outputByteArr, _ := json.Marshal(param.Data)
-		transExportDetail.Output = string(outputByteArr)
+		if string(outputByteArr) != "null" {
+			transExportDetail.Output = string(outputByteArr)
+		}
 	}
 	if err = tools.WriteJsonData2File(getExportJsonFile(param.Path, transExportDetailMap[param.Step]), param.Data); err != nil {
 		log.Logger.Error("WriteJsonData2File error", log.String("name", transExportDetailMap[param.Step]), log.Error(err))
