@@ -112,15 +112,16 @@ const (
 type TransExportStep int
 
 const (
-	TransExportStepRole             TransExportStep = 1 // 导出角色
-	TransExportStepRequestTemplate  TransExportStep = 2 // 导出请求模版
-	TransExportStepComponentLibrary TransExportStep = 3 // 导出表单组件库
-	TransExportStepWorkflow         TransExportStep = 4 // 导出编排
-	TransExportStepBatchExecution   TransExportStep = 5 // 导出批量执行
-	TransExportStepPluginConfig     TransExportStep = 6 // 导出插件配置
-	TransExportStepCmdb             TransExportStep = 7 // 导出CMDB
-	TransExportStepArtifacts        TransExportStep = 8 // 导出物料包
-	TransExportStepMonitor          TransExportStep = 9 // 导出监控
+	TransExportStepRole                TransExportStep = 1  // 导出角色
+	TransExportStepRequestTemplate     TransExportStep = 2  // 导出请求模版
+	TransExportStepComponentLibrary    TransExportStep = 3  // 导出表单组件库
+	TransExportStepWorkflow            TransExportStep = 4  // 导出编排
+	TransExportStepBatchExecution      TransExportStep = 5  // 导出批量执行
+	TransExportStepPluginConfig        TransExportStep = 6  // 导出插件配置
+	TransExportStepCmdb                TransExportStep = 7  // 导出CMDB
+	TransExportStepArtifacts           TransExportStep = 8  // 导出物料包
+	TransExportStepMonitor             TransExportStep = 9  // 导出监控
+	TransExportStepCreateAndUploadFile TransExportStep = 10 // 生成文件上传
 )
 
 // TransExportAnalyzeSource 分析来源
