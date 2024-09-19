@@ -116,6 +116,7 @@ export default {
           cmdbReportData: data.cmdbReportForm || [], // cmdb报表
           artifactsData: data.artifacts || [], // 物料包
           monitorData: data.monitor || [], // 监控
+          pluginsData: data.plugins || [], // 插件
           cmdbReportFormCount: data.cmdbReportFormCount || 0,
           cmdbViewCount: data.cmdbViewCount || 0,
           exportComponentLibrary: data.exportComponentLibrary, // 组件库
@@ -126,6 +127,7 @@ export default {
         this.detailData.businessName = this.detailData.businessName || ''
         this.detailData.business = this.detailData.business || ''
         this.detailData.cmdbCICount = this.detailData.cmdbCIData.reduce((sum, cur) => sum + cur.count, 0)
+        this.detailData.monitorCount = this.detailData.monitorData.reduce((sum, cur) => sum + cur.count, 0)
         // 成功或失败，取消轮询查状态
         if (['success', 'fail'].includes(this.detailData.status)) {
           clearInterval(this.interval)
@@ -202,7 +204,7 @@ export default {
         // 定时查询导出状态
         this.interval = setInterval(() => {
           this.getDetailData()
-        }, 30 * 1000)
+        }, 10 * 1000)
       }
     }, 500),
     // 跳转到历史列表
@@ -247,6 +249,18 @@ export default {
       justify-content: center;
       width: calc(100% - 460px);
     }
+  }
+  ::-webkit-scrollbar {
+      width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+  }
+  ::-webkit-scrollbar-thumb {
+      background: #888;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+      background: #555;
   }
 }
 </style>
