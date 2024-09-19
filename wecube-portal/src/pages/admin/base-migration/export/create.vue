@@ -251,16 +251,16 @@ export default {
     }
   }
   ::-webkit-scrollbar {
-      width: 10px;
+    width: 10px;
   }
   ::-webkit-scrollbar-track {
-      background: #f1f1f1;
+    background: #f1f1f1;
   }
   ::-webkit-scrollbar-thumb {
-      background: #888;
+    background: #888;
   }
   ::-webkit-scrollbar-thumb:hover {
-      background: #555;
+    background: #555;
   }
 }
 </style>
