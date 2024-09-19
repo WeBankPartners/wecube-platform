@@ -114,7 +114,7 @@
           :columns="batchTableColumns"
           :max-height="400"
           :data="batchTableData"
-          @on-selection-change="selection => handleSelectChange('execution', selection)"
+          @on-selection-change="selection => handleSelectChange('batch', selection)"
         >
         </Table>
       </div>
@@ -123,10 +123,10 @@
     <div class="item">
       <span class="title">
         CMDB：<span class="sub-title">
-          已选 CI<span class="number">{{ detailData.cmdbCIData && detailData.cmdbCIData.length }}</span> / 视图<span
-            class="number"
-          >{{ detailData.cmdbViewData && detailData.cmdbViewData.length }}</span>
-          / 报表<span class="number">{{ detailData.cmdbReportData && detailData.cmdbReportData.length }}</span>
+          已选
+          <span class="name">CI</span><span class="number">{{ detailData.cmdbCICount }}</span>
+          <span class="name">视图</span><span class="number">{{ detailData.cmdbViewCount }}</span>
+          <span class="name">报表</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
         </span>
       </span>
       <Row :gutter="10">
@@ -146,7 +146,7 @@
             <Table
               :border="false"
               size="small"
-              :columns="cmdbCIColumns"
+              :columns="cmdbViewColumns"
               :max-height="400"
               :data="detailData.cmdbViewData"
             />
@@ -157,7 +157,7 @@
             <Table
               :border="false"
               size="small"
-              :columns="cmdbCIColumns"
+              :columns="cmdbReportColumns"
               :max-height="400"
               :data="detailData.cmdbReportData"
             />
@@ -168,7 +168,7 @@
     <!--物料包-->
     <div class="item">
       <span class="title">
-        物料包：已选<span class="number">{{ detailData.artifactsData && detailData.artifactsData.length }}</span>
+        物料包：已选<span class="number">{{ detailData.artifactsData.length }}</span>
       </span>
       <Row :gutter="10">
         <Col :span="12">
@@ -187,10 +187,9 @@
     <!--监控-->
     <div class="item">
       <span class="title">
-        监控配置：<span class="sub-title">
-          已选配置类型<span class="number">{{ detailData.monitorData.length }}</span> 总条数<span class="number">{{
-            10
-          }}</span>
+        监控配置：<span class="sub-title">已选
+        <span class="name">配置类型</span><span class="number">{{ detailData.monitorData.length }}</span>
+        <span class="name">总条数</span><span class="number">{{ detailData.monitorCount }}</span>
         </span>
       </span>
       <Row :gutter="10">
@@ -222,7 +221,7 @@
               size="small"
               :columns="pluginColumns"
               :max-height="400"
-              :data="detailData.monitorData"
+              :data="detailData.pluginsData"
             />
           </Card>
         </Col>
@@ -270,10 +269,10 @@ export default {
         this.itsmSelectionList = selection
       }
       else if (type === 'flow') {
-        this.flowOriginTableData = selection
+        this.flowSelectionList = selection
       }
       else if (type === 'batch') {
-        this.batchOriginTableData = selection
+        this.batchSelectionList = selection
       }
     },
     // 表格搜索
@@ -401,7 +400,10 @@ export default {
         display: flex;
         flex-direction: column;
         width: 220px;
-        margin-right: 10px;
+        margin-right: 20px;
+        span {
+          margin-bottom: 2px;
+        }
       }
     }
   }
