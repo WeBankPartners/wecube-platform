@@ -404,7 +404,10 @@ func getInsertTransExport(transExport models.TransExportTable) (actions []*db.Ex
 }
 
 func getUpdateTransExport(transExport models.TransExportTable) (actions []*db.ExecAction) {
-
+	actions = []*db.ExecAction{}
+	actions = append(actions, &db.ExecAction{Sql: "update trans_export set business=?,business_name=?,environment=?,environment_name=?,updated_user=?,updated_time=? where id=? ", Param: []interface{}{
+		transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.UpdatedUser, transExport.UpdatedTime, transExport.Id,
+	}})
 	return
 }
 
