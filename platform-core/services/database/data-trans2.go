@@ -617,73 +617,128 @@ func execStepExport(param models.StepExportParam) (err error) {
 // exportMonitor 导出监控
 func exportMonitor(ctx context.Context, transExportId, path, token string) (err error) {
 	var analyzeList []*models.TransExportAnalyzeDataTable
-	var analyzeMap = make(map[string]*models.TransExportAnalyzeDataTable)
-	var monitorTypeList, endpointGroupList, monitoryTypeMetricList, serviceGroupMetricList, endpointGroupMetricList []string
+	var exportDataKeyList []string
+	var finalExportDataList []interface{}
+	var filePathList, monitoryTypeMetricList, serviceGroupMetricList, endpointGroupMetricList []string
 	var allMonitorEndpointGroupList, exportMonitorEndpointGroupList []*monitor.EndpointGroupTable
+	var responseBytes []byte
 	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_analyze_data where trans_export=? and source=?",
 		transExportId, models.TransExportAnalyzeSourceMonitor).Find(&analyzeList)
 	if err != nil {
 		return
 	}
-	analyzeMap = convertTransExportAnalyzeDataList2Map(analyzeList)
-	// 1. 导出基础类型
-	if v, ok := analyzeMap[string(models.TransExportAnalyzeMonitorDataTypeMonitorType)]; ok {
-		if err = json.Unmarshal([]byte(v.Data), &monitorTypeList); err != nil {
-			log.Logger.Error("monitorType json Unmarshal err", log.Error(err))
+	for _, monitorAnalyzeData := range analyzeList {
+		filePathList = []string{}
+		finalExportDataList = []interface{}{}
+		if strings.TrimSpace(monitorAnalyzeData.Data) == "" {
+			log.Logger.Info("analyze monitor data empty")
+			continue
+		}
+		if err = json.Unmarshal([]byte(monitorAnalyzeData.Data), &exportDataKeyList); err != nil {
+			log.Logger.Error("monitor json Unmarshal err", log.Error(err))
 			return
 		}
-		filePath := fmt.Sprintf("%s/%s.json", path, models.TransExportAnalyzeMonitorDataTypeMonitorType)
-		if len(monitorTypeList) > 0 {
-			if err = tools.WriteJsonData2File(filePath, monitorTypeList); err != nil {
-				log.Logger.Error("WriteJsonData2File error", log.String("name", string(models.TransExportAnalyzeMonitorDataTypeMonitorType)), log.Error(err))
-				return
-			}
+		if len(exportDataKeyList) == 0 {
+			log.Logger.Info("analyze monitor data empty")
+			continue
 		}
-	}
-	// 2. 导出对象组
-	if v, ok := analyzeMap[string(models.TransExportAnalyzeMonitorDataTypeEndpointGroup)]; ok {
-		if err = json.Unmarshal([]byte(v.Data), &endpointGroupList); err != nil {
-			log.Logger.Error("endpointGroupList json Unmarshal err", log.Error(err))
-			return
-		}
-		if len(endpointGroupList) > 0 {
+		switch models.TransExportAnalyzeMonitorDataType(monitorAnalyzeData.DataType) {
+		case models.TransExportAnalyzeMonitorDataTypeMonitorType:
+			// 导出基础类型
+			filePathList = []string{fmt.Sprintf("%s/%s.json", path, monitorAnalyzeData.DataType)}
+			finalExportDataList = []interface{}{exportDataKeyList}
+		case models.TransExportAnalyzeMonitorDataTypeEndpointGroup:
+			// 导出对象组
+			filePathList = []string{fmt.Sprintf("%s/%s.json", path, monitorAnalyzeData.DataType)}
 			if allMonitorEndpointGroupList, err = monitor.GetMonitorEndpointGroup(token); err != nil {
 				log.Logger.Error("GetMonitorEndpointGroup  err", log.Error(err))
 				return
 			}
 			for _, endpointGroupObj := range allMonitorEndpointGroupList {
-				for _, eg := range endpointGroupList {
+				for _, eg := range exportDataKeyList {
 					if endpointGroupObj.DisplayName == eg {
 						exportMonitorEndpointGroupList = append(exportMonitorEndpointGroupList, endpointGroupObj)
 					}
 				}
 			}
+			finalExportDataList = []interface{}{exportMonitorEndpointGroupList}
+		case models.TransExportAnalyzeMonitorDataTypeLogMonitorServiceGroup:
+			// 导出指标的业务配置
+			for i, serviceGroup := range exportDataKeyList {
+				if responseBytes, err = monitor.ExportLogMetric(serviceGroup, token); err != nil {
+					log.Logger.Error("ExportLogMetric err", log.JsonObj("serviceGroup", serviceGroup), log.Error(err))
+					return
+				}
+				if string(responseBytes) != "" {
+					var temp interface{}
+					json.Unmarshal(responseBytes, &temp)
+					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", path, models.TransExportAnalyzeMonitorDataTypeLogMonitorServiceGroup, i+1))
+					finalExportDataList = append(finalExportDataList, temp)
+				}
+			}
+		case models.TransExportAnalyzeMonitorDataTypeLogMonitorTemplate:
+			// 导出业务日志模版
+			if responseBytes, err = monitor.ExportLogMonitorTemplate(exportDataKeyList, token); err != nil {
+				log.Logger.Error("ExportLogMonitorTemplate err", log.StringList("LogMonitorTemplates", exportDataKeyList), log.Error(err))
+				return
+			}
+			if string(responseBytes) != "" {
+				var temp interface{}
+				json.Unmarshal(responseBytes, &temp)
+				filePathList = []string{fmt.Sprintf("%s/%s.json", path, models.TransExportAnalyzeMonitorDataTypeLogMonitorTemplate)}
+				finalExportDataList = []interface{}{temp}
+			}
+		case models.TransExportAnalyzeMonitorDataTypeStrategyServiceGroup:
+			// 导出指标阈值,层级对象
+			for i, key := range exportDataKeyList {
+				if responseBytes, err = monitor.ExportAlarmStrategy("service", key, token); err != nil {
+					log.Logger.Error("ExportAlarmStrategy err", log.JsonObj("service", key), log.Error(err))
+					return
+				}
+				if string(responseBytes) != "" {
+					var temp interface{}
+					json.Unmarshal(responseBytes, &temp)
+					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", path, models.TransExportAnalyzeMonitorDataTypeStrategyServiceGroup, i+1))
+					finalExportDataList = append(finalExportDataList, temp)
+				}
+			}
+		case models.TransExportAnalyzeMonitorDataTypeStrategyEndpointGroup:
+			// 导出指标阈值,组
+			for i, key := range exportDataKeyList {
+				if responseBytes, err = monitor.ExportAlarmStrategy("group", key, token); err != nil {
+					log.Logger.Error("ExportAlarmStrategy err", log.JsonObj("group", key), log.Error(err))
+					return
+				}
+				if string(responseBytes) != "" {
+					var temp interface{}
+					json.Unmarshal(responseBytes, &temp)
+					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", path, models.TransExportAnalyzeMonitorDataTypeStrategyEndpointGroup, i+1))
+					finalExportDataList = append(finalExportDataList, temp)
+				}
+			}
+		case models.TransExportAnalyzeMonitorDataTypeLogKeywordServiceGroup:
+			// 导出关键字
+		case models.TransExportAnalyzeMonitorDataTypeDashboard:
+			// 导出看板
+		case models.TransExportAnalyzeMonitorDataTypeCustomMetricMonitorType:
+			// 导出指标列表基础类型
+			monitoryTypeMetricList = exportDataKeyList
+		case models.TransExportAnalyzeMonitorDataTypeCustomMetricServiceGroup:
+			// 导出指标列表层级对象
+			serviceGroupMetricList = exportDataKeyList
+		case models.TransExportAnalyzeMonitorDataTypeCustomMetricEndpointGroup:
+			// 导出指标列表对象组
+			endpointGroupMetricList = exportDataKeyList
+		default:
 		}
-		filePath := fmt.Sprintf("%s/%s.json", path, models.TransExportAnalyzeMonitorDataTypeEndpointGroup)
-		if err = tools.WriteJsonData2File(filePath, exportMonitorEndpointGroupList); err != nil {
-			log.Logger.Error("WriteJsonData2File error", log.String("name", string(models.TransExportAnalyzeMonitorDataTypeEndpointGroup)), log.Error(err))
-			return
+		for i, filePath := range filePathList {
+			if err = tools.WriteJsonData2File(filePath, finalExportDataList[i]); err != nil {
+				log.Logger.Error("WriteJsonData2File error", log.String("dataType", monitorAnalyzeData.DataType), log.Error(err))
+				return
+			}
 		}
 	}
-	// 3.导出指标配置(包括基础指标、层级对象、对象组指标列表)&同环比指标也需要导出
-	if v, ok := analyzeMap[string(models.TransExportAnalyzeMonitorDataTypeCustomMetricMonitorType)]; ok {
-		if err = json.Unmarshal([]byte(v.Data), &monitoryTypeMetricList); err != nil {
-			log.Logger.Error("monitoryTypeMetricList json Unmarshal err", log.Error(err))
-			return
-		}
-	}
-	if v, ok := analyzeMap[string(models.TransExportAnalyzeMonitorDataTypeCustomMetricServiceGroup)]; ok {
-		if err = json.Unmarshal([]byte(v.Data), &serviceGroupMetricList); err != nil {
-			log.Logger.Error("serviceGroupMetricList json Unmarshal err", log.Error(err))
-			return
-		}
-	}
-	if v, ok := analyzeMap[string(models.TransExportAnalyzeMonitorDataTypeCustomMetricEndpointGroup)]; ok {
-		if err = json.Unmarshal([]byte(v.Data), &endpointGroupMetricList); err != nil {
-			log.Logger.Error("serviceGroupMetricList json Unmarshal err", log.Error(err))
-			return
-		}
-	}
+	// 导出指标配置(包括基础指标、层级对象、对象组指标列表)&同环比指标也需要导出
 	if err = exportMetricList(monitoryTypeMetricList, serviceGroupMetricList, endpointGroupMetricList, path, token); err != nil {
 		return
 	}
@@ -837,12 +892,4 @@ func contains(arr []string, val string) bool {
 		elementMap[s] = true
 	}
 	return elementMap[val]
-}
-
-func convertTransExportAnalyzeDataList2Map(analyzeList []*models.TransExportAnalyzeDataTable) map[string]*models.TransExportAnalyzeDataTable {
-	var analyzeMap = make(map[string]*models.TransExportAnalyzeDataTable, 0)
-	for _, analyzeData := range analyzeList {
-		analyzeMap[analyzeData.DataType] = analyzeData
-	}
-	return analyzeMap
 }
