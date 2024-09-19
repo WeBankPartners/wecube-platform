@@ -292,6 +292,7 @@ type TransExportDetail struct {
 	ExportComponentLibrary bool                          `json:"exportComponentLibrary"` // 是否导出组件库
 	Monitor                []*CommonNameCount            `json:"monitor"`
 	Plugins                []*PluginPackageCount         `json:"plugins"`
+	CreateAndUploadFile    *CommonOutput                 `json:"createAndUploadFile"`
 }
 
 type CommonNameCount struct {
@@ -319,6 +320,7 @@ type CommonOutput struct {
 	Ids    []string    `json:"ids"`
 	Status string      `json:"status"`
 	Output interface{} `json:"data"`
+	ErrMsg string      `json:"errMsg"`
 }
 
 type AnalyzeTransParam struct {
