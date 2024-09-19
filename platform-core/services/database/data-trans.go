@@ -860,7 +860,7 @@ func AnalyzePluginConfigDataExport(ctx context.Context, transExportId string) (a
 	var pluginPackageIdList, variableSourceList []string
 	for _, row := range pluginPackageRows {
 		tmpSource := fmt.Sprintf("%s__%s", row.Name, row.Version)
-		tmpAnalyzeData := models.DataTransPluginExportData{PluginPackageId: row.Id, Source: tmpSource}
+		tmpAnalyzeData := models.DataTransPluginExportData{PluginPackageId: row.Id, Source: tmpSource, PluginPackageName: row.Name}
 		analyzeData = append(analyzeData, &tmpAnalyzeData)
 		pluginPackageIdList = append(pluginPackageIdList, row.Id)
 		variableSourceList = append(variableSourceList, tmpSource)
@@ -882,7 +882,7 @@ func AnalyzePluginConfigDataExport(ctx context.Context, transExportId string) (a
 	}
 	var variableQueryRows []*models.DataTransPluginExportData
 	sourceFilterSql, sourceFilterParam := db.CreateListParams(variableSourceList, "")
-	err = db.MysqlEngine.Context(ctx).SQL("select source,count(1) as system_variable_num from system_variables where source in ('"+sourceFilterSql+"') group by source", sourceFilterParam...).Find(&variableQueryRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select source,count(1) as system_variable_num from system_variables where source in ("+sourceFilterSql+") group by source", sourceFilterParam...).Find(&variableQueryRows)
 	if err != nil {
 		err = fmt.Errorf("query plugin system variable table fail,%s ", err.Error())
 		return
