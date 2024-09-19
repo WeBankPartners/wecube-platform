@@ -60,6 +60,12 @@ func CreateExport2(c context.Context, param models.CreateExportParam, operator s
 		Business:      param.PIds,
 		Env:           param.Env,
 	}
+	pluginExportActions, analyzePluginErr := AnalyzePluginConfigDataExport(c, transExportId)
+	if analyzePluginErr != nil {
+		err = analyzePluginErr
+		return
+	}
+	actions = append(actions, pluginExportActions...)
 	if analyzeDataActions, err = AnalyzeCMDBDataExport(c, dataTransParam); err != nil {
 		return
 	}
