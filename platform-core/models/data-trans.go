@@ -135,6 +135,7 @@ type TransDataVariableConfig struct {
 	ArtifactPackageCiType      string   `json:"artifactPackageCiType"`
 	ArtifactCiSystem           string   `json:"artifactCiSystem"`
 	ArtifactCiTechProduct      string   `json:"ArtifactCiTechProduct"`
+	ArtifactUnitDesignColumn   string   `json:"artifactUnitDesignColumn"`
 }
 
 type CiTypeData struct {
@@ -375,4 +376,11 @@ type DataTransPluginExportData struct {
 	PluginInterfaceNum int    `json:"PluginInterfaceNum" xorm:"plugin_interface_num"`
 	SystemVariableNum  int    `json:"SystemVariableNum" xorm:"system_variable_num"`
 	Source             string `json:"Source" json:"source"`
+}
+
+type AnalyzeArtifactDisplayData struct {
+	UnitDesign     string              `json:"unitDesign"`
+	UnitDesignName string              `json:"unitDesignName"`
+	ArtifactRows   []map[string]string `json:"artifactRows"`
+	ArtifactLen    int                 `json:"artifactLen"`
 }
