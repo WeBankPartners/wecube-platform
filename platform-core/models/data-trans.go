@@ -277,21 +277,21 @@ type RequestTemplateDto struct {
 }
 
 type TransExportDetail struct {
-	TransExport            *TransExportTable     `json:"transExport"`
-	CmdbCI                 []*CommonNameCount    `json:"cmdbCI"`
-	CmdbView               []*CommonNameCreator  `json:"cmdbView"`
-	CmdbViewCount          int                   `json:"cmdbViewCount"`
-	CmdbReportForm         []*CommonNameCreator  `json:"cmdbReportForm"`
-	CmdbReportFormCount    int                   `json:"cmdbReportFormCount"`
-	Artifacts              []string              `json:"artifacts"`
-	Roles                  *CommonOutput         `json:"roles"`
-	Workflows              *CommonOutput         `json:"workflows"`
-	BatchExecution         *CommonOutput         `json:"batchExecutions"`
-	RequestTemplates       *CommonOutput         `json:"requestTemplates"`
-	ComponentLibrary       *CommonOutput         `json:"componentLibrary"`
-	ExportComponentLibrary bool                  `json:"exportComponentLibrary"` // 是否导出组件库
-	Monitor                []*CommonNameCount    `json:"monitor"`
-	Plugins                []*PluginPackageCount `json:"plugins"`
+	TransExport            *TransExportTable             `json:"transExport"`
+	CmdbCI                 []*CommonNameCount            `json:"cmdbCI"`
+	CmdbView               []*CommonNameCreator          `json:"cmdbView"`
+	CmdbViewCount          int                           `json:"cmdbViewCount"`
+	CmdbReportForm         []*CommonNameCreator          `json:"cmdbReportForm"`
+	CmdbReportFormCount    int                           `json:"cmdbReportFormCount"`
+	Artifacts              []*AnalyzeArtifactDisplayData `json:"artifacts"`
+	Roles                  *CommonOutput                 `json:"roles"`
+	Workflows              *CommonOutput                 `json:"workflows"`
+	BatchExecution         *CommonOutput                 `json:"batchExecutions"`
+	RequestTemplates       *CommonOutput                 `json:"requestTemplates"`
+	ComponentLibrary       *CommonOutput                 `json:"componentLibrary"`
+	ExportComponentLibrary bool                          `json:"exportComponentLibrary"` // 是否导出组件库
+	Monitor                []*CommonNameCount            `json:"monitor"`
+	Plugins                []*PluginPackageCount         `json:"plugins"`
 }
 
 type CommonNameCount struct {
