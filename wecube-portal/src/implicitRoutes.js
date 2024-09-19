@@ -137,7 +137,7 @@ export default {
     },
     parentBreadcrumb: {
       'en-US': 'Base Migration',
-      'zh-CN': '底座迁移'
+      'zh-CN': '一键迁移'
     }
   },
   'admin/base-migration/export-history': {
@@ -147,7 +147,7 @@ export default {
     },
     parentBreadcrumb: {
       'en-US': 'Base Migration',
-      'zh-CN': '底座迁移'
+      'zh-CN': '一键迁移'
     }
   },
   'admin/base-migration/import': {
@@ -157,7 +157,7 @@ export default {
     },
     parentBreadcrumb: {
       'en-US': 'Base Migration',
-      'zh-CN': '底座迁移'
+      'zh-CN': '一键迁移'
     }
   },
   'admin/base-migration/import-history': {
@@ -167,7 +167,7 @@ export default {
     },
     parentBreadcrumb: {
       'en-US': 'Base Migration',
-      'zh-CN': '底座迁移'
+      'zh-CN': '一键迁移'
     }
   }
 }

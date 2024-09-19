@@ -54,9 +54,9 @@ export default {
         },
         {
           title: '创建人',
-          key: 'createdBy',
+          key: 'creator',
           width: 90,
-          render: (h, params) => <span>{params.row.createdBy || '-'}</span>
+          render: (h, params) => <span>{params.row.creator || '-'}</span>
         }
       ],
       // cmdb报表
@@ -77,16 +77,16 @@ export default {
         },
         {
           title: '创建人',
-          key: 'createdBy',
+          key: 'creator',
           width: 90,
-          render: (h, params) => <span>{params.row.createdBy || '-'}</span>
+          render: (h, params) => <span>{params.row.creator || '-'}</span>
         }
       ],
       // 物料包数据
       artifactsColumns: [
         {
           title: '所属单元设计',
-          key: 'name',
+          key: 'unitDesignName',
           render: (h, params) => (
             <span
               style="cursor:pointer;color:#5cadff;"
@@ -94,17 +94,17 @@ export default {
                 this.jumpToHistory(params.row)
               }}
             >
-              {params.row.name}
+              {params.row.unitDesignName}
             </span>
           )
         },
         {
           title: '总包数',
-          key: 'total',
-          width: 80,
+          key: 'artifactLen',
+          width: 120,
           render: (h, params) => (
             <span style="display:flex;align-items:center;">
-              <div style="width:20px">{params.row.count}</div>
+              <div style="width:20px">{params.row.artifactLen}</div>
               <Icon
                 type="ios-list"
                 size="36"
@@ -134,6 +134,11 @@ export default {
           )
         },
         {
+          title: '监控配置查询条件',
+          key: 'conditions',
+          render: (h, params) => <span>{params.row.conditions || '-'}</span>
+        },
+        {
           title: '已选',
           key: 'total',
           width: 100,
@@ -150,11 +155,6 @@ export default {
               />
             </span>
           )
-        },
-        {
-          title: '监控配置查询条件',
-          key: 'conditions',
-          render: (h, params) => <span>{params.row.conditions || '-'}</span>
         }
       ],
       pluginColumns: [
@@ -175,10 +175,10 @@ export default {
         {
           title: '已选服务',
           key: 'total',
-          width: 100,
+          width: 130,
           render: (h, params) => (
             <span style="display:flex;align-items:center;">
-              <div style="width:20px">{params.row.count}</div>
+              <div style="width:20px">{params.row.pluginInterfaceNum}</div>
               <Icon
                 type="ios-list"
                 size="36"
@@ -193,10 +193,10 @@ export default {
         {
           title: '已选系统参数',
           key: 'total',
-          width: 100,
+          width: 130,
           render: (h, params) => (
             <span style="display:flex;align-items:center;">
-              <div style="width:20px">{params.row.count}</div>
+              <div style="width:20px">{params.row.systemVariableNum}</div>
               <Icon
                 type="ios-list"
                 size="36"
