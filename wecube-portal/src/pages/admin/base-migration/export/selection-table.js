@@ -41,7 +41,7 @@ export default {
         {
           title: this.$t('flow_name'),
           key: 'name',
-          minWidth: 100,
+          minWidth: 120,
           render: (h, params) => (
             <div>
               {params.row.name}
@@ -51,16 +51,10 @@ export default {
         },
         {
           title: 'ID',
-          minWidth: 60,
+          minWidth: 100,
           ellipsis: true,
           key: 'id',
-          render: (h, params) => (
-            <div>
-              <Tooltip content={params.row.id} placement="top">
-                <span>{params.row.id.slice(0, 7)}...</span>
-              </Tooltip>
-            </div>
-          )
+          render: (h, params) => <BaseEllipsis content={params.row.id}></BaseEllipsis>
         },
         {
           title: this.$t('authPlugin'),
@@ -227,7 +221,7 @@ export default {
         },
         {
           title: this.$t('version'),
-          minWidth: 60,
+          minWidth: 100,
           key: 'version',
           render: (h, params) => {
             if (params.row.version) {
@@ -238,7 +232,7 @@ export default {
         },
         {
           title: '使用场景',
-          minWidth: 80,
+          minWidth: 100,
           key: 'type',
           render: (h, params) => {
             const typeList = [
@@ -307,7 +301,7 @@ export default {
         },
         {
           title: this.$t('tw_template_owner_role'),
-          minWidth: 120,
+          minWidth: 130,
           key: 'mgmtRoles',
           render: (h, params) => {
             const list = (params.row.mgmtRoles && params.row.mgmtRoles.map(item => item.displayName)) || []
@@ -316,7 +310,7 @@ export default {
         },
         {
           title: this.$t('useRoles'),
-          minWidth: 120,
+          minWidth: 130,
           key: 'mgmtRoles',
           render: (h, params) => {
             const list = (params.row.useRoles && params.row.useRoles.map(item => item.displayName)) || []
@@ -330,7 +324,7 @@ export default {
         },
         {
           title: this.$t('tm_updated_time'),
-          minWidth: 130,
+          minWidth: 140,
           key: 'updatedTime'
         }
       ],
