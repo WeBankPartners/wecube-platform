@@ -123,9 +123,7 @@
     <div class="item">
       <span class="title">
         CMDB：<span class="sub-title">
-          已选CI<span class="number">{{ detailData.cmdbCICount }}</span>
-          <span class="name">视图</span><span class="number">{{ detailData.cmdbViewCount }}</span>
-          <span class="name">报表</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
+          已选CI<span class="number">{{ detailData.cmdbCICount }}</span> <span class="name">视图</span><span class="number">{{ detailData.cmdbViewCount }}</span> <span class="name">报表</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
         </span>
       </span>
       <Row :gutter="10">
@@ -186,8 +184,7 @@
     <!--监控-->
     <div class="item">
       <span class="title">
-        监控配置：<span class="sub-title">已选配置类型<span class="number">{{ detailData.monitorData.length }}</span>
-          <span class="name">总条数</span><span class="number">{{ detailData.monitorCount }}</span>
+        监控配置：<span class="sub-title">已选配置类型<span class="number">{{ detailData.monitorData.length }}</span> <span class="name">总条数</span><span class="number">{{ detailData.monitorCount }}</span>
         </span>
       </span>
       <Row :gutter="10">
