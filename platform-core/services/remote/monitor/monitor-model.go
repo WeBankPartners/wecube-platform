@@ -180,3 +180,7 @@ type ExportMetricParam struct {
 	Comparison    string
 	Token         string
 }
+
+type LogMonitorTemplateIds struct {
+	GuidList []string `json:"guidList"`
+}
