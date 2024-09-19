@@ -181,6 +181,55 @@ type ExportMetricParam struct {
 	Token         string
 }
 
+type CustomDashboardDto struct {
+	Name           string            `json:"name"`
+	PanelGroupList []string          `json:"panelGroupList"`
+	Charts         []*CustomChartDto `json:"charts"`
+	MgmtRoles      []string          `json:"mgmtRoles"`
+	UseRoles       []string          `json:"useRoles"`
+	TimeRange      int               `json:"timeRange"`   //时间范围
+	RefreshWeek    int               `json:"refreshWeek"` // 刷新周期
+	LogMetricGroup string            `json:"logMetricGroup"`
+}
+
+type CustomChartDto struct {
+	Id                 string      `json:"id"`
+	Public             bool        `json:"public"`
+	SourceDashboard    int         `json:"sourceDashboard"`         // 源看板
+	Name               string      `json:"name"`                    // 图表名称
+	ChartTemplate      string      `json:"chartTemplate"`           // 图表模板
+	Unit               string      `json:"unit"`                    // 单位
+	ChartType          string      `json:"chartType"`               // 曲线图/饼图,line/pie
+	LineType           string      `json:"lineType"`                // 折线/柱状/面积,line/bar/area
+	PieType            string      `json:"pieType" xorm:"pie_type"` // 饼图类型
+	Aggregate          string      `json:"aggregate"`               // 聚合类型
+	AggStep            int         `json:"aggStep"`                 // 聚合间隔
+	ChartSeries        interface{} `json:"chartSeries"`
+	DisplayConfig      interface{} `json:"displayConfig"`      // 默认所有下面图表位置
+	GroupDisplayConfig interface{} `json:"groupDisplayConfig"` // 组下面的图表位置
+	Group              string      `json:"group"`              // 所属分组
+	LogMetricGroup     *string     `json:"logMetricGroup"`
+}
+
 type LogMonitorTemplateIds struct {
 	GuidList []string `json:"guidList"`
+}
+
+type ChartPermissionBatchParam struct {
+	Ids []string `json:"ids"`
+}
+
+type CustomDashboardExportParam struct {
+	Id       int      `json:"id"`
+	ChartIds []string `json:"chartIds"`
+}
+
+type QueryCustomDashboardResp struct {
+	models.HttpResponseMeta
+	Data *CustomDashboardDto `json:"data"`
+}
+
+type ChartPermissionBatchResp struct {
+	models.HttpResponseMeta
+	Data []string `json:"data"`
 }
