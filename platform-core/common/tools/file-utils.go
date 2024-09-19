@@ -86,6 +86,9 @@ func CreateZipCompressAndUpload(zipPath, dirPath, fileName string, uploadReqPara
 }
 
 func WriteJsonData2File(path string, inter interface{}) (err error) {
+	if inter == nil {
+		return
+	}
 	var file *os.File
 	// 打开文件
 	if file, err = os.Create(path); err != nil {
