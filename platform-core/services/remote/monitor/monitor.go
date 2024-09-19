@@ -4,20 +4,20 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"io"
 	"net/http"
+
+	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 )
 
 const (
 	analyzeMonitorExportDataUrl  = "/monitor/api/v2/trans-export/analyze"
 	exportMetricListUrl          = "/monitor/api/v2/monitor/metric/export?serviceGroup=%s&monitorType=%s&endpointGroup=%s&comparison=%s"
 	queryMonitorEndpointGroupUrl = "/monitor/api/v2/alarm/endpoint_group/query"
-	queryMonitorLogMetricUrl     = "/monitor/api/v2/service/log_metric/list/group/%s"
-	queryAlarmStrategyUrl        = "/monitor/api/v2/alarm/strategy/query"
-	queryLogKeywordUrl           = "/monitor/api/v2/service/log_keyword/list?type=service&guid=%s"
-	queryDbKeywordUrl            = "/monitor/api/v2/service/db_keyword/list?type=service&guid=%s"
+	exportMonitorLogMetricUrl    = "/monitor/api/v2/service/log_metric/export?serviceGroup=%s"
+	exportLogMonitorTemplateUrl  = "/monitor/api/v2/service/log_metric/log_monitor_template/export"
+	exportAlarmStrategyUrl       = "/monitor/api/v2/alarm/strategy/export/%s/%s"
 	jsonUnmarshalErrTemplate     = "json unmarshal http response body fail,body:%s,error:%s"
 )
 
@@ -46,6 +46,24 @@ func ExportMetricList(param ExportMetricParam, token string) (responseBytes []by
 	return
 }
 
+func ExportLogMetric(serviceGroup, token string) (responseBytes []byte, err error) {
+	url := fmt.Sprintf(exportMonitorLogMetricUrl, serviceGroup)
+	responseBytes, err = requestMonitorPluginV2(url, http.MethodGet, token, nil)
+	return
+}
+
+func ExportLogMonitorTemplate(ids []string, token string) (responseBytes []byte, err error) {
+	guids := LogMonitorTemplateIds{GuidList: ids}
+	responseBytes, err = requestMonitorPluginV2(exportLogMonitorTemplateUrl, http.MethodPost, token, guids)
+	return
+}
+
+func ExportAlarmStrategy(queryType, key, token string) (responseBytes []byte, err error) {
+	url := fmt.Sprintf(exportAlarmStrategyUrl, queryType, key)
+	responseBytes, err = requestMonitorPluginV2(url, http.MethodGet, token, nil)
+	return
+}
+
 func GetMonitorEndpointGroup(token string) (monitorEndpointGroupList []*EndpointGroupTable, err error) {
 	var responseBytes []byte
 	if responseBytes, err = requestMonitorPluginV2(queryMonitorEndpointGroupUrl, http.MethodGet, token, nil); err != nil {
@@ -62,175 +80,6 @@ func GetMonitorEndpointGroup(token string) (monitorEndpointGroupList []*Endpoint
 	}
 	if response.Data != nil {
 		monitorEndpointGroupList = response.Data.Data
-	}
-	return
-}
-
-func GetLogMonitorAndTemplate(serviceGroupList []string) (matchServiceGroupList, logMonitorTemplateList []string, err error) {
-	for _, serviceGroup := range serviceGroupList {
-		containLogMonitor, tmpTemplateList, tmpErr := analyzeLogMonitorIfNeedExport(serviceGroup)
-		if tmpErr != nil {
-			err = fmt.Errorf("analyze log montior with serviceGroup:%s fail,%s ", serviceGroup, tmpErr.Error())
-			break
-		}
-		if containLogMonitor {
-			matchServiceGroupList = append(matchServiceGroupList, serviceGroup)
-			logMonitorTemplateList = append(logMonitorTemplateList, tmpTemplateList...)
-		}
-	}
-	return
-}
-
-func analyzeLogMonitorIfNeedExport(serviceGroup string) (containLogMonitor bool, logMonitorTemplateList []string, err error) {
-	var responseBytes []byte
-	if responseBytes, err = requestMonitorPlugin(fmt.Sprintf(queryMonitorLogMetricUrl, serviceGroup), http.MethodGet, nil); err != nil {
-		return
-	}
-	var response GetLogMonitorResp
-	if err = json.Unmarshal(responseBytes, &response); err != nil {
-		err = fmt.Errorf(jsonUnmarshalErrTemplate, string(responseBytes), err.Error())
-		return
-	}
-	if response.Status != "OK" {
-		err = fmt.Errorf(response.Message)
-		return
-	}
-	if len(response.Data) > 0 {
-		if len(response.Data[0].Config) > 0 || len(response.Data[0].DBConfig) > 0 {
-			containLogMonitor = true
-		}
-		for _, v := range response.Data[0].Config {
-			for _, logMetricGroup := range v.MetricGroups {
-				if logMetricGroup.LogMonitorTemplate != "" {
-					logMonitorTemplateList = append(logMonitorTemplateList, logMetricGroup.LogMonitorTemplate)
-				}
-			}
-		}
-	}
-	return
-}
-
-func GetAlarmStrategyMatchGroupList(serviceGroupList, endpointGroupList []string) (matchServiceGroupList, matchEndpointGroupList []string, err error) {
-	for _, serviceGroup := range serviceGroupList {
-		containStrategy, tmpErr := analyzeAlarmStrategyIfNeedExport(serviceGroup, "")
-		if tmpErr != nil {
-			err = fmt.Errorf("analyze alarm strategy with serviceGroup:%s fail,%s ", serviceGroup, tmpErr.Error())
-			break
-		}
-		if containStrategy {
-			matchServiceGroupList = append(matchServiceGroupList, serviceGroup)
-		}
-	}
-	if err != nil {
-		return
-	}
-	for _, endpointGroup := range endpointGroupList {
-		containStrategy, tmpErr := analyzeAlarmStrategyIfNeedExport("", endpointGroup)
-		if tmpErr != nil {
-			err = fmt.Errorf("analyze alarm strategy with endpointGroup:%s fail,%s ", endpointGroup, tmpErr.Error())
-			break
-		}
-		if containStrategy {
-			matchEndpointGroupList = append(matchEndpointGroupList, endpointGroup)
-		}
-	}
-	return
-}
-
-func analyzeAlarmStrategyIfNeedExport(serviceGroup, endpointGroup string) (containStrategy bool, err error) {
-	requestParam := AlarmStrategyQueryParam{}
-	if serviceGroup != "" {
-		requestParam = AlarmStrategyQueryParam{Guid: serviceGroup, QueryType: "service", Show: "all"}
-	} else if endpointGroup != "" {
-		requestParam = AlarmStrategyQueryParam{Guid: endpointGroup, QueryType: "group", Show: "all"}
-	}
-	var responseBytes []byte
-	if responseBytes, err = requestMonitorPlugin(queryAlarmStrategyUrl, http.MethodPost, requestParam); err != nil {
-		return
-	}
-	var response AlarmStrategyQueryResp
-	if err = json.Unmarshal(responseBytes, &response); err != nil {
-		err = fmt.Errorf(jsonUnmarshalErrTemplate, string(responseBytes), err.Error())
-		return
-	}
-	if response.Status != "OK" {
-		err = fmt.Errorf(response.Message)
-		return
-	}
-	if len(response.Data) > 0 {
-		if len(response.Data[0].Strategy) > 0 {
-			containStrategy = true
-		}
-	}
-	return
-}
-
-func GetLogKeywordMatchGroupList(serviceGroupList []string) (matchServiceGroupList []string, err error) {
-	for _, serviceGroup := range serviceGroupList {
-		logKeywordMatchFlag, tmpLogKeywordErr := analyzeLogKeywordIfNeedExport(serviceGroup)
-		if tmpLogKeywordErr != nil {
-			err = fmt.Errorf("analyze log keyword with serviceGroup:%s fail,%s ", serviceGroup, tmpLogKeywordErr.Error())
-			break
-		}
-		if logKeywordMatchFlag {
-			matchServiceGroupList = append(matchServiceGroupList, serviceGroup)
-			continue
-		}
-		dbKeywordMatchFlag, tmpDbKeywordErr := analyzeDbKeywordIfNeedExport(serviceGroup)
-		if tmpDbKeywordErr != nil {
-			err = fmt.Errorf("analyze db keyword with serviceGroup:%s fail,%s ", serviceGroup, tmpDbKeywordErr.Error())
-			break
-		}
-		if dbKeywordMatchFlag {
-			matchServiceGroupList = append(matchServiceGroupList, serviceGroup)
-			continue
-		}
-	}
-	return
-}
-
-func analyzeLogKeywordIfNeedExport(serviceGroup string) (containConfigFlag bool, err error) {
-	var responseBytes []byte
-	if responseBytes, err = requestMonitorPlugin(fmt.Sprintf(queryLogKeywordUrl, serviceGroup), http.MethodGet, nil); err != nil {
-		return
-	}
-	var response LogKeywordQueryResp
-	if err = json.Unmarshal(responseBytes, &response); err != nil {
-		err = fmt.Errorf(jsonUnmarshalErrTemplate, string(responseBytes), err.Error())
-		return
-	}
-	if response.Status != "OK" {
-		err = fmt.Errorf(response.Message)
-		return
-	}
-	if len(response.Data) > 0 {
-		if len(response.Data[0].Config) > 0 {
-			containConfigFlag = true
-			return
-		}
-	}
-	return
-}
-
-func analyzeDbKeywordIfNeedExport(serviceGroup string) (containConfigFlag bool, err error) {
-	var responseBytes []byte
-	if responseBytes, err = requestMonitorPlugin(fmt.Sprintf(queryDbKeywordUrl, serviceGroup), http.MethodGet, nil); err != nil {
-		return
-	}
-	var response DbKeywordQueryResp
-	if err = json.Unmarshal(responseBytes, &response); err != nil {
-		err = fmt.Errorf(jsonUnmarshalErrTemplate, string(responseBytes), err.Error())
-		return
-	}
-	if response.Status != "OK" {
-		err = fmt.Errorf(response.Message)
-		return
-	}
-	if len(response.Data) > 0 {
-		if len(response.Data[0].Config) > 0 {
-			containConfigFlag = true
-			return
-		}
 	}
 	return
 }
