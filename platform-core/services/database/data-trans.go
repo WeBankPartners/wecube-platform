@@ -317,6 +317,8 @@ func getDataTransVariableMap(ctx context.Context) (result *models.TransDataVaria
 			result.ArtifactCiSystem = tmpValue
 		case "PLATFORM_EXPORT_CI_TECH_PRODUCT":
 			result.ArtifactCiTechProduct = tmpValue
+		case "PLATFORM_EXPORT_CI_ARTIFACT_UNIT_DESIGN":
+			result.ArtifactUnitDesignColumn = tmpValue
 		}
 	}
 	return
@@ -537,9 +539,32 @@ func parseStringListToJsonString(input []string) string {
 func analyzeArtifactExportData(transExportId string, ciTypeDataMap map[string]*models.CiTypeData, transConfig *models.TransDataVariableConfig) (actions []*db.ExecAction, err error) {
 	nowTime := time.Now()
 	if ciTypeData, ok := ciTypeDataMap[transConfig.ArtifactPackageCiType]; ok {
-		b, _ := json.Marshal(ciTypeData.DataMap)
+		var unitDesignGuidList []string
+		analyzeData := make(map[string]*models.AnalyzeArtifactDisplayData)
+		for _, v := range ciTypeData.DataMap {
+			tmpUnitDesign := v[transConfig.ArtifactUnitDesignColumn]
+			if existData, existFlag := analyzeData[tmpUnitDesign]; existFlag {
+				existData.ArtifactRows = append(existData.ArtifactRows, v)
+			} else {
+				analyzeData[tmpUnitDesign] = &models.AnalyzeArtifactDisplayData{UnitDesign: tmpUnitDesign, ArtifactRows: []map[string]string{v}}
+				unitDesignGuidList = append(unitDesignGuidList, tmpUnitDesign)
+			}
+		}
+		for k, v := range analyzeData {
+			v.ArtifactLen = len(v.ArtifactRows)
+			if unitDesignCi, ciMatch := ciTypeDataMap[transConfig.ArtifactUnitDesignColumn]; ciMatch {
+				if unitDesignRow, ciDataMatch := unitDesignCi.DataMap[k]; ciDataMatch {
+					v.UnitDesignName = unitDesignRow["key_name"]
+				}
+			}
+		}
+		var dataList []*models.AnalyzeArtifactDisplayData
+		for _, v := range unitDesignGuidList {
+			dataList = append(dataList, analyzeData[v])
+		}
+		b, _ := json.Marshal(dataList)
 		actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
-			"ex_aly_" + guid.CreateGuid(), transExportId, "artifact", "deploy_package", "deploy_package", len(ciTypeData.DataMap), string(b), nowTime,
+			"ex_aly_" + guid.CreateGuid(), transExportId, "artifact", "deploy_package", "deploy_package", len(dataList), string(b), nowTime,
 		}})
 	}
 	return
