@@ -156,6 +156,58 @@ export default {
           key: 'conditions',
           render: (h, params) => <span>{params.row.conditions || '-'}</span>
         }
+      ],
+      pluginColumns: [
+        {
+          title: '数据类型',
+          key: 'name',
+          render: (h, params) => (
+            <span
+              style="cursor:pointer;color:#5cadff;"
+              onClick={() => {
+                this.jumpToHistory(params.row)
+              }}
+            >
+              {params.row.name}
+            </span>
+          )
+        },
+        {
+          title: '已选服务',
+          key: 'total',
+          width: 100,
+          render: (h, params) => (
+            <span style="display:flex;align-items:center;">
+              <div style="width:20px">{params.row.count}</div>
+              <Icon
+                type="ios-list"
+                size="36"
+                style="cursor:pointer;"
+                onClick={() => {
+                  this.handleDetai(params.row, 'plugin')
+                }}
+              />
+            </span>
+          )
+        },
+        {
+          title: '已选系统参数',
+          key: 'total',
+          width: 100,
+          render: (h, params) => (
+            <span style="display:flex;align-items:center;">
+              <div style="width:20px">{params.row.count}</div>
+              <Icon
+                type="ios-list"
+                size="36"
+                style="cursor:pointer;"
+                onClick={() => {
+                  this.handleDetai(params.row, 'plugin')
+                }}
+              />
+            </span>
+          )
+        }
       ]
     }
   }
