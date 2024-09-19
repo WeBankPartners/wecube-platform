@@ -193,8 +193,13 @@ type TransExportHistoryParam struct {
 }
 
 type TransExportHistoryOptions struct {
-	Business  []string `json:"business"`  // 导出产品
-	Operators []string `json:"operators"` //操作人
+	BusinessList []*Business `json:"businessList"` // 导出产品
+	Operators    []string    `json:"operators"`    //操作人
+}
+
+type Business struct {
+	BusinessId   string `json:"businessId"`   // 导出产品ID
+	BusinessName string `json:"businessName"` // 导出产品名称
 }
 
 type StepExportParam struct {
