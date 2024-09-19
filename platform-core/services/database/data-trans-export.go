@@ -642,7 +642,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	}
 
 	// 6. 导出插件配置
-	/*step = models.TransExportStepPluginConfig
+	step = models.TransExportStepPluginConfig
 	exportPluginConfigStartTime := time.Now().Format(models.DateTimeFormat)
 	if err = DataTransExportPluginConfig(ctx, param.TransExportId, path); err != nil {
 		log.Logger.Error("DataTransExportPluginConfig error", log.Error(err))
@@ -655,23 +655,23 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		Status:      string(models.TransExportStatusSuccess),
 		EndTime:     time.Now().Format(models.DateTimeFormat),
 	}
-	updateTransExportDetail(ctx, transExportPluginConfigDetail)*/
+	updateTransExportDetail(ctx, transExportPluginConfigDetail)
 
 	// 7. 导出cmdb
-	/*	step = models.TransExportStepCmdb
-		exportCmdbDataStartTime := time.Now().Format(models.DateTimeFormat)
-		if err = DataTransExportCMDBData(ctx, param.TransExportId, path); err != nil {
-			log.Logger.Error("DataTransExportCMDBData error", log.Error(err))
-			return
-		}
-		transExportCmdbDataDetail := models.TransExportDetailTable{
-			TransExport: &param.TransExportId,
-			Step:        int(step),
-			StartTime:   exportCmdbDataStartTime,
-			Status:      string(models.TransExportStatusSuccess),
-			EndTime:     time.Now().Format(models.DateTimeFormat),
-		}
-		updateTransExportDetail(ctx, transExportCmdbDataDetail)*/
+	step = models.TransExportStepCmdb
+	exportCmdbDataStartTime := time.Now().Format(models.DateTimeFormat)
+	if err = DataTransExportCMDBData(ctx, param.TransExportId, path); err != nil {
+		log.Logger.Error("DataTransExportCMDBData error", log.Error(err))
+		return
+	}
+	transExportCmdbDataDetail := models.TransExportDetailTable{
+		TransExport: &param.TransExportId,
+		Step:        int(step),
+		StartTime:   exportCmdbDataStartTime,
+		Status:      string(models.TransExportStatusSuccess),
+		EndTime:     time.Now().Format(models.DateTimeFormat),
+	}
+	updateTransExportDetail(ctx, transExportCmdbDataDetail)
 
 	// 8. 导出监控
 	step = models.TransExportStepMonitor
