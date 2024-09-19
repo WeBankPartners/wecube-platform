@@ -636,7 +636,7 @@ func ExportTemplate(c *gin.Context) {
 		return
 	}
 
-	retData, err := database.ExportTemplate(c, &param)
+	retData, err := database.ExportTemplate(c, c.GetHeader("Authorization"), &param)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
