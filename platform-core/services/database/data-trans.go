@@ -29,13 +29,13 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 		return
 	}
 	var ciTypeRows []*models.SysCiTypeTable
-	err = cmdbEngine.SQL("select * from sys_ci_type").Find(&ciTypeRows)
+	err = cmdbEngine.SQL("select * from sys_ci_type where status='created'").Find(&ciTypeRows)
 	if err != nil {
 		err = fmt.Errorf("query ci type table fail,%s ", err.Error())
 		return
 	}
 	var ciTypeAttrRows []*models.SysCiTypeAttrTable
-	err = cmdbEngine.SQL("select * from sys_ci_type_attr").Find(&ciTypeAttrRows)
+	err = cmdbEngine.SQL("select * from sys_ci_type_attr where status='created'").Find(&ciTypeAttrRows)
 	if err != nil {
 		err = fmt.Errorf("query ci type attribute table fail,%s ", err.Error())
 		return
