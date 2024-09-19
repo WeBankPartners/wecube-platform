@@ -95,7 +95,7 @@ func GetDatabaseEngine(inputConfig *models.DatabaseConfig) (engine *xorm.Engine,
 	_, err = engine.QueryString("select 1=1")
 	if err != nil {
 		engine.Close()
-		err = fmt.Errorf("check database base query fail")
+		err = fmt.Errorf("check database base query fail,err:%+v", err.Error())
 	}
 	return
 }
