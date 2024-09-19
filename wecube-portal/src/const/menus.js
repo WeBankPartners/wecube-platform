@@ -102,7 +102,7 @@ export const MENUS = [
   },
   {
     code: 'ADMIN_BASE_MIGRATION',
-    cnName: '底座迁移',
+    cnName: '一键迁移',
     enName: 'Base Migration',
     link: '/admin/base-migration'
   }
