@@ -570,11 +570,7 @@ func analyzeCMDBReportViewData(transExportId string, cmdbEngine *xorm.Engine) (a
 	return
 }
 
-func DataTransExportCMDBData(ctx context.Context, transExportId string) (tmpFilePathList []string, err error) {
-	if err = os.MkdirAll(fmt.Sprintf("/tmp/"+transExportId), 0700); err != nil {
-		err = fmt.Errorf("mkdir tmp path fail,%s ", err.Error())
-		return
-	}
+func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (err error) {
 	cmdbEngine, getDBErr := getCMDBPluginDBResource(ctx)
 	if getDBErr != nil {
 		err = getDBErr
@@ -593,7 +589,7 @@ func DataTransExportCMDBData(ctx context.Context, transExportId string) (tmpFile
 	ciDataGuidMap := make(map[string][]string)
 	for _, row := range transExportAnalyzeRows {
 		if row.Source == "wecmdb_report" {
-			tmpReportList := []*models.SysReportTable{}
+			var tmpReportList []*models.SysReportTable
 			if tmpErr := json.Unmarshal([]byte(row.Data), &tmpReportList); tmpErr != nil {
 				err = fmt.Errorf("json unmarshal report data fail,%s ", tmpErr.Error())
 				break
@@ -718,12 +714,10 @@ func DataTransExportCMDBData(ctx context.Context, transExportId string) (tmpFile
 		}
 	}
 	sqlBuffer.WriteString("\nSET FOREIGN_KEY_CHECKS=1;\n")
-	tmpFilePath := fmt.Sprintf("/tmp/%s/wecmdb_data.sql", transExportId)
+	tmpFilePath := fmt.Sprintf("%s/wecmdb_data.sql", path)
 	err = os.WriteFile(tmpFilePath, sqlBuffer.Bytes(), 0666)
 	if err != nil {
 		err = fmt.Errorf("try to write cmdb database dump file fail,%s ", err.Error())
-	} else {
-		tmpFilePathList = append(tmpFilePathList, tmpFilePath)
 	}
 	return
 }
@@ -902,7 +896,7 @@ func AnalyzePluginConfigDataExport(ctx context.Context, transExportId string) (a
 	return
 }
 
-func DataTransExportPluginConfig(ctx context.Context, transExportId string) (tmpFilePathList []string, err error) {
+func DataTransExportPluginConfig(ctx context.Context, transExportId, path string) (err error) {
 	// 读analyze表plugin_package数据
 	var transExportAnalyzeRows []*models.TransExportAnalyzeDataTable
 	err = db.MysqlEngine.Context(ctx).SQL("select `source`,data_type,`data`,data_len from trans_export_analyze_data where trans_export=? and `source`='plugin_package'", transExportId).Find(&transExportAnalyzeRows)
@@ -923,15 +917,14 @@ func DataTransExportPluginConfig(ctx context.Context, transExportId string) (tmp
 		retData, tmpErr := ExportPluginConfigs(ctx, row.PluginPackageId, []*models.PluginConfigsBatchEnable{}, []string{"SUPER_ADMIN"})
 		if tmpErr != nil {
 			err = fmt.Errorf("build plugin export config fail,pluginPackageId:%s,error:%s ", row.PluginPackageId, tmpErr.Error())
-			break
+			return
 		}
-		fileName := fmt.Sprintf("/tmp/%s/plugin-%s-%s-%s.xml", transExportId, retData.Name, retData.Version, time.Now().Format("20060102150405"))
+		fileName := fmt.Sprintf("%s/plugin-%s-%s-%s.xml", path, retData.Name, retData.Version, time.Now().Format("20060102150405"))
 		retDataBytes, _ := xml.MarshalIndent(retData, "", "    ")
 		if err = os.WriteFile(fileName, retDataBytes, 0666); err != nil {
 			err = fmt.Errorf("wirte export plugin config xml file fail,%s ", err.Error())
-			break
+			return
 		}
-		tmpFilePathList = append(tmpFilePathList, fileName)
 	}
 	return
 }
