@@ -1190,7 +1190,7 @@ func ValidateBatchExecName(c *gin.Context, batchExecReqParam *models.BatchExecRu
 	return
 }
 
-func ExportTemplate(c context.Context, reqParam *models.ExportBatchExecTemplateReqParam) (result []*models.BatchExecutionTemplate, err error) {
+func ExportTemplate(c context.Context, userToken string, reqParam *models.ExportBatchExecTemplateReqParam) (result []*models.BatchExecutionTemplate, err error) {
 	if len(reqParam.BatchExecTemplateIds) == 0 {
 		return
 	}
@@ -1208,6 +1208,17 @@ func ExportTemplate(c context.Context, reqParam *models.ExportBatchExecTemplateR
 	if len(templateData) == 0 {
 		err = fmt.Errorf("query batch execution template empty")
 		return
+	}
+	var queryRolesResponse models.QueryRolesResponse
+	var roleDisplayNameMap = make(map[string]string)
+	if queryRolesResponse, err = remote.RetrieveAllLocalRoles("Y", userToken, "", false); err != nil {
+		log.Logger.Error("remote retrieveAllLocalRoles error", log.Error(err))
+		return
+	}
+	if len(queryRolesResponse.Data) > 0 {
+		for _, role := range queryRolesResponse.Data {
+			roleDisplayNameMap[role.Name] = role.DisplayName
+		}
 	}
 
 	// query permission roles
@@ -1246,9 +1257,13 @@ func ExportTemplate(c context.Context, reqParam *models.ExportBatchExecTemplateR
 		if roleData.Permission == models.PermissionTypeMGMT {
 			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT = append(
 				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMT, roleData.RoleName)
+			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMTDisplayName = append(
+				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].MGMTDisplayName, roleDisplayNameMap[roleData.RoleName])
 		} else if roleData.Permission == models.PermissionTypeUSE {
 			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE = append(
 				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USE, roleData.RoleName)
+			templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USEDisplayName = append(
+				templateIdMapRoleInfo[roleData.BatchExecutionTemplateId].USEDisplayName, roleDisplayNameMap[roleData.RoleName])
 		}
 	}
 
