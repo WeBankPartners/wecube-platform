@@ -627,7 +627,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	// 5.导出批量执行
 	step = models.TransExportStepBatchExecution
 	exportBatchExecutionStartTime := time.Now().Format(models.DateTimeFormat)
-	if batchExecutionTemplateList, err = ExportTemplate(ctx, &models.ExportBatchExecTemplateReqParam{BatchExecTemplateIds: param.BatchExecutionIds}); err != nil {
+	if batchExecutionTemplateList, err = ExportTemplate(ctx, userToken, &models.ExportBatchExecTemplateReqParam{BatchExecTemplateIds: param.BatchExecutionIds}); err != nil {
 		log.Logger.Error("ExportTemplate error", log.Error(err))
 		return
 	}
@@ -647,10 +647,6 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	// 6. 导出插件配置
 	step = models.TransExportStepPluginConfig
 	exportPluginConfigStartTime := time.Now().Format(models.DateTimeFormat)
-	if batchExecutionTemplateList, err = ExportTemplate(ctx, &models.ExportBatchExecTemplateReqParam{BatchExecTemplateIds: param.BatchExecutionIds}); err != nil {
-		log.Logger.Error("ExportTemplate error", log.Error(err))
-		return
-	}
 	if err = DataTransExportPluginConfig(ctx, param.TransExportId, path); err != nil {
 		log.Logger.Error("DataTransExportPluginConfig error", log.Error(err))
 		return
