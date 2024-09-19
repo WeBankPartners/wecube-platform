@@ -117,9 +117,10 @@ const (
 	TransExportStepComponentLibrary TransExportStep = 3 // 导出表单组件库
 	TransExportStepWorkflow         TransExportStep = 4 // 导出编排
 	TransExportStepBatchExecution   TransExportStep = 5 // 导出批量执行
-	TransExportStepCmdb             TransExportStep = 6 // 导出CMDB
-	TransExportStepArtifacts        TransExportStep = 7 // 导出物料包
-	TransExportStepMonitor          TransExportStep = 8 // 导出监控
+	TransExportStepPluginConfig     TransExportStep = 6 // 导出插件配置
+	TransExportStepCmdb             TransExportStep = 7 // 导出CMDB
+	TransExportStepArtifacts        TransExportStep = 8 // 导出物料包
+	TransExportStepMonitor          TransExportStep = 9 // 导出监控
 )
 
 // TransExportAnalyzeSource 分析来源
