@@ -111,24 +111,34 @@ func UpdateExport(c context.Context, param models.UpdateExportParam, operator st
 }
 
 func GetAllTransExportOptions(ctx context.Context) (options models.TransExportHistoryOptions, err error) {
-	var BusinessHashMap = make(map[string]bool)
+	var BusinessHashMap = make(map[string]string)
 	var operatorHashMap = make(map[string]bool)
 	var list []*models.TransExportTable
+	options = models.TransExportHistoryOptions{
+		BusinessList: make([]*models.Business, 0),
+		Operators:    []string{},
+	}
 	if list, err = GetAllTransExport(ctx); err != nil {
 		return
 	}
 	if len(list) > 0 {
 		for _, transExport := range list {
 			strArr := strings.Split(transExport.Business, ",")
-			if len(strArr) > 0 {
-				for _, s2 := range strArr {
-					BusinessHashMap[s2] = true
+			strArr2 := strings.Split(transExport.BusinessName, ",")
+			if len(strArr) > 0 && len(strArr2) > 0 && len(strArr) == len(strArr2) {
+				for i, s2 := range strArr {
+					BusinessHashMap[s2] = strArr2[i]
 				}
 			}
 			operatorHashMap[transExport.UpdatedUser] = true
 		}
+		for key, value := range BusinessHashMap {
+			options.BusinessList = append(options.BusinessList, &models.Business{
+				BusinessId:   key,
+				BusinessName: value,
+			})
+		}
 	}
-	options.Business = convertMap2Array(BusinessHashMap)
 	options.Operators = convertMap2Array(operatorHashMap)
 	return
 }
@@ -695,6 +705,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 
 	// 10. json文件压缩并上传nexus
 	step = models.TransExportStepCreateAndUploadFile
+	exportCreateAndUploadFileStartTime := time.Now().Format(models.DateTimeFormat)
 	if transDataVariableConfig, err = getDataTransVariableMap(ctx); err != nil {
 		return
 	}
@@ -723,7 +734,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	transExportCreateAndUploadFile := models.TransExportDetailTable{
 		TransExport: &param.TransExportId,
 		Step:        int(step),
-		StartTime:   exportMonitorStartTime,
+		StartTime:   exportCreateAndUploadFileStartTime,
 		Status:      string(models.TransExportStatusSuccess),
 		EndTime:     time.Now().Format(models.DateTimeFormat),
 	}
@@ -963,7 +974,7 @@ func exportMetricList(monitoryTypeMetricList, serviceGroupMetricList, endpointGr
 }
 
 func updateTransExportStatus(ctx context.Context, id string, status models.TransExportStatus) (err error) {
-	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_export set status=? where id=?", status, id)
+	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_export set status=?,update_time=? where id=?", status, time.Now().Format(models.DateTimeFormat), id)
 	return
 }
 
