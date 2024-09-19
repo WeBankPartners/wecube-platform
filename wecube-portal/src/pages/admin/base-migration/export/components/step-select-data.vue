@@ -188,7 +188,9 @@
     <div class="item">
       <span class="title">
         监控配置：<span class="sub-title">
-          已选配置类型<span class="number">{{ detailData.monitorData.length }}</span> 总条数<span class="number">{{ 10 }}</span>
+          已选配置类型<span class="number">{{ detailData.monitorData.length }}</span> 总条数<span class="number">{{
+            10
+          }}</span>
         </span>
       </span>
       <Row :gutter="10">
