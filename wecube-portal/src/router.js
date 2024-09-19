@@ -161,7 +161,7 @@ const router = new Router({
         {
           path: '/admin/base-migration',
           name: 'baseMigration',
-          redirect: '/admin/base-migration/export-history',
+          redirect: '/admin/base-migration/export',
           component: () => import('@/pages/admin/base-migration/index'),
           children: [
             // 一键导出-创建

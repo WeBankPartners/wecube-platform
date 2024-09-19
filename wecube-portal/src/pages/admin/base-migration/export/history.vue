@@ -134,9 +134,10 @@ export default {
       loading: false,
       tableColumns: [
         {
-          title: '记录ID',
-          minWidth: 160,
-          key: 'id'
+          title: '导出产品',
+          key: 'businessName',
+          minWidth: 200,
+          render: (h, params) => <span>{params.row.businessName || '-'}</span>
         },
         {
           title: '导出状态',
@@ -169,12 +170,10 @@ export default {
             return <Tag color={findObj.color}>{findObj.label}</Tag>
           }
         },
-        // 导入产品
         {
-          title: '导入产品',
-          key: 'business',
-          minWidth: 200,
-          render: (h, params) => <span>{params.row.business || '-'}</span>
+          title: '记录ID',
+          minWidth: 160,
+          key: 'id'
         },
         {
           title: '执行人',
@@ -290,10 +289,10 @@ export default {
       if (status === 'OK') {
         this.searchOptions.forEach(item => {
           if (item.key === 'business') {
-            item.list = (data.business
-                && data.business.map(item => ({
-                  label: item,
-                  value: item
+            item.list = (data.businessList
+                && data.businessList.map(item => ({
+                  label: item.businessName,
+                  value: item.businessId
                 })))
               || []
           }

@@ -123,8 +123,7 @@
     <div class="item">
       <span class="title">
         CMDB：<span class="sub-title">
-          已选
-          <span class="name">CI</span><span class="number">{{ detailData.cmdbCICount }}</span>
+          已选CI<span class="number">{{ detailData.cmdbCICount }}</span>
           <span class="name">视图</span><span class="number">{{ detailData.cmdbViewCount }}</span>
           <span class="name">报表</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
         </span>
@@ -187,7 +186,7 @@
     <!--监控-->
     <div class="item">
       <span class="title">
-        监控配置：<span class="sub-title">已选 <span class="name">配置类型</span><span class="number">{{ detailData.monitorData.length }}</span>
+        监控配置：<span class="sub-title">已选配置类型<span class="number">{{ detailData.monitorData.length }}</span>
           <span class="name">总条数</span><span class="number">{{ detailData.monitorCount }}</span>
         </span>
       </span>
@@ -209,7 +208,7 @@
     <div class="item">
       <span class="title">
         插件服务：<span class="sub-title">
-          已选配置类型<span class="number">{{ 10 }}</span>
+          已选配置类型<span class="number">{{ detailData.pluginsData.length }}</span>
         </span>
       </span>
       <Row :gutter="10">
@@ -376,6 +375,7 @@ export default {
         margin-left: 16px;
         .number {
           font-size: 18px;
+          font-weight: bold;
           color: #2d8cf0;
           margin-left: 6px;
         }
@@ -385,6 +385,9 @@ export default {
       font-size: 14px;
       margin-bottom: 5px;
       font-weight: 600;
+      .name {
+        margin-left: 10px;
+      }
       .number {
         font-size: 18px;
         color: #2d8cf0;
