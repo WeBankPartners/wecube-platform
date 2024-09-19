@@ -331,7 +331,6 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 		CmdbView:       make([]*models.CommonNameCreator, 0),
 		CmdbReportForm: make([]*models.CommonNameCreator, 0),
 		Monitor:        make([]*models.CommonNameCount, 0),
-		Artifacts:      []string{},
 		Plugins:        make([]*models.PluginPackageCount, 0),
 	}
 	for _, transExportDetail := range transExportDetailList {
@@ -413,14 +412,10 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 				Count: transExportAnalyze.DataLen,
 			})
 		case models.TransExportAnalyzeSourceArtifact:
-			var tempMap map[string]map[string]interface{}
+			var dataList []*models.AnalyzeArtifactDisplayData
 			if transExportAnalyze.Data != "" {
-				json.Unmarshal([]byte(transExportAnalyze.Data), &tempMap)
-				if len(tempMap) > 0 {
-					for _, deployPackage := range tempMap {
-						detail.Artifacts = append(detail.Artifacts, fmt.Sprintf("%v", deployPackage["key_name"]))
-					}
-				}
+				json.Unmarshal([]byte(transExportAnalyze.Data), &dataList)
+				detail.Artifacts = dataList
 			}
 		case models.TransExportAnalyzeSourcePluginPackage:
 			var tempArr []map[string]interface{}
