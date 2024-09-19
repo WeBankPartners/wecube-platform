@@ -362,6 +362,7 @@ type SysViewTable struct {
 }
 
 type DataTransPluginExportData struct {
+	PluginPackageName  string `json:"PluginPackageName" xorm:"-"`
 	PluginPackageId    string `json:"PluginPackageId" xorm:"plugin_package_id"`
 	PluginInterfaceNum int    `json:"PluginInterfaceNum" xorm:"plugin_interface_num"`
 	SystemVariableNum  int    `json:"SystemVariableNum" xorm:"system_variable_num"`
