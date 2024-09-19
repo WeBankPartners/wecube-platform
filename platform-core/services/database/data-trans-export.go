@@ -32,8 +32,8 @@ var transExportDetailMap = map[models.TransExportStep]string{
 
 const (
 	zipFile           = "export.zip"
-	tempWeCubeDataDir = "/tmp/wecube/%s/data"
-	tempWeCubeZipDir  = "/tmp/wecube/zip"
+	tempWeCubeDataDir = "/tmp/wecube/%s"
+	zip               = "zip"
 )
 
 func CreateExport2(c context.Context, param models.CreateExportParam, operator string) (transExportId string, err error) {
@@ -474,7 +474,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		log.Logger.Error("getPath error", log.Error(err))
 		return
 	}
-	if zipPath, err = tools.GetPath(tempWeCubeZipDir); err != nil {
+	if zipPath, err = tools.GetPath(fmt.Sprintf("%s/%s", fmt.Sprintf(tempWeCubeDataDir, param.TransExportId), zip)); err != nil {
 		log.Logger.Error("getPath error", log.Error(err))
 		return
 	}
@@ -488,9 +488,6 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		// 删除导出目录
 		if err = os.RemoveAll(path); err != nil {
 			log.Logger.Error("delete fail", log.String("path", path), log.Error(err))
-		}
-		if err = os.Remove(zipPath + "/" + zipFile); err != nil {
-			log.Logger.Error("delete fail", log.String("filePath", zipPath), log.Error(err))
 		}
 	}(&step)
 	// 更新迁移导出表记录状态为执行中
@@ -712,9 +709,17 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			},
 		},
 	}
-	if uploadUrl, err = tools.CreateZipCompressAndUpload(zipPath, path, zipFile, uploadReqParam); err != nil {
-		log.Logger.Error("CreateZipCompressAndUpload error", log.Error(err))
+	// CreateZipCompress 和 UploadFile分开调用,需要等创建zip文件关闭流再上传
+	if err = tools.CreateZipCompress(zipPath, path, zipFile); err != nil {
+		log.Logger.Error("CreateZipCompress error", log.Error(err))
 		return
+	}
+	var result []*tools.NexusUploadFileRet
+	if result, err = tools.UploadFile(uploadReqParam); err != nil {
+		return
+	}
+	if len(result) > 0 {
+		uploadUrl = result[0].StorePath
 	}
 	updateTransExportSuccess(ctx, param.TransExportId, uploadUrl)
 	return

@@ -34,9 +34,8 @@ func PathExist(path string) (bool, error) {
 	return false, err
 }
 
-func CreateZipCompressAndUpload(zipPath, dirPath, fileName string, uploadReqParam *NexusReqParam) (url string, err error) {
+func CreateZipCompress(zipPath, dirPath, fileName string) (err error) {
 	// 创建一个新的zip文件
-	var result []*NexusUploadFileRet
 	var zipFile *os.File
 	if zipFile, err = os.Create(fmt.Sprintf("%s/%s", zipPath, fileName)); err != nil {
 		return
@@ -73,15 +72,6 @@ func CreateZipCompressAndUpload(zipPath, dirPath, fileName string, uploadReqPara
 		}
 		return nil
 	})
-	if err != nil {
-		return
-	}
-	if result, err = UploadFile(uploadReqParam); err != nil {
-		return
-	}
-	if len(result) > 0 {
-		url = result[0].StorePath
-	}
 	return
 }
 
