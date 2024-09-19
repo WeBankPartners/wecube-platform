@@ -126,11 +126,12 @@ const (
 type TransExportAnalyzeSource string
 
 const (
-	TransExportAnalyzeSourceWeCmdb       TransExportAnalyzeSource = "wecmdb"        // CMDB
-	TransExportAnalyzeSourceWeCmdbReport TransExportAnalyzeSource = "wecmdb_report" // report
-	TransExportAnalyzeSourceWeCmdbView   TransExportAnalyzeSource = "wecmdb_view"   // view
-	TransExportAnalyzeSourceMonitor      TransExportAnalyzeSource = "monitor"       // monitor
-	TransExportAnalyzeSourceArtifact     TransExportAnalyzeSource = "artifact"      // artifact
+	TransExportAnalyzeSourceWeCmdb        TransExportAnalyzeSource = "wecmdb"         // CMDB
+	TransExportAnalyzeSourceWeCmdbReport  TransExportAnalyzeSource = "wecmdb_report"  // report
+	TransExportAnalyzeSourceWeCmdbView    TransExportAnalyzeSource = "wecmdb_view"    // view
+	TransExportAnalyzeSourceMonitor       TransExportAnalyzeSource = "monitor"        // monitor
+	TransExportAnalyzeSourceArtifact      TransExportAnalyzeSource = "artifact"       // artifact
+	TransExportAnalyzeSourcePluginPackage TransExportAnalyzeSource = "plugin_package" // plugin_package
 )
 
 type TransExportAnalyzeMonitorDataType string

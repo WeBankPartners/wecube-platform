@@ -12,13 +12,17 @@ import (
 )
 
 const (
-	analyzeMonitorExportDataUrl  = "/monitor/api/v2/trans-export/analyze"
-	exportMetricListUrl          = "/monitor/api/v2/monitor/metric/export?serviceGroup=%s&monitorType=%s&endpointGroup=%s&comparison=%s"
-	queryMonitorEndpointGroupUrl = "/monitor/api/v2/alarm/endpoint_group/query"
-	exportMonitorLogMetricUrl    = "/monitor/api/v2/service/log_metric/export?serviceGroup=%s"
-	exportLogMonitorTemplateUrl  = "/monitor/api/v2/service/log_metric/log_monitor_template/export"
-	exportAlarmStrategyUrl       = "/monitor/api/v2/alarm/strategy/export/%s/%s"
-	jsonUnmarshalErrTemplate     = "json unmarshal http response body fail,body:%s,error:%s"
+	analyzeMonitorExportDataUrl        = "/monitor/api/v2/trans-export/analyze"
+	exportMetricListUrl                = "/monitor/api/v2/monitor/metric/export?serviceGroup=%s&monitorType=%s&endpointGroup=%s&comparison=%s"
+	queryMonitorEndpointGroupUrl       = "/monitor/api/v2/alarm/endpoint_group/query"
+	exportMonitorLogMetricUrl          = "/monitor/api/v2/service/log_metric/export?serviceGroup=%s"
+	exportLogMonitorTemplateUrl        = "/monitor/api/v2/service/log_metric/log_monitor_template/export"
+	exportAlarmStrategyUrl             = "/monitor/api/v2/alarm/strategy/export/%s/%s"
+	exportKeywordUrl                   = "/monitor/api/v2/service/log_keyword/export?serviceGroup=%s"
+	exportCustomDashboardUrl           = "/monitor/api/v2/dashboard/custom/export"
+	QueryCustomDashboardUrl            = "/monitor/api/v2/dashboard/custom?id=%d"
+	QueryCustomChartPermissionBatchUrl = "/monitor/api/v2/dashboard/custom/batch"
+	jsonUnmarshalErrTemplate           = "json unmarshal http response body fail,body:%s,error:%s"
 )
 
 func GetMonitorExportAnalyzeData(endpointList, serviceGroupList []string) (data *models.AnalyzeTransData, err error) {
@@ -61,6 +65,61 @@ func ExportLogMonitorTemplate(ids []string, token string) (responseBytes []byte,
 func ExportAlarmStrategy(queryType, key, token string) (responseBytes []byte, err error) {
 	url := fmt.Sprintf(exportAlarmStrategyUrl, queryType, key)
 	responseBytes, err = requestMonitorPluginV2(url, http.MethodGet, token, nil)
+	return
+}
+
+func ExportKeyword(serviceGroup, token string) (responseBytes []byte, err error) {
+	url := fmt.Sprintf(exportKeywordUrl, serviceGroup)
+	responseBytes, err = requestMonitorPluginV2(url, http.MethodGet, token, nil)
+	return
+}
+
+func ExportCustomDashboard(id int, chartIds []string, token string) (responseBytes []byte, err error) {
+	param := CustomDashboardExportParam{
+		Id:       id,
+		ChartIds: chartIds,
+	}
+	responseBytes, err = requestMonitorPluginV2(exportCustomDashboardUrl, http.MethodGet, token, param)
+	return
+}
+
+func QueryCustomDashboard(id int, token string) (dashboard *CustomDashboardDto, err error) {
+	var responseBytes []byte
+	var response QueryCustomDashboardResp
+	url := fmt.Sprintf(QueryCustomDashboardUrl, id)
+	if responseBytes, err = requestMonitorPluginV2(url, http.MethodGet, token, nil); err != nil {
+		return
+	}
+	if err = json.Unmarshal(responseBytes, &response); err != nil {
+		err = fmt.Errorf(jsonUnmarshalErrTemplate, string(responseBytes), err.Error())
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	if response.Data != nil {
+		dashboard = response.Data
+	}
+	return
+}
+
+func QueryCustomChartPermissionBatch(ids []string, token string) (roles []string, err error) {
+	var response ChartPermissionBatchResp
+	var responseBytes []byte
+	param := ChartPermissionBatchParam{Ids: ids}
+	responseBytes, err = requestMonitorPluginV2(QueryCustomChartPermissionBatchUrl, http.MethodPost, token, param)
+	if err = json.Unmarshal(responseBytes, &response); err != nil {
+		err = fmt.Errorf(jsonUnmarshalErrTemplate, string(responseBytes), err.Error())
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	if response.Data != nil {
+		roles = response.Data
+	}
 	return
 }
 

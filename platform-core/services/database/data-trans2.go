@@ -177,14 +177,19 @@ func QueryTransExportByCondition(ctx context.Context, param models.TransExportHi
 	return
 }
 
-// AutoAppendExportRoles 自动追加导出角色
-func AutoAppendExportRoles(ctx context.Context, userToken, language string, param models.DataTransExportParam) (newCheckRoles []string, err error) {
+// AutoAppendExportRoles 自动追加导出角色,并且记录需要导出的看板和图表Id
+func AutoAppendExportRoles(ctx context.Context, userToken, language string, param models.DataTransExportParam) (newParam models.DataTransExportParam, err error) {
 	var procDefPermissionList []*models.ProcDefPermission
 	var batchExecutionTemplateRoles []*models.BatchExecutionTemplateRole
 	var requestTemplateRoles models.QueryRequestTemplateRolesResponse
 	var allCheckRoleMap = make(map[string]bool)
-	newCheckRoles = []string{}
-	// 1.角色校验,编排、批量执行、请求模版的角色.需要的角色自动加入
+	var dashboardAnalyze models.TransExportAnalyzeDataTable
+	var dashboardList []int
+	var chartIds, roles, newCheckRoles []string
+	var dashboard *monitor.CustomDashboardDto
+	newParam = param
+	newParam.ExportDashboardMap = make(map[int][]string)
+	// 1.角色校验,编排、批量执行、请求模版的角色、看板&图表角色导出都需要自动加入.需要的角色自动加入
 	if procDefPermissionList, err = GetProcDefPermissionByIds(ctx, param.WorkflowIds); err != nil {
 		return
 	}
@@ -203,10 +208,56 @@ func AutoAppendExportRoles(ctx context.Context, userToken, language string, para
 	for _, role := range requestTemplateRoles.Roles {
 		allCheckRoleMap[role] = true
 	}
+	// 从导出分析表中获取导出看板信息
+	if dashboardAnalyze, err = GetDashboardTransExportAnalyzeData(ctx, param.TransExportId); err != nil {
+		return
+	}
+	if dashboardAnalyze.Data != "" {
+		if err = json.Unmarshal([]byte(dashboardAnalyze.Data), &dashboardList); err != nil {
+			log.Logger.Error("json Unmarshal dashboard analyze err", log.Error(err))
+			return
+		}
+		for _, dashboardId := range dashboardList {
+			chartIds = []string{}
+			if dashboard, err = monitor.QueryCustomDashboard(dashboardId, userToken); err != nil {
+				log.Logger.Error("QueryCustomDashboard err", log.Error(err))
+				return
+			}
+			if dashboard != nil {
+				for _, role := range dashboard.MgmtRoles {
+					allCheckRoleMap[role] = true
+				}
+				for _, role := range dashboard.UseRoles {
+					allCheckRoleMap[role] = true
+				}
+				for _, chart := range dashboard.Charts {
+					chartIds = append(chartIds, chart.Id)
+				}
+				newParam.ExportDashboardMap[dashboardId] = chartIds
+			}
+		}
+		// 查询图表的权限
+		chartIds = []string{}
+		for _, ids := range newParam.ExportDashboardMap {
+			chartIds = append(chartIds, ids...)
+		}
+		if roles, err = monitor.QueryCustomChartPermissionBatch(chartIds, userToken); err != nil {
+			log.Logger.Error("QueryCustomChartPermissionBatch err", log.Error(err))
+			return
+		}
+		newCheckRoles = append(newCheckRoles, roles...)
+	}
 	newCheckRoles = append(newCheckRoles, param.Roles...)
 	for role, _ := range allCheckRoleMap {
 		newCheckRoles = append(newCheckRoles, role)
 	}
+	newParam.Roles = newCheckRoles
+	return
+}
+
+func GetDashboardTransExportAnalyzeData(ctx context.Context, transExportId string) (dashboardAnalyze models.TransExportAnalyzeDataTable, err error) {
+	_, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_analyze_data where trans_export=? and data_type=? limit 1",
+		transExportId, "dashboard").Get(&dashboardAnalyze)
 	return
 }
 
@@ -278,6 +329,8 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 		CmdbView:       make([]*models.CommonNameCreator, 0),
 		CmdbReportForm: make([]*models.CommonNameCreator, 0),
 		Monitor:        make([]*models.CommonNameCount, 0),
+		Artifacts:      []string{},
+		Plugins:        make([]*models.PluginPackageCount, 0),
 	}
 	for _, transExportDetail := range transExportDetailList {
 		var tempArr []string
@@ -318,13 +371,13 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 		return
 	}
 	for _, transExportAnalyze := range transExportAnalyzeDataList {
-		switch transExportAnalyze.Source {
-		case string(models.TransExportAnalyzeSourceWeCmdb):
+		switch models.TransExportAnalyzeSource(transExportAnalyze.Source) {
+		case models.TransExportAnalyzeSourceWeCmdb:
 			detail.CmdbCI = append(detail.CmdbCI, &models.CommonNameCount{
 				Name:  transExportAnalyze.DataTypeName,
 				Count: transExportAnalyze.DataLen,
 			})
-		case string(models.TransExportAnalyzeSourceWeCmdbReport):
+		case models.TransExportAnalyzeSourceWeCmdbReport:
 			var tempArr []map[string]interface{}
 			if transExportAnalyze.Data != "" {
 				json.Unmarshal([]byte(transExportAnalyze.Data), &tempArr)
@@ -332,13 +385,13 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 					for _, dataMap := range tempArr {
 						detail.CmdbReportForm = append(detail.CmdbReportForm, &models.CommonNameCreator{
 							Name:    fmt.Sprintf("%v", dataMap["name"]),
-							Creator: "",
+							Creator: fmt.Sprintf("%v", dataMap["createUser"]),
 						})
 					}
 				}
 			}
 			detail.CmdbReportFormCount = transExportAnalyze.DataLen
-		case string(models.TransExportAnalyzeSourceWeCmdbView):
+		case models.TransExportAnalyzeSourceWeCmdbView:
 			var tempArr []map[string]interface{}
 			if transExportAnalyze.Data != "" {
 				json.Unmarshal([]byte(transExportAnalyze.Data), &tempArr)
@@ -346,18 +399,51 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 					for _, dataMap := range tempArr {
 						detail.CmdbView = append(detail.CmdbReportForm, &models.CommonNameCreator{
 							Name:    fmt.Sprintf("%v", dataMap["name"]),
-							Creator: "",
+							Creator: fmt.Sprintf("%v", dataMap["createUser"]),
 						})
 					}
 				}
 			}
 			detail.CmdbViewCount = transExportAnalyze.DataLen
-		case string(models.TransExportAnalyzeSourceMonitor):
+		case models.TransExportAnalyzeSourceMonitor:
 			detail.Monitor = append(detail.Monitor, &models.CommonNameCount{
 				Name:  transExportAnalyze.DataTypeName,
 				Count: transExportAnalyze.DataLen,
 			})
-		case string(models.TransExportAnalyzeSourceArtifact):
+		case models.TransExportAnalyzeSourceArtifact:
+			var tempMap map[string]map[string]interface{}
+			if transExportAnalyze.Data != "" {
+				json.Unmarshal([]byte(transExportAnalyze.Data), &tempMap)
+				if len(tempMap) > 0 {
+					for _, deployPackage := range tempMap {
+						detail.Artifacts = append(detail.Artifacts, fmt.Sprintf("%v", deployPackage["key_name"]))
+					}
+				}
+			}
+		case models.TransExportAnalyzeSourcePluginPackage:
+			var tempArr []map[string]interface{}
+			if transExportAnalyze.Data != "" {
+				json.Unmarshal([]byte(transExportAnalyze.Data), &tempArr)
+				if len(tempArr) > 0 {
+					for _, dataMap := range tempArr {
+						pluginInterfaceNum := 0
+						systemVariableNum := 0
+						switch dataMap["PluginInterfaceNum"].(type) {
+						case int, int32, int64:
+							pluginInterfaceNum = dataMap["PluginInterfaceNum"].(int)
+						}
+						switch dataMap["SystemVariableNum"].(type) {
+						case int, int32, int64:
+							systemVariableNum = dataMap["SystemVariableNum"].(int)
+						}
+						detail.Plugins = append(detail.Plugins, &models.PluginPackageCount{
+							Name:               fmt.Sprintf("%v", dataMap["PluginPackageName"]),
+							PluginInterfaceNum: pluginInterfaceNum,
+							SystemVariableNum:  systemVariableNum,
+						})
+					}
+				}
+			}
 		}
 	}
 	return
@@ -560,7 +646,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	}
 	// 8. 导出监控
 	step = models.TransExportStepMonitor
-	if err = exportMonitor(ctx, param.TransExportId, path, userToken); err != nil {
+	if err = exportMonitor(ctx, param.TransExportId, path, userToken, param.ExportDashboardMap); err != nil {
 		return
 	}
 	// 9. json文件压缩并上传nexus
@@ -621,7 +707,7 @@ func execStepExport(param models.StepExportParam) (err error) {
 }
 
 // exportMonitor 导出监控
-func exportMonitor(ctx context.Context, transExportId, path, token string) (err error) {
+func exportMonitor(ctx context.Context, transExportId, path, token string, exportDashboardMap map[int][]string) (err error) {
 	var analyzeList []*models.TransExportAnalyzeDataTable
 	var exportDataKeyList []string
 	var finalExportDataList []interface{}
@@ -724,8 +810,34 @@ func exportMonitor(ctx context.Context, transExportId, path, token string) (err 
 			}
 		case models.TransExportAnalyzeMonitorDataTypeLogKeywordServiceGroup:
 			// 导出关键字
+			for i, serviceGroup := range exportDataKeyList {
+				if responseBytes, err = monitor.ExportKeyword(serviceGroup, token); err != nil {
+					log.Logger.Error("ExportKeyword err", log.JsonObj("serviceGroup", serviceGroup), log.Error(err))
+					return
+				}
+				if string(responseBytes) != "" {
+					var temp interface{}
+					json.Unmarshal(responseBytes, &temp)
+					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", path, models.TransExportAnalyzeMonitorDataTypeLogKeywordServiceGroup, i+1))
+					finalExportDataList = append(finalExportDataList, temp)
+				}
+			}
 		case models.TransExportAnalyzeMonitorDataTypeDashboard:
 			// 导出看板
+			i := 1
+			for dashboardId, chartIds := range exportDashboardMap {
+				if responseBytes, err = monitor.ExportCustomDashboard(dashboardId, chartIds, token); err != nil {
+					log.Logger.Error("ExportCustomDashboard err", log.JsonObj("dashboardId", dashboardId), log.Error(err))
+					return
+				}
+				if string(responseBytes) != "" {
+					var temp interface{}
+					json.Unmarshal(responseBytes, &temp)
+					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", path, models.TransExportAnalyzeMonitorDataTypeDashboard, i+1))
+					finalExportDataList = append(finalExportDataList, temp)
+					i++
+				}
+			}
 		case models.TransExportAnalyzeMonitorDataTypeCustomMetricMonitorType:
 			// 导出指标列表基础类型
 			monitoryTypeMetricList = exportDataKeyList

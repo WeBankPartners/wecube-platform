@@ -171,12 +171,13 @@ type UpdateExportParam struct {
 }
 
 type DataTransExportParam struct {
-	TransExportId          string   `json:"transExportId"`          // 导出Id
-	Roles                  []string `json:"roles"`                  // 角色
-	WorkflowIds            []string `json:"workflowIds"`            // 编排Ids
-	BatchExecutionIds      []string `json:"batchExecutionIds"`      // 批量执行Ids
-	RequestTemplateIds     []string `json:"requestTemplateIds"`     // 模版Ids
-	ExportComponentLibrary bool     `json:"exportComponentLibrary"` // 是否导出组件库
+	TransExportId          string           `json:"transExportId"`          // 导出Id
+	Roles                  []string         `json:"roles"`                  // 角色
+	WorkflowIds            []string         `json:"workflowIds"`            // 编排Ids
+	BatchExecutionIds      []string         `json:"batchExecutionIds"`      // 批量执行Ids
+	RequestTemplateIds     []string         `json:"requestTemplateIds"`     // 模版Ids
+	ExportComponentLibrary bool             `json:"exportComponentLibrary"` // 是否导出组件库
+	ExportDashboardMap     map[int][]string // 导出看板信息
 }
 
 type TransExportHistoryParam struct {
@@ -275,25 +276,32 @@ type RequestTemplateDto struct {
 }
 
 type TransExportDetail struct {
-	TransExport            *TransExportTable    `json:"transExport"`
-	CmdbCI                 []*CommonNameCount   `json:"cmdbCI"`
-	CmdbView               []*CommonNameCreator `json:"cmdbView"`
-	CmdbViewCount          int                  `json:"cmdbViewCount"`
-	CmdbReportForm         []*CommonNameCreator `json:"cmdbReportForm"`
-	CmdbReportFormCount    int                  `json:"cmdbReportFormCount"`
-	Artifacts              []*CommonNameCount   `json:"artifacts"`
-	Roles                  *CommonOutput        `json:"roles"`
-	Workflows              *CommonOutput        `json:"workflows"`
-	BatchExecution         *CommonOutput        `json:"batchExecutions"`
-	RequestTemplates       *CommonOutput        `json:"requestTemplates"`
-	ComponentLibrary       *CommonOutput        `json:"componentLibrary"`
-	ExportComponentLibrary bool                 `json:"exportComponentLibrary"` // 是否导出组件库
-	Monitor                []*CommonNameCount   `json:"monitor"`
+	TransExport            *TransExportTable     `json:"transExport"`
+	CmdbCI                 []*CommonNameCount    `json:"cmdbCI"`
+	CmdbView               []*CommonNameCreator  `json:"cmdbView"`
+	CmdbViewCount          int                   `json:"cmdbViewCount"`
+	CmdbReportForm         []*CommonNameCreator  `json:"cmdbReportForm"`
+	CmdbReportFormCount    int                   `json:"cmdbReportFormCount"`
+	Artifacts              []string              `json:"artifacts"`
+	Roles                  *CommonOutput         `json:"roles"`
+	Workflows              *CommonOutput         `json:"workflows"`
+	BatchExecution         *CommonOutput         `json:"batchExecutions"`
+	RequestTemplates       *CommonOutput         `json:"requestTemplates"`
+	ComponentLibrary       *CommonOutput         `json:"componentLibrary"`
+	ExportComponentLibrary bool                  `json:"exportComponentLibrary"` // 是否导出组件库
+	Monitor                []*CommonNameCount    `json:"monitor"`
+	Plugins                []*PluginPackageCount `json:"plugins"`
 }
 
 type CommonNameCount struct {
 	Name  string `json:"name"`
 	Count int    `json:"count"`
+}
+
+type PluginPackageCount struct {
+	Name               string `json:"name"`
+	PluginInterfaceNum int    `json:"pluginInterfaceNum"`
+	SystemVariableNum  int    `json:"systemVariableNum"`
 }
 
 type CommonNameCreator struct {
