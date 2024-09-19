@@ -193,10 +193,9 @@
     <!--监控-->
     <div class="item">
       <span class="title">
-        监控配置：<span class="sub-title">
-          已选配置类型<span class="number">{{ detailData.monitorData.length }}</span> 总条数<span class="number">{{
-            '-'
-          }}</span>
+        监控配置：<span class="sub-title">已选
+        <span class="name">配置类型</span><span class="number">{{ detailData.monitorData.length }}</span>
+        <span class="name">总条数</span><span class="number">{{ detailData.monitorCount }}</span>
         </span>
       </span>
       <Row :gutter="10">
@@ -228,7 +227,7 @@
               size="small"
               :columns="pluginColumns"
               :max-height="400"
-              :data="detailData.monitorData"
+              :data="detailData.pluginsData"
             />
           </Card>
         </Col>
@@ -346,7 +345,10 @@ export default {
         display: flex;
         flex-direction: column;
         width: 220px;
-        margin-right: 10px;
+        margin-right: 20px;
+        span {
+          margin-bottom: 2px;
+        }
       }
     }
   }
