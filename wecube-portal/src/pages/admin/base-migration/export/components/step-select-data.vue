@@ -45,7 +45,7 @@
           size="small"
           :loading="roleTableLoading"
           :columns="roleTableColumns"
-          :max-height="460"
+          :max-height="400"
           :data="roleTableData"
           @on-selection-change="selection => handleSelectChange('role', selection)"
         >
@@ -68,7 +68,7 @@
           size="small"
           :loading="itsmTableLoading"
           :columns="itsmTableColumns"
-          :max-height="460"
+          :max-height="400"
           :data="itsmTableData"
           @on-selection-change="selection => handleSelectChange('itsm', selection)"
         >
@@ -90,7 +90,7 @@
           size="small"
           :loading="flowTableLoading"
           :columns="flowTableColumns"
-          :max-height="460"
+          :max-height="400"
           :data="flowTableData"
           @on-selection-change="selection => handleSelectChange('flow', selection)"
         >
@@ -112,7 +112,7 @@
           size="small"
           :loading="batchTableLoading"
           :columns="batchTableColumns"
-          :max-height="460"
+          :max-height="400"
           :data="batchTableData"
           @on-selection-change="selection => handleSelectChange('execution', selection)"
         >
@@ -136,7 +136,7 @@
               :border="false"
               size="small"
               :columns="cmdbCIColumns"
-              :max-height="460"
+              :max-height="400"
               :data="detailData.cmdbCIData"
             />
           </Card>
@@ -147,7 +147,7 @@
               :border="false"
               size="small"
               :columns="cmdbCIColumns"
-              :max-height="460"
+              :max-height="400"
               :data="detailData.cmdbViewData"
             />
           </Card>
@@ -158,7 +158,7 @@
               :border="false"
               size="small"
               :columns="cmdbCIColumns"
-              :max-height="460"
+              :max-height="400"
               :data="detailData.cmdbReportData"
             />
           </Card>
@@ -177,7 +177,7 @@
               :border="false"
               size="small"
               :columns="artifactsColumns"
-              :max-height="460"
+              :max-height="400"
               :data="detailData.artifactsData"
             />
           </Card>
@@ -188,7 +188,7 @@
     <div class="item">
       <span class="title">
         监控配置：<span class="sub-title">
-          已选配置类型<span class="number">{{ 10 }}</span> 总条数<span class="number">{{ 10 }}</span>
+          已选配置类型<span class="number">{{ detailData.monitorData.length }}</span> 总条数<span class="number">{{ 10 }}</span>
         </span>
       </span>
       <Row :gutter="10">
@@ -198,7 +198,28 @@
               :border="false"
               size="small"
               :columns="monitorColumns"
-              :max-height="460"
+              :max-height="400"
+              :data="detailData.monitorData"
+            />
+          </Card>
+        </Col>
+      </Row>
+    </div>
+    <!--插件服务-->
+    <div class="item">
+      <span class="title">
+        插件服务：<span class="sub-title">
+          已选配置类型<span class="number">{{ 10 }}</span>
+        </span>
+      </span>
+      <Row :gutter="10">
+        <Col :span="12">
+          <Card>
+            <Table
+              :border="false"
+              size="small"
+              :columns="pluginColumns"
+              :max-height="400"
               :data="detailData.monitorData"
             />
           </Card>
