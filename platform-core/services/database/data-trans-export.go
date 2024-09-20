@@ -498,16 +498,19 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	var batchExecutionTemplateList []*models.BatchExecutionTemplate
 	var transDataVariableConfig *models.TransDataVariableConfig
 	var subProcDefIds []string
-	var uploadUrl, path, zipPath string
+	var uploadUrl, path, zipPath, pluginPath, monitorPath string
 	var err error
 	var step models.TransExportStep
 	var roleDisplayNameMap = make(map[string]string)
-	if path, err = tools.GetPath(fmt.Sprintf(tempWeCubeDataDir, param.TransExportId)); err != nil {
+	path = fmt.Sprintf(tempWeCubeDataDir, param.TransExportId)
+	if zipPath, err = tools.GetPath(tempWeCubeZipDir); err != nil {
 		log.Logger.Error("getPath error", log.Error(err))
 		return
 	}
-	if zipPath, err = tools.GetPath(tempWeCubeZipDir); err != nil {
-		log.Logger.Error("getPath error", log.Error(err))
+	if pluginPath, err = tools.GetPath(fmt.Sprintf("%s/plugin-config", path)); err != nil {
+		return
+	}
+	if monitorPath, err = tools.GetPath(fmt.Sprintf("%s/monitor", path)); err != nil {
 		return
 	}
 	// 如果有报错,更新导出记录状态失败
@@ -695,10 +698,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	log.Logger.Info("6. export pluginConfig start!!!!")
 	exportPluginConfigStartTime := time.Now().Format(models.DateTimeFormat)
 	// 插件配置导出文件比较多,创建plugin-config子目录导出
-	if path, err = tools.GetPath(fmt.Sprintf("%s/plugin-config", path)); err != nil {
-		return
-	}
-	if err = DataTransExportPluginConfig(ctx, param.TransExportId, path); err != nil {
+	if err = DataTransExportPluginConfig(ctx, param.TransExportId, pluginPath); err != nil {
 		log.Logger.Error("DataTransExportPluginConfig error", log.Error(err))
 		return
 	}
@@ -749,7 +749,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	step = models.TransExportStepMonitor
 	log.Logger.Info("9. export monitor start!!!!")
 	exportMonitorStartTime := time.Now().Format(models.DateTimeFormat)
-	if err = exportMonitor(ctx, param.TransExportId, path, userToken, param.ExportDashboardMap); err != nil {
+	if err = exportMonitor(ctx, param.TransExportId, monitorPath, userToken, param.ExportDashboardMap); err != nil {
 		return
 	}
 	transExportMonitorDetail := models.TransExportDetailTable{
@@ -884,10 +884,6 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_analyze_data where trans_export=? and source=?",
 		transExportId, models.TransExportAnalyzeSourceMonitor).Find(&analyzeList)
 	if err != nil {
-		return
-	}
-	// 监控文件比较多,创建监控子目录导出
-	if path, err = tools.GetPath(fmt.Sprintf("%s/monitor", path)); err != nil {
 		return
 	}
 	for _, monitorAnalyzeData := range analyzeList {
