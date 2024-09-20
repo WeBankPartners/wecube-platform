@@ -50,25 +50,44 @@ func CreateZipCompress(zipPath, dirPath, fileName string) (err error) {
 		if err != nil {
 			return err
 		}
-		// 如果info是一个目录，我们不需要写入任何内容，所以我们只是返回nil
-		if info.IsDir() {
-			return nil
-		}
-		// 创建一个新的zip.File
-		zipFile, err := zipWriter.Create(filepath.Base(path))
+		// 获取相对路径
+		relativePath, err := filepath.Rel(dirPath, path)
 		if err != nil {
 			return err
 		}
-		// 打开文件
-		file, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
+		// 替换斜杠为正斜杠
+		relativePath = filepath.ToSlash(relativePath)
 
-		// 将文件内容复制到zipFile
-		if _, err = io.Copy(zipFile, file); err != nil {
+		// 创建压缩文件头
+		header, err := zip.FileInfoHeader(info)
+		if err != nil {
 			return err
+		}
+		header.Name = relativePath
+
+		if info.IsDir() {
+			header.Name += "/"
+		} else {
+			header.Method = zip.Deflate
+		}
+
+		// 写入文件头到压缩包
+		writer, err := zipWriter.CreateHeader(header)
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			// 打开源文件
+			file, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			// 写入文件内容到压缩包
+			_, err = io.Copy(writer, file)
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	})
