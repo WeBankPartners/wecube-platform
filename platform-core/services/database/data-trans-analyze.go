@@ -324,7 +324,7 @@ func getDataTransVariableMap(ctx context.Context) (result *models.TransDataVaria
 		case "PLATFORM_EXPORT_CI_TECH_PRODUCT":
 			result.ArtifactCiTechProduct = tmpValue
 		case "PLATFORM_EXPORT_CI_ARTIFACT_UNIT_DESIGN":
-			result.ArtifactUnitDesignColumn = tmpValue
+			result.ArtifactUnitDesignCiType = tmpValue
 		}
 	}
 	return
@@ -566,7 +566,7 @@ func analyzeArtifactExportData(transExportId string, ciTypeDataMap map[string]*m
 		var unitDesignGuidList []string
 		analyzeData := make(map[string]*models.AnalyzeArtifactDisplayData)
 		for _, v := range ciTypeData.DataMap {
-			tmpUnitDesign := v[transConfig.ArtifactUnitDesignColumn]
+			tmpUnitDesign := v[transConfig.ArtifactUnitDesignCiType]
 			if existData, existFlag := analyzeData[tmpUnitDesign]; existFlag {
 				existData.ArtifactRows = append(existData.ArtifactRows, v)
 			} else {
@@ -576,7 +576,7 @@ func analyzeArtifactExportData(transExportId string, ciTypeDataMap map[string]*m
 		}
 		for k, v := range analyzeData {
 			v.ArtifactLen = len(v.ArtifactRows)
-			if unitDesignCi, ciMatch := ciTypeDataMap[transConfig.ArtifactUnitDesignColumn]; ciMatch {
+			if unitDesignCi, ciMatch := ciTypeDataMap[transConfig.ArtifactUnitDesignCiType]; ciMatch {
 				if unitDesignRow, ciDataMatch := unitDesignCi.DataMap[k]; ciDataMatch {
 					v.UnitDesignName = unitDesignRow["key_name"]
 				}
@@ -875,11 +875,6 @@ func DataTransImportCMDBData(ctx context.Context, inputFile string) (err error) 
 		}
 	}
 	session.Close()
-	return
-}
-
-func DataTransExportMonitorData(transExportId string) (tmpFilePathList []string, err error) {
-
 	return
 }
 
