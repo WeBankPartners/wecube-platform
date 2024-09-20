@@ -54,8 +54,7 @@
 
 <script>
 export default {
-  components: {
-  },
+  components: {},
   data() {
     return {
       activeStep: 0,
