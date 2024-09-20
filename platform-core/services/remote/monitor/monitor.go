@@ -79,7 +79,7 @@ func ExportCustomDashboard(id int, chartIds []string, token string) (responseByt
 		Id:       id,
 		ChartIds: chartIds,
 	}
-	responseBytes, err = requestMonitorPluginV2(exportCustomDashboardUrl, http.MethodGet, token, param)
+	responseBytes, err = requestMonitorPluginV2(exportCustomDashboardUrl, http.MethodPost, token, param)
 	return
 }
 
