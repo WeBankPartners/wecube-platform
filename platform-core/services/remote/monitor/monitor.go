@@ -21,7 +21,7 @@ const (
 	exportKeywordUrl                   = "/monitor/api/v2/service/log_keyword/export?serviceGroup=%s"
 	exportCustomDashboardUrl           = "/monitor/api/v2/dashboard/custom/export"
 	QueryCustomDashboardUrl            = "/monitor/api/v2/dashboard/custom?id=%d"
-	QueryCustomChartPermissionBatchUrl = "/monitor/api/v2/dashboard/custom/batch"
+	QueryCustomChartPermissionBatchUrl = "/monitor/api/v2/chart/custom/permission/batch"
 	jsonUnmarshalErrTemplate           = "json unmarshal http response body fail,body:%s,error:%s"
 )
 
