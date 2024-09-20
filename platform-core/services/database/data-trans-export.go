@@ -1002,7 +1002,9 @@ func updateTransExportDetail(ctx context.Context, transExportDetail models.Trans
 	_, err = db.MysqlEngine.Context(ctx).Where("trans_export=? and step=?", transExportDetail.TransExport, transExportDetail.Step).Update(transExportDetail)
 	// 当前步骤结束,表示下一个步骤开始
 	if transExportDetail.Status == string(models.TransExportStatusSuccess) && startNextStep {
+		transExportId := transExportDetail.TransExport
 		transExportDetail = models.TransExportDetailTable{}
+		transExportDetail.TransExport = transExportId
 		transExportDetail.Status = string(models.TransExportStatusDoing)
 		transExportDetail.StartTime = time.Now().Format(models.DateTimeFormat)
 		_, err = db.MysqlEngine.Context(ctx).Where("trans_export=? and step=?", transExportDetail.TransExport, transExportDetail.Step+1).Update(transExportDetail)
