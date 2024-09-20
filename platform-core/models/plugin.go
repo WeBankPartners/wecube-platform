@@ -897,10 +897,19 @@ type InheritPluginConfigParam struct {
 }
 
 type PluginArtifactsPushResult struct {
-	Code    int                    `json:"code"`
-	Message string                 `json:"message"`
-	Status  string                 `json:"status"`
-	Data    map[string]interface{} `json:"data"`
+	Code    int                            `json:"code"`
+	Message string                         `json:"message"`
+	Status  string                         `json:"status"`
+	Data    *PushArtifactPluginPackageData `json:"data"`
+}
+
+type PushArtifactPluginPackageParam struct {
+	Path string `json:"path"`
+}
+
+type PushArtifactPluginPackageData struct {
+	Name        string `json:"name"`
+	DownloadUrl string `json:"downloadUrl"`
 }
 
 type QueryBusinessListParam struct {

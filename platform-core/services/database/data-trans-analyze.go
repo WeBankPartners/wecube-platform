@@ -861,8 +861,37 @@ func DataTransImportCMDBData(ctx context.Context, inputFile string) (err error) 
 	return
 }
 
-func DataTransExportArtifactData(transExportId string) (tmpFilePathList []string, err error) {
-
+// DataTransExportArtifactData 把物料包直接迁到物料插件配置好的nexus上
+func DataTransExportArtifactData(ctx context.Context, transExportId string) (err error) {
+	// 读analyze表cmdb数据
+	var transExportAnalyzeRows []*models.TransExportAnalyzeDataTable
+	err = db.MysqlEngine.Context(ctx).SQL("select id,source,data_type,`data` from trans_export_analyze_data where trans_export=? and source='artifact'", transExportId).Find(&transExportAnalyzeRows)
+	if err != nil {
+		err = fmt.Errorf("query trans export analyze table data fail,%s ", err.Error())
+		return
+	}
+	if len(transExportAnalyzeRows) == 0 {
+		return
+	}
+	var dataList []*models.AnalyzeArtifactDisplayData
+	if err = json.Unmarshal([]byte(transExportAnalyzeRows[0].Data), &dataList); err != nil {
+		err = fmt.Errorf("json unmarshal analyze artifact data fail,%s ", err.Error())
+		return
+	}
+	for _, unitDesign := range dataList {
+		for _, deployPackage := range unitDesign.ArtifactRows {
+			if deployPackage["guid"] != "" {
+				_, pushErr := remote.PushPackage(ctx, remote.GetToken(), unitDesign.UnitDesign, deployPackage["guid"], "/"+transExportId+"/artifact_packages/")
+				if pushErr != nil {
+					err = fmt.Errorf("push artifact package %s fail,%s ", deployPackage["key_name"], pushErr.Error())
+					break
+				}
+			}
+		}
+		if err != nil {
+			break
+		}
+	}
 	return
 }
 
