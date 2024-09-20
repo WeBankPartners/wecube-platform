@@ -68,7 +68,13 @@
         <span v-if="detailData.roleRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.roleRes.errMsg }}</span>)</span>
       </span>
       <div>
-        <Table :border="false" size="small" :columns="roleTableColumns" :max-height="400" :data="detailData.roleRes.data">
+        <Table
+          :border="false"
+          size="small"
+          :columns="roleTableColumns"
+          :max-height="400"
+          :data="detailData.roleRes.data"
+        >
         </Table>
       </div>
     </div>
@@ -83,7 +89,13 @@
         是否导出组件库：<i-switch disabled v-model="detailData.exportComponentLibrary"></i-switch>
       </div>
       <div>
-        <Table :border="false" size="small" :columns="itsmTableColumns" :max-height="400" :data="detailData.itsmRes.data">
+        <Table
+          :border="false"
+          size="small"
+          :columns="itsmTableColumns"
+          :max-height="400"
+          :data="detailData.itsmRes.data"
+        >
         </Table>
       </div>
     </div>
@@ -95,7 +107,13 @@
         <span v-if="detailData.flowRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.flowRes.errMsg }}</span>)</span>
       </span>
       <div>
-        <Table :border="false" size="small" :columns="flowTableColumns" :max-height="400" :data="detailData.flowRes.data">
+        <Table
+          :border="false"
+          size="small"
+          :columns="flowTableColumns"
+          :max-height="400"
+          :data="detailData.flowRes.data"
+        >
         </Table>
       </div>
     </div>
@@ -107,7 +125,13 @@
         <span v-if="detailData.batchRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.batchRes.errMsg }}</span>)</span>
       </span>
       <div>
-        <Table :border="false" size="small" :columns="batchTableColumns" :max-height="400" :data="detailData.batchRes.data">
+        <Table
+          :border="false"
+          size="small"
+          :columns="batchTableColumns"
+          :max-height="400"
+          :data="detailData.batchRes.data"
+        >
         </Table>
       </div>
     </div>
