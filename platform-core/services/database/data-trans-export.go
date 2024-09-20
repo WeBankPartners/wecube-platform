@@ -30,6 +30,7 @@ var transExportDetailMap = map[models.TransExportStep]string{
 	models.TransExportStepMonitor:             "monitor",
 	models.TransExportStepPluginConfig:        "pluginConfig",
 	models.TransExportStepCreateAndUploadFile: "createAndUploadFile",
+	models.TransExportSystemVariable:          "systemVariable ",
 }
 
 const (
@@ -752,10 +753,11 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	}
 	updateTransExportDetail(ctx, transExportMonitorDetail)
 	log.Logger.Info("9. export monitor end!!!!")
-	// 10. json文件压缩并上传nexus
-	step = models.TransExportStepCreateAndUploadFile
-	log.Logger.Info("10. create and upload file start!!!!")
-	exportCreateAndUploadFileStartTime := time.Now().Format(models.DateTimeFormat)
+
+	// 10.导出系统变量参数
+	step = models.TransExportSystemVariable
+	log.Logger.Info("10. export systemVariable start!!!!")
+	exportSystemVariableStartTime := time.Now().Format(models.DateTimeFormat)
 	if transDataVariableConfig, err = getDataTransVariableMap(ctx); err != nil {
 		return
 	}
@@ -763,6 +765,23 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		err = fmt.Errorf("cmdb transVariableMap is empty")
 		return
 	}
+	exportSystemVariableParam := models.StepExportParam{
+		Ctx:           ctx,
+		Path:          path,
+		TransExportId: param.TransExportId,
+		StartTime:     exportSystemVariableStartTime,
+		Step:          step,
+		Data:          transDataVariableConfig,
+	}
+	if err = execStepExport(exportSystemVariableParam); err != nil {
+		return
+	}
+	log.Logger.Info("10. export systemVariable end!!!!")
+
+	// 10. json文件压缩并上传nexus
+	step = models.TransExportStepCreateAndUploadFile
+	log.Logger.Info("11. create and upload file start!!!!")
+	exportCreateAndUploadFileStartTime := time.Now().Format(models.DateTimeFormat)
 	uploadReqParam := &tools.NexusReqParam{
 		UserName:   transDataVariableConfig.NexusUser,
 		Password:   transDataVariableConfig.NexusPwd,
@@ -796,7 +815,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		EndTime:     time.Now().Format(models.DateTimeFormat),
 	}
 	updateTransExportDetail(ctx, transExportCreateAndUploadFile)
-	log.Logger.Info("10. create and upload file end!!!!")
+	log.Logger.Info("11. create and upload file end!!!!")
 	updateTransExportSuccess(ctx, param.TransExportId, uploadUrl)
 	return
 }
