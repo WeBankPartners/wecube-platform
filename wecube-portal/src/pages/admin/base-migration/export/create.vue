@@ -2,7 +2,7 @@
   <Card :bordered="false" dis-hover :padding="0">
     <div class="base-migration-export-create">
       <div class="steps">
-        <BaseHeaderTitle title="导出步骤">
+        <BaseHeaderTitle title="导出步骤" :showExpand="false">
           <Steps :current="activeStep" direction="vertical">
             <Step title="选择产品、环境" content="系统自动分析需要导出的系统及数据"></Step>
             <Step title="选择数据,执行导出" content="确认依赖系统、CMDB、编排、ITSM等配置项正确"></Step>
@@ -11,13 +11,13 @@
         </BaseHeaderTitle>
       </div>
       <div class="content" ref="scrollView">
-        <BaseHeaderTitle v-if="activeStep === 0" title="导出产品">
+        <BaseHeaderTitle v-if="activeStep === 0" title="导出产品" :showExpand="false">
           <stepEnviroment ref="env" :detailData="detailData"></stepEnviroment>
         </BaseHeaderTitle>
-        <BaseHeaderTitle v-if="activeStep === 1" title="导出数据">
+        <BaseHeaderTitle v-if="activeStep === 1" title="导出数据" :showExpand="false">
           <stepSelectData ref="data" :detailData="detailData"></stepSelectData>
         </BaseHeaderTitle>
-        <BaseHeaderTitle v-if="activeStep === 2" title="导出结果">
+        <BaseHeaderTitle v-if="activeStep === 2" title="导出结果" :showExpand="false">
           <stepResult :detailData="detailData"></stepResult>
         </BaseHeaderTitle>
         <div class="footer">
@@ -110,7 +110,7 @@ export default {
           flowRes: data.workflows,
           batchRes: data.batchExecutions,
           itsmRes: data.requestTemplates,
-          failMsg: data.createAndUploadFile.errMsg,
+          failMsg: data.createAndUploadFile && data.createAndUploadFile.errMsg,
           cmdbCIData: data.cmdbCI || [], // cmdb CI
           cmdbViewData: data.cmdbView || [], // cmdb视图
           cmdbReportData: data.cmdbReportForm || [], // cmdb报表
@@ -245,7 +245,7 @@ export default {
   }
   .content {
     width: calc(100% - 260px);
-    padding-left: 15px;
+    padding-left: 10px;
     overflow-y: auto;
     .footer {
       position: fixed;
@@ -256,16 +256,16 @@ export default {
     }
   }
   ::-webkit-scrollbar {
-    width: 10px;
+    width: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: #888;
+    background: #d4d4d4;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: #d4d4d4;
   }
 }
 </style>
