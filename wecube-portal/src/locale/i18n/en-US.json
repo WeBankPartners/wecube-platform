@@ -898,5 +898,18 @@
   "p_instance_destroy_failed": "Instance destruction failed",
   "p_instance_destroy": "Instance being destroyed",
   "p_online_plugin_installation": "Online plugin installation",
-  "fd_platform": "Platform"
+  "fd_platform": "Platform",
+  "m_monitor_type": "Monitor Type",
+  "m_endpoint_group": "Endpoint Group",
+  "m_custom_metric_service_group": "Custom Metric Service Group",
+  "m_custom_metric_endpoint_group": "Custom Metric Endpoint Group",
+  "m_custom_metric_monitor_type": "Custom Metric Monitor Type",
+  "m_log_monitor_service_group": "Log Monitor Service Group",
+  "m_log_monitor_template": "Log Monitor Template",
+  "m_strategy_service_group": "Strategy Service Group",
+  "m_strategy_endpoint_group": "Strategy Endpoint Group",
+  "m_logKeyword_service_group": "Keyword Service Group",
+  "m_dashboard": "Dashboard",
+  "m_procDefId": "Workflow",
+  "m_owner_role": "Owner Role"
 }

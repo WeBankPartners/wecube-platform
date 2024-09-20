@@ -897,5 +897,18 @@
   "p_instance_destroy_failed": "实例销毁失败",
   "p_instance_destroy": "实例销毁中",
   "p_online_plugin_installation": "在线插件安装中",
-  "fd_platform": "平台"
+  "fd_platform": "平台",
+  "m_monitor_type": "类型配置",
+  "m_endpoint_group": "对象组",
+  "m_custom_metric_service_group": "指标列表-层级对象",
+  "m_custom_metric_endpoint_group": "指标列表-对象组",
+  "m_custom_metric_monitor_type": "基础类型-指标配置",
+  "m_log_monitor_service_group": "业务配置",
+  "m_log_monitor_template": "业务日志模版",
+  "m_strategy_service_group": "指标阈值-层级对象",
+  "m_strategy_endpoint_group": "指标阈值-组",
+  "m_logKeyword_service_group": "关键字",
+  "m_dashboard": "自定义看板",
+  "m_procDefId": "编排",
+  "m_owner_role": "属主角色"
 }
