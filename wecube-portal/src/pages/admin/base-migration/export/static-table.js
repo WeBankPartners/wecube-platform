@@ -23,7 +23,7 @@ export default {
           width: 90,
           render: (h, params) => (
             <span style="display:flex;align-items:center;justify-content:space-between;">
-              <div style="width:20px">{params.row.count}</div>
+              <div style="width:25px">{params.row.count}</div>
               <Icon
                 type="ios-list"
                 size="36"
@@ -104,7 +104,7 @@ export default {
           width: 120,
           render: (h, params) => (
             <span style="display:flex;align-items:center;">
-              <div style="width:20px">{params.row.artifactLen}</div>
+              <div style="width:25px">{params.row.artifactLen}</div>
               <Icon
                 type="ios-list"
                 size="36"
@@ -121,7 +121,6 @@ export default {
       monitorColumns: [
         {
           title: '数据类型',
-          key: 'name',
           render: (h, params) => (
             <span
               style="cursor:pointer;color:#5cadff;"
@@ -129,7 +128,7 @@ export default {
                 this.jumpToHistory(params.row)
               }}
             >
-              {params.row.name}
+              {this.$t(`m_${params.row.name}`) || '-'}
             </span>
           )
         },
@@ -144,7 +143,7 @@ export default {
           width: 100,
           render: (h, params) => (
             <span style="display:flex;align-items:center;">
-              <div style="width:20px">{params.row.count}</div>
+              <div style="width:25px">{params.row.count}</div>
               <Icon
                 type="ios-list"
                 size="36"
@@ -178,7 +177,7 @@ export default {
           width: 130,
           render: (h, params) => (
             <span style="display:flex;align-items:center;">
-              <div style="width:20px">{params.row.pluginInterfaceNum}</div>
+              <div style="width:25px">{params.row.pluginInterfaceNum}</div>
               <Icon
                 type="ios-list"
                 size="36"
@@ -196,7 +195,7 @@ export default {
           width: 130,
           render: (h, params) => (
             <span style="display:flex;align-items:center;">
-              <div style="width:20px">{params.row.systemVariableNum}</div>
+              <div style="width:25px">{params.row.systemVariableNum}</div>
               <Icon
                 type="ios-list"
                 size="36"

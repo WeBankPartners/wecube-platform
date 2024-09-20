@@ -38,8 +38,10 @@
     </div>
     <!--角色列表-->
     <div class="item">
-      <span class="title">角色：已选<span class="number">{{ roleSelectionList.length }}</span></span>
-      <div>
+      <BaseHeaderTitle title="角色" :fontSize="15">
+        <div slot="sub-title" class="title">
+          已选<span class="number">{{ roleSelectionList.length }}</span>
+        </div>
         <Table
           :border="false"
           size="small"
@@ -50,12 +52,14 @@
           @on-selection-change="selection => handleSelectChange('role', selection)"
         >
         </Table>
-      </div>
+      </BaseHeaderTitle>
     </div>
     <!--ITSM列表-->
     <div class="item">
-      <span class="title">ITSM流程：已选<span class="number">{{ itsmSelectionList.length }}</span></span>
-      <div>
+      <BaseHeaderTitle title="ITSM流程" :fontSize="15">
+        <div slot="sub-title" class="title">
+          已选<span class="number">{{ itsmSelectionList.length }}</span>
+        </div>
         <BaseSearch
           :onlyShowReset="true"
           :options="itsmSearchOptions"
@@ -73,12 +77,14 @@
           @on-selection-change="selection => handleSelectChange('itsm', selection)"
         >
         </Table>
-      </div>
+      </BaseHeaderTitle>
     </div>
     <!--编排列表-->
     <div class="item">
-      <span class="title">编排：已选<span class="number">{{ flowSelectionList.length }}</span></span>
-      <div>
+      <BaseHeaderTitle title="编排" :fontSize="15">
+        <div slot="sub-title" class="title">
+          已选<span class="number">{{ flowSelectionList.length }}</span>
+        </div>
         <BaseSearch
           :onlyShowReset="true"
           :options="flowSearchOptions"
@@ -95,12 +101,14 @@
           @on-selection-change="selection => handleSelectChange('flow', selection)"
         >
         </Table>
-      </div>
+      </BaseHeaderTitle>
     </div>
     <!--批量执行列表-->
     <div class="item">
-      <span class="title">批量执行：已选<span class="number">{{ batchSelectionList.length }}</span></span>
-      <div>
+      <BaseHeaderTitle title="批量执行" :fontSize="15">
+        <div slot="sub-title" class="title">
+          已选<span class="number">{{ batchSelectionList.length }}</span>
+        </div>
         <BaseSearch
           :onlyShowReset="true"
           :options="batchSearchOptions"
@@ -117,7 +125,7 @@
           @on-selection-change="selection => handleSelectChange('batch', selection)"
         >
         </Table>
-      </div>
+      </BaseHeaderTitle>
     </div>
     <!--CMDB-->
     <div class="item">
@@ -360,8 +368,9 @@ export default {
   .item {
     display: flex;
     flex-direction: column;
-    margin-bottom: 50px;
+    margin-bottom: 30px;
     position: relative;
+    width: 100%;
     &-header {
       &-t {
         font-weight: bold;
@@ -380,7 +389,6 @@ export default {
     }
     .title {
       font-size: 14px;
-      margin-bottom: 5px;
       font-weight: 600;
       .name {
         margin-left: 10px;
@@ -434,6 +442,12 @@ export default {
       height: 32px;
       line-height: 32px;
     }
+  }
+  .ivu-table-body {
+    overflow: hidden;
+  }
+  .ivu-table-body:hover {
+    overflow: auto;
   }
 }
 </style>
