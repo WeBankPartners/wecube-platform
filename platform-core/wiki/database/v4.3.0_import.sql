@@ -47,3 +47,17 @@ CREATE TABLE `trans_export_detail`
     PRIMARY KEY (`id`),
     CONSTRAINT `trans_export_detail_force_trans_export` FOREIGN KEY (`trans_export`) REFERENCES `trans_export` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '数据迁移导出记录表';
+
+INSERT INTO menu_items (id,parent_code,code,source,description,local_display_name) VALUES('ADMIN__ADMIN_BASE_MIGRATION','ADMIN','ADMIN_BASE_MIGRATION','SYSTEM','','底座迁移');
+
+INSERT INTO system_variables (id,package_name,name,value,default_value,`scope`,source,status) VALUES('system__global__PLATFORM_EXPORT_CI_BUSINESS','','PLATFORM_EXPORT_CI_BUSINESS','','business_product','global','system','active');
+INSERT INTO system_variables (id,package_name,name,value,default_value,`scope`,source,status) VALUES('system__global__PLATFORM_EXPORT_CI_ENV','','PLATFORM_EXPORT_CI_ENV','','deploy_environment','global','system','active');
+INSERT INTO system_variables (id,package_name,name,value,default_value,`scope`,source,status) VALUES('system__global__PLATFORM_EXPORT_NEXUS_URL','','PLATFORM_EXPORT_NEXUS_URL','','','global','system','active');
+INSERT INTO system_variables (id,package_name,name,value,default_value,`scope`,source,status) VALUES('system__global__PLATFORM_EXPORT_NEXUS_USER','','PLATFORM_EXPORT_NEXUS_USER','','','global','system','active');
+INSERT INTO system_variables (id,package_name,name,value,default_value,`scope`,source,status) VALUES('system__global__PLATFORM_EXPORT_NEXUS_PWD','','PLATFORM_EXPORT_NEXUS_PWD','','','global','system','active');
+INSERT INTO system_variables (id,package_name,name,value,default_value,`scope`,source,status) VALUES('system__global__PLATFORM_EXPORT_NEXUS_REPO','','PLATFORM_EXPORT_NEXUS_REPO','','','global','system','active');
+INSERT INTO system_variables (id,package_name,name,value,default_value,`scope`,source,status) VALUES('system__global__PLATFORM_EXPORT_CI_ARTIFACT_INSTANCE','','PLATFORM_EXPORT_CI_ARTIFACT_INSTANCE','','app_instance,rdb_instance','global','system','active');
+INSERT INTO system_variables (id,package_name,name,value,default_value,`scope`,source,status) VALUES('system__global__PLATFORM_EXPORT_CI_ARTIFACT_PACKAGE','','PLATFORM_EXPORT_CI_ARTIFACT_PACKAGE','','deploy_package','global','system','active');
+INSERT INTO system_variables (id,package_name,name,value,default_value,`scope`,source,status) VALUES('system__global__PLATFORM_EXPORT_CI_SYSTEM','','PLATFORM_EXPORT_CI_SYSTEM','app_system_design','','global','system','active');
+INSERT INTO system_variables (id,package_name,name,value,default_value,`scope`,source,status) VALUES('system__global__PLATFORM_EXPORT_CI_TECH_PRODUCT','','PLATFORM_EXPORT_CI_TECH_PRODUCT','tech_product','','global','system','active');
+INSERT INTO system_variables (id,package_name,name,value,default_value,`scope`,source,status) VALUES('system__global__PLATFORM_EXPORT_CI_ARTIFACT_UNIT_DESIGN','','PLATFORM_EXPORT_CI_ARTIFACT_UNIT_DESIGN','','unit_design','global','system','active');
