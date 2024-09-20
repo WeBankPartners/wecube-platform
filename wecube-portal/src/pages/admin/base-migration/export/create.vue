@@ -106,18 +106,11 @@ export default {
       const { status, data } = await getExportDetail(params)
       if (status === 'OK') {
         this.detailData = {
-          roleData: data.roles.data || [], // 用户角色
-          roleStatus: data.roles.status,
-          roleErrMsg: data.roles.errMsg,
-          flowData: data.workflows.data || [], // 编排
-          flowStatus: data.workflows.status,
-          flowErrMsg: data.workflows.errMsg,
-          batchData: data.batchExecutions.data || [], // 批量执行
-          batchStatus: data.batchExecutions.status,
-          batchErrMsg: data.batchExecutions.errMsg,
-          itsmData: data.requestTemplates.data || [], // itsm流程
-          itsmStatus: data.requestTemplates.status,
-          itsmErrMsg: data.requestTemplates.errMsg,
+          roleRes: data.roles,
+          flowRes: data.workflows,
+          batchRes: data.batchExecutions,
+          itsmRes: data.requestTemplates,
+          failMsg: data.createAndUploadFile.errMsg,
           cmdbCIData: data.cmdbCI || [], // cmdb CI
           cmdbViewData: data.cmdbView || [], // cmdb视图
           cmdbReportData: data.cmdbReportForm || [], // cmdb报表
@@ -129,6 +122,10 @@ export default {
           exportComponentLibrary: data.exportComponentLibrary, // 组件库
           ...data.transExport
         }
+        this.detailData.roleRes.data = this.detailData.roleRes.data || []
+        this.detailData.flowRes.data = this.detailData.flowRes.data || []
+        this.detailData.batchRes.data = this.detailData.batchRes.data || []
+        this.detailData.itsmRes.data = this.detailData.itsmRes.data || []
         this.detailData.associationSystems = this.detailData.associationSystems || []
         this.detailData.associationTechProducts = this.detailData.associationTechProducts || []
         this.detailData.businessName = this.detailData.businessName || ''
