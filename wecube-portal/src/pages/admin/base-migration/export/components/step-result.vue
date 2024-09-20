@@ -62,12 +62,12 @@
     </div>
     <!--角色列表-->
     <div class="item">
-      <span class="title">
-        角色：已选<span class="number">{{ detailData.roleRes.data.length }}</span>
-        <span v-if="detailData.roleRes.status === 'success'" class="success">(导出成功)</span>
-        <span v-if="detailData.roleRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.roleRes.errMsg }}</span>)</span>
-      </span>
-      <div>
+      <BaseHeaderTitle title="角色" :fontSize="15">
+        <div slot="sub-title" class="title">
+          已选<span class="number">{{ detailData.roleRes.data.length }}</span>
+          <span v-if="detailData.roleRes.status === 'success'" class="success">(导出成功)</span>
+          <span v-if="detailData.roleRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.roleRes.errMsg }}</span>)</span>
+        </div>
         <Table
           :border="false"
           size="small"
@@ -76,37 +76,39 @@
           :data="detailData.roleRes.data"
         >
         </Table>
-      </div>
+      </BaseHeaderTitle>
     </div>
     <!--ITSM列表-->
     <div class="item">
-      <span class="title">
-        ITSM流程：已选<span class="number">{{ detailData.itsmRes.data.length }}</span>
-        <span v-if="detailData.itsmRes.status === 'success'" class="success">(导出成功)</span>
-        <span v-if="detailData.itsmRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.itsmRes.errMsg }}</span>)</span>
-      </span>
-      <div style="margin: 10px 0">
-        是否导出组件库：<i-switch disabled v-model="detailData.exportComponentLibrary"></i-switch>
-      </div>
-      <div>
-        <Table
-          :border="false"
-          size="small"
-          :columns="itsmTableColumns"
-          :max-height="400"
-          :data="detailData.itsmRes.data"
-        >
-        </Table>
-      </div>
+      <BaseHeaderTitle title="ITSM流程" :fontSize="15">
+        <div slot="sub-title" class="title">
+          已选<span class="number">{{ detailData.itsmRes.data.length }}</span>
+          <span v-if="detailData.itsmRes.status === 'success'" class="success">(导出成功)</span>
+          <span v-if="detailData.itsmRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.itsmRes.errMsg }}</span>)</span>
+        </div>
+        <div style="margin: 10px 0">
+          是否导出组件库：<i-switch disabled v-model="detailData.exportComponentLibrary"></i-switch>
+        </div>
+        <div>
+          <Table
+            :border="false"
+            size="small"
+            :columns="itsmTableColumns"
+            :max-height="400"
+            :data="detailData.itsmRes.data"
+          >
+          </Table>
+        </div>
+      </BaseHeaderTitle>
     </div>
     <!--编排列表-->
     <div class="item">
-      <span class="title">
-        编排：已选<span class="number">{{ detailData.flowRes.data.length }}</span>
-        <span v-if="detailData.flowRes.status === 'success'" class="success">(导出成功)</span>
-        <span v-if="detailData.flowRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.flowRes.errMsg }}</span>)</span>
-      </span>
-      <div>
+      <BaseHeaderTitle title="编排" :fontSize="15">
+        <div slot="sub-title" class="title">
+          已选<span class="number">{{ detailData.flowRes.data.length }}</span>
+          <span v-if="detailData.flowRes.status === 'success'" class="success">(导出成功)</span>
+          <span v-if="detailData.flowRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.flowRes.errMsg }}</span>)</span>
+        </div>
         <Table
           :border="false"
           size="small"
@@ -115,16 +117,16 @@
           :data="detailData.flowRes.data"
         >
         </Table>
-      </div>
+      </BaseHeaderTitle>
     </div>
     <!--批量执行列表-->
     <div class="item">
-      <span class="title">
-        批量执行：已选<span class="number">{{ detailData.batchRes.data.length }}</span>
-        <span v-if="detailData.batchRes.status === 'success'" class="success">(导出成功)</span>
-        <span v-if="detailData.batchRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.batchRes.errMsg }}</span>)</span>
-      </span>
-      <div>
+      <BaseHeaderTitle title="批量执行" :fontSize="15">
+        <div slot="sub-title" class="title">
+          已选<span class="number">{{ detailData.batchRes.data.length }}</span>
+          <span v-if="detailData.batchRes.status === 'success'" class="success">(导出成功)</span>
+          <span v-if="detailData.batchRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.batchRes.errMsg }}</span>)</span>
+        </div>
         <Table
           :border="false"
           size="small"
@@ -133,7 +135,7 @@
           :data="detailData.batchRes.data"
         >
         </Table>
-      </div>
+      </BaseHeaderTitle>
     </div>
     <!--CMDB-->
     <div class="item">
@@ -314,7 +316,8 @@ export default {
   .item {
     display: flex;
     flex-direction: column;
-    margin-bottom: 50px;
+    margin-bottom: 30px;
+    width: 100%;
     &-header {
       &-t {
         font-weight: bold;
@@ -333,7 +336,6 @@ export default {
     }
     .title {
       font-size: 14px;
-      margin-bottom: 5px;
       font-weight: 600;
       .name {
         margin-left: 10px;
@@ -386,8 +388,11 @@ export default {
   .ivu-alert-with-desc.ivu-alert-with-icon {
     padding: 10px 16px 10px 55px;
   }
-  .common-base-search-button {
-    width: fit-content;
+  .ivu-table-body {
+    overflow: hidden;
+  }
+  .ivu-table-body:hover {
+    overflow: auto;
   }
 }
 </style>
