@@ -97,6 +97,12 @@ func UpdateExport(c context.Context, param models.UpdateExportParam, operator st
 	if deleteAnalyzeDataActions = getDeleteTransExportAnalyzeDataActions(param.TransExportId); len(deleteAnalyzeDataActions) > 0 {
 		actions = append(actions, deleteAnalyzeDataActions...)
 	}
+	pluginExportActions, analyzePluginErr := AnalyzePluginConfigDataExport(c, param.TransExportId)
+	if analyzePluginErr != nil {
+		err = analyzePluginErr
+		return
+	}
+	actions = append(actions, pluginExportActions...)
 	dataTransParam := &models.AnalyzeDataTransParam{
 		TransExportId: param.TransExportId,
 		Business:      param.PIds,
