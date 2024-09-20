@@ -135,7 +135,7 @@ type TransDataVariableConfig struct {
 	ArtifactPackageCiType      string   `json:"artifactPackageCiType"`
 	ArtifactCiSystem           string   `json:"artifactCiSystem"`
 	ArtifactCiTechProduct      string   `json:"ArtifactCiTechProduct"`
-	ArtifactUnitDesignColumn   string   `json:"artifactUnitDesignColumn"`
+	ArtifactUnitDesignCiType   string   `json:"ArtifactUnitDesignCiType"`
 }
 
 type CiTypeData struct {
