@@ -832,16 +832,17 @@ func UpdatentityDataWithExpr(ctx context.Context, authToken, packageName, entity
 }
 
 // nexus 推送物料包
-func PushPackage(ctx context.Context, token string, unitDesignId string, deployPackageId string) (result map[string]interface{}, err error) {
+func PushPackage(ctx context.Context, token string, unitDesignId string, deployPackageId string, subDirPath string) (result *models.PushArtifactPluginPackageData, err error) {
 	uri := fmt.Sprintf("%s/%s/unit-designs/%s/packages/%s/push", models.Config.Gateway.Url, models.PluginNameArtifacts, unitDesignId, deployPackageId)
 	if models.Config.HttpsEnable == "true" {
 		uri = "https://" + uri
 	} else {
 		uri = "http://" + uri
 	}
-
+	postData := models.PushArtifactPluginPackageParam{Path: subDirPath}
+	postBytes, _ := json.Marshal(postData)
 	urlObj, _ := url.Parse(uri)
-	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), nil)
+	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), bytes.NewReader(postBytes))
 	if reqErr != nil {
 		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
 		return
