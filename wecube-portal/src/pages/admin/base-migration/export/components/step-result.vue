@@ -6,7 +6,7 @@
       </Alert>
       <Alert v-else-if="detailData.status === 'fail'" type="error" show-icon>
         导出失败！
-        <template #desc></template>
+        <template #desc>{{ detailData.failMsg || '' }}</template>
       </Alert>
       <Alert v-else-if="detailData.status === 'success'" type="success" show-icon>
         导出成功！
@@ -63,69 +63,51 @@
     <!--角色列表-->
     <div class="item">
       <span class="title">
-        角色：已选<span class="number">{{ detailData.roleData.length }}</span>
-        <Alert v-if="detailData.roleStatus === 'fail'" type="error" show-icon>导出失败<template #desc>{{ detailData.roleErrMsg }}</template></Alert>
-        <Alert v-if="detailData.roleStatus === 'success'" type="success" show-icon>导出成功</Alert>
+        角色：已选<span class="number">{{ detailData.roleRes.data.length }}</span>
+        <span v-if="detailData.roleRes.status === 'success'" class="success">(导出成功)</span>
+        <span v-if="detailData.roleRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.roleRes.errMsg }}</span>)</span>
       </span>
       <div>
-        <Table :border="false" size="small" :columns="roleTableColumns" :max-height="400" :data="detailData.roleData">
+        <Table :border="false" size="small" :columns="roleTableColumns" :max-height="400" :data="detailData.roleRes.data">
         </Table>
       </div>
     </div>
     <!--ITSM列表-->
     <div class="item">
       <span class="title">
-        ITSM流程：已选<span class="number">{{ detailData.itsmData.length }}</span>
-        <Alert v-if="detailData.itsmStatus === 'fail'" type="error" show-icon>导出失败<template #desc>{{ detailData.itsmErrMsg }}</template></Alert>
-        <Alert v-if="detailData.itsmStatus === 'success'" type="success" show-icon>导出成功</Alert>
+        ITSM流程：已选<span class="number">{{ detailData.itsmRes.data.length }}</span>
+        <span v-if="detailData.itsmRes.status === 'success'" class="success">(导出成功)</span>
+        <span v-if="detailData.itsmRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.itsmRes.errMsg }}</span>)</span>
       </span>
       <div style="margin: 10px 0">
         是否导出组件库：<i-switch disabled v-model="detailData.exportComponentLibrary"></i-switch>
       </div>
       <div>
-        <!-- <BaseSearch
-          :onlyShowReset="true"
-          :options="itsmSearchOptions"
-          v-model="itsmSearchParams"
-          @search="handleSearchTable('itsm')"
-        ></BaseSearch> -->
-        <Table :border="false" size="small" :columns="itsmTableColumns" :max-height="400" :data="detailData.itsmData">
+        <Table :border="false" size="small" :columns="itsmTableColumns" :max-height="400" :data="detailData.itsmRes.data">
         </Table>
       </div>
     </div>
     <!--编排列表-->
     <div class="item">
       <span class="title">
-        编排：已选<span class="number">{{ detailData.flowData.length }}</span>
-        <Alert v-if="detailData.flowStatus === 'fail'" type="error" show-icon>导出失败<template #desc>{{ detailData.flowErrMsg }}</template></Alert>
-        <Alert v-if="detailData.flowStatus === 'success'" type="success" show-icon>导出成功</Alert>
+        编排：已选<span class="number">{{ detailData.flowRes.data.length }}</span>
+        <span v-if="detailData.flowRes.status === 'success'" class="success">(导出成功)</span>
+        <span v-if="detailData.flowRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.flowRes.errMsg }}</span>)</span>
       </span>
       <div>
-        <!-- <BaseSearch
-          :onlyShowReset="true"
-          :options="flowSearchOptions"
-          v-model="flowSearchParams"
-          @search="handleSearchTable('flow')"
-        ></BaseSearch> -->
-        <Table :border="false" size="small" :columns="flowTableColumns" :max-height="400" :data="detailData.flowData">
+        <Table :border="false" size="small" :columns="flowTableColumns" :max-height="400" :data="detailData.flowRes.data">
         </Table>
       </div>
     </div>
     <!--批量执行列表-->
     <div class="item">
       <span class="title">
-        批量执行：已选<span class="number">{{ detailData.batchData.length }}</span>
-        <Alert v-if="detailData.batchStatus === 'fail'" type="error" show-icon>导出失败<template #desc>{{ detailData.batchErrMsg }}</template></Alert>
-        <Alert v-if="detailData.batchStatus === 'success'" type="success" show-icon>导出成功</Alert>
+        批量执行：已选<span class="number">{{ detailData.batchRes.data.length }}</span>
+        <span v-if="detailData.batchRes.status === 'success'" class="success">(导出成功)</span>
+        <span v-if="detailData.batchRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.batchRes.errMsg }}</span>)</span>
       </span>
       <div>
-        <!-- <BaseSearch
-          :onlyShowReset="true"
-          :options="batchSearchOptions"
-          v-model="batchSearchParams"
-          @search="handleSearchTable('batch')"
-        ></BaseSearch> -->
-        <Table :border="false" size="small" :columns="batchTableColumns" :max-height="400" :data="detailData.batchData">
+        <Table :border="false" size="small" :columns="batchTableColumns" :max-height="400" :data="detailData.batchRes.data">
         </Table>
       </div>
     </div>
@@ -246,10 +228,10 @@ export default {
       type: Object,
       default() {
         return {
-          roleData: [],
-          flowData: [],
-          batchData: [],
-          itsmData: [],
+          roleRes: { data: [] },
+          flowRes: { data: [] },
+          batchRes: { data: [] },
+          itsmRes: { data: [] },
           cmdbCIData: [],
           cmdbViewData: [],
           cmdbReportData: [],
@@ -336,6 +318,12 @@ export default {
         font-size: 18px;
         color: #2d8cf0;
         margin-left: 6px;
+      }
+      .success {
+        color: #19be6b;
+      }
+      .fail {
+        color: #ed4014;
       }
     }
     .content {
