@@ -22,7 +22,7 @@ CREATE TABLE `trans_export_analyze_data`
     `data_type`      varchar(64) COLLATE utf8_bin NOT NULL COMMENT '关联分析数据',
     `data_type_name` varchar(255) COLLATE utf8_bin DEFAULT NULL COMMENT '数据类型显示名',
     `data`           mediumtext COLLATE utf8_bin null COMMENT '输入',
-    `data_len`       int(11) utf8_bin default 0 COMMENT '数据总数',
+    `data_len`       int(11) COLLATE utf8_bin default 0 COMMENT '数据总数',
     `error_msg`      text COLLATE utf8_bin         DEFAULT NULL COMMENT '导出报错信息',
     `start_time`     datetime                      default NULL COMMENT '开始时间',
     `end_time`       datetime                      default NULL COMMENT '结束时间',
@@ -44,6 +44,6 @@ CREATE TABLE `trans_export_detail`
     `error_msg`           text COLLATE utf8_bin        DEFAULT NULL COMMENT '导出报错信息',
     `start_time`          datetime                     default NULL COMMENT '开始时间',
     `end_time`            datetime                     default NULL COMMENT '结束时间',
-    PRIMARY KEY (`id`),s
+    PRIMARY KEY (`id`),
     CONSTRAINT `trans_export_detail_force_trans_export` FOREIGN KEY (`trans_export`) REFERENCES `trans_export` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '数据迁移导出记录表';
