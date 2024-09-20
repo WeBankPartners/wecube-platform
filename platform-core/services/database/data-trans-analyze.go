@@ -451,23 +451,6 @@ func QueryBusinessList(c context.Context, userToken, language string, param mode
 	return
 }
 
-func CreateExport(c context.Context, param models.CreateExportParam, operator string) (transExportId string, err error) {
-	var actions, addTransExportActions []*db.ExecAction
-	transExportId = guid.CreateGuid()
-	transExport := models.TransExportTable{
-		Id:          transExportId,
-		Environment: param.Env,
-		Business:    strings.Join(param.PIds, ","),
-		Status:      string(models.TransExportStatusStart),
-		CreatedUser: operator,
-		UpdatedUser: operator,
-	}
-	if addTransExportActions = getInsertTransExport(transExport); len(addTransExportActions) > 0 {
-		actions = append(actions, addTransExportActions...)
-	}
-	return
-}
-
 func checkArtifactCiTypeRefIllegal(sourceCiType, refCiType string, transConfig *models.TransDataVariableConfig) (illegal bool) {
 	illegal = false
 	if refCiType == transConfig.ArtifactPackageCiType {
