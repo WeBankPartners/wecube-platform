@@ -719,6 +719,23 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	}
 	updateTransExportDetail(ctx, transExportCmdbDataDetail)
 	log.Logger.Info("7. export cmdb end!!!!")
+	// 8.导出物料包
+	log.Logger.Info("8. export artifact start!!!!")
+	step = models.TransExportStepArtifacts
+	exportArtifactStartTime := time.Now().Format(models.DateTimeFormat)
+	if err = DataTransExportArtifactData(ctx, param.TransExportId); err != nil {
+		log.Logger.Error("DataTransExportArtifactData error", log.Error(err))
+		return
+	}
+	transExportArtifactDetail := models.TransExportDetailTable{
+		TransExport: &param.TransExportId,
+		Step:        int(step),
+		StartTime:   exportArtifactStartTime,
+		Status:      string(models.TransExportStatusSuccess),
+		EndTime:     time.Now().Format(models.DateTimeFormat),
+	}
+	updateTransExportDetail(ctx, transExportArtifactDetail)
+	log.Logger.Info("8. export artifact end!!!!")
 	// 9. 导出监控
 	step = models.TransExportStepMonitor
 	log.Logger.Info("9. export monitor start!!!!")
