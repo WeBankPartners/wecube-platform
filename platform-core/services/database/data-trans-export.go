@@ -528,6 +528,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	}
 
 	// 1. 导出选中角色
+	log.Logger.Info("1. export role start!!!!")
 	step = models.TransExportStepRole
 	exportRoleStartTime := time.Now().Format(models.DateTimeFormat)
 	if queryRolesResponse, err = remote.RetrieveAllLocalRoles("Y", userToken, language, false); err != nil {
@@ -551,9 +552,10 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	if err = execStepExport(exportRoleParam); err != nil {
 		return
 	}
-
+	log.Logger.Info("1. export role end!!!!")
 	// 2.导出请求模版&组件库
 	if len(param.RequestTemplateIds) > 0 {
+		log.Logger.Info("2. export requestTemplate start!!!!")
 		step = models.TransExportStepRequestTemplate
 		exportRequestTemplateStartTime := time.Now().Format(models.DateTimeFormat)
 		if queryRequestTemplatesResponse, err = remote.GetRequestTemplates(models.GetRequestTemplatesDto{RequestTemplateIds: param.RequestTemplateIds}, userToken, language); err != nil {
@@ -584,11 +586,13 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 				}
 			}
 		}
+		log.Logger.Info("2. export requestTemplate end!!!!")
 	}
 
 	// 3. 导出组件库
 	if param.ExportComponentLibrary {
 		step = models.TransExportStepComponentLibrary
+		log.Logger.Info("3. export componentLibrary start!!!!")
 		exportComponentLibraryStartTime := time.Now().Format(models.DateTimeFormat)
 		if queryComponentLibraryResponse, err = remote.GetComponentLibrary(userToken, language); err != nil {
 			log.Logger.Error("remote GetComponentLibrary error", log.Error(err))
@@ -605,10 +609,12 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		if err = execStepExport(exportComponentLibraryParam); err != nil {
 			return
 		}
+		log.Logger.Info("3. export componentLibrary start!!!!")
 	}
 
 	// 4. 导出编排
 	step = models.TransExportStepWorkflow
+	log.Logger.Info("4. export workflow start!!!!")
 	exportWorkflowStartTime := time.Now().Format(models.DateTimeFormat)
 	for _, procDefId := range param.WorkflowIds {
 		if procDefDto, err = GetProcDefDetailByProcDefId(ctx, procDefId); err != nil {
@@ -651,9 +657,11 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	if err = execStepExport(exportWorkflowParam); err != nil {
 		return
 	}
+	log.Logger.Info("4. export workflow end!!!!")
 
 	// 5.导出批量执行
 	step = models.TransExportStepBatchExecution
+	log.Logger.Info("5. export batchExecution start!!!!")
 	exportBatchExecutionStartTime := time.Now().Format(models.DateTimeFormat)
 	if batchExecutionTemplateList, err = ExportTemplate(ctx, userToken, &models.ExportBatchExecTemplateReqParam{BatchExecTemplateIds: param.BatchExecutionIds}); err != nil {
 		log.Logger.Error("ExportTemplate error", log.Error(err))
@@ -671,9 +679,11 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	if err = execStepExport(exportBatchExecutionParam); err != nil {
 		return
 	}
+	log.Logger.Info("5. export batchExecution end!!!!")
 
 	// 6. 导出插件配置
 	step = models.TransExportStepPluginConfig
+	log.Logger.Info("5. export pluginConfig start!!!!")
 	exportPluginConfigStartTime := time.Now().Format(models.DateTimeFormat)
 	if err = DataTransExportPluginConfig(ctx, param.TransExportId, path); err != nil {
 		log.Logger.Error("DataTransExportPluginConfig error", log.Error(err))
@@ -687,9 +697,10 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		EndTime:     time.Now().Format(models.DateTimeFormat),
 	}
 	updateTransExportDetail(ctx, transExportPluginConfigDetail)
-
+	log.Logger.Info("5. export pluginConfig end!!!!")
 	// 7. 导出cmdb
 	step = models.TransExportStepCmdb
+	log.Logger.Info("5. export cmdb start!!!!")
 	exportCmdbDataStartTime := time.Now().Format(models.DateTimeFormat)
 	if err = DataTransExportCMDBData(ctx, param.TransExportId, path); err != nil {
 		log.Logger.Error("DataTransExportCMDBData error", log.Error(err))
@@ -703,9 +714,10 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		EndTime:     time.Now().Format(models.DateTimeFormat),
 	}
 	updateTransExportDetail(ctx, transExportCmdbDataDetail)
-
+	log.Logger.Info("5. export cmdb end!!!!")
 	// 9. 导出监控
 	step = models.TransExportStepMonitor
+	log.Logger.Info("5. export monitor start!!!!")
 	exportMonitorStartTime := time.Now().Format(models.DateTimeFormat)
 	if err = exportMonitor(ctx, param.TransExportId, path, userToken, param.ExportDashboardMap); err != nil {
 		return
@@ -718,9 +730,10 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		EndTime:     time.Now().Format(models.DateTimeFormat),
 	}
 	updateTransExportDetail(ctx, transExportMonitorDetail)
-
+	log.Logger.Info("5. export monitor end!!!!")
 	// 10. json文件压缩并上传nexus
 	step = models.TransExportStepCreateAndUploadFile
+	log.Logger.Info("10. create and upload file monitor start!!!!")
 	exportCreateAndUploadFileStartTime := time.Now().Format(models.DateTimeFormat)
 	if transDataVariableConfig, err = getDataTransVariableMap(ctx); err != nil {
 		return
@@ -762,6 +775,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		EndTime:     time.Now().Format(models.DateTimeFormat),
 	}
 	updateTransExportDetail(ctx, transExportCreateAndUploadFile)
+	log.Logger.Info("10. create and upload file monitor end!!!!")
 	updateTransExportSuccess(ctx, param.TransExportId, uploadUrl)
 	return
 }
