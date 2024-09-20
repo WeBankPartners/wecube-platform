@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote/monitor"
 	"os"
 	"strconv"
 	"strings"
@@ -16,6 +15,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote/monitor"
 )
 
 // transExportDetailMap 导出map
@@ -35,12 +35,12 @@ var transExportDetailMap = map[models.TransExportStep]string{
 const (
 	zipFile           = "export.zip"
 	tempWeCubeDataDir = "/tmp/wecube/%s"
-	zip               = "zip"
+	tempWeCubeZipDir  = "/tmp/wecube/zip"
 )
 
-func CreateExport2(c context.Context, param models.CreateExportParam, operator string) (transExportId string, err error) {
+func CreateExport(c context.Context, param models.CreateExportParam, operator string) (transExportId string, err error) {
 	var actions, addTransExportActions, addTransExportDetailActions, analyzeDataActions []*db.ExecAction
-	transExportId = guid.CreateGuid()
+	transExportId = fmt.Sprintf("tp_%s", guid.CreateGuid())
 	transExport := models.TransExportTable{
 		Id:              transExportId,
 		Environment:     param.Env,
@@ -505,7 +505,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		log.Logger.Error("getPath error", log.Error(err))
 		return
 	}
-	if zipPath, err = tools.GetPath(fmt.Sprintf("%s/%s", fmt.Sprintf(tempWeCubeDataDir, param.TransExportId), zip)); err != nil {
+	if zipPath, err = tools.GetPath(tempWeCubeZipDir); err != nil {
 		log.Logger.Error("getPath error", log.Error(err))
 		return
 	}
@@ -519,6 +519,10 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		// 删除导出目录
 		if err = os.RemoveAll(path); err != nil {
 			log.Logger.Error("delete fail", log.String("path", path), log.Error(err))
+		}
+		// 删除导出压缩包
+		if err = os.Remove(zipPath + "/" + zipFile); err != nil {
+			log.Logger.Error("delete fail", log.String("filePath", zipPath), log.Error(err))
 		}
 	}(&step)
 	// 更新迁移导出表记录状态为执行中
@@ -683,7 +687,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 
 	// 6. 导出插件配置
 	step = models.TransExportStepPluginConfig
-	log.Logger.Info("5. export pluginConfig start!!!!")
+	log.Logger.Info("6. export pluginConfig start!!!!")
 	exportPluginConfigStartTime := time.Now().Format(models.DateTimeFormat)
 	if err = DataTransExportPluginConfig(ctx, param.TransExportId, path); err != nil {
 		log.Logger.Error("DataTransExportPluginConfig error", log.Error(err))
@@ -697,10 +701,10 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		EndTime:     time.Now().Format(models.DateTimeFormat),
 	}
 	updateTransExportDetail(ctx, transExportPluginConfigDetail)
-	log.Logger.Info("5. export pluginConfig end!!!!")
+	log.Logger.Info("6. export pluginConfig end!!!!")
 	// 7. 导出cmdb
 	step = models.TransExportStepCmdb
-	log.Logger.Info("5. export cmdb start!!!!")
+	log.Logger.Info("7. export cmdb start!!!!")
 	exportCmdbDataStartTime := time.Now().Format(models.DateTimeFormat)
 	if err = DataTransExportCMDBData(ctx, param.TransExportId, path); err != nil {
 		log.Logger.Error("DataTransExportCMDBData error", log.Error(err))
@@ -714,10 +718,10 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		EndTime:     time.Now().Format(models.DateTimeFormat),
 	}
 	updateTransExportDetail(ctx, transExportCmdbDataDetail)
-	log.Logger.Info("5. export cmdb end!!!!")
+	log.Logger.Info("7. export cmdb end!!!!")
 	// 9. 导出监控
 	step = models.TransExportStepMonitor
-	log.Logger.Info("5. export monitor start!!!!")
+	log.Logger.Info("9. export monitor start!!!!")
 	exportMonitorStartTime := time.Now().Format(models.DateTimeFormat)
 	if err = exportMonitor(ctx, param.TransExportId, path, userToken, param.ExportDashboardMap); err != nil {
 		return
@@ -730,10 +734,10 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		EndTime:     time.Now().Format(models.DateTimeFormat),
 	}
 	updateTransExportDetail(ctx, transExportMonitorDetail)
-	log.Logger.Info("5. export monitor end!!!!")
+	log.Logger.Info("9. export monitor end!!!!")
 	// 10. json文件压缩并上传nexus
 	step = models.TransExportStepCreateAndUploadFile
-	log.Logger.Info("10. create and upload file monitor start!!!!")
+	log.Logger.Info("10. create and upload file start!!!!")
 	exportCreateAndUploadFileStartTime := time.Now().Format(models.DateTimeFormat)
 	if transDataVariableConfig, err = getDataTransVariableMap(ctx); err != nil {
 		return
@@ -775,7 +779,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		EndTime:     time.Now().Format(models.DateTimeFormat),
 	}
 	updateTransExportDetail(ctx, transExportCreateAndUploadFile)
-	log.Logger.Info("10. create and upload file monitor end!!!!")
+	log.Logger.Info("10. create and upload file end!!!!")
 	updateTransExportSuccess(ctx, param.TransExportId, uploadUrl)
 	return
 }
@@ -846,7 +850,8 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 			continue
 		}
 		if err = json.Unmarshal([]byte(monitorAnalyzeData.Data), &exportDataKeyList); err != nil {
-			log.Logger.Error("monitor json Unmarshal err", log.Error(err))
+			err = fmt.Errorf("dataTypeName:%s,%+v", monitorAnalyzeData.DataTypeName, err.Error())
+			log.Logger.Error("monitor json Unmarshal err", log.String("dataTypeName", monitorAnalyzeData.DataTypeName), log.Error(err))
 			return
 		}
 		if len(exportDataKeyList) == 0 {
