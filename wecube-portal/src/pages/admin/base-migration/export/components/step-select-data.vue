@@ -429,6 +429,11 @@ export default {
   }
   .common-base-search-button {
     width: fit-content;
+    button {
+      width: 55px;
+      height: 32px;
+      line-height: 32px;
+    }
   }
 }
 </style>
