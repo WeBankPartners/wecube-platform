@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote/monitor"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -204,7 +205,8 @@ func AutoAppendExportRoles(ctx context.Context, userToken, language string, para
 	var requestTemplateRoles models.QueryRequestTemplateRolesResponse
 	var allCheckRoleMap = make(map[string]bool)
 	var dashboardAnalyze models.TransExportAnalyzeDataTable
-	var dashboardList []int
+	var dashboardList []string
+	var dashboardIntId int
 	var chartIds, roles, newCheckRoles []string
 	var dashboard *monitor.CustomDashboardDto
 	newParam = param
@@ -239,7 +241,11 @@ func AutoAppendExportRoles(ctx context.Context, userToken, language string, para
 		}
 		for _, dashboardId := range dashboardList {
 			chartIds = []string{}
-			if dashboard, err = monitor.QueryCustomDashboard(dashboardId, userToken); err != nil {
+			if dashboardIntId, err = strconv.Atoi(dashboardId); err != nil {
+				log.Logger.Error("dashboardId  string convert int err", log.Error(err))
+				return
+			}
+			if dashboard, err = monitor.QueryCustomDashboard(dashboardIntId, userToken); err != nil {
 				log.Logger.Error("QueryCustomDashboard err", log.Error(err))
 				return
 			}
@@ -253,7 +259,7 @@ func AutoAppendExportRoles(ctx context.Context, userToken, language string, para
 				for _, chart := range dashboard.Charts {
 					chartIds = append(chartIds, chart.Id)
 				}
-				newParam.ExportDashboardMap[dashboardId] = chartIds
+				newParam.ExportDashboardMap[dashboardIntId] = chartIds
 			}
 		}
 		// 查询图表的权限
