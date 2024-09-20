@@ -262,7 +262,7 @@ export default {
           }
         },
         {
-          title: this.$t('procDefId'),
+          title: this.$t('m_procDefId'),
           minWidth: 100,
           key: 'procDefName',
           render: (h, params) => {
@@ -282,7 +282,7 @@ export default {
           }
         },
         {
-          title: this.$t('tags'),
+          title: this.$t('tag'),
           minWidth: 130,
           key: 'tags',
           render: (h, params) => {
@@ -300,7 +300,7 @@ export default {
           render: (h, params) => <BaseEllipsis content={params.row.description}></BaseEllipsis>
         },
         {
-          title: this.$t('tw_template_owner_role'),
+          title: this.$t('m_owner_role'),
           minWidth: 130,
           key: 'mgmtRoles',
           render: (h, params) => {
@@ -309,7 +309,7 @@ export default {
           }
         },
         {
-          title: this.$t('useRoles'),
+          title: this.$t('use_role'),
           minWidth: 130,
           key: 'mgmtRoles',
           render: (h, params) => {
@@ -323,7 +323,7 @@ export default {
           key: 'updatedBy'
         },
         {
-          title: this.$t('tm_updated_time'),
+          title: this.$t('table_updated_date'),
           minWidth: 140,
           key: 'updatedTime'
         }
