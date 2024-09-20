@@ -618,78 +618,86 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	}
 
 	// 4. 导出编排
-	step = models.TransExportStepWorkflow
-	log.Logger.Info("4. export workflow start!!!!")
-	exportWorkflowStartTime := time.Now().Format(models.DateTimeFormat)
-	for _, procDefId := range param.WorkflowIds {
-		if procDefDto, err = GetProcDefDetailByProcDefId(ctx, procDefId); err != nil {
-			log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err))
+	if len(param.WorkflowIds) > 0 {
+		step = models.TransExportStepWorkflow
+		log.Logger.Info("4. export workflow start!!!!")
+		exportWorkflowStartTime := time.Now().Format(models.DateTimeFormat)
+		for _, procDefId := range param.WorkflowIds {
+			if procDefDto, err = GetProcDefDetailByProcDefId(ctx, procDefId); err != nil {
+				log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err))
+				return
+			}
+			if procDefDto != nil && procDefDto.ProcDef != nil {
+				procDefExportList = append(procDefExportList, buildProcDefDto(procDefDto, roleDisplayNameMap))
+			}
+			// 导出编排节点里面如果关联子编排,子编排也需要导出
+			if procDefDto.ProcDefNodeExtend != nil && len(procDefDto.ProcDefNodeExtend.Nodes) > 0 {
+				for _, node := range procDefDto.ProcDefNodeExtend.Nodes {
+					if node.ProcDefNodeCustomAttrs != nil && node.ProcDefNodeCustomAttrs.SubProcDefId != "" {
+						subProcDefIds = append(subProcDefIds, node.ProcDefNodeCustomAttrs.SubProcDefId)
+					}
+				}
+			}
+			for _, subProcDefId := range subProcDefIds {
+				if !contains(param.WorkflowIds, subProcDefId) {
+					if procDefDto, err = GetProcDefDetailByProcDefId(ctx, subProcDefId); err != nil {
+						log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err))
+						return
+					}
+					param.WorkflowIds = append(param.WorkflowIds, subProcDefId)
+					if procDefDto != nil && procDefDto.ProcDef != nil {
+						procDefExportList = append(procDefExportList, buildProcDefDto(procDefDto, roleDisplayNameMap))
+					}
+				}
+			}
+		}
+		exportWorkflowParam := models.StepExportParam{
+			Ctx:           ctx,
+			Path:          path,
+			TransExportId: param.TransExportId,
+			StartTime:     exportWorkflowStartTime,
+			Step:          step,
+			Input:         param.WorkflowIds,
+			Data:          procDefExportList,
+		}
+		if err = execStepExport(exportWorkflowParam); err != nil {
 			return
 		}
-		if procDefDto != nil && procDefDto.ProcDef != nil {
-			procDefExportList = append(procDefExportList, buildProcDefDto(procDefDto, roleDisplayNameMap))
-		}
-		// 导出编排节点里面如果关联子编排,子编排也需要导出
-		if procDefDto.ProcDefNodeExtend != nil && len(procDefDto.ProcDefNodeExtend.Nodes) > 0 {
-			for _, node := range procDefDto.ProcDefNodeExtend.Nodes {
-				if node.ProcDefNodeCustomAttrs != nil && node.ProcDefNodeCustomAttrs.SubProcDefId != "" {
-					subProcDefIds = append(subProcDefIds, node.ProcDefNodeCustomAttrs.SubProcDefId)
-				}
-			}
-		}
-		for _, subProcDefId := range subProcDefIds {
-			if !contains(param.WorkflowIds, subProcDefId) {
-				if procDefDto, err = GetProcDefDetailByProcDefId(ctx, subProcDefId); err != nil {
-					log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err))
-					return
-				}
-				param.WorkflowIds = append(param.WorkflowIds, subProcDefId)
-				if procDefDto != nil && procDefDto.ProcDef != nil {
-					procDefExportList = append(procDefExportList, buildProcDefDto(procDefDto, roleDisplayNameMap))
-				}
-			}
-		}
+		log.Logger.Info("4. export workflow end!!!!")
 	}
-	exportWorkflowParam := models.StepExportParam{
-		Ctx:           ctx,
-		Path:          path,
-		TransExportId: param.TransExportId,
-		StartTime:     exportWorkflowStartTime,
-		Step:          step,
-		Input:         param.WorkflowIds,
-		Data:          procDefExportList,
-	}
-	if err = execStepExport(exportWorkflowParam); err != nil {
-		return
-	}
-	log.Logger.Info("4. export workflow end!!!!")
 
 	// 5.导出批量执行
-	step = models.TransExportStepBatchExecution
-	log.Logger.Info("5. export batchExecution start!!!!")
-	exportBatchExecutionStartTime := time.Now().Format(models.DateTimeFormat)
-	if batchExecutionTemplateList, err = ExportTemplate(ctx, userToken, &models.ExportBatchExecTemplateReqParam{BatchExecTemplateIds: param.BatchExecutionIds}); err != nil {
-		log.Logger.Error("ExportTemplate error", log.Error(err))
-		return
+	if len(param.BatchExecutionIds) > 0 {
+		step = models.TransExportStepBatchExecution
+		log.Logger.Info("5. export batchExecution start!!!!")
+		exportBatchExecutionStartTime := time.Now().Format(models.DateTimeFormat)
+		if batchExecutionTemplateList, err = ExportTemplate(ctx, userToken, &models.ExportBatchExecTemplateReqParam{BatchExecTemplateIds: param.BatchExecutionIds}); err != nil {
+			log.Logger.Error("ExportTemplate error", log.Error(err))
+			return
+		}
+		exportBatchExecutionParam := models.StepExportParam{
+			Ctx:           ctx,
+			Path:          path,
+			TransExportId: param.TransExportId,
+			StartTime:     exportBatchExecutionStartTime,
+			Step:          step,
+			Input:         param.BatchExecutionIds,
+			Data:          batchExecutionTemplateList,
+		}
+		if err = execStepExport(exportBatchExecutionParam); err != nil {
+			return
+		}
+		log.Logger.Info("5. export batchExecution end!!!!")
 	}
-	exportBatchExecutionParam := models.StepExportParam{
-		Ctx:           ctx,
-		Path:          path,
-		TransExportId: param.TransExportId,
-		StartTime:     exportBatchExecutionStartTime,
-		Step:          step,
-		Input:         param.BatchExecutionIds,
-		Data:          batchExecutionTemplateList,
-	}
-	if err = execStepExport(exportBatchExecutionParam); err != nil {
-		return
-	}
-	log.Logger.Info("5. export batchExecution end!!!!")
 
 	// 6. 导出插件配置
 	step = models.TransExportStepPluginConfig
 	log.Logger.Info("6. export pluginConfig start!!!!")
 	exportPluginConfigStartTime := time.Now().Format(models.DateTimeFormat)
+	// 插件配置导出文件比较多,创建plugin-config子目录导出
+	if path, err = tools.GetPath(fmt.Sprintf("%s/plugin-config", path)); err != nil {
+		return
+	}
 	if err = DataTransExportPluginConfig(ctx, param.TransExportId, path); err != nil {
 		log.Logger.Error("DataTransExportPluginConfig error", log.Error(err))
 		return
@@ -876,6 +884,10 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_analyze_data where trans_export=? and source=?",
 		transExportId, models.TransExportAnalyzeSourceMonitor).Find(&analyzeList)
 	if err != nil {
+		return
+	}
+	// 监控文件比较多,创建监控子目录导出
+	if path, err = tools.GetPath(fmt.Sprintf("%s/monitor", path)); err != nil {
 		return
 	}
 	for _, monitorAnalyzeData := range analyzeList {
