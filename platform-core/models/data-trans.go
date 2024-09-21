@@ -391,3 +391,10 @@ type AnalyzeArtifactDisplayData struct {
 	ArtifactRows   []map[string]string `json:"artifactRows"`
 	ArtifactLen    int                 `json:"artifactLen"`
 }
+
+type TransDataImportNexusConfig struct {
+	NexusUrl  string `json:"nexusUrl"`
+	NexusUser string `json:"nexusUser"`
+	NexusPwd  string `json:"nexusPwd"`
+	NexusRepo string `json:"nexusRepo"`
+}
