@@ -33,3 +33,31 @@ func GetDataTransImportNexusConfig(ctx context.Context) (result *models.TransDat
 	}
 	return
 }
+
+func GetTransImportWithDetail(ctx context.Context, transImportId string, withDetailData bool) (result *models.TransImportJobParam, err error) {
+	var transImportRows []*models.TransImportTable
+	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import where id=?", transImportId).Find(&transImportRows)
+	if err != nil {
+		err = fmt.Errorf("query trans import table fail,%s ", err.Error())
+		return
+	}
+	if len(transImportRows) == 0 {
+		err = fmt.Errorf("can not find trans import with id:%s ", transImportId)
+		return
+	}
+	result = &models.TransImportJobParam{TransImport: transImportRows[0], Details: []*models.TransImportDetail{}}
+	if withDetailData {
+		err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_detail where trans_import=?").Find(&result.Details)
+	} else {
+		err = db.MysqlEngine.Context(ctx).SQL("select id,trans_import,name,step,status,error_msg,start_time,end_time from trans_import_detail where trans_import=?").Find(&result.Details)
+	}
+	if err != nil {
+		err = fmt.Errorf("query trans import detail table fail,%s ", err.Error())
+	}
+	return
+}
+
+func UpdateTransImportDetailStatus(ctx context.Context, transImportId, transImportDetailId, status, output, errorMsg string) (err error) {
+
+	return
+}
