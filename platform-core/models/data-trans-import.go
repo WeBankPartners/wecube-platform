@@ -50,3 +50,9 @@ type TransImportProcExec struct {
 	StartTime         string `json:"startTime" xorm:"start_time"`
 	EndTime           string `json:"endTime" xorm:"end_time"`
 }
+
+type GetBusinessListRes struct {
+	ImportPath   string                   `json:"importPath"`
+	Environment  map[string]string        `json:"environment"`
+	BusinessList []map[string]interface{} `json:"businessList"`
+}
