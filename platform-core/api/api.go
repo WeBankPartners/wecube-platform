@@ -251,6 +251,10 @@ func init() {
 		&handlerFuncObj{Url: "/data/transfer/export/detail", Method: "GET", HandlerFunc: data_trans.ExportDetail, ApiCode: "data-transfer-export-detail"},
 		&handlerFuncObj{Url: "/data/transfer/export/list/options", Method: "GET", HandlerFunc: data_trans.GetExportListOptions, ApiCode: "data-transfer-export-options"},
 		&handlerFuncObj{Url: "/data/transfer/export/list", Method: "POST", HandlerFunc: data_trans.ExportList, ApiCode: "data-transfer-export-list"},
+
+		&handlerFuncObj{Url: "/data/transfer/import/create", Method: "POST", HandlerFunc: data_trans.CreateExport, ApiCode: "data-transfer-export-create"},
+		&handlerFuncObj{Url: "/data/transfer/import/list/options", Method: "GET", HandlerFunc: data_trans.GetExportListOptions, ApiCode: "data-transfer-export-options"},
+		&handlerFuncObj{Url: "/data/transfer/import/list", Method: "POST", HandlerFunc: data_trans.ExportList, ApiCode: "data-transfer-export-list"},
 	)
 }
 

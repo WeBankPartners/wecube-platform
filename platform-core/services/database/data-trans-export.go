@@ -869,7 +869,7 @@ func exportImportShowData(ctx context.Context, transExportId, path, userToken, l
 			}
 			query.EntityQueryParam.AdditionalFilters = append(query.EntityQueryParam.AdditionalFilters, &models.EntityQueryObj{
 				AttrName:  "id",
-				Op:        "eq",
+				Op:        "equals",
 				Condition: id,
 			})
 			if temp, err = remote.QueryBusinessList(query); err != nil {
