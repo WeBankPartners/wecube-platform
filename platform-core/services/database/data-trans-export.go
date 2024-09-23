@@ -790,7 +790,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 
 	//  导出在导入时候需要展示的页面数据
 	log.Logger.Info(" export ui show data start!!!!")
-	if err = exportImportShowData(ctx, param.TransExportId, exportDataPath, userToken, language); err != nil {
+	if err = exportImportShowData(ctx, transDataVariableConfig, param.TransExportId, exportDataPath, userToken, language); err != nil {
 		return
 	}
 	log.Logger.Info(" export ui show data end!!!!")
@@ -837,7 +837,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 }
 
 // exportImportShowData 后面导入展示数据用
-func exportImportShowData(ctx context.Context, transExportId, path, userToken, language string) (err error) {
+func exportImportShowData(ctx context.Context, dataTransVariableConfig *models.TransDataVariableConfig, transExportId, path, userToken, language string) (err error) {
 	var transExport *models.TransExportTable
 	var query models.QueryBusinessListParam
 	var result []map[string]interface{}
@@ -857,6 +857,7 @@ func exportImportShowData(ctx context.Context, transExportId, path, userToken, l
 			PackageName: "wecmdb",
 			UserToken:   userToken,
 			Language:    language,
+			Entity:      dataTransVariableConfig.BusinessCiType,
 			EntityQueryParam: models.EntityQueryParam{
 				AdditionalFilters: make([]*models.EntityQueryObj, 0),
 			},
