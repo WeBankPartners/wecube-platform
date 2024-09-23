@@ -873,6 +873,7 @@ func exportImportShowData(ctx context.Context, transExportId, path, userToken, l
 				Condition: id,
 			})
 			if temp, err = remote.QueryBusinessList(query); err != nil {
+				log.Logger.Error("remote QueryBusinessList err", log.Error(err))
 				return
 			}
 			if len(temp) > 0 {
@@ -882,17 +883,22 @@ func exportImportShowData(ctx context.Context, transExportId, path, userToken, l
 	}
 	// 导出环境
 	if err = tools.WriteJsonData2File(fmt.Sprintf("%s/env.json", path), environmentMap); err != nil {
+		log.Logger.Error("WriteJsonData2File env.json err", log.Error(err))
 		return
 	}
 	// 导出产品
 	if err = tools.WriteJsonData2File(fmt.Sprintf("%s/product.json", path), result); err != nil {
+		log.Logger.Error("WriteJsonData2File product.json err", log.Error(err))
 		return
 	}
 	if detail, err = GetTransExportDetail(ctx, transExportId); err != nil {
+		log.Logger.Error("GetTransExportDetail err", log.Error(err))
 		return
 	}
 	// 导出ui数据,导入回显用
-	err = tools.WriteJsonData2File(fmt.Sprintf("%s/ui-data.json", path), detail)
+	if err = tools.WriteJsonData2File(fmt.Sprintf("%s/ui-data.json", path), detail); err != nil {
+		log.Logger.Error("WriteJsonData2File ui-data err", log.Error(err))
+	}
 	return
 }
 
