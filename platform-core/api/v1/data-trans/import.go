@@ -2,6 +2,7 @@ package data_trans
 
 import (
 	"context"
+	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
@@ -57,6 +58,7 @@ func StartTransImport(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	param.Operator = middleware.GetRequestUser(c)
 	go doImportAction(c, &param)
 	middleware.ReturnSuccess(c)
 }
@@ -65,6 +67,10 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 	transImportJobParam, getConfigErr := database.GetTransImportWithDetail(ctx, callParam.TransImportId, false)
 	if getConfigErr != nil {
 		err = getConfigErr
+		return
+	}
+	if err = database.RecordTransImportAction(ctx, callParam); err != nil {
+		err = fmt.Errorf("record trans import action table fail,%s ", err.Error())
 		return
 	}
 	if callParam.Action == "start" {
@@ -100,7 +106,9 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 		}
 	}
 	if err != nil {
+		callParam.ErrorMsg = err.Error()
 		log.Logger.Error("doImportAction fail", log.JsonObj("callParam", callParam), log.Error(err))
+		database.RecordTransImportAction(ctx, callParam)
 	}
 	return
 }
