@@ -13,8 +13,6 @@ const (
 	tempTransImportDir = "/tmp/trans_import/%s"
 )
 
-func ExecTransImport(ctx context.Context, param models.ExecImportParam) (transImportId string, err error) {
-	var transImport *models.TransImportTable
 var importFuncList []func(context.Context, *models.TransImportJobParam) (string, error)
 
 func init() {
@@ -29,19 +27,13 @@ func init() {
 	importFuncList = append(importFuncList, importMonitorServiceConfig)
 }
 
-func AnalyzeTransImport(ctx context.Context, nexusUrl string) (err error) {
+func AnalyzeTransImport(ctx context.Context, param models.ExecImportParam) (err error) {
 	// 解压文件
 	if _, err = database.DecompressExportZip(ctx, param.ExportNexusUrl, param.TransImportId); err != nil {
 		log.Logger.Error("DecompressExportZip err", log.Error(err))
 		return
 	}
 	// 读解压后的文件录进数据库为了给用户展示要导入什么东西
-	if transImport, err = database.GetTransImport(ctx, param.TransImportId); err != nil {
-		log.Logger.Error("GetTransImport err", log.Error(err))
-		return
-	}
-	// 没有查询到导入记录,表示第一步开始,初始化所有内容
-	if transImport == nil {
 	// 返回给前端要导入的环境和产品信息
 	return
 }
