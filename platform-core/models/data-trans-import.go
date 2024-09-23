@@ -66,7 +66,9 @@ type CallTransImportActionParam struct {
 	TransImportId       string `json:"transImportId"`
 	TransImportDetailId string `json:"transImportDetailId"`
 	Action              string `json:"action"` // 操作-> start(开始)|stop(暂停)|retry(重试)|cancel(取消)
-	Operator            string `json:"operator"`
+	Operator            string `json:"-"`
+	ActionId            string `json:"-"`
+	ErrorMsg            string `json:"-"`
 }
 
 type ExecImportParam struct {

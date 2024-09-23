@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
@@ -82,6 +83,17 @@ func UpdateTransImportDetailStatus(ctx context.Context, transImportId, transImpo
 	if err != nil {
 		err = fmt.Errorf("update trans import detail status fail,%s ", err.Error())
 		log.Logger.Error("UpdateTransImportDetailStatus fail", log.String("transImportId", transImportId), log.String("detailId", transImportDetailId), log.Error(err))
+	}
+	return
+}
+
+func RecordTransImportAction(ctx context.Context, callParam *models.CallTransImportActionParam) (err error) {
+	if callParam.ActionId == "" {
+		callParam.ActionId = "t_imp_action_" + guid.CreateGuid()
+		_, err = db.MysqlEngine.Context(ctx).Exec("insert into trans_import_action(id,trans_import,trans_import_detail,`action`,created_user,updated_time) values (?,?,?,?,?,?)",
+			callParam.ActionId, callParam.TransImportId, callParam.TransImportDetailId, callParam.Action, callParam.Operator, time.Now())
+	} else {
+		_, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_action set error_msg=?,updated_time=? where id=?", callParam.ErrorMsg, time.Now(), callParam.ActionId)
 	}
 	return
 }
