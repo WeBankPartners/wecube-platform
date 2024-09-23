@@ -70,7 +70,6 @@ type CallTransImportActionParam struct {
 }
 
 type ExecImportParam struct {
-	ExportNexusUrl string             `json:"exportNexusUrl"`
-	Step           WebTransImportStep `json:"step"`          // 第几步执行
-	TransImportId  string             `json:"transImportId"` // 导入Id
+	ExportNexusUrl string `json:"exportNexusUrl"`
+	TransImportId  string `json:"transImportId"` // 导入Id
 }

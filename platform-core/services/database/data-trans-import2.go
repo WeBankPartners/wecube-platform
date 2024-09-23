@@ -113,6 +113,11 @@ func GetImportUIData(localPath string) (detail *models.TransExportDetail, err er
 	return
 }
 
+// ExecImport 执行导入
+func ExecImport(ctx context.Context, param models.ExecImportParam) (err error) {
+	return
+}
+
 func createImport(ctx context.Context) {
 
 }
