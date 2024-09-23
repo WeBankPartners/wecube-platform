@@ -30,7 +30,7 @@ var transExportDetailMap = map[models.TransExportStep]string{
 	models.TransExportStepMonitor:             "monitor",
 	models.TransExportStepPluginConfig:        "pluginConfig",
 	models.TransExportStepCreateAndUploadFile: "createAndUploadFile",
-	models.TransExportSystemVariable:          "systemVariable ",
+	models.TransExportSystemVariable:          "systemVariable",
 }
 
 const (
@@ -498,7 +498,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	var batchExecutionTemplateList []*models.BatchExecutionTemplate
 	var transDataVariableConfig *models.TransDataVariableConfig
 	var subProcDefIds []string
-	var uploadUrl, path, zipPath, pluginPath, monitorPath string
+	var uploadUrl, path, zipPath, pluginPath, monitorPath, exportDataPath string
 	var err error
 	var step models.TransExportStep
 	var roleDisplayNameMap = make(map[string]string)
@@ -511,6 +511,9 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		return
 	}
 	if monitorPath, err = tools.GetPath(fmt.Sprintf("%s/monitor", path)); err != nil {
+		return
+	}
+	if exportDataPath, err = tools.GetPath(fmt.Sprintf("%s/export", path)); err != nil {
 		return
 	}
 	// 如果有报错,更新导出记录状态失败
@@ -534,7 +537,6 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		log.Logger.Error("updateTransExportStatus error", log.Error(err))
 		return
 	}
-
 	// 1. 导出选中角色
 	log.Logger.Info("1. export role start!!!!")
 	step = models.TransExportStepRole
@@ -786,7 +788,13 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	}
 	log.Logger.Info("10. export systemVariable end!!!!")
 
-	// 10. json文件压缩并上传nexus
+	//  导出在导入时候需要展示的页面数据
+	log.Logger.Info(" export ui show data start!!!!")
+	if err = exportImportShowData(ctx, param.TransExportId, exportDataPath, userToken, language); err != nil {
+		return
+	}
+	log.Logger.Info(" export ui show data end!!!!")
+	// 11. json文件压缩并上传nexus
 	step = models.TransExportStepCreateAndUploadFile
 	log.Logger.Info("11. create and upload file start!!!!")
 	exportCreateAndUploadFileStartTime := time.Now().Format(models.DateTimeFormat)
@@ -825,6 +833,66 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	updateTransExportDetail(ctx, transExportCreateAndUploadFile)
 	log.Logger.Info("11. create and upload file end!!!!")
 	updateTransExportSuccess(ctx, param.TransExportId, uploadUrl)
+	return
+}
+
+// exportImportShowData 后面导入展示数据用
+func exportImportShowData(ctx context.Context, transExportId, path, userToken, language string) (err error) {
+	var transExport *models.TransExportTable
+	var query models.QueryBusinessListParam
+	var result []map[string]interface{}
+	var environmentMap = make(map[string]string)
+	var detail *models.TransExportDetail
+	if transExport, err = GetTransExport(ctx, transExportId); err != nil {
+		return
+	}
+	if transExport == nil {
+		log.Logger.Error("exportImportShowData transExportId is invalid", log.String("transExportId", transExportId))
+		return
+	}
+	environmentMap["env_id"] = transExport.Environment
+	environmentMap["env_name"] = transExport.EnvironmentName
+	if strings.TrimSpace(transExport.Business) != "" {
+		query = models.QueryBusinessListParam{
+			PackageName: "wecmdb",
+			UserToken:   userToken,
+			Language:    language,
+			EntityQueryParam: models.EntityQueryParam{
+				AdditionalFilters: make([]*models.EntityQueryObj, 0),
+			},
+		}
+		businessIdArr := strings.Split(transExport.Business, ",")
+		for _, id := range businessIdArr {
+			var temp []map[string]interface{}
+			query.EntityQueryParam = models.EntityQueryParam{
+				AdditionalFilters: make([]*models.EntityQueryObj, 0),
+			}
+			query.EntityQueryParam.AdditionalFilters = append(query.EntityQueryParam.AdditionalFilters, &models.EntityQueryObj{
+				AttrName:  "id",
+				Op:        "eq",
+				Condition: id,
+			})
+			if temp, err = remote.QueryBusinessList(query); err != nil {
+				return
+			}
+			if len(temp) > 0 {
+				result = append(result, temp...)
+			}
+		}
+	}
+	// 导出环境
+	if err = tools.WriteJsonData2File(fmt.Sprintf("%s/env.json", path), environmentMap); err != nil {
+		return
+	}
+	// 导出产品
+	if err = tools.WriteJsonData2File(fmt.Sprintf("%s/product.json", path), result); err != nil {
+		return
+	}
+	if detail, err = GetTransExportDetail(ctx, transExportId); err != nil {
+		return
+	}
+	// 导出ui数据,导入回显用
+	err = tools.WriteJsonData2File(fmt.Sprintf("%s/ui-data.json", path), detail)
 	return
 }
 
@@ -1087,6 +1155,12 @@ func updateTransExportDetail(ctx context.Context, transExportDetail models.Trans
 func updateTransExportDetailFail(ctx context.Context, transExportId string, step models.TransExportStep, errMsg string) (err error) {
 	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_export_detail set status=?,error_msg=?,end_time=? where trans_export=? and step =?",
 		models.TransExportStatusFail, errMsg, time.Now().Format(models.DateTimeFormat), transExportId, step)
+	return
+}
+
+func GetTransExport(ctx context.Context, transExportId string) (transExport *models.TransExportTable, err error) {
+	transExport = &models.TransExportTable{}
+	_, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export where id=?", transExportId).Get(transExport)
 	return
 }
 
