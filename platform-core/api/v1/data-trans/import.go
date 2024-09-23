@@ -2,33 +2,16 @@ package data_trans
 
 import (
 	"context"
+	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
+	"github.com/gin-gonic/gin"
 )
 
-func ExecTransImport(ctx context.Context, nexusUrl string) (err error) {
-	// 解压文件
-	if _, err = database.DecompressExportZip(ctx, nexusUrl); err != nil {
-		log.Logger.Error("DecompressExportZip err", log.Error(err))
-		return
-	}
-	// 读解压后的文件录进数据库为了给用户展示要导入什么东西
-
-	// 开始导入
-	// 1、导入角色
-	// 2、导入cmdb插件服务、导入cmdb数据、同步cmdb数据模型、导入其它插件服务
-	// 3、导入编排
-	// 4、导入批量执行
-	// 5、导入物料包
-	// 6、导入监控基础类型、对象组、基础类型指标、对象组指标、对象组阈值配置、业务配置模版
-	// 7、导入taskman模版和公共组件
-	// 开始执行
-	// 8、开始执行编排(创建资源、初始化资源、应用部署)
-	// 继续导入
-	// 9、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板
-	return
-}
+const (
+	tempTransImportDir = "/tmp/trans_import/%s"
+)
 
 var importFuncList []func(context.Context, *models.TransImportJobParam) (string, error)
 
@@ -44,7 +27,41 @@ func init() {
 	importFuncList = append(importFuncList, importMonitorServiceConfig)
 }
 
-func CallImportFunc(ctx context.Context, callParam *models.CallTransImportActionParam) (err error) {
+func AnalyzeTransImport(ctx context.Context, nexusUrl string) (err error) {
+	// 解压文件
+	if _, err = database.DecompressExportZip(ctx, nexusUrl); err != nil {
+		log.Logger.Error("DecompressExportZip err", log.Error(err))
+		return
+	}
+	// 读解压后的文件录进数据库为了给用户展示要导入什么东西
+	// 返回给前端要导入的环境和产品信息
+	return
+}
+
+// StartTransImport
+// 开始导入
+// 1、导入角色
+// 2、导入cmdb插件服务、导入cmdb数据、同步cmdb数据模型、导入其它插件服务
+// 3、导入编排
+// 4、导入批量执行
+// 5、导入物料包
+// 6、导入监控基础类型、对象组、基础类型指标、对象组指标、对象组阈值配置、业务配置模版
+// 7、导入taskman模版和公共组件
+// 开始执行
+// 8、开始执行编排(创建资源、初始化资源、应用部署)
+// 继续导入
+// 9、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板
+func StartTransImport(c *gin.Context) {
+	var param models.CallTransImportActionParam
+	if err := c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	go doImportAction(c, &param)
+	middleware.ReturnSuccess(c)
+}
+
+func doImportAction(ctx context.Context, callParam *models.CallTransImportActionParam) (err error) {
 	transImportJobParam, getConfigErr := database.GetTransImportWithDetail(ctx, callParam.TransImportId, false)
 	if getConfigErr != nil {
 		err = getConfigErr
@@ -59,28 +76,45 @@ func CallImportFunc(ctx context.Context, callParam *models.CallTransImportAction
 			}
 		}
 		if currentStep == 8 {
-
+			transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
+			if err = callImportFunc(ctx, transImportJobParam, execWorkflow); err != nil {
+				return
+			}
 		} else if currentStep == 9 {
-
+			transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
+			if err = callImportFunc(ctx, transImportJobParam, importMonitorServiceConfig); err != nil {
+				return
+			}
 		} else {
 			for currentStep <= 7 {
 				transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 				funcObj := importFuncList[currentStep-1]
-				tmpOutput, tmpErr := funcObj(ctx, transImportJobParam)
-				if tmpErr != nil {
-					updateStatusErr := database.UpdateTransImportDetailStatus(ctx, callParam.TransImportId, transImportJobParam.CurrentDetail.Id, "fail", tmpOutput, tmpErr.Error())
-					if updateStatusErr != nil {
-						log.Logger.Error("CallImportFunc update detail status fail", log.String("transImport", callParam.TransImportId), log.String("detailId", transImportJobParam.CurrentDetail.Id), log.Error(updateStatusErr))
-					}
+				if err = callImportFunc(ctx, transImportJobParam, funcObj); err != nil {
 					break
-				} else {
-					updateStatusErr := database.UpdateTransImportDetailStatus(ctx, callParam.TransImportId, transImportJobParam.CurrentDetail.Id, "success", tmpOutput, "")
-					if updateStatusErr != nil {
-						log.Logger.Error("CallImportFunc update detail status fail", log.String("transImport", callParam.TransImportId), log.String("detailId", transImportJobParam.CurrentDetail.Id), log.Error(updateStatusErr))
-					}
 				}
+				currentStep = currentStep + 1
+			}
+			if err != nil {
+				return
 			}
 		}
+	}
+	if err != nil {
+		log.Logger.Error("doImportAction fail", log.JsonObj("callParam", callParam), log.Error(err))
+	}
+	return
+}
+
+func callImportFunc(ctx context.Context, transImportJobParam *models.TransImportJobParam, funcObj func(context.Context, *models.TransImportJobParam) (string, error)) (err error) {
+	if err = database.UpdateTransImportDetailStatus(ctx, transImportJobParam.TransImport.Id, transImportJobParam.CurrentDetail.Id, "doing", "", ""); err != nil {
+		return
+	}
+	var output string
+	output, err = funcObj(ctx, transImportJobParam)
+	if err != nil {
+		database.UpdateTransImportDetailStatus(ctx, transImportJobParam.TransImport.Id, transImportJobParam.CurrentDetail.Id, "fail", output, err.Error())
+	} else {
+		database.UpdateTransImportDetailStatus(ctx, transImportJobParam.TransImport.Id, transImportJobParam.CurrentDetail.Id, "success", output, "")
 	}
 	return
 }
