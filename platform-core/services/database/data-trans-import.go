@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"time"
 )
 
 func GetDataTransImportNexusConfig(ctx context.Context) (result *models.TransDataImportNexusConfig, err error) {
@@ -47,9 +49,9 @@ func GetTransImportWithDetail(ctx context.Context, transImportId string, withDet
 	}
 	result = &models.TransImportJobParam{TransImport: transImportRows[0], Details: []*models.TransImportDetail{}}
 	if withDetailData {
-		err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_detail where trans_import=?").Find(&result.Details)
+		err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_detail where trans_import=? order by step").Find(&result.Details)
 	} else {
-		err = db.MysqlEngine.Context(ctx).SQL("select id,trans_import,name,step,status,error_msg,start_time,end_time from trans_import_detail where trans_import=?").Find(&result.Details)
+		err = db.MysqlEngine.Context(ctx).SQL("select id,trans_import,name,step,status,error_msg,start_time,end_time from trans_import_detail where trans_import=? order by step").Find(&result.Details)
 	}
 	if err != nil {
 		err = fmt.Errorf("query trans import detail table fail,%s ", err.Error())
@@ -58,6 +60,28 @@ func GetTransImportWithDetail(ctx context.Context, transImportId string, withDet
 }
 
 func UpdateTransImportDetailStatus(ctx context.Context, transImportId, transImportDetailId, status, output, errorMsg string) (err error) {
-
+	var actions []*db.ExecAction
+	nowTime := time.Now()
+	if status == "success" {
+		actions = append(actions, &db.ExecAction{Sql: "update trans_import_detail set status=?,`output`=?,end_time=? where id=?", Param: []interface{}{
+			status, output, nowTime, transImportDetailId,
+		}})
+	} else if status == "fail" {
+		actions = append(actions, &db.ExecAction{Sql: "update trans_import_detail set status=?,error_msg=?,end_time=? where id=?", Param: []interface{}{
+			status, errorMsg, nowTime, transImportDetailId,
+		}})
+		actions = append(actions, &db.ExecAction{Sql: "update trans_import set status=?,updated_time=? where id=?", Param: []interface{}{
+			status, nowTime, transImportId,
+		}})
+	} else if status == "doing" {
+		actions = append(actions, &db.ExecAction{Sql: "update trans_import_detail set status=?,start_time=? where id=?", Param: []interface{}{
+			status, nowTime, transImportDetailId,
+		}})
+	}
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = fmt.Errorf("update trans import detail status fail,%s ", err.Error())
+		log.Logger.Error("UpdateTransImportDetailStatus fail", log.String("transImportId", transImportId), log.String("detailId", transImportDetailId), log.Error(err))
+	}
 	return
 }

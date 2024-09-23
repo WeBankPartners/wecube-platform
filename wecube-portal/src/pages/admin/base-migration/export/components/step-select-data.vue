@@ -4,7 +4,7 @@
       <div class="item-header">
         <span class="item-header-t">环境产品系统<Icon type="ios-information-circle" size="20" /></span>
         <span class="item-header-e">环境<span class="number">{{ detailData.environmentName || '-' }}</span></span>
-        <span class="item-header-p">产品<span class="number">{{ detailData.businessName.split(',').length || 0 }}</span></span>
+        <span class="item-header-p">产品<span class="number">{{ detailData.businessNameList.length }}</span></span>
         <span class="item-header-s">系统<span class="number">{{
           (detailData.associationSystems && detailData.associationSystems.length) || 0
         }}</span></span>
@@ -17,7 +17,7 @@
           </div>
           <div class="content-list">
             <span>已选业务产品</span>
-            <Tag v-for="(i, index) in detailData.businessName.split(',')" class="tag" :key="index">
+            <Tag v-for="(i, index) in detailData.businessNameList" class="tag" :key="index">
               {{ i }}
             </Tag>
           </div>
@@ -183,7 +183,7 @@
               size="small"
               :columns="artifactsColumns"
               :max-height="400"
-              :data="detailData.artifactsData"
+              :data="detailData.artifactsRes.data"
             />
           </Card>
         </Col>
@@ -192,7 +192,8 @@
     <!--监控-->
     <div class="item">
       <span class="title">
-        监控配置：<span class="sub-title">已选配置类型<span class="number">{{ detailData.monitorData.length }}</span> <span class="name">总条数</span><span class="number">{{ detailData.monitorCount }}</span>
+        监控配置：<span class="sub-title">已选配置类型<span class="number">{{ detailData.monitorRes.data.length }}</span>
+          <span class="name">总条数</span><span class="number">{{ detailData.monitorCount }}</span>
         </span>
       </span>
       <Row :gutter="10">
@@ -203,7 +204,7 @@
               size="small"
               :columns="monitorColumns"
               :max-height="400"
-              :data="detailData.monitorData"
+              :data="detailData.monitorRes.data"
             />
           </Card>
         </Col>
@@ -213,7 +214,7 @@
     <div class="item">
       <span class="title">
         插件服务：<span class="sub-title">
-          已选配置类型<span class="number">{{ detailData.pluginsData.length }}</span>
+          已选配置类型<span class="number">{{ detailData.pluginsRes.data.length }}</span>
         </span>
       </span>
       <Row :gutter="10">
@@ -224,7 +225,7 @@
               size="small"
               :columns="pluginColumns"
               :max-height="400"
-              :data="detailData.pluginsData"
+              :data="detailData.pluginsRes.data"
             />
           </Card>
         </Col>
