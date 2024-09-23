@@ -8,44 +8,22 @@
             <Step title="导入数据" content="确认依赖系统、CMDB、编排、ITSM等配置项正确"></Step>
             <Step title="执行自动化编排" content="执行编排"></Step>
             <Step title="配置监控" content="自动配置监控"></Step>
-            <Step title="确认导入结果" content="查看导入导出数据对比"></Step>
           </Steps>
         </BaseHeaderTitle>
       </div>
       <div class="content" ref="scrollView">
         <BaseHeaderTitle v-if="activeStep === 0" title="导入产品" :showExpand="false">
-          111111111111111
+          <StepOne @nextStep="activeStep++"></StepOne>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 1" title="导入数据" :showExpand="false">
-          2222222222222222
+          <StepTwo :detailData="detailData" @nextStep="activeStep++"></StepTwo>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 2" title="执行自动化编排" :showExpand="false">
-          333333333333333
+          <StepThree></StepThree>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 3" title="配置监控" :showExpand="false">
-          444444444444444
+          <StepFour></StepFour>
         </BaseHeaderTitle>
-        <BaseHeaderTitle v-if="activeStep === 4" title="导入结果" :showExpand="false">
-          555555555555555
-        </BaseHeaderTitle>
-        <div class="footer">
-          <template v-if="activeStep === 0">
-            <Button type="info" @click="handleSaveEnvBusiness">下一步</Button>
-          </template>
-          <template v-else-if="activeStep === 1">
-            <Button type="default" @click="handleLast">上一步</Button>
-            <Button type="primary" @click="handleSaveExport" style="margin-left: 10px">执行导出</Button>
-          </template>
-          <template v-else-if="activeStep === 2">
-            <Button type="default" @click="handleToHistory" style="margin-left: 10px">历史列表</Button>
-            <Button
-              v-if="['success', 'fail'].includes(detailData.status)"
-              type="primary"
-              @click="handleReLauch"
-              style="margin-left: 10px"
-            >重新发起</Button>
-          </template>
-        </div>
       </div>
     </div>
     <Spin v-if="loading" size="large" fix></Spin>
@@ -53,16 +31,70 @@
 </template>
 
 <script>
+import StepOne from './components/step-one.vue'
+import StepTwo from './components/step-two.vue'
+import StepThree from './components/step-three.vue'
+import StepFour from './components/step-four.vue'
+import { getExportDetail } from '@/api/server'
 export default {
-  components: {},
+  components: {
+    StepOne,
+    StepTwo,
+    StepThree,
+    StepFour
+  },
   data() {
     return {
       activeStep: 0,
-      loading: false
+      loading: false,
+      detailData: {}
     }
   },
-  async mounted() {},
-  methods: {}
+  async mounted() {
+    await this.getDetailData()
+  },
+  methods: {
+    // 获取导出详情数据
+    async getDetailData() {
+      const params = {
+        params: {
+          transExportId: 'tp_622c473d18d6219bdbac5'
+        }
+      }
+      const { status, data } = await getExportDetail(params)
+      if (status === 'OK') {
+        this.detailData = {
+          roleRes: data.roles,
+          flowRes: data.workflows,
+          batchRes: data.batchExecutions,
+          itsmRes: data.requestTemplates,
+          failMsg: data.createAndUploadFile && data.createAndUploadFile.errMsg,
+          cmdbCIData: data.cmdbCI || [], // cmdb CI
+          cmdbViewData: data.cmdbView || [], // cmdb视图
+          cmdbReportData: data.cmdbReportForm || [], // cmdb报表
+          artifactsData: data.artifacts || [], // 物料包
+          monitorData: data.monitor || [], // 监控
+          pluginsData: data.plugins || [], // 插件
+          cmdbReportFormCount: data.cmdbReportFormCount || 0,
+          cmdbViewCount: data.cmdbViewCount || 0,
+          exportComponentLibrary: data.exportComponentLibrary, // 组件库
+          ...data.transExport
+        }
+        this.detailData.roleRes.data = this.detailData.roleRes.data || []
+        this.detailData.flowRes.data = this.detailData.flowRes.data || []
+        this.detailData.batchRes.data = this.detailData.batchRes.data || []
+        this.detailData.itsmRes.data = this.detailData.itsmRes.data || []
+        this.detailData.associationSystems = this.detailData.associationSystems || []
+        this.detailData.associationTechProducts = this.detailData.associationTechProducts || []
+        this.detailData.businessName = this.detailData.businessName || ''
+        this.detailData.businessNameList = (this.detailData.businessName && this.detailData.businessName.split(',')) || []
+        this.detailData.business = this.detailData.business || ''
+        this.detailData.cmdbCICount = this.detailData.cmdbCIData.reduce((sum, cur) => sum + cur.count, 0)
+        this.detailData.monitorCount = this.detailData.monitorData.reduce((sum, cur) => sum + cur.count, 0)
+        this.detailData.artifactsCount = this.detailData.artifactsData.reduce((sum, cur) => sum + cur.artifactLen, 0)
+      }
+    }
+  }
 }
 </script>
 
@@ -81,13 +113,6 @@ export default {
     width: calc(100% - 260px);
     padding-left: 15px;
     overflow-y: auto;
-    .footer {
-      position: fixed;
-      bottom: 10px;
-      display: flex;
-      justify-content: center;
-      width: calc(100% - 460px);
-    }
   }
   ::-webkit-scrollbar {
     width: 6px;
