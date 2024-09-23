@@ -12,13 +12,13 @@
       </div>
       <div class="content" ref="scrollView">
         <BaseHeaderTitle v-if="activeStep === 0" title="导出产品" :showExpand="false">
-          <stepEnviroment ref="env" :detailData="detailData"></stepEnviroment>
+          <StepEnviroment ref="env" :detailData="detailData"></StepEnviroment>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 1" title="导出数据" :showExpand="false">
-          <stepSelectData ref="data" :detailData="detailData"></stepSelectData>
+          <StepSelectData ref="data" :detailData="detailData"></StepSelectData>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 2" title="导出结果" :showExpand="false">
-          <stepResult :detailData="detailData"></stepResult>
+          <StepResult :detailData="detailData"></StepResult>
         </BaseHeaderTitle>
         <div class="footer">
           <template v-if="activeStep === 0">
@@ -45,18 +45,18 @@
 </template>
 
 <script>
-import stepEnviroment from './components/step-enviroment.vue'
-import stepSelectData from './components/step-select-data.vue'
-import stepResult from './components/step-result.vue'
+import StepEnviroment from './components/step-enviroment.vue'
+import StepSelectData from './components/step-select-data.vue'
+import StepResult from './components/step-result.vue'
 import { debounce } from '@/const/util'
 import {
   saveEnvBusiness, updateEnvBusiness, exportBaseMigration, getExportDetail
 } from '@/api/server'
 export default {
   components: {
-    stepEnviroment,
-    stepSelectData,
-    stepResult
+    StepEnviroment,
+    StepSelectData,
+    StepResult
   },
   data() {
     return {
@@ -111,14 +111,15 @@ export default {
           batchRes: data.batchExecutions,
           itsmRes: data.requestTemplates,
           failMsg: data.createAndUploadFile && data.createAndUploadFile.errMsg,
+          cmdbRes: data.cmdb, // cmdb
           cmdbCIData: data.cmdbCI || [], // cmdb CI
           cmdbViewData: data.cmdbView || [], // cmdb视图
           cmdbReportData: data.cmdbReportForm || [], // cmdb报表
-          artifactsData: data.artifacts || [], // 物料包
-          monitorData: data.monitor || [], // 监控
-          pluginsData: data.plugins || [], // 插件
           cmdbReportFormCount: data.cmdbReportFormCount || 0,
           cmdbViewCount: data.cmdbViewCount || 0,
+          artifactsRes: data.artifacts, // 物料包
+          monitorRes: data.monitor, // 监控
+          pluginsRes: data.plugins, // 插件
           exportComponentLibrary: data.exportComponentLibrary, // 组件库
           ...data.transExport
         }
@@ -126,13 +127,17 @@ export default {
         this.detailData.flowRes.data = this.detailData.flowRes.data || []
         this.detailData.batchRes.data = this.detailData.batchRes.data || []
         this.detailData.itsmRes.data = this.detailData.itsmRes.data || []
+        this.detailData.artifactsRes.data = this.detailData.artifactsRes.data || []
+        this.detailData.monitorRes.data = this.detailData.monitorRes.data || []
+        this.detailData.pluginsRes.data = this.detailData.pluginsRes.data || []
         this.detailData.associationSystems = this.detailData.associationSystems || []
         this.detailData.associationTechProducts = this.detailData.associationTechProducts || []
         this.detailData.businessName = this.detailData.businessName || ''
+        this.detailData.businessNameList = (this.detailData.businessName && this.detailData.businessName.split(',')) || []
         this.detailData.business = this.detailData.business || ''
         this.detailData.cmdbCICount = this.detailData.cmdbCIData.reduce((sum, cur) => sum + cur.count, 0)
-        this.detailData.monitorCount = this.detailData.monitorData.reduce((sum, cur) => sum + cur.count, 0)
-        this.detailData.artifactsCount = this.detailData.artifactsData.reduce((sum, cur) => sum + cur.artifactLen, 0)
+        this.detailData.monitorCount = this.detailData.monitorRes.data.reduce((sum, cur) => sum + cur.count, 0)
+        this.detailData.artifactsCount = this.detailData.artifactsRes.data.reduce((sum, cur) => sum + cur.artifactLen, 0)
         // 成功或失败，取消轮询查状态
         if (['success', 'fail'].includes(this.detailData.status)) {
           clearInterval(this.interval)

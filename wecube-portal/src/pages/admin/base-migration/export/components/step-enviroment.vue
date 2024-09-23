@@ -34,7 +34,8 @@
 import { getExportBusinessList } from '@/api/server'
 export default {
   props: {
-    detailData: Object
+    detailData: Object,
+    from: String
   },
   data() {
     return {

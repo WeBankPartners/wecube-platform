@@ -30,7 +30,7 @@
       <div class="item-header">
         <span class="item-header-t">环境产品系统<Icon type="ios-information-circle" size="20" /></span>
         <span class="item-header-e">环境<span class="number">{{ detailData.environmentName || '-' }}</span></span>
-        <span class="item-header-p">产品<span class="number">{{ detailData.businessName.split(',').length || 0 }}</span></span>
+        <span class="item-header-p">产品<span class="number">{{ detailData.businessNameList.length }}</span></span>
         <span class="item-header-s">系统<span class="number">{{ detailData.associationSystems.length || 0 }}</span></span>
       </div>
       <card style="margin-top: 5px">
@@ -41,7 +41,7 @@
           </div>
           <div class="content-list">
             <span>已选业务产品</span>
-            <Tag v-for="(i, index) in detailData.businessName.split(',')" class="tag" :key="index">
+            <Tag v-for="(i, index) in detailData.businessNameList" class="tag" :key="index">
               {{ i }}
             </Tag>
           </div>
@@ -143,6 +143,8 @@
         CMDB：<span class="sub-title">
           已选CI<span class="number">{{ detailData.cmdbCICount }}</span> <span class="name">视图</span><span class="number">{{ detailData.cmdbViewCount }}</span> <span class="name">报表</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
         </span>
+        <span v-if="detailData.cmdbRes.status === 'success'" class="success">(导出成功)</span>
+        <span v-if="detailData.cmdbRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.cmdbRes.errMsg }}</span>)</span>
       </span>
       <Row :gutter="10">
         <Col :span="8">
@@ -184,6 +186,8 @@
     <div class="item">
       <span class="title">
         物料包：已选<span class="number">{{ detailData.artifactsCount }}</span>
+        <span v-if="detailData.artifactsRes.status === 'success'" class="success">(导出成功)</span>
+        <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.artifactsRes.errMsg }}</span>)</span>
       </span>
       <Row :gutter="10">
         <Col :span="12">
@@ -193,7 +197,7 @@
               size="small"
               :columns="artifactsColumns"
               :max-height="400"
-              :data="detailData.artifactsData"
+              :data="detailData.artifactsRes.data"
             />
           </Card>
         </Col>
@@ -202,9 +206,11 @@
     <!--监控-->
     <div class="item">
       <span class="title">
-        监控配置：<span class="sub-title">已选 <span class="name">配置类型</span><span class="number">{{ detailData.monitorData.length }}</span>
+        监控配置：<span class="sub-title">已选 <span class="name">配置类型</span><span class="number">{{ detailData.monitorRes.data.length }}</span>
           <span class="name">总条数</span><span class="number">{{ detailData.monitorCount }}</span>
         </span>
+        <span v-if="detailData.monitorRes.status === 'success'" class="success">(导出成功)</span>
+        <span v-if="detailData.monitorRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.monitorRes.errMsg }}</span>)</span>
       </span>
       <Row :gutter="10">
         <Col :span="12">
@@ -214,7 +220,7 @@
               size="small"
               :columns="monitorColumns"
               :max-height="400"
-              :data="detailData.monitorData"
+              :data="detailData.monitorRes.data"
             />
           </Card>
         </Col>
@@ -224,8 +230,10 @@
     <div class="item">
       <span class="title">
         插件服务：<span class="sub-title">
-          已选配置类型<span class="number">{{ detailData.pluginsData.length }}</span>
+          已选配置类型<span class="number">{{ detailData.pluginsRes.data.length }}</span>
         </span>
+        <span v-if="detailData.pluginsRes.status === 'success'" class="success">(导出成功)</span>
+        <span v-if="detailData.pluginsRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.pluginsRes.errMsg }}</span>)</span>
       </span>
       <Row :gutter="10">
         <Col :span="12">
@@ -235,7 +243,7 @@
               size="small"
               :columns="pluginColumns"
               :max-height="400"
-              :data="detailData.pluginsData"
+              :data="detailData.pluginsRes.data"
             />
           </Card>
         </Col>
@@ -261,13 +269,23 @@ export default {
           cmdbCIData: [],
           cmdbViewData: [],
           cmdbReportData: [],
-          artifactsData: [],
-          monitorData: [],
+          artifactsRes: {
+            data: []
+          },
+          monitorRes: {
+            data: []
+          },
+          pluginsRes: {
+            data: []
+          },
           componentLibrary: false,
           associationSystems: [],
           associationTechProducts: [],
           businessName: '',
-          business: ''
+          businessNameList: [],
+          business: '',
+          status: '',
+          failMsg: ''
         }
       }
     }
