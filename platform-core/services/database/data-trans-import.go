@@ -48,7 +48,7 @@ func GetTransImportWithDetail(ctx context.Context, transImportId string, withDet
 		err = fmt.Errorf("can not find trans import with id:%s ", transImportId)
 		return
 	}
-	result = &models.TransImportJobParam{TransImport: transImportRows[0], Details: []*models.TransImportDetail{}}
+	result = &models.TransImportJobParam{TransImport: transImportRows[0], Details: []*models.TransImportDetailTable{}}
 	if withDetailData {
 		err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_detail where trans_import=? order by step").Find(&result.Details)
 	} else {
@@ -98,7 +98,7 @@ func RecordTransImportAction(ctx context.Context, callParam *models.CallTransImp
 	return
 }
 
-func GetTransImportProcExecList() (result []*models.TransImportProcExec, err error) {
+func GetTransImportProcExecList() (result []*models.TransImportProcExecTable, err error) {
 	err = db.MysqlEngine.SQL("select * from trans_import_proc_exec where trans_import_detail in (select id from trans_import_detail where status='doing' and trans_import in (select id from trans_import where status='doing')) order by trans_import_detail,exec_order").Find(&result)
 	if err != nil {
 		err = fmt.Errorf("query trans import proc exec table fail,%s ", err.Error())

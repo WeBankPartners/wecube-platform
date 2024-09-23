@@ -108,6 +108,19 @@ const (
 	TransExportStatusFail     TransExportStatus = "fail"
 )
 
+// TransImportStatus 导入状态枚举
+type TransImportStatus string
+
+const (
+	TransImportStatusNotStart TransImportStatus = "notStart"
+	TransImportStatusStart    TransImportStatus = "start"
+	TransImportStatusDoing    TransImportStatus = "doing"
+	TransImportStatusSuccess  TransImportStatus = "success"
+	TransImportStatusFail     TransImportStatus = "fail"
+	TransImportStatusCancel   TransImportStatus = "cancel"
+	TransImportStatusSuspend  TransImportStatus = "suspend"
+)
+
 // TransExportStep 导出步骤
 type TransExportStep int
 
@@ -153,10 +166,17 @@ const (
 	TransExportAnalyzeMonitorDataTypeDashboard                 TransExportAnalyzeMonitorDataType = "dashboard"
 )
 
-type WebTransImportStep int
+// TransImportStep 导入步骤
+type TransImportStep int
 
 const (
-	WebTransImportStepOne   WebTransImportStep = 1
-	WebTransImportStepTwo   WebTransImportStep = 2
-	WebTransImportStepThree WebTransImportStep = 3
+	TransImportStepRole             TransImportStep = 1 // 导入角色
+	TransImportStepRequestTemplate  TransImportStep = 2 // 导入请求模版
+	TransImportStepComponentLibrary TransImportStep = 3 // 导入表单组件库
+	TransImportStepWorkflow         TransImportStep = 4 // 导入编排
+	TransImportStepBatchExecution   TransImportStep = 5 // 导入量执行
+	TransImportStepPluginConfig     TransImportStep = 6 // 导入插件配置
+	TransImportStepCmdb             TransImportStep = 7 // 导入CMDB
+	TransImportStepArtifacts        TransImportStep = 8 // 导入物料包
+	TransImportStepMonitor          TransImportStep = 9 // 导入监控
 )
