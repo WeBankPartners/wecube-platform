@@ -88,18 +88,19 @@ VALUES ('system__global__PLATFORM_EXPORT_CI_ARTIFACT_UNIT_DESIGN', '', 'PLATFORM
 
 CREATE TABLE `trans_import`
 (
-    `id`               varchar(64) COLLATE utf8_bin   NOT NULL,
-    `input_url`        varchar(1024) COLLATE utf8_bin NOT NULL COMMENT '输入nexus地址',
-    `business`         varchar(1024) COLLATE utf8_bin NOT NULL COMMENT '业务',
-    `business_name`    varchar(1024) COLLATE utf8_bin NOT NULL COMMENT '业务名称',
-    `environment`      varchar(64) COLLATE utf8_bin   NOT NULL COMMENT '环境',
-    `environment_name` varchar(64) COLLATE utf8_bin   NOT NULL COMMENT '环境名称',
-    `status`           varchar(32) COLLATE utf8_bin   NOT NULL COMMENT '状态: start开始,doing执行中,success成功,fail失败,cancel取消,suspend暂停',
-    `output_url`       varchar(1024) COLLATE utf8_bin DEFAULT NULL COMMENT '输出nexus地址',
-    `created_user`     varchar(45) COLLATE utf8_bin   DEFAULT NULL COMMENT '创建人',
-    `created_time`     datetime                       NOT NULL,
-    `updated_user`     varchar(45) COLLATE utf8_bin   DEFAULT NULL,
-    `updated_time`     datetime                       DEFAULT NULL,
+    `id`                  varchar(64) COLLATE utf8_bin   NOT NULL,
+    `input_url`           varchar(1024) COLLATE utf8_bin NOT NULL COMMENT '输入nexus地址',
+    `business`            varchar(1024) COLLATE utf8_bin NOT NULL COMMENT '业务',
+    `business_name`       varchar(1024) COLLATE utf8_bin NOT NULL COMMENT '业务名称',
+    `environment`         varchar(64) COLLATE utf8_bin   NOT NULL COMMENT '环境',
+    `environment_name`    varchar(64) COLLATE utf8_bin   NOT NULL COMMENT '环境名称',
+    `status`              varchar(32) COLLATE utf8_bin   NOT NULL COMMENT '状态: start开始,doing执行中,success成功,fail失败,cancel取消,suspend暂停',
+    `association_system`  varchar(1024) COLLATE utf8_bin DEFAULT NULL COMMENT '关联系统',
+    `association_product` varchar(1024) COLLATE utf8_bin DEFAULT NULL COMMENT '关联产品',
+    `created_user`        varchar(45) COLLATE utf8_bin   DEFAULT NULL COMMENT '创建人',
+    `created_time`        datetime                       NOT NULL,
+    `updated_user`        varchar(45) COLLATE utf8_bin   DEFAULT NULL,
+    `updated_time`        datetime                       DEFAULT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '数据迁移导入记录表';
 
@@ -122,7 +123,7 @@ CREATE TABLE `trans_import_detail`
     `name`         varchar(64) COLLATE utf8_bin NOT NULL COMMENT '名称',
     `step`         tinyint(2) COLLATE utf8_bin NOT NULL COMMENT '第几步',
     `status`       varchar(32) COLLATE utf8_bin NOT NULL COMMENT '导出状态: notStart未开始,doing执行中,success成功,fail失败',
-    `input`        text COLLATE utf8_bin     DEFAULT NULL COMMENT '输入',
+    `input`        longtext COLLATE utf8_bin     DEFAULT NULL COMMENT '输入',
     `output`       longtext COLLATE utf8_bin DEFAULT NULL COMMENT '输出',
     `error_msg`    text COLLATE utf8_bin     DEFAULT NULL COMMENT '导出报错信息',
     `start_time`   datetime                  default NULL COMMENT '开始时间',
@@ -133,16 +134,16 @@ CREATE TABLE `trans_import_detail`
 
 CREATE TABLE `trans_import_proc_exec`
 (
-    `id`           varchar(64) COLLATE utf8_bin NOT NULL,
+    `id`                  varchar(64) COLLATE utf8_bin NOT NULL,
     `trans_import_detail` varchar(64) COLLATE utf8_bin NOT NULL COMMENT '记录详情表',
-    `proc_ins`         varchar(64) COLLATE utf8_bin NOT NULL COMMENT '编排实例ID',
-    `exec_order`         tinyint(2) COLLATE utf8_bin DEFAULT 0 COMMENT '第几步',
-    `status`       varchar(32) COLLATE utf8_bin NOT NULL COMMENT '导出状态: notStart未开始,doing执行中,success成功,fail失败',
-    `input`        text COLLATE utf8_bin     DEFAULT NULL COMMENT '输入',
-    `output`       longtext COLLATE utf8_bin DEFAULT NULL COMMENT '输出',
-    `error_msg`    text COLLATE utf8_bin     DEFAULT NULL COMMENT '导出报错信息',
-    `start_time`   datetime                  default NULL COMMENT '开始时间',
-    `end_time`     datetime                  default NULL COMMENT '结束时间',
+    `proc_ins`            varchar(64) COLLATE utf8_bin NOT NULL COMMENT '编排实例ID',
+    `exec_order`          tinyint(2) COLLATE utf8_bin DEFAULT 0 COMMENT '第几步',
+    `status`              varchar(32) COLLATE utf8_bin NOT NULL COMMENT '导出状态: notStart未开始,doing执行中,success成功,fail失败',
+    `input`               text COLLATE utf8_bin     DEFAULT NULL COMMENT '输入',
+    `output`              longtext COLLATE utf8_bin DEFAULT NULL COMMENT '输出',
+    `error_msg`           text COLLATE utf8_bin     DEFAULT NULL COMMENT '导出报错信息',
+    `start_time`          datetime                  default NULL COMMENT '开始时间',
+    `end_time`            datetime                  default NULL COMMENT '结束时间',
     PRIMARY KEY (`id`),
     CONSTRAINT `trans_import_proc_exec_force_detail` FOREIGN KEY (`trans_import_detail`) REFERENCES `trans_import_detail` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '数据迁移执行记录详情表';

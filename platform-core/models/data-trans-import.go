@@ -1,21 +1,22 @@
 package models
 
 type TransImportTable struct {
-	Id              string `json:"id" xorm:"id"`
-	ImportUrl       string `json:"importUrl" xorm:"import_url"`
-	Business        string `json:"business" xorm:"business"`
-	BusinessName    string `json:"businessName" xorm:"business_name"`
-	Environment     string `json:"environment" xorm:"environment"`
-	EnvironmentName string `json:"environmentName" xorm:"environment_name"`
-	Status          string `json:"status" xorm:"status"`
-	OutputUrl       string `json:"outputUrl" xorm:"output_url"`
-	CreatedUser     string `json:"createdUser" xorm:"created_user"`
-	CreatedTime     string `json:"createdTime" xorm:"created_time"`
-	UpdatedUser     string `json:"updatedUser" xorm:"updated_user"`
-	UpdatedTime     string `json:"updatedTime" xorm:"updated_time"`
+	Id                 string `json:"id" xorm:"id"`
+	ImportUrl          string `json:"importUrl" xorm:"import_url"`
+	Business           string `json:"business" xorm:"business"`
+	BusinessName       string `json:"businessName" xorm:"business_name"`
+	Environment        string `json:"environment" xorm:"environment"`
+	EnvironmentName    string `json:"environmentName" xorm:"environment_name"`
+	Status             string `json:"status" xorm:"status"`
+	AssociationSystem  string `json:"associationSystem" xorm:"association_system"`
+	AssociationProduct string `json:"associationProduct" xorm:"association_product"`
+	CreatedUser        string `json:"createdUser" xorm:"created_user"`
+	CreatedTime        string `json:"createdTime" xorm:"created_time"`
+	UpdatedUser        string `json:"updatedUser" xorm:"updated_user"`
+	UpdatedTime        string `json:"updatedTime" xorm:"updated_time"`
 }
 
-type TransImportAction struct {
+type TransImportActionTable struct {
 	Id                string  `json:"id" xorm:"id"`
 	TransImport       *string `json:"transImport" xorm:"trans_import"`
 	TransImportDetail string  `json:"transImportDetail" xorm:"trans_import_detail"`
@@ -25,7 +26,7 @@ type TransImportAction struct {
 	CreatedTime       string  `json:"createdTime" xorm:"created_time"`
 }
 
-type TransImportDetail struct {
+type TransImportDetailTable struct {
 	Id          string  `json:"id" xorm:"id"`
 	TransImport *string `json:"transImport" xorm:"trans_import"`
 	Name        string  `json:"name" xorm:"name"`
@@ -38,7 +39,7 @@ type TransImportDetail struct {
 	EndTime     string  `json:"endTime" xorm:"end_time"`
 }
 
-type TransImportProcExec struct {
+type TransImportProcExecTable struct {
 	Id                string `json:"id" xorm:"id"`
 	TransImportDetail string `json:"transImportDetail" xorm:"trans_import_detail"`
 	ProcIns           string `json:"procIns" xorm:"proc_ins"`
@@ -57,9 +58,9 @@ type GetBusinessListRes struct {
 }
 
 type TransImportJobParam struct {
-	TransImport   *TransImportTable    `json:"transImport"`
-	Details       []*TransImportDetail `json:"details"`
-	CurrentDetail *TransImportDetail   `json:"currentDetail"`
+	TransImport   *TransImportTable         `json:"transImport"`
+	Details       []*TransImportDetailTable `json:"details"`
+	CurrentDetail *TransImportDetailTable   `json:"currentDetail"`
 }
 
 type CallTransImportActionParam struct {
@@ -74,4 +75,31 @@ type CallTransImportActionParam struct {
 type ExecImportParam struct {
 	ExportNexusUrl string `json:"exportNexusUrl"`
 	TransImportId  string `json:"transImportId"` // 导入Id
+	Operator       string `json:"-"`
+}
+
+type CmdbData struct {
+	CmdbCI              []*CommonNameCount   `json:"cmdbCI"`
+	CmdbView            []*CommonNameCreator `json:"cmdbView"`
+	CmdbViewCount       int                  `json:"cmdbViewCount"`
+	CmdbReportForm      []*CommonNameCreator `json:"cmdbReportForm"`
+	CmdbReportFormCount int                  `json:"cmdbReportFormCount"`
+}
+
+type TransImportDetail struct {
+	TransImport            *TransImportTable    `json:"transExport"`
+	CmdbCI                 []*CommonNameCount   `json:"cmdbCI"`
+	CmdbView               []*CommonNameCreator `json:"cmdbView"`
+	CmdbViewCount          int                  `json:"cmdbViewCount"`
+	CmdbReportForm         []*CommonNameCreator `json:"cmdbReportForm"`
+	CmdbReportFormCount    int                  `json:"cmdbReportFormCount"`
+	Roles                  *CommonOutput        `json:"roles"`
+	Workflows              *CommonOutput        `json:"workflows"`
+	BatchExecution         *CommonOutput        `json:"batchExecutions"`
+	RequestTemplates       *CommonOutput        `json:"requestTemplates"`
+	ExportComponentLibrary bool                 `json:"exportComponentLibrary"` // 是否导出组件库
+	Artifacts              *CommonOutput        `json:"artifacts"`
+	Monitor                *CommonOutput        `json:"monitor"`
+	Plugins                *CommonOutput        `json:"plugins"`
+	Cmdb                   *CommonOutput        `json:"cmdb"`
 }

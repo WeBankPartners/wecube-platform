@@ -56,20 +56,21 @@ func ExecImport(c *gin.Context) {
 	if param.TransImportId == "" {
 		param.TransImportId = fmt.Sprintf("t_import_%s", guid.CreateGuid())
 	}
+	param.Operator = middleware.GetRequestUser(c)
 	go database.ExecImport(c, param)
 	middleware.ReturnData(c, param.TransImportId)
 }
 
 // ImportDetail 导入详情
 func ImportDetail(c *gin.Context) {
-	transExportId := c.Query("transExportId")
-	var detail *models.TransExportDetail
+	transExportId := c.Query("transImportId")
+	var detail *models.TransImportDetail
 	var err error
 	if strings.TrimSpace(transExportId) == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("transExportId is empty")))
 		return
 	}
-	if detail, err = database.GetTransExportDetail(c, transExportId); err != nil {
+	if detail, err = database.GetImportDetail(c, transExportId); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
