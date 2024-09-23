@@ -2,6 +2,7 @@ package data_trans
 
 import (
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"strings"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
@@ -22,7 +23,8 @@ func GetBusinessList(c *gin.Context) {
 		return
 	}
 	// 解压文件
-	if localPath, err = database.DecompressExportZip(c, exportNexusUrl); err != nil {
+	transImportId := fmt.Sprintf("t_import_%s", guid.CreateGuid())
+	if localPath, err = database.DecompressExportZip(c, exportNexusUrl, transImportId); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
@@ -41,7 +43,22 @@ func GetBusinessList(c *gin.Context) {
 
 // ExecImport 执行导入
 func ExecImport(c *gin.Context) {
-
+	var param models.ExecImportParam
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if strings.TrimSpace(param.ExportNexusUrl) == "" || param.Step == 0 {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("ExportNexusUrl or step is empty")))
+		return
+	}
+	if param.TransImportId == "" {
+		param.TransImportId = fmt.Sprintf("t_import_%s", guid.CreateGuid())
+	}
+	// 异步执行导入
+	go ExecTransImport(c, param)
+	middleware.ReturnData(c, param.TransImportId)
 }
 
 // ImportDetail 导入详情
