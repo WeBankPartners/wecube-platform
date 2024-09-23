@@ -355,8 +355,8 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 		CmdbCI:         make([]*models.CommonNameCount, 0),
 		CmdbView:       make([]*models.CommonNameCreator, 0),
 		CmdbReportForm: make([]*models.CommonNameCreator, 0),
-		Monitor:        make([]*models.CommonNameCount, 0),
-		Plugins:        make([]*models.PluginPackageCount, 0),
+		Monitor:        &models.CommonOutput{},
+		Plugins:        &models.CommonOutput{},
 	}
 	for _, transExportDetail := range transExportDetailList {
 		var tempArr []string
@@ -393,6 +393,14 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			detail.BatchExecution = output
 		case models.TransExportStepCreateAndUploadFile:
 			detail.CreateAndUploadFile = output
+		case models.TransExportStepPluginConfig:
+			detail.Plugins = output
+		case models.TransExportStepCmdb:
+			detail.Cmdb = output
+		case models.TransExportStepArtifacts:
+			detail.Artifacts = output
+		case models.TransExportStepMonitor:
+			detail.Monitor = output
 		}
 	}
 	// 查询CMDB CI信息
@@ -435,21 +443,24 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			}
 			detail.CmdbViewCount = transExportAnalyze.DataLen
 		case models.TransExportAnalyzeSourceMonitor:
-			detail.Monitor = append(detail.Monitor, &models.CommonNameCount{
+			var commonNameCountArr []*models.CommonNameCount
+			commonNameCountArr = append(commonNameCountArr, &models.CommonNameCount{
 				Name:  transExportAnalyze.DataTypeName,
 				Count: transExportAnalyze.DataLen,
 			})
+			detail.Monitor.Output = commonNameCountArr
 		case models.TransExportAnalyzeSourceArtifact:
 			var dataList []*models.AnalyzeArtifactDisplayData
 			if transExportAnalyze.Data != "" {
 				json.Unmarshal([]byte(transExportAnalyze.Data), &dataList)
-				detail.Artifacts = dataList
+				detail.Artifacts.Output = &dataList
 			}
 		case models.TransExportAnalyzeSourcePluginPackage:
 			var tempArr []map[string]interface{}
 			if transExportAnalyze.Data != "" {
 				json.Unmarshal([]byte(transExportAnalyze.Data), &tempArr)
 				if len(tempArr) > 0 {
+					var pluginPackageCount []*models.PluginPackageCount
 					for _, dataMap := range tempArr {
 						pluginInterfaceNum := 0
 						systemVariableNum := 0
@@ -465,12 +476,13 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 						case float64, float32:
 							systemVariableNum = int(dataMap["SystemVariableNum"].(float64))
 						}
-						detail.Plugins = append(detail.Plugins, &models.PluginPackageCount{
+						pluginPackageCount = append(pluginPackageCount, &models.PluginPackageCount{
 							Name:               fmt.Sprintf("%v", dataMap["PluginPackageName"]),
 							PluginInterfaceNum: pluginInterfaceNum,
 							SystemVariableNum:  systemVariableNum,
 						})
 					}
+					detail.Plugins.Output = pluginPackageCount
 				}
 			}
 		}
