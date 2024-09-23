@@ -3,11 +3,11 @@
     <div class="item">
       <span class="title">导入链接：</span>
       <div class="link">
-        <Input v-model="importLink" placeholder="请输入导入链接" clearable style="width:600px;" />
+        <Input v-model="importLink" placeholder="请输入导入链接" clearable style="width: 600px" />
         <Button type="primary" :disabled="!importLink" @click="handleImportLink">确认</Button>
       </div>
     </div>
-    <Card :bordered="false" dis-hover :padding="0" style="min-height:400px;">
+    <Card :bordered="false" dis-hover :padding="0" style="min-height: 400px">
       <Enviroment v-if="detail.id" from="import"></Enviroment>
       <Spin v-if="loading" size="large" fix></Spin>
     </Card>
@@ -72,4 +72,3 @@ export default {
   }
 }
 </style>
-
