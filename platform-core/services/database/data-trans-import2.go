@@ -35,18 +35,33 @@ func DecompressExportZip(ctx context.Context, nexusUrl string) (localPath string
 	transImportId = "t_import_" + guid.CreateGuid()
 	tmpImportDir := fmt.Sprintf(tempTransImportDir, transImportId)
 	localExportFilePath = fmt.Sprintf("%s/%s", tmpImportDir, exportFileName)
-	if err = os.MkdirAll(tmpImportDir, 666); err != nil {
+	if err = os.MkdirAll(tmpImportDir, 0755); err != nil {
 		err = fmt.Errorf("make tmp import dir fail,%s ", err.Error())
 		return
 	}
 	// 从nexus下载
-	downloadParam := tools.NexusReqParam{UserName: nexusConfig.NexusUser, Password: nexusConfig.NexusPwd, FileParams: []*tools.NexusFileParam{{SourceFilePath: nexusUrl, DestFilePath: localExportFilePath}}}
+	downloadParam := tools.NexusReqParam{
+		UserName:   nexusConfig.NexusUser,
+		Password:   nexusConfig.NexusPwd,
+		RepoUrl:    nexusConfig.NexusUrl,
+		Repository: nexusConfig.NexusRepo,
+		TimeoutSec: 60,
+		FileParams: []*tools.NexusFileParam{{SourceFilePath: nexusUrl, DestFilePath: localExportFilePath}},
+	}
 	if err = tools.DownloadFile(&downloadParam); err != nil {
 		err = fmt.Errorf("donwload nexus import file fail,%s ", err.Error())
 		return
 	}
 	// 解压
 	localPath, err = bash.DecompressFile(localExportFilePath, tmpImportDir)
+	return
+}
+
+func RemoveTempExportDir(path string) (err error) {
+	// 删除导出目录
+	if err = os.RemoveAll(path); err != nil {
+		log.Logger.Error("delete fail", log.String("path", path), log.Error(err))
+	}
 	return
 }
 
@@ -73,7 +88,6 @@ func GetBusinessList(localPath string) (result models.GetBusinessListRes, err er
 	if productByteArr, err = ParseJsonFile(productFilePath); err != nil {
 		return
 	}
-	result.ImportPath = localPath
 	if err = json.Unmarshal(envByteArr, &result.Environment); err != nil {
 		log.Logger.Error("Environment json Unmarshal err", log.Error(err))
 		return

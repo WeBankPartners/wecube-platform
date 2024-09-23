@@ -2,48 +2,15 @@ package data_trans
 
 import (
 	"context"
-	"fmt"
-	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
-	"os"
-	"strings"
-)
-
-const (
-	tempTransImportDir = "/tmp/trans_import/%s"
 )
 
 func ExecTransImport(ctx context.Context, nexusUrl string) (err error) {
-	// 获取nexus配置
-	nexusConfig, getNexusConfigErr := database.GetDataTransImportNexusConfig(ctx)
-	if getNexusConfigErr != nil {
-		err = getNexusConfigErr
-		return
-	}
-	// 建临时目录
-	var exportFileName, localExportFilePath, transImportId string
-	if lastPathIndex := strings.LastIndex(nexusUrl, "/"); lastPathIndex > 0 {
-		exportFileName = nexusUrl[lastPathIndex+1:]
-	}
-	transImportId = "t_import_" + guid.CreateGuid()
-	tmpImportDir := fmt.Sprintf(tempTransImportDir, transImportId)
-	localExportFilePath = fmt.Sprintf("%s/%s", tmpImportDir, exportFileName)
-	if err = os.MkdirAll(tmpImportDir, 666); err != nil {
-		err = fmt.Errorf("make tmp import dir fail,%s ", err.Error())
-		return
-	}
-	// 从nexus下载
-	downloadParam := tools.NexusReqParam{UserName: nexusConfig.NexusUser, Password: nexusConfig.NexusPwd, FileParams: []*tools.NexusFileParam{{SourceFilePath: nexusUrl, DestFilePath: localExportFilePath}}}
-	if err = tools.DownloadFile(&downloadParam); err != nil {
-		err = fmt.Errorf("donwload nexus import file fail,%s ", err.Error())
-		return
-	}
-	// 解压
-	if _, err = bash.DecompressFile(localExportFilePath, tmpImportDir); err != nil {
+	// 解压文件
+	if _, err = database.DecompressExportZip(ctx, nexusUrl); err != nil {
+		log.Logger.Error("DecompressExportZip err", log.Error(err))
 		return
 	}
 	// 读解压后的文件录进数据库为了给用户展示要导入什么东西
