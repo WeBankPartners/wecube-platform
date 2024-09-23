@@ -10,7 +10,7 @@ import (
 func GetDataTransImportNexusConfig(ctx context.Context) (result *models.TransDataImportNexusConfig, err error) {
 	result = &models.TransDataImportNexusConfig{}
 	var sysVarRows []*models.SystemVariables
-	err = db.MysqlEngine.Context(ctx).SQL("select name,value,default_value from system_variables where status='active' and name like 'PLATFORM_IMPORT_%'").Find(&sysVarRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select name,value,default_value from system_variables where status='active' and name like 'PLATFORM_EXPORT_%'").Find(&sysVarRows)
 	if err != nil {
 		err = fmt.Errorf("query system variable table fail,%s ", err.Error())
 		return
