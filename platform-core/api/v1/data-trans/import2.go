@@ -49,15 +49,14 @@ func ExecImport(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	if strings.TrimSpace(param.ExportNexusUrl) == "" || param.Step == 0 {
+	if strings.TrimSpace(param.ExportNexusUrl) == "" {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("ExportNexusUrl or step is empty")))
 		return
 	}
 	if param.TransImportId == "" {
 		param.TransImportId = fmt.Sprintf("t_import_%s", guid.CreateGuid())
 	}
-	// 异步执行导入
-	go ExecTransImport(c, param)
+	go database.ExecImport(c, param)
 	middleware.ReturnData(c, param.TransImportId)
 }
 
