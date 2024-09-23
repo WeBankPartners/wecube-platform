@@ -68,3 +68,9 @@ type CallTransImportActionParam struct {
 	Action              string `json:"action"` // 操作-> start(开始)|stop(暂停)|retry(重试)|cancel(取消)
 	Operator            string `json:"operator"`
 }
+
+type ExecImportParam struct {
+	ExportNexusUrl string             `json:"exportNexusUrl"`
+	Step           WebTransImportStep `json:"step"`          // 第几步执行
+	TransImportId  string             `json:"transImportId"` // 导入Id
+}

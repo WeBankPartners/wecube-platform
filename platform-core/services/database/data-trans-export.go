@@ -300,6 +300,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 	var systemAnalyzeData, productAnalyzeData models.TransExportAnalyzeDataTable
 	var systemAnalyzeDataMap, productAnalyzeDataMap map[string]map[string]string
 	var transExportAnalyzeDataList []*models.TransExportAnalyzeDataTable
+	var monitorList []*models.CommonNameCount
 	if _, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export where id=?", transExportId).Get(&transExport); err != nil {
 		return
 	}
@@ -443,12 +444,10 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			}
 			detail.CmdbViewCount = transExportAnalyze.DataLen
 		case models.TransExportAnalyzeSourceMonitor:
-			var commonNameCountArr []*models.CommonNameCount
-			commonNameCountArr = append(commonNameCountArr, &models.CommonNameCount{
+			monitorList = append(monitorList, &models.CommonNameCount{
 				Name:  transExportAnalyze.DataTypeName,
 				Count: transExportAnalyze.DataLen,
 			})
-			detail.Monitor.Output = commonNameCountArr
 		case models.TransExportAnalyzeSourceArtifact:
 			var dataList []*models.AnalyzeArtifactDisplayData
 			if transExportAnalyze.Data != "" {
@@ -487,6 +486,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			}
 		}
 	}
+	detail.Monitor.Output = monitorList
 	return
 }
 

@@ -7,14 +7,22 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 )
 
-func ExecTransImport(ctx context.Context, nexusUrl string) (err error) {
+func ExecTransImport(ctx context.Context, param models.ExecImportParam) (transImportId string, err error) {
+	var transImport *models.TransImportTable
 	// 解压文件
-	if _, err = database.DecompressExportZip(ctx, nexusUrl); err != nil {
+	if _, err = database.DecompressExportZip(ctx, param.ExportNexusUrl, param.TransImportId); err != nil {
 		log.Logger.Error("DecompressExportZip err", log.Error(err))
 		return
 	}
 	// 读解压后的文件录进数据库为了给用户展示要导入什么东西
+	if transImport, err = database.GetTransImport(ctx, param.TransImportId); err != nil {
+		log.Logger.Error("GetTransImport err", log.Error(err))
+		return
+	}
+	// 没有查询到导入记录,表示第一步开始,初始化所有内容
+	if transImport == nil {
 
+	}
 	// 开始导入
 	// 1、导入角色
 	// 2、导入cmdb插件服务、导入cmdb数据、同步cmdb数据模型、导入其它插件服务

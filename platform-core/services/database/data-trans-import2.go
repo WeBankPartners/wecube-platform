@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"io"
 	"os"
 	"strings"
 
-	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
@@ -20,7 +20,7 @@ const (
 )
 
 // DecompressExportZip 导出压缩文件解压
-func DecompressExportZip(ctx context.Context, nexusUrl string) (localPath string, err error) {
+func DecompressExportZip(ctx context.Context, nexusUrl, transImportId string) (localPath string, err error) {
 	// 获取nexus配置
 	nexusConfig, getNexusConfigErr := GetDataTransImportNexusConfig(ctx)
 	if getNexusConfigErr != nil {
@@ -28,11 +28,10 @@ func DecompressExportZip(ctx context.Context, nexusUrl string) (localPath string
 		return
 	}
 	// 建临时目录
-	var exportFileName, localExportFilePath, transImportId string
+	var exportFileName, localExportFilePath string
 	if lastPathIndex := strings.LastIndex(nexusUrl, "/"); lastPathIndex > 0 {
 		exportFileName = nexusUrl[lastPathIndex+1:]
 	}
-	transImportId = "t_import_" + guid.CreateGuid()
 	tmpImportDir := fmt.Sprintf(tempTransImportDir, transImportId)
 	localExportFilePath = fmt.Sprintf("%s/%s", tmpImportDir, exportFileName)
 	if err = os.MkdirAll(tmpImportDir, 0755); err != nil {
@@ -96,5 +95,30 @@ func GetBusinessList(localPath string) (result models.GetBusinessListRes, err er
 		log.Logger.Error("Product json Unmarshal err", log.Error(err))
 		return
 	}
+	return
+}
+
+// GetImportUIData 获取导入的页面展示数据
+func GetImportUIData(localPath string) (detail *models.TransExportDetail, err error) {
+	var uiDataByteArr []byte
+	detail = &models.TransExportDetail{}
+	uiDataFilePath := fmt.Sprintf("%s/export/ui-data.json", localPath)
+	if uiDataByteArr, err = ParseJsonFile(uiDataFilePath); err != nil {
+		return
+	}
+	if err = json.Unmarshal(uiDataByteArr, detail); err != nil {
+		log.Logger.Error("TransExportDetail json Unmarshal err", log.Error(err))
+		return
+	}
+	return
+}
+
+func createImport(ctx context.Context) {
+
+}
+
+func GetTransImport(ctx context.Context, transImportId string) (transImport *models.TransImportTable, err error) {
+	transImport = &models.TransImportTable{}
+	_, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import where id=?", transImportId).Get(transImport)
 	return
 }

@@ -152,3 +152,11 @@ const (
 	TransExportAnalyzeMonitorDataTypeLogKeywordServiceGroup    TransExportAnalyzeMonitorDataType = "logKeyword_service_group"
 	TransExportAnalyzeMonitorDataTypeDashboard                 TransExportAnalyzeMonitorDataType = "dashboard"
 )
+
+type WebTransImportStep int
+
+const (
+	WebTransImportStepOne   WebTransImportStep = 1
+	WebTransImportStepTwo   WebTransImportStep = 2
+	WebTransImportStepThree WebTransImportStep = 3
+)
