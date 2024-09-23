@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
 const (
@@ -179,4 +180,21 @@ func execWorkflow(ctx context.Context, transImportParam *models.TransImportJobPa
 func importMonitorServiceConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 
 	return
+}
+
+func StartExecWorkflowCron() {
+	t := time.NewTicker(5 * time.Second).C
+	for {
+		<-t
+		doExecWorkflowDaemonJob()
+	}
+}
+
+func doExecWorkflowDaemonJob() {
+	procExecList, err := database.GetTransImportProcExecList()
+	if err != nil {
+		log.Logger.Error("doExecWorkflowDaemonJob fail with get proc exec list", log.Error(err))
+		return
+	}
+	log.Logger.Debug("doExecWorkflowDaemonJob", log.JsonObj("procExecList", procExecList))
 }
