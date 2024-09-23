@@ -52,7 +52,6 @@ type TransImportProcExec struct {
 }
 
 type GetBusinessListRes struct {
-	ImportPath   string                   `json:"importPath"`
 	Environment  map[string]string        `json:"environment"`
 	BusinessList []map[string]interface{} `json:"businessList"`
 }
