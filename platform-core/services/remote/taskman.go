@@ -14,6 +14,10 @@ const (
 	pathRequestTemplates = "/taskman/api/v1/request-template/export/batch"
 	// pathComponentLibrary 查询组件库
 	pathComponentLibrary = "/taskman/api/v1/form-template-library/export-data"
+	// pathImportComponentLibrary 导入组件库
+	pathImportComponentLibrary = "/taskman/api/v1/form-template-library/import"
+	// 导入模版
+	pathImportRequestTemplate = "/taskman/api/v1/request-template/import"
 )
 
 // GetRequestTemplateRoles 查询taskman模版角色
@@ -74,6 +78,39 @@ func GetComponentLibrary(userToken, language string) (response models.QueryCompo
 	err = json.Unmarshal(byteArr, &response)
 	if err != nil {
 		err = fmt.Errorf("try to json unmarshal response body fail,%s ", err.Error())
+	}
+	return
+}
+
+func ImportComponentLibrary(filePath, userToken, language string) (err error) {
+	uri := models.Config.Gateway.Url + pathImportComponentLibrary
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	_, err = network.HttpPostJsonFile(filePath, uri, userToken, language)
+	return
+}
+
+func ImportRequestTemplate(filePath, userToken, language string) (err error) {
+	var byteArr []byte
+	var response models.RequestTemplateImportResponse
+	uri := models.Config.Gateway.Url + pathImportRequestTemplate
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	if byteArr, err = network.HttpPostJsonFile(filePath, uri, userToken, language); err != nil {
+		return
+	}
+	if err = json.Unmarshal(byteArr, &response); err != nil {
+		return
+	}
+	if response.StatusCode != "OK" {
+		err = fmt.Errorf("import requestTemplate fail,response:%+v", response.Data)
+		return
 	}
 	return
 }

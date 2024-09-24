@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
@@ -20,7 +21,7 @@ func init() {
 	importFuncList = append(importFuncList, importBatchExecution)
 	importFuncList = append(importFuncList, importArtifactPackage)
 	importFuncList = append(importFuncList, importMonitorBaseConfig)
-	importFuncList = append(importFuncList, importTaskmanTemplate)
+	importFuncList = append(importFuncList, importTaskManTemplate)
 	importFuncList = append(importFuncList, execWorkflow)
 	importFuncList = append(importFuncList, importMonitorServiceConfig)
 }
@@ -89,6 +90,7 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 	transImportJobParam.DirPath = callParam.DirPath
 	transImportJobParam.Token = callParam.Token
 	transImportJobParam.Language = callParam.Language
+	transImportJobParam.Operator = callParam.Operator
 	if callParam.Action == string(models.TransImportActionStart) {
 		var currentStep int
 		for _, detailRow := range transImportJobParam.Details {
@@ -97,18 +99,18 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 				break
 			}
 		}
-		if currentStep == int(models.TransImportStepArtifacts) {
+		if currentStep == int(models.TransImportStepInitWorkflow) {
 			transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 			if err = callImportFunc(ctx, transImportJobParam, execWorkflow); err != nil {
 				return
 			}
-		} else if currentStep == int(models.TransImportStepMonitor) {
+		} else if currentStep == int(models.TransImportStepMonitorBusiness) {
 			transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 			if err = callImportFunc(ctx, transImportJobParam, importMonitorServiceConfig); err != nil {
 				return
 			}
 		} else {
-			for currentStep <= int(models.TransImportStepCmdb) {
+			for currentStep <= int(models.TransImportStepComponentLibrary) {
 				transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 				funcObj := importFuncList[currentStep-1]
 				if err = callImportFunc(ctx, transImportJobParam, funcObj); err != nil {
@@ -173,9 +175,12 @@ func importPluginConfig(ctx context.Context, transImportParam *models.TransImpor
 
 // 3、导入编排
 func importWorkflow(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-	// 解析role.json,导入角色
-	var procDefList []*models.ProcDefDto
+	// 解析workflow.json,导入编排
+	var procDefList []*models.ProcessDefinitionDto
 	if err = database.ParseJsonData(fmt.Sprintf("%s/workflow.json", transImportParam.DirPath), &procDefList); err != nil {
+		return
+	}
+	if _, err = process.ProcDefImport(ctx, procDefList, transImportParam.Operator, transImportParam.Token, transImportParam.Language); err != nil {
 		return
 	}
 	return
@@ -183,7 +188,11 @@ func importWorkflow(ctx context.Context, transImportParam *models.TransImportJob
 
 // 4、导入批量执行
 func importBatchExecution(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-
+	var batchExecutionTemplateList []*models.BatchExecutionTemplate
+	if err = database.ParseJsonData(fmt.Sprintf("%s/batchExecution.json.json", transImportParam.DirPath), &batchExecutionTemplateList); err != nil {
+		return
+	}
+	err = database.ImportTemplate(ctx, transImportParam.Operator, batchExecutionTemplateList)
 	return
 }
 
@@ -200,8 +209,27 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 }
 
 // 7、导入taskman模版和公共组件
-func importTaskmanTemplate(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-
+func importTaskManTemplate(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
+	// 判断是否要导入组件库
+	if transImportParam.CurrentDetail == nil {
+		err = fmt.Errorf("importTaskManTemplate CurrentDetail is empty")
+		log.Logger.Error("err:", log.Error(err))
+		return
+	}
+	if transImportParam.CurrentDetail.Input == "true" {
+		// 导入组件库
+		err = remote.ImportComponentLibrary(fmt.Sprintf("%s/componentLibrary.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
+		if err != nil {
+			log.Logger.Error("ImportComponentLibrary err", log.Error(err))
+			return
+		}
+	}
+	// 导入模版
+	err = remote.ImportRequestTemplate(fmt.Sprintf("%s/requestTemplate.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
+	if err != nil {
+		log.Logger.Error("ImportRequestTemplate err", log.Error(err))
+		return
+	}
 	return
 }
 

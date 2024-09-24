@@ -64,6 +64,7 @@ type TransImportJobParam struct {
 	DirPath       string                    `json:"dirPath"`  // 解压文件目录路径
 	Token         string                    `json:"token"`    // token
 	Language      string                    `json:"language"` // language
+	Operator      string                    `json:"operator"`
 }
 
 type CallTransImportActionParam struct {
@@ -107,9 +108,12 @@ type TransImportDetail struct {
 	RequestTemplates       *CommonOutput        `json:"requestTemplates"`
 	ExportComponentLibrary bool                 `json:"exportComponentLibrary"` // 是否导出组件库
 	Artifacts              *CommonOutput        `json:"artifacts"`
-	Monitor                *CommonOutput        `json:"monitor"`
+	MonitorBase            *CommonOutput        `json:"monitorBase"`     // 监控基础配置
+	MonitorBusiness        *CommonOutput        `json:"monitorBusiness"` // 监控业务配置
+	InitWorkflow           *CommonOutput        `json:"initWorkflow"`    // 初始化编排
 	Plugins                *CommonOutput        `json:"plugins"`
 	Cmdb                   *CommonOutput        `json:"cmdb"`
+	Step                   int                  `json:"step"` // 通知web执行中的哪一步,2,3,4
 }
 
 type TransImportHistoryParam struct {
@@ -121,4 +125,9 @@ type TransImportHistoryParam struct {
 	PageSize      int      `json:"pageSize"`
 	ExecTimeStart string   `json:"execTimeStart" ` // 执行时间-开始时间
 	ExecTimeEnd   string   `json:"ExecTimeEnd" `   // 执行时间-结束时间
+}
+
+type RequestTemplateImportResponse struct {
+	StatusCode string      `json:"statusCode"`
+	Data       interface{} `json:"data"`
 }
