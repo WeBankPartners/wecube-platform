@@ -347,7 +347,7 @@ func getTransImportDetail(ctx context.Context, transImportId string) (result []*
 func getInsertTransImportAction(transImportAction models.TransImportActionTable) (actions []*db.ExecAction) {
 	nowTime := time.Now()
 	actions = []*db.ExecAction{}
-	actions = append(actions, &db.ExecAction{Sql: "insert into trans_import_action(id,trans_import,action,created_user,created_time) values (?,?,?,?,?)",
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_import_action(id,trans_import,action,created_user,updated_time) values (?,?,?,?,?)",
 		Param: []interface{}{transImportAction.Id, transImportAction.TransImport, transImportAction.Action, transImportAction.CreatedUser, nowTime}})
 	return
 }
