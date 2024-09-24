@@ -435,7 +435,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 				json.Unmarshal([]byte(transExportAnalyze.Data), &tempArr)
 				if len(tempArr) > 0 {
 					for _, dataMap := range tempArr {
-						detail.CmdbView = append(detail.CmdbReportForm, &models.CommonNameCreator{
+						detail.CmdbView = append(detail.CmdbView, &models.CommonNameCreator{
 							Name:    fmt.Sprintf("%v", dataMap["name"]),
 							Creator: fmt.Sprintf("%v", dataMap["createUser"]),
 						})
