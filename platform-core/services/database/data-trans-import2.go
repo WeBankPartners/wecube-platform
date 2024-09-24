@@ -503,6 +503,6 @@ func QueryTransImportByCondition(ctx context.Context, param models.TransImportHi
 // GetLatestTransImportAction 获取最新的导入操作
 func GetLatestTransImportAction(ctx context.Context, transImportId string) (transImportAction *models.TransImportActionTable, err error) {
 	transImportAction = &models.TransImportActionTable{}
-	_, err = db.MysqlEngine.Context(ctx).SQL("select action from trans_import_action where trans_import=? order by created_time desc limit 1 ", transImportId).Get(transImportAction)
+	_, err = db.MysqlEngine.Context(ctx).SQL("select action from trans_import_action where trans_import=? order by updated_time desc limit 1 ", transImportId).Get(transImportAction)
 	return
 }
