@@ -1275,7 +1275,7 @@ func ExportTemplate(c context.Context, userToken string, reqParam *models.Export
 	return
 }
 
-func ImportTemplate(c *gin.Context, batchExecTemplateData []*models.BatchExecutionTemplate) (err error) {
+func ImportTemplate(c context.Context, operator string, batchExecTemplateData []*models.BatchExecutionTemplate) (err error) {
 	var actions []*db.ExecAction
 	now := time.Now()
 
@@ -1317,8 +1317,8 @@ func ImportTemplate(c *gin.Context, batchExecTemplateData []*models.BatchExecuti
 				IsDangerousBlock: templateInfo.IsDangerousBlock,
 				ConfigDataStr:    configDataStr,
 				SourceData:       templateInfo.SourceData,
-				CreatedBy:        middleware.GetRequestUser(c),
-				UpdatedBy:        "",
+				CreatedBy:        operator,
+				UpdatedBy:        operator,
 				CreatedTime:      &now,
 				UpdatedTime:      &now,
 			}
@@ -1335,7 +1335,7 @@ func ImportTemplate(c *gin.Context, batchExecTemplateData []*models.BatchExecuti
 			action := &db.ExecAction{
 				Sql: db.CombineDBSql("UPDATE ", models.TableNameBatchExecTemplate, " SET ", updateColumnStr, " WHERE id=?"),
 				Param: []interface{}{templateInfo.PublishStatus, templateInfo.OperateObject, templateInfo.PluginService, templateInfo.IsDangerousBlock,
-					configDataStr, templateInfo.SourceData, middleware.GetRequestUser(c), now, templateInfo.Id},
+					configDataStr, templateInfo.SourceData, operator, now, templateInfo.Id},
 			}
 			actions = append(actions, action)
 		}

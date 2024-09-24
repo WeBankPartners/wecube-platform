@@ -210,6 +210,7 @@ type StepExportParam struct {
 	Step          TransExportStep
 	Input         interface{}
 	Data          interface{}
+	ExportData    interface{}
 }
 
 type RequestTemplateExport struct {

@@ -677,7 +677,7 @@ func ImportTemplate(c *gin.Context) {
 		return
 	}
 
-	err = database.ImportTemplate(c, batchExecTemplateData)
+	err = database.ImportTemplate(c, middleware.GetRequestUser(c), batchExecTemplateData)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
