@@ -71,11 +71,7 @@ export default {
           render: (h, params) => (
             <span style="display:flex;align-items:center;">
               <div style="width:25px">{params.row.count}</div>
-              <Icon
-                type="ios-list"
-                size="36"
-                style="cursor:pointer;"
-              />
+              <Icon type="ios-list" size="36" style="cursor:pointer;" />
             </span>
           )
         }
