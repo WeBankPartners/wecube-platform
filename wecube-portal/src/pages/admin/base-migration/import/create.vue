@@ -58,7 +58,8 @@ export default {
       this.loading = false
       // 后台返回当前步骤
       this.activeStep = this.detailData.step - 1
-    } else {
+    }
+    else {
       this.activeStep = 0
     }
   },

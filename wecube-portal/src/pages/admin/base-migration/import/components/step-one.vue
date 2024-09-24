@@ -17,13 +17,7 @@
         </div>
         <div class="item">
           <span class="title">选择产品<span class="number">{{ detail.businessList.length }}</span></span>
-          <Table
-            :border="false"
-            size="small"
-            :columns="tableColumns"
-            :max-height="500"
-            :data="detail.businessList"
-          >
+          <Table :border="false" size="small" :columns="tableColumns" :max-height="500" :data="detail.businessList">
           </Table>
         </div>
       </template>
@@ -117,10 +111,12 @@ export default {
           businessList: data.businessList || [],
           environment: data.environment || {}
         }
-        this.envList = [{
-          label: this.detail.environment.env_name,
-          value: this.detail.environment.env_id,
-        }]
+        this.envList = [
+          {
+            label: this.detail.environment.env_name,
+            value: this.detail.environment.env_id
+          }
+        ]
       }
     },
     jumpToHistory() {},

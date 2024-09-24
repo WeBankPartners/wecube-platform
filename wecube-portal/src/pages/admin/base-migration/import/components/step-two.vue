@@ -30,7 +30,9 @@ export default {
       status: 'doing'
     }
     // 前端遍历所有导出数据，判断第二步单独导入状态
-    const { artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes } = this.detailData
+    const {
+      artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes
+    } = this.detailData
     const importData = [artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes]
     const success = importData.every(i => i.status === 'success')
     const fail = importData.some(i => i.status === 'fail')

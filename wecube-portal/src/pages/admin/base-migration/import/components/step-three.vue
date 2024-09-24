@@ -29,11 +29,7 @@
 </template>
 
 <script>
-import {
-  instancesWithPaging,
-  pauseAndContinueFlow,
-  createWorkflowInstanceTerminationRequest
-} from '@/api/server'
+import { instancesWithPaging, pauseAndContinueFlow, createWorkflowInstanceTerminationRequest } from '@/api/server'
 export default {
   props: {
     detailData: Object
