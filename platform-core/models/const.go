@@ -180,3 +180,14 @@ const (
 	TransImportStepArtifacts        TransImportStep = 8 // 导入物料包
 	TransImportStepMonitor          TransImportStep = 9 // 导入监控
 )
+
+// TransImportAction 导入操作
+type TransImportAction string
+
+const (
+	TransImportActionCancel  TransImportAction = "cancel"
+	TransImportActionSuspend TransImportAction = "suspend"
+	TransImportActionRestore TransImportAction = "restore"
+	TransImportActionRetry   TransImportAction = "retry"
+	TransImportActionStart   TransImportAction = "start"
+)
