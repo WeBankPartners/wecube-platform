@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -96,6 +98,45 @@ func HttpDeleteCommon(url, userToken, language string) (err error) {
 	}
 	if response.Status != "OK" {
 		err = fmt.Errorf(response.Message)
+	}
+	return
+}
+
+// HttpPostJsonFile  上传文件
+func HttpPostJsonFile(filePath, url, userToken, language string) (uploadData []byte, err error) {
+	var file *os.File
+	var part io.Writer
+	var req *http.Request
+	var resp *http.Response
+	if file, err = os.Open(filePath); err != nil {
+		return
+	}
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	if part, err = writer.CreateFormFile("file", "a.json"); err != nil {
+		return
+	}
+	if _, err = io.Copy(part, file); err != nil {
+		return
+	}
+	if err = writer.Close(); err != nil {
+		return
+	}
+	if req, err = http.NewRequest(http.MethodPost, url, body); err != nil {
+		return
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("Authorization", userToken)
+	req.Header.Set("Accept-Language", language)
+	client := &http.Client{}
+	if resp, err = client.Do(req); err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	if uploadData, err = io.ReadAll(resp.Body); err != nil {
+		return
 	}
 	return
 }
