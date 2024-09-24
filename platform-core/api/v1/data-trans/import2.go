@@ -1,8 +1,10 @@
 package data_trans
 
 import (
+	"context"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"strings"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
@@ -57,7 +59,10 @@ func ExecImport(c *gin.Context) {
 		param.TransImportId = fmt.Sprintf("t_import_%s", guid.CreateGuid())
 	}
 	param.Operator = middleware.GetRequestUser(c)
-	go database.ExecImport(c, param)
+	if err = StartTransImport2(c, param); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
 	middleware.ReturnData(c, param.TransImportId)
 }
 
@@ -80,7 +85,7 @@ func ImportDetail(c *gin.Context) {
 func GetImportListOptions(c *gin.Context) {
 	var TransExportHistoryOptions models.TransExportHistoryOptions
 	var err error
-	if TransExportHistoryOptions, err = database.GetAllTransExportOptions(c); err != nil {
+	if TransExportHistoryOptions, err = database.GetAllTransImportOptions(c); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
@@ -88,11 +93,56 @@ func GetImportListOptions(c *gin.Context) {
 }
 
 func ImportList(c *gin.Context) {
-	var TransExportHistoryOptions models.TransExportHistoryOptions
+	var param models.TransImportHistoryParam
+	var pageInfo models.PageInfo
+	var list []*models.TransImportTable
 	var err error
-	if TransExportHistoryOptions, err = database.GetAllTransExportOptions(c); err != nil {
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if param.PageSize == 0 {
+		param.PageSize = 10
+	}
+	if pageInfo, list, err = database.QueryTransImportByCondition(c, param); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
-	middleware.ReturnData(c, TransExportHistoryOptions)
+	middleware.ReturnPageData(c, pageInfo, list)
+}
+
+// StartTransImport 执行导入
+func StartTransImport2(ctx context.Context, param models.ExecImportParam) (err error) {
+	var transImport *models.TransImportTable
+	var localPath string
+	var transImportAction *models.TransImportActionTable
+	if transImport, err = database.GetTransImport(ctx, param.TransImportId); err != nil {
+		log.Logger.Error("GetTransImport err", log.Error(err))
+		return
+	}
+	// 文件解压
+	if localPath, err = database.DecompressExportZip(ctx, param.ExportNexusUrl, param.TransImportId); err != nil {
+		log.Logger.Error("DecompressExportZip err", log.Error(err))
+		return
+	}
+	if transImport == nil || transImport.Id == "" {
+		// 初始化导入
+		if err = database.InitTransImport(ctx, param.TransImportId, param.ExportNexusUrl, localPath, param.Operator); err != nil {
+			log.Logger.Error("initTransImport err", log.Error(err))
+			return
+		}
+	}
+	if transImportAction, err = database.GetLatestTransImportAction(ctx, param.TransImportId); err != nil {
+		log.Logger.Error("GetLatestTransImportAction err", log.Error(err))
+		return
+	}
+	actionParam := &models.CallTransImportActionParam{
+		TransImportId: param.TransImportId,
+		Action:        string(models.TransImportStatusStart),
+		Operator:      param.Operator,
+		DirPath:       localPath,
+		ActionId:      transImportAction.Id,
+	}
+	go doImportAction(ctx, actionParam)
+	return
 }

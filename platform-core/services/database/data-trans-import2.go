@@ -202,28 +202,8 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 	return
 }
 
-// ExecImport 执行导入
-func ExecImport(ctx context.Context, param models.ExecImportParam) (err error) {
-	var transImport *models.TransImportTable
-	var localPath string
-	if transImport, err = GetTransImport(ctx, param.TransImportId); err != nil {
-		return
-	}
-	// 文件解压
-	if localPath, err = DecompressExportZip(ctx, param.ExportNexusUrl, param.TransImportId); err != nil {
-		return
-	}
-	if transImport == nil || transImport.Id == "" {
-		// 初始化导入
-		if err = initTransImport(ctx, param.TransImportId, param.ExportNexusUrl, localPath, param.Operator); err != nil {
-			return
-		}
-	}
-	return
-}
-
-func initTransImport(ctx context.Context, transImportId, ExportNexusUrl, localPath, operator string) (err error) {
-	var actions, addTransImportActions, addTransImportDetailActions []*db.ExecAction
+func InitTransImport(ctx context.Context, transImportId, ExportNexusUrl, localPath, operator string) (err error) {
+	var actions, addTransImportActions, addTransImportDetailActions, addTransImportSubAction []*db.ExecAction
 	var envByteArr, uiDataArr []byte
 	var detail *models.TransExportDetail
 	var environmentMap map[string]string
@@ -282,6 +262,16 @@ func initTransImport(ctx context.Context, transImportId, ExportNexusUrl, localPa
 	if addTransImportDetailActions = getInsertTransImportDetail(transImportId, detail); len(addTransImportDetailActions) > 0 {
 		actions = append(actions, addTransImportDetailActions...)
 	}
+	// 新增导入操作记录
+	transImportAction := models.TransImportActionTable{
+		Id:          fmt.Sprintf("ta_%s", guid.CreateGuid()),
+		TransImport: &transImportId,
+		Action:      string(models.TransImportActionStart),
+		CreatedUser: operator,
+	}
+	if addTransImportSubAction = getInsertTransImportAction(transImportAction); len(addTransImportSubAction) > 0 {
+		actions = append(actions, addTransImportSubAction...)
+	}
 	if len(actions) > 0 {
 		if err = db.Transaction(actions, ctx); err != nil {
 			log.Logger.Error("initTransImport Transaction err", log.Error(err))
@@ -299,14 +289,24 @@ func GetTransImport(ctx context.Context, transImportId string) (transImport *mod
 func getInsertTransImport(transImport models.TransImportTable) (actions []*db.ExecAction) {
 	nowTime := time.Now()
 	actions = []*db.ExecAction{}
-	actions = append(actions, &db.ExecAction{Sql: "insert into trans_import(id,business,business_name,environment,environment_name,status,input_url,created_user,created_time,updated_user,updated_time) values (?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-		transImport.Id, transImport.Business, transImport.BusinessName, transImport.Environment, transImport.EnvironmentName, transImport.Status, transImport.ImportUrl, transImport.CreatedUser, nowTime, transImport.UpdatedUser, nowTime,
-	}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_import(id,business,business_name,environment,environment_name,status," +
+		"input_url,created_user,created_time,updated_user,updated_time,association_system,association_product) values (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		Param: []interface{}{transImport.Id, transImport.Business, transImport.BusinessName, transImport.Environment, transImport.EnvironmentName,
+			transImport.Status, transImport.ImportUrl, transImport.CreatedUser, nowTime, transImport.UpdatedUser, nowTime, transImport.AssociationSystem,
+			transImport.AssociationProduct}})
 	return
 }
 
 func getTransImportDetail(ctx context.Context, transImportId string) (result []*models.TransImportDetailTable, err error) {
 	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_detail where trans_import=?", transImportId).Find(&result)
+	return
+}
+
+func getInsertTransImportAction(transImportAction models.TransImportActionTable) (actions []*db.ExecAction) {
+	nowTime := time.Now()
+	actions = []*db.ExecAction{}
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_import_action(id,trans_import,action,created_user,created_time) values (?,?,?,?,?)",
+		Param: []interface{}{transImportAction.Id, transImportAction.TransImport, transImportAction.Action, transImportAction.CreatedUser, nowTime}})
 	return
 }
 
@@ -370,5 +370,93 @@ func getInsertTransImportDetail(transImportId string, detail *models.TransExport
 		}})
 		i++
 	}
+	return
+}
+
+func GetAllTransImportOptions(ctx context.Context) (options models.TransExportHistoryOptions, err error) {
+	var BusinessHashMap = make(map[string]string)
+	var operatorHashMap = make(map[string]bool)
+	var list []*models.TransImportTable
+	options = models.TransExportHistoryOptions{
+		BusinessList: make([]*models.Business, 0),
+		Operators:    []string{},
+	}
+	if list, err = GetAllTransImport(ctx); err != nil {
+		return
+	}
+	if len(list) > 0 {
+		for _, transImport := range list {
+			strArr := strings.Split(transImport.Business, ",")
+			strArr2 := strings.Split(transImport.BusinessName, ",")
+			if len(strArr) > 0 && len(strArr2) > 0 && len(strArr) == len(strArr2) {
+				for i, s2 := range strArr {
+					BusinessHashMap[s2] = strArr2[i]
+				}
+			}
+			operatorHashMap[transImport.UpdatedUser] = true
+		}
+		for key, value := range BusinessHashMap {
+			options.BusinessList = append(options.BusinessList, &models.Business{
+				BusinessId:   key,
+				BusinessName: value,
+			})
+		}
+	}
+	options.Operators = convertMap2Array(operatorHashMap)
+	return
+}
+
+func GetAllTransImport(ctx context.Context) (list []*models.TransImportTable, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import").Find(&list)
+	return
+}
+
+func QueryTransImportByCondition(ctx context.Context, param models.TransImportHistoryParam) (pageInfo models.PageInfo, list []*models.TransImportTable, err error) {
+	var sql = "select * from trans_import where 1=1"
+	var queryParam []interface{}
+	pageInfo = models.PageInfo{
+		StartIndex: param.StartIndex,
+		PageSize:   param.PageSize,
+	}
+	if strings.TrimSpace(param.Id) != "" {
+		sql += " and  id like ?"
+		queryParam = append(queryParam, fmt.Sprintf("%%%s%%", param.Id))
+	}
+	if len(param.Status) > 0 {
+		sql += " and status in (" + getSQL(param.Status) + ")"
+	}
+	if len(param.Business) > 0 {
+		sql += " and ("
+		for i, business := range param.Business {
+			if i == 0 {
+				sql += " business like ?"
+			} else {
+				sql += " or business like ?"
+			}
+			queryParam = append(queryParam, fmt.Sprintf("%%%s%%", business))
+		}
+		sql += " )"
+	}
+	if len(param.Operators) > 0 {
+		sql += " and updated_user in (" + getSQL(param.Operators) + ")"
+	}
+	if param.ExecTimeStart != "" && param.ExecTimeEnd != "" {
+		sql += " and updated_time >= '" + param.ExecTimeStart + "' and updated_time <= '" + param.ExecTimeEnd + "'"
+	}
+	pageInfo.TotalRows = queryCount(ctx, sql, queryParam...)
+	// 排序
+	sql += " order by updated_time desc"
+	// 分页
+	pageSql, pageParam := transPageInfoToSQL(pageInfo)
+	sql += pageSql
+	queryParam = append(queryParam, pageParam...)
+	err = db.MysqlEngine.Context(ctx).SQL(sql, queryParam...).Find(&list)
+	return
+}
+
+// GetLatestTransImportAction 获取最新的导入操作
+func GetLatestTransImportAction(ctx context.Context, transImportId string) (transImportAction *models.TransImportActionTable, err error) {
+	transImportAction = &models.TransImportActionTable{}
+	_, err = db.MysqlEngine.Context(ctx).SQL("select action from trans_import_action where trans_import=? order by created_time desc limit 1 ", transImportId).Get(transImportAction)
 	return
 }

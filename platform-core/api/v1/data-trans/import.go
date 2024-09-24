@@ -3,16 +3,10 @@ package data_trans
 import (
 	"context"
 	"fmt"
-	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
-	"github.com/gin-gonic/gin"
 	"time"
-)
-
-const (
-	tempTransImportDir = "/tmp/trans_import/%s"
 )
 
 var importFuncList []func(context.Context, *models.TransImportJobParam) (string, error)
@@ -29,17 +23,6 @@ func init() {
 	importFuncList = append(importFuncList, importMonitorServiceConfig)
 }
 
-func AnalyzeTransImport(ctx context.Context, param models.ExecImportParam) (err error) {
-	// 解压文件
-	if _, err = database.DecompressExportZip(ctx, param.ExportNexusUrl, param.TransImportId); err != nil {
-		log.Logger.Error("DecompressExportZip err", log.Error(err))
-		return
-	}
-	// 读解压后的文件录进数据库为了给用户展示要导入什么东西
-	// 返回给前端要导入的环境和产品信息
-	return
-}
-
 // StartTransImport
 // 开始导入
 // 1、导入角色
@@ -53,17 +36,6 @@ func AnalyzeTransImport(ctx context.Context, param models.ExecImportParam) (err 
 // 8、开始执行编排(创建资源、初始化资源、应用部署)
 // 继续导入
 // 9、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板
-func StartTransImport(c *gin.Context) {
-	var param models.CallTransImportActionParam
-	if err := c.ShouldBindJSON(&param); err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	param.Operator = middleware.GetRequestUser(c)
-	go doImportAction(c, &param)
-	middleware.ReturnSuccess(c)
-}
-
 func doImportAction(ctx context.Context, callParam *models.CallTransImportActionParam) (err error) {
 	transImportJobParam, getConfigErr := database.GetTransImportWithDetail(ctx, callParam.TransImportId, false)
 	if getConfigErr != nil {
@@ -74,26 +46,26 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 		err = fmt.Errorf("record trans import action table fail,%s ", err.Error())
 		return
 	}
-	if callParam.Action == "start" {
+	if callParam.Action == string(models.TransImportActionStart) {
 		var currentStep int
 		for _, detailRow := range transImportJobParam.Details {
-			if detailRow.Status == "notStart" {
+			if detailRow.Status == string(models.TransImportStatusNotStart) {
 				currentStep = detailRow.Step
 				break
 			}
 		}
-		if currentStep == 8 {
+		if currentStep == int(models.TransImportStepArtifacts) {
 			transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 			if err = callImportFunc(ctx, transImportJobParam, execWorkflow); err != nil {
 				return
 			}
-		} else if currentStep == 9 {
+		} else if currentStep == int(models.TransImportStepMonitor) {
 			transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 			if err = callImportFunc(ctx, transImportJobParam, importMonitorServiceConfig); err != nil {
 				return
 			}
 		} else {
-			for currentStep <= 7 {
+			for currentStep <= int(models.TransImportStepCmdb) {
 				transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 				funcObj := importFuncList[currentStep-1]
 				if err = callImportFunc(ctx, transImportJobParam, funcObj); err != nil {
