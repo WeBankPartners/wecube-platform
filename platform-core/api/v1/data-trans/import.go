@@ -1,7 +1,13 @@
 package data_trans
 
 import (
+	"context"
+	"encoding/xml"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
+	"os"
+	"sort"
 	"strings"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
@@ -109,4 +115,92 @@ func ImportList(c *gin.Context) {
 		return
 	}
 	middleware.ReturnPageData(c, pageInfo, list)
+}
+
+// 2、导入cmdb数据、同步cmdb数据模型、导入插件服务
+func importPluginConfigFunc(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
+	ctx = BuildContext(ctx, &models.BuildContextParam{UserId: transImportParam.Operator, Token: transImportParam.Token})
+	// 导入cmdb数据
+	err = database.DataTransImportCMDBData(ctx, transImportParam.DirPath+"/wecmdb_data.sql")
+	if err != nil {
+		err = fmt.Errorf("import cmdb data fail,%s ", err.Error())
+		return
+	}
+	// 同步cmdb数据模型
+	pluginModels, getModelsErr := remote.GetPluginDataModels(ctx, "wecmdb", remote.GetToken())
+	if getModelsErr != nil {
+		err = fmt.Errorf("get wecmdb plugin model data fail,%s ", getModelsErr.Error())
+		return
+	}
+	err = database.SyncPluginDataModels(ctx, "wecmdb", pluginModels)
+	if err != nil {
+		err = fmt.Errorf("sync wecmdb model data fail,%s ", err.Error())
+		return
+	}
+	// 导入插件服务
+	xmlFileNameList, listFileErr := bash.ListDirFiles(transImportParam.DirPath + "/plugin-config")
+	if listFileErr != nil {
+		err = fmt.Errorf("list plugin config dir file list fail,%s ", listFileErr.Error())
+		return
+	}
+	sort.Strings(xmlFileNameList)
+	runningPluginRows, getPluginErr := database.GetRunningPluginPackages(ctx)
+	if getPluginErr != nil {
+		err = getPluginErr
+		return
+	}
+	for _, xmlFileName := range xmlFileNameList {
+		tmpPluginPackageId := ""
+		for _, row := range runningPluginRows {
+			if strings.HasPrefix(xmlFileName, "plugin-"+row.Name+"-") {
+				tmpPluginPackageId = row.Id
+				break
+			}
+		}
+		if tmpPluginPackageId != "" {
+			fileBytes, readFileErr := os.ReadFile(transImportParam.DirPath + "/plugin-config/" + xmlFileName)
+			if readFileErr != nil {
+				err = fmt.Errorf("read plugin:%s xml file fail,%s ", xmlFileName, readFileErr.Error())
+				break
+			}
+			packagePluginsData := models.PackagePluginsXML{}
+			if err = xml.Unmarshal(fileBytes, &packagePluginsData); err != nil {
+				err = fmt.Errorf("xml unmarshal plugin:%s xml fail,%s ", xmlFileName, err.Error())
+				break
+			}
+			if _, err = database.ImportPluginConfigs(ctx, tmpPluginPackageId, &packagePluginsData); err != nil {
+				err = fmt.Errorf("import plugin:%s config fail,%s ", xmlFileName, err.Error())
+				break
+			}
+		}
+	}
+	return
+}
+
+func BuildContext(ctx context.Context, param *models.BuildContextParam) context.Context {
+	if ctx.Value(models.TransactionIdHeader) == nil {
+		if param.TransactionId == "" {
+			param.TransactionId = "d_trans_" + guid.CreateGuid()
+		}
+		ctx = context.WithValue(ctx, models.TransactionIdHeader, param.TransactionId)
+	}
+	if ctx.Value(models.ContextUserId) == nil {
+		ctx = context.WithValue(ctx, models.ContextUserId, param.UserId)
+	}
+	if ctx.Value(models.ContextRoles) == nil {
+		ctx = context.WithValue(ctx, models.ContextRoles, param.Roles)
+	}
+	if ctx.Value(models.AuthorizationHeader) == nil {
+		if param.Token == "" {
+			param.Token = remote.GetToken()
+		}
+		ctx = context.WithValue(ctx, models.AuthorizationHeader, param.Token)
+	}
+	if ctx.Value(models.AcceptLanguageHeader) == nil {
+		if param.Language == "" {
+			param.Language = "en"
+		}
+		ctx = context.WithValue(ctx, models.AcceptLanguageHeader, param.Language)
+	}
+	return ctx
 }
