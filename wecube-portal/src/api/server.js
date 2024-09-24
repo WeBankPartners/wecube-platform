@@ -370,3 +370,13 @@ export const getAllExportItsm = () => req.get('/taskman/api/v1/request-template/
 export const exportBaseMigration = data => req.post('/platform/v1/data/transfer/export', data)
 // 导出详情
 export const getExportDetail = params => req.get('/platform/v1/data/transfer/export/detail', params)
+// 导入产品环境
+export const getImportBusinessList = params => req.get('/platform/v1/data/transfer/import/business', params)
+// 执行导入
+export const saveImportEnvBusiness = data => req.post('/platform/v1/data/transfer/import', data)
+// 导入详情
+export const getImportDetail = params => req.get('/platform/v1/data/transfer/import/detail', params)
+// 导入列表
+export const getBaseMigrationImportList = data => req.post('/platform/v1/data/transfer/import/list', data)
+// 导入列表查询条件
+export const getBaseMigrationImportQuery = () => req.get('/platform/v1/data/transfer/import/list/options')
