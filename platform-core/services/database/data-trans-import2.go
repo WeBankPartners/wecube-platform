@@ -21,13 +21,15 @@ import (
 var transImportDetailMap = map[models.TransImportStep]string{
 	models.TransImportStepRole:             "role",
 	models.TransImportStepWorkflow:         "workflow",
+	models.TransImportStepPluginConfig:     "pluginConfig",
 	models.TransImportStepComponentLibrary: "componentLibrary",
 	models.TransImportStepBatchExecution:   "batchExecution",
 	models.TransImportStepRequestTemplate:  "requestTemplate",
 	models.TransImportStepCmdb:             "wecmdb",
 	models.TransImportStepArtifacts:        "artifacts",
-	models.TransImportStepMonitor:          "monitor",
-	models.TransImportStepPluginConfig:     "pluginConfig",
+	models.TransImportStepMonitorBase:      "monitorBase",
+	models.TransImportStepInitWorkflow:     "workflowInit",
+	models.TransImportStepMonitorBusiness:  "monitorBusiness",
 }
 
 const (
@@ -94,6 +96,15 @@ func parseJsonFile(jsonPath string) (byteValue []byte, err error) {
 
 func ParseJsonData(jsonPath string, data interface{}) (err error) {
 	var byteArr []byte
+	var exist bool
+	// 判断文件是否存在
+	if exist, err = tools.PathExist(jsonPath); err != nil {
+		return err
+	}
+	// 不存在直接返回
+	if !exist {
+		return
+	}
 	if byteArr, err = parseJsonFile(jsonPath); err != nil {
 		return
 	}
@@ -194,15 +205,52 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 				Output: data,
 				ErrMsg: transImportDetail.ErrorMsg,
 			}
-		case models.TransImportStepMonitor:
-			detail.Monitor = &models.CommonOutput{
+		case models.TransImportStepMonitorBase:
+			detail.MonitorBase = &models.CommonOutput{
+				Status: transImportDetail.Status,
+				Output: data,
+				ErrMsg: transImportDetail.ErrorMsg,
+			}
+		case models.TransImportStepMonitorBusiness:
+			detail.MonitorBusiness = &models.CommonOutput{
+				Status: transImportDetail.Status,
+				Output: data,
+				ErrMsg: transImportDetail.ErrorMsg,
+			}
+		case models.TransImportStepInitWorkflow:
+			detail.InitWorkflow = &models.CommonOutput{
 				Status: transImportDetail.Status,
 				Output: data,
 				ErrMsg: transImportDetail.ErrorMsg,
 			}
 		}
 	}
+	// 计算web跳转到哪一步
+	if transImport.Status == string(models.TransImportStatusDoing) || transImport.Status == string(models.TransImportStatusFail) {
+		detail.Step = calcWebDisplayStep(transImportDetailList)
+	}
 	return
+}
+
+// web 第二步 导入基础数据, 第三步 执行自动化编排,第四步 配置监控
+func calcWebDisplayStep(detailList []*models.TransImportDetailTable) int {
+	var hashMap = make(map[models.TransImportStep]*models.TransImportDetailTable)
+	for _, detail := range detailList {
+		hashMap[models.TransImportStep(detail.Step)] = detail
+	}
+	// 监控业务配置是否完成
+	if v, ok := hashMap[models.TransImportStepMonitorBusiness]; ok {
+		if v.Status == string(models.TransImportStatusDoing) || v.Status == string(models.TransImportStatusSuccess) || v.Status == string(models.TransImportStatusFail) {
+			return 4
+		}
+	}
+	// 执行自动化是否完成
+	if v, ok := hashMap[models.TransImportStepInitWorkflow]; ok {
+		if v.Status == string(models.TransImportStatusDoing) || v.Status == string(models.TransImportStatusFail) {
+			return 3
+		}
+	}
+	return 2
 }
 
 func InitTransImport(ctx context.Context, transImportId, ExportNexusUrl, localPath, operator string) (err error) {
@@ -241,7 +289,7 @@ func InitTransImport(ctx context.Context, transImportId, ExportNexusUrl, localPa
 		BusinessName:       businessName,
 		Environment:        environmentMap["env_id"],
 		EnvironmentName:    environmentMap["env_name"],
-		Status:             string(models.TransImportStatusStart),
+		Status:             string(models.TransImportStatusDoing),
 		AssociationSystem:  strings.Join(associationSystemList, ","),
 		AssociationProduct: strings.Join(associationProductList, ","),
 		CreatedUser:        operator,
@@ -353,11 +401,15 @@ func getInsertTransImportDetail(transImportId string, detail *models.TransExport
 				tempByte, _ := json.Marshal(detail.Artifacts.Output)
 				input = string(tempByte)
 			}
-		case models.TransImportStepMonitor:
+		case models.TransImportStepMonitorBase:
 			if detail.Monitor != nil {
 				tempByte, _ := json.Marshal(detail.Monitor.Output)
 				input = string(tempByte)
 			}
+		case models.TransImportStepInitWorkflow:
+
+		case models.TransImportStepMonitorBusiness:
+
 		}
 		actions = append(actions, &db.ExecAction{Sql: "insert into trans_import_detail(id,trans_import,name,step,status,input) values (?,?,?,?,?,?)", Param: []interface{}{
 			guids[i], transImportId, name, step, models.TransExportStatusNotStart, input,
