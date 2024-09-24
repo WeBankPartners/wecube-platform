@@ -506,7 +506,8 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	var queryRequestTemplatesResponse models.QueryRequestTemplatesResponse
 	var queryComponentLibraryResponse models.QueryComponentLibraryResponse
 	var procDefDto *models.ProcessDefinitionDto
-	var procDefExportList []*models.ProcDefDto
+	var procDefExportList []*models.ProcessDefinitionDto
+	var procDefDataList []*models.ProcDefDto
 	var batchExecutionTemplateList []*models.BatchExecutionTemplate
 	var transDataVariableConfig *models.TransDataVariableConfig
 	var subProcDefIds []string
@@ -591,6 +592,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			StartTime:     exportRequestTemplateStartTime,
 			Step:          step,
 			Input:         param.RequestTemplateIds,
+			ExportData:    queryRequestTemplatesResponse.Data,
 			Data:          convertRequestTemplateExportDto2List(queryRequestTemplatesResponse.Data, queryRolesResponse.Data),
 		}
 		if err = execStepExport(exportRequestTemplateParam); err != nil {
@@ -645,7 +647,8 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 				return
 			}
 			if procDefDto != nil && procDefDto.ProcDef != nil {
-				procDefExportList = append(procDefExportList, buildProcDefDto(procDefDto, roleDisplayNameMap))
+				procDefDataList = append(procDefDataList, buildProcDefDto(procDefDto, roleDisplayNameMap))
+				procDefExportList = append(procDefExportList, procDefDto)
 			}
 			// 导出编排节点里面如果关联子编排,子编排也需要导出
 			if procDefDto.ProcDefNodeExtend != nil && len(procDefDto.ProcDefNodeExtend.Nodes) > 0 {
@@ -663,7 +666,8 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 					}
 					param.WorkflowIds = append(param.WorkflowIds, subProcDefId)
 					if procDefDto != nil && procDefDto.ProcDef != nil {
-						procDefExportList = append(procDefExportList, buildProcDefDto(procDefDto, roleDisplayNameMap))
+						procDefDataList = append(procDefDataList, buildProcDefDto(procDefDto, roleDisplayNameMap))
+						procDefExportList = append(procDefExportList, procDefDto)
 					}
 				}
 			}
@@ -675,7 +679,8 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			StartTime:     exportWorkflowStartTime,
 			Step:          step,
 			Input:         param.WorkflowIds,
-			Data:          procDefExportList,
+			Data:          procDefDataList,
+			ExportData:    procDefExportList,
 		}
 		if err = execStepExport(exportWorkflowParam); err != nil {
 			return
@@ -933,6 +938,7 @@ func execStepExport(param models.StepExportParam) (err error) {
 	if param.Data == nil {
 		return
 	}
+	var exportData = param.Data
 	transExportDetail := models.TransExportDetailTable{
 		TransExport: &param.TransExportId,
 		Step:        int(param.Step),
@@ -951,7 +957,10 @@ func execStepExport(param models.StepExportParam) (err error) {
 			transExportDetail.Output = string(outputByteArr)
 		}
 	}
-	if err = tools.WriteJsonData2File(getExportJsonFile(param.Path, transExportDetailMap[param.Step]), param.Data); err != nil {
+	if param.ExportData != nil {
+		exportData = param.ExportData
+	}
+	if err = tools.WriteJsonData2File(getExportJsonFile(param.Path, transExportDetailMap[param.Step]), exportData); err != nil {
 		log.Logger.Error("WriteJsonData2File error", log.String("name", transExportDetailMap[param.Step]), log.Error(err))
 		return
 	}
