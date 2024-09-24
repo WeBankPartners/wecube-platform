@@ -61,6 +61,9 @@ type TransImportJobParam struct {
 	TransImport   *TransImportTable         `json:"transImport"`
 	Details       []*TransImportDetailTable `json:"details"`
 	CurrentDetail *TransImportDetailTable   `json:"currentDetail"`
+	DirPath       string                    `json:"dirPath"`  // 解压文件目录路径
+	Token         string                    `json:"token"`    // token
+	Language      string                    `json:"language"` // language
 }
 
 type CallTransImportActionParam struct {
@@ -70,13 +73,17 @@ type CallTransImportActionParam struct {
 	Operator            string `json:"-"`
 	ActionId            string `json:"-"`
 	ErrorMsg            string `json:"-"`
-	DirPath             string `json:"-"` // 解压文件目录路径
+	DirPath             string `json:"-"`        // 解压文件目录路径
+	Token               string `json:"token"`    // token
+	Language            string `json:"language"` // language
 }
 
 type ExecImportParam struct {
 	ExportNexusUrl string `json:"exportNexusUrl"`
 	TransImportId  string `json:"transImportId"` // 导入Id
 	Operator       string `json:"-"`
+	Token          string `json:"token"`    // token
+	Language       string `json:"language"` // language
 }
 
 type CmdbData struct {
