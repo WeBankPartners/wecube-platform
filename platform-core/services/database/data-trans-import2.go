@@ -79,7 +79,7 @@ func RemoveTempExportDir(path string) (err error) {
 	return
 }
 
-func ParseJsonFile(jsonPath string) (byteValue []byte, err error) {
+func parseJsonFile(jsonPath string) (byteValue []byte, err error) {
 	var file *os.File
 	file, err = os.Open(jsonPath)
 	if err != nil {
@@ -92,21 +92,24 @@ func ParseJsonFile(jsonPath string) (byteValue []byte, err error) {
 	return
 }
 
+func ParseJsonData(jsonPath string, data interface{}) (err error) {
+	var byteArr []byte
+	if byteArr, err = parseJsonFile(jsonPath); err != nil {
+		return
+	}
+	if err = json.Unmarshal(byteArr, &data); err != nil {
+		log.Logger.Error("ParseJsonData json Unmarshal err", log.Error(err), log.String("jsoPath", jsonPath))
+		return
+	}
+	return
+}
+
 func GetBusinessList(localPath string) (result models.GetBusinessListRes, err error) {
-	var envByteArr, productByteArr []byte
-	envFilePath := fmt.Sprintf("%s/export/env.json", localPath)
-	productFilePath := fmt.Sprintf("%s/export/product.json", localPath)
-	if envByteArr, err = ParseJsonFile(envFilePath); err != nil {
-		return
-	}
-	if productByteArr, err = ParseJsonFile(productFilePath); err != nil {
-		return
-	}
-	if err = json.Unmarshal(envByteArr, &result.Environment); err != nil {
+	if err = ParseJsonData(fmt.Sprintf("%s/export/env.json", localPath), &result.Environment); err != nil {
 		log.Logger.Error("Environment json Unmarshal err", log.Error(err))
 		return
 	}
-	if err = json.Unmarshal(productByteArr, &result.BusinessList); err != nil {
+	if err = ParseJsonData(fmt.Sprintf("%s/export/product.json", localPath), &result.BusinessList); err != nil {
 		log.Logger.Error("Product json Unmarshal err", log.Error(err))
 		return
 	}
@@ -204,24 +207,15 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 
 func InitTransImport(ctx context.Context, transImportId, ExportNexusUrl, localPath, operator string) (err error) {
 	var actions, addTransImportActions, addTransImportDetailActions, addTransImportSubAction []*db.ExecAction
-	var envByteArr, uiDataArr []byte
 	var detail *models.TransExportDetail
 	var environmentMap map[string]string
 	var associationSystemList, associationProductList []string
 	var business, businessName string
-	envFilePath := fmt.Sprintf("%s/export/env.json", localPath)
-	uiDataPath := fmt.Sprintf("%s/export/ui-data.json", localPath)
-	if envByteArr, err = ParseJsonFile(envFilePath); err != nil {
-		return
-	}
-	if uiDataArr, err = ParseJsonFile(uiDataPath); err != nil {
-		return
-	}
-	if err = json.Unmarshal(envByteArr, &environmentMap); err != nil {
+	if err = ParseJsonData(fmt.Sprintf("%s/export/env.json", localPath), &environmentMap); err != nil {
 		log.Logger.Error("Environment json Unmarshal err", log.Error(err))
 		return
 	}
-	if err = json.Unmarshal(uiDataArr, &detail); err != nil {
+	if err = ParseJsonData(fmt.Sprintf("%s/export/ui-data.json", localPath), &detail); err != nil {
 		log.Logger.Error("TransExportDetail json Unmarshal err", log.Error(err))
 		return
 	}
