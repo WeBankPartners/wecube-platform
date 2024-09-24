@@ -226,8 +226,8 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 		}
 	}
 	// 计算web跳转到哪一步
-	if transImport.Status == string(models.TransImportStatusDoing) || transImport.Status == string(models.TransImportStatusFail) {
-		detail.Step = calcWebDisplayStep(transImportDetailList)
+	if detail.TransImport != nil && (transImport.Status == string(models.TransImportStatusDoing) || transImport.Status == string(models.TransImportStatusFail)) {
+		detail.TransImport.Step = calcWebDisplayStep(transImportDetailList)
 	}
 	return
 }
@@ -284,7 +284,7 @@ func InitTransImport(ctx context.Context, transImportId, ExportNexusUrl, localPa
 	// 新增导出记录
 	transImport := models.TransImportTable{
 		Id:                 transImportId,
-		ImportUrl:          ExportNexusUrl,
+		InputUrl:           ExportNexusUrl,
 		Business:           business,
 		BusinessName:       businessName,
 		Environment:        environmentMap["env_id"],
@@ -334,7 +334,7 @@ func getInsertTransImport(transImport models.TransImportTable) (actions []*db.Ex
 	actions = append(actions, &db.ExecAction{Sql: "insert into trans_import(id,business,business_name,environment,environment_name,status," +
 		"input_url,created_user,created_time,updated_user,updated_time,association_system,association_product) values (?,?,?,?,?,?,?,?,?,?,?,?,?)",
 		Param: []interface{}{transImport.Id, transImport.Business, transImport.BusinessName, transImport.Environment, transImport.EnvironmentName,
-			transImport.Status, transImport.ImportUrl, transImport.CreatedUser, nowTime, transImport.UpdatedUser, nowTime, transImport.AssociationSystem,
+			transImport.Status, transImport.InputUrl, transImport.CreatedUser, nowTime, transImport.UpdatedUser, nowTime, transImport.AssociationSystem,
 			transImport.AssociationProduct}})
 	return
 }
