@@ -16,6 +16,7 @@ const (
 	DefaultHttpConfirmCode = "CONFIRM"
 	ContinueToken          = "continueToken"
 	OperationHeader        = "x-operation"
+	AcceptLanguageHeader   = "Accept-Language"
 	// context key
 	ContextRequestBody  = "requestBody"
 	ContextResponseBody = "responseBody"

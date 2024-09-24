@@ -150,3 +150,11 @@ type PluginQueryExpressionDataParam struct {
 	RootDataId          string `json:"rootDataId" binding:"required"`
 	Token               string `json:"token"`
 }
+
+type BuildContextParam struct {
+	TransactionId string
+	UserId        string
+	Roles         []string
+	Token         string
+	Language      string
+}
