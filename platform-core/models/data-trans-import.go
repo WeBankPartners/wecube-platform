@@ -70,6 +70,7 @@ type CallTransImportActionParam struct {
 	Operator            string `json:"-"`
 	ActionId            string `json:"-"`
 	ErrorMsg            string `json:"-"`
+	DirPath             string `json:"-"` // 解压文件目录路径
 }
 
 type ExecImportParam struct {
@@ -102,4 +103,15 @@ type TransImportDetail struct {
 	Monitor                *CommonOutput        `json:"monitor"`
 	Plugins                *CommonOutput        `json:"plugins"`
 	Cmdb                   *CommonOutput        `json:"cmdb"`
+}
+
+type TransImportHistoryParam struct {
+	Id            string   `json:"id"`
+	Status        []string `json:"status"`
+	Business      []string `json:"business"`  //产品
+	Operators     []string `json:"operators"` //操作人
+	StartIndex    int      `json:"startIndex"`
+	PageSize      int      `json:"pageSize"`
+	ExecTimeStart string   `json:"execTimeStart" ` // 执行时间-开始时间
+	ExecTimeEnd   string   `json:"ExecTimeEnd" `   // 执行时间-结束时间
 }
