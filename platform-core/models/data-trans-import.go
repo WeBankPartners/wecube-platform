@@ -2,7 +2,7 @@ package models
 
 type TransImportTable struct {
 	Id                 string `json:"id" xorm:"id"`
-	ImportUrl          string `json:"importUrl" xorm:"import_url"`
+	InputUrl           string `json:"inputUrl" xorm:"input_url"`
 	Business           string `json:"business" xorm:"business"`
 	BusinessName       string `json:"businessName" xorm:"business_name"`
 	Environment        string `json:"environment" xorm:"environment"`
@@ -14,6 +14,7 @@ type TransImportTable struct {
 	CreatedTime        string `json:"createdTime" xorm:"created_time"`
 	UpdatedUser        string `json:"updatedUser" xorm:"updated_user"`
 	UpdatedTime        string `json:"updatedTime" xorm:"updated_time"`
+	Step               int    `json:"step"  xorm:"-"` // 通知web执行中的哪一步,2,3,4
 }
 
 type TransImportActionTable struct {
@@ -113,7 +114,6 @@ type TransImportDetail struct {
 	InitWorkflow           *CommonOutput        `json:"initWorkflow"`    // 初始化编排
 	Plugins                *CommonOutput        `json:"plugins"`
 	Cmdb                   *CommonOutput        `json:"cmdb"`
-	Step                   int                  `json:"step"` // 通知web执行中的哪一步,2,3,4
 }
 
 type TransImportHistoryParam struct {

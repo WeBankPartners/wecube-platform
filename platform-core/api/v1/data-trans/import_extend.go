@@ -81,10 +81,12 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 	transImportJobParam, getConfigErr := database.GetTransImportWithDetail(ctx, callParam.TransImportId, false)
 	if getConfigErr != nil {
 		err = getConfigErr
+		log.Logger.Error("GetTransImportWithDetail err", log.Error(err))
 		return
 	}
 	if err = database.RecordTransImportAction(ctx, callParam); err != nil {
 		err = fmt.Errorf("record trans import action table fail,%s ", err.Error())
+		log.Logger.Error("RecordTransImportAction err", log.Error(err))
 		return
 	}
 	transImportJobParam.DirPath = callParam.DirPath
@@ -159,8 +161,8 @@ func importRole(ctx context.Context, transImportParam *models.TransImportJobPara
 			return
 		}
 		if response.Status != "OK" || response.Data.ID == "" {
-			err = fmt.Errorf("RegisterLocalRole %s fail", role.Name)
-			log.Logger.Error("RegisterLocalRole fail", log.String("roleName", role.Name))
+			err = fmt.Errorf("RegisterLocalRole fail,msg:%s", response.Message)
+			log.Logger.Error("RegisterLocalRole fail", log.String("roleName", role.Name), log.String("msg", response.Message))
 			return
 		}
 	}

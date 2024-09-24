@@ -50,9 +50,9 @@ func GetTransImportWithDetail(ctx context.Context, transImportId string, withDet
 	}
 	result = &models.TransImportJobParam{TransImport: transImportRows[0], Details: []*models.TransImportDetailTable{}}
 	if withDetailData {
-		err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_detail where trans_import=? order by step").Find(&result.Details)
+		err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_detail where trans_import=? order by step", transImportId).Find(&result.Details)
 	} else {
-		err = db.MysqlEngine.Context(ctx).SQL("select id,trans_import,name,step,status,error_msg,start_time,end_time from trans_import_detail where trans_import=? order by step").Find(&result.Details)
+		err = db.MysqlEngine.Context(ctx).SQL("select id,trans_import,name,step,status,error_msg,start_time,end_time from trans_import_detail where trans_import=? order by step", transImportId).Find(&result.Details)
 	}
 	if err != nil {
 		err = fmt.Errorf("query trans import detail table fail,%s ", err.Error())
