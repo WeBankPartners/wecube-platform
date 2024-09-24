@@ -170,15 +170,17 @@ const (
 type TransImportStep int
 
 const (
-	TransImportStepRole             TransImportStep = 1 // 导入角色
-	TransImportStepRequestTemplate  TransImportStep = 2 // 导入请求模版
-	TransImportStepComponentLibrary TransImportStep = 3 // 导入表单组件库
-	TransImportStepWorkflow         TransImportStep = 4 // 导入编排
-	TransImportStepBatchExecution   TransImportStep = 5 // 导入量执行
-	TransImportStepPluginConfig     TransImportStep = 6 // 导入插件配置
-	TransImportStepCmdb             TransImportStep = 7 // 导入CMDB
-	TransImportStepArtifacts        TransImportStep = 8 // 导入物料包
-	TransImportStepMonitor          TransImportStep = 9 // 导入监控
+	TransImportStepRole             TransImportStep = 1  // 导入角色
+	TransImportStepCmdb             TransImportStep = 2  // 导入CMDB
+	TransImportStepPluginConfig     TransImportStep = 3  // 导入插件配置
+	TransImportStepWorkflow         TransImportStep = 4  // 导入编排
+	TransImportStepBatchExecution   TransImportStep = 5  // 导入批量执行
+	TransImportStepArtifacts        TransImportStep = 6  // 导入物料包
+	TransImportStepMonitorBase      TransImportStep = 7  // 导入监控基础配置
+	TransImportStepRequestTemplate  TransImportStep = 8  // 导入请求模版
+	TransImportStepComponentLibrary TransImportStep = 9  // 导入表单组件库
+	TransImportStepInitWorkflow     TransImportStep = 10 // 执行基础编排初始化
+	TransImportStepMonitorBusiness  TransImportStep = 11 // 导入监控业务配置
 )
 
 // TransImportAction 导入操作

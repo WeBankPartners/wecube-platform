@@ -504,7 +504,7 @@ func ImportProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("import data is empty"))
 		return
 	}
-	importResult, err = processDefinitionImport(c, paramList, middleware.GetRequestUser(c), c.GetHeader(models.AuthorizationHeader), c.GetHeader(middleware.AcceptLanguageHeader))
+	importResult, err = ProcDefImport(c, paramList, middleware.GetRequestUser(c), c.GetHeader(models.AuthorizationHeader), c.GetHeader(middleware.AcceptLanguageHeader))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	}
@@ -1284,7 +1284,7 @@ func getMapRandomKey(hashMap map[string]bool) string {
 	return ""
 }
 
-func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDefinitionDto, operator, userToken, language string) (importResult *models.ImportResultDto, err error) {
+func ProcDefImport(ctx context.Context, inputList []*models.ProcessDefinitionDto, operator, userToken, language string) (importResult *models.ImportResultDto, err error) {
 	var draftList, repeatNameList []*models.ProcDef
 	var newProcDefId string
 	var versionExist bool
