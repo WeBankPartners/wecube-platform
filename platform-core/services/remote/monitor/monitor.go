@@ -28,6 +28,8 @@ const (
 	importMonitorTypeUrl   = "/monitor/api/v2/config/type-batch"
 	importEndpointGroupUrl = "/monitor/api/v2/alarm/endpoint_group/import"
 	importMetricUrl        = "/monitor/api/v2/monitor/metric/import?serviceGroup=%s&monitorType=%s&endpointGroup=%s&comparison=%s"
+	importStrategyUrl      = "/monitor/api/v2/alarm/strategy/import/%s/%s"
+	importLogMetricUrl     = "/monitor/api/v2/service/log_metric/log_monitor_template/import"
 
 	jsonUnmarshalErrTemplate = "json unmarshal http response body fail,body:%s,error:%s"
 )
@@ -53,7 +55,13 @@ func GetMonitorExportAnalyzeData(endpointList, serviceGroupList []string) (data 
 
 func ImportMonitorType(monitorTypeList []string, token string) (response BatchAddTypeConfigResp, err error) {
 	var responseBytes []byte
-	param := BatchAddTypeConfigParam{DisplayNameList: monitorTypeList}
+	var newMonitorTypeList []string
+	for _, s := range monitorTypeList {
+		if strings.TrimSpace(s) != "" {
+			newMonitorTypeList = append(newMonitorTypeList, s)
+		}
+	}
+	param := BatchAddTypeConfigParam{DisplayNameList: newMonitorTypeList}
 	if responseBytes, err = requestMonitorPluginV2(importMonitorTypeUrl, http.MethodPost, token, param); err != nil {
 		return
 	}
@@ -247,6 +255,50 @@ func ImportMetric(param ImportMetricParam) (err error) {
 	}
 	if response.Data != nil && len(response.Data.FailList) > 0 {
 		err = fmt.Errorf("import metric fail,data:%s", strings.Join(response.Data.FailList, ","))
+	}
+	return
+}
+
+func ImportStrategy(param ImportStrategyParam) (err error) {
+	var byteArr []byte
+	var response models.ResponseJson
+	uri := models.Config.Gateway.Url + fmt.Sprintf(importStrategyUrl, param.StrategyType, param.Value)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	if byteArr, err = network.HttpPostJsonFile(param.FilePath, uri, param.UserToken, param.Language); err != nil {
+		return
+	}
+	if err = json.Unmarshal(byteArr, &response); err != nil {
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf("import starategy %s fail,%+v", param.Value, response.Message)
+		return
+	}
+	return
+}
+
+func ImportLogMonitorTemplate(filePath, userToken, language string) (err error) {
+	var byteArr []byte
+	var response models.ResponseJson
+	uri := models.Config.Gateway.Url + importLogMetricUrl
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	if byteArr, err = network.HttpPostJsonFile(filePath, uri, userToken, language); err != nil {
+		return
+	}
+	if err = json.Unmarshal(byteArr, &response); err != nil {
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf("import log_metric_template fail,%+v", response.Message)
+		return
 	}
 	return
 }
