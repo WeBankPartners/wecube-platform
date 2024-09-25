@@ -974,12 +974,22 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 	var analyzeList []*models.TransExportAnalyzeDataTable
 	var exportDataKeyList []string
 	var finalExportDataList []interface{}
-	var filePathList, monitoryTypeMetricList, serviceGroupMetricList, endpointGroupMetricList []string
+	var filePathList, monitorTypeMetricList, serviceGroupMetricList, endpointGroupMetricList []string
 	var allMonitorEndpointGroupList, exportMonitorEndpointGroupList []*monitor.EndpointGroupTable
 	var responseBytes []byte
 	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_analyze_data where trans_export=? and source=?",
 		transExportId, models.TransExportAnalyzeSourceMonitor).Find(&analyzeList)
 	if err != nil {
+		return
+	}
+	// 监控分目录导出
+	metricPath := fmt.Sprintf("%s/metric", path)
+	serviceGroupPath := fmt.Sprintf("%s/service_group", metricPath)
+	endpointGroupPath := fmt.Sprintf("%s/endpoint_group", metricPath)
+	if err = os.MkdirAll(serviceGroupPath, 0755); err != nil {
+		return
+	}
+	if err = os.MkdirAll(endpointGroupPath, 0755); err != nil {
 		return
 	}
 	for _, monitorAnalyzeData := range analyzeList {
@@ -1104,7 +1114,7 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 			}
 		case models.TransExportAnalyzeMonitorDataTypeCustomMetricMonitorType:
 			// 导出指标列表基础类型
-			monitoryTypeMetricList = exportDataKeyList
+			monitorTypeMetricList = exportDataKeyList
 		case models.TransExportAnalyzeMonitorDataTypeCustomMetricServiceGroup:
 			// 导出指标列表层级对象
 			serviceGroupMetricList = exportDataKeyList
@@ -1121,38 +1131,46 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 		}
 	}
 	// 导出指标配置(包括基础指标、层级对象、对象组指标列表)&同环比指标也需要导出
-	if err = exportMetricList(monitoryTypeMetricList, serviceGroupMetricList, endpointGroupMetricList, path, token); err != nil {
+	dto := models.ExportMetricListDto{
+		MonitorTypeMetricList:   monitorTypeMetricList,
+		ServiceGroupMetricList:  serviceGroupMetricList,
+		EndpointGroupMetricList: endpointGroupMetricList,
+		MetricPath:              metricPath,
+		ServiceGroupPath:        serviceGroupPath,
+		EndpointGroupPath:       endpointGroupPath,
+		Token:                   token,
+	}
+	if err = exportMetricList(dto); err != nil {
 		return
 	}
 	return
 }
 
-func exportMetricList(monitoryTypeMetricList, serviceGroupMetricList, endpointGroupMetricList []string, path, token string) (err error) {
+func exportMetricList(param models.ExportMetricListDto) (err error) {
 	var responseBytes []byte
 	var requestParam []monitor.ExportMetricParam
-	for _, s := range monitoryTypeMetricList {
-		requestParam = append(requestParam, []monitor.ExportMetricParam{{MonitorType: s, Comparison: "N"}, {MonitorType: s, Comparison: "Y"}}...)
+
+	for _, s := range param.MonitorTypeMetricList {
+		requestParam = append(requestParam, []monitor.ExportMetricParam{{MonitorType: s, Comparison: "N", FilePath: fmt.Sprintf("%s/%s.json", param.MetricPath, s)},
+			{MonitorType: s, Comparison: "Y", FilePath: fmt.Sprintf("%s/%s_comparison.json", param.MetricPath, s)}}...)
 	}
-	for _, s := range serviceGroupMetricList {
-		requestParam = append(requestParam, []monitor.ExportMetricParam{{ServiceGroup: s, Comparison: "N"}, {ServiceGroup: s, Comparison: "Y"}}...)
+	for _, s := range param.ServiceGroupMetricList {
+		requestParam = append(requestParam, []monitor.ExportMetricParam{{ServiceGroup: s, Comparison: "N", FilePath: fmt.Sprintf("%s/%s.json", param.ServiceGroupPath, s)},
+			{ServiceGroup: s, Comparison: "Y", FilePath: fmt.Sprintf("%s/%s_comparison.json", param.ServiceGroupPath, s)}}...)
 	}
-	for _, s := range endpointGroupMetricList {
-		requestParam = append(requestParam, []monitor.ExportMetricParam{{EndpointGroup: s, Comparison: "N"}, {EndpointGroup: s, Comparison: "Y"}}...)
+	for _, s := range param.EndpointGroupMetricList {
+		requestParam = append(requestParam, []monitor.ExportMetricParam{{EndpointGroup: s, Comparison: "N", FilePath: fmt.Sprintf("%s/%s.json", param.EndpointGroupPath, s)},
+			{EndpointGroup: s, Comparison: "Y", FilePath: fmt.Sprintf("%s/%s_comparison.json", param.EndpointGroupPath, s)}}...)
 	}
-	for index, requestParam := range requestParam {
-		filePath := fmt.Sprintf("%s/metric_list_%d.json", path, index+1)
-		if requestParam.Comparison == "Y" {
-			// 导出同环比
-			filePath = fmt.Sprintf("%s/metric_comparison_list_%d.json", path, index+1)
-		}
-		if responseBytes, err = monitor.ExportMetricList(requestParam, token); err != nil {
+	for _, requestParam := range requestParam {
+		if responseBytes, err = monitor.ExportMetricList(requestParam, param.Token); err != nil {
 			log.Logger.Error("ExportMetricList err", log.JsonObj("requestParam", requestParam), log.Error(err))
 			return
 		}
 		if string(responseBytes) != "" {
 			var temp interface{}
 			json.Unmarshal(responseBytes, &temp)
-			if err = tools.WriteJsonData2File(filePath, temp); err != nil {
+			if err = tools.WriteJsonData2File(requestParam.FilePath, temp); err != nil {
 				log.Logger.Error("WriteJsonData2File error", log.JsonObj("requestParam", requestParam), log.Error(err))
 				return
 			}
