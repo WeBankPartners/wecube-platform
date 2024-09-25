@@ -6,6 +6,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote/monitor"
 	"io/fs"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
@@ -260,7 +261,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 	log.Logger.Info("6-2. import endpointGroup success!")
 	// 导入基础类型指标、对象组指标
 	metricPath := fmt.Sprintf("%s/monitor/metric", transImportParam.DirPath)
-	var files []fs.DirEntry
+	var files, childFiles []fs.DirEntry
 	if files, err = os.ReadDir(metricPath); err != nil {
 		log.Logger.Error("ReadDir fail", log.String("metricPath", metricPath), log.Error(err))
 		return
@@ -268,7 +269,50 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 	// 遍历文件和子目录
 	for _, file := range files {
 		if file.IsDir() {
-			continue
+			if file.Name() != "endpoint_group" {
+				continue
+			}
+			// endpoint_group 对象组目录遍历
+			if childFiles, err = os.ReadDir(fmt.Sprintf("%s/%s", metricPath, "endpoint_group")); err != nil {
+				log.Logger.Error("ReadDir fail", log.Error(err))
+				return
+			}
+			for _, newFile := range childFiles {
+				comparison := "N"
+				endpointGroup := newFile.Name()[:strings.LastIndex(newFile.Name(), ".")]
+				if strings.Contains(file.Name(), "_comparison") {
+					comparison = "Y"
+					endpointGroup = newFile.Name()[:strings.LastIndex(newFile.Name(), "_comparison")]
+				}
+				param := monitor.ImportMetricParam{
+					FilePath:      fmt.Sprintf("%s/endpoint_group/%s", metricPath, newFile.Name()),
+					UserToken:     transImportParam.Token,
+					Language:      transImportParam.Language,
+					EndpointGroup: endpointGroup,
+					Comparison:    comparison,
+				}
+				if err = monitor.ImportMetric(param); err != nil {
+					log.Logger.Error("ImportMetric err", log.String("fileName", newFile.Name()), log.Error(err))
+					return
+				}
+			}
+		}
+		comparison := "N"
+		monitorType := file.Name()[:strings.LastIndex(file.Name(), ".")]
+		if strings.Contains(file.Name(), "_comparison") {
+			comparison = "Y"
+			monitorType = file.Name()[:strings.LastIndex(file.Name(), "_comparison")]
+		}
+		param := monitor.ImportMetricParam{
+			FilePath:    fmt.Sprintf("%s/%s", metricPath, file.Name()),
+			UserToken:   transImportParam.Token,
+			Language:    transImportParam.Language,
+			MonitorType: monitorType,
+			Comparison:  comparison,
+		}
+		if err = monitor.ImportMetric(param); err != nil {
+			log.Logger.Error("ImportMetric err", log.String("fileName", file.Name()), log.Error(err))
+			return
 		}
 	}
 	log.Logger.Info("6. importMonitorBaseConfig success end!!!")
