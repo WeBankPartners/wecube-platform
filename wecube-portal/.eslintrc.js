@@ -123,7 +123,7 @@ module.exports = {
     'eol-last': [1, 'always'],
     'prefer-const': 1,
     'no-else-return': 1,
-    'brace-style': [1, 'stroustrup', {}],
+    'brace-style': [1, '1tbs', { allowSingleLine: true }],
     'newline-per-chained-call': [
       'error',
       {
