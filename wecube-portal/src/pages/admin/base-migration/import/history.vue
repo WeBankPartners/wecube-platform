@@ -24,7 +24,7 @@
 
 <script>
 import dayjs from 'dayjs'
-import { getBaseMigrationExportList, getBaseMigrationExportQuery } from '@/api/server'
+import { getBaseMigrationImportList, getBaseMigrationImportQuery } from '@/api/server'
 export default {
   data() {
     return {
@@ -76,11 +76,6 @@ export default {
           multiple: true,
           list: [
             {
-              label: '草稿',
-              value: 'start',
-              color: '#808695'
-            },
-            {
               label: '进行中',
               value: 'doing',
               color: '#ff9900'
@@ -93,6 +88,11 @@ export default {
             {
               label: '失败',
               value: 'fail',
+              color: '#ed4014'
+            },
+            {
+              label: '终止',
+              value: 'cancel',
               color: '#ed4014'
             }
           ]
@@ -116,7 +116,7 @@ export default {
       ],
       searchParams: {
         id: '',
-        time: [dayjs().subtract(1, 'month')
+        time: [dayjs().subtract(3, 'month')
           .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
         execTimeStart: '',
         execTimeEnd: '',
@@ -146,11 +146,6 @@ export default {
           render: (h, params) => {
             const list = [
               {
-                label: '草稿',
-                value: 'start',
-                color: '#808695'
-              },
-              {
                 label: '进行中',
                 value: 'doing',
                 color: '#ff9900'
@@ -163,6 +158,11 @@ export default {
               {
                 label: '失败',
                 value: 'fail',
+                color: '#ed4014'
+              },
+              {
+                label: '终止',
+                value: 'cancel',
                 color: '#ed4014'
               }
             ]
@@ -253,9 +253,9 @@ export default {
   },
   beforeRouteEnter(to, from, next) {
     next(vm => {
-      if (from.path === '/admin/base-migration/export') {
+      if (from.path === '/admin/base-migration/import') {
         // 读取列表搜索参数
-        const storage = window.sessionStorage.getItem('export_baseMigration') || ''
+        const storage = window.sessionStorage.getItem('import_baseMigration') || ''
         if (storage) {
           const { searchParams, searchOptions } = JSON.parse(storage)
           vm.searchParams = searchParams
@@ -272,7 +272,7 @@ export default {
       searchParams: this.searchParams,
       searchOptions: this.searchOptions
     }
-    window.sessionStorage.setItem('export_baseMigration', JSON.stringify(storage))
+    window.sessionStorage.setItem('import_baseMigration', JSON.stringify(storage))
   },
   methods: {
     initData() {
@@ -285,7 +285,7 @@ export default {
       this.getList()
     },
     async getSearchParams() {
-      const { status, data } = await getBaseMigrationExportQuery()
+      const { status, data } = await getBaseMigrationImportQuery()
       if (status === 'OK') {
         this.searchOptions.forEach(item => {
           if (item.key === 'business') {
@@ -319,7 +319,7 @@ export default {
         execTimeEnd: this.searchParams.time[1] ? this.searchParams.time[1] + ' 23:59:59' : undefined
       }
       this.loading = true
-      const { status, data } = await getBaseMigrationExportList(params)
+      const { status, data } = await getBaseMigrationImportList(params)
       this.loading = false
       if (status === 'OK') {
         this.tableData = (data && data.contents) || []
@@ -338,7 +338,7 @@ export default {
     // 查看
     handleView(row) {
       this.$router.push({
-        path: '/admin/base-migration/export',
+        path: '/admin/base-migration/import',
         query: {
           type: 'detail',
           id: row.id
@@ -347,7 +347,7 @@ export default {
     },
     handleEdit(row) {
       this.$router.push({
-        path: '/admin/base-migration/export',
+        path: '/admin/base-migration/import',
         query: {
           type: 'edit',
           id: row.id
@@ -357,7 +357,7 @@ export default {
     // 重新发起
     handleRepub(row) {
       this.$router.push({
-        path: '/admin/base-migration/export',
+        path: '/admin/base-migration/import',
         query: {
           type: 'republish',
           id: row.id
