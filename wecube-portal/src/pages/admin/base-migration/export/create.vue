@@ -151,7 +151,11 @@ export default {
           count: 0
         }
         this.detailData.monitorRes.data.forEach(i => {
-          if (['custom_metric_service_group', 'custom_metric_endpoint_group', 'custom_metric_monitor_type'].includes(i.name)) {
+          if (
+            ['custom_metric_service_group', 'custom_metric_endpoint_group', 'custom_metric_monitor_type'].includes(
+              i.name
+            )
+          ) {
             metric_list_obj.count += i.count
           }
           if (['strategy_service_group', 'strategy_endpoint_group'].includes(i.name)) {
@@ -160,9 +164,18 @@ export default {
         })
         const metricIndex = this.detailData.monitorRes.data.findIndex(i => i.name === 'custom_metric_service_group')
         const strategyIndex = this.detailData.monitorRes.data.findIndex(i => i.name === 'strategy_service_group')
-        this.detailData.monitorRes.data.splice(metricIndex, 0 , metric_list_obj)
-        this.detailData.monitorRes.data.splice(strategyIndex, 0 , strategy_list_obj)
-        this.detailData.monitorRes.data = this.detailData.monitorRes.data.filter(i => !['strategy_service_group', 'strategy_endpoint_group', 'custom_metric_service_group', 'custom_metric_endpoint_group', 'custom_metric_monitor_type'].includes(i.name))
+        this.detailData.monitorRes.data.splice(metricIndex, 0, metric_list_obj)
+        this.detailData.monitorRes.data.splice(strategyIndex, 0, strategy_list_obj)
+        this.detailData.monitorRes.data = this.detailData.monitorRes.data.filter(
+          i =>
+            ![
+              'strategy_service_group',
+              'strategy_endpoint_group',
+              'custom_metric_service_group',
+              'custom_metric_endpoint_group',
+              'custom_metric_monitor_type'
+            ].includes(i.name)
+        )
         // 成功或失败，取消轮询查状态
         if (['success', 'fail'].includes(this.detailData.status)) {
           clearInterval(this.interval)

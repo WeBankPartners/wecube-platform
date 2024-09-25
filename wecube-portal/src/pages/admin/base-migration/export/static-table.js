@@ -123,23 +123,25 @@ export default {
           title: '数据类型',
           render: (h, params) => {
             const nameMap = {
-              'monitor_type': this.$t('p_general_type'),
-              'endpoint_group': this.$t('p_endpoint_group'),
-              'log_monitor_template': this.$t('p_log_monitor_template'),
-              'log_monitor_service_group': this.$t('p_log_monitor_config'),
-              'metric_list': this.$t('p_metric_list'),
-              'strategy_list': this.$t('p_warning_list'),
-              'logKeyword_service_group': this.$t('p_keyword_list'),
-              'dashboard': this.$t('p_dashboard')
+              monitor_type: this.$t('p_general_type'),
+              endpoint_group: this.$t('p_endpoint_group'),
+              log_monitor_template: this.$t('p_log_monitor_template'),
+              log_monitor_service_group: this.$t('p_log_monitor_config'),
+              metric_list: this.$t('p_metric_list'),
+              strategy_list: this.$t('p_warning_list'),
+              logKeyword_service_group: this.$t('p_keyword_list'),
+              dashboard: this.$t('p_dashboard')
             }
-            return (<span
-              style="cursor:pointer;color:#5cadff;"
-              onClick={() => {
-                this.jumpToHistory(params.row)
-              }}
-            >
-              {nameMap[params.row.name] || '-'}
-            </span>)
+            return (
+              <span
+                style="cursor:pointer;color:#5cadff;"
+                onClick={() => {
+                  this.jumpToHistory(params.row)
+                }}
+              >
+                {nameMap[params.row.name] || '-'}
+              </span>
+            )
           }
         },
         {
@@ -147,18 +149,16 @@ export default {
           key: 'conditions',
           render: (h, params) => {
             const conditionsMap = {
-              'monitor_type': ['全选'],
-              'endpoint_group': ['对象'],
-              'log_monitor_template': ['指标-业务配置'],
-              'log_monitor_service_group': ['层级对象'],
-              'metric_list': ['层级对象', '对象组', '基础类型'],
-              'strategy_list': ['层级对象', '对象组'],
-              'logKeyword_service_group': ['层级对象'],
-              'dashboard': ['层级对象', '对象']
+              monitor_type: ['全选'],
+              endpoint_group: ['对象'],
+              log_monitor_template: ['指标-业务配置'],
+              log_monitor_service_group: ['层级对象'],
+              metric_list: ['层级对象', '对象组', '基础类型'],
+              strategy_list: ['层级对象', '对象组'],
+              logKeyword_service_group: ['层级对象'],
+              dashboard: ['层级对象', '对象']
             }
-            return conditionsMap[params.row.name].map(item => {
-              return <Tag>{item}</Tag>
-            })
+            return conditionsMap[params.row.name].map(item => <Tag>{item}</Tag>)
           }
         },
         {
