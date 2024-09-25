@@ -414,8 +414,7 @@ export default {
       if ([1, 2].includes(step)) {
         this.isJustShowRightContent = true
         this.currentStep = Number(this.$route.query.step)
-      }
-      else {
+      } else {
         this.returnPreviousPage()
       }
     }
@@ -434,8 +433,7 @@ export default {
       const { data, status } = await req.get(api, { params })
       if (status === 'OK') {
         this.pluginItemDetail = data[0]
-      }
-      else {
+      } else {
         this.$Message.error(this.$t('p_request_fail'))
       }
       this.stepContent[0].title += this.pluginItemDetail.name + '_' + this.pluginItemDetail.version
@@ -448,8 +446,7 @@ export default {
       const res = await req.get(api, { params })
       if (res.status === 'OK') {
         this.inheritedVersionOptionList = res.data || []
-      }
-      else {
+      } else {
         this.inheritedVersionOptionList = []
         this.$Message.error(res.message)
       }
@@ -494,16 +491,14 @@ export default {
         if (!isEmpty(this.inheritedVersionOptionList)) {
           this.onInheritedVersionSelected(JSON.stringify(this.inheritedVersionOptionList[0]))
         }
-      }
-      else if (this.currentStep === 2) {
+      } else if (this.currentStep === 2) {
         if (!this.pluginItemDetail.menus || isEmpty(this.pluginItemDetail.menus)) {
           this.currentStep += 1
           this.enterNextStep()
           return
         }
         this.currentTabName = '1'
-      }
-      else if (this.currentStep === 3) {
+      } else if (this.currentStep === 3) {
         this.currentTabName = '6'
       }
       this.currentStep += 1
@@ -523,8 +518,7 @@ export default {
           this.selectedVersion = versionObj.version
           this.$refs.pluginRegister.startRegister()
           this.batchRegist()
-        }
-        else {
+        } else {
           this.$Message.error(this.$t('p_execute_fail'))
         }
       }
@@ -538,8 +532,7 @@ export default {
         this.selectedVersion = this.$t('p_new_config')
         this.$refs.pluginRegister.startRegister()
         this.batchRegist()
-      }
-      else {
+      } else {
         this.$Notice.warning({
           title: 'Warning',
           desc: response.message
@@ -572,8 +565,7 @@ export default {
         this.$Message.success(this.$t('action_successful'))
         this.getAvailableInstances(this.pluginId)
         this.enterNextStep()
-      }
-      else {
+      } else {
         this.$Message.error(this.$t('p_execute_fail'))
       }
     },
@@ -609,8 +601,7 @@ export default {
         this.allowCreationIpPort.splice(index, 1)
         this.getAvailableInstances(this.pluginId)
         this.selectedIp = []
-      }
-      else {
+      } else {
         this.isSpinShow = false
         clearTimeout(timeId)
       }
@@ -718,8 +709,7 @@ export default {
             }
           }
         }
-      }
-      else {
+      } else {
         this.isServiceActionNotEmpty = false
       }
     },
