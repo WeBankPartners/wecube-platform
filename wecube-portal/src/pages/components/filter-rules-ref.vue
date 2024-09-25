@@ -252,8 +252,7 @@ export default {
               pathExp: `~${_}`,
               nodeType: 'entity'
             }
-          }
-          else {
+          } else {
             path = {
               entity: ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1],
               pkg: _.match(/[^>]+(?=:)/)[0],
@@ -261,8 +260,7 @@ export default {
               nodeType: 'entity'
             }
           }
-        }
-        else {
+        } else {
           const previous = pathList[i - 1]
           const previousSplit = previous.split(':')
           const ruleIndex = previousSplit[1].indexOf('{')
@@ -328,11 +326,9 @@ export default {
           let str = ''
           if (isMultiple) {
             str = `{${rule.attr} ${rule.op} [${rule.value.map(v => `'${v}'`)}]}`
-          }
-          else if (rule.op === 'is' || rule.op === 'isnot') {
+          } else if (rule.op === 'is' || rule.op === 'isnot') {
             str = `{${rule.attr} ${rule.op} NULL}`
-          }
-          else {
+          } else {
             const noQuotation = rule.op === 'gt' || rule.op === 'lt'
             str = noQuotation ? `{${rule.attr} ${rule.op} ${rule.value}}` : `{${rule.attr} ${rule.op} '${rule.value}'}`
           }
@@ -426,8 +422,7 @@ export default {
       this.pathList = []
       if (this.value && this.value.indexOf(':') > -1) {
         this.restorePathExp(this.value)
-      }
-      else {
+      } else {
         this.formatCurrentOptions()
       }
     },
@@ -443,8 +438,7 @@ export default {
         this.currentOptiongs = []
         this.currentRefOptiongs = []
         this.currentLeafOptiongs = []
-      }
-      else {
+      } else {
         const { status, data } = await getEntityRefsByPkgNameAndEntityName(opt.pkg, opt.entity)
         if (status === 'OK') {
           this.currentRefOptiongs = data.referenceByEntityList.map(e => ({
@@ -471,8 +465,7 @@ export default {
                 nodeType: 'attr'
               }))
             this.currentOptiongs = this.currentOptiongs.concat(attrOption)
-          }
-          else {
+          } else {
             const referenceToEntityList = []
             data.leafEntityList.referenceToEntityList.forEach(e => {
               const index = referenceToEntityList.indexOf(e.filterRule)

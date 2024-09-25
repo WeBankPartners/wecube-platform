@@ -260,15 +260,13 @@ export default {
             operator: 'contains',
             value: this.form[key]
           })
-        }
-        else if (key === 'errorCode' && this.form[key]) {
+        } else if (key === 'errorCode' && this.form[key]) {
           params.filters.push({
             name: key,
             operator: 'eq',
             value: this.form[key]
           })
-        }
-        else if (key === 'createdTimeT' && this.form[key] && this.form[key].length > 0) {
+        } else if (key === 'createdTimeT' && this.form[key] && this.form[key].length > 0) {
           params.filters.push(
             ...[
               {
@@ -295,8 +293,7 @@ export default {
             this.rowId = data.contents[0].id
             this.$refs.executeResult.getList(data.contents[0].id)
             this.$refs.executeResult.reset()
-          }
-          else {
+          } else {
             this.$refs.executeResult.handleReset()
           }
         })
