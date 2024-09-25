@@ -129,5 +129,15 @@ export default {
       'en-US': 'Conjoin',
       'zh-CN': '协同'
     }
+  },
+  'wecmdb/designing/data-import-detail': {
+    childBreadcrumb: {
+      'en-US': 'Data Management (Import)',
+      'zh-CN': '数据管理(导入)'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Cube Back',
+      'zh-CN': '设计'
+    }
   }
 }

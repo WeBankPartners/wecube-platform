@@ -27,7 +27,7 @@ export default {
     return {
       isShowBreadcrum: true,
       allMenusAry: [],
-      parentBreadcrumb: '',
+      parentBreadcrumb: '-',
       childBreadcrumb: '',
       expandSideMenu: false
     }
