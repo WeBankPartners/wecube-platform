@@ -81,9 +81,9 @@ export default {
               color: '#808695'
             },
             {
-              label: '进行中',
+              label: '执行中',
               value: 'doing',
-              color: '#ff9900'
+              color: '#2d8cf0'
             },
             {
               label: '成功',
@@ -151,9 +151,9 @@ export default {
                 color: '#808695'
               },
               {
-                label: '进行中',
+                label: '执行中',
                 value: 'doing',
-                color: '#ff9900'
+                color: '#2d8cf0'
               },
               {
                 label: '成功',
@@ -202,7 +202,7 @@ export default {
           align: 'center',
           fixed: 'right',
           render: (h, params) => (
-            <div style="display:flex;justify-content:center;">
+            <div style="display:flex;justify-content:flex-start;">
               {params.row.status !== 'start' && (
                 <Tooltip content={this.$t('be_details')} placement="top">
                   <Button
