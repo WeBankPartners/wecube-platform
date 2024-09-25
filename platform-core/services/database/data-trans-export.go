@@ -22,15 +22,15 @@ import (
 var transExportDetailMap = map[models.TransExportStep]string{
 	models.TransExportStepRole:                "role",
 	models.TransExportStepWorkflow:            "workflow",
-	models.TransExportStepComponentLibrary:    "componentLibrary",
-	models.TransExportStepBatchExecution:      "batchExecution",
-	models.TransExportStepRequestTemplate:     "requestTemplate",
+	models.TransExportStepComponentLibrary:    "component_library",
+	models.TransExportStepBatchExecution:      "batch_execution",
+	models.TransExportStepRequestTemplate:     "request_template",
 	models.TransExportStepCmdb:                "wecmdb",
 	models.TransExportStepArtifacts:           "artifacts",
 	models.TransExportStepMonitor:             "monitor",
-	models.TransExportStepPluginConfig:        "pluginConfig",
-	models.TransExportStepCreateAndUploadFile: "createAndUploadFile",
-	models.TransExportSystemVariable:          "systemVariable",
+	models.TransExportStepPluginConfig:        "plugin_config",
+	models.TransExportStepCreateAndUploadFile: "create_and_upload_file",
+	models.TransExportSystemVariable:          "system_variable",
 }
 
 const (
@@ -995,6 +995,7 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 	for _, monitorAnalyzeData := range analyzeList {
 		filePathList = []string{}
 		finalExportDataList = []interface{}{}
+		exportDataKeyList = []string{}
 		if strings.TrimSpace(monitorAnalyzeData.Data) == "" {
 			log.Logger.Info("analyze monitor data empty")
 			continue
