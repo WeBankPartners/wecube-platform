@@ -231,8 +231,7 @@ export default {
       if (status === 'OK') {
         this.version = data
         window.localStorage.setItem('wecube_version', this.version)
-      }
-      else {
+      } else {
         this.version = window.localStorage.getItem('wecube_version') || ''
       }
     },
@@ -276,8 +275,7 @@ export default {
               this.$Message.success('Success !')
               this.changePassword = false
             }
-          }
-          else {
+          } else {
             this.$Message.warning(this.$t('confirm_password_error'))
           }
         }
@@ -346,8 +344,7 @@ export default {
                 script[key].onreadystatechange = null
               }
             }
-          }
-          else {
+          } else {
             // Non IE
             script[key].onload = () => {
               setTimeout(() => {

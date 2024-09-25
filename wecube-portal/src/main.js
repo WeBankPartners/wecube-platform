@@ -162,15 +162,18 @@ router.beforeEach(async (to, from, next) => {
   if (!found) {
     window.sessionStorage.setItem('currentPath', to.fullPath)
     next('/homepage')
-  }
-  else {
+  } else {
     if (window.myMenus || ((await getGlobalMenus()) && window.myMenus)) {
       const isHasPermission = []
         .concat(...window.myMenus.map(_ => _.submenus), window.childRouters)
         .find(_ => to.path.startsWith(_.link) && _.active)
       if (
         (isHasPermission && isHasPermission.active)
-        || ['/collaboration/workflow-mgmt', '/collaboration/registrationDetail'].includes(to.path)
+        || [
+          '/collaboration/workflow-mgmt',
+          '/collaboration/registrationDetail',
+          '/wecmdb/designing/data-import-detail'
+        ].includes(to.path)
       ) {
         /* has permission */
         window.sessionStorage.setItem(
@@ -178,13 +181,11 @@ router.beforeEach(async (to, from, next) => {
           to.path === '/404' || to.path === '/login' ? '/homepage' : to.fullPath
         )
         next()
-      }
-      else {
+      } else {
         /* has no permission */
         next('/404')
       }
-    }
-    else {
+    } else {
       next('/login')
     }
   }

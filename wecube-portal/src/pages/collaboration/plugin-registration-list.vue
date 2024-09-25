@@ -447,8 +447,7 @@ export default {
           this.processOptionList(res.data, this.searchNameOptionList, 'name')
           if (this.pluginListType === 'isDeleted') {
             this.deletedPluginList = res.data || []
-          }
-          else {
+          } else {
             this.dataList = res.data || []
           }
           resolve(res.data)
@@ -467,8 +466,7 @@ export default {
             needFillArray.push(item[key])
           }
         })
-      }
-      else {
+      } else {
         // eslint-disable-next-line
         needFillArray = []
       }
@@ -486,8 +484,7 @@ export default {
           desc: response.message || ''
         })
         this.startInstallPlugin(response.data.id)
-      }
-      else {
+      } else {
         this.$Notice.warning({
           title: 'Warning',
           desc: response.message || ''
@@ -595,8 +592,7 @@ export default {
         this.allowCreationIpPort.splice(index, 1)
         await this.getAvailableInstancesByPackageId(this.currentPluginId)
         this.reloadPage()
-      }
-      else {
+      } else {
         this.isSpinShow = false
         clearTimeout(timeId)
       }
@@ -621,8 +617,7 @@ export default {
       if (status === 'OK') {
         this.$Message.success(this.$t('action_successful'))
         this.reloadPage()
-      }
-      else {
+      } else {
         this.$Message.error(this.$t('p_execute_fail'))
       }
     },
@@ -645,8 +640,7 @@ export default {
         data.forEach(item => {
           if (item.keyName.split('-v')[0] in this.originPluginsGroupFilter) {
             this.originPluginsGroupFilter[item.keyName.split('-v')[0]].push(item)
-          }
-          else {
+          } else {
             this.originPluginsGroupFilter[item.keyName.split('-v')[0]] = [item]
           }
         })
@@ -661,8 +655,7 @@ export default {
         .forEach(item => {
           if (item.keyName.split('-v')[0] in this.originPluginsGroupFilter) {
             this.originPluginsGroupFilter[item.keyName.split('-v')[0]].push(item)
-          }
-          else {
+          } else {
             this.originPluginsGroupFilter[item.keyName.split('-v')[0]] = [item]
           }
         })
@@ -727,8 +720,7 @@ export default {
           desc: response.message
         })
         await this.getViewList()
-      }
-      else {
+      } else {
         this.$Notice.warning({
           title: 'Warning',
           desc: response.message

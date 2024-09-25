@@ -188,11 +188,9 @@ export default {
         if (this.activeTab !== 'pending') {
           if (status === 'preExpired') {
             color = '#ff9900'
-          }
-          else if (status === 'expire') {
+          } else if (status === 'expire') {
             color = '#ed4014'
-          }
-          else {
+          } else {
             color = '#19be6b'
           }
         }
@@ -208,21 +206,17 @@ export default {
         let text = ''
         if (this.activeTab === 'pending') {
           text = expireTime || this.$t('be_forever')
-        }
-        else {
+        } else {
           if (status === 'preExpired') {
             // 即将到期
             text = `${expireTime}${this.$t('be_willExpire')}`
-          }
-          else if (status === 'expire') {
+          } else if (status === 'expire') {
             // 已过期
             text = `${expireTime}${this.$t('be_hasExpired')}`
-          }
-          else if (expireTime) {
+          } else if (expireTime) {
             // 到期时间
             text = `${expireTime}${this.$t('be_expire')}`
-          }
-          else if (!expireTime) {
+          } else if (!expireTime) {
             // 永久有效
             text = `${this.$t('be_forever')}`
           }
@@ -268,17 +262,13 @@ export default {
       let statusArr = []
       if (this.activeTab === 'pending') {
         statusArr = ['init']
-      }
-      else if (this.activeTab === 'inEffect') {
+      } else if (this.activeTab === 'inEffect') {
         statusArr = ['inEffect']
-      }
-      else if (this.activeTab === 'expire') {
+      } else if (this.activeTab === 'expire') {
         statusArr = ['expire']
-      }
-      else if (this.activeTab === 'deny') {
+      } else if (this.activeTab === 'deny') {
         statusArr = ['deny']
-      }
-      else if (this.activeTab === 'deleted') {
+      } else if (this.activeTab === 'deleted') {
         statusArr = ['deleted']
       }
       const params = {

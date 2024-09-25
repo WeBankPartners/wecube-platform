@@ -221,8 +221,7 @@ export default {
             this.$refs.form.getExecuteResult(data.batchExecId)
           })
         }
-      }
-      else if (status === 'CONFIRM') {
+      } else if (status === 'CONFIRM') {
         // 高危检测命中，则弹窗让用户手动确认是否继续执行，若继续，则带id和continueToken再执行一次
         if (data.dangerousCheckResult) {
           params.batchExecId = data.batchExecId

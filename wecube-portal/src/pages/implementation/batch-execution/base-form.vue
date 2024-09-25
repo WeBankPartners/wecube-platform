@@ -466,8 +466,7 @@ export default {
       if (isBy > 0) {
         entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
         pkg = current[0].split(')')[1]
-      }
-      else {
+      } else {
         entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
         pkg = last.match(/[^>]+(?=:)/)[0]
       }
@@ -518,8 +517,7 @@ export default {
               </Tooltip>
             )
           }))
-        }
-        else {
+        } else {
           this.tableColumns = data.map(_ => ({
             title: _.name,
             key: _.name,
@@ -559,8 +557,7 @@ export default {
               operator: operator || 'contains'
             })
           }
-        }
-        else {
+        } else {
           keySet.push(sParameter.key)
           const {
             index, packageName, entityName, name, value, operator

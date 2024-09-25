@@ -123,8 +123,7 @@ export default G6 => {
             if (item) {
               if ($item.show) {
                 item.show()
-              }
-              else {
+              } else {
                 item.hide()
               }
             }
@@ -252,8 +251,7 @@ export default G6 => {
               draggable: true
             })
           })
-        }
-        else if (label) {
+        } else if (label) {
           const { maxlength } = labelCfg
 
           let text = maxlength ? label.substr(0, maxlength) : label || ''
@@ -361,8 +359,7 @@ export default G6 => {
             width: model.size && model.size[0],
             height: model.size && model.size[1]
           })
-        }
-        else {
+        } else {
           const logoIcon = group.get('children').find(x => x.cfg.className === `${attrs.type}-logoIcon`)
 
           if (logoIcon) {
@@ -402,12 +399,10 @@ export default G6 => {
         if (buildInEvents.includes(name)) {
           // 内部this绑定到了当前item实例
           itemEvents[name].call(this, value, group)
-        }
-        else if (this.stateApplying) {
+        } else if (this.stateApplying) {
           // eslint-disable-next-line no-useless-call
           this.stateApplying.call(this, name, value, item)
-        }
-        else {
+        } else {
           console.warn(
             `warning: ${name} 事件回调未注册!\n可继承该节点并通过 stateApplying 方法进行注册\n如已注册请忽略 (-_-!)`
           )
