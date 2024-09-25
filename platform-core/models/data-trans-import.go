@@ -128,6 +128,7 @@ type TransImportHistoryParam struct {
 }
 
 type RequestTemplateImportResponse struct {
-	StatusCode string      `json:"statusCode"`
-	Data       interface{} `json:"data"`
+	StatusCode    string      `json:"statusCode"`
+	StatusMessage string      `json:"statusMessage"`
+	Data          interface{} `json:"data"`
 }
