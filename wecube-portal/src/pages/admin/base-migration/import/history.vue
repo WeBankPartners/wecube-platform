@@ -76,9 +76,9 @@ export default {
           multiple: true,
           list: [
             {
-              label: '进行中',
+              label: '执行中',
               value: 'doing',
-              color: '#ff9900'
+              color: '#2d8cf0'
             },
             {
               label: '成功',
@@ -93,7 +93,7 @@ export default {
             {
               label: '终止',
               value: 'cancel',
-              color: '#ed4014'
+              color: '#ff9900'
             }
           ]
         },
@@ -146,9 +146,9 @@ export default {
           render: (h, params) => {
             const list = [
               {
-                label: '进行中',
+                label: '执行中',
                 value: 'doing',
-                color: '#ff9900'
+                color: '#2d8cf0'
               },
               {
                 label: '成功',
@@ -163,7 +163,7 @@ export default {
               {
                 label: '终止',
                 value: 'cancel',
-                color: '#ed4014'
+                color: '#ff9900'
               }
             ]
             const findObj = list.find(item => item.value === params.row.status) || {}
@@ -198,25 +198,23 @@ export default {
         {
           title: this.$t('table_action'),
           key: 'action',
-          width: 110,
+          width: 120,
           align: 'center',
           fixed: 'right',
           render: (h, params) => (
-            <div style="display:flex;justify-content:center;">
-              {params.row.status !== 'start' && (
-                <Tooltip content={this.$t('be_details')} placement="top">
-                  <Button
-                    size="small"
-                    type="info"
-                    onClick={() => {
-                      this.handleView(params.row) // 查看
-                    }}
-                  >
-                    <Icon type="md-eye" size="16"></Icon>
-                  </Button>
-                </Tooltip>
-              )}
-              {['success', 'fail'].includes(params.row.status) && (
+            <div style="display:flex;justify-content:flex-start;">
+              <Tooltip content={this.$t('be_details')} placement="top">
+                <Button
+                  size="small"
+                  type="info"
+                  onClick={() => {
+                    this.handleView(params.row) // 查看
+                  }}
+                >
+                  <Icon type="md-eye" size="16"></Icon>
+                </Button>
+              </Tooltip>
+              {['success', 'cancel'].includes(params.row.status) && (
                 <Tooltip content={this.$t('be_republish')} placement="top">
                   <Button
                     type="success"
@@ -230,17 +228,31 @@ export default {
                   </Button>
                 </Tooltip>
               )}
-              {params.row.status === 'start' && (
-                <Tooltip content={this.$t('edit')} placement="top">
+              {['fail', 'doing'].includes(params.row.status) && (
+                <Tooltip content={this.$t('stop_orch')} placement="top">
                   <Button
                     size="small"
-                    type="primary"
+                    type="error"
                     onClick={() => {
-                      this.handleEdit(params.row) // 编辑
+                      this.handleStop(params.row) // 终止
                     }}
-                    style="margin-right:5px;"
+                    style="margin-left:5px;"
                   >
-                    <Icon type="md-create" size="16"></Icon>
+                    <Icon type="md-power" size="16"></Icon>
+                  </Button>
+                </Tooltip>
+              )}
+              {['fail'].includes(params.row.status) && (
+                <Tooltip content={this.$t('be_continue')} placement="top">
+                  <Button
+                    size="small"
+                    type="success"
+                    onClick={() => {
+                      this.handleRetry(params.row) // 继续
+                    }}
+                    style="margin-left:5px;"
+                  >
+                    <Icon type="md-play" size="16"></Icon>
                   </Button>
                 </Tooltip>
               )}
@@ -345,15 +357,10 @@ export default {
         }
       })
     },
-    handleEdit(row) {
-      this.$router.push({
-        path: '/admin/base-migration/import',
-        query: {
-          type: 'edit',
-          id: row.id
-        }
-      })
-    },
+    // 终止
+    handleStop() {},
+    // 失败重试
+    handleRetry() {},
     // 重新发起
     handleRepub(row) {
       this.$router.push({
