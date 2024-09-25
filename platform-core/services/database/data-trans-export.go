@@ -986,10 +986,11 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 	metricPath := fmt.Sprintf("%s/metric", path)
 	serviceGroupPath := fmt.Sprintf("%s/service_group", metricPath)
 	endpointGroupPath := fmt.Sprintf("%s/endpoint_group", metricPath)
-	strategyPath := fmt.Sprintf("%s/strategy", metricPath)
-	dashboardPath := fmt.Sprintf("%s/dashboard", metricPath)
-	keywordPath := fmt.Sprintf("%s/keyword", metricPath)
-	logMonitorPath := fmt.Sprintf("%s/log_monitor", metricPath)
+
+	strategyPath := fmt.Sprintf("%s/strategy", path)
+	dashboardPath := fmt.Sprintf("%s/dashboard", path)
+	keywordPath := fmt.Sprintf("%s/keyword", path)
+	logMonitorPath := fmt.Sprintf("%s/log_monitor", path)
 	if err = os.MkdirAll(serviceGroupPath, 0755); err != nil {
 		return
 	}
