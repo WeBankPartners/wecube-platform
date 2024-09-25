@@ -3,6 +3,7 @@ package data_trans
 import (
 	"context"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote/monitor"
 	"io/fs"
 	"os"
@@ -17,6 +18,9 @@ import (
 )
 
 var importFuncList []func(context.Context, *models.TransImportJobParam) (string, error)
+
+// defaultRoles 系统默认角色列表
+var defaultRoles = []string{"SUB_SYSTEM", "IFA_OPS", "APP_DEV", "IFA_ARC", "APP_ARC", "STG_OPS", "PRD_OPS", "MONITOR_ADMIN", "CMDB_ADMIN", "SUPER_ADMIN"}
 
 func init() {
 	importFuncList = append(importFuncList, importRole)
@@ -162,10 +166,18 @@ func importRole(ctx context.Context, transImportParam *models.TransImportJobPara
 	log.Logger.Info("1. importRole start!!!")
 	var roleList []*models.SimpleLocalRoleDto
 	var response models.QuerySingleRolesResponse
+	var defaultRoleMap = make(map[string]bool)
 	if err = database.ParseJsonData(fmt.Sprintf("%s/role.json", transImportParam.DirPath), &roleList); err != nil {
 		return
 	}
+	for _, role := range defaultRoles {
+		defaultRoleMap[role] = true
+	}
 	for _, role := range roleList {
+		if defaultRoleMap[role.Name] {
+			// 系统默认角色不需要导入
+			continue
+		}
 		if response, err = remote.RegisterLocalRole(role, transImportParam.Token, transImportParam.Language); err != nil {
 			log.Logger.Error("RegisterLocalRole err", log.Error(err))
 			return
@@ -197,12 +209,31 @@ func importWorkflow(ctx context.Context, transImportParam *models.TransImportJob
 	// 解析workflow.json,导入编排
 	log.Logger.Info("4. importWorkflow start!!!")
 	var procDefList []*models.ProcessDefinitionDto
-	if err = database.ParseJsonData(fmt.Sprintf("%s/workflow.json", transImportParam.DirPath), &procDefList); err != nil {
+	var importResult *models.ImportResultDto
+	var exist bool
+	workflowPath := fmt.Sprintf("%s/workflow.json", transImportParam.DirPath)
+	if exist, err = tools.PathExist(workflowPath); err != nil {
+		return
+	}
+	if !exist {
+		log.Logger.Info("importWorkflow data empty!")
+		return
+	}
+	if err = database.ParseJsonData(workflowPath, &procDefList); err != nil {
 		return
 	}
 	if len(procDefList) > 0 {
-		if _, err = process.ProcDefImport(ctx, procDefList, transImportParam.Operator, transImportParam.Token, transImportParam.Language); err != nil {
+		if importResult, err = process.ProcDefImport(ctx, procDefList, transImportParam.Operator, transImportParam.Token, transImportParam.Language); err != nil {
 			return
+		}
+		if importResult != nil && len(importResult.ResultList) > 0 {
+			for _, data := range importResult.ResultList {
+				if data.Code > 0 {
+					err = fmt.Errorf("importWorkflow fail,%s", data.Message)
+					log.Logger.Error("importWorkflow fail", log.String("name", data.ProcDefName), log.String("errMsg", data.Message))
+					return
+				}
+			}
 		}
 	}
 	log.Logger.Info("4. importWorkflow success end!!!")
@@ -213,7 +244,16 @@ func importWorkflow(ctx context.Context, transImportParam *models.TransImportJob
 func importBatchExecution(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	log.Logger.Info("5. importBatchExecution start!!!")
 	var batchExecutionTemplateList []*models.BatchExecutionTemplate
-	if err = database.ParseJsonData(fmt.Sprintf("%s/batch_execution.json", transImportParam.DirPath), &batchExecutionTemplateList); err != nil {
+	var exist bool
+	batchExecutionPath := fmt.Sprintf("%s/batch_execution.json", transImportParam.DirPath)
+	if exist, err = tools.PathExist(batchExecutionPath); err != nil {
+		return
+	}
+	if !exist {
+		log.Logger.Info("importBatchExecution data empty!")
+		return
+	}
+	if err = database.ParseJsonData(batchExecutionPath, &batchExecutionTemplateList); err != nil {
 		return
 	}
 	if len(batchExecutionTemplateList) > 0 {
@@ -237,83 +277,157 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 	log.Logger.Info("6. importMonitorBaseConfig start!!!")
 	var monitorTypeList []string
 	var response monitor.BatchAddTypeConfigResp
+	var monitorTypeExist, endpointGroupExist, metricExist, strategyExist, logMonitorTemplateExist bool
 	// 导入监控基础类型
-	if err = database.ParseJsonData(fmt.Sprintf("%s/monitor/monitor_type.json", transImportParam.DirPath), &monitorTypeList); err != nil {
+	monitorTypePath := fmt.Sprintf("%s/monitor/monitor_type.json", transImportParam.DirPath)
+	if monitorTypeExist, err = tools.PathExist(monitorTypePath); err != nil {
 		return
 	}
-	if response, err = monitor.ImportMonitorType(monitorTypeList, transImportParam.Token); err != nil {
-		log.Logger.Error("ImportMonitorType fail", log.Error(err))
-		return
+	if monitorTypeExist {
+		if err = database.ParseJsonData(monitorTypePath, &monitorTypeList); err != nil {
+			return
+		}
+		if response, err = monitor.ImportMonitorType(monitorTypeList, transImportParam.Token); err != nil {
+			log.Logger.Error("ImportMonitorType fail", log.Error(err))
+			return
+		}
+		if response.Status != "OK" {
+			err = fmt.Errorf("ImportMonitorType %s", response.Message)
+			log.Logger.Error("ImportMonitorType fail", log.String("msg", response.Message))
+			return
+		}
+		log.Logger.Info("6-1. import monitorType success!")
+	} else {
+		log.Logger.Info("6-1. import monitorType data empty!")
 	}
-	if response.Status != "OK" {
-		err = fmt.Errorf("ImportMonitorType %s", response.Message)
-		log.Logger.Error("ImportMonitorType fail", log.String("msg", response.Message))
-		return
-	}
-	log.Logger.Info("6-1. import monitorType success!")
-
 	// 导入对象组
-	err = monitor.ImportEndpointGroup(fmt.Sprintf("%s/monitor/endpoint_group.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
-	if err != nil {
-		log.Logger.Error("ImportEndpointGroup fail", log.Error(err))
+	endpointGroupPath := fmt.Sprintf("%s/monitor/endpoint_group.json", transImportParam.DirPath)
+	if endpointGroupExist, err = tools.PathExist(endpointGroupPath); err != nil {
 		return
 	}
-	log.Logger.Info("6-2. import endpointGroup success!")
+	if endpointGroupExist {
+		if err = monitor.ImportEndpointGroup(endpointGroupPath, transImportParam.Token, transImportParam.Language); err != nil {
+			log.Logger.Error("ImportEndpointGroup fail", log.Error(err))
+			return
+		}
+		log.Logger.Info("6-2. import endpointGroup success!")
+	} else {
+		log.Logger.Info("6-2. import endpointGroup date empty!")
+	}
+
 	// 导入基础类型指标、对象组指标
 	metricPath := fmt.Sprintf("%s/monitor/metric", transImportParam.DirPath)
-	var files, childFiles []fs.DirEntry
-	if files, err = os.ReadDir(metricPath); err != nil {
-		log.Logger.Error("ReadDir fail", log.String("metricPath", metricPath), log.Error(err))
+	if metricExist, err = tools.PathExist(metricPath); err != nil {
 		return
 	}
-	// 遍历文件和子目录
-	for _, file := range files {
-		if file.IsDir() {
-			if file.Name() != "endpoint_group" {
-				continue
+	if metricExist {
+		var files, childFiles []fs.DirEntry
+		if files, err = os.ReadDir(metricPath); err != nil {
+			log.Logger.Error("ReadDir fail", log.String("metricPath", metricPath), log.Error(err))
+			return
+		}
+		// 遍历文件和子目录
+		for _, file := range files {
+			if file.IsDir() {
+				if file.Name() != "endpoint_group" {
+					continue
+				}
+				// endpoint_group 对象组目录遍历
+				if childFiles, err = os.ReadDir(fmt.Sprintf("%s/%s", metricPath, "endpoint_group")); err != nil {
+					log.Logger.Error("ReadDir fail", log.Error(err))
+					return
+				}
+				for _, newFile := range childFiles {
+					comparison := "N"
+					endpointGroup := newFile.Name()[:strings.LastIndex(newFile.Name(), ".")]
+					if strings.Contains(file.Name(), "_comparison") {
+						comparison = "Y"
+						endpointGroup = newFile.Name()[:strings.LastIndex(newFile.Name(), "_comparison")]
+					}
+					param := monitor.ImportMetricParam{
+						FilePath:      fmt.Sprintf("%s/endpoint_group/%s", metricPath, newFile.Name()),
+						UserToken:     transImportParam.Token,
+						Language:      transImportParam.Language,
+						EndpointGroup: endpointGroup,
+						Comparison:    comparison,
+					}
+					if err = monitor.ImportMetric(param); err != nil {
+						log.Logger.Error("ImportMetric err", log.String("fileName", newFile.Name()), log.Error(err))
+						return
+					}
+				}
 			}
-			// endpoint_group 对象组目录遍历
-			if childFiles, err = os.ReadDir(fmt.Sprintf("%s/%s", metricPath, "endpoint_group")); err != nil {
-				log.Logger.Error("ReadDir fail", log.Error(err))
+			comparison := "N"
+			monitorType := file.Name()[:strings.LastIndex(file.Name(), ".")]
+			if strings.Contains(file.Name(), "_comparison") {
+				comparison = "Y"
+				monitorType = file.Name()[:strings.LastIndex(file.Name(), "_comparison")]
+			}
+			param := monitor.ImportMetricParam{
+				FilePath:    fmt.Sprintf("%s/%s", metricPath, file.Name()),
+				UserToken:   transImportParam.Token,
+				Language:    transImportParam.Language,
+				MonitorType: monitorType,
+				Comparison:  comparison,
+			}
+			if err = monitor.ImportMetric(param); err != nil {
+				log.Logger.Error("ImportMetric err", log.String("fileName", file.Name()), log.Error(err))
 				return
 			}
-			for _, newFile := range childFiles {
-				comparison := "N"
-				endpointGroup := newFile.Name()[:strings.LastIndex(newFile.Name(), ".")]
-				if strings.Contains(file.Name(), "_comparison") {
-					comparison = "Y"
-					endpointGroup = newFile.Name()[:strings.LastIndex(newFile.Name(), "_comparison")]
+		}
+		log.Logger.Info("6-3. import metric monitorType and endpointGroup success!")
+	} else {
+		log.Logger.Info("6-3. import metric data empty!")
+	}
+
+	// 导入对象组阈值配置
+	strategyPath := fmt.Sprintf("%s/monitor/strategy", transImportParam.DirPath)
+	if strategyExist, err = tools.PathExist(strategyPath); err != nil {
+		return
+	}
+	if strategyExist {
+		var strategyFiles []fs.DirEntry
+		if strategyFiles, err = os.ReadDir(strategyPath); err != nil {
+			log.Logger.Error("ReadDir fail", log.String("strategyPath", strategyPath), log.Error(err))
+			return
+		}
+		// 遍历文件和子目录
+		for _, file := range strategyFiles {
+			index := strings.Index(file.Name(), "strategy_endpoint_group_")
+			if index > 0 {
+				endpointGroup := file.Name()[index+1:]
+				param := monitor.ImportStrategyParam{
+					StrategyType: "group",
+					Value:        endpointGroup,
+					FilePath:     fmt.Sprintf("%s/%s", strategyPath, file.Name()),
+					UserToken:    transImportParam.Token,
+					Language:     transImportParam.Language,
 				}
-				param := monitor.ImportMetricParam{
-					FilePath:      fmt.Sprintf("%s/endpoint_group/%s", metricPath, newFile.Name()),
-					UserToken:     transImportParam.Token,
-					Language:      transImportParam.Language,
-					EndpointGroup: endpointGroup,
-					Comparison:    comparison,
-				}
-				if err = monitor.ImportMetric(param); err != nil {
-					log.Logger.Error("ImportMetric err", log.String("fileName", newFile.Name()), log.Error(err))
+				if err = monitor.ImportStrategy(param); err != nil {
+					log.Logger.Error("ImportStrategy err", log.String("fileName", file.Name()), log.Error(err))
 					return
 				}
 			}
 		}
-		comparison := "N"
-		monitorType := file.Name()[:strings.LastIndex(file.Name(), ".")]
-		if strings.Contains(file.Name(), "_comparison") {
-			comparison = "Y"
-			monitorType = file.Name()[:strings.LastIndex(file.Name(), "_comparison")]
-		}
-		param := monitor.ImportMetricParam{
-			FilePath:    fmt.Sprintf("%s/%s", metricPath, file.Name()),
-			UserToken:   transImportParam.Token,
-			Language:    transImportParam.Language,
-			MonitorType: monitorType,
-			Comparison:  comparison,
-		}
-		if err = monitor.ImportMetric(param); err != nil {
-			log.Logger.Error("ImportMetric err", log.String("fileName", file.Name()), log.Error(err))
+		log.Logger.Info("6-4. import  monitor strategy success!")
+	} else {
+		log.Logger.Info("6-4. import  monitor strategy data empty!")
+	}
+
+	// 导入业务模版配置
+	logMonitorTemplatePath := fmt.Sprintf("%s/monitor/log_monitor_template.json", transImportParam.DirPath)
+	if logMonitorTemplateExist, err = tools.PathExist(logMonitorTemplatePath); err != nil {
+		return
+	}
+	if logMonitorTemplateExist {
+		err = monitor.ImportLogMonitorTemplate(logMonitorTemplatePath, transImportParam.Token, transImportParam.Language)
+		if err != nil {
+			log.Logger.Error("ImportLogMetricTemplate fail", log.Error(err))
 			return
 		}
+		log.Logger.Info("6-5. import  log_metric_template success!")
+	} else {
+		log.Logger.Info("6-5. import  log_metric_template data empty!")
 	}
 	log.Logger.Info("6. importMonitorBaseConfig success end!!!")
 	return
