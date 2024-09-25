@@ -13,7 +13,7 @@
           :onlyShowReset="true"
           :options="searchOptions"
           v-model="searchParams"
-          @search="getProductList"
+          @search="handleSearchTable"
         ></BaseSearch>
         <Table
           :border="false"
@@ -32,6 +32,7 @@
 
 <script>
 import { getExportBusinessList } from '@/api/server'
+import { deepClone } from '@/const/util'
 export default {
   props: {
     detailData: Object,
@@ -101,6 +102,7 @@ export default {
         }
       ],
       tableData: [],
+      originTableData: [],
       selectionList: [],
       loading: false
     }
@@ -131,6 +133,16 @@ export default {
     }
   },
   methods: {
+    // 表格搜索
+    handleSearchTable() {
+      this.tableData = this.originTableData.filter(item => {
+        const nameFlag = item.displayName.toLowerCase().indexOf(this.searchParams.displayName.toLowerCase()) > -1
+        const idFlag = item.id.indexOf(this.searchParams.id) > -1
+        if (nameFlag && idFlag) {
+          return true
+        }
+      })
+    },
     onSelectionChange(selection) {
       this.selectionList = selection
     },
@@ -163,6 +175,7 @@ export default {
       this.loading = false
       if (status === 'OK') {
         this.tableData = data || []
+        this.originTableData = deepClone(this.tableData)
       }
     },
     jumpToHistory() {}
