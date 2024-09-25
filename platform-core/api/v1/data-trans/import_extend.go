@@ -3,6 +3,9 @@ package data_trans
 import (
 	"context"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote/monitor"
+	"io/fs"
+	"os"
 	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
@@ -69,16 +72,19 @@ func StartTransImport(ctx context.Context, param models.ExecImportParam) (err er
 // StartTransImport
 // 开始导入
 // 1、导入角色
-// 2、导入cmdb插件服务、导入cmdb数据、同步cmdb数据模型、导入其它插件服务
-// 3、导入编排
-// 4、导入批量执行
-// 5、导入物料包
-// 6、导入监控基础类型、对象组、基础类型指标、对象组指标、对象组阈值配置、业务配置模版
-// 7、导入taskman模版和公共组件
+// 2、导入cmdb插件服务、导入cmdb数据、同步cmdb数据模型、
+// 3、导入其它插件服务
+// 4、导入编排
+// 5、导入批量执行
+// 6、导入物料包
+// 7、导入监控基础类型、对象组、基础类型指标、对象组指标、对象组阈值配置、业务配置模版
+// 8、导入taskman组件库
+// 9. 导入taskman请求模版
+
 // 开始执行
-// 8、开始执行编排(创建资源、初始化资源、应用部署)
+// 10、开始执行编排(创建资源、初始化资源、应用部署)
 // 继续导入
-// 9、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板
+// 11、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板
 func doImportAction(ctx context.Context, callParam *models.CallTransImportActionParam) (err error) {
 	transImportJobParam, getConfigErr := database.GetTransImportWithDetail(ctx, callParam.TransImportId, false)
 	if getConfigErr != nil {
@@ -152,6 +158,7 @@ func callImportFunc(ctx context.Context, transImportJobParam *models.TransImport
 // 1、导入角色
 func importRole(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	// 解析role.json,导入角色
+	log.Logger.Info("1. importRole start!!!")
 	var roleList []*models.SimpleLocalRoleDto
 	var response models.QuerySingleRolesResponse
 	if err = database.ParseJsonData(fmt.Sprintf("%s/role.json", transImportParam.DirPath), &roleList); err != nil {
@@ -168,6 +175,7 @@ func importRole(ctx context.Context, transImportParam *models.TransImportJobPara
 			return
 		}
 	}
+	log.Logger.Info("1. importRole success end!!!")
 	return
 }
 
@@ -186,6 +194,7 @@ func importPluginConfig(ctx context.Context, transImportParam *models.TransImpor
 // 4、导入编排
 func importWorkflow(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	// 解析workflow.json,导入编排
+	log.Logger.Info("4. importWorkflow start!!!")
 	var procDefList []*models.ProcessDefinitionDto
 	if err = database.ParseJsonData(fmt.Sprintf("%s/workflow.json", transImportParam.DirPath), &procDefList); err != nil {
 		return
@@ -195,18 +204,24 @@ func importWorkflow(ctx context.Context, transImportParam *models.TransImportJob
 			return
 		}
 	}
+	log.Logger.Info("4. importWorkflow success end!!!")
 	return
 }
 
 // 5、导入批量执行
 func importBatchExecution(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
+	log.Logger.Info("5. importBatchExecution start!!!")
 	var batchExecutionTemplateList []*models.BatchExecutionTemplate
 	if err = database.ParseJsonData(fmt.Sprintf("%s/batchExecution.json", transImportParam.DirPath), &batchExecutionTemplateList); err != nil {
 		return
 	}
 	if len(batchExecutionTemplateList) > 0 {
-		err = database.ImportTemplate(ctx, transImportParam.Operator, batchExecutionTemplateList)
+		if err = database.ImportTemplate(ctx, transImportParam.Operator, batchExecutionTemplateList); err != nil {
+			log.Logger.Error("importBatchExecution ImportTemplate fail", log.Error(err))
+			return
+		}
 	}
+	log.Logger.Info("5. importWorkflow success end!!!")
 	return
 }
 
@@ -218,13 +233,52 @@ func importArtifactPackage(ctx context.Context, transImportParam *models.TransIm
 
 // 7、导入监控基础类型、对象组、基础类型指标、对象组指标、对象组阈值配置、业务配置模版
 func importMonitorBaseConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
+	log.Logger.Info("6. importMonitorBaseConfig start!!!")
+	var monitorTypeList []string
+	var response monitor.BatchAddTypeConfigResp
+	// 导入监控基础类型
+	if err = database.ParseJsonData(fmt.Sprintf("%s/monitor/monitor_type.json", transImportParam.DirPath), &monitorTypeList); err != nil {
+		return
+	}
+	if response, err = monitor.ImportMonitorType(monitorTypeList, transImportParam.Token); err != nil {
+		log.Logger.Error("ImportMonitorType fail", log.Error(err))
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf("ImportMonitorType %s", response.Message)
+		log.Logger.Error("ImportMonitorType fail", log.String("msg", response.Message))
+		return
+	}
+	log.Logger.Info("6-1. import monitorType success!")
 
+	// 导入对象组
+	err = monitor.ImportEndpointGroup(fmt.Sprintf("%s/monitor/endpoint_group.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
+	if err != nil {
+		log.Logger.Error("ImportEndpointGroup fail", log.Error(err))
+		return
+	}
+	log.Logger.Info("6-2. import endpointGroup success!")
+	// 导入基础类型指标、对象组指标
+	metricPath := fmt.Sprintf("%s/monitor/metric", transImportParam.DirPath)
+	var files []fs.DirEntry
+	if files, err = os.ReadDir(metricPath); err != nil {
+		log.Logger.Error("ReadDir fail", log.String("metricPath", metricPath), log.Error(err))
+		return
+	}
+	// 遍历文件和子目录
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+	}
+	log.Logger.Info("6. importMonitorBaseConfig success end!!!")
 	return
 }
 
 // 8.importTaskManComponentLibrary 导入组件库
 func importTaskManComponentLibrary(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	// 判断是否要导入组件库
+	log.Logger.Info("8. importTaskManComponentLibrary start!!!")
 	if transImportParam.CurrentDetail == nil {
 		err = fmt.Errorf("importTaskManTemplate CurrentDetail is empty")
 		log.Logger.Error("err:", log.Error(err))
@@ -235,18 +289,23 @@ func importTaskManComponentLibrary(ctx context.Context, transImportParam *models
 		err = remote.ImportComponentLibrary(fmt.Sprintf("%s/componentLibrary.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
 		if err != nil {
 			log.Logger.Error("ImportComponentLibrary err", log.Error(err))
+			return
 		}
 	}
+	log.Logger.Info("8. importTaskManComponentLibrary success end!!!")
 	return
 }
 
 // 9、导入taskman模版
 func importTaskManTemplate(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
+	log.Logger.Info("9. importTaskManTemplate start!!!")
 	// 导入模版
 	err = remote.ImportRequestTemplate(fmt.Sprintf("%s/requestTemplate.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
 	if err != nil {
 		log.Logger.Error("ImportRequestTemplate fail", log.Error(err))
+		return
 	}
+	log.Logger.Info("8. importTaskManTemplate success end!!!")
 	return
 }
 
