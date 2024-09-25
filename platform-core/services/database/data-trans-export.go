@@ -986,10 +986,14 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 	metricPath := fmt.Sprintf("%s/metric", path)
 	serviceGroupPath := fmt.Sprintf("%s/service_group", metricPath)
 	endpointGroupPath := fmt.Sprintf("%s/endpoint_group", metricPath)
+	strategyPath := fmt.Sprintf("%s/strategy", metricPath)
 	if err = os.MkdirAll(serviceGroupPath, 0755); err != nil {
 		return
 	}
 	if err = os.MkdirAll(endpointGroupPath, 0755); err != nil {
+		return
+	}
+	if err = os.MkdirAll(strategyPath, 0755); err != nil {
 		return
 	}
 	for _, monitorAnalyzeData := range analyzeList {
@@ -1036,7 +1040,7 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 					log.Logger.Error("ExportLogMetric err", log.JsonObj("serviceGroup", serviceGroup), log.Error(err))
 					return
 				}
-				if string(responseBytes) != "" {
+				if isEffectiveJson(responseBytes) {
 					var temp interface{}
 					json.Unmarshal(responseBytes, &temp)
 					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", path, models.TransExportAnalyzeMonitorDataTypeLogMonitorServiceGroup, i+1))
@@ -1049,7 +1053,7 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 				log.Logger.Error("ExportLogMonitorTemplate err", log.StringList("LogMonitorTemplates", exportDataKeyList), log.Error(err))
 				return
 			}
-			if string(responseBytes) != "" {
+			if isEffectiveJson(responseBytes) {
 				var temp interface{}
 				json.Unmarshal(responseBytes, &temp)
 				filePathList = []string{fmt.Sprintf("%s/%s.json", path, models.TransExportAnalyzeMonitorDataTypeLogMonitorTemplate)}
@@ -1062,7 +1066,7 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 					log.Logger.Error("ExportAlarmStrategy err", log.JsonObj("service", key), log.Error(err))
 					return
 				}
-				if string(responseBytes) != "" {
+				if string(responseBytes) != "" && string(responseBytes) != "[]" && string(responseBytes) != "{}" {
 					var temp interface{}
 					json.Unmarshal(responseBytes, &temp)
 					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", path, models.TransExportAnalyzeMonitorDataTypeStrategyServiceGroup, i+1))
@@ -1076,7 +1080,7 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 					log.Logger.Error("ExportAlarmStrategy err", log.JsonObj("group", key), log.Error(err))
 					return
 				}
-				if string(responseBytes) != "" {
+				if isEffectiveJson(responseBytes) {
 					var temp interface{}
 					json.Unmarshal(responseBytes, &temp)
 					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", path, models.TransExportAnalyzeMonitorDataTypeStrategyEndpointGroup, i+1))
@@ -1090,7 +1094,7 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 					log.Logger.Error("ExportKeyword err", log.JsonObj("serviceGroup", serviceGroup), log.Error(err))
 					return
 				}
-				if string(responseBytes) != "" {
+				if isEffectiveJson(responseBytes) {
 					var temp interface{}
 					json.Unmarshal(responseBytes, &temp)
 					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", path, models.TransExportAnalyzeMonitorDataTypeLogKeywordServiceGroup, i+1))
@@ -1105,7 +1109,7 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 					log.Logger.Error("ExportCustomDashboard err", log.JsonObj("dashboardId", dashboardId), log.Error(err))
 					return
 				}
-				if string(responseBytes) != "" {
+				if isEffectiveJson(responseBytes) {
 					var temp interface{}
 					json.Unmarshal(responseBytes, &temp)
 					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", path, models.TransExportAnalyzeMonitorDataTypeDashboard, i+1))
@@ -1168,7 +1172,7 @@ func exportMetricList(param models.ExportMetricListDto) (err error) {
 			log.Logger.Error("ExportMetricList err", log.JsonObj("requestParam", requestParam), log.Error(err))
 			return
 		}
-		if string(responseBytes) != "" {
+		if string(responseBytes) != "" && string(responseBytes) != "[]" {
 			var temp interface{}
 			json.Unmarshal(responseBytes, &temp)
 			if err = tools.WriteJsonData2File(requestParam.FilePath, temp); err != nil {
@@ -1299,4 +1303,12 @@ func contains(arr []string, val string) bool {
 		elementMap[s] = true
 	}
 	return elementMap[val]
+}
+
+func isEffectiveJson(responseBytes []byte) bool {
+	str := string(responseBytes)
+	if str == "" || str == "[]" || str == "{}" {
+		return false
+	}
+	return true
 }
