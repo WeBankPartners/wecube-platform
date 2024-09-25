@@ -212,7 +212,7 @@ func importWorkflow(ctx context.Context, transImportParam *models.TransImportJob
 func importBatchExecution(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	log.Logger.Info("5. importBatchExecution start!!!")
 	var batchExecutionTemplateList []*models.BatchExecutionTemplate
-	if err = database.ParseJsonData(fmt.Sprintf("%s/batchExecution.json", transImportParam.DirPath), &batchExecutionTemplateList); err != nil {
+	if err = database.ParseJsonData(fmt.Sprintf("%s/batch_execution.json", transImportParam.DirPath), &batchExecutionTemplateList); err != nil {
 		return
 	}
 	if len(batchExecutionTemplateList) > 0 {
@@ -286,7 +286,7 @@ func importTaskManComponentLibrary(ctx context.Context, transImportParam *models
 	}
 	if transImportParam.CurrentDetail.Input == "true" {
 		// 导入组件库
-		err = remote.ImportComponentLibrary(fmt.Sprintf("%s/componentLibrary.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
+		err = remote.ImportComponentLibrary(fmt.Sprintf("%s/component_library.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
 		if err != nil {
 			log.Logger.Error("ImportComponentLibrary err", log.Error(err))
 			return
@@ -300,7 +300,7 @@ func importTaskManComponentLibrary(ctx context.Context, transImportParam *models
 func importTaskManTemplate(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	log.Logger.Info("9. importTaskManTemplate start!!!")
 	// 导入模版
-	err = remote.ImportRequestTemplate(fmt.Sprintf("%s/requestTemplate.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
+	err = remote.ImportRequestTemplate(fmt.Sprintf("%s/request_template.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
 	if err != nil {
 		log.Logger.Error("ImportRequestTemplate fail", log.Error(err))
 		return
