@@ -2,8 +2,10 @@ package data_trans
 
 import (
 	"context"
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"os"
@@ -172,6 +174,41 @@ func importPluginConfigFunc(ctx context.Context, transImportParam *models.TransI
 				err = fmt.Errorf("import plugin:%s config fail,%s ", xmlFileName, err.Error())
 				break
 			}
+		}
+	}
+	return
+}
+
+// 5、导入物料包
+func importArtifactPackageFunc(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
+	var input string
+	input, err = database.GetTransImportDetailInput(ctx, transImportParam.CurrentDetail.Id)
+	if err != nil {
+		return
+	}
+	var artifactDataList []*models.AnalyzeArtifactDisplayData
+	if err = json.Unmarshal([]byte(input), &artifactDataList); err != nil {
+		err = fmt.Errorf("json unmarshal artifact import detail data fail,%s ", err.Error())
+		log.Logger.Error("importArtifactPackageFunc", log.String("inputData", input), log.Error(err))
+		return
+	}
+	for _, artifactData := range artifactDataList {
+		for _, artifactRow := range artifactData.ArtifactRows {
+			tmpPackageName := artifactRow["key_name"]
+			if tmpPackageName == "" {
+				continue
+			}
+			tmpImportFilePath := fmt.Sprintf(models.TransImportTmpDir, transImportParam.TransImport.Id) + "/" + models.TransArtifactPackageDirName + "/" + tmpPackageName
+			tmpDeployPackageGuid, tmpErr := remote.UploadArtifactPackage(ctx, remote.GetToken(), artifactData.UnitDesign, tmpImportFilePath)
+			if tmpErr != nil {
+				err = fmt.Errorf("upload artifact package to artifacts plugin fail,tmpPath:%s ,error:%s ", tmpImportFilePath, tmpErr.Error())
+				break
+			} else {
+				log.Logger.Info("upload artifact package to artifacts plugin done", log.String("packageName", tmpPackageName), log.String("deployPackageGuid", tmpDeployPackageGuid))
+			}
+		}
+		if err != nil {
+			break
 		}
 	}
 	return
