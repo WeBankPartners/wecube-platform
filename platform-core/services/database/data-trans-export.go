@@ -987,6 +987,9 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 	serviceGroupPath := fmt.Sprintf("%s/service_group", metricPath)
 	endpointGroupPath := fmt.Sprintf("%s/endpoint_group", metricPath)
 	strategyPath := fmt.Sprintf("%s/strategy", metricPath)
+	dashboardPath := fmt.Sprintf("%s/dashboard", metricPath)
+	keywordPath := fmt.Sprintf("%s/keyword", metricPath)
+	logMonitorPath := fmt.Sprintf("%s/log_monitor", metricPath)
 	if err = os.MkdirAll(serviceGroupPath, 0755); err != nil {
 		return
 	}
@@ -994,6 +997,15 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 		return
 	}
 	if err = os.MkdirAll(strategyPath, 0755); err != nil {
+		return
+	}
+	if err = os.MkdirAll(dashboardPath, 0755); err != nil {
+		return
+	}
+	if err = os.MkdirAll(keywordPath, 0755); err != nil {
+		return
+	}
+	if err = os.MkdirAll(logMonitorPath, 0755); err != nil {
 		return
 	}
 	for _, monitorAnalyzeData := range analyzeList {
@@ -1035,7 +1047,7 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 			finalExportDataList = []interface{}{exportMonitorEndpointGroupList}
 		case models.TransExportAnalyzeMonitorDataTypeLogMonitorServiceGroup:
 			// 导出指标的业务配置
-			for i, serviceGroup := range exportDataKeyList {
+			for _, serviceGroup := range exportDataKeyList {
 				if responseBytes, err = monitor.ExportLogMetric(serviceGroup, token); err != nil {
 					log.Logger.Error("ExportLogMetric err", log.JsonObj("serviceGroup", serviceGroup), log.Error(err))
 					return
@@ -1043,7 +1055,7 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 				if isEffectiveJson(responseBytes) {
 					var temp interface{}
 					json.Unmarshal(responseBytes, &temp)
-					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", path, models.TransExportAnalyzeMonitorDataTypeLogMonitorServiceGroup, i+1))
+					filePathList = append(filePathList, fmt.Sprintf("%s/%s.json", logMonitorPath, serviceGroup))
 					finalExportDataList = append(finalExportDataList, temp)
 				}
 			}
@@ -1061,21 +1073,21 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 			}
 		case models.TransExportAnalyzeMonitorDataTypeStrategyServiceGroup:
 			// 导出指标阈值,层级对象
-			for i, key := range exportDataKeyList {
+			for _, key := range exportDataKeyList {
 				if responseBytes, err = monitor.ExportAlarmStrategy("service", key, token); err != nil {
 					log.Logger.Error("ExportAlarmStrategy err", log.JsonObj("service", key), log.Error(err))
 					return
 				}
-				if string(responseBytes) != "" && string(responseBytes) != "[]" && string(responseBytes) != "{}" {
+				if isEffectiveJson(responseBytes) {
 					var temp interface{}
 					json.Unmarshal(responseBytes, &temp)
-					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", path, models.TransExportAnalyzeMonitorDataTypeStrategyServiceGroup, i+1))
+					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%s.json", strategyPath, models.TransExportAnalyzeMonitorDataTypeStrategyServiceGroup, key))
 					finalExportDataList = append(finalExportDataList, temp)
 				}
 			}
 		case models.TransExportAnalyzeMonitorDataTypeStrategyEndpointGroup:
 			// 导出指标阈值,组
-			for i, key := range exportDataKeyList {
+			for _, key := range exportDataKeyList {
 				if responseBytes, err = monitor.ExportAlarmStrategy("group", key, token); err != nil {
 					log.Logger.Error("ExportAlarmStrategy err", log.JsonObj("group", key), log.Error(err))
 					return
@@ -1083,13 +1095,13 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 				if isEffectiveJson(responseBytes) {
 					var temp interface{}
 					json.Unmarshal(responseBytes, &temp)
-					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", path, models.TransExportAnalyzeMonitorDataTypeStrategyEndpointGroup, i+1))
+					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%s.json", strategyPath, models.TransExportAnalyzeMonitorDataTypeStrategyEndpointGroup, key))
 					finalExportDataList = append(finalExportDataList, temp)
 				}
 			}
 		case models.TransExportAnalyzeMonitorDataTypeLogKeywordServiceGroup:
 			// 导出关键字
-			for i, serviceGroup := range exportDataKeyList {
+			for _, serviceGroup := range exportDataKeyList {
 				if responseBytes, err = monitor.ExportKeyword(serviceGroup, token); err != nil {
 					log.Logger.Error("ExportKeyword err", log.JsonObj("serviceGroup", serviceGroup), log.Error(err))
 					return
@@ -1097,13 +1109,12 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 				if isEffectiveJson(responseBytes) {
 					var temp interface{}
 					json.Unmarshal(responseBytes, &temp)
-					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", path, models.TransExportAnalyzeMonitorDataTypeLogKeywordServiceGroup, i+1))
+					filePathList = append(filePathList, fmt.Sprintf("%s/%s.json", keywordPath, serviceGroup))
 					finalExportDataList = append(finalExportDataList, temp)
 				}
 			}
 		case models.TransExportAnalyzeMonitorDataTypeDashboard:
 			// 导出看板
-			i := 1
 			for dashboardId, chartIds := range exportDashboardMap {
 				if responseBytes, err = monitor.ExportCustomDashboard(dashboardId, chartIds, token); err != nil {
 					log.Logger.Error("ExportCustomDashboard err", log.JsonObj("dashboardId", dashboardId), log.Error(err))
@@ -1112,9 +1123,8 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 				if isEffectiveJson(responseBytes) {
 					var temp interface{}
 					json.Unmarshal(responseBytes, &temp)
-					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", path, models.TransExportAnalyzeMonitorDataTypeDashboard, i+1))
+					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", dashboardPath, models.TransExportAnalyzeMonitorDataTypeDashboard, dashboardId))
 					finalExportDataList = append(finalExportDataList, temp)
-					i++
 				}
 			}
 		case models.TransExportAnalyzeMonitorDataTypeCustomMetricMonitorType:
