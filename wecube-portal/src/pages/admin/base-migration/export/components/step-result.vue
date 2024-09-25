@@ -1,6 +1,6 @@
 <template>
   <div class="export-step-data">
-    <div class="export-message">
+    <div v-if="from === 'export'" class="export-message">
       <Alert v-if="detailData.status === 'doing'" type="info" show-icon>
         <template #desc> 正在导出内容，请稍后... </template>
       </Alert>
@@ -24,6 +24,17 @@
           </div>
           <div>请打开需要迁移环境的wecube,进入【系统-一键迁移-一键导入】,粘贴当前链接,执行导入</div>
         </template>
+      </Alert>
+    </div>
+    <div v-else class="export-message">
+      <Alert v-if="detailData.status === 'doing'" type="info" show-icon>
+        <template #desc> 正在导入... </template>
+      </Alert>
+      <Alert v-else-if="detailData.status === 'fail'" type="error" show-icon>
+        <template #desc>导入失败！</template>
+      </Alert>
+      <Alert v-else-if="detailData.status === 'success'" type="success" show-icon>
+        <template #desc>导入成功！</template>
       </Alert>
     </div>
     <div class="item">
@@ -288,6 +299,10 @@ export default {
           failMsg: ''
         }
       }
+    },
+    from: {
+      type: String,
+      default: 'export'
     }
   },
   data() {
