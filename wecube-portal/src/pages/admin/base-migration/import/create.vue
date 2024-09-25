@@ -2,7 +2,7 @@
   <Card :bordered="false" dis-hover :padding="0">
     <div class="base-migration-import-create">
       <div class="steps">
-        <BaseHeaderTitle title="导出步骤" :showExpand="false">
+        <BaseHeaderTitle title="导入步骤" :showExpand="false">
           <Steps :current="activeStep" direction="vertical">
             <Step title="输入链接,确认产品、环境" content="系统自动分析需要导出的系统及数据"></Step>
             <Step title="导入数据" content="确认依赖系统、CMDB、编排、ITSM等配置项正确"></Step>
@@ -13,16 +13,16 @@
       </div>
       <div class="content" ref="scrollView">
         <BaseHeaderTitle v-if="activeStep === 0" title="导入产品" :showExpand="false">
-          <StepOne @nextStep="activeStep++"></StepOne>
+          <StepOne :detailData="detailData" @saveStepOne="handleSaveStepOne" @nextStep="activeStep++"></StepOne>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 1" title="导入数据" :showExpand="false">
-          <StepTwo :detailData="detailData" @nextStep="activeStep++"></StepTwo>
+          <StepTwo :detailData="detailData" @lastStep="activeStep--" @nextStep="activeStep++"></StepTwo>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 2" title="执行自动化编排" :showExpand="false">
-          <StepThree></StepThree>
+          <StepThree :detailData="detailData" @lastStep="activeStep--" @nextStep="activeStep++"></StepThree>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 3" title="配置监控" :showExpand="false">
-          <StepFour></StepFour>
+          <StepFour :detailData="detailData" @lastStep="activeStep--"></StepFour>
         </BaseHeaderTitle>
       </div>
     </div>
@@ -35,7 +35,7 @@ import StepOne from './components/step-one.vue'
 import StepTwo from './components/step-two.vue'
 import StepThree from './components/step-three.vue'
 import StepFour from './components/step-four.vue'
-import { getExportDetail } from '@/api/server'
+import { getImportDetail } from '@/api/server'
 export default {
   components: {
     StepOne,
@@ -45,23 +45,33 @@ export default {
   },
   data() {
     return {
-      activeStep: 0,
+      id: this.$route.query.id || '',
+      activeStep: -1,
       loading: false,
       detailData: {}
     }
   },
   async mounted() {
-    await this.getDetailData()
+    if (this.id) {
+      this.loading = true
+      await this.getDetailData()
+      this.loading = false
+      // 后台返回当前步骤
+      this.activeStep = this.detailData.step - 1
+    }
+    else {
+      this.activeStep = 0
+    }
   },
   methods: {
     // 获取导出详情数据
     async getDetailData() {
       const params = {
         params: {
-          transExportId: 'tp_622c473d18d6219bdbac5'
+          transImportId: this.id
         }
       }
-      const { status, data } = await getExportDetail(params)
+      const { status, data } = await getImportDetail(params)
       if (status === 'OK') {
         this.detailData = {
           roleRes: data.roles,
@@ -69,30 +79,43 @@ export default {
           batchRes: data.batchExecutions,
           itsmRes: data.requestTemplates,
           failMsg: data.createAndUploadFile && data.createAndUploadFile.errMsg,
+          cmdbRes: data.cmdb, // cmdb
           cmdbCIData: data.cmdbCI || [], // cmdb CI
           cmdbViewData: data.cmdbView || [], // cmdb视图
           cmdbReportData: data.cmdbReportForm || [], // cmdb报表
-          artifactsData: data.artifacts || [], // 物料包
-          monitorData: data.monitor || [], // 监控
-          pluginsData: data.plugins || [], // 插件
           cmdbReportFormCount: data.cmdbReportFormCount || 0,
           cmdbViewCount: data.cmdbViewCount || 0,
+          artifactsRes: data.artifacts, // 物料包
+          monitorRes: data.monitorBase, // 监控
+          pluginsRes: data.plugins, // 插件
           exportComponentLibrary: data.exportComponentLibrary, // 组件库
+          step: data.step,
           ...data.transExport
         }
         this.detailData.roleRes.data = this.detailData.roleRes.data || []
         this.detailData.flowRes.data = this.detailData.flowRes.data || []
         this.detailData.batchRes.data = this.detailData.batchRes.data || []
         this.detailData.itsmRes.data = this.detailData.itsmRes.data || []
+        this.detailData.artifactsRes.data = this.detailData.artifactsRes.data || []
+        this.detailData.monitorRes.data = this.detailData.monitorRes.data || []
+        this.detailData.pluginsRes.data = this.detailData.pluginsRes.data || []
         this.detailData.associationSystems = this.detailData.associationSystems || []
         this.detailData.associationTechProducts = this.detailData.associationTechProducts || []
         this.detailData.businessName = this.detailData.businessName || ''
         this.detailData.businessNameList = (this.detailData.businessName && this.detailData.businessName.split(',')) || []
         this.detailData.business = this.detailData.business || ''
         this.detailData.cmdbCICount = this.detailData.cmdbCIData.reduce((sum, cur) => sum + cur.count, 0)
-        this.detailData.monitorCount = this.detailData.monitorData.reduce((sum, cur) => sum + cur.count, 0)
-        this.detailData.artifactsCount = this.detailData.artifactsData.reduce((sum, cur) => sum + cur.artifactLen, 0)
+        this.detailData.monitorCount = this.detailData.monitorRes.data.reduce((sum, cur) => sum + cur.count, 0)
+        this.detailData.artifactsCount = this.detailData.artifactsRes.data.reduce(
+          (sum, cur) => sum + cur.artifactLen,
+          0
+        )
       }
+    },
+    handleSaveStepOne(id) {
+      this.id = id
+      this.activeStep++
+      this.getDetailData()
     }
   }
 }
