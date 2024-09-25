@@ -194,3 +194,8 @@ const (
 	TransImportActionRetry   TransImportAction = "retry"
 	TransImportActionStart   TransImportAction = "start"
 )
+
+const (
+	TransImportTmpDir           = "/tmp/trans_import/%s"
+	TransArtifactPackageDirName = "artifact_packages"
+)
