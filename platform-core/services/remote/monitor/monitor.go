@@ -7,6 +7,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/network"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
@@ -14,8 +15,6 @@ import (
 
 const (
 	analyzeMonitorExportDataUrl        = "/monitor/api/v2/trans-export/analyze"
-	importMonitorTypeUrl               = "/monitor/api/v2/config/type-batch"
-	importEndpointGroupUrl             = "/monitor/api/v2/alarm/endpoint_group/import"
 	exportMetricListUrl                = "/monitor/api/v2/monitor/metric/export?serviceGroup=%s&monitorType=%s&endpointGroup=%s&comparison=%s"
 	queryMonitorEndpointGroupUrl       = "/monitor/api/v2/alarm/endpoint_group/query"
 	exportMonitorLogMetricUrl          = "/monitor/api/v2/service/log_metric/export?serviceGroup=%s"
@@ -25,7 +24,12 @@ const (
 	exportCustomDashboardUrl           = "/monitor/api/v2/dashboard/custom/export"
 	QueryCustomDashboardUrl            = "/monitor/api/v2/dashboard/custom?id=%d"
 	QueryCustomChartPermissionBatchUrl = "/monitor/api/v2/chart/custom/permission/batch"
-	jsonUnmarshalErrTemplate           = "json unmarshal http response body fail,body:%s,error:%s"
+
+	importMonitorTypeUrl   = "/monitor/api/v2/config/type-batch"
+	importEndpointGroupUrl = "/monitor/api/v2/alarm/endpoint_group/import"
+	importMetricUrl        = "/monitor/api/v2/monitor/metric/import?serviceGroup=%s&monitorType=%s&endpointGroup=%s&comparison=%s"
+
+	jsonUnmarshalErrTemplate = "json unmarshal http response body fail,body:%s,error:%s"
 )
 
 func GetMonitorExportAnalyzeData(endpointList, serviceGroupList []string) (data *models.AnalyzeTransData, err error) {
@@ -202,7 +206,7 @@ func requestMonitorPluginV2(url, method, token string, postData interface{}) (re
 
 func ImportEndpointGroup(filePath, userToken, language string) (err error) {
 	var byteArr []byte
-	var response models.RequestTemplateImportResponse
+	var response models.ResponseJson
 	uri := models.Config.Gateway.Url + importEndpointGroupUrl
 	if models.Config.HttpsEnable == "true" {
 		uri = "https://" + uri
@@ -215,9 +219,34 @@ func ImportEndpointGroup(filePath, userToken, language string) (err error) {
 	if err = json.Unmarshal(byteArr, &response); err != nil {
 		return
 	}
-	if response.StatusCode != "OK" {
-		err = fmt.Errorf("import endpointGroup fail,%+v", response.StatusMessage)
+	if response.Status != "OK" {
+		err = fmt.Errorf("import endpointGroup fail,%+v", response.Message)
 		return
+	}
+	return
+}
+
+func ImportMetric(param ImportMetricParam) (err error) {
+	var byteArr []byte
+	var response ImportMetricResp
+	uri := models.Config.Gateway.Url + fmt.Sprintf(importMetricUrl, param.ServiceGroup, param.MonitorType, param.EndpointGroup, param.Comparison)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	if byteArr, err = network.HttpPostJsonFile(param.FilePath, uri, param.UserToken, param.Language); err != nil {
+		return
+	}
+	if err = json.Unmarshal(byteArr, &response); err != nil {
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf("import metric fail,%+v", response.Message)
+		return
+	}
+	if response.Data != nil && len(response.Data.FailList) > 0 {
+		err = fmt.Errorf("import metric fail,data:%s", strings.Join(response.Data.FailList, ","))
 	}
 	return
 }
