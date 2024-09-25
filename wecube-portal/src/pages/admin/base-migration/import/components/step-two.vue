@@ -5,13 +5,15 @@
       <Button v-if="['doing', 'fail'].includes(stepData.status)" type="error" @click="handleStop">终止</Button>
       <Button v-if="['fail'].includes(stepData.status)" type="warning" @click="handleRetry">重试</Button>
       <Button type="default" @click="handleLast">上一步</Button>
-      <Button v-if="['success'].includes(stepData.status)" type="primary" @click="handleNext">下一步</Button>
+      <Button v-if="['success'].includes(stepData.status)" type="primary" @click="handleSave">下一步</Button>
     </div>
   </div>
 </template>
 
 <script>
 import ImportData from '../../export/components/step-result.vue'
+import { saveImportData } from '@/api/server'
+import { debounce } from '@/const/util'
 export default {
   components: {
     ImportData
@@ -29,7 +31,7 @@ export default {
       ...this.detailData,
       status: 'doing'
     }
-    // 前端遍历所有导出数据，判断第二步单独导入状态
+    // 前端遍历所有导出数据，判断当前步骤数据导入状态
     const {
       artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes
     } = this.detailData
@@ -49,9 +51,20 @@ export default {
     handleLast() {
       this.$emit('lastStep')
     },
-    handleNext() {
-      this.$emit('nextStep')
-    }
+    handleSave: debounce(async function () {
+      if (this.detailData.step > 2) {
+        this.$emit('nextStep')
+      } else {
+        const params = {
+          transImportId: this.detailData.id
+        }
+        const { status } = await saveImportData(params)
+        if (status === 'OK') {
+          // 执行导入，生成ID
+          this.$emit('saveStepTwo')
+        }
+      }
+    }, 500)
   }
 }
 </script>

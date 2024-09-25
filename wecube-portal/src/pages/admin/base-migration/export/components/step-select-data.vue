@@ -127,6 +127,27 @@
         </Table>
       </BaseHeaderTitle>
     </div>
+    <!--插件服务-->
+    <div class="item">
+      <span class="title">
+        插件服务：<span class="sub-title">
+          已选配置类型<span class="number">{{ detailData.pluginsRes.data.length }}</span>
+        </span>
+      </span>
+      <Row :gutter="10">
+        <Col :span="12">
+          <Card>
+            <Table
+              :border="false"
+              size="small"
+              :columns="pluginColumns"
+              :max-height="400"
+              :data="detailData.pluginsRes.data"
+            />
+          </Card>
+        </Col>
+      </Row>
+    </div>
     <!--CMDB-->
     <div class="item">
       <span class="title">
@@ -210,27 +231,6 @@
         </Col>
       </Row>
     </div>
-    <!--插件服务-->
-    <div class="item">
-      <span class="title">
-        插件服务：<span class="sub-title">
-          已选配置类型<span class="number">{{ detailData.pluginsRes.data.length }}</span>
-        </span>
-      </span>
-      <Row :gutter="10">
-        <Col :span="12">
-          <Card>
-            <Table
-              :border="false"
-              size="small"
-              :columns="pluginColumns"
-              :max-height="400"
-              :data="detailData.pluginsRes.data"
-            />
-          </Card>
-        </Col>
-      </Row>
-    </div>
   </div>
 </template>
 
@@ -239,7 +239,7 @@ import selectTableConfig from '../selection-table'
 import staticTableConfig from '../static-table'
 import { deepClone } from '@/const/util'
 import {
-  getCurrentUserRoles, getAllExportFlows, getAllExportBatch, getAllExportItsm
+  getRoleList, getAllExportFlows, getAllExportBatch, getAllExportItsm
 } from '@/api/server.js'
 export default {
   mixins: [selectTableConfig, staticTableConfig],
@@ -311,7 +311,7 @@ export default {
     },
     // 获取角色
     async getRoleTableList() {
-      const { status, data } = await getCurrentUserRoles()
+      const { status, data } = await getRoleList()
       if (status === 'OK') {
         this.roleTableData = data.map(_ => ({
           ..._,

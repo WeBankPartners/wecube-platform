@@ -31,7 +31,7 @@
 </template>
 
 <script>
-import { getImportBusinessList, saveImportEnvBusiness } from '@/api/server'
+import { getImportBusinessList, saveImportData } from '@/api/server'
 import { debounce } from '@/const/util'
 export default {
   props: {
@@ -122,10 +122,9 @@ export default {
     jumpToHistory() {},
     handleSave: debounce(async function () {
       const params = {
-        exportNexusUrl: this.detail.exportNexusUrl,
-        transImportId: ''
+        exportNexusUrl: this.detail.exportNexusUrl
       }
-      const { data, status } = await saveImportEnvBusiness(params)
+      const { data, status } = await saveImportData(params)
       if (status === 'OK') {
         // 执行导入，生成ID
         this.$emit('saveStepOne', data || '')

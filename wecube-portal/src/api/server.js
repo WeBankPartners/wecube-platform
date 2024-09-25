@@ -373,7 +373,7 @@ export const getExportDetail = params => req.get('/platform/v1/data/transfer/exp
 // 导入产品环境
 export const getImportBusinessList = params => req.get('/platform/v1/data/transfer/import/business', params)
 // 执行导入
-export const saveImportEnvBusiness = data => req.post('/platform/v1/data/transfer/import', data)
+export const saveImportData = data => req.post('/platform/v1/data/transfer/import', data)
 // 导入详情
 export const getImportDetail = params => req.get('/platform/v1/data/transfer/import/detail', params)
 // 导入列表

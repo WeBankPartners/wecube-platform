@@ -72,7 +72,7 @@
       </card>
     </div>
     <!--角色列表-->
-    <div class="item">
+    <div class="item" v-if="detailData.roleRes.status !== 'notStart'">
       <BaseHeaderTitle title="角色" :fontSize="15">
         <div slot="sub-title" class="title">
           已选<span class="number">{{ detailData.roleRes.data.length }}</span>
@@ -90,7 +90,7 @@
       </BaseHeaderTitle>
     </div>
     <!--ITSM列表-->
-    <div class="item">
+    <div class="item" v-if="detailData.itsmRes.status !== 'notStart'">
       <BaseHeaderTitle title="ITSM流程" :fontSize="15">
         <div slot="sub-title" class="title">
           已选<span class="number">{{ detailData.itsmRes.data.length }}</span>
@@ -113,7 +113,7 @@
       </BaseHeaderTitle>
     </div>
     <!--编排列表-->
-    <div class="item">
+    <div class="item" v-if="detailData.flowRes.status !== 'notStart'">
       <BaseHeaderTitle title="编排" :fontSize="15">
         <div slot="sub-title" class="title">
           已选<span class="number">{{ detailData.flowRes.data.length }}</span>
@@ -131,7 +131,7 @@
       </BaseHeaderTitle>
     </div>
     <!--批量执行列表-->
-    <div class="item">
+    <div class="item" v-if="detailData.batchRes.status !== 'notStart'">
       <BaseHeaderTitle title="批量执行" :fontSize="15">
         <div slot="sub-title" class="title">
           已选<span class="number">{{ detailData.batchRes.data.length }}</span>
@@ -148,8 +148,31 @@
         </Table>
       </BaseHeaderTitle>
     </div>
+    <!--插件服务-->
+    <div class="item" v-if="detailData.pluginsRes.status !== 'notStart'">
+      <span class="title">
+        插件服务：<span class="sub-title">
+          已选配置类型<span class="number">{{ detailData.pluginsRes.data.length }}</span>
+        </span>
+        <span v-if="detailData.pluginsRes.status === 'success'" class="success">(导出成功)</span>
+        <span v-if="detailData.pluginsRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.pluginsRes.errMsg }}</span>)</span>
+      </span>
+      <Row :gutter="10">
+        <Col :span="12">
+          <Card>
+            <Table
+              :border="false"
+              size="small"
+              :columns="pluginColumns"
+              :max-height="400"
+              :data="detailData.pluginsRes.data"
+            />
+          </Card>
+        </Col>
+      </Row>
+    </div>
     <!--CMDB-->
-    <div class="item">
+    <div class="item" v-if="detailData.cmdbRes.status !== 'notStart'">
       <span class="title">
         CMDB：<span class="sub-title">
           已选CI<span class="number">{{ detailData.cmdbCICount }}</span> <span class="name">视图</span><span class="number">{{ detailData.cmdbViewCount }}</span> <span class="name">报表</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
@@ -194,7 +217,7 @@
       </Row>
     </div>
     <!--物料包-->
-    <div class="item">
+    <div class="item" v-if="detailData.artifactsRes.status !== 'notStart'">
       <span class="title">
         物料包：已选<span class="number">{{ detailData.artifactsCount }}</span>
         <span v-if="detailData.artifactsRes.status === 'success'" class="success">(导出成功)</span>
@@ -215,7 +238,7 @@
       </Row>
     </div>
     <!--监控-->
-    <div class="item">
+    <div class="item" v-if="detailData.monitorRes.status !== 'notStart'">
       <span class="title">
         监控配置：<span class="sub-title">已选 <span class="name">配置类型</span><span class="number">{{ detailData.monitorRes.data.length }}</span>
           <span class="name">总条数</span><span class="number">{{ detailData.monitorCount }}</span>
@@ -232,29 +255,6 @@
               :columns="monitorColumns"
               :max-height="400"
               :data="detailData.monitorRes.data"
-            />
-          </Card>
-        </Col>
-      </Row>
-    </div>
-    <!--插件服务-->
-    <div class="item">
-      <span class="title">
-        插件服务：<span class="sub-title">
-          已选配置类型<span class="number">{{ detailData.pluginsRes.data.length }}</span>
-        </span>
-        <span v-if="detailData.pluginsRes.status === 'success'" class="success">(导出成功)</span>
-        <span v-if="detailData.pluginsRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.pluginsRes.errMsg }}</span>)</span>
-      </span>
-      <Row :gutter="10">
-        <Col :span="12">
-          <Card>
-            <Table
-              :border="false"
-              size="small"
-              :columns="pluginColumns"
-              :max-height="400"
-              :data="detailData.pluginsRes.data"
             />
           </Card>
         </Col>

@@ -13,13 +13,26 @@
       </div>
       <div class="content" ref="scrollView">
         <BaseHeaderTitle v-if="activeStep === 0" title="导入产品" :showExpand="false">
-          <StepOne :detailData="detailData" @saveStepOne="handleSaveStepOne" @nextStep="activeStep++"></StepOne>
+          <StepOne
+            :detailData="detailData"
+            @saveStepOne="handleSaveStepOne"
+            @nextStep="activeStep++"
+          ></StepOne>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 1" title="导入数据" :showExpand="false">
-          <StepTwo :detailData="detailData" @lastStep="activeStep--" @nextStep="activeStep++"></StepTwo>
+          <StepTwo
+            :detailData="detailData"
+            @saveStepTwo="handleSaveStepTwo"
+            @lastStep="activeStep--"
+            @nextStep="activeStep++"
+          ></StepTwo>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 2" title="执行自动化编排" :showExpand="false">
-          <StepThree :detailData="detailData" @lastStep="activeStep--" @nextStep="activeStep++"></StepThree>
+          <StepThree
+            :detailData="detailData"
+            @lastStep="activeStep--"
+            @nextStep="activeStep++"
+          ></StepThree>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 3" title="配置监控" :showExpand="false">
           <StepFour :detailData="detailData" @lastStep="activeStep--"></StepFour>
@@ -110,10 +123,36 @@ export default {
           (sum, cur) => sum + cur.artifactLen,
           0
         )
+        // 合并monitor数据
+        const metric_list_obj = {
+          name: 'metric_list',
+          count: 0
+        }
+        const strategy_list_obj = {
+          name: 'strategy_list',
+          count: 0
+        }
+        this.detailData.monitorRes.data.forEach(i => {
+          if (['custom_metric_service_group', 'custom_metric_endpoint_group', 'custom_metric_monitor_type'].includes(i.name)) {
+            metric_list_obj.count += i.count
+          }
+          if (['strategy_service_group', 'strategy_endpoint_group'].includes(i.name)) {
+            strategy_list_obj.count += i.count
+          }
+        })
+        const metricIndex = this.detailData.monitorRes.data.findIndex(i => i.name === 'custom_metric_service_group')
+        const strategyIndex = this.detailData.monitorRes.data.findIndex(i => i.name === 'strategy_service_group')
+        this.detailData.monitorRes.data.splice(metricIndex, 0 , metric_list_obj)
+        this.detailData.monitorRes.data.splice(strategyIndex, 0 , strategy_list_obj)
+        this.detailData.monitorRes.data = this.detailData.monitorRes.data.filter(i => !['strategy_service_group', 'strategy_endpoint_group', 'custom_metric_service_group', 'custom_metric_endpoint_group', 'custom_metric_monitor_type'].includes(i.name))
       }
     },
     handleSaveStepOne(id) {
       this.id = id
+      this.activeStep++
+      this.getDetailData()
+    },
+    handleSaveStepTwo() {
       this.activeStep++
       this.getDetailData()
     }
