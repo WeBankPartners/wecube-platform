@@ -6,7 +6,10 @@ import (
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -102,6 +105,79 @@ func GetTransImportProcExecList() (result []*models.TransImportProcExecTable, er
 	err = db.MysqlEngine.SQL("select * from trans_import_proc_exec where trans_import_detail in (select id from trans_import_detail where status='doing' and trans_import in (select id from trans_import where status='doing')) order by trans_import_detail,exec_order").Find(&result)
 	if err != nil {
 		err = fmt.Errorf("query trans import proc exec table fail,%s ", err.Error())
+	}
+	return
+}
+
+func DownloadImportArtifactPackages(ctx context.Context, nexusUrl, transImportId string) (localDir string, fileNameList []string, err error) {
+	// 获取nexus配置
+	nexusConfig, getNexusConfigErr := GetDataTransImportNexusConfig(ctx)
+	if getNexusConfigErr != nil {
+		err = getNexusConfigErr
+		return
+	}
+	// 提取导出id来拼物料包的url路径
+	var nexusUrlPrefix, transExportId string
+	urlSplitList := strings.Split(nexusUrl, "/")
+	if len(urlSplitList) > 2 {
+		transExportId = urlSplitList[len(urlSplitList)-2]
+	}
+	if lastIndex := strings.LastIndex(nexusUrl, "/"); lastIndex > 0 {
+		nexusUrlPrefix = nexusUrl[:lastIndex]
+	}
+	// 查nexus目录下的文件列表
+	fileNameList, err = tools.ListFilesInRepo(&tools.NexusReqParam{
+		UserName:   nexusConfig.NexusUser,
+		Password:   nexusConfig.NexusPwd,
+		RepoUrl:    nexusConfig.NexusUrl,
+		Repository: nexusConfig.NexusRepo,
+		TimeoutSec: 60,
+		DirPath:    fmt.Sprintf("/%s/%s", transExportId, models.TransArtifactPackageDirName),
+	})
+	if err != nil {
+		err = fmt.Errorf("list nexus artifact dir file list fail,%s ", err.Error())
+		return
+	}
+	if len(fileNameList) == 0 {
+		return
+	}
+	// 建临时目录
+	tmpImportDir := fmt.Sprintf(models.TransImportTmpDir, transImportId) + "/" + models.TransArtifactPackageDirName
+	if err = os.MkdirAll(tmpImportDir, 0755); err != nil {
+		err = fmt.Errorf("make tmp import dir fail,%s ", err.Error())
+		return
+	}
+	for _, remoteFileName := range fileNameList {
+		// 从nexus下载
+		downloadParam := tools.NexusReqParam{
+			UserName:   nexusConfig.NexusUser,
+			Password:   nexusConfig.NexusPwd,
+			RepoUrl:    nexusConfig.NexusUrl,
+			Repository: nexusConfig.NexusRepo,
+			TimeoutSec: 60,
+			FileParams: []*tools.NexusFileParam{{SourceFilePath: fmt.Sprintf("%s/%s/%s", nexusUrlPrefix, models.TransArtifactPackageDirName, remoteFileName), DestFilePath: fmt.Sprintf("%s/%s", tmpImportDir, remoteFileName)}},
+		}
+		if err = tools.DownloadFile(&downloadParam); err != nil {
+			err = fmt.Errorf("donwload nexus artifact file:%s fail,%s ", remoteFileName, err.Error())
+			break
+		}
+	}
+	if err != nil {
+		if clearErr := os.RemoveAll(tmpImportDir); clearErr != nil {
+			log.Logger.Error("download nexus artifact fail,try to clear artifact tmp dir fail ", log.Error(clearErr))
+		}
+	}
+	return
+}
+
+func GetTransImportDetailInput(ctx context.Context, transImportDetailId string) (result string, err error) {
+	queryRows, queryErr := db.MysqlEngine.Context(ctx).QueryString("select `input` from trans_import_detail where id=?", transImportDetailId)
+	if queryErr != nil {
+		err = fmt.Errorf("query trans import detail input data fail,%s ", queryErr.Error())
+		return
+	}
+	if len(queryRows) > 0 {
+		result = queryRows[0]["input"]
 	}
 	return
 }
