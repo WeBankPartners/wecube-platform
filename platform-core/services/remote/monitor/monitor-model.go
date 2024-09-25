@@ -243,3 +243,24 @@ type BatchAddTypeConfigResp struct {
 	models.HttpResponseMeta
 	Data interface{} `json:"data"`
 }
+
+type ImportMetricParam struct {
+	FilePath      string
+	UserToken     string
+	Language      string
+	ServiceGroup  string
+	MonitorType   string
+	EndpointGroup string
+	Comparison    string
+}
+
+type ImportMetricResp struct {
+	models.HttpResponseMeta
+	Data *MetricImportResultDto `json:"data"`
+}
+
+type MetricImportResultDto struct {
+	SuccessList []string `json:"success_list"` // 成功
+	FailList    []string `json:"fail_list"`    // 失败
+	Message     string   `json:"message"`      // 描述
+}
