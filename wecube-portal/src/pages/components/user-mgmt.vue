@@ -266,11 +266,9 @@ export default {
         let color = ''
         if (status === 'preExpired') {
           color = '#ff9900'
-        }
-        else if (status === 'expire') {
+        } else if (status === 'expire') {
           color = '#ed4014'
-        }
-        else {
+        } else {
           color = '#19be6b'
         }
         return { color }
@@ -282,16 +280,13 @@ export default {
         if (status === 'preExpired') {
           // 即将到期
           text = `${expireTime}${this.$t('be_willExpire')}`
-        }
-        else if (status === 'expire') {
+        } else if (status === 'expire') {
           // 已过期
           text = `${expireTime}${this.$t('be_hasExpired')}`
-        }
-        else if (expireTime) {
+        } else if (expireTime) {
           // 到期时间
           text = `${expireTime}${this.$t('be_expire')}`
-        }
-        else if (!expireTime) {
+        } else if (!expireTime) {
           // 永久有效
           text = `${this.$t('be_forever')}`
         }
