@@ -179,6 +179,7 @@ type ExportMetricParam struct {
 	EndpointGroup string
 	Comparison    string
 	Token         string
+	FilePath      string
 }
 
 type CustomDashboardDto struct {
@@ -232,4 +233,13 @@ type QueryCustomDashboardResp struct {
 type ChartPermissionBatchResp struct {
 	models.HttpResponseMeta
 	Data []string `json:"data"`
+}
+
+type BatchAddTypeConfigParam struct {
+	DisplayNameList []string `json:"displayNameList"`
+}
+
+type BatchAddTypeConfigResp struct {
+	models.HttpResponseMeta
+	Data interface{} `json:"data"`
 }
