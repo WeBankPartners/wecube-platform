@@ -138,8 +138,7 @@ export default {
       if (flag) {
         this.$emit('update:visible', false)
         this.$emit('submit', selectData)
-      }
-      else {
+      } else {
         return this.$Notice.warning({
           title: this.$t('warning'),
           desc: this.$t('be_required_tips')

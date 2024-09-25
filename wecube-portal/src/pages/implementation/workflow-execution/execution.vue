@@ -1231,8 +1231,7 @@ export default {
     retryTableFilterParam(filter) {
       if (!filter) {
         this.retryTartetModels = this.retryCatchNodeTableList
-      }
-      else {
+      } else {
         this.retryTartetModels = this.retryCatchNodeTableList.filter(item => item.entityDisplayName.includes(filter))
       }
       this.retryTartetModels.forEach(tm => {
@@ -1247,8 +1246,7 @@ export default {
     tableFilterParam(filter) {
       if (!filter) {
         this.tartetModels = this.catchTartetModels
-      }
-      else {
+      } else {
         this.tartetModels = this.catchTartetModels.filter(item => item.displayName.includes(filter))
       }
       this.tartetModels.forEach(tm => {
@@ -1326,8 +1324,7 @@ export default {
               subProc: this.subProc
             }
           })
-        }
-        else if (this.$route.query.from === 'time') {
+        } else if (this.$route.query.from === 'time') {
           return this.$router.push({
             path: '/implementation/workflow-execution/time-history',
             query: {
@@ -1412,8 +1409,7 @@ export default {
         if (this.timeConfig.params.scheduleMode === 'Hourly') {
           scheduleExpr = this.timeConfig.params.time.substring(3)
         }
-      }
-      else {
+      } else {
         scheduleExpr = this.timeConfig.params.cycle + ' ' + this.timeConfig.params.time
       }
       const params = {
@@ -1545,8 +1541,7 @@ export default {
       })
       if (this.tableFilterParam) {
         this.catchNodeTableList = this.catchNodeTableList.filter(item => !temp.includes(item.id))
-      }
-      else {
+      } else {
         this.catchNodeTableList = []
       }
     },
@@ -1636,8 +1631,7 @@ export default {
       for (let i = 0; i < indexArray.length; i++) {
         if (rowIndex === indexArray[i] && columnIndex === 0) {
           arr = [indexArray[i + 1] - indexArray[i], 1]
-        }
-        else if (rowIndex > indexArray[i - 1] && rowIndex < indexArray[i] && columnIndex === 0) {
+        } else if (rowIndex > indexArray[i - 1] && rowIndex < indexArray[i] && columnIndex === 0) {
           arr = [0, 0]
         }
       }
@@ -1684,8 +1678,7 @@ export default {
         if (!obj[_.nodeDefId]) {
           obj[_.nodeDefId] = []
           obj[_.nodeDefId].push(_)
-        }
-        else {
+        } else {
           obj[_.nodeDefId].push(_)
         }
       })
@@ -1694,8 +1687,7 @@ export default {
         if (!selectObj[_.nodeDefId]) {
           selectObj[_.nodeDefId] = []
           selectObj[_.nodeDefId].push(_)
-        }
-        else {
+        } else {
           selectObj[_.nodeDefId].push(_)
         }
       })
@@ -1706,8 +1698,7 @@ export default {
           const selectNodeDefIds = (selectObj[key] && selectObj[key].map(i => i.id)) || []
           if (selectNodeDefIds.includes(item.id)) {
             item.bound = 'Y'
-          }
-          else {
+          } else {
             item.bound = 'N'
           }
         })
@@ -1863,8 +1854,7 @@ export default {
       const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
       if (found && ['Completed', 'InternallyTerminated', 'Faulted'].includes(found.status)) {
         this.currentInstanceStatus = true
-      }
-      else {
+      } else {
         this.currentInstanceStatus = false
       }
     },
@@ -2118,8 +2108,7 @@ export default {
           // 有关联节点时，高亮左边编排图
           this.currentModelNodeRefs = refEle.innerHTML.trim().split('/')
           this.renderFlowGraph()
-        }
-        else {
+        } else {
           // 没有关联节点时，左边编排图取消高亮效果
           this.currentModelNodeRefs = []
           this.renderFlowGraph()
@@ -2310,8 +2299,7 @@ export default {
             d3.selectAll('.retry').attr('cursor', 'pointer')
             d3.selectAll('.time-node').attr('cursor', 'pointer')
             d3.selectAll('.decision-node').attr('cursor', 'pointer')
-          }
-          else {
+          } else {
             removeEvent('.retry', 'click', this.retryHandler)
             removeEvent('.normal', 'click', this.normalHandler)
             removeEvent('.time-node', 'click', this.timeNodeHandler)
@@ -2325,8 +2313,7 @@ export default {
       if (this.isEnqueryPage) {
         this.processInstance()
         this.showExcution = false
-      }
-      else {
+      } else {
         if (!this.selectedTarget || !this.selectedFlow) {
           this.$Message.warning(this.$t('workflow_exec_empty_tip'))
           return
@@ -2556,8 +2543,7 @@ export default {
       if (type === 'showlog') {
         // 查看日志
         this.flowGraphMouseenterHandler(this.currentFailedNodeID)
-      }
-      else if (type === 'skip') {
+      } else if (type === 'skip') {
         // 节点跳过
         this.$Modal.confirm({
           title: this.$t('confirm_to_skip'),
@@ -2585,15 +2571,12 @@ export default {
           },
           onCancel: () => {}
         })
-      }
-      else if (type === 'retry') {
+      } else if (type === 'retry') {
         this.executeRetry(found, type)
-      }
-      else if (type === 'risky') {
+      } else if (type === 'risky') {
         // 高危确认
         this.executeRisky(found)
-      }
-      else {
+      } else {
         const payload = {
           nodeInstId: found.id,
           procInstId: found.procInstId
@@ -2658,22 +2641,18 @@ export default {
             if (find.errorCode === '-1') {
               tm.confirmToken = 'Y'
               retryTartetModelsSingle.status = 'Confirm'
-            }
-            else if (find.errorCode === '1') {
+            } else if (find.errorCode === '1') {
               tm.confirmToken = ''
               retryTartetModelsSingle.status = 'Error'
-            }
-            else if (find.errorCode === '0') {
+            } else if (find.errorCode === '0') {
               tm.confirmToken = ''
               retryTartetModelsSingle.status = ''
-            }
-            else {
+            } else {
               tm.confirmToken = ''
               retryTartetModelsSingle.status = ''
             }
             retryTartetModelsSingle.message = find.errorMessage
-          }
-          else {
+          } else {
             tm.confirmToken = ''
             retryTartetModelsSingle.status = ''
             retryTartetModelsSingle.message = ''
@@ -2708,8 +2687,7 @@ export default {
         })
         removeEvent('.flow', 'click', this.flowNodesClickHandler)
         addEvent('.flow', 'click', this.flowNodesClickHandler)
-      }
-      else {
+      } else {
         removeEvent('.flow', 'click', this.flowNodesClickHandler)
       }
     },
@@ -2760,8 +2738,7 @@ export default {
                 }
               })
             }
-          }
-          else {
+          } else {
             this.nodeDetailColumns = this.nodeDetailColumns.filter(i => i.key !== 'procDefId')
           }
         }
@@ -2801,12 +2778,10 @@ export default {
               nodeType
             }
           })
-        }
-        else {
+        } else {
           this.tartetModels = []
         }
-      }
-      else {
+      } else {
         return
       }
 
