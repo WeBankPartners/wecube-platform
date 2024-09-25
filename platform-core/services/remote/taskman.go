@@ -17,7 +17,7 @@ const (
 	// pathImportComponentLibrary 导入组件库
 	pathImportComponentLibrary = "/taskman/api/v1/form-template-library/import"
 	// 导入模版
-	pathImportRequestTemplate = "/taskman/api/v1/request-template/import"
+	pathImportRequestTemplate = "/taskman/api/v1/request-template/import-batch"
 )
 
 // GetRequestTemplateRoles 查询taskman模版角色
@@ -109,7 +109,7 @@ func ImportRequestTemplate(filePath, userToken, language string) (err error) {
 		return
 	}
 	if response.StatusCode != "OK" {
-		err = fmt.Errorf("import requestTemplate fail,response:%+v", response.Data)
+		err = fmt.Errorf("import requestTemplate fail,%+v", response.StatusMessage)
 		return
 	}
 	return

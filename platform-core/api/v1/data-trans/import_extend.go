@@ -16,11 +16,13 @@ var importFuncList []func(context.Context, *models.TransImportJobParam) (string,
 
 func init() {
 	importFuncList = append(importFuncList, importRole)
+	importFuncList = append(importFuncList, importCmdbConfig)
 	importFuncList = append(importFuncList, importPluginConfig)
 	importFuncList = append(importFuncList, importWorkflow)
 	importFuncList = append(importFuncList, importBatchExecution)
 	importFuncList = append(importFuncList, importArtifactPackage)
 	importFuncList = append(importFuncList, importMonitorBaseConfig)
+	importFuncList = append(importFuncList, importTaskManComponentLibrary)
 	importFuncList = append(importFuncList, importTaskManTemplate)
 	importFuncList = append(importFuncList, execWorkflow)
 	importFuncList = append(importFuncList, importMonitorServiceConfig)
@@ -112,7 +114,7 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 				return
 			}
 		} else {
-			for currentStep <= int(models.TransImportStepComponentLibrary) {
+			for currentStep <= int(models.TransImportStepRequestTemplate) {
 				transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 				funcObj := importFuncList[currentStep-1]
 				if err = callImportFunc(ctx, transImportJobParam, funcObj); err != nil {
@@ -169,49 +171,59 @@ func importRole(ctx context.Context, transImportParam *models.TransImportJobPara
 	return
 }
 
-// 2、导入cmdb插件服务、导入cmdb数据、同步cmdb数据模型、导入其它插件服务
+// 2.导入cmdb数据
+func importCmdbConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
+
+	return
+}
+
+// 3、导入cmdb插件服务
 func importPluginConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 
 	return
 }
 
-// 3、导入编排
+// 4、导入编排
 func importWorkflow(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	// 解析workflow.json,导入编排
 	var procDefList []*models.ProcessDefinitionDto
 	if err = database.ParseJsonData(fmt.Sprintf("%s/workflow.json", transImportParam.DirPath), &procDefList); err != nil {
 		return
 	}
-	if _, err = process.ProcDefImport(ctx, procDefList, transImportParam.Operator, transImportParam.Token, transImportParam.Language); err != nil {
-		return
+	if len(procDefList) > 0 {
+		if _, err = process.ProcDefImport(ctx, procDefList, transImportParam.Operator, transImportParam.Token, transImportParam.Language); err != nil {
+			return
+		}
 	}
 	return
 }
 
-// 4、导入批量执行
+// 5、导入批量执行
 func importBatchExecution(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	var batchExecutionTemplateList []*models.BatchExecutionTemplate
-	if err = database.ParseJsonData(fmt.Sprintf("%s/batchExecution.json.json", transImportParam.DirPath), &batchExecutionTemplateList); err != nil {
+	if err = database.ParseJsonData(fmt.Sprintf("%s/batchExecution.json", transImportParam.DirPath), &batchExecutionTemplateList); err != nil {
 		return
 	}
-	err = database.ImportTemplate(ctx, transImportParam.Operator, batchExecutionTemplateList)
+	if len(batchExecutionTemplateList) > 0 {
+		err = database.ImportTemplate(ctx, transImportParam.Operator, batchExecutionTemplateList)
+	}
 	return
 }
 
-// 5、导入物料包
+// 6、导入物料包
 func importArtifactPackage(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 
 	return
 }
 
-// 6、导入监控基础类型、对象组、基础类型指标、对象组指标、对象组阈值配置、业务配置模版
+// 7、导入监控基础类型、对象组、基础类型指标、对象组指标、对象组阈值配置、业务配置模版
 func importMonitorBaseConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 
 	return
 }
 
-// 7、导入taskman模版和公共组件
-func importTaskManTemplate(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
+// 8.importTaskManComponentLibrary 导入组件库
+func importTaskManComponentLibrary(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	// 判断是否要导入组件库
 	if transImportParam.CurrentDetail == nil {
 		err = fmt.Errorf("importTaskManTemplate CurrentDetail is empty")
@@ -223,25 +235,28 @@ func importTaskManTemplate(ctx context.Context, transImportParam *models.TransIm
 		err = remote.ImportComponentLibrary(fmt.Sprintf("%s/componentLibrary.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
 		if err != nil {
 			log.Logger.Error("ImportComponentLibrary err", log.Error(err))
-			return
 		}
-	}
-	// 导入模版
-	err = remote.ImportRequestTemplate(fmt.Sprintf("%s/requestTemplate.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
-	if err != nil {
-		log.Logger.Error("ImportRequestTemplate err", log.Error(err))
-		return
 	}
 	return
 }
 
-// 8、开始执行编排(创建资源、初始化资源、应用部署)
+// 9、导入taskman模版
+func importTaskManTemplate(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
+	// 导入模版
+	err = remote.ImportRequestTemplate(fmt.Sprintf("%s/requestTemplate.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
+	if err != nil {
+		log.Logger.Error("ImportRequestTemplate fail", log.Error(err))
+	}
+	return
+}
+
+// 10、开始执行编排(创建资源、初始化资源、应用部署)
 func execWorkflow(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 
 	return
 }
 
-// 9、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板
+// 11、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板
 func importMonitorServiceConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 
 	return
