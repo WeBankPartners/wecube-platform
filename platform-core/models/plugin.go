@@ -919,3 +919,10 @@ type QueryBusinessListParam struct {
 	Language         string
 	EntityQueryParam EntityQueryParam
 }
+
+type PluginArtifactsUploadResult struct {
+	Code    int                      `json:"code"`
+	Message string                   `json:"message"`
+	Status  string                   `json:"status"`
+	Data    []map[string]interface{} `json:"data"`
+}
