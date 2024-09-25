@@ -264,3 +264,11 @@ type MetricImportResultDto struct {
 	FailList    []string `json:"fail_list"`    // 失败
 	Message     string   `json:"message"`      // 描述
 }
+
+type ImportStrategyParam struct {
+	StrategyType string
+	Value        string
+	FilePath     string
+	UserToken    string
+	Language     string
+}

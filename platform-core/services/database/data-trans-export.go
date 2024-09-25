@@ -1124,7 +1124,7 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 				if isEffectiveJson(responseBytes) {
 					var temp interface{}
 					json.Unmarshal(responseBytes, &temp)
-					filePathList = append(filePathList, fmt.Sprintf("%s/%s_%d.json", dashboardPath, models.TransExportAnalyzeMonitorDataTypeDashboard, dashboardId))
+					filePathList = append(filePathList, fmt.Sprintf("%s/%d.json", dashboardPath, dashboardId))
 					finalExportDataList = append(finalExportDataList, temp)
 				}
 			}
