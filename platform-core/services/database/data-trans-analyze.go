@@ -881,7 +881,7 @@ func DataTransExportArtifactData(ctx context.Context, transExportId string) (err
 	for _, unitDesign := range dataList {
 		for _, deployPackage := range unitDesign.ArtifactRows {
 			if deployPackage["guid"] != "" {
-				_, pushErr := remote.PushPackage(ctx, remote.GetToken(), unitDesign.UnitDesign, deployPackage["guid"], "/"+transExportId+"/artifact_packages/")
+				_, pushErr := remote.PushPackage(ctx, remote.GetToken(), unitDesign.UnitDesign, deployPackage["guid"], fmt.Sprintf("/%s/%s/", transExportId, models.TransArtifactPackageDirName))
 				if pushErr != nil {
 					err = fmt.Errorf("push artifact package %s fail,%s ", deployPackage["key_name"], pushErr.Error())
 					break
