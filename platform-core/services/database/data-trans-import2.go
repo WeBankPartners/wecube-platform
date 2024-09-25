@@ -296,6 +296,7 @@ func InitTransImport(ctx context.Context, transImportId, ExportNexusUrl, localPa
 		CreatedTime:        now,
 		UpdatedUser:        operator,
 		UpdatedTime:        now,
+		Step:               0,
 	}
 	if addTransImportActions = getInsertTransImport(transImport); len(addTransImportActions) > 0 {
 		actions = append(actions, addTransImportActions...)
@@ -360,29 +361,29 @@ func getInsertTransImportDetail(transImportId string, detail *models.TransExport
 	for step, name := range transImportDetailMap {
 		switch step {
 		case models.TransImportStepRole:
-			if detail.Roles != nil {
+			if detail.Roles != nil && detail.Roles.Output != nil {
 				tempByte, _ := json.Marshal(detail.Roles.Output)
 				input = string(tempByte)
 			}
 		case models.TransImportStepRequestTemplate:
-			if detail.RequestTemplates != nil {
+			if detail.RequestTemplates != nil && detail.RequestTemplates.Output != nil {
 				tempByte, _ := json.Marshal(detail.RequestTemplates.Output)
 				input = string(tempByte)
 			}
 		case models.TransImportStepComponentLibrary:
 			input = fmt.Sprintf("%t", detail.ExportComponentLibrary)
 		case models.TransImportStepWorkflow:
-			if detail.Workflows != nil {
+			if detail.Workflows != nil && detail.Workflows.Output != nil {
 				tempByte, _ := json.Marshal(detail.Workflows.Output)
 				input = string(tempByte)
 			}
 		case models.TransImportStepBatchExecution:
-			if detail.BatchExecution != nil {
+			if detail.BatchExecution != nil && detail.BatchExecution.Output != nil {
 				tempByte, _ := json.Marshal(detail.BatchExecution.Output)
 				input = string(tempByte)
 			}
 		case models.TransImportStepPluginConfig:
-			if detail.Plugins != nil {
+			if detail.Plugins != nil && detail.Plugins.Output != nil {
 				tempByte, _ := json.Marshal(detail.Plugins.Output)
 				input = string(tempByte)
 			}
@@ -397,12 +398,12 @@ func getInsertTransImportDetail(transImportId string, detail *models.TransExport
 			tempByte, _ := json.Marshal(cmdbData)
 			input = string(tempByte)
 		case models.TransImportStepArtifacts:
-			if detail.Artifacts != nil {
+			if detail.Artifacts != nil && detail.Artifacts.Output != nil {
 				tempByte, _ := json.Marshal(detail.Artifacts.Output)
 				input = string(tempByte)
 			}
 		case models.TransImportStepMonitorBase:
-			if detail.Monitor != nil {
+			if detail.Monitor != nil && detail.Monitor.Output != nil {
 				tempByte, _ := json.Marshal(detail.Monitor.Output)
 				input = string(tempByte)
 			}
@@ -503,6 +504,6 @@ func QueryTransImportByCondition(ctx context.Context, param models.TransImportHi
 // GetLatestTransImportAction 获取最新的导入操作
 func GetLatestTransImportAction(ctx context.Context, transImportId string) (transImportAction *models.TransImportActionTable, err error) {
 	transImportAction = &models.TransImportActionTable{}
-	_, err = db.MysqlEngine.Context(ctx).SQL("select action from trans_import_action where trans_import=? order by updated_time desc limit 1 ", transImportId).Get(transImportAction)
+	_, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_action where trans_import=? order by updated_time desc limit 1 ", transImportId).Get(transImportAction)
 	return
 }
