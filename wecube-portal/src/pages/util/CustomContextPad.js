@@ -22,8 +22,7 @@ export default class CustomContextPad {
       if (autoPlace) {
         const shape = elementFactory.createShape({ type: 'bpmn:SubProcess' })
         autoPlace.append(element, shape)
-      }
-      else {
+      } else {
         appendTaskStart(event, element)
       }
     }
