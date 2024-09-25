@@ -54,7 +54,8 @@ export default {
     handleSave: debounce(async function () {
       if (this.detailData.step > 2) {
         this.$emit('nextStep')
-      } else {
+      }
+      else {
         const params = {
           transImportId: this.detailData.id
         }
