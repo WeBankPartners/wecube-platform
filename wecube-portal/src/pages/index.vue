@@ -27,7 +27,7 @@ export default {
     return {
       isShowBreadcrum: true,
       allMenusAry: [],
-      parentBreadcrumb: '',
+      parentBreadcrumb: '-',
       childBreadcrumb: '',
       expandSideMenu: false
     }
@@ -74,8 +74,7 @@ export default {
           })
         })
         this.childBreadcrumb = menuObj.title
-      }
-      else {
+      } else {
         this.parentBreadcrumb = '-'
         const path = this.$route.path.substr(1)
         if (!window.implicitRoutes) {
