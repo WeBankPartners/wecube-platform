@@ -74,12 +74,10 @@ export default {
             this.routineExpressionItem[0].routineExpression = this.currentSelectedEntity
             this.$emit('filterRuleChanged', this.currentSelectedEntity)
           })
-        }
-        else {
+        } else {
           this.$emit('filterRuleChanged', val)
         }
-      }
-      else {
+      } else {
         this.$nextTick(() => {
           this.routineExpressionItem.forEach(item => {
             if (!item.routineExpression || !val.startsWith(this.currentSelectedEntity)) {

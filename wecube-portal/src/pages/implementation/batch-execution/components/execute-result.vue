@@ -236,8 +236,7 @@ export default {
             returnJsonFlag = item.returnJson.indexOf(filterParams) > -1
             const reg = new RegExp(filterParams, 'g')
             item.returnJsonFormat = item.returnJson.replace(reg, '<span style=\'color:red\'>' + filterParams + '</span>')
-          }
-          else {
+          } else {
             item.returnJsonFormat = item.returnJson
           }
         }
@@ -254,8 +253,7 @@ export default {
                 return b.length - a.length
               })
               execRes = execRes.filter(s => s && s.trim())
-            }
-            catch (err) {
+            } catch (err) {
               console.error(err)
               this.$Message.error(this.$t('bc_filter_type_warn'))
               this.form.filterParams = null
@@ -270,12 +268,10 @@ export default {
             if (str.length !== len) {
               returnJsonFlag = true
               item.returnJsonFormat = str
-            }
-            else {
+            } else {
               returnJsonFlag = false
             }
-          }
-          else {
+          } else {
             item.returnJsonFormat = item.returnJson
           }
         }
