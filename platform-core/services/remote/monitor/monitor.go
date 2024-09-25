@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/network"
 	"io"
 	"net/http"
 
@@ -13,6 +14,8 @@ import (
 
 const (
 	analyzeMonitorExportDataUrl        = "/monitor/api/v2/trans-export/analyze"
+	importMonitorTypeUrl               = "/monitor/api/v2/config/type-batch"
+	importEndpointGroupUrl             = "/monitor/api/v2/alarm/endpoint_group/import"
 	exportMetricListUrl                = "/monitor/api/v2/monitor/metric/export?serviceGroup=%s&monitorType=%s&endpointGroup=%s&comparison=%s"
 	queryMonitorEndpointGroupUrl       = "/monitor/api/v2/alarm/endpoint_group/query"
 	exportMonitorLogMetricUrl          = "/monitor/api/v2/service/log_metric/export?serviceGroup=%s"
@@ -41,6 +44,18 @@ func GetMonitorExportAnalyzeData(endpointList, serviceGroupList []string) (data 
 		return
 	}
 	data = response.Data
+	return
+}
+
+func ImportMonitorType(monitorTypeList []string, token string) (response BatchAddTypeConfigResp, err error) {
+	var responseBytes []byte
+	param := BatchAddTypeConfigParam{DisplayNameList: monitorTypeList}
+	if responseBytes, err = requestMonitorPluginV2(importMonitorTypeUrl, http.MethodPost, token, param); err != nil {
+		return
+	}
+	if err = json.Unmarshal(responseBytes, &response); err != nil {
+		return
+	}
 	return
 }
 
@@ -182,5 +197,27 @@ func requestMonitorPluginV2(url, method, token string, postData interface{}) (re
 		return
 	}
 	resp.Body.Close()
+	return
+}
+
+func ImportEndpointGroup(filePath, userToken, language string) (err error) {
+	var byteArr []byte
+	var response models.RequestTemplateImportResponse
+	uri := models.Config.Gateway.Url + importEndpointGroupUrl
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	if byteArr, err = network.HttpPostJsonFile(filePath, uri, userToken, language); err != nil {
+		return
+	}
+	if err = json.Unmarshal(byteArr, &response); err != nil {
+		return
+	}
+	if response.StatusCode != "OK" {
+		err = fmt.Errorf("import endpointGroup fail,%+v", response.StatusMessage)
+		return
+	}
 	return
 }

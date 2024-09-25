@@ -400,3 +400,13 @@ type TransDataImportNexusConfig struct {
 	NexusPwd  string `json:"nexusPwd"`
 	NexusRepo string `json:"nexusRepo"`
 }
+
+type ExportMetricListDto struct {
+	MonitorTypeMetricList   []string
+	ServiceGroupMetricList  []string
+	EndpointGroupMetricList []string
+	MetricPath              string
+	ServiceGroupPath        string
+	EndpointGroupPath       string
+	Token                   string
+}
