@@ -106,20 +106,20 @@ export default {
       const { status, data } = await getExportDetail(params)
       if (status === 'OK') {
         this.detailData = {
-          roleRes: data.roles,
-          flowRes: data.workflows,
-          batchRes: data.batchExecutions,
-          itsmRes: data.requestTemplates,
-          failMsg: data.createAndUploadFile && data.createAndUploadFile.errMsg,
+          roleRes: data.roles || {},
+          flowRes: data.workflows || {},
+          batchRes: data.batchExecutions || {},
+          itsmRes: data.requestTemplates || {},
+          failMsg: '',
           cmdbRes: data.cmdb, // cmdb
           cmdbCIData: data.cmdbCI || [], // cmdb CI
           cmdbViewData: data.cmdbView || [], // cmdb视图
           cmdbReportData: data.cmdbReportForm || [], // cmdb报表
           cmdbReportFormCount: data.cmdbReportFormCount || 0,
           cmdbViewCount: data.cmdbViewCount || 0,
-          artifactsRes: data.artifacts, // 物料包
-          monitorRes: data.monitor, // 监控
-          pluginsRes: data.plugins, // 插件
+          artifactsRes: data.artifacts || {}, // 物料包
+          monitorRes: data.monitor || {}, // 监控
+          pluginsRes: data.plugins || {}, // 插件
           exportComponentLibrary: data.exportComponentLibrary, // 组件库
           ...data.transExport
         }
@@ -176,6 +176,13 @@ export default {
               'custom_metric_monitor_type'
             ].includes(i.name)
         )
+        // 错误信息提取
+        const {
+          artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes
+        } = this.detailData
+        const exportData = [artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes]
+        const failObj = exportData.find(i => i.status === 'fail') || {}
+        this.detailData.failMsg = failObj.errMsg
         // 成功或失败，取消轮询查状态
         if (['success', 'fail'].includes(this.detailData.status)) {
           clearInterval(this.interval)
