@@ -101,8 +101,8 @@ func RecordTransImportAction(ctx context.Context, callParam *models.CallTransImp
 	return
 }
 
-func GetTransImportProcExecList() (result []*models.TransImportProcExecTable, err error) {
-	err = db.MysqlEngine.SQL("select * from trans_import_proc_exec where trans_import_detail in (select id from trans_import_detail where status='doing' and trans_import in (select id from trans_import where status='doing')) order by trans_import_detail,exec_order").Find(&result)
+func GetTransImportProcExecList(ctx context.Context) (result []*models.TransImportProcExecTable, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_proc_exec where trans_import_detail in (select id from trans_import_detail where status='doing' and trans_import in (select id from trans_import where status='doing')) order by trans_import_detail,exec_order").Find(&result)
 	if err != nil {
 		err = fmt.Errorf("query trans import proc exec table fail,%s ", err.Error())
 	}
