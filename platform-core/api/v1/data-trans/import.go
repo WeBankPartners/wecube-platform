@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/execution"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
 	"os"
 	"sort"
 	"strings"
@@ -378,7 +380,9 @@ func StartExecWorkflowCron() {
 }
 
 func doExecWorkflowDaemonJob() {
-	ctx := db.NewDBCtx(fmt.Sprintf("import_exec_job_%d", time.Now().Unix()))
+	transactionId := fmt.Sprintf("import_exec_job_%d", time.Now().Unix())
+	log.Logger.Debug("start doExecWorkflowDaemonJob", log.String("id", transactionId))
+	ctx := db.NewDBCtx(transactionId)
 	procExecList, err := database.GetTransImportProcExecList(ctx)
 	if err != nil {
 		log.Logger.Error("doExecWorkflowDaemonJob fail with get proc exec list", log.Error(err))
@@ -386,6 +390,7 @@ func doExecWorkflowDaemonJob() {
 	}
 	log.Logger.Debug("doExecWorkflowDaemonJob", log.JsonObj("procExecList", procExecList))
 	if len(procExecList) == 0 {
+		log.Logger.Debug("done doExecWorkflowDaemonJob with empty procExecList", log.String("id", transactionId))
 		return
 	}
 	importExecMap := make(map[string][]*models.TransImportProcExecTable)
@@ -405,7 +410,24 @@ func doExecWorkflowDaemonJob() {
 				continue
 			}
 			if v.Status == models.JobStatusRunning || v.Status == models.JobStatusFail {
-				break
+				if v.ProcInsStatus != "" {
+					if v.ProcInsStatus == models.JobStatusKill {
+						v.ProcInsStatus = models.JobStatusFail
+					}
+					if v.ProcInsStatus == models.WorkflowStatusStop {
+						v.ProcInsStatus = models.JobStatusRunning
+					}
+					if v.Status != v.ProcInsStatus {
+						v.Status = v.ProcInsStatus
+						if v.Status == models.JobStatusSuccess {
+							successRowCount = successRowCount + 1
+						}
+						if _, updateStatusErr := database.UpdateTransImportProcExec(ctx, v); updateStatusErr != nil {
+							log.Logger.Error("doExecWorkflowDaemonJob update running proc exec status fail", log.String("detailId", v.Id), log.String("status", v.Status), log.Error(updateStatusErr))
+						}
+					}
+				}
+				continue
 			}
 			if v.Status == models.JobStatusReady {
 				needStartExec = v
@@ -414,9 +436,26 @@ func doExecWorkflowDaemonJob() {
 		}
 		if needStartExec.Id != "" {
 			// 需要开始执行编排
-			tmpErr := startExecWorkflow(ctx, needStartExec)
+			needStartExec.Status = models.TransImportInPreparationStatus
+			rowAffect, execErr := database.UpdateTransImportProcExec(ctx, needStartExec)
+			if execErr != nil {
+				log.Logger.Error("doExecWorkflowDaemonJob update proc exec status fail", log.String("detailId", transImportDetailId), log.String("status", needStartExec.Status), log.Error(execErr))
+				continue
+			}
+			if !rowAffect {
+				log.Logger.Warn("doExecWorkflowDaemonJob update proc exec status affect now row", log.String("detailId", transImportDetailId))
+				continue
+			}
+			tmpProcInsId, tmpErr := startExecWorkflow(ctx, needStartExec)
 			if tmpErr != nil {
 				log.Logger.Error("doExecWorkflowDaemonJob start exec workflow fail", log.String("detailId", transImportDetailId), log.Error(tmpErr))
+				continue
+			}
+			needStartExec.Status = models.JobStatusRunning
+			needStartExec.ProcIns = tmpProcInsId
+			if _, tmpErr = database.UpdateTransImportProcExec(ctx, needStartExec); tmpErr != nil {
+				log.Logger.Error("doExecWorkflowDaemonJob update proc exec status fail", log.String("detailId", transImportDetailId), log.String("status", needStartExec.Status), log.Error(tmpErr))
+				continue
 			}
 			continue
 		}
@@ -428,9 +467,35 @@ func doExecWorkflowDaemonJob() {
 			}
 		}
 	}
+	log.Logger.Debug("done doExecWorkflowDaemonJob", log.String("id", transactionId))
 }
 
-func startExecWorkflow(ctx context.Context, procExecRow *models.TransImportProcExecTable) (err error) {
-
+func startExecWorkflow(ctx context.Context, procExecRow *models.TransImportProcExecTable) (retProcInsId string, err error) {
+	// preview
+	previewData, previewErr := execution.BuildProcPreviewData(ctx, procExecRow.ProcDef, procExecRow.EntityDataId, procExecRow.CreatedUser)
+	if previewErr != nil {
+		err = previewErr
+		log.Logger.Error("startExecWorkflow fail with build proc preview data", log.String("procExecId", procExecRow.Id), log.Error(previewErr))
+		return
+	}
+	// proc instance start
+	procStartParam := models.ProcInsStartParam{
+		EntityDataId:      procExecRow.EntityDataId,
+		EntityDisplayName: procExecRow.EntityDataName,
+		ProcDefId:         procExecRow.ProcDef,
+		ProcessSessionId:  previewData.ProcessSessionId,
+	}
+	// 新增 proc_ins,proc_ins_node,proc_data_binding 纪录
+	procInsId, workflowRow, workNodes, workLinks, createInsErr := database.CreateProcInstance(ctx, &procStartParam, procExecRow.CreatedUser)
+	if createInsErr != nil {
+		err = createInsErr
+		log.Logger.Error("startExecWorkflow fail with create proc instance data", log.String("procExecId", procExecRow.Id), log.String("sessionId", previewData.ProcessSessionId), log.Error(createInsErr))
+		return
+	}
+	retProcInsId = procInsId
+	// 初始化workflow并开始
+	workObj := workflow.Workflow{ProcRunWorkflow: *workflowRow}
+	workObj.Init(context.Background(), workNodes, workLinks)
+	go workObj.Start(&models.ProcOperation{CreatedBy: procExecRow.CreatedUser})
 	return
 }

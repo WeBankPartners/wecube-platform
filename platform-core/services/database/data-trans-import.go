@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
@@ -102,7 +103,7 @@ func RecordTransImportAction(ctx context.Context, callParam *models.CallTransImp
 }
 
 func GetTransImportProcExecList(ctx context.Context) (result []*models.TransImportProcExecTable, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_proc_exec where trans_import_detail in (select id from trans_import_detail where status='doing' and trans_import in (select id from trans_import where status='doing')) order by trans_import_detail,exec_order").Find(&result)
+	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t2.status as `proc_ins_status` from trans_import_proc_exec t1 left join proc_ins t2 on t1.proc_ins=t2.id where t1.trans_import_detail in (select id from trans_import_detail where status='doing' and trans_import in (select id from trans_import where status='doing')) order by t1.trans_import_detail,t1.exec_order").Find(&result)
 	if err != nil {
 		err = fmt.Errorf("query trans import proc exec table fail,%s ", err.Error())
 	}
@@ -192,6 +193,25 @@ func CreateTransImportProcExecData(ctx context.Context, procExecList []*models.T
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = fmt.Errorf("create trans import proc exec data fail,%s ", err.Error())
+	}
+	return
+}
+
+func UpdateTransImportProcExec(ctx context.Context, param *models.TransImportProcExecTable) (affectRow bool, err error) {
+	var execResult sql.Result
+	if param.Status == models.TransImportInPreparationStatus {
+		execResult, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_proc_exec set status=? where id=? and status=?", models.TransImportInPreparationStatus, param.Id, models.JobStatusReady)
+	} else if param.Status == models.JobStatusSuccess {
+		execResult, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_proc_exec set status=?,proc_ins=?,start_time=? where id=?", models.JobStatusSuccess, param.ProcIns, time.Now(), param.Id)
+	} else if param.Status == models.JobStatusFail {
+		execResult, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_proc_exec set status=?,error_msg=? where id=?", models.JobStatusFail, param.ErrorMsg, param.Id)
+	}
+	if err != nil {
+		err = fmt.Errorf("update trans import proc exec status fail,%s ", err.Error())
+		return
+	}
+	if rowAffectNum, _ := execResult.RowsAffected(); rowAffectNum > 0 {
+		affectRow = true
 	}
 	return
 }

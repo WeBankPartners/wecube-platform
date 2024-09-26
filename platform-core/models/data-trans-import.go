@@ -1,5 +1,9 @@
 package models
 
+const (
+	TransImportInPreparationStatus = "InPreparation"
+)
+
 type TransImportTable struct {
 	Id                 string `json:"id" xorm:"id"`
 	InputUrl           string `json:"inputUrl" xorm:"input_url"`
@@ -49,7 +53,7 @@ type TransImportProcExecTable struct {
 	EntityDataId      string `json:"entityDataId" xorm:"entity_data_id"`
 	EntityDataName    string `json:"entityDataName" xorm:"entity_data_name"`
 	ExecOrder         int    `json:"execOrder" xorm:"exec_order"`
-	Status            string `json:"status" xorm:"status"` // 状态->NotStarted(未开始)|InProgress(执行中)|Completed(成功)|Faulted(失败)
+	Status            string `json:"status" xorm:"status"` // 状态->NotStarted(未开始)|InPreparation(准备启动中)|InProgress(执行中)|Completed(成功)|Faulted(失败)
 	Input             string `json:"input" xorm:"input"`
 	Output            string `json:"output" xorm:"output"`
 	ErrorMsg          string `json:"errorMsg" xorm:"error_msg"`
@@ -57,6 +61,7 @@ type TransImportProcExecTable struct {
 	EndTime           string `json:"endTime" xorm:"end_time"`
 	CreatedUser       string `json:"createdUser" xorm:"created_user"`
 	CreatedTime       string `json:"createdTime" xorm:"created_time"`
+	ProcInsStatus     string `json:"-" xorm:"proc_ins_status"` // 关联的编排实例状态
 }
 
 type GetBusinessListRes struct {
