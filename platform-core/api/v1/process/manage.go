@@ -527,6 +527,11 @@ func DeployProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	// 草稿态才能发布
+	if procDef.Status != string(models.Draft) {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("this procDef status is not draft")))
+		return
+	}
 	if err = CheckPermission(procDef, middleware.GetRequestUser(c)); err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -535,30 +540,30 @@ func DeployProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ProcDefRootEntityEmptyError, nil))
 		return
 	}
-	// 草稿态才能发布
-	if procDef.Status != string(models.Draft) {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("this procDef status is not draft")))
-		return
-	}
-	// 检查节点的合法性
-	if err = checkDeployedProcDef(c, procDefId, procDef); err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	procDef.Status = string(models.Deployed)
-	procDef.UpdatedBy = middleware.GetRequestUser(c)
-	procDef.UpdatedTime = time.Now()
-	// 发布编排
-	if err = database.UpdateProcDefStatusAndVersion(c, procDef); err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	// 发布节点
-	if err = database.UpdateProcDefNodeStatusByProcDefId(c, procDefId, string(models.Deployed), middleware.GetRequestUser(c)); err != nil {
+	if err = ExecDeployedProcDef(c, procDef, middleware.GetRequestUser(c)); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
 	middleware.ReturnSuccess(c)
+}
+
+func ExecDeployedProcDef(ctx context.Context, procDef *models.ProcDef, operator string) (err error) {
+	// 检查节点的合法性
+	if err = checkDeployedProcDef(ctx, procDef); err != nil {
+		return
+	}
+	procDef.Status = string(models.Deployed)
+	procDef.UpdatedBy = operator
+	procDef.UpdatedTime = time.Now()
+	// 发布编排
+	if err = database.UpdateProcDefStatusAndVersion(ctx, procDef); err != nil {
+		return
+	}
+	// 发布节点
+	if err = database.UpdateProcDefNodeStatusByProcDefId(ctx, procDef.Id, string(models.Deployed), operator); err != nil {
+		return
+	}
+	return
 }
 
 // GetProcDefRootTaskNode  获取编排根任务节点
@@ -1377,7 +1382,7 @@ checkDeployedProcDefNode
 6. 开始结束节点都不超过一个
 7. 判断节点出的线,必须有名字并且同一个判断节点的所有线的名字不能相同
 */
-func checkDeployedProcDef(ctx context.Context, procDefId string, procDef *models.ProcDef) error {
+func checkDeployedProcDef(ctx context.Context, procDef *models.ProcDef) error {
 	var inCount, outCount int
 	var list []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
@@ -1388,7 +1393,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string, procDef *models
 	var sortLinks [][]string
 	var sortNodes models.ProcDefSortNodes
 	var withDecisionMerge, withMerge bool
-	list, err = database.GetProcDefNodeById(ctx, procDefId)
+	list, err = database.GetProcDefNodeById(ctx, procDef.Id)
 	if err != nil {
 		return err
 	}
@@ -1398,7 +1403,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string, procDef *models
 	if repeatName := checkProcDefNodeNameRepeat(list); repeatName != "" {
 		return exterror.New().ProcDefNodeNameRepeatError.WithParam(repeatName)
 	}
-	linkList, err = database.GetProcDefNodeLinkListByProcDefId(ctx, procDefId)
+	linkList, err = database.GetProcDefNodeLinkListByProcDefId(ctx, procDef.Id)
 	if err != nil {
 		return exterror.Catch(exterror.New().DatabaseQueryError, err)
 	}
@@ -1446,7 +1451,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string, procDef *models
 		case models.ProcDefNodeTypeDecision:
 			//  判断节点出的线,必须有名字并且同一个判断节点的所有线的名字不能相同
 			var tempLinkNameMap = make(map[string]bool)
-			nodeLinkList, err2 := database.GetProcDefNodeLinkByProcDefIdAndSource(ctx, procDefId, node.Id)
+			nodeLinkList, err2 := database.GetProcDefNodeLinkByProcDefIdAndSource(ctx, procDef.Id, node.Id)
 			if err2 != nil {
 				return exterror.Catch(exterror.New().DatabaseQueryError, err2)
 			}
@@ -1505,9 +1510,6 @@ func checkDeployedProcDef(ctx context.Context, procDefId string, procDef *models
 		sortLinks = append(sortLinks, []string{link.Source, link.Target})
 		if v, ok := nodeMap[link.Source]; ok && nodeMap[link.Target] != nil {
 			if v.NodeType == string(models.ProcDefNodeTypeMerge) || v.NodeType == string(models.ProcDefNodeTypeFork) {
-				//if v.NodeType == string(models.ProcDefNodeTypeMerge) && (nodeMap[link.Target] == v || nodeMap[link.Target].NodeType == string(models.ProcDefNodeTypeFork)) {
-				//	return exterror.New().ProcDefNode20000008Error.WithParam(nodeMap[link.Source].Name, nodeMap[link.Target].Name)
-				//}
 				if v.NodeType == string(models.ProcDefNodeTypeFork) && (nodeMap[link.Target] == v || nodeMap[link.Target].NodeType == string(models.ProcDefNodeTypeMerge)) {
 					return exterror.New().ProcDefNode20000008Error.WithParam(nodeMap[link.Source].Name, nodeMap[link.Target].Name)
 				}
