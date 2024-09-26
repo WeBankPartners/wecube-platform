@@ -137,6 +137,10 @@ CREATE TABLE `trans_import_proc_exec`
     `id`                  varchar(64) COLLATE utf8_bin NOT NULL,
     `trans_import_detail` varchar(64) COLLATE utf8_bin NOT NULL COMMENT '记录详情表',
     `proc_ins`            varchar(64) COLLATE utf8_bin NOT NULL COMMENT '编排实例ID',
+    `proc_def`            varchar(64) COLLATE utf8_bin NOT NULL COMMENT '编排定义ID',
+    `root_entity`            varchar(255) COLLATE utf8_bin NOT NULL COMMENT '根表达式',
+    `entity_data_id`            varchar(64) COLLATE utf8_bin NOT NULL COMMENT '根数据ID',
+    `entity_data_name`            varchar(255) COLLATE utf8_bin NOT NULL COMMENT '根数据名称',
     `exec_order`          tinyint(2) COLLATE utf8_bin DEFAULT 0 COMMENT '第几步',
     `status`              varchar(32) COLLATE utf8_bin NOT NULL COMMENT '导出状态: notStart未开始,doing执行中,success成功,fail失败',
     `input`               text COLLATE utf8_bin     DEFAULT NULL COMMENT '输入',
@@ -144,6 +148,8 @@ CREATE TABLE `trans_import_proc_exec`
     `error_msg`           text COLLATE utf8_bin     DEFAULT NULL COMMENT '导出报错信息',
     `start_time`          datetime                  default NULL COMMENT '开始时间',
     `end_time`            datetime                  default NULL COMMENT '结束时间',
+    `created_user`        varchar(45) COLLATE utf8_bin   DEFAULT NULL COMMENT '创建人',
+    `created_time`        datetime                       NOT NULL,
     PRIMARY KEY (`id`),
     CONSTRAINT `trans_import_proc_exec_force_detail` FOREIGN KEY (`trans_import_detail`) REFERENCES `trans_import_detail` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '数据迁移执行记录详情表';

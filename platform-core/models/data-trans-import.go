@@ -44,6 +44,10 @@ type TransImportProcExecTable struct {
 	Id                string `json:"id" xorm:"id"`
 	TransImportDetail string `json:"transImportDetail" xorm:"trans_import_detail"`
 	ProcIns           string `json:"procIns" xorm:"proc_ins"`
+	ProcDef           string `json:"procDef" xorm:"proc_def"`
+	RootEntity        string `json:"rootEntity" xorm:"root_entity"`
+	EntityDataId      string `json:"entityDataId" xorm:"entity_data_id"`
+	EntityDataName    string `json:"entityDataName" xorm:"entity_data_name"`
 	ExecOrder         int    `json:"execOrder" xorm:"exec_order"`
 	Status            string `json:"status" xorm:"status"`
 	Input             string `json:"input" xorm:"input"`
@@ -51,6 +55,8 @@ type TransImportProcExecTable struct {
 	ErrorMsg          string `json:"errorMsg" xorm:"error_msg"`
 	StartTime         string `json:"startTime" xorm:"start_time"`
 	EndTime           string `json:"endTime" xorm:"end_time"`
+	CreatedUser       string `json:"createdUser" xorm:"created_user"`
+	CreatedTime       string `json:"createdTime" xorm:"created_time"`
 }
 
 type GetBusinessListRes struct {
