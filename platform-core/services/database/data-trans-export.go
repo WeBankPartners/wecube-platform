@@ -506,7 +506,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	var queryRequestTemplatesResponse models.QueryRequestTemplatesResponse
 	var queryComponentLibraryResponse models.QueryComponentLibraryResponse
 	var procDefDto *models.ProcessDefinitionDto
-	var procDefExportList []*models.ProcessDefinitionDto
+	var procDefExportList, procDefExportMainList, procDefExportSubList []*models.ProcessDefinitionDto
 	var procDefDataList []*models.ProcDefDto
 	var batchExecutionTemplateList []*models.BatchExecutionTemplate
 	var transDataVariableConfig *models.TransDataVariableConfig
@@ -648,7 +648,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			}
 			if procDefDto != nil && procDefDto.ProcDef != nil {
 				procDefDataList = append(procDefDataList, buildProcDefDto(procDefDto, roleDisplayNameMap))
-				procDefExportList = append(procDefExportList, procDefDto)
+				procDefExportMainList = append(procDefExportMainList, procDefDto)
 			}
 			// 导出编排节点里面如果关联子编排,子编排也需要导出
 			if procDefDto.ProcDefNodeExtend != nil && len(procDefDto.ProcDefNodeExtend.Nodes) > 0 {
@@ -667,11 +667,15 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 					param.WorkflowIds = append(param.WorkflowIds, subProcDefId)
 					if procDefDto != nil && procDefDto.ProcDef != nil {
 						procDefDataList = append(procDefDataList, buildProcDefDto(procDefDto, roleDisplayNameMap))
-						procDefExportList = append(procDefExportList, procDefDto)
+						procDefExportSubList = append(procDefExportSubList, procDefDto)
 					}
 				}
 			}
 		}
+		// 汇总导出 编排,注意子编排需要放在前面导出,因为导入时候需要先导入子编排,主编排依赖子编排
+		procDefExportList = append(procDefExportList, procDefExportSubList...)
+		procDefExportList = append(procDefExportList, procDefExportMainList...)
+
 		exportWorkflowParam := models.StepExportParam{
 			Ctx:           ctx,
 			Path:          path,
