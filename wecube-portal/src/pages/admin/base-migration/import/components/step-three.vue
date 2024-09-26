@@ -1,13 +1,13 @@
 <template>
   <div class="base-migration-import-three">
     <div class="import-status">
-      <Alert v-if="detailData.status === 'doing'" type="info" show-icon>
+      <Alert v-if="detailData.initWorkflowRes.status === 'doing'" type="info" show-icon>
         <template #desc>正在导入内容，请稍后... </template>
       </Alert>
-      <Alert v-else-if="detailData.status === 'fail'" type="error" show-icon>
+      <Alert v-else-if="detailData.initWorkflowRes.status === 'fail'" type="error" show-icon>
         <template #desc>导入失败！</template>
       </Alert>
-      <Alert v-else-if="detailData.status === 'success'" type="success" show-icon>
+      <Alert v-else-if="detailData.initWorkflowRes.status === 'success'" type="success" show-icon>
         <template #desc>导入成功！</template>
       </Alert>
     </div>
@@ -23,13 +23,13 @@
       <Button v-if="['fail'].includes(detailData.status)" type="default" @click="handleRetry">重试</Button>
       <Button v-if="['doing', 'fail'].includes(detailData.status)" type="default" @click="handleStop">终止</Button>
       <Button type="default" @click="handleLast">上一步</Button>
-      <Button v-if="['success'].includes(detailData.status)" type="primary" @click="handleNext">下一步</Button>
+      <Button v-if="['success'].includes(detailData.initWorkflowRes.status)" type="primary" @click="handleNext">下一步</Button>
     </div>
   </div>
 </template>
 
 <script>
-import { instancesWithPaging, pauseAndContinueFlow, createWorkflowInstanceTerminationRequest } from '@/api/server'
+import { instancesWithPaging } from '@/api/server'
 export default {
   props: {
     detailData: Object
@@ -165,49 +165,6 @@ export default {
                   <Icon type="md-eye" size="16"></Icon>
                 </Button>
               </Tooltip>
-              {['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)'].includes(params.row.status) && (
-                <Tooltip content={this.$t('pause')} placement="top">
-                  <Button
-                    size="small"
-                    type="warning"
-                    onClick={() => {
-                      this.flowControlHandler('stop', params.row) // 暂停
-                    }}
-                    style="margin-right:5px;"
-                  >
-                    <Icon type="md-pause" size="16"></Icon>
-                  </Button>
-                </Tooltip>
-              )}
-              {params.row.status === 'Stop' && (
-                <Tooltip content={this.$t('be_continue')} placement="top">
-                  <Button
-                    size="small"
-                    type="success"
-                    onClick={() => {
-                      this.flowControlHandler('recover', params.row) // 继续
-                    }}
-                    style="margin-right:5px;"
-                  >
-                    <Icon type="md-play" size="16"></Icon>
-                  </Button>
-                </Tooltip>
-              )}
-              {['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(params.row.status)
-                && !(params.row.parentProcIns && params.row.parentProcIns.procInsId) && (
-                <Tooltip content={this.$t('stop_orch')} placement="top">
-                  <Button
-                    size="small"
-                    type="error"
-                    onClick={() => {
-                      this.stopTask(params.row) // 终止
-                    }}
-                    style="margin-right:5px;"
-                  >
-                    <Icon type="md-power" size="16"></Icon>
-                  </Button>
-                </Tooltip>
-              )}
             </div>
           )
         }
@@ -254,72 +211,6 @@ export default {
       this.$Notice.warning({
         title: '',
         desc: this.$t('no_detail_warning')
-      })
-    },
-    // 暂停、继续编排
-    async flowControlHandler(operateType, row) {
-      this.$Modal.confirm({
-        title:
-          localStorage.getItem('username') !== row.operator
-            ? this.$t('be_workflow_non_owner_title')
-            : this.$t('bc_confirm') + ' ' + (operateType === 'stop' ? this.$t('pause') : this.$t('bc_continue')),
-        content:
-          localStorage.getItem('username') !== row.operator
-            ? `${this.$t('be_workflow_non_owner_list_tip1')}[${row.operator}]${this.$t(
-              'be_workflow_non_owner_list_tip2'
-            )}`
-            : '',
-        'z-index': 1000000,
-        onOk: async () => {
-          const payload = {
-            procInstId: row.id,
-            act: operateType
-          }
-          this.loading = true
-          const { status } = await pauseAndContinueFlow(payload)
-          this.loading = false
-          if (status === 'OK') {
-            this.getList()
-            this.$Notice.success({
-              title: 'Success',
-              desc: 'Success'
-            })
-          }
-        },
-        onCancel: () => {}
-      })
-    },
-    // 终止任务
-    stopTask(row) {
-      this.$Modal.confirm({
-        title:
-          localStorage.getItem('username') !== row.operator
-            ? this.$t('be_workflow_non_owner_title')
-            : this.$t('bc_confirm') + ' ' + this.$t('stop_orch'),
-        content:
-          localStorage.getItem('username') !== row.operator
-            ? `${this.$t('be_workflow_non_owner_list_tip1')}[${row.operator}]${this.$t(
-              'be_workflow_non_owner_list_tip2'
-            )}`
-            : '',
-        'z-index': 1000000,
-        onOk: async () => {
-          const payload = {
-            procInstId: row.id,
-            procInstKey: row.procInstKey
-          }
-          this.loading = true
-          const { status } = await createWorkflowInstanceTerminationRequest(payload)
-          this.loading = false
-          if (status === 'OK') {
-            this.getList()
-            this.$Notice.success({
-              title: 'Success',
-              desc: 'Success'
-            })
-          }
-        },
-        onCancel: () => {}
       })
     },
     handleStop() {},
