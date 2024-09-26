@@ -199,3 +199,12 @@ const (
 	TransImportTmpDir           = "/tmp/trans_import/%s"
 	TransArtifactPackageDirName = "artifact_packages"
 )
+
+// ImportWebDisplayStep  web导入步骤
+type ImportWebDisplayStep int
+
+const (
+	ImportWebDisplayStepTwo   ImportWebDisplayStep = 2
+	ImportWebDisplayStepThree ImportWebDisplayStep = 3
+	ImportWebDisplayStepFour  ImportWebDisplayStep = 4
+)

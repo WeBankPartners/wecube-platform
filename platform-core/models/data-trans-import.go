@@ -14,7 +14,7 @@ type TransImportTable struct {
 	CreatedTime        string `json:"createdTime" xorm:"created_time"`
 	UpdatedUser        string `json:"updatedUser" xorm:"updated_user"`
 	UpdatedTime        string `json:"updatedTime" xorm:"updated_time"`
-	Step               int    `json:"step"  xorm:"-"` // 通知web执行中的哪一步,2,3,4
+	WebStep            int    `json:"step"  xorm:"-"` // 通知web执行中的哪一步,2,3,4
 }
 
 type TransImportActionTable struct {
@@ -78,6 +78,7 @@ type CallTransImportActionParam struct {
 	DirPath             string `json:"-"`        // 解压文件目录路径
 	Token               string `json:"token"`    // token
 	Language            string `json:"language"` // language
+	WebStep             int    `json:"-"`        // 前端页面第一步
 }
 
 type ExecImportParam struct {
@@ -86,6 +87,7 @@ type ExecImportParam struct {
 	Operator       string `json:"-"`
 	Token          string `json:"token"`    // token
 	Language       string `json:"language"` // language
+	WebStep        int    `json:"step"`     // web 第几步,2,3,4
 }
 
 type CmdbData struct {

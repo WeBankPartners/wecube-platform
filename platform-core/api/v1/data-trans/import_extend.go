@@ -120,12 +120,12 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 				break
 			}
 		}
-		if currentStep == int(models.TransImportStepInitWorkflow) {
+		if currentStep == int(models.TransImportStepInitWorkflow) && callParam.WebStep == int(models.ImportWebDisplayStepThree) {
 			transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 			if err = callImportFunc(ctx, transImportJobParam, execWorkflow); err != nil {
 				return
 			}
-		} else if currentStep == int(models.TransImportStepMonitorBusiness) {
+		} else if currentStep == int(models.TransImportStepMonitorBusiness) && callParam.WebStep == int(models.ImportWebDisplayStepFour) {
 			transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 			if err = callImportFunc(ctx, transImportJobParam, importMonitorServiceConfig); err != nil {
 				return
