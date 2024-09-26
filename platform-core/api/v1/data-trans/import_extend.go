@@ -51,6 +51,12 @@ func StartTransImport(ctx context.Context, param models.ExecImportParam) (err er
 		return
 	}
 	if transImport == nil || transImport.Id == "" {
+		// 下载物料包
+		_, _, err = database.DownloadImportArtifactPackages(ctx, param.ExportNexusUrl, param.TransImportId)
+		if err != nil {
+			log.Logger.Error("download import artifact packages fail", log.String("url", param.ExportNexusUrl), log.Error(err))
+			return
+		}
 		// 初始化导入
 		if err = database.InitTransImport(ctx, param.TransImportId, param.ExportNexusUrl, localPath, param.Operator); err != nil {
 			log.Logger.Error("initTransImport err", log.Error(err))

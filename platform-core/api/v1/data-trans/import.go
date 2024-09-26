@@ -184,7 +184,7 @@ func importPluginConfig(ctx context.Context, transImportParam *models.TransImpor
 	return
 }
 
-// 5、导入物料包
+// 6、导入物料包
 func importArtifactPackage(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	var input string
 	input, err = database.GetTransImportDetailInput(ctx, transImportParam.CurrentDetail.Id)
