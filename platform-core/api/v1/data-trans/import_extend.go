@@ -20,6 +20,10 @@ var importFuncList []func(context.Context, *models.TransImportJobParam) (string,
 // defaultRoles 系统默认角色列表
 var defaultRoles = []string{"SUB_SYSTEM", "IFA_OPS", "APP_DEV", "IFA_ARC", "APP_ARC", "STG_OPS", "PRD_OPS", "MONITOR_ADMIN", "CMDB_ADMIN", "SUPER_ADMIN"}
 
+const (
+	strategyEndpointGroupConst = "strategy_endpoint_group_"
+)
+
 func init() {
 	importFuncList = append(importFuncList, importRole)
 	importFuncList = append(importFuncList, importCmdbConfig)
@@ -93,7 +97,7 @@ func StartTransImport(ctx context.Context, param models.ExecImportParam) (err er
 // 开始执行
 // 10、开始执行编排(创建资源、初始化资源、应用部署)
 // 继续导入
-// 11、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板
+// 11、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板、关键字层级对象、关键字对象
 func doImportAction(ctx context.Context, callParam *models.CallTransImportActionParam) (err error) {
 	transImportJobParam, getConfigErr := database.GetTransImportWithDetail(ctx, callParam.TransImportId, false)
 	if getConfigErr != nil {
@@ -399,9 +403,12 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 		}
 		// 遍历文件和子目录
 		for _, file := range strategyFiles {
-			index := strings.Index(file.Name(), "strategy_endpoint_group_")
-			if index > 0 {
-				endpointGroup := file.Name()[index+1:]
+			index := 0
+			endIndex := 0
+			if strings.HasPrefix(file.Name(), strategyEndpointGroupConst) {
+				index = len(strategyEndpointGroupConst)
+				endIndex = strings.LastIndex(file.Name(), ".")
+				endpointGroup := file.Name()[index:endIndex]
 				param := monitor.ImportStrategyParam{
 					StrategyType: "group",
 					Value:        endpointGroup,
@@ -415,9 +422,9 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 				}
 			}
 		}
-		log.Logger.Info("6-4. import  monitor strategy success!")
+		log.Logger.Info("6-4. import  monitor strategy endpointGroup success!")
 	} else {
-		log.Logger.Info("6-4. import  monitor strategy data empty!")
+		log.Logger.Info("6-4. import  monitor strategy endpointGroup data empty!")
 	}
 
 	// 导入业务模版配置
