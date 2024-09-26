@@ -134,7 +134,7 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 	if transImport, err = GetTransImport(ctx, transImportId); err != nil {
 		return
 	}
-	if transImportDetailList, err = getTransImportDetail(ctx, transImportId); err != nil {
+	if transImportDetailList, err = GetTransImportDetail(ctx, transImportId); err != nil {
 		return
 	}
 	detail = &models.TransImportDetail{
@@ -227,13 +227,13 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 	}
 	// 计算web跳转到哪一步
 	if detail.TransImport != nil && (transImport.Status == string(models.TransImportStatusDoing) || transImport.Status == string(models.TransImportStatusFail)) {
-		detail.TransImport.Step = calcWebDisplayStep(transImportDetailList)
+		detail.TransImport.WebStep = int(CalcWebDisplayStep(transImportDetailList))
 	}
 	return
 }
 
-// web 第二步 导入基础数据, 第三步 执行自动化编排,第四步 配置监控
-func calcWebDisplayStep(detailList []*models.TransImportDetailTable) int {
+// CalcWebDisplayStep 第二步 导入基础数据, 第三步 执行自动化编排,第四步 配置监控
+func CalcWebDisplayStep(detailList []*models.TransImportDetailTable) models.ImportWebDisplayStep {
 	var hashMap = make(map[models.TransImportStep]*models.TransImportDetailTable)
 	for _, detail := range detailList {
 		hashMap[models.TransImportStep(detail.Step)] = detail
@@ -241,16 +241,16 @@ func calcWebDisplayStep(detailList []*models.TransImportDetailTable) int {
 	// 监控业务配置是否完成
 	if v, ok := hashMap[models.TransImportStepMonitorBusiness]; ok {
 		if v.Status == string(models.TransImportStatusDoing) || v.Status == string(models.TransImportStatusSuccess) || v.Status == string(models.TransImportStatusFail) {
-			return 4
+			return models.ImportWebDisplayStepFour
 		}
 	}
 	// 执行自动化是否完成
 	if v, ok := hashMap[models.TransImportStepInitWorkflow]; ok {
 		if v.Status == string(models.TransImportStatusDoing) || v.Status == string(models.TransImportStatusFail) {
-			return 3
+			return models.ImportWebDisplayStepThree
 		}
 	}
-	return 2
+	return models.ImportWebDisplayStepTwo
 }
 
 func InitTransImport(ctx context.Context, transImportId, ExportNexusUrl, localPath, operator string) (err error) {
@@ -296,7 +296,6 @@ func InitTransImport(ctx context.Context, transImportId, ExportNexusUrl, localPa
 		CreatedTime:        now,
 		UpdatedUser:        operator,
 		UpdatedTime:        now,
-		Step:               0,
 	}
 	if addTransImportActions = getInsertTransImport(transImport); len(addTransImportActions) > 0 {
 		actions = append(actions, addTransImportActions...)
@@ -340,8 +339,8 @@ func getInsertTransImport(transImport models.TransImportTable) (actions []*db.Ex
 	return
 }
 
-func getTransImportDetail(ctx context.Context, transImportId string) (result []*models.TransImportDetailTable, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_detail where trans_import=?", transImportId).Find(&result)
+func GetTransImportDetail(ctx context.Context, transImportId string) (result []*models.TransImportDetailTable, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_detail where trans_import=? order by step", transImportId).Find(&result)
 	return
 }
 
