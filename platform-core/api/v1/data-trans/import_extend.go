@@ -361,6 +361,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 						return
 					}
 				}
+				continue
 			}
 			comparison := "N"
 			monitorType := file.Name()[:strings.LastIndex(file.Name(), ".")]
