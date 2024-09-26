@@ -92,6 +92,8 @@ export default {
           artifactsRes: data.artifacts, // 物料包
           monitorRes: data.monitorBase, // 监控
           pluginsRes: data.plugins, // 插件
+          initWorkflowRes: data.initWorkflow,
+          monitorBusinessRes: data.monitorBusiness,
           exportComponentLibrary: data.exportComponentLibrary, // 组件库
           step: data.step,
           ...data.transExport
@@ -177,7 +179,7 @@ export default {
         }
         // 第三步导入状态判断
         if (this.detailData.step === 3) {
-          if (!['success', 'fail'].includes(this.detailData.initWorkflow.status)) {
+          if (!['success', 'fail'].includes(this.detailData.initWorkflowRes.status)) {
             this.interval = setInterval(() => {
               this.getDetailData()
             }, 10 * 1000)
@@ -187,7 +189,7 @@ export default {
         }
         // 第四步导入状态判断
         if (this.detailData.step === 4) {
-          if (!['success', 'fail'].includes(this.detailData.monitorBusiness.status)) {
+          if (!['success', 'fail'].includes(this.detailData.monitorBusinessRes.status)) {
             this.interval = setInterval(() => {
               this.getDetailData()
             }, 10 * 1000)
@@ -197,14 +199,18 @@ export default {
         }
       }
     },
-    handleSaveStepOne(id) {
+    async handleSaveStepOne(id) {
       this.id = id
+      this.loading = true
+      await this.getDetailData()
+      this.loading = false
       this.activeStep++
-      this.getDetailData()
     },
-    handleSaveStepTwo() {
+    async handleSaveStepTwo() {
+      this.loading = true
+      await this.getDetailData()
+      this.loading = false
       this.activeStep++
-      this.getDetailData()
     }
   }
 }
