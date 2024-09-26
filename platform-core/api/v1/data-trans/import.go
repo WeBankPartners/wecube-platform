@@ -57,8 +57,12 @@ func ExecImport(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	if strings.TrimSpace(param.ExportNexusUrl) == "" {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("ExportNexusUrl or step is empty")))
+	if strings.TrimSpace(param.ExportNexusUrl) == "" && strings.TrimSpace(param.TransImportId) == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("ExportNexusUrl or transImportId is empty")))
+		return
+	}
+	if checkWebStepInvalid(c, param) {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("param step is invalid")))
 		return
 	}
 	if param.TransImportId == "" {
@@ -72,6 +76,61 @@ func ExecImport(c *gin.Context) {
 		return
 	}
 	middleware.ReturnData(c, param.TransImportId)
+}
+
+// checkWebStepInvalid 校验web传递 step是否合法
+func checkWebStepInvalid(ctx context.Context, param models.ExecImportParam) bool {
+	var transImportDetailList []*models.TransImportDetailTable
+	var transImport *models.TransImportTable
+	var err error
+	if param.WebStep == 0 {
+		return true
+	}
+	if param.ExportNexusUrl != "" && param.WebStep > int(models.ImportWebDisplayStepTwo) {
+		return true
+	}
+	if strings.TrimSpace(param.TransImportId) != "" {
+		if transImport, err = database.GetTransImport(ctx, param.TransImportId); err != nil {
+			return true
+		}
+		if transImport.Status == string(models.TransImportStatusSuccess) {
+			// 导入状态已完成
+			return true
+		}
+		if transImportDetailList, err = database.GetTransImportDetail(ctx, param.TransImportId); err != nil {
+			return true
+		}
+		switch param.WebStep {
+		case int(models.ImportWebDisplayStepTwo):
+			count := 0
+			for _, detail := range transImportDetailList {
+				if detail.Step <= int(models.TransImportStepRequestTemplate) && detail.Status == string(models.TransImportStatusSuccess) {
+					count++
+				}
+			}
+			if count == int(models.TransImportStepRequestTemplate) {
+				// 1-9步都执行成功,web不应该传递第2步
+				return true
+			}
+			return false
+		case int(models.ImportWebDisplayStepThree):
+			for _, detail := range transImportDetailList {
+				if detail.Step <= int(models.TransImportStepRequestTemplate) && detail.Status != string(models.TransImportStatusSuccess) {
+					return true
+				}
+				if detail.Step == int(models.TransImportStepInitWorkflow) && detail.Status == string(models.TransImportStatusSuccess) {
+					return true
+				}
+			}
+		case int(models.ImportWebDisplayStepFour):
+			for _, detail := range transImportDetailList {
+				if detail.Step <= int(models.TransImportStepInitWorkflow) && detail.Status != string(models.TransImportStatusSuccess) {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
 
 // ImportDetail 导入详情
