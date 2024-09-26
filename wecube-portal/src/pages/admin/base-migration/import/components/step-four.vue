@@ -1,13 +1,13 @@
 <template>
   <div class="base-migration-import-four">
     <div class="import-status">
-      <Alert v-if="detailData.status === 'doing'" type="info" show-icon>
+      <Alert v-if="detailData.monitorBusinessRes.status === 'doing'" type="info" show-icon>
         <template #desc>正在导入内容，请稍后... </template>
       </Alert>
-      <Alert v-else-if="detailData.status === 'fail'" type="error" show-icon>
+      <Alert v-else-if="detailData.monitorBusinessRes.status === 'fail'" type="error" show-icon>
         <template #desc>导入失败！</template>
       </Alert>
-      <Alert v-else-if="detailData.status === 'success'" type="success" show-icon>
+      <Alert v-else-if="detailData.monitorBusinessRes.status === 'success'" type="success" show-icon>
         <template #desc>导入成功！</template>
       </Alert>
     </div>
@@ -29,7 +29,7 @@
       <Button v-if="['fail'].includes(detailData.status)" type="default" @click="handleRetry">重试</Button>
       <Button v-if="['doing', 'fail'].includes(detailData.status)" type="default" @click="handleStop">终止</Button>
       <Button type="default" @click="handleLast">上一步</Button>
-      <Button v-if="['success'].includes(detailData.status)" type="primary" @click="handleComplete">完成导入</Button>
+      <Button v-if="['success'].includes(detailData.monitorBusinessRes.status)" type="primary" @click="handleComplete">完成导入</Button>
     </div>
   </div>
 </template>
@@ -43,7 +43,6 @@ export default {
     return {
       importLink: '',
       loading: false,
-      detail: {},
       // 监控数据
       monitorColumns: [
         {

@@ -21,27 +21,6 @@ export default {
   props: {
     detailData: Object
   },
-  data() {
-    return {}
-  },
-  mounted() {
-    // this.stepData = {
-    //   ...this.detailData,
-    //   status: 'doing'
-    // }
-    // const {
-    //   artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes
-    // } = this.detailData
-    // const importData = [artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes]
-    // const success = importData.every(i => i.status === 'success')
-    // const fail = importData.some(i => i.status === 'fail')
-    // if (success) {
-    //   this.stepData.status = 'success'
-    // }
-    // if (fail) {
-    //   this.stepData.status = 'fail'
-    // }
-  },
   methods: {
     handleStop() {},
     handleRetry() {},
