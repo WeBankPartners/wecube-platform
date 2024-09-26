@@ -27,13 +27,13 @@
       </Alert>
     </div>
     <div v-else class="export-message">
-      <Alert v-if="detailData.status === 'doing'" type="info" show-icon>
+      <Alert v-if="detailData.stepTwoRes.status === 'doing'" type="info" show-icon>
         <template #desc> 正在导入... </template>
       </Alert>
-      <Alert v-else-if="detailData.status === 'fail'" type="error" show-icon>
+      <Alert v-else-if="detailData.stepTwoRes.status === 'fail'" type="error" show-icon>
         <template #desc>导入失败！</template>
       </Alert>
-      <Alert v-else-if="detailData.status === 'success'" type="success" show-icon>
+      <Alert v-else-if="detailData.stepTwoRes.status === 'success'" type="success" show-icon>
         <template #desc>导入成功！</template>
       </Alert>
     </div>
@@ -330,8 +330,7 @@ export default {
       try {
         document.execCommand('copy')
         this.$Message.success('复制成功')
-      }
-      catch (err) {
+      } catch (err) {
         console.error('复制失败:', err)
       }
       document.body.removeChild(textArea)
