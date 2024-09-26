@@ -3,6 +3,10 @@ package data_trans
 import (
 	"context"
 	"fmt"
+	"io/fs"
+	"os"
+	"strings"
+
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
@@ -10,9 +14,6 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote/monitor"
-	"io/fs"
-	"os"
-	"strings"
 )
 
 var importFuncList []func(context.Context, *models.TransImportJobParam) (string, error)
@@ -30,7 +31,7 @@ func init() {
 	importFuncList = append(importFuncList, importPluginConfig)
 	importFuncList = append(importFuncList, importWorkflow)
 	importFuncList = append(importFuncList, importBatchExecution)
-	//importFuncList = append(importFuncList, importArtifactPackage)
+	importFuncList = append(importFuncList, importArtifactPackage)
 	importFuncList = append(importFuncList, importMonitorBaseConfig)
 	importFuncList = append(importFuncList, importTaskManComponentLibrary)
 	importFuncList = append(importFuncList, importTaskManTemplate)
