@@ -202,6 +202,7 @@ func importWorkflow(ctx context.Context, transImportParam *models.TransImportJob
 	log.Logger.Info("4. importWorkflow start!!!")
 	var procDefList []*models.ProcessDefinitionDto
 	var importResult *models.ImportResultDto
+	var procDef *models.ProcDef
 	var exist bool
 	var errMsg string
 	workflowPath := fmt.Sprintf("%s/workflow.json", transImportParam.DirPath)
@@ -228,6 +229,17 @@ func importWorkflow(ctx context.Context, transImportParam *models.TransImportJob
 				if data.Code > 0 {
 					err = fmt.Errorf("importWorkflow【%s】fail,%s", data.ProcDefName, errMsg)
 					log.Logger.Error("importWorkflow fail", log.String("name", data.ProcDefName), log.String("errMsg", errMsg))
+					return
+				}
+			}
+			// 发布导入的编排
+			for _, dto := range importResult.ResultList {
+				if procDef, err = database.GetProcessDefinition(ctx, dto.ProcDefId); err != nil {
+					return
+				}
+				if err = process.ExecDeployedProcDef(ctx, procDef, transImportParam.Operator); err != nil {
+					err = fmt.Errorf("deployed【%s】fail,%s", procDef.Name, err.Error())
+					log.Logger.Error("importWorkflow Deployed fail", log.String("name", procDef.Name), log.String("errMsg", errMsg))
 					return
 				}
 			}
