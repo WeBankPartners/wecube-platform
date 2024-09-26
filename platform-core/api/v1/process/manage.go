@@ -1342,6 +1342,7 @@ func ProcDefImport(ctx context.Context, inputList []*models.ProcessDefinitionDto
 				ProcDefVersion: procDefDto.ProcDef.Version,
 				Code:           3,
 				Message:        "Import Failed: Please refresh the page and try again later.",
+				ErrMsg:         err.Error(),
 			})
 			log.Logger.Error("CopyProcessDefinitionByDto err", log.Error(err))
 			// 单个编排操作err,err置为空, code=3已经表示服务器错误
