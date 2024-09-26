@@ -85,6 +85,19 @@ INSERT INTO system_variables (id, package_name, name, value, default_value, `sco
 VALUES ('system__global__PLATFORM_EXPORT_CI_ARTIFACT_UNIT_DESIGN', '', 'PLATFORM_EXPORT_CI_ARTIFACT_UNIT_DESIGN', '',
         'unit_design', 'global', 'system', 'active');
 
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status)
+VALUES ('system__global__PLATFORM_IMPORT_NEXUS_URL', '', 'PLATFORM_IMPORT_NEXUS_URL', '', '', 'global', 'system',
+        'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status)
+VALUES ('system__global__PLATFORM_IMPORT_NEXUS_USER', '', 'PLATFORM_IMPORT_NEXUS_USER', '', '', 'global', 'system',
+        'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status)
+VALUES ('system__global__PLATFORM_IMPORT_NEXUS_PWD', '', 'PLATFORM_IMPORT_NEXUS_PWD', '', '', 'global', 'system',
+        'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status)
+VALUES ('system__global__PLATFORM_IMPORT_NEXUS_REPO', '', 'PLATFORM_IMPORT_NEXUS_REPO', '', '', 'global', 'system',
+        'active');
+
 
 CREATE TABLE `trans_import`
 (
