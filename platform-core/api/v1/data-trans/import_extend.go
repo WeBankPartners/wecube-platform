@@ -26,7 +26,7 @@ func init() {
 	importFuncList = append(importFuncList, importPluginConfig)
 	importFuncList = append(importFuncList, importWorkflow)
 	importFuncList = append(importFuncList, importBatchExecution)
-	importFuncList = append(importFuncList, importArtifactPackage)
+	//importFuncList = append(importFuncList, importArtifactPackage)
 	importFuncList = append(importFuncList, importMonitorBaseConfig)
 	importFuncList = append(importFuncList, importTaskManComponentLibrary)
 	importFuncList = append(importFuncList, importTaskManTemplate)
@@ -271,7 +271,7 @@ func importBatchExecution(ctx context.Context, transImportParam *models.TransImp
 			return
 		}
 	}
-	log.Logger.Info("5. importWorkflow success end!!!")
+	log.Logger.Info("5. importBatchExecution success end!!!")
 	return
 }
 
