@@ -881,15 +881,23 @@ func DataTransExportArtifactData(ctx context.Context, transExportId string) (err
 	for _, unitDesign := range dataList {
 		for _, deployPackage := range unitDesign.ArtifactRows {
 			if deployPackage["guid"] != "" {
-				_, pushErr := remote.PushPackage(ctx, remote.GetToken(), unitDesign.UnitDesign, deployPackage["guid"], fmt.Sprintf("/%s/%s/", transExportId, models.TransArtifactPackageDirName))
+				pushPackageResult, pushErr := remote.PushPackage(ctx, remote.GetToken(), unitDesign.UnitDesign, deployPackage["guid"], fmt.Sprintf("/%s/%s/", transExportId, models.TransArtifactPackageDirName))
 				if pushErr != nil {
 					err = fmt.Errorf("push artifact package %s fail,%s ", deployPackage["key_name"], pushErr.Error())
 					break
 				}
+				deployPackage[models.TransArtifactNewPackageName] = pushPackageResult.Name
 			}
 		}
 		if err != nil {
 			break
+		}
+	}
+	if err == nil {
+		newDataBytes, _ := json.Marshal(dataList)
+		_, updateErr := db.MysqlEngine.Context(ctx).Exec("update trans_export_analyze_data set `data`=? where id=?", string(newDataBytes), transExportAnalyzeRows[0].Id)
+		if updateErr != nil {
+			log.Logger.Error("try to update export artifact analyze data fail ", log.Error(updateErr))
 		}
 	}
 	return
