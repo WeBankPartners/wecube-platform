@@ -21,15 +21,15 @@ import (
 var transImportDetailMap = map[models.TransImportStep]string{
 	models.TransImportStepRole:             "role",
 	models.TransImportStepWorkflow:         "workflow",
-	models.TransImportStepPluginConfig:     "pluginConfig",
-	models.TransImportStepComponentLibrary: "componentLibrary",
-	models.TransImportStepBatchExecution:   "batchExecution",
-	models.TransImportStepRequestTemplate:  "requestTemplate",
+	models.TransImportStepPluginConfig:     "plugin_config",
+	models.TransImportStepComponentLibrary: "component_library",
+	models.TransImportStepBatchExecution:   "batch_execution",
+	models.TransImportStepRequestTemplate:  "request_template",
 	models.TransImportStepCmdb:             "wecmdb",
 	models.TransImportStepArtifacts:        "artifacts",
-	models.TransImportStepMonitorBase:      "monitorBase",
-	models.TransImportStepInitWorkflow:     "workflowInit",
-	models.TransImportStepMonitorBusiness:  "monitorBusiness",
+	models.TransImportStepMonitorBase:      "monitor_base",
+	models.TransImportStepInitWorkflow:     "workflow_init",
+	models.TransImportStepMonitorBusiness:  "monitor_business",
 }
 
 const (
