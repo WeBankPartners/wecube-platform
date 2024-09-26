@@ -122,7 +122,8 @@ export default {
     jumpToHistory() {},
     handleSave: debounce(async function () {
       const params = {
-        exportNexusUrl: this.detail.exportNexusUrl
+        exportNexusUrl: this.detail.exportNexusUrl,
+        step: 2
       }
       const { data, status } = await saveImportData(params)
       if (status === 'OK') {
