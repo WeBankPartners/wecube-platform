@@ -78,22 +78,21 @@ export default {
       const { status, data } = await getImportDetail(params)
       if (status === 'OK') {
         this.detailData = {
-          roleRes: data.roles,
-          flowRes: data.workflows,
-          batchRes: data.batchExecutions,
-          itsmRes: data.requestTemplates,
-          failMsg: data.createAndUploadFile && data.createAndUploadFile.errMsg,
-          cmdbRes: data.cmdb, // cmdb
+          roleRes: data.roles || {},
+          flowRes: data.workflows || {},
+          batchRes: data.batchExecutions || {},
+          itsmRes: data.requestTemplates || {},
+          cmdbRes: data.cmdb || {}, // cmdb
           cmdbCIData: data.cmdbCI || [], // cmdb CI
           cmdbViewData: data.cmdbView || [], // cmdb视图
           cmdbReportData: data.cmdbReportForm || [], // cmdb报表
           cmdbReportFormCount: data.cmdbReportFormCount || 0,
           cmdbViewCount: data.cmdbViewCount || 0,
-          artifactsRes: data.artifacts, // 物料包
-          monitorRes: data.monitorBase, // 监控
-          pluginsRes: data.plugins, // 插件
-          initWorkflowRes: data.initWorkflow,
-          monitorBusinessRes: data.monitorBusiness,
+          artifactsRes: data.artifacts || {}, // 物料包
+          monitorRes: data.monitorBase || {}, // 监控
+          pluginsRes: data.plugins || {}, // 插件
+          initWorkflowRes: data.initWorkflow || {},
+          monitorBusinessRes: data.monitorBusiness || {},
           exportComponentLibrary: data.exportComponentLibrary, // 组件库
           step: data.step,
           ...data.transExport
@@ -159,8 +158,10 @@ export default {
         const stepTwoData = [artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes]
         const success = stepTwoData.every(i => i.status === 'success')
         const fail = stepTwoData.some(i => i.status === 'fail')
+        const failObj = stepTwoData.find(i => i.status === 'fail') || {}
         this.detailData.stepTwoRes = {
-          status: 'doing'
+          status: 'doing',
+          errMsg: failObj.errMsg
         }
         if (success) {
           this.detailData.stepTwoRes.status = 'success'
