@@ -192,18 +192,6 @@ func importRole(ctx context.Context, transImportParam *models.TransImportJobPara
 	return
 }
 
-// 2.导入cmdb数据
-func importCmdbConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-
-	return
-}
-
-// 3、导入cmdb插件服务
-func importPluginConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-
-	return
-}
-
 // 4、导入编排
 func importWorkflow(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	// 解析workflow.json,导入编排
@@ -263,12 +251,6 @@ func importBatchExecution(ctx context.Context, transImportParam *models.TransImp
 		}
 	}
 	log.Logger.Info("5. importWorkflow success end!!!")
-	return
-}
-
-// 6、导入物料包
-func importArtifactPackage(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-
 	return
 }
 
