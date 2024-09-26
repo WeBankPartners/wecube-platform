@@ -414,11 +414,23 @@ func doExecWorkflowDaemonJob() {
 		}
 		if needStartExec.Id != "" {
 			// 需要开始执行编排
+			tmpErr := startExecWorkflow(ctx, needStartExec)
+			if tmpErr != nil {
+				log.Logger.Error("doExecWorkflowDaemonJob start exec workflow fail", log.String("detailId", transImportDetailId), log.Error(tmpErr))
+			}
 			continue
 		}
 		if successRowCount == len(detailProcExecList) {
 			// 需要更新trans import detail 状态
-			database.UpdateTransImportDetailStatus(ctx, "", transImportDetailId, models.JobStatusSuccess, "", "")
+			tmpErr := database.UpdateTransImportDetailStatus(ctx, "", transImportDetailId, models.JobStatusSuccess, "", "")
+			if tmpErr != nil {
+				log.Logger.Error("doExecWorkflowDaemonJob update trans import detail status fail", log.String("detailId", transImportDetailId), log.String("status", models.JobStatusSuccess), log.Error(tmpErr))
+			}
 		}
 	}
+}
+
+func startExecWorkflow(ctx context.Context, procExecRow *models.TransImportProcExecTable) (err error) {
+
+	return
 }
