@@ -5,6 +5,10 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"os"
 	"sort"
 	"strings"
@@ -13,11 +17,8 @@ import (
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
-	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/gin-gonic/gin"
 )
 
@@ -259,7 +260,7 @@ func importArtifactPackage(ctx context.Context, transImportParam *models.TransIm
 	}
 	for _, artifactData := range artifactDataList {
 		for _, artifactRow := range artifactData.ArtifactRows {
-			tmpPackageName := artifactRow["key_name"]
+			tmpPackageName := artifactRow[models.TransArtifactNewPackageName]
 			if tmpPackageName == "" {
 				continue
 			}
@@ -346,7 +347,7 @@ func execWorkflow(ctx context.Context, transImportParam *models.TransImportJobPa
 				RootEntity:        v.RootEntity,
 				EntityDataId:      fmt.Sprintf("%s", row["id"]),
 				EntityDataName:    fmt.Sprintf("%s", row["displayName"]),
-				Status:            "notStart",
+				Status:            models.JobStatusReady,
 				CreatedUser:       transImportParam.Operator,
 				CreatedTime:       nowTime,
 			}
@@ -377,10 +378,59 @@ func StartExecWorkflowCron() {
 }
 
 func doExecWorkflowDaemonJob() {
-	procExecList, err := database.GetTransImportProcExecList()
+	ctx := db.NewDBCtx(fmt.Sprintf("import_exec_job_%d", time.Now().Unix()))
+	procExecList, err := database.GetTransImportProcExecList(ctx)
 	if err != nil {
 		log.Logger.Error("doExecWorkflowDaemonJob fail with get proc exec list", log.Error(err))
 		return
 	}
 	log.Logger.Debug("doExecWorkflowDaemonJob", log.JsonObj("procExecList", procExecList))
+	if len(procExecList) == 0 {
+		return
+	}
+	importExecMap := make(map[string][]*models.TransImportProcExecTable)
+	for _, procExecRow := range procExecList {
+		if existList, ok := importExecMap[procExecRow.TransImportDetail]; ok {
+			importExecMap[procExecRow.TransImportDetail] = append(existList, procExecRow)
+		} else {
+			importExecMap[procExecRow.TransImportDetail] = []*models.TransImportProcExecTable{procExecRow}
+		}
+	}
+	for transImportDetailId, detailProcExecList := range importExecMap {
+		needStartExec := &models.TransImportProcExecTable{}
+		successRowCount := 0
+		for _, v := range detailProcExecList {
+			if v.Status == models.JobStatusSuccess {
+				successRowCount = successRowCount + 1
+				continue
+			}
+			if v.Status == models.JobStatusRunning || v.Status == models.JobStatusFail {
+				break
+			}
+			if v.Status == models.JobStatusReady {
+				needStartExec = v
+				break
+			}
+		}
+		if needStartExec.Id != "" {
+			// 需要开始执行编排
+			tmpErr := startExecWorkflow(ctx, needStartExec)
+			if tmpErr != nil {
+				log.Logger.Error("doExecWorkflowDaemonJob start exec workflow fail", log.String("detailId", transImportDetailId), log.Error(tmpErr))
+			}
+			continue
+		}
+		if successRowCount == len(detailProcExecList) {
+			// 需要更新trans import detail 状态
+			tmpErr := database.UpdateTransImportDetailStatus(ctx, "", transImportDetailId, models.JobStatusSuccess, "", "")
+			if tmpErr != nil {
+				log.Logger.Error("doExecWorkflowDaemonJob update trans import detail status fail", log.String("detailId", transImportDetailId), log.String("status", models.JobStatusSuccess), log.Error(tmpErr))
+			}
+		}
+	}
+}
+
+func startExecWorkflow(ctx context.Context, procExecRow *models.TransImportProcExecTable) (err error) {
+
+	return
 }
