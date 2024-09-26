@@ -77,8 +77,7 @@ export default {
       this.loading = false
       if (this.detailData.status === 'start') {
         this.activeStep = 1
-      }
-      else if (['doing', 'success', 'fail'].includes(this.detailData.status)) {
+      } else if (['doing', 'success', 'fail'].includes(this.detailData.status)) {
         this.activeStep = 2
       }
     }
