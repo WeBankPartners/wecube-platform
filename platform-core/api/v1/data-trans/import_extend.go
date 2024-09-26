@@ -3,18 +3,16 @@ package data_trans
 import (
 	"context"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
+	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote/monitor"
 	"io/fs"
 	"os"
 	"strings"
-	"time"
-
-	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
-	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
-	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 )
 
 var importFuncList []func(context.Context, *models.TransImportJobParam) (string, error)
@@ -455,31 +453,8 @@ func importTaskManTemplate(ctx context.Context, transImportParam *models.TransIm
 	return
 }
 
-// 10、开始执行编排(创建资源、初始化资源、应用部署)
-func execWorkflow(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-
-	return
-}
-
 // 11、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板
 func importMonitorServiceConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 
 	return
-}
-
-func StartExecWorkflowCron() {
-	t := time.NewTicker(5 * time.Second).C
-	for {
-		<-t
-		doExecWorkflowDaemonJob()
-	}
-}
-
-func doExecWorkflowDaemonJob() {
-	procExecList, err := database.GetTransImportProcExecList()
-	if err != nil {
-		log.Logger.Error("doExecWorkflowDaemonJob fail with get proc exec list", log.Error(err))
-		return
-	}
-	log.Logger.Debug("doExecWorkflowDaemonJob", log.JsonObj("procExecList", procExecList))
 }
