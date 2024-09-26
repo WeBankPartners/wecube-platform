@@ -203,6 +203,7 @@ func importWorkflow(ctx context.Context, transImportParam *models.TransImportJob
 	var procDefList []*models.ProcessDefinitionDto
 	var importResult *models.ImportResultDto
 	var exist bool
+	var errMsg string
 	workflowPath := fmt.Sprintf("%s/workflow.json", transImportParam.DirPath)
 	if exist, err = tools.PathExist(workflowPath); err != nil {
 		return
@@ -220,9 +221,13 @@ func importWorkflow(ctx context.Context, transImportParam *models.TransImportJob
 		}
 		if importResult != nil && len(importResult.ResultList) > 0 {
 			for _, data := range importResult.ResultList {
+				errMsg = data.ErrMsg
+				if errMsg == "" {
+					errMsg = data.Message
+				}
 				if data.Code > 0 {
-					err = fmt.Errorf("importWorkflow fail,%s", data.Message)
-					log.Logger.Error("importWorkflow fail", log.String("name", data.ProcDefName), log.String("errMsg", data.Message))
+					err = fmt.Errorf("importWorkflow【%s】fail,%s", data.ProcDefName, errMsg)
+					log.Logger.Error("importWorkflow fail", log.String("name", data.ProcDefName), log.String("errMsg", errMsg))
 					return
 				}
 			}

@@ -308,6 +308,7 @@ type ImportResultItemDto struct {
 	ProcDefVersion string `json:"ProcDefVersion"` // 编排版本
 	Code           int    `json:"code"`           // 0表示成功,1表示编排已有草稿,不允许导入  2表示版本冲突  3表示服务报错
 	Message        string `json:"message"`        // 国际化词条
+	ErrMsg         string `json:"errMsg"`         // 报错
 }
 
 type ProcDefNodeLinkCustomAttrs struct {
