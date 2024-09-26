@@ -329,6 +329,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 			log.Logger.Error("ReadDir fail", log.String("metricPath", metricPath), log.Error(err))
 			return
 		}
+		files = sortDirEntry(files)
 		// 遍历文件和子目录
 		for _, file := range files {
 			if file.IsDir() {
@@ -340,6 +341,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 					log.Logger.Error("ReadDir fail", log.Error(err))
 					return
 				}
+				childFiles = sortDirEntry(childFiles)
 				for _, newFile := range childFiles {
 					comparison := "N"
 					endpointGroup := newFile.Name()[:strings.LastIndex(newFile.Name(), ".")]
@@ -474,4 +476,18 @@ func importTaskManTemplate(ctx context.Context, transImportParam *models.TransIm
 func importMonitorServiceConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 
 	return
+}
+
+// sortDirEntry 文件排序,带有 _comparison 同环比指标文件放在后面执行
+func sortDirEntry(files []fs.DirEntry) []fs.DirEntry {
+	var metricList, comparisonMetricList []fs.DirEntry
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), "_comparison.json") {
+			comparisonMetricList = append(comparisonMetricList, file)
+		} else {
+			metricList = append(metricList, file)
+		}
+	}
+	metricList = append(metricList, comparisonMetricList...)
+	return metricList
 }
