@@ -330,8 +330,7 @@ export default {
       try {
         document.execCommand('copy')
         this.$Message.success('复制成功')
-      }
-      catch (err) {
+      } catch (err) {
         console.error('复制失败:', err)
       }
       document.body.removeChild(textArea)
