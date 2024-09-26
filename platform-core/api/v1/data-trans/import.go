@@ -119,15 +119,20 @@ func ImportList(c *gin.Context) {
 	middleware.ReturnPageData(c, pageInfo, list)
 }
 
-// 2、导入cmdb数据、同步cmdb数据模型、导入插件服务
-func importPluginConfigFunc(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-	ctx = BuildContext(ctx, &models.BuildContextParam{UserId: transImportParam.Operator, Token: transImportParam.Token})
+// 2.导入cmdb数据
+func importCmdbConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	// 导入cmdb数据
 	err = database.DataTransImportCMDBData(ctx, transImportParam.DirPath+"/wecmdb_data.sql")
 	if err != nil {
 		err = fmt.Errorf("import cmdb data fail,%s ", err.Error())
 		return
 	}
+	return
+}
+
+// 3、导入cmdb插件服务
+func importPluginConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
+	ctx = BuildContext(ctx, &models.BuildContextParam{UserId: transImportParam.Operator, Token: transImportParam.Token})
 	// 同步cmdb数据模型
 	pluginModels, getModelsErr := remote.GetPluginDataModels(ctx, "wecmdb", remote.GetToken())
 	if getModelsErr != nil {
@@ -180,7 +185,7 @@ func importPluginConfigFunc(ctx context.Context, transImportParam *models.TransI
 }
 
 // 5、导入物料包
-func importArtifactPackageFunc(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
+func importArtifactPackage(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	var input string
 	input, err = database.GetTransImportDetailInput(ctx, transImportParam.CurrentDetail.Id)
 	if err != nil {
