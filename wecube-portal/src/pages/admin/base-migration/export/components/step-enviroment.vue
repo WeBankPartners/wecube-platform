@@ -142,6 +142,12 @@ export default {
           return true
         }
       })
+      const selectIds = this.selectionList.map(i => i.id)
+      this.tableData.forEach(i => {
+        if (selectIds.includes(i.id)) {
+          this.$set(i, '_checked', true)
+        }
+      })
     },
     onSelectionChange(selection) {
       this.selectionList = selection

@@ -13,7 +13,11 @@
       </div>
       <div class="content" ref="scrollView">
         <BaseHeaderTitle v-if="activeStep === 0" title="导入产品" :showExpand="false">
-          <StepOne :detailData="detailData" @saveStepOne="handleSaveStepOne" @nextStep="activeStep++"></StepOne>
+          <StepOne
+            :detailData="detailData"
+            @saveStepOne="handleSaveStepOne"
+            @nextStep="activeStep++"
+          ></StepOne>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 1" title="导入数据" :showExpand="false">
           <StepTwo
@@ -24,7 +28,11 @@
           ></StepTwo>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 2" title="执行自动化编排" :showExpand="false">
-          <StepThree :detailData="detailData" @lastStep="activeStep--" @nextStep="activeStep++"></StepThree>
+          <StepThree
+            :detailData="detailData"
+            @lastStep="activeStep--"
+            @nextStep="activeStep++"
+          ></StepThree>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 3" title="配置监控" :showExpand="false">
           <StepFour :detailData="detailData" @lastStep="activeStep--"></StepFour>
@@ -109,6 +117,7 @@ export default {
         this.detailData.businessName = this.detailData.businessName || ''
         this.detailData.businessNameList = (this.detailData.businessName && this.detailData.businessName.split(',')) || []
         this.detailData.business = this.detailData.business || ''
+        // 统计数量
         this.detailData.cmdbCICount = this.detailData.cmdbCIData.reduce((sum, cur) => sum + cur.count, 0)
         this.detailData.monitorCount = this.detailData.monitorRes.data.reduce((sum, cur) => sum + cur.count, 0)
         this.detailData.artifactsCount = this.detailData.artifactsRes.data.reduce(
@@ -150,6 +159,51 @@ export default {
               'custom_metric_monitor_type'
             ].includes(i.name)
         )
+        // 第二步导入状态判断
+        const {
+          artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes
+        } = this.detailData
+        const stepTwoData = [artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes]
+        const success = stepTwoData.every(i => i.status === 'success')
+        const fail = stepTwoData.some(i => i.status === 'fail')
+        this.detailData.stepTwoRes = {
+          status: 'doing'
+        }
+        if (success) {
+          this.detailData.stepTwoRes.status = 'success'
+        }
+        if (fail) {
+          this.detailData.stepTwoRes.status = 'fail'
+        }
+        if (this.detailData.step === 2) {
+          if (this.detailData.stepTwoRes.status === 'doing') {
+            this.interval = setInterval(() => {
+              this.getDetailData()
+            }, 10 * 1000)
+          } else {
+            clearInterval(this.interval)
+          }
+        }
+        // 第三步导入状态判断
+        if (this.detailData.step === 3) {
+          if (!['success', 'fail'].includes(this.detailData.initWorkflow.status)) {
+            this.interval = setInterval(() => {
+              this.getDetailData()
+            }, 10 * 1000)
+          } else {
+            clearInterval(this.interval)
+          }
+        }
+        // 第四步导入状态判断
+        if (this.detailData.step === 4) {
+          if (!['success', 'fail'].includes(this.detailData.monitorBusiness.status)) {
+            this.interval = setInterval(() => {
+              this.getDetailData()
+            }, 10 * 1000)
+          } else {
+            clearInterval(this.interval)
+          }
+        }
       }
     },
     handleSaveStepOne(id) {
