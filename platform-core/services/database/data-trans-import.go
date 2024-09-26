@@ -181,3 +181,17 @@ func GetTransImportDetailInput(ctx context.Context, transImportDetailId string) 
 	}
 	return
 }
+
+func CreateTransImportProcExecData(ctx context.Context, procExecList []*models.TransImportProcExecTable) (err error) {
+	var actions []*db.ExecAction
+	for _, v := range procExecList {
+		actions = append(actions, &db.ExecAction{Sql: "insert into trans_import_proc_exec(id,trans_import_detail,proc_def,root_entity,entity_data_id,entity_data_name,exec_order,status,created_user,created_time) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			v.Id, v.TransImportDetail, v.ProcDef, v.RootEntity, v.EntityDataId, v.EntityDataName, v.ExecOrder, v.Status, v.CreatedUser, v.CreatedTime,
+		}})
+	}
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		err = fmt.Errorf("create trans import proc exec data fail,%s ", err.Error())
+	}
+	return
+}
