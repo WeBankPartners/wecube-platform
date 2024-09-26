@@ -169,7 +169,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 	// 往下分析数据行的依赖
 	for _, attr := range ciTypeAttributes {
 		if attr.InputType == "ref" {
-			if checkArtifactCiTypeRefIllegal(ciType, attr.RefCiType, transConfig) {
+			if checkArtifactCiTypeRefIllegal(ciType, attr.RefCiType, transConfig, true) {
 				continue
 			}
 			refCiTypeGuidList := []string{}
@@ -185,7 +185,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 				}
 			}
 		} else if attr.InputType == "multiRef" {
-			if checkArtifactCiTypeRefIllegal(ciType, attr.RefCiType, transConfig) {
+			if checkArtifactCiTypeRefIllegal(ciType, attr.RefCiType, transConfig, true) {
 				continue
 			}
 			toGuidList, getMultiToGuidErr := getCMDBMultiRefGuidList(ciType, attr.Name, "in", newRowsGuidList, []string{}, cmdbEngine)
@@ -208,7 +208,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 		for _, depCiAttr := range depCiTypeAttrList {
 			if depCiAttr.RefCiType == ciType {
 				if depCiAttr.InputType == "ref" {
-					if checkArtifactCiTypeRefIllegal(ciType, depCiType, transConfig) {
+					if checkArtifactCiTypeRefIllegal(ciType, depCiType, transConfig, false) {
 						continue
 					}
 					queryDepCiGuidRows, tmpQueryDepCiGuidErr := cmdbEngine.QueryString(fmt.Sprintf("select guid from %s where %s in ('%s')", depCiType, depCiAttr.Name, strings.Join(newRowsGuidList, "','")))
@@ -226,7 +226,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 						}
 					}
 				} else if depCiAttr.InputType == "multiRef" {
-					if checkArtifactCiTypeRefIllegal(ciType, depCiType, transConfig) {
+					if checkArtifactCiTypeRefIllegal(ciType, depCiType, transConfig, false) {
 						continue
 					}
 					depFromGuidList, tmpQueryDepCiGuidErr := getCMDBMultiRefGuidList(depCiType, depCiAttr.Name, "in", []string{}, newRowsGuidList, cmdbEngine)
@@ -451,7 +451,7 @@ func QueryBusinessList(c context.Context, userToken, language string, param mode
 	return
 }
 
-func checkArtifactCiTypeRefIllegal(sourceCiType, refCiType string, transConfig *models.TransDataVariableConfig) (illegal bool) {
+func checkArtifactCiTypeRefIllegal(sourceCiType, refCiType string, transConfig *models.TransDataVariableConfig, forwardRef bool) (illegal bool) {
 	illegal = false
 	if refCiType == transConfig.ArtifactPackageCiType {
 		matchFlag := false
@@ -469,6 +469,9 @@ func checkArtifactCiTypeRefIllegal(sourceCiType, refCiType string, transConfig *
 		return
 	}
 	if sourceCiType == transConfig.ArtifactPackageCiType {
+		if forwardRef {
+			return false
+		}
 		matchFlag := false
 		for _, v := range transConfig.ArtifactInstanceCiTypeList {
 			if refCiType == v {
