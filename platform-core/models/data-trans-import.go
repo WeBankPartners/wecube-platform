@@ -49,7 +49,7 @@ type TransImportProcExecTable struct {
 	EntityDataId      string `json:"entityDataId" xorm:"entity_data_id"`
 	EntityDataName    string `json:"entityDataName" xorm:"entity_data_name"`
 	ExecOrder         int    `json:"execOrder" xorm:"exec_order"`
-	Status            string `json:"status" xorm:"status"`
+	Status            string `json:"status" xorm:"status"` // 状态->NotStarted(未开始)|InProgress(执行中)|Completed(成功)|Faulted(失败)
 	Input             string `json:"input" xorm:"input"`
 	Output            string `json:"output" xorm:"output"`
 	ErrorMsg          string `json:"errorMsg" xorm:"error_msg"`
