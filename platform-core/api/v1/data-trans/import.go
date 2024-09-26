@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
@@ -259,7 +260,7 @@ func importArtifactPackage(ctx context.Context, transImportParam *models.TransIm
 	}
 	for _, artifactData := range artifactDataList {
 		for _, artifactRow := range artifactData.ArtifactRows {
-			tmpPackageName := artifactRow["key_name"]
+			tmpPackageName := artifactRow[models.TransArtifactNewPackageName]
 			if tmpPackageName == "" {
 				continue
 			}
@@ -346,7 +347,7 @@ func execWorkflow(ctx context.Context, transImportParam *models.TransImportJobPa
 				RootEntity:        v.RootEntity,
 				EntityDataId:      fmt.Sprintf("%s", row["id"]),
 				EntityDataName:    fmt.Sprintf("%s", row["displayName"]),
-				Status:            "notStart",
+				Status:            models.JobStatusReady,
 				CreatedUser:       transImportParam.Operator,
 				CreatedTime:       nowTime,
 			}
@@ -377,10 +378,47 @@ func StartExecWorkflowCron() {
 }
 
 func doExecWorkflowDaemonJob() {
-	procExecList, err := database.GetTransImportProcExecList()
+	ctx := db.NewDBCtx(fmt.Sprintf("import_exec_job_%d", time.Now().Unix()))
+	procExecList, err := database.GetTransImportProcExecList(ctx)
 	if err != nil {
 		log.Logger.Error("doExecWorkflowDaemonJob fail with get proc exec list", log.Error(err))
 		return
 	}
 	log.Logger.Debug("doExecWorkflowDaemonJob", log.JsonObj("procExecList", procExecList))
+	if len(procExecList) == 0 {
+		return
+	}
+	importExecMap := make(map[string][]*models.TransImportProcExecTable)
+	for _, procExecRow := range procExecList {
+		if existList, ok := importExecMap[procExecRow.TransImportDetail]; ok {
+			importExecMap[procExecRow.TransImportDetail] = append(existList, procExecRow)
+		} else {
+			importExecMap[procExecRow.TransImportDetail] = []*models.TransImportProcExecTable{procExecRow}
+		}
+	}
+	for transImportDetailId, detailProcExecList := range importExecMap {
+		needStartExec := &models.TransImportProcExecTable{}
+		successRowCount := 0
+		for _, v := range detailProcExecList {
+			if v.Status == models.JobStatusSuccess {
+				successRowCount = successRowCount + 1
+				continue
+			}
+			if v.Status == models.JobStatusRunning || v.Status == models.JobStatusFail {
+				break
+			}
+			if v.Status == models.JobStatusReady {
+				needStartExec = v
+				break
+			}
+		}
+		if needStartExec.Id != "" {
+			// 需要开始执行编排
+			continue
+		}
+		if successRowCount == len(detailProcExecList) {
+			// 需要更新trans import detail 状态
+			database.UpdateTransImportDetailStatus(ctx, "", transImportDetailId, models.JobStatusSuccess, "", "")
+		}
+	}
 }
