@@ -13,11 +13,7 @@
       </div>
       <div class="content" ref="scrollView">
         <BaseHeaderTitle v-if="activeStep === 0" title="导入产品" :showExpand="false">
-          <StepOne
-            :detailData="detailData"
-            @saveStepOne="handleSaveStepOne"
-            @nextStep="activeStep++"
-          ></StepOne>
+          <StepOne :detailData="detailData" @saveStepOne="handleSaveStepOne" @nextStep="activeStep++"></StepOne>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 1" title="导入数据" :showExpand="false">
           <StepTwo
@@ -28,11 +24,7 @@
           ></StepTwo>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 2" title="执行自动化编排" :showExpand="false">
-          <StepThree
-            :detailData="detailData"
-            @lastStep="activeStep--"
-            @nextStep="activeStep++"
-          ></StepThree>
+          <StepThree :detailData="detailData" @lastStep="activeStep--" @nextStep="activeStep++"></StepThree>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 3" title="配置监控" :showExpand="false">
           <StepFour :detailData="detailData" @lastStep="activeStep--"></StepFour>
@@ -71,8 +63,7 @@ export default {
       this.loading = false
       // 后台返回当前步骤
       this.activeStep = this.detailData.step - 1
-    }
-    else {
+    } else {
       this.activeStep = 0
     }
   },
