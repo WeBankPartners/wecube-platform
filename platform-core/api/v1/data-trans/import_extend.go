@@ -31,7 +31,7 @@ func init() {
 	importFuncList = append(importFuncList, importPluginConfig)
 	importFuncList = append(importFuncList, importWorkflow)
 	importFuncList = append(importFuncList, importBatchExecution)
-	importFuncList = append(importFuncList, importArtifactPackage)
+	//importFuncList = append(importFuncList, importArtifactPackage)
 	importFuncList = append(importFuncList, importMonitorBaseConfig)
 	importFuncList = append(importFuncList, importTaskManComponentLibrary)
 	importFuncList = append(importFuncList, importTaskManTemplate)
