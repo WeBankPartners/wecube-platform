@@ -198,6 +198,7 @@ const (
 const (
 	TransImportTmpDir           = "/tmp/trans_import/%s"
 	TransArtifactPackageDirName = "artifact_packages"
+	TransArtifactNewPackageName = "pushReturnName"
 )
 
 // ImportWebDisplayStep  web导入步骤
