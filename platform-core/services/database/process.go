@@ -262,7 +262,7 @@ func AddProcessDefinition(ctx context.Context, user string, param models.Process
 	return
 }
 
-func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefinitionDto, userToken, language, operator string) (newProcDefId string, err error) {
+func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefinitionDto, userToken, language, operator string) (err error) {
 	var permissionList []*models.ProcDefPermission
 	var nodeList []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
@@ -372,14 +372,16 @@ func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, operato
 			}
 		}
 	}
-
-	return execCopyProcessDefinition(ctx, procDef, nodeList, linkList, allNodeParamList, permissionList, operator)
+	newProcDefId = "pdef_" + guid.CreateGuid()
+	procDef.Id = newProcDefId
+	err = execCopyProcessDefinition(ctx, procDef, nodeList, linkList, allNodeParamList, permissionList, operator)
+	return
 }
 
 func execCopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, nodeList []*models.ProcDefNode,
-	linkList []*models.ProcDefNodeLink, nodeParamList []*models.ProcDefNodeParam, permissionList []*models.ProcDefPermission, operator string) (newProcDefId string, err error) {
+	linkList []*models.ProcDefNodeLink, nodeParamList []*models.ProcDefNodeParam, permissionList []*models.ProcDefPermission, operator string) (err error) {
 	var curNodeParamList []*models.ProcDefNodeParam
-	newProcDefId = "pdef_" + guid.CreateGuid()
+	newProcDefId := procDef.Id
 	currTime := time.Now().Format(models.DateTimeFormat)
 	var actions []*db.ExecAction
 	// 插入编排
