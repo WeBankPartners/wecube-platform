@@ -538,6 +538,12 @@ func analyzePluginMonitorExportData(transExportId string, endpointList, serviceG
 	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
 		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "dashboard", "dashboard", len(analyzeResult.DashboardIdList), parseStringListToJsonString(analyzeResult.DashboardIdList), nowTime,
 	}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "endpoint", "endpoint", len(analyzeResult.Endpoint), parseStringListToJsonString(analyzeResult.Endpoint), nowTime,
+	}})
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), transExportId, "monitor", "service_group", "service_group", len(analyzeResult.ServiceGroup), parseStringListToJsonString(analyzeResult.ServiceGroup), nowTime,
+	}})
 	return
 }
 
