@@ -186,8 +186,8 @@ func GetTransImportDetailInput(ctx context.Context, transImportDetailId string) 
 func CreateTransImportProcExecData(ctx context.Context, procExecList []*models.TransImportProcExecTable) (err error) {
 	var actions []*db.ExecAction
 	for _, v := range procExecList {
-		actions = append(actions, &db.ExecAction{Sql: "insert into trans_import_proc_exec(id,trans_import_detail,proc_def,root_entity,entity_data_id,entity_data_name,exec_order,status,created_user,created_time) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-			v.Id, v.TransImportDetail, v.ProcDef, v.RootEntity, v.EntityDataId, v.EntityDataName, v.ExecOrder, v.Status, v.CreatedUser, v.CreatedTime,
+		actions = append(actions, &db.ExecAction{Sql: "insert into trans_import_proc_exec(id,trans_import_detail,proc_def,proc_def_key,proc_def_name,root_entity,entity_data_id,entity_data_name,exec_order,status,created_user,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			v.Id, v.TransImportDetail, v.ProcDef, v.ProcDefKey, v.ProcDefName, v.RootEntity, v.EntityDataId, v.EntityDataName, v.ExecOrder, v.Status, v.CreatedUser, v.CreatedTime,
 		}})
 	}
 	err = db.Transaction(actions, ctx)
@@ -205,6 +205,8 @@ func UpdateTransImportProcExec(ctx context.Context, param *models.TransImportPro
 		execResult, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_proc_exec set status=?,proc_ins=?,start_time=? where id=?", models.JobStatusSuccess, param.ProcIns, time.Now(), param.Id)
 	} else if param.Status == models.JobStatusFail {
 		execResult, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_proc_exec set status=?,error_msg=? where id=?", models.JobStatusFail, param.ErrorMsg, param.Id)
+	} else if param.Status == models.JobStatusReady {
+		execResult, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_proc_exec set status=? where id=? and status=?", models.JobStatusReady, param.Id, models.TransImportInPreparationStatus)
 	}
 	if err != nil {
 		err = fmt.Errorf("update trans import proc exec status fail,%s ", err.Error())
@@ -223,5 +225,35 @@ func GetTransImportProcExecByDetailId(ctx context.Context, detailId string) (res
 
 func GetTransImportProcExecIdsByDetailId(ctx context.Context, detailId string) (ids []string, err error) {
 	err = db.MysqlEngine.Context(ctx).SQL("select proc_ins from trans_import_proc_exec where trans_import_detail=?", detailId).Find(&ids)
+	return
+}
+
+func GetTransImportProcDefId(ctx context.Context, procDefId, procDefKey string) (resultProcDefId string, err error) {
+	var procDefRows []*models.ProcDef
+	err = db.MysqlEngine.Context(ctx).SQL("select id,`key`,`version` from proc_def where id=? or `key`=?", procDefId, procDefKey).Find(&procDefRows)
+	if err != nil {
+		err = fmt.Errorf("query proc def table fail,%s ", err.Error())
+		return
+	}
+	if len(procDefRows) == 0 {
+		err = fmt.Errorf("can not find proc def with id:%s or key:%s ", procDefId, procDefKey)
+		return
+	}
+	for _, row := range procDefRows {
+		if row.Id == procDefId {
+			resultProcDefId = procDefId
+			break
+		}
+	}
+	if resultProcDefId != "" {
+		return
+	}
+	var currentVersion string
+	for _, row := range procDefRows {
+		if tools.CompareVersion(row.Version, currentVersion) {
+			resultProcDefId = row.Id
+			currentVersion = row.Version
+		}
+	}
 	return
 }
