@@ -188,7 +188,7 @@ export default {
           artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes
         } = this.detailData
         const exportData = [artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes]
-        const failObj = exportData.find(i => i.status === 'fail') || {}     
+        const failObj = exportData.find(i => i.status === 'fail') || {}
         this.detailData.failMsg = `${failObj.title}：${failObj.errMsg}`
         // 成功或失败，取消轮询查状态
         if (['success', 'fail'].includes(this.detailData.status)) {

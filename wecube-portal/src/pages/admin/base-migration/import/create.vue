@@ -4,7 +4,9 @@
       <div class="steps">
         <BaseHeaderTitle title="导入步骤" :showExpand="false">
           <div class="status-group">
-            <div class="status">导入状态：<Tag :color="statusObj.color">{{ statusObj.label}}</Tag></div>
+            <div class="status">
+              导入状态：<Tag :color="statusObj.color">{{ statusObj.label }}</Tag>
+            </div>
             <Button
               v-if="['doing', 'fail'].includes(detailData.status)"
               icon="md-power"
