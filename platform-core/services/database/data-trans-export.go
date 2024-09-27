@@ -1133,8 +1133,8 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 				}
 			}
 		case models.TransExportAnalyzeMonitorDataTypeCustomMetricMonitorType:
-			// 导出指标列表基础类型 @todo 目前不支持指标列表基础类型导入,先屏蔽掉
-			//monitorTypeMetricList = exportDataKeyList
+			// 导出指标列表基础类型
+			monitorTypeMetricList = exportDataKeyList
 		case models.TransExportAnalyzeMonitorDataTypeCustomMetricServiceGroup:
 			// 导出指标列表层级对象
 			serviceGroupMetricList = exportDataKeyList
