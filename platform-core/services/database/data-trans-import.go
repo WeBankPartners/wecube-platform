@@ -215,3 +215,13 @@ func UpdateTransImportProcExec(ctx context.Context, param *models.TransImportPro
 	}
 	return
 }
+
+func GetTransImportProcExecByDetailId(ctx context.Context, detailId string) (result []*models.TransImportProcExecTable, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_proc_exec where trans_import_detail=?", detailId).Find(&result)
+	return
+}
+
+func GetTransImportProcExecIdsByDetailId(ctx context.Context, detailId string) (ids []string, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select proc_ins from trans_import_proc_exec where trans_import_detail=?", detailId).Find(&ids)
+	return
+}

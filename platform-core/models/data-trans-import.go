@@ -124,9 +124,9 @@ type TransImportDetail struct {
 	Artifacts              *CommonOutput        `json:"artifacts"`
 	MonitorBase            *CommonOutput        `json:"monitorBase"`     // 监控基础配置
 	MonitorBusiness        *CommonOutput        `json:"monitorBusiness"` // 监控业务配置
-	InitWorkflow           *CommonOutput        `json:"initWorkflow"`    // 初始化编排
 	Plugins                *CommonOutput        `json:"plugins"`
 	Cmdb                   *CommonOutput        `json:"cmdb"`
+	ProcInstance           *CommonOutput        `json:"procInstance"` // 编排执行
 }
 
 type TransImportHistoryParam struct {
