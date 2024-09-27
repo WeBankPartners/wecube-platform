@@ -24,7 +24,12 @@
           ></StepTwo>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 2" title="执行自动化编排" :showExpand="false">
-          <StepThree :detailData="detailData" @lastStep="activeStep--" @nextStep="activeStep++"></StepThree>
+          <StepThree
+            :detailData="detailData"
+            @saveStepThree="handleSaveStepThree"
+            @lastStep="activeStep--"
+            @nextStep="activeStep++"
+          ></StepThree>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 3" title="配置监控" :showExpand="false">
           <StepFour :detailData="detailData" @lastStep="activeStep--"></StepFour>
@@ -67,6 +72,9 @@ export default {
       this.activeStep = 0
     }
   },
+  beforeDestroy() {
+    clearInterval(this.interval)
+  },
   methods: {
     // 获取导出详情数据
     async getDetailData() {
@@ -104,6 +112,8 @@ export default {
         this.detailData.artifactsRes.data = this.detailData.artifactsRes.data || []
         this.detailData.monitorRes.data = this.detailData.monitorRes.data || []
         this.detailData.pluginsRes.data = this.detailData.pluginsRes.data || []
+        this.detailData.initWorkflowRes.data = this.detailData.initWorkflowRes.data || []
+        this.detailData.monitorBusinessRes.data = this.detailData.monitorBusinessRes.data || []
         this.detailData.associationSystems = this.detailData.associationSystems || []
         this.detailData.associationTechProducts = this.detailData.associationTechProducts || []
         this.detailData.businessName = this.detailData.businessName || ''
@@ -173,7 +183,7 @@ export default {
           if (this.detailData.stepTwoRes.status === 'doing') {
             this.interval = setInterval(() => {
               this.getDetailData()
-            }, 10 * 1000)
+            }, 30 * 1000)
           } else {
             clearInterval(this.interval)
           }
@@ -183,7 +193,7 @@ export default {
           if (!['success', 'fail'].includes(this.detailData.initWorkflowRes.status)) {
             this.interval = setInterval(() => {
               this.getDetailData()
-            }, 10 * 1000)
+            }, 30 * 1000)
           } else {
             clearInterval(this.interval)
           }
@@ -193,7 +203,7 @@ export default {
           if (!['success', 'fail'].includes(this.detailData.monitorBusinessRes.status)) {
             this.interval = setInterval(() => {
               this.getDetailData()
-            }, 10 * 1000)
+            }, 30 * 1000)
           } else {
             clearInterval(this.interval)
           }
@@ -208,6 +218,12 @@ export default {
       this.activeStep++
     },
     async handleSaveStepTwo() {
+      this.loading = true
+      await this.getDetailData()
+      this.loading = false
+      this.activeStep++
+    },
+    async handleSaveStepThree () {
       this.loading = true
       await this.getDetailData()
       this.loading = false

@@ -14,14 +14,13 @@
     <Table
       :border="false"
       size="small"
-      :loading="tableLoading"
       :columns="tableColumns"
       :max-height="400"
-      :data="tableData"
+      :data="detailData.initWorkflowRes.data"
     />
     <div class="footer">
-      <Button v-if="['fail'].includes(detailData.status)" type="default" @click="handleRetry">重试</Button>
-      <Button v-if="['doing', 'fail'].includes(detailData.status)" type="default" @click="handleStop">终止</Button>
+      <Button v-if="['doing', 'fail'].includes(detailData.status)" type="error" @click="handleStop">终止</Button>
+      <Button v-if="['fail'].includes(detailData.status)" type="success" @click="handleRetry">重试</Button>
       <Button type="default" @click="handleLast">上一步</Button>
       <Button v-if="['success'].includes(detailData.initWorkflowRes.status)" type="primary" @click="handleNext">下一步</Button>
     </div>
@@ -29,15 +28,13 @@
 </template>
 
 <script>
-import { instancesWithPaging } from '@/api/server'
+import { instancesWithPaging, saveImportData } from '@/api/server'
 export default {
   props: {
     detailData: Object
   },
   data() {
     return {
-      tableData: [],
-      tableLoading: false,
       tableColumns: [
         {
           title: this.$t('flow_name'),
@@ -171,24 +168,7 @@ export default {
       ]
     }
   },
-  mounted() {
-    this.getList()
-  },
   methods: {
-    async getList() {
-      const params = {
-        pageable: {
-          startIndex: 0,
-          pageSize: 3
-        }
-      }
-      this.tableLoading = true
-      const { status, data } = await instancesWithPaging(params)
-      this.tableLoading = false
-      if (status === 'OK') {
-        this.tableData = data.contents
-      }
-    },
     // 查看编排详情
     async jumpToHistory(row) {
       const params = {
@@ -218,8 +198,20 @@ export default {
     handleLast() {
       this.$emit('lastStep')
     },
-    handleNext() {
-      this.$emit('nextStep')
+    async handleNext() {
+      if (this.detailData.step > 3) {
+        this.$emit('nextStep')
+      } else {
+        const params = {
+          transImportId: this.detailData.id,
+          step: 4
+        }
+        const { status } = await saveImportData(params)
+        if (status === 'OK') {
+          // 执行导入，生成ID
+          this.$emit('saveStepThree')
+        }
+      }
     }
   }
 }
