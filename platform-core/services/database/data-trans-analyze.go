@@ -785,6 +785,22 @@ func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableNa
 			err = fmt.Errorf("can not find table %s struct", tableName)
 			return
 		}
+		// 要把多对多关联表导出来
+		for _, t := range tables {
+			if strings.HasPrefix(t.Name, tableName+"$") {
+				multiRefQueryTableRows, multiRefQueryTableErr := cmdbEngine.QueryString("show create table " + t.Name)
+				if multiRefQueryTableErr != nil {
+					err = fmt.Errorf("query cmdb table %s struct fail,error:%s ", t.Name, multiRefQueryTableErr.Error())
+					return
+				}
+				if len(multiRefQueryTableRows) > 0 {
+					bf.WriteString(multiRefQueryTableRows[0]["Create Table"] + ";\n")
+				} else {
+					err = fmt.Errorf("can not find table %s struct", t.Name)
+					return
+				}
+			}
+		}
 	}
 	if strings.HasPrefix(tableName, "history_") {
 		return
