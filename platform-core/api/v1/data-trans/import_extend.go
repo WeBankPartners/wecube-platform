@@ -226,7 +226,15 @@ func importWorkflow(ctx context.Context, transImportParam *models.TransImportJob
 		return
 	}
 	if len(procDefList) > 0 {
-		if importResult, err = process.ProcDefImport(ctx, procDefList, transImportParam.Operator, transImportParam.Token, transImportParam.Language); err != nil {
+		param := models.ProcDefImportDto{
+			Ctx:           ctx,
+			InputList:     procDefList,
+			Operator:      transImportParam.Operator,
+			UserToken:     transImportParam.Token,
+			Language:      transImportParam.Language,
+			IsTransImport: true,
+		}
+		if importResult, err = process.ProcDefImport(param); err != nil {
 			return
 		}
 		if importResult != nil && len(importResult.ResultList) > 0 {
