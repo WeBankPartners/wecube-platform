@@ -32,7 +32,7 @@
           ></StepThree>
         </BaseHeaderTitle>
         <BaseHeaderTitle v-if="activeStep === 3" title="配置监控" :showExpand="false">
-          <StepFour :detailData="detailData" @lastStep="activeStep--"></StepFour>
+          <StepFour :detailData="detailData" @saveStepFour="handleSaveStepFour" @lastStep="activeStep--"></StepFour>
         </BaseHeaderTitle>
       </div>
     </div>
@@ -122,6 +122,10 @@ export default {
         // 统计数量
         this.detailData.cmdbCICount = this.detailData.cmdbCIData.reduce((sum, cur) => sum + cur.count, 0)
         this.detailData.monitorCount = this.detailData.monitorRes.data.reduce((sum, cur) => sum + cur.count, 0)
+        this.detailData.monitorBusinessCount = this.detailData.monitorBusinessRes.data.reduce(
+          (sum, cur) => sum + cur.count,
+          0
+        )
         this.detailData.artifactsCount = this.detailData.artifactsRes.data.reduce(
           (sum, cur) => sum + cur.artifactLen,
           0
@@ -228,6 +232,11 @@ export default {
       await this.getDetailData()
       this.loading = false
       this.activeStep++
+    },
+    async handleSaveStepFour() {
+      this.loading = true
+      await this.getDetailData()
+      this.loading = false
     }
   }
 }
