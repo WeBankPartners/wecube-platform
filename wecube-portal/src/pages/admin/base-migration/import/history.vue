@@ -198,11 +198,11 @@ export default {
         {
           title: this.$t('table_action'),
           key: 'action',
-          width: 120,
+          width: 100,
           align: 'center',
           fixed: 'right',
           render: (h, params) => (
-            <div style="display:flex;justify-content:flex-start;">
+            <div style="display:flex;justify-content:center;">
               <Tooltip content={this.$t('be_details')} placement="top">
                 <Button
                   size="small"
@@ -239,20 +239,6 @@ export default {
                     style="margin-left:5px;"
                   >
                     <Icon type="md-power" size="16"></Icon>
-                  </Button>
-                </Tooltip>
-              )}
-              {['fail'].includes(params.row.status) && (
-                <Tooltip content={this.$t('be_continue')} placement="top">
-                  <Button
-                    size="small"
-                    type="success"
-                    onClick={() => {
-                      this.handleRetry(params.row) // 继续
-                    }}
-                    style="margin-left:5px;"
-                  >
-                    <Icon type="md-play" size="16"></Icon>
                   </Button>
                 </Tooltip>
               )}
@@ -359,8 +345,6 @@ export default {
     },
     // 终止
     handleStop() {},
-    // 失败重试
-    handleRetry() {},
     // 重新发起
     handleRepub(row) {
       this.$router.push({

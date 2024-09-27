@@ -346,6 +346,8 @@ func execWorkflow(ctx context.Context, transImportParam *models.TransImportJobPa
 				Id:                "tm_exec_" + guid.CreateGuid(),
 				TransImportDetail: transImportParam.CurrentDetail.Id,
 				ProcDef:           v.Id,
+				ProcDefKey:        v.Key,
+				ProcDefName:       v.Name,
 				RootEntity:        v.RootEntity,
 				EntityDataId:      fmt.Sprintf("%s", row["id"]),
 				EntityDataName:    fmt.Sprintf("%s", row["displayName"]),
@@ -429,6 +431,9 @@ func doExecWorkflowDaemonJob() {
 				}
 				continue
 			}
+			if v.Status == models.TransImportInPreparationStatus {
+				break
+			}
 			if v.Status == models.JobStatusReady {
 				needStartExec = v
 				break
@@ -449,6 +454,8 @@ func doExecWorkflowDaemonJob() {
 			tmpProcInsId, tmpErr := startExecWorkflow(ctx, needStartExec)
 			if tmpErr != nil {
 				log.Logger.Error("doExecWorkflowDaemonJob start exec workflow fail", log.String("detailId", transImportDetailId), log.Error(tmpErr))
+				needStartExec.Status = models.JobStatusReady
+				database.UpdateTransImportProcExec(ctx, needStartExec)
 				continue
 			}
 			needStartExec.Status = models.JobStatusRunning
@@ -471,8 +478,13 @@ func doExecWorkflowDaemonJob() {
 }
 
 func startExecWorkflow(ctx context.Context, procExecRow *models.TransImportProcExecTable) (retProcInsId string, err error) {
+	procDefId, getProcErr := database.GetTransImportProcDefId(ctx, procExecRow.ProcDef, procExecRow.ProcDefKey)
+	if getProcErr != nil {
+		err = fmt.Errorf("try to get proc def with exec data fail,%s ", getProcErr.Error())
+		return
+	}
 	// preview
-	previewData, previewErr := execution.BuildProcPreviewData(ctx, procExecRow.ProcDef, procExecRow.EntityDataId, procExecRow.CreatedUser)
+	previewData, previewErr := execution.BuildProcPreviewData(ctx, procDefId, procExecRow.EntityDataId, procExecRow.CreatedUser)
 	if previewErr != nil {
 		err = previewErr
 		log.Logger.Error("startExecWorkflow fail with build proc preview data", log.String("procExecId", procExecRow.Id), log.Error(previewErr))
@@ -482,7 +494,7 @@ func startExecWorkflow(ctx context.Context, procExecRow *models.TransImportProcE
 	procStartParam := models.ProcInsStartParam{
 		EntityDataId:      procExecRow.EntityDataId,
 		EntityDisplayName: procExecRow.EntityDataName,
-		ProcDefId:         procExecRow.ProcDef,
+		ProcDefId:         procDefId,
 		ProcessSessionId:  previewData.ProcessSessionId,
 	}
 	// 新增 proc_ins,proc_ins_node,proc_data_binding 纪录

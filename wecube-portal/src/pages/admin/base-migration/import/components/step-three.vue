@@ -19,8 +19,6 @@
       :data="detailData.initWorkflowRes.data"
     />
     <div class="footer">
-      <Button v-if="['doing', 'fail'].includes(detailData.status)" type="error" @click="handleStop">终止</Button>
-      <Button v-if="['fail'].includes(detailData.status)" type="success" @click="handleRetry">重试</Button>
       <Button type="default" @click="handleLast">上一步</Button>
       <Button v-if="['success'].includes(detailData.initWorkflowRes.status)" type="primary" @click="handleNext">下一步</Button>
     </div>
@@ -69,6 +67,11 @@ export default {
               {
                 label: this.$t('fe_notStart'),
                 value: 'NotStarted',
+                color: '#808695'
+              },
+              {
+                label: this.$t('fe_notStart'),
+                value: 'InPreparation',
                 color: '#808695'
               },
               {
@@ -142,29 +145,6 @@ export default {
           title: this.$t('table_updated_date'),
           key: 'updatedTime',
           minWidth: 150
-        },
-        {
-          title: this.$t('table_action'),
-          key: 'action',
-          width: 130,
-          align: 'center',
-          fixed: 'right',
-          render: (h, params) => (
-            <div style="display:flex;justify-content:center;">
-              <Tooltip content={this.$t('be_details')} placement="top">
-                <Button
-                  size="small"
-                  type="info"
-                  onClick={() => {
-                    this.jumpToHistory(params.row) // 查看
-                  }}
-                  style="margin-right:5px;"
-                >
-                  <Icon type="md-eye" size="16"></Icon>
-                </Button>
-              </Tooltip>
-            </div>
-          )
         }
       ]
     }
@@ -212,11 +192,7 @@ export default {
     // 上一步
     handleLast() {
       this.$emit('lastStep')
-    },
-    // 终止
-    handleStop() {},
-    // 重试
-    handleRetry() {}
+    }
   }
 }
 </script>
