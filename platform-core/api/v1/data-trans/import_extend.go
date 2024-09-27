@@ -166,7 +166,9 @@ func callImportFunc(ctx context.Context, transImportJobParam *models.TransImport
 	if err != nil {
 		database.UpdateTransImportDetailStatus(ctx, transImportJobParam.TransImport.Id, transImportJobParam.CurrentDetail.Id, "fail", output, err.Error())
 	} else {
-		database.UpdateTransImportDetailStatus(ctx, transImportJobParam.TransImport.Id, transImportJobParam.CurrentDetail.Id, "success", output, "")
+		if transImportJobParam.CurrentDetail.Step != int(models.TransImportStepInitWorkflow) {
+			database.UpdateTransImportDetailStatus(ctx, transImportJobParam.TransImport.Id, transImportJobParam.CurrentDetail.Id, "success", output, "")
+		}
 	}
 	return
 }
