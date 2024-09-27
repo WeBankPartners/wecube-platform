@@ -29,6 +29,7 @@
 
 <script>
 import { instancesWithPaging, saveImportData } from '@/api/server'
+import { debounce } from '@/const/util'
 export default {
   props: {
     detailData: Object
@@ -193,12 +194,7 @@ export default {
         desc: this.$t('no_detail_warning')
       })
     },
-    handleStop() {},
-    handleRetry() {},
-    handleLast() {
-      this.$emit('lastStep')
-    },
-    async handleNext() {
+    handleNext: debounce(async function () {
       if (this.detailData.step > 3) {
         this.$emit('nextStep')
       } else {
@@ -212,7 +208,15 @@ export default {
           this.$emit('saveStepThree')
         }
       }
-    }
+    }, 500),
+    // 上一步
+    handleLast() {
+      this.$emit('lastStep')
+    },
+    // 终止
+    handleStop() {},
+    // 重试
+    handleRetry() {}
   }
 }
 </script>

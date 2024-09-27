@@ -1,6 +1,11 @@
 <template>
   <div class="base-migration-import-four">
-    <div class="import-status">
+    <div v-if="detailData.status === 'success'" class="import-status">
+      <Alert type="success" show-icon>
+        <template #desc>恭喜，全部数据已导入成功！</template>
+      </Alert>
+    </div>
+    <div v-else class="import-status">
       <Alert v-if="detailData.monitorBusinessRes.status === 'doing'" type="info" show-icon>
         <template #desc>正在导入内容，请稍后... </template>
       </Alert>
@@ -13,8 +18,7 @@
     </div>
     <div class="item">
       <span class="title">
-        监控配置：<span class="sub-title">已选 <span class="name">配置类型</span><span class="number">{{ detailData.monitorRes.data.length }}</span>
-          <span class="name">总条数</span><span class="number">{{ detailData.monitorCount }}</span>
+        监控配置：<span class="sub-title">已选 <span class="name">配置类型</span><span class="number">{{ detailData.monitorBusinessRes.data.length }}</span> <span class="name">总条数</span><span class="number">{{ detailData.monitorBusinessCount }}</span>
         </span>
       </span>
       <Table
@@ -22,27 +26,34 @@
         size="small"
         :columns="monitorColumns"
         :max-height="maxHeight"
-        :data="detailData.monitorRes.data"
+        :data="detailData.monitorBusinessRes.data"
       />
     </div>
     <div class="footer">
-      <Button v-if="['fail'].includes(detailData.status)" type="default" @click="handleRetry">重试</Button>
-      <Button v-if="['doing', 'fail'].includes(detailData.status)" type="default" @click="handleStop">终止</Button>
-      <Button type="default" @click="handleLast">上一步</Button>
-      <Button v-if="['success'].includes(detailData.monitorBusinessRes.status)" type="primary" @click="handleComplete">完成导入</Button>
+      <template v-if="detailData.status !== 'success'">
+        <Button v-if="['doing', 'fail'].includes(detailData.status)" type="default" @click="handleStop">终止</Button>
+        <Button v-if="['fail'].includes(detailData.status)" type="default" @click="handleRetry">重试</Button>
+        <Button type="default" @click="handleLast">上一步</Button>
+        <Button v-if="['success'].includes(detailData.monitorBusinessRes.status)" type="primary" @click="handleComplete">完成导入</Button>
+      </template>
+      <template v-else>
+        <Button type="default" @click="handleLast">上一步</Button>
+        <Button type="default" @click="handleToHistory">历史列表</Button>
+        <Button type="primary" @click="handleReLauch">重新发起</Button>
+      </template>
     </div>
   </div>
 </template>
 
 <script>
+import { saveImportData } from '@/api/server'
+import { debounce } from '@/const/util'
 export default {
   props: {
     detailData: Object
   },
   data() {
     return {
-      importLink: '',
-      loading: false,
       // 监控数据
       monitorColumns: [
         {
@@ -82,10 +93,30 @@ export default {
     this.maxHeight = document.body.clientHeight - 280
   },
   methods: {
+    // 完成导入
+    handleComplete: debounce(async function () {
+      const params = {
+        transImportId: this.detailData.id,
+        step: 5
+      }
+      const { status } = await saveImportData(params)
+      if (status === 'OK') {
+        // 执行导入，生成ID
+        this.$emit('saveStepFour')
+      }
+    }, 500),
+    // 上一步
+    handleLast() {
+      this.$emit('lastStep')
+    },
+    // 历史列表
+    handleToHistory() {},
+    // 重新发起
+    handleReLauch() {},
+    // 重试
     handleRetry() {},
-    handleStop() {},
-    handleLast() {},
-    handleComplete() {}
+    // 终止
+    handleStop() {}
   }
 }
 </script>
