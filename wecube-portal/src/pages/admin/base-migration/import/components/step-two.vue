@@ -5,7 +5,7 @@
       <Button v-if="['doing', 'fail'].includes(detailData.status)" type="error" @click="handleStop">终止</Button>
       <Button v-if="['fail'].includes(detailData.status)" type="success" @click="handleRetry">重试</Button>
       <Button type="default" @click="handleLast">上一步</Button>
-      <Button v-if="['success'].includes(detailData.stepTwoRes.status)" type="primary" @click="handleSave">下一步</Button>
+      <Button v-if="['success'].includes(detailData.stepTwoRes.status)" type="primary" @click="handleNext">下一步</Button>
     </div>
   </div>
 </template>
@@ -22,12 +22,7 @@ export default {
     detailData: Object
   },
   methods: {
-    handleStop() {},
-    handleRetry() {},
-    handleLast() {
-      this.$emit('lastStep')
-    },
-    handleSave: debounce(async function () {
+    handleNext: debounce(async function () {
       if (this.detailData.step > 2) {
         this.$emit('nextStep')
       } else {
@@ -41,7 +36,15 @@ export default {
           this.$emit('saveStepTwo')
         }
       }
-    }, 500)
+    }, 500),
+    // 上一步
+    handleLast() {
+      this.$emit('lastStep')
+    },
+    // 终止
+    handleStop() {},
+    // 重试
+    handleRetry() {}
   }
 }
 </script>
