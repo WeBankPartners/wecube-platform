@@ -429,6 +429,9 @@ func doExecWorkflowDaemonJob() {
 				}
 				continue
 			}
+			if v.Status == models.TransImportInPreparationStatus {
+				break
+			}
 			if v.Status == models.JobStatusReady {
 				needStartExec = v
 				break
@@ -449,6 +452,8 @@ func doExecWorkflowDaemonJob() {
 			tmpProcInsId, tmpErr := startExecWorkflow(ctx, needStartExec)
 			if tmpErr != nil {
 				log.Logger.Error("doExecWorkflowDaemonJob start exec workflow fail", log.String("detailId", transImportDetailId), log.Error(tmpErr))
+				needStartExec.Status = models.JobStatusReady
+				database.UpdateTransImportProcExec(ctx, needStartExec)
 				continue
 			}
 			needStartExec.Status = models.JobStatusRunning
