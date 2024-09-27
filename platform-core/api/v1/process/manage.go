@@ -504,7 +504,14 @@ func ImportProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("import data is empty"))
 		return
 	}
-	importResult, err = ProcDefImport(c, paramList, middleware.GetRequestUser(c), c.GetHeader(models.AuthorizationHeader), c.GetHeader(middleware.AcceptLanguageHeader))
+	param := models.ProcDefImportDto{
+		Ctx:       c,
+		InputList: paramList,
+		Operator:  middleware.GetRequestUser(c),
+		UserToken: c.GetHeader(models.AuthorizationHeader),
+		Language:  c.GetHeader(middleware.AcceptLanguageHeader),
+	}
+	importResult, err = ProcDefImport(param)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	}
@@ -1289,57 +1296,97 @@ func getMapRandomKey(hashMap map[string]bool) string {
 	return ""
 }
 
-func ProcDefImport(ctx context.Context, inputList []*models.ProcessDefinitionDto, operator, userToken, language string) (importResult *models.ImportResultDto, err error) {
+func ProcDefImport(param models.ProcDefImportDto) (importResult *models.ImportResultDto, err error) {
 	var draftList, repeatNameList []*models.ProcDef
 	var newProcDefId string
 	var versionExist bool
 	importResult = &models.ImportResultDto{
 		ResultList: make([]*models.ImportResultItemDto, 0),
 	}
-	for _, procDefDto := range inputList {
+	for _, procDefDto := range param.InputList {
 		versionExist = false
 		if procDefDto.ProcDef == nil {
 			continue
 		}
-		draftList, err = database.GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Key: procDefDto.ProcDef.Key, Status: string(models.Draft)})
-		if err != nil {
-			return
-		}
-		// 已有草稿版本
-		if len(draftList) > 0 {
-			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
-				ProcDefName:    procDefDto.ProcDef.Name,
-				ProcDefVersion: procDefDto.ProcDef.Version,
-				Code:           1,
-				Message:        "Import Failed: already a draft with the same name in [Unpublished], please delete that draft and try importing again.",
-			})
-			continue
-		}
-		// 判断名称和版本是否重复
-		repeatNameList, err = database.GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Name: procDefDto.ProcDef.Name})
-		if err != nil {
-			return
-		}
-		// 重复的名称,将重复名称Key 给导入值
-		if len(repeatNameList) > 0 {
-			procDefDto.ProcDef.Key = repeatNameList[0].Key
-			for _, repeatProcDef := range repeatNameList {
-				if repeatProcDef.Version == procDefDto.ProcDef.Version {
-					versionExist = true
-					importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
-						ProcDefName:    procDefDto.ProcDef.Name,
-						ProcDefVersion: procDefDto.ProcDef.Version,
-						Code:           2,
-						Message:        "Import Failed: The imported process version is lower than the current environment, only supports importing higher versions.",
-					})
-					break
+		if param.IsTransImport {
+			// 判断名称和版本是否重复
+			repeatNameList, err = database.GetProcessDefinitionByCondition(param.Ctx, models.ProcDefCondition{Name: procDefDto.ProcDef.Name})
+			if err != nil {
+				return
+			}
+			// 重复的名称,将重复名称Key 给导入值
+			if len(repeatNameList) > 0 {
+				for _, pdef := range repeatNameList {
+					if pdef.Key != procDefDto.ProcDef.Key {
+						importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
+							ProcDefName:    procDefDto.ProcDef.Name,
+							ProcDefVersion: procDefDto.ProcDef.Version,
+							Code:           1,
+							Message:        fmt.Sprintf("Import Failed: workflow: %s already exists", procDefDto.ProcDef.Name),
+						})
+						versionExist = true
+						break
+					} else if pdef.Version == procDefDto.ProcDef.Version {
+						importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
+							ProcDefName:    procDefDto.ProcDef.Name,
+							ProcDefVersion: procDefDto.ProcDef.Version,
+							Code:           1,
+							Message:        fmt.Sprintf("Import Failed: workflow: %s version:%s already exists", procDefDto.ProcDef.Name, procDefDto.ProcDef.Version),
+						})
+						versionExist = true
+						break
+					}
+				}
+				if versionExist {
+					continue
 				}
 			}
+		} else {
+			// 非底座迁移校验,底座迁移导入完直接发布
+			draftList, err = database.GetProcessDefinitionByCondition(param.Ctx, models.ProcDefCondition{Key: procDefDto.ProcDef.Key, Status: string(models.Draft)})
+			if err != nil {
+				return
+			}
+			// 已有草稿版本
+			if len(draftList) > 0 {
+				importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
+					ProcDefName:    procDefDto.ProcDef.Name,
+					ProcDefVersion: procDefDto.ProcDef.Version,
+					Code:           1,
+					Message:        "Import Failed: already a draft with the same name in [Unpublished], please delete that draft and try importing again.",
+				})
+				continue
+			}
+			// 判断名称和版本是否重复
+			repeatNameList, err = database.GetProcessDefinitionByCondition(param.Ctx, models.ProcDefCondition{Name: procDefDto.ProcDef.Name})
+			if err != nil {
+				return
+			}
+			// 重复的名称,将重复名称Key 给导入值
+			if len(repeatNameList) > 0 {
+				procDefDto.ProcDef.Key = repeatNameList[0].Key
+				for _, repeatProcDef := range repeatNameList {
+					if repeatProcDef.Version <= procDefDto.ProcDef.Version {
+						versionExist = true
+						importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
+							ProcDefName:    procDefDto.ProcDef.Name,
+							ProcDefVersion: procDefDto.ProcDef.Version,
+							Code:           2,
+							Message:        "Import Failed: The imported process version is lower than the current environment, only supports importing higher versions.",
+						})
+						break
+					}
+				}
+			}
+			if versionExist {
+				continue
+			}
 		}
-		if versionExist {
-			continue
+		newProcDefId, err = database.CopyProcessDefinitionByDto(param.Ctx, procDefDto, param.UserToken, param.Language, param.Operator)
+		// 底座迁移导入用原ID
+		if param.IsTransImport && strings.TrimSpace(procDefDto.ProcDef.Id) != "" {
+			newProcDefId = procDefDto.ProcDef.Id
 		}
-		newProcDefId, err = database.CopyProcessDefinitionByDto(ctx, procDefDto, userToken, language, operator)
 		if err != nil {
 			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
 				ProcDefId:      newProcDefId,
@@ -1347,7 +1394,7 @@ func ProcDefImport(ctx context.Context, inputList []*models.ProcessDefinitionDto
 				ProcDefVersion: procDefDto.ProcDef.Version,
 				Code:           3,
 				Message:        "Import Failed: Please refresh the page and try again later.",
-				ErrMsg:         err.Error(),
+				ErrMsg:         fmt.Sprintf("workflow %s import fail %s", procDefDto.ProcDef.Name, err.Error()),
 			})
 			log.Logger.Error("CopyProcessDefinitionByDto err", log.Error(err))
 			// 单个编排操作err,err置为空, code=3已经表示服务器错误
@@ -1361,7 +1408,7 @@ func ProcDefImport(ctx context.Context, inputList []*models.ProcessDefinitionDto
 			})
 		}
 	}
-	if strings.Contains(language, "zh-CN") {
+	if strings.Contains(param.Language, "zh-CN") {
 		for _, resultItem := range importResult.ResultList {
 			resultItem.Message = importFailMessageMap[resultItem.Code]
 		}

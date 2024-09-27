@@ -1128,6 +1128,10 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 		case models.TransExportAnalyzeMonitorDataTypeCustomMetricEndpointGroup:
 			// 导出指标列表对象组
 			endpointGroupMetricList = exportDataKeyList
+		case models.TransExportAnalyzeMonitorDataTypeServiceGroup:
+			// 导出 层级对象
+			filePathList = []string{fmt.Sprintf("%s/%s.json", path, monitorAnalyzeData.DataType)}
+			finalExportDataList = []interface{}{exportDataKeyList}
 		default:
 		}
 		for i, filePath := range filePathList {

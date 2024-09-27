@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
@@ -433,6 +434,15 @@ type ProcEntityAttributeObj struct {
 	EntityPackage     string `json:"entityPackage"`
 	Multiple          string `json:"multiple"`
 	OrderNo           int    `json:"orderNo"`
+}
+
+type ProcDefImportDto struct {
+	Ctx           context.Context
+	InputList     []*ProcessDefinitionDto
+	Operator      string
+	UserToken     string
+	Language      string
+	IsTransImport bool // 是否为底座迁移导入
 }
 
 type UpdateProcDefHandlerParam struct {
