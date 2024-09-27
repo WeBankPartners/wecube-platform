@@ -1298,7 +1298,6 @@ func getMapRandomKey(hashMap map[string]bool) string {
 
 func ProcDefImport(param models.ProcDefImportDto) (importResult *models.ImportResultDto, err error) {
 	var draftList, repeatNameList []*models.ProcDef
-	var newProcDefId string
 	var versionExist bool
 	importResult = &models.ImportResultDto{
 		ResultList: make([]*models.ImportResultItemDto, 0),
@@ -1382,14 +1381,14 @@ func ProcDefImport(param models.ProcDefImportDto) (importResult *models.ImportRe
 				continue
 			}
 		}
-		newProcDefId, err = database.CopyProcessDefinitionByDto(param.Ctx, procDefDto, param.UserToken, param.Language, param.Operator)
-		// 底座迁移导入用原ID
-		if param.IsTransImport && strings.TrimSpace(procDefDto.ProcDef.Id) != "" {
-			newProcDefId = procDefDto.ProcDef.Id
+		// 非底座迁移导入,Id重新生成,底座迁移ID复用
+		if !param.IsTransImport || procDefDto.ProcDef.Id == "" {
+			procDefDto.ProcDef.Id = "pdef_" + guid.CreateGuid()
 		}
+		err = database.CopyProcessDefinitionByDto(param.Ctx, procDefDto, param.UserToken, param.Language, param.Operator)
 		if err != nil {
 			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
-				ProcDefId:      newProcDefId,
+				ProcDefId:      procDefDto.ProcDef.Id,
 				ProcDefName:    procDefDto.ProcDef.Name,
 				ProcDefVersion: procDefDto.ProcDef.Version,
 				Code:           3,
@@ -1401,7 +1400,7 @@ func ProcDefImport(param models.ProcDefImportDto) (importResult *models.ImportRe
 			err = nil
 		} else {
 			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
-				ProcDefId:      newProcDefId,
+				ProcDefId:      procDefDto.ProcDef.Id,
 				ProcDefName:    procDefDto.ProcDef.Name,
 				ProcDefVersion: procDefDto.ProcDef.Version,
 				Message:        "Import Success",
