@@ -31,8 +31,6 @@
     </div>
     <div class="footer">
       <template v-if="detailData.status !== 'success'">
-        <Button v-if="['doing', 'fail'].includes(detailData.status)" type="default" @click="handleStop">终止</Button>
-        <Button v-if="['fail'].includes(detailData.status)" type="default" @click="handleRetry">重试</Button>
         <Button type="default" @click="handleLast">上一步</Button>
         <Button v-if="['success'].includes(detailData.monitorBusinessRes.status)" type="primary" @click="handleComplete">完成导入</Button>
       </template>
@@ -112,11 +110,7 @@ export default {
     // 历史列表
     handleToHistory() {},
     // 重新发起
-    handleReLauch() {},
-    // 重试
-    handleRetry() {},
-    // 终止
-    handleStop() {}
+    handleReLauch() {}
   }
 }
 </script>
