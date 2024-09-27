@@ -123,12 +123,20 @@ export default {
           ...data.transExport
         }
         this.detailData.roleRes.data = this.detailData.roleRes.data || []
+        this.detailData.roleRes.title = '角色'
         this.detailData.flowRes.data = this.detailData.flowRes.data || []
+        this.detailData.flowRes.title = '编排'
         this.detailData.batchRes.data = this.detailData.batchRes.data || []
+        this.detailData.batchRes.title = '批量执行'
         this.detailData.itsmRes.data = this.detailData.itsmRes.data || []
+        this.detailData.itsmRes.title = 'ITSM流程'
         this.detailData.artifactsRes.data = this.detailData.artifactsRes.data || []
+        this.detailData.artifactsRes.title = '物料包'
         this.detailData.monitorRes.data = this.detailData.monitorRes.data || []
+        this.detailData.monitorRes.title = '监控配置'
         this.detailData.pluginsRes.data = this.detailData.pluginsRes.data || []
+        this.detailData.pluginsRes.title = '插件服务'
+        this.detailData.cmdbRes.title = 'CMDB'
         this.detailData.associationSystems = this.detailData.associationSystems || []
         this.detailData.associationTechProducts = this.detailData.associationTechProducts || []
         this.detailData.businessName = this.detailData.businessName || ''
@@ -180,8 +188,8 @@ export default {
           artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes
         } = this.detailData
         const exportData = [artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes]
-        const failObj = exportData.find(i => i.status === 'fail') || {}
-        this.detailData.failMsg = failObj.errMsg
+        const failObj = exportData.find(i => i.status === 'fail') || {}     
+        this.detailData.failMsg = `${failObj.title}：${failObj.errMsg}`
         // 成功或失败，取消轮询查状态
         if (['success', 'fail'].includes(this.detailData.status)) {
           clearInterval(this.interval)
