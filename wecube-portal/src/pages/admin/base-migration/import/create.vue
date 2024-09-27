@@ -223,7 +223,7 @@ export default {
       this.loading = false
       this.activeStep++
     },
-    async handleSaveStepThree () {
+    async handleSaveStepThree() {
       this.loading = true
       await this.getDetailData()
       this.loading = false
