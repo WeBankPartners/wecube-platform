@@ -49,6 +49,8 @@ type TransImportProcExecTable struct {
 	TransImportDetail string `json:"transImportDetail" xorm:"trans_import_detail"`
 	ProcIns           string `json:"procIns" xorm:"proc_ins"`
 	ProcDef           string `json:"procDef" xorm:"proc_def"`
+	ProcDefKey        string `json:"procDefKey" xorm:"proc_def_key"`
+	ProcDefName       string `json:"procDefName" xorm:"proc_def_name"`
 	RootEntity        string `json:"rootEntity" xorm:"root_entity"`
 	EntityDataId      string `json:"entityDataId" xorm:"entity_data_id"`
 	EntityDataName    string `json:"entityDataName" xorm:"entity_data_name"`
