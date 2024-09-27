@@ -165,6 +165,7 @@ const (
 	TransExportAnalyzeMonitorDataTypeStrategyEndpointGroup     TransExportAnalyzeMonitorDataType = "strategy_endpoint_group"
 	TransExportAnalyzeMonitorDataTypeLogKeywordServiceGroup    TransExportAnalyzeMonitorDataType = "logKeyword_service_group"
 	TransExportAnalyzeMonitorDataTypeDashboard                 TransExportAnalyzeMonitorDataType = "dashboard"
+	TransExportAnalyzeMonitorDataTypeServiceGroup              TransExportAnalyzeMonitorDataType = "service_group" // 层级对象
 )
 
 // TransImportStep 导入步骤
