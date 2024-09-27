@@ -3,6 +3,18 @@
     <div class="base-migration-import-create">
       <div class="steps">
         <BaseHeaderTitle title="导入步骤" :showExpand="false">
+          <div class="status-group">
+            <div class="status">
+              导入状态：<Tag :color="statusObj.color">{{ statusObj.label }}</Tag>
+            </div>
+            <Button
+              v-if="['doing', 'fail'].includes(detailData.status)"
+              icon="md-power"
+              type="error"
+              size="small"
+              @click="handleStop"
+            >终止</Button>
+          </div>
           <Steps :current="activeStep" direction="vertical">
             <Step title="输入链接,确认产品、环境" content="系统自动分析需要导出的系统及数据"></Step>
             <Step title="导入数据" content="确认依赖系统、CMDB、编排、ITSM等配置项正确"></Step>
@@ -58,7 +70,30 @@ export default {
       id: this.$route.query.id || '',
       activeStep: -1,
       loading: false,
-      detailData: {}
+      detailData: {},
+      statusObj: {},
+      statusList: [
+        {
+          label: '执行中',
+          value: 'doing',
+          color: '#2d8cf0'
+        },
+        {
+          label: '成功',
+          value: 'success',
+          color: '#19be6b'
+        },
+        {
+          label: '失败',
+          value: 'fail',
+          color: '#ed4014'
+        },
+        {
+          label: '终止',
+          value: 'cancel',
+          color: '#ff9900'
+        }
+      ]
     }
   },
   async mounted() {
@@ -99,19 +134,27 @@ export default {
           artifactsRes: data.artifacts || {}, // 物料包
           monitorRes: data.monitorBase || {}, // 监控
           pluginsRes: data.plugins || {}, // 插件
-          initWorkflowRes: data.initWorkflow || {},
+          initWorkflowRes: data.procInstance || {},
           monitorBusinessRes: data.monitorBusiness || {},
           exportComponentLibrary: data.exportComponentLibrary, // 组件库
           step: data.step,
           ...data.transExport
         }
         this.detailData.roleRes.data = this.detailData.roleRes.data || []
+        this.detailData.roleRes.title = '角色'
         this.detailData.flowRes.data = this.detailData.flowRes.data || []
+        this.detailData.flowRes.title = '编排'
         this.detailData.batchRes.data = this.detailData.batchRes.data || []
+        this.detailData.batchRes.title = '批量执行'
         this.detailData.itsmRes.data = this.detailData.itsmRes.data || []
+        this.detailData.itsmRes.title = 'ITSM流程'
         this.detailData.artifactsRes.data = this.detailData.artifactsRes.data || []
+        this.detailData.artifactsRes.title = '物料包'
         this.detailData.monitorRes.data = this.detailData.monitorRes.data || []
+        this.detailData.monitorRes.title = '监控配置'
         this.detailData.pluginsRes.data = this.detailData.pluginsRes.data || []
+        this.detailData.pluginsRes.title = '插件服务'
+        this.detailData.cmdbRes.title = 'CMDB'
         this.detailData.initWorkflowRes.data = this.detailData.initWorkflowRes.data || []
         this.detailData.monitorBusinessRes.data = this.detailData.monitorBusinessRes.data || []
         this.detailData.associationSystems = this.detailData.associationSystems || []
@@ -119,7 +162,6 @@ export default {
         this.detailData.businessName = this.detailData.businessName || ''
         this.detailData.businessNameList = (this.detailData.businessName && this.detailData.businessName.split(',')) || []
         this.detailData.business = this.detailData.business || ''
-        // 统计数量
         this.detailData.cmdbCICount = this.detailData.cmdbCIData.reduce((sum, cur) => sum + cur.count, 0)
         this.detailData.monitorCount = this.detailData.monitorRes.data.reduce((sum, cur) => sum + cur.count, 0)
         this.detailData.monitorBusinessCount = this.detailData.monitorBusinessRes.data.reduce(
@@ -130,6 +172,7 @@ export default {
           (sum, cur) => sum + cur.artifactLen,
           0
         )
+        this.statusObj = this.statusList.find(i => i.value === this.detailData.status)
         // 合并monitor数据
         const metric_list_obj = {
           name: 'metric_list',
@@ -175,7 +218,7 @@ export default {
         const failObj = stepTwoData.find(i => i.status === 'fail') || {}
         this.detailData.stepTwoRes = {
           status: 'doing',
-          errMsg: failObj.errMsg
+          errMsg: `${failObj.title}：${failObj.errMsg}`
         }
         if (success) {
           this.detailData.stepTwoRes.status = 'success'
@@ -184,10 +227,12 @@ export default {
           this.detailData.stepTwoRes.status = 'fail'
         }
         if (this.detailData.step === 2) {
-          if (this.detailData.stepTwoRes.status === 'doing') {
-            this.interval = setInterval(() => {
-              this.getDetailData()
-            }, 30 * 1000)
+          if (!['success', 'fail'].includes(this.detailData.stepTwoRes.status)) {
+            if (!this.interval) {
+              this.interval = setInterval(() => {
+                this.getDetailData()
+              }, 30 * 1000)
+            }
           } else {
             clearInterval(this.interval)
           }
@@ -195,9 +240,11 @@ export default {
         // 第三步导入状态判断
         if (this.detailData.step === 3) {
           if (!['success', 'fail'].includes(this.detailData.initWorkflowRes.status)) {
-            this.interval = setInterval(() => {
-              this.getDetailData()
-            }, 30 * 1000)
+            if (!this.interval) {
+              this.interval = setInterval(() => {
+                this.getDetailData()
+              }, 30 * 1000)
+            }
           } else {
             clearInterval(this.interval)
           }
@@ -205,9 +252,11 @@ export default {
         // 第四步导入状态判断
         if (this.detailData.step === 4) {
           if (!['success', 'fail'].includes(this.detailData.monitorBusinessRes.status)) {
-            this.interval = setInterval(() => {
-              this.getDetailData()
-            }, 30 * 1000)
+            if (!this.interval) {
+              this.interval = setInterval(() => {
+                this.getDetailData()
+              }, 30 * 1000)
+            }
           } else {
             clearInterval(this.interval)
           }
@@ -237,7 +286,9 @@ export default {
       this.loading = true
       await this.getDetailData()
       this.loading = false
-    }
+    },
+    // 终止
+    handleStop() {}
   }
 }
 </script>
@@ -249,9 +300,24 @@ export default {
   overflow: hidden;
   .steps {
     width: 260px;
-    padding-right: 15px;
+    padding-right: 10px;
     border-right: 1px solid #e8eaec;
     height: 100%;
+    .status-group {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      margin: -10px 0 10px 0;
+      padding: 5px;
+      .status {
+        font-size: 14px;
+        font-weight: bold;
+      }
+      button {
+        margin-left: 10px;
+        height: 22px;
+      }
+    }
   }
   .content {
     width: calc(100% - 260px);
