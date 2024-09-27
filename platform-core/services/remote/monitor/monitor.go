@@ -50,6 +50,8 @@ func GetMonitorExportAnalyzeData(endpointList, serviceGroupList []string) (data 
 		return
 	}
 	data = response.Data
+	data.Endpoint = endpointList
+	data.ServiceGroup = serviceGroupList
 	return
 }
 

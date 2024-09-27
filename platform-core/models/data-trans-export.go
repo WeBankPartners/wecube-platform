@@ -352,6 +352,8 @@ type AnalyzeTransData struct {
 	StrategyEndpointGroup     []string `json:"strategyEndpointGroup"`
 	LogKeywordServiceGroup    []string `json:"logKeywordServiceGroup"`
 	DashboardIdList           []string `json:"dashboardIdList"`
+	Endpoint                  []string `json:"endpoint"`
+	ServiceGroup              []string `json:"serviceGroup"`
 }
 
 type SysReportTable struct {
