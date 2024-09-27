@@ -2,8 +2,6 @@
   <div class="base-migration-import-two">
     <ImportData v-if="detailData.id" :detailData="detailData" from="import"></ImportData>
     <div class="footer">
-      <Button v-if="['doing', 'fail'].includes(detailData.status)" type="error" @click="handleStop">终止</Button>
-      <Button v-if="['fail'].includes(detailData.status)" type="success" @click="handleRetry">重试</Button>
       <Button type="default" @click="handleLast">上一步</Button>
       <Button v-if="['success'].includes(detailData.stepTwoRes.status)" type="primary" @click="handleNext">下一步</Button>
     </div>
@@ -40,11 +38,7 @@ export default {
     // 上一步
     handleLast() {
       this.$emit('lastStep')
-    },
-    // 终止
-    handleStop() {},
-    // 重试
-    handleRetry() {}
+    }
   }
 }
 </script>
