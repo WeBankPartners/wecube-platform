@@ -135,7 +135,7 @@ const (
 	TransExportStepCmdb                TransExportStep = 7  // 导出CMDB
 	TransExportStepArtifacts           TransExportStep = 8  // 导出物料包
 	TransExportStepMonitor             TransExportStep = 9  // 导出监控
-	TransExportSystemVariable          TransExportStep = 10 // 导出系统变量参数
+	TransExportUIData                  TransExportStep = 10 // 导出环境产品等页面展示数据
 	TransExportStepCreateAndUploadFile TransExportStep = 11 // 生成文件上传
 )
 
