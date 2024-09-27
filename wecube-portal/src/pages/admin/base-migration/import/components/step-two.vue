@@ -3,7 +3,7 @@
     <ImportData v-if="detailData.id" :detailData="detailData" from="import"></ImportData>
     <div class="footer">
       <Button v-if="['doing', 'fail'].includes(detailData.status)" type="error" @click="handleStop">终止</Button>
-      <Button v-if="['fail'].includes(detailData.status)" type="warning" @click="handleRetry">重试</Button>
+      <Button v-if="['fail'].includes(detailData.status)" type="success" @click="handleRetry">重试</Button>
       <Button type="default" @click="handleLast">上一步</Button>
       <Button v-if="['success'].includes(detailData.stepTwoRes.status)" type="primary" @click="handleSave">下一步</Button>
     </div>
