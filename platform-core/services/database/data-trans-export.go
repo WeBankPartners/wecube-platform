@@ -30,7 +30,7 @@ var transExportDetailMap = map[models.TransExportStep]string{
 	models.TransExportStepMonitor:             "monitor",
 	models.TransExportStepPluginConfig:        "plugin_config",
 	models.TransExportStepCreateAndUploadFile: "create_and_upload_file",
-	models.TransExportSystemVariable:          "system_variable",
+	models.TransExportUIData:                  "ui_data",
 }
 
 const (
@@ -786,34 +786,21 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	log.Logger.Info("9. export monitor end!!!!")
 
 	// 10.导出系统变量参数
-	step = models.TransExportSystemVariable
-	log.Logger.Info("10. export systemVariable start!!!!")
-	exportSystemVariableStartTime := time.Now().Format(models.DateTimeFormat)
-	if transDataVariableConfig, err = getDataTransVariableMap(ctx); err != nil {
-		return
-	}
-	if transDataVariableConfig == nil {
-		err = fmt.Errorf("cmdb transVariableMap is empty")
-		return
-	}
-	exportSystemVariableParam := models.StepExportParam{
-		Ctx:           ctx,
-		Path:          path,
-		TransExportId: param.TransExportId,
-		StartTime:     exportSystemVariableStartTime,
-		Step:          step,
-		Data:          transDataVariableConfig,
-	}
-	if err = execStepExport(exportSystemVariableParam); err != nil {
-		return
-	}
-	log.Logger.Info("10. export systemVariable end!!!!")
-
+	step = models.TransExportUIData
+	exportUIDataStartTime := time.Now().Format(models.DateTimeFormat)
 	//  导出在导入时候需要展示的页面数据
 	log.Logger.Info(" export ui show data start!!!!")
 	if err = exportImportShowData(ctx, transDataVariableConfig, param.TransExportId, exportDataPath, userToken, language); err != nil {
 		return
 	}
+	transExportUIDataDetail := models.TransExportDetailTable{
+		TransExport: &param.TransExportId,
+		Step:        int(step),
+		StartTime:   exportUIDataStartTime,
+		Status:      string(models.TransExportStatusSuccess),
+		EndTime:     time.Now().Format(models.DateTimeFormat),
+	}
+	updateTransExportDetail(ctx, transExportUIDataDetail)
 	log.Logger.Info(" export ui show data end!!!!")
 	// 11. json文件压缩并上传nexus
 	step = models.TransExportStepCreateAndUploadFile
@@ -891,7 +878,7 @@ func exportImportShowData(ctx context.Context, dataTransVariableConfig *models.T
 			}
 			query.EntityQueryParam.AdditionalFilters = append(query.EntityQueryParam.AdditionalFilters, &models.EntityQueryObj{
 				AttrName:  "id",
-				Op:        "equal",
+				Op:        "eq",
 				Condition: id,
 			})
 			if temp, err = remote.QueryBusinessList(query); err != nil {
