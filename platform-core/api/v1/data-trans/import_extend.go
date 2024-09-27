@@ -31,7 +31,8 @@ func init() {
 	importFuncList = append(importFuncList, importPluginConfig)
 	importFuncList = append(importFuncList, importWorkflow)
 	importFuncList = append(importFuncList, importBatchExecution)
-	importFuncList = append(importFuncList, importArtifactPackage)
+	//	importFuncList = append(importFuncList, importArtifactPackage)
+	importFuncList = append(importFuncList, testImportArtifactPackage)
 	importFuncList = append(importFuncList, importMonitorBaseConfig)
 	importFuncList = append(importFuncList, importTaskManComponentLibrary)
 	importFuncList = append(importFuncList, importTaskManTemplate)
@@ -277,6 +278,11 @@ func importBatchExecution(ctx context.Context, transImportParam *models.TransImp
 		}
 	}
 	log.Logger.Info("5. importBatchExecution success end!!!")
+	return
+}
+
+func testImportArtifactPackage(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
+	log.Logger.Info("6. testImportArtifactPackage data  empty!!!")
 	return
 }
 
