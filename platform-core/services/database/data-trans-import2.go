@@ -219,17 +219,46 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 			}
 		case models.TransImportStepInitWorkflow:
 			var ids []string
-			var result []*models.ProcInsDetail
-			if ids, err = GetTransImportProcExecIdsByDetailId(ctx, transImportDetail.Id); err != nil {
+			var workflowList, procInsList []*models.ProcInsDetail
+			var transImportExecList []*models.TransImportProcExecTable
+			var procDef *models.ProcDef
+			var procName string
+			if transImportExecList, err = GetTransImportProcExecByDetailId(ctx, transImportDetail.Id); err != nil {
 				return
 			}
-			if result, err = QueryProcInstanceByIds(ctx, ids); err != nil {
+			for _, transImport := range transImportExecList {
+				procName = ""
+				if transImport.ProcIns != "" {
+					ids = append(ids, transImport.ProcIns)
+				} else {
+					if procDef, err = GetProcessDefinition(ctx, transImport.ProcDef); err != nil {
+						return
+					}
+					if procDef != nil {
+						procName = procDef.Name
+					}
+					workflowList = append(workflowList, &models.ProcInsDetail{
+						Id:                transImport.Id,
+						ProcDefId:         transImport.ProcDef,
+						ProcInstName:      procName,
+						EntityDataId:      transImport.EntityDataId,
+						EntityDisplayName: transImport.EntityDataName,
+						Status:            transImport.Status,
+						Operator:          transImport.CreatedUser,
+						CreatedTime:       transImport.CreatedTime,
+						UpdatedTime:       transImport.CreatedTime,
+						UpdatedBy:         transImport.CreatedUser,
+					})
+				}
+			}
+			if procInsList, err = QueryProcInstanceByIds(ctx, ids); err != nil {
 				log.Logger.Error("QueryProcInstanceByIds err", log.Error(err))
 				return
 			}
+			workflowList = append(workflowList, procInsList...)
 			detail.ProcInstance = &models.CommonOutput{
 				Status: transImportDetail.Status,
-				Output: result,
+				Output: workflowList,
 				ErrMsg: transImportDetail.ErrorMsg,
 			}
 		}
