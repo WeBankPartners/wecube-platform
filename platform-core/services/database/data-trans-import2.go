@@ -218,9 +218,18 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 				ErrMsg: transImportDetail.ErrorMsg,
 			}
 		case models.TransImportStepInitWorkflow:
-			detail.InitWorkflow = &models.CommonOutput{
+			var ids []string
+			var result []*models.ProcInsDetail
+			if ids, err = GetTransImportProcExecIdsByDetailId(ctx, transImportDetail.Id); err != nil {
+				return
+			}
+			if result, err = QueryProcInstanceByIds(ctx, ids); err != nil {
+				log.Logger.Error("QueryProcInstanceByIds err", log.Error(err))
+				return
+			}
+			detail.ProcInstance = &models.CommonOutput{
 				Status: transImportDetail.Status,
-				Output: data,
+				Output: result,
 				ErrMsg: transImportDetail.ErrorMsg,
 			}
 		}
