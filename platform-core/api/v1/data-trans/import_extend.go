@@ -50,16 +50,16 @@ func StartTransImport(ctx context.Context, param models.ExecImportParam) (err er
 		log.Logger.Error("GetTransImport err", log.Error(err))
 		return
 	}
-	// 文件解压
-	if localPath, err = database.DecompressExportZip(ctx, param.ExportNexusUrl, param.TransImportId); err != nil {
-		log.Logger.Error("DecompressExportZip err", log.Error(err))
-		return
-	}
 	if transImport == nil || transImport.Id == "" {
 		// 下载物料包
 		_, _, err = database.DownloadImportArtifactPackages(ctx, param.ExportNexusUrl, param.TransImportId)
 		if err != nil {
 			log.Logger.Error("download import artifact packages fail", log.String("url", param.ExportNexusUrl), log.Error(err))
+			return
+		}
+		// 文件解压
+		if localPath, err = database.DecompressExportZip(ctx, param.ExportNexusUrl, param.TransImportId); err != nil {
+			log.Logger.Error("DecompressExportZip err", log.Error(err))
 			return
 		}
 		// 初始化导入
