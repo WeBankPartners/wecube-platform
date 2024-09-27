@@ -35,7 +35,8 @@ func init() {
 	importFuncList = append(importFuncList, testImportArtifactPackage)
 	importFuncList = append(importFuncList, importMonitorBaseConfig)
 	importFuncList = append(importFuncList, importTaskManComponentLibrary)
-	importFuncList = append(importFuncList, importTaskManTemplate)
+	//importFuncList = append(importFuncList, importTaskManTemplate)
+	importFuncList = append(importFuncList, testImportTaskManTemplate)
 	importFuncList = append(importFuncList, execWorkflow)
 	importFuncList = append(importFuncList, importMonitorServiceConfig)
 }
@@ -484,6 +485,11 @@ func importTaskManTemplate(ctx context.Context, transImportParam *models.TransIm
 		return
 	}
 	log.Logger.Info("8. importTaskManTemplate success end!!!")
+	return
+}
+
+// 9、导入taskman模版
+func testImportTaskManTemplate(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	return
 }
 
