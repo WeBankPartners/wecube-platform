@@ -1889,6 +1889,56 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 	return
 }
 
+func QueryProcInstanceByIds(ctx context.Context, ids []string) (result []*models.ProcInsDetail, err error) {
+	var procInsRows []*models.ProcIns
+	result = make([]*models.ProcInsDetail, 0)
+	if len(ids) == 0 {
+		return
+	}
+	if err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins where id in (" + getInSQL(ids) + ")").Find(&procInsRows); err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+	}
+	var procDefList, procInsIdList, procInProgressIdList []string
+	for _, row := range procInsRows {
+		procDefList = append(procDefList, row.ProcDefId)
+		procInsIdList = append(procInsIdList, row.Id)
+		if row.Status == models.JobStatusRunning {
+			procInProgressIdList = append(procInProgressIdList, row.Id)
+		}
+	}
+	procDefVersionMap, getVersionErr := getProcInsVersionMap(ctx, procDefList)
+	if getVersionErr != nil {
+		err = getVersionErr
+		return
+	}
+	procInsParentMap := make(map[string]*models.ParentProcInsObj)
+	procInsNodeStatusMap := make(map[string]string)
+	procInsNodeStatusMap, err = getProcInsNodeStatus(ctx, procInProgressIdList)
+	for _, row := range procInsRows {
+		if nodeStatus, ok := procInsNodeStatusMap[row.Id]; ok {
+			row.Status = fmt.Sprintf("%s(%s)", row.Status, nodeStatus)
+		}
+		resultObj := models.ProcInsDetail{
+			Id:                row.Id,
+			EntityDataId:      row.EntityDataId,
+			EntityTypeId:      row.EntityTypeId,
+			EntityDisplayName: row.EntityDataName,
+			Operator:          row.CreatedBy,
+			ProcDefId:         row.ProcDefId,
+			ProcInstKey:       row.Id,
+			ProcInstName:      row.ProcDefName,
+			Status:            row.Status,
+			CreatedTime:       row.CreatedTime.Format(models.DateTimeFormat),
+			Version:           procDefVersionMap[row.ProcDefId],
+			ParentProcIns:     procInsParentMap[row.Id],
+			UpdatedBy:         row.UpdatedBy,
+			UpdatedTime:       row.UpdatedTime.Format(models.DateTimeFormat),
+		}
+		result = append(result, &resultObj)
+	}
+	return
+}
+
 func GetLatestProcDefByKey(ctx context.Context, procDefKey string) (procDefObj *models.ProcDef, err error) {
 	var procDefRows []*models.ProcDef
 	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def where `key`=? and status='deployed'", procDefKey).Find(&procDefRows)
