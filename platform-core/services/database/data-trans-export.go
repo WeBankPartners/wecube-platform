@@ -1169,8 +1169,8 @@ func exportMetricList(param models.ExportMetricListDto) (err error) {
 			{MonitorType: s, Comparison: "Y", FilePath: fmt.Sprintf("%s/%s_comparison.json", param.MetricPath, s)}}...)
 	}
 	for _, s := range param.ServiceGroupMetricList {
-		requestParam = append(requestParam, []monitor.ExportMetricParam{{ServiceGroup: s, Comparison: "N", FilePath: fmt.Sprintf("%s/%s.json", param.ServiceGroupPath, s)},
-			{ServiceGroup: s, Comparison: "Y", FilePath: fmt.Sprintf("%s/%s_comparison.json", param.ServiceGroupPath, s)}}...)
+		requestParam = append(requestParam, []monitor.ExportMetricParam{{ServiceGroup: s, MonitorType: "process", Comparison: "N", FilePath: fmt.Sprintf("%s/%s.json", param.ServiceGroupPath, s)},
+			{ServiceGroup: s, MonitorType: "process", Comparison: "Y", FilePath: fmt.Sprintf("%s/%s_comparison.json", param.ServiceGroupPath, s)}}...)
 	}
 	for _, s := range param.EndpointGroupMetricList {
 		requestParam = append(requestParam, []monitor.ExportMetricParam{{EndpointGroup: s, Comparison: "N", FilePath: fmt.Sprintf("%s/%s.json", param.EndpointGroupPath, s)},
@@ -1181,7 +1181,7 @@ func exportMetricList(param models.ExportMetricListDto) (err error) {
 			log.Logger.Error("ExportMetricList err", log.JsonObj("requestParam", requestParam), log.Error(err))
 			return
 		}
-		if string(responseBytes) != "" && string(responseBytes) != "[]" {
+		if isEffectiveJson(responseBytes) {
 			var temp interface{}
 			json.Unmarshal(responseBytes, &temp)
 			if err = tools.WriteJsonData2File(requestParam.FilePath, temp); err != nil {
