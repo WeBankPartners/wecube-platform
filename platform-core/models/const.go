@@ -118,7 +118,7 @@ const (
 	TransImportStatusDoing    TransImportStatus = "doing"
 	TransImportStatusSuccess  TransImportStatus = "success"
 	TransImportStatusFail     TransImportStatus = "fail"
-	TransImportStatusCancel   TransImportStatus = "cancel"
+	TransImportStatusExit     TransImportStatus = "exit"
 	TransImportStatusSuspend  TransImportStatus = "suspend"
 )
 
@@ -189,7 +189,7 @@ const (
 type TransImportAction string
 
 const (
-	TransImportActionCancel  TransImportAction = "cancel"
+	TransImportActionExit    TransImportAction = "exit"
 	TransImportActionSuspend TransImportAction = "suspend"
 	TransImportActionRestore TransImportAction = "restore"
 	TransImportActionRetry   TransImportAction = "retry"

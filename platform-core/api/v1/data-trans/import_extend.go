@@ -118,6 +118,9 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 	transImportJobParam.Language = callParam.Language
 	transImportJobParam.Operator = callParam.Operator
 	if callParam.Action == string(models.TransImportActionStart) {
+		if checkImportHasExit(ctx, callParam.TransImportId) {
+			return
+		}
 		var currentStep int
 		for _, detailRow := range transImportJobParam.Details {
 			if detailRow.Status == string(models.TransImportStatusNotStart) {
@@ -137,6 +140,10 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 			}
 		} else {
 			for currentStep <= int(models.TransImportStepRequestTemplate) {
+				// 每一步都需要判断导入最新状态是否终止
+				if checkImportHasExit(ctx, callParam.TransImportId) {
+					return
+				}
 				transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 				funcObj := importFuncList[currentStep-1]
 				if err = callImportFunc(ctx, transImportJobParam, funcObj); err != nil {
@@ -516,4 +523,21 @@ func sortDirEntry(files []fs.DirEntry) []fs.DirEntry {
 	}
 	metricList = append(metricList, comparisonMetricList...)
 	return metricList
+}
+
+// checkImportHasExit 判断导入是否终止
+func checkImportHasExit(ctx context.Context, transImportId string) bool {
+	var transImportAction *models.TransImportActionTable
+	var err error
+	if transImportAction, err = database.GetLatestTransImportAction(ctx, transImportId); err != nil {
+		return false
+	}
+	if transImportAction == nil {
+		return false
+	}
+	if transImportAction.Action == string(models.TransImportActionExit) {
+		log.Logger.Info("import has exit", log.String("transImportId", transImportId))
+		return true
+	}
+	return false
 }
