@@ -344,7 +344,7 @@ func InitTransImport(ctx context.Context, transImportId, ExportNexusUrl, localPa
 	}
 	// 新增导入操作记录
 	transImportAction := models.TransImportActionTable{
-		Id:          fmt.Sprintf("ta_%s", guid.CreateGuid()),
+		Id:          "t_imp_action_" + guid.CreateGuid(),
 		TransImport: &transImportId,
 		Action:      string(models.TransImportActionStart),
 		CreatedUser: operator,
@@ -542,5 +542,58 @@ func QueryTransImportByCondition(ctx context.Context, param models.TransImportHi
 func GetLatestTransImportAction(ctx context.Context, transImportId string) (transImportAction *models.TransImportActionTable, err error) {
 	transImportAction = &models.TransImportActionTable{}
 	_, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_action where trans_import=? order by updated_time desc limit 1 ", transImportId).Get(transImportAction)
+	return
+}
+
+func updateImportStatus(ctx context.Context, id, status, operator string) (err error) {
+	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_import set status=?,updated_user=?,updated_time=? where id=? ", status, operator, time.Now().Format(models.DateTimeFormat), id)
+	return
+}
+
+// ModifyImportStatus 更新导入状态
+func ModifyImportStatus(ctx context.Context, param models.UpdateImportStatusParam) (err error) {
+	var transImportDetailList []*models.TransImportDetailTable
+	var transImport *models.TransImportTable
+	var actions []*db.ExecAction
+	nowTime := time.Now().Format(models.DateTimeFormat)
+	if transImport, err = GetTransImport(ctx, param.Id); err != nil {
+		return
+	}
+	if transImport == nil {
+		err = fmt.Errorf("invalid param id")
+		return
+	}
+	if transImport.Status == string(models.TransImportStatusSuccess) {
+		err = fmt.Errorf("import has finish")
+		return
+	}
+	if transImportDetailList, err = GetTransImportDetail(ctx, param.Id); err != nil {
+		return
+	}
+	switch param.Status {
+	case "exit":
+		// 添加终止指令
+		transImportAction := models.TransImportActionTable{
+			Id:          "t_imp_action_" + guid.CreateGuid(),
+			TransImport: &param.Id,
+			Action:      string(models.TransImportActionExit),
+			CreatedUser: param.Operator,
+		}
+		actions = append(actions, &db.ExecAction{Sql: "insert into trans_import_action(id,trans_import,action,created_user,updated_time) values (?,?,?,?,?)",
+			Param: []interface{}{transImportAction.Id, transImportAction.TransImport, transImportAction.Action, transImportAction.CreatedUser, nowTime}})
+		// 修改导入状态为终止
+		actions = append(actions, &db.ExecAction{Sql: "update trans_import set status=?,updated_user=?,updated_time=? where id=?", Param: []interface{}{
+			models.TransImportStatusExit, param.Operator, nowTime, param.Id,
+		}})
+		err = db.Transaction(actions, ctx)
+	case "completed":
+		for _, transImportDetail := range transImportDetailList {
+			if transImportDetail.Status != string(models.TransImportStatusSuccess) {
+				err = fmt.Errorf("import %s err,update status fail", transImportDetail.Name)
+				return
+			}
+		}
+		err = updateImportStatus(ctx, param.Id, string(models.TransImportStatusSuccess), param.Operator)
+	}
 	return
 }

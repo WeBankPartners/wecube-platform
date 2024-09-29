@@ -182,6 +182,25 @@ func ImportList(c *gin.Context) {
 	middleware.ReturnPageData(c, pageInfo, list)
 }
 
+func UpdateImportStatus(c *gin.Context) {
+	var param models.UpdateImportStatusParam
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if param.Id == "" || param.Status == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("param id or status is empty")))
+		return
+	}
+	param.Operator = middleware.GetRequestUser(c)
+	if err = database.ModifyImportStatus(c, param); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnSuccess(c)
+}
+
 // 2.导入cmdb数据
 func importCmdbConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	// 导入cmdb数据
