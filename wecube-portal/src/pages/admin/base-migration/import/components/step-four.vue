@@ -37,14 +37,13 @@
       <template v-else>
         <Button type="default" @click="handleLast">上一步</Button>
         <Button type="default" @click="handleToHistory">历史列表</Button>
-        <Button type="primary" @click="handleReLauch">重新发起</Button>
       </template>
     </div>
   </div>
 </template>
 
 <script>
-import { saveImportData } from '@/api/server'
+import { updateImportStatus } from '@/api/server'
 import { debounce } from '@/const/util'
 export default {
   props: {
@@ -95,11 +94,10 @@ export default {
     handleComplete: debounce(async function () {
       const params = {
         transImportId: this.detailData.id,
-        step: 5
+        status: 'completed'
       }
-      const { status } = await saveImportData(params)
+      const { status } = await updateImportStatus(params)
       if (status === 'OK') {
-        // 执行导入，生成ID
         this.$emit('saveStepFour')
       }
     }, 500),
@@ -107,10 +105,12 @@ export default {
     handleLast() {
       this.$emit('lastStep')
     },
-    // 历史列表
-    handleToHistory() {},
-    // 重新发起
-    handleReLauch() {}
+    // 跳转到历史列表
+    handleToHistory() {
+      this.$router.push({
+        path: '/admin/base-migration/import-history'
+      })
+    }
   }
 }
 </script>
