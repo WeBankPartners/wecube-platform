@@ -375,6 +375,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 				}
 				childFiles = sortDirEntry(childFiles)
 				for _, newFile := range childFiles {
+					log.Logger.Info("file-name", log.String("fileName", newFile.Name()))
 					comparison := "N"
 					endpointGroup := newFile.Name()[:strings.LastIndex(newFile.Name(), ".")]
 					if strings.Contains(file.Name(), "_comparison") {
@@ -389,6 +390,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 						Comparison:    comparison,
 					}
 					if err = monitor.ImportMetric(param); err != nil {
+						err = fmt.Errorf("%s,fileName:%s", err.Error(), newFile.Name())
 						log.Logger.Error("ImportMetric err", log.String("fileName", newFile.Name()), log.Error(err))
 						return
 					}
