@@ -379,3 +379,5 @@ export const getImportDetail = params => req.get('/platform/v1/data/transfer/imp
 export const getBaseMigrationImportList = data => req.post('/platform/v1/data/transfer/import/list', data)
 // 导入列表查询条件
 export const getBaseMigrationImportQuery = () => req.get('/platform/v1/data/transfer/import/list/options')
+// 导入状态变更
+export const updateImportStatus = data => req.post('/platform/v1/data/transfer/import/status', data)
