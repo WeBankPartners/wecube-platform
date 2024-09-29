@@ -30,9 +30,9 @@ const (
 	importMetricUrl        = "/monitor/api/v2/monitor/metric/import?serviceGroup=%s&monitorType=%s&endpointGroup=%s&comparison=%s"
 	importStrategyUrl      = "/monitor/api/v2/alarm/strategy/import/%s/%s"
 	importLogMetricUrl     = "/monitor/api/v2/service/log_metric/log_monitor_template/import"
-	importLogMonitorUrl    = "monitor/api/v2/service/log_metric/import?serviceGroup=%s"
-	importDashboardUrl     = "monitor/api/v2/dashboard/custom/trans_import"
-	importLogKeywordUrl    = "monitor/api/v2/service/log_keyword/import?serviceGroup=%s"
+	importLogMonitorUrl    = "/monitor/api/v2/service/log_metric/import?serviceGroup=%s"
+	importDashboardUrl     = "/monitor/api/v2/dashboard/custom/trans_import"
+	importLogKeywordUrl    = "/monitor/api/v2/service/log_keyword/import?serviceGroup=%s"
 
 	jsonUnmarshalErrTemplate = "json unmarshal http response body fail,body:%s,error:%s"
 )
