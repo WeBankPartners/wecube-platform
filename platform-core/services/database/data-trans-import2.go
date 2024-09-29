@@ -222,12 +222,13 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 			var workflowList, procInsList []*models.ProcInsDetail
 			var transImportExecList []*models.TransImportProcExecTable
 			var procDef *models.ProcDef
-			var procName string
+			var procName, version string
 			if transImportExecList, err = GetTransImportProcExecByDetailId(ctx, transImportDetail.Id); err != nil {
 				return
 			}
 			for _, transImport := range transImportExecList {
 				procName = ""
+				version = ""
 				if transImport.ProcIns != "" {
 					ids = append(ids, transImport.ProcIns)
 				} else {
@@ -236,6 +237,7 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 					}
 					if procDef != nil {
 						procName = procDef.Name
+						version = procDef.Version
 					}
 					workflowList = append(workflowList, &models.ProcInsDetail{
 						Id:                transImport.Id,
@@ -248,6 +250,7 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 						CreatedTime:       transImport.CreatedTime,
 						UpdatedTime:       transImport.CreatedTime,
 						UpdatedBy:         transImport.CreatedUser,
+						Version:           version,
 					})
 				}
 			}
