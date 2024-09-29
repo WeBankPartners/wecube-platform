@@ -284,7 +284,7 @@ func CalcWebDisplayStep(detailList []*models.TransImportDetailTable) models.Impo
 	}
 	// 执行自动化是否完成
 	if v, ok := hashMap[models.TransImportStepInitWorkflow]; ok {
-		if v.Status == string(models.TransImportStatusDoing) || v.Status == string(models.TransImportStatusFail) {
+		if v.Status == string(models.TransImportStatusDoing) || v.Status == string(models.TransImportStatusSuccess) || v.Status == string(models.TransImportStatusFail) {
 			return models.ImportWebDisplayStepThree
 		}
 	}
@@ -396,6 +396,7 @@ func getInsertTransImportDetail(transImportId string, detail *models.TransExport
 	guids := guid.CreateGuidList(len(transImportDetailMap))
 	i := 0
 	for step, name := range transImportDetailMap {
+		input = ""
 		switch step {
 		case models.TransImportStepRole:
 			if detail.Roles != nil && detail.Roles.Output != nil {
