@@ -1,40 +1,41 @@
 <template>
   <div class="export-step-data">
     <div class="item">
-      <div class="item-header">
-        <span class="item-header-t">环境产品系统<Icon type="ios-information-circle" size="20" /></span>
-        <span class="item-header-e">环境<span class="number">{{ detailData.environmentName || '-' }}</span></span>
-        <span class="item-header-p">产品<span class="number">{{ detailData.businessNameList.length }}</span></span>
-        <span class="item-header-s">系统<span class="number">{{
-          (detailData.associationSystems && detailData.associationSystems.length) || 0
-        }}</span></span>
-      </div>
-      <card style="margin-top: 5px">
-        <div class="content">
-          <div class="content-list">
-            <span>已选环境</span>
-            <Tag>{{ detailData.environmentName }}</Tag>
-          </div>
-          <div class="content-list">
-            <span>已选业务产品</span>
-            <Tag v-for="(i, index) in detailData.businessNameList" class="tag" :key="index">
-              {{ i }}
-            </Tag>
-          </div>
-          <div class="content-list">
-            <span>关联底座产品(自动分析)</span>
-            <Tag v-for="(i, index) in detailData.associationTechProducts || []" class="tag" :key="index">
-              {{ i }}
-            </Tag>
-          </div>
-          <div class="content-list">
-            <span>关联系统(自动分析)</span>
-            <Tag v-for="(i, index) in detailData.associationSystems || []" class="tag" :key="index">
-              {{ i }}
-            </Tag>
-          </div>
+      <BaseHeaderTitle title="环境产品系统" :fontSize="15">
+        <div slot="sub-title" class="item-header">
+          <span class="item-header-e">环境<span class="number">{{ detailData.environmentName || '-' }}</span></span>
+          <span class="item-header-p">产品<span class="number">{{ detailData.businessNameList.length }}</span></span>
+          <span class="item-header-s">系统<span class="number">{{
+            (detailData.associationSystems && detailData.associationSystems.length) || 0
+          }}</span></span>
         </div>
-      </card>
+        <card style="margin-top: 5px">
+          <div class="content">
+            <div class="content-list">
+              <span>已选环境</span>
+              <Tag>{{ detailData.environmentName }}</Tag>
+            </div>
+            <div class="content-list">
+              <span>已选业务产品</span>
+              <Tag v-for="(i, index) in detailData.businessNameList" class="tag" :key="index">
+                {{ i }}
+              </Tag>
+            </div>
+            <div class="content-list">
+              <span>关联底座产品(自动分析)</span>
+              <Tag v-for="(i, index) in detailData.associationTechProducts || []" class="tag" :key="index">
+                {{ i }}
+              </Tag>
+            </div>
+            <div class="content-list">
+              <span>关联系统(自动分析)</span>
+              <Tag v-for="(i, index) in detailData.associationSystems || []" class="tag" :key="index">
+                {{ i }}
+              </Tag>
+            </div>
+          </div>
+        </card>
+      </BaseHeaderTitle>
     </div>
     <!--角色列表-->
     <div class="item">
@@ -129,107 +130,110 @@
     </div>
     <!--插件服务-->
     <div class="item">
-      <span class="title">
-        插件服务：<span class="sub-title">
+      <BaseHeaderTitle title="插件服务" :fontSize="15">
+        <div slot="sub-title" class="title">
           已选配置类型<span class="number">{{ detailData.pluginsRes.data.length }}</span>
-        </span>
-      </span>
-      <Row :gutter="10">
-        <Col :span="12">
-          <Card>
-            <Table
-              :border="false"
-              size="small"
-              :columns="pluginColumns"
-              :max-height="400"
-              :data="detailData.pluginsRes.data"
-            />
-          </Card>
-        </Col>
-      </Row>
+        </div>
+        <Row :gutter="10">
+          <Col :span="16">
+            <Card>
+              <Table
+                :border="false"
+                size="small"
+                :columns="pluginColumns"
+                :max-height="400"
+                :data="detailData.pluginsRes.data"
+              />
+            </Card>
+          </Col>
+        </Row>
+      </BaseHeaderTitle>
     </div>
     <!--CMDB-->
     <div class="item">
-      <span class="title">
-        CMDB：<span class="sub-title">
+      <BaseHeaderTitle title="CMDB" :fontSize="15">
+        <div slot="sub-title" class="title">
           已选CI<span class="number">{{ detailData.cmdbCICount }}</span> <span class="name">视图</span><span class="number">{{ detailData.cmdbViewCount }}</span> <span class="name">报表</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
-        </span>
-      </span>
-      <Row :gutter="10">
-        <Col :span="8">
-          <Card title="CI">
-            <Table
-              :border="false"
-              size="small"
-              :columns="cmdbCIColumns"
-              :max-height="400"
-              :data="detailData.cmdbCIData"
-            />
-          </Card>
-        </Col>
-        <Col :span="8">
-          <Card title="视图">
-            <Table
-              :border="false"
-              size="small"
-              :columns="cmdbViewColumns"
-              :max-height="400"
-              :data="detailData.cmdbViewData"
-            />
-          </Card>
-        </Col>
-        <Col :span="8">
-          <Card title="报表">
-            <Table
-              :border="false"
-              size="small"
-              :columns="cmdbReportColumns"
-              :max-height="400"
-              :data="detailData.cmdbReportData"
-            />
-          </Card>
-        </Col>
-      </Row>
+        </div>
+        <Row :gutter="10">
+          <Col :span="8">
+            <Card title="CI">
+              <Table
+                :border="false"
+                size="small"
+                :columns="cmdbCIColumns"
+                :max-height="400"
+                :data="detailData.cmdbCIData"
+              />
+            </Card>
+          </Col>
+          <Col :span="8">
+            <Card title="视图">
+              <Table
+                :border="false"
+                size="small"
+                :columns="cmdbViewColumns"
+                :max-height="400"
+                :data="detailData.cmdbViewData"
+              />
+            </Card>
+          </Col>
+          <Col :span="8">
+            <Card title="报表">
+              <Table
+                :border="false"
+                size="small"
+                :columns="cmdbReportColumns"
+                :max-height="400"
+                :data="detailData.cmdbReportData"
+              />
+            </Card>
+          </Col>
+        </Row>
+      </BaseHeaderTitle>
     </div>
     <!--物料包-->
     <div class="item">
-      <span class="title">
-        物料包：已选<span class="number">{{ detailData.artifactsCount }}</span>
-      </span>
-      <Row :gutter="10">
-        <Col :span="12">
-          <Card>
-            <Table
-              :border="false"
-              size="small"
-              :columns="artifactsColumns"
-              :max-height="400"
-              :data="detailData.artifactsRes.data"
-            />
-          </Card>
-        </Col>
-      </Row>
+      <BaseHeaderTitle title="物料包" :fontSize="15">
+        <div slot="sub-title" class="title">
+          已选<span class="number">{{ detailData.artifactsCount }}</span>
+        </div>
+        <Row :gutter="10">
+          <Col :span="16">
+            <Card>
+              <Table
+                :border="false"
+                size="small"
+                :columns="artifactsColumns"
+                :max-height="400"
+                :data="detailData.artifactsRes.data"
+              />
+            </Card>
+          </Col>
+        </Row>
+      </BaseHeaderTitle>
     </div>
     <!--监控-->
     <div class="item">
-      <span class="title">
-        监控配置：<span class="sub-title">已选配置类型<span class="number">{{ detailData.monitorRes.data.length }}</span>
+      <BaseHeaderTitle title="监控配置" :fontSize="15">
+        <div slot="sub-title" class="title">
+          已选配置类型<span class="number">{{ detailData.monitorRes.data.length }}</span>
           <span class="name">总条数</span><span class="number">{{ detailData.monitorCount }}</span>
-        </span>
-      </span>
-      <Row :gutter="10">
-        <Col :span="12">
-          <Card>
-            <Table
-              :border="false"
-              size="small"
-              :columns="monitorColumns"
-              :max-height="400"
-              :data="detailData.monitorRes.data"
-            />
-          </Card>
-        </Col>
-      </Row>
+        </div>
+        <Row :gutter="10">
+          <Col :span="16">
+            <Card>
+              <Table
+                :border="false"
+                size="small"
+                :columns="monitorColumns"
+                :max-height="400"
+                :data="detailData.monitorRes.data"
+              />
+            </Card>
+          </Col>
+        </Row>
+      </BaseHeaderTitle>
     </div>
   </div>
 </template>
@@ -268,14 +272,11 @@ export default {
     handleSelectChange(type, selection) {
       if (type === 'role') {
         this.roleSelectionList = selection
-      }
-      else if (type === 'itsm') {
+      } else if (type === 'itsm') {
         this.itsmSelectionList = selection
-      }
-      else if (type === 'flow') {
+      } else if (type === 'flow') {
         this.flowSelectionList = selection
-      }
-      else if (type === 'batch') {
+      } else if (type === 'batch') {
         this.batchSelectionList = selection
       }
     },
@@ -289,8 +290,7 @@ export default {
             return true
           }
         })
-      }
-      else if (type === 'flow') {
+      } else if (type === 'flow') {
         this.flowTableData = this.flowOriginTableData.filter(item => {
           const nameFlag = item.name.toLowerCase().indexOf(this.flowSearchParams.name.toLowerCase()) > -1
           const idFlag = item.id.indexOf(this.flowSearchParams.id) > -1
@@ -298,8 +298,7 @@ export default {
             return true
           }
         })
-      }
-      else if (type === 'batch') {
+      } else if (type === 'batch') {
         this.batchTableData = this.batchOriginTableData.filter(item => {
           const nameFlag = item.name.toLowerCase().indexOf(this.batchSearchParams.name.toLowerCase()) > -1
           const idFlag = item.id.indexOf(this.batchSearchParams.id) > -1
@@ -349,10 +348,12 @@ export default {
     async getItsmTableList() {
       const { statusCode, data } = await getAllExportItsm()
       if (statusCode === 'OK') {
-        this.itsmTableData = data.map(_ => ({
-          ..._,
-          _checked: true
-        }))
+        this.itsmTableData = (data
+            && data.map(_ => ({
+              ..._,
+              _checked: true
+            })))
+          || []
         this.itsmOriginTableData = deepClone(this.itsmTableData)
         this.itsmSelectionList = this.itsmTableData
       }

@@ -24,7 +24,7 @@
 
 <script>
 import dayjs from 'dayjs'
-import { getBaseMigrationImportList, getBaseMigrationImportQuery } from '@/api/server'
+import { getBaseMigrationImportList, getBaseMigrationImportQuery, updateImportStatus } from '@/api/server'
 export default {
   data() {
     return {
@@ -92,7 +92,7 @@ export default {
             },
             {
               label: '终止',
-              value: 'cancel',
+              value: 'exit',
               color: '#ff9900'
             }
           ]
@@ -116,8 +116,8 @@ export default {
       ],
       searchParams: {
         id: '',
-        time: [dayjs().subtract(3, 'month')
-          .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+        time: [dayjs(new Date()).subtract(3, 'month')
+          .format('YYYY-MM-DD'), dayjs(new Date()).format('YYYY-MM-DD')],
         execTimeStart: '',
         execTimeEnd: '',
         status: [],
@@ -162,7 +162,7 @@ export default {
               },
               {
                 label: '终止',
-                value: 'cancel',
+                value: 'exit',
                 color: '#ff9900'
               }
             ]
@@ -214,7 +214,7 @@ export default {
                   <Icon type="md-eye" size="16"></Icon>
                 </Button>
               </Tooltip>
-              {['success', 'cancel'].includes(params.row.status) && (
+              {['success', 'exit'].includes(params.row.status) && (
                 <Tooltip content={this.$t('be_republish')} placement="top">
                   <Button
                     type="success"
@@ -344,7 +344,23 @@ export default {
       })
     },
     // 终止
-    handleStop() {},
+    handleStop(row) {
+      this.$Modal.confirm({
+        title: '提示',
+        content: '确认终止吗？',
+        onOk: async () => {
+          const params = {
+            transImportId: row.id,
+            status: 'exit'
+          }
+          const { status } = await updateImportStatus(params)
+          if (status === 'OK') {
+            this.getList()
+          }
+        },
+        onCancel: () => {}
+      })
+    },
     // 重新发起
     handleRepub(row) {
       this.$router.push({
