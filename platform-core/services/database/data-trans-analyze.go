@@ -203,7 +203,6 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 	if err != nil {
 		return
 	}
-	return
 	// 往下分析数据行的被依赖
 	for depCiType, depCiTypeAttrList := range ciTypeAttrMap {
 		for _, depCiAttr := range depCiTypeAttrList {
