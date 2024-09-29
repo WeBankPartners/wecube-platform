@@ -67,6 +67,8 @@ func StartTransImport(ctx context.Context, param models.ExecImportParam) (err er
 			log.Logger.Error("initTransImport err", log.Error(err))
 			return
 		}
+	} else {
+		localPath = fmt.Sprintf(database.TempTransImportDir, transImport.Id)
 	}
 	if transImportAction, err = database.GetLatestTransImportAction(ctx, param.TransImportId); err != nil {
 		log.Logger.Error("GetLatestTransImportAction err", log.Error(err))
