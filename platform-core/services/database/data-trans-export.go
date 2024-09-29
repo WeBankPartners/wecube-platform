@@ -529,6 +529,9 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	if exportDataPath, err = tools.GetPath(fmt.Sprintf("%s/export", path)); err != nil {
 		return
 	}
+	if transDataVariableConfig, err = getDataTransVariableMap(ctx); err != nil {
+		return
+	}
 	// 如果有报错,更新导出记录状态失败
 	defer func(step *models.TransExportStep) {
 		if err != nil {
