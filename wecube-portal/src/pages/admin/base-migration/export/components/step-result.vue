@@ -1,6 +1,6 @@
 <template>
   <div class="export-step-data">
-    <div v-if="from === 'export'" class="export-message">
+    <div class="export-message">
       <Alert v-if="detailData.status === 'doing'" type="info" show-icon>
         <template #desc> 正在导出内容，请稍后... </template>
       </Alert>
@@ -24,18 +24,6 @@
           </div>
           <div>请打开需要迁移环境的wecube,进入【系统-一键迁移-一键导入】,粘贴当前链接,执行导入</div>
         </template>
-      </Alert>
-    </div>
-    <div v-else class="export-message">
-      <Alert v-if="detailData.stepTwoRes.status === 'doing'" type="info" show-icon>
-        <template #desc> 正在导入... </template>
-      </Alert>
-      <Alert v-else-if="detailData.stepTwoRes.status === 'fail'" type="error" show-icon>
-        导入失败！
-        <template #desc>{{ detailData.stepTwoRes.errMsg || '' }}</template>
-      </Alert>
-      <Alert v-else-if="detailData.stepTwoRes.status === 'success'" type="success" show-icon>
-        <template #desc>导入成功！</template>
       </Alert>
     </div>
     <div class="item">
@@ -78,14 +66,8 @@
       <BaseHeaderTitle title="角色" :fontSize="15">
         <div slot="sub-title" class="title">
           已选<span class="number">{{ detailData.roleRes.data.length }}</span>
-          <template v-if="from === 'export'">
-            <span v-if="detailData.roleRes.status === 'success'" class="success">(导出成功)</span>
-            <span v-if="detailData.roleRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.roleRes.errMsg }}</span>)</span>
-          </template>
-          <template v-else>
-            <span v-if="detailData.roleRes.status === 'success'" class="success">(导入成功)</span>
-            <span v-if="detailData.roleRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.roleRes.errMsg }}</span>)</span>
-          </template>
+          <span v-if="detailData.roleRes.status === 'success'" class="success">(导出成功)</span>
+          <span v-if="detailData.roleRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.roleRes.errMsg }}</span>)</span>
         </div>
         <Table
           :border="false"
@@ -102,14 +84,8 @@
       <BaseHeaderTitle title="ITSM流程" :fontSize="15">
         <div slot="sub-title" class="title">
           已选<span class="number">{{ detailData.itsmRes.data.length }}</span>
-          <template v-if="from === 'export'">
-            <span v-if="detailData.itsmRes.status === 'success'" class="success">(导出成功)</span>
-            <span v-if="detailData.itsmRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.itsmRes.errMsg }}</span>)</span>
-          </template>
-          <template v-else>
-            <span v-if="detailData.itsmRes.status === 'success'" class="success">(导入成功)</span>
-            <span v-if="detailData.itsmRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.itsmRes.errMsg }}</span>)</span>
-          </template>
+          <span v-if="detailData.itsmRes.status === 'success'" class="success">(导出成功)</span>
+          <span v-if="detailData.itsmRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.itsmRes.errMsg }}</span>)</span>
         </div>
         <div style="margin: 10px 0">
           是否导出组件库：<i-switch disabled v-model="detailData.exportComponentLibrary"></i-switch>
@@ -131,14 +107,8 @@
       <BaseHeaderTitle title="编排" :fontSize="15">
         <div slot="sub-title" class="title">
           已选<span class="number">{{ detailData.flowRes.data.length }}</span>
-          <template v-if="from === 'export'">
-            <span v-if="detailData.flowRes.status === 'success'" class="success">(导出成功)</span>
-            <span v-if="detailData.flowRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.flowRes.errMsg }}</span>)</span>
-          </template>
-          <template v-else>
-            <span v-if="detailData.flowRes.status === 'success'" class="success">(导入成功)</span>
-            <span v-if="detailData.flowRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.flowRes.errMsg }}</span>)</span>
-          </template>
+          <span v-if="detailData.flowRes.status === 'success'" class="success">(导出成功)</span>
+          <span v-if="detailData.flowRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.flowRes.errMsg }}</span>)</span>
         </div>
         <Table
           :border="false"
@@ -155,14 +125,8 @@
       <BaseHeaderTitle title="批量执行" :fontSize="15">
         <div slot="sub-title" class="title">
           已选<span class="number">{{ detailData.batchRes.data.length }}</span>
-          <template v-if="from === 'export'">
-            <span v-if="detailData.batchRes.status === 'success'" class="success">(导出成功)</span>
-            <span v-if="detailData.batchRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.batchRes.errMsg }}</span>)</span>
-          </template>
-          <template v-else>
-            <span v-if="detailData.batchRes.status === 'success'" class="success">(导入成功)</span>
-            <span v-if="detailData.batchRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.batchRes.errMsg }}</span>)</span>
-          </template>
+          <span v-if="detailData.batchRes.status === 'success'" class="success">(导出成功)</span>
+          <span v-if="detailData.batchRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.batchRes.errMsg }}</span>)</span>
         </div>
         <Table
           :border="false"
@@ -179,17 +143,11 @@
       <BaseHeaderTitle title="插件服务" :fontSize="15">
         <div slot="sub-title" class="title">
           已选配置类型<span class="number">{{ detailData.pluginsRes.data.length }}</span>
-          <template v-if="from === 'export'">
-            <span v-if="detailData.pluginsRes.status === 'success'" class="success">(导出成功)</span>
-            <span v-if="detailData.pluginsRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.pluginsRes.errMsg }}</span>)</span>
-          </template>
-          <template v-else>
-            <span v-if="detailData.pluginsRes.status === 'success'" class="success">(导入成功)</span>
-            <span v-if="detailData.pluginsRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.pluginsRes.errMsg }}</span>)</span>
-          </template>
+          <span v-if="detailData.pluginsRes.status === 'success'" class="success">(导出成功)</span>
+          <span v-if="detailData.pluginsRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.pluginsRes.errMsg }}</span>)</span>
         </div>
         <Row :gutter="10">
-          <Col :span="12">
+          <Col :span="16">
             <Card>
               <Table
                 :border="false"
@@ -208,14 +166,8 @@
       <BaseHeaderTitle title="CMDB" :fontSize="15">
         <div slot="sub-title" class="title">
           已选CI<span class="number">{{ detailData.cmdbCICount }}</span> <span class="name">视图</span><span class="number">{{ detailData.cmdbViewCount }}</span> <span class="name">报表</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
-          <template v-if="from === 'export'">
-            <span v-if="detailData.cmdbRes.status === 'success'" class="success">(导出成功)</span>
-            <span v-if="detailData.cmdbRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.cmdbRes.errMsg }}</span>)</span>
-          </template>
-          <template v-else>
-            <span v-if="detailData.cmdbRes.status === 'success'" class="success">(导入成功)</span>
-            <span v-if="detailData.cmdbRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.cmdbRes.errMsg }}</span>)</span>
-          </template>
+          <span v-if="detailData.cmdbRes.status === 'success'" class="success">(导出成功)</span>
+          <span v-if="detailData.cmdbRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.cmdbRes.errMsg }}</span>)</span>
         </div>
         <Row :gutter="10">
           <Col :span="8">
@@ -259,17 +211,11 @@
       <BaseHeaderTitle title="物料包" :fontSize="15">
         <div slot="sub-title" class="title">
           已选<span class="number">{{ detailData.artifactsCount }}</span>
-          <template v-if="from === 'export'">
-            <span v-if="detailData.artifactsRes.status === 'success'" class="success">(导出成功)</span>
-            <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.artifactsRes.errMsg }}</span>)</span>
-          </template>
-          <template v-else>
-            <span v-if="detailData.artifactsRes.status === 'success'" class="success">(导入成功)</span>
-            <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.artifactsRes.errMsg }}</span>)</span>
-          </template>
+          <span v-if="detailData.artifactsRes.status === 'success'" class="success">(导出成功)</span>
+          <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.artifactsRes.errMsg }}</span>)</span>
         </div>
         <Row :gutter="10">
-          <Col :span="12">
+          <Col :span="16">
             <Card>
               <Table
                 :border="false"
@@ -289,17 +235,11 @@
         <div slot="sub-title" class="title">
           已选 <span class="name">配置类型</span><span class="number">{{ detailData.monitorRes.data.length }}</span>
           <span class="name">总条数</span><span class="number">{{ detailData.monitorCount }}</span>
-          <template v-if="from === 'export'">
-            <span v-if="detailData.monitorRes.status === 'success'" class="success">(导出成功)</span>
-            <span v-if="detailData.monitorRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.monitorRes.errMsg }}</span>)</span>
-          </template>
-          <template v-else>
-            <span v-if="detailData.monitorRes.status === 'success'" class="success">(导入成功)</span>
-            <span v-if="detailData.monitorRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.monitorRes.errMsg }}</span>)</span>
-          </template>
+          <span v-if="detailData.monitorRes.status === 'success'" class="success">(导出成功)</span>
+          <span v-if="detailData.monitorRes.status === 'fail'" class="fail">(导出失败：<span>{{ detailData.monitorRes.errMsg }}</span>)</span>
         </div>
         <Row :gutter="10">
-          <Col :span="12">
+          <Col :span="16">
             <Card>
               <Table
                 :border="false"
@@ -352,10 +292,6 @@ export default {
           failMsg: ''
         }
       }
-    },
-    from: {
-      type: String,
-      default: 'export'
     }
   },
   data() {
