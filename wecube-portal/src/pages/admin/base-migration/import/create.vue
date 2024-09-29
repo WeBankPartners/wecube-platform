@@ -3,17 +3,12 @@
     <div class="base-migration-import-create">
       <div class="steps">
         <BaseHeaderTitle title="导入步骤" :showExpand="false">
-          <div class="status-group">
+          <div v-if="statusObj.label && type !== 'republish'" class="status-group">
             <div class="status">
-              导入状态：<Tag :color="statusObj.color">{{ statusObj.label }}</Tag>
+              状态：<Tag type="border" :color="statusObj.color">{{ statusObj.label }}</Tag>
             </div>
-            <Button
-              v-if="['doing', 'fail'].includes(detailData.status)"
-              icon="md-power"
-              type="error"
-              size="small"
-              @click="handleStop"
-            >终止</Button>
+            <Button v-if="['doing', 'fail'].includes(detailData.status)" type="error" @click="handleStop">终止</Button>
+            <Button v-if="['success', 'exit'].includes(detailData.status)" type="success" @click="handleReLauch">重新发起</Button>
           </div>
           <Steps :current="activeStep" direction="vertical">
             <Step title="输入链接,确认产品、环境" content="系统自动分析需要导出的系统及数据"></Step>
@@ -57,7 +52,7 @@ import StepOne from './components/step-one.vue'
 import StepTwo from './components/step-two.vue'
 import StepThree from './components/step-three.vue'
 import StepFour from './components/step-four.vue'
-import { getImportDetail } from '@/api/server'
+import { getImportDetail, updateImportStatus } from '@/api/server'
 export default {
   components: {
     StepOne,
@@ -68,6 +63,7 @@ export default {
   data() {
     return {
       id: this.$route.query.id || '',
+      type: this.$route.query.type || '',
       activeStep: -1,
       loading: false,
       detailData: {},
@@ -90,20 +86,28 @@ export default {
         },
         {
           label: '终止',
-          value: 'cancel',
+          value: 'exit',
           color: '#ff9900'
         }
       ]
     }
   },
   async mounted() {
-    if (this.id) {
+    // 查看编辑操作
+    if (this.id && this.type !== 'republish') {
       this.loading = true
       await this.getDetailData()
       this.loading = false
       // 后台返回当前步骤
       this.activeStep = this.detailData.step - 1
-    } else {
+    }
+    // 重新发起
+    if (this.id && this.type === 'republish') {
+      await this.getDetailData()
+      this.activeStep = 0
+    }
+    // 新建操作
+    if (!this.id) {
       this.activeStep = 0
     }
   },
@@ -157,8 +161,8 @@ export default {
         this.detailData.cmdbRes.title = 'CMDB'
         this.detailData.initWorkflowRes.data = this.detailData.initWorkflowRes.data || []
         this.detailData.monitorBusinessRes.data = this.detailData.monitorBusinessRes.data || []
-        this.detailData.associationSystems = this.detailData.associationSystems || []
-        this.detailData.associationTechProducts = this.detailData.associationTechProducts || []
+        this.detailData.associationSystems = (this.detailData.associationSystem && this.detailData.associationSystem.split(',')) || []
+        this.detailData.associationTechProducts = (this.detailData.associationProduct && this.detailData.associationProduct.split(',')) || []
         this.detailData.businessName = this.detailData.businessName || ''
         this.detailData.businessNameList = (this.detailData.businessName && this.detailData.businessName.split(',')) || []
         this.detailData.business = this.detailData.business || ''
@@ -265,10 +269,18 @@ export default {
     },
     async handleSaveStepOne(id) {
       this.id = id
-      this.loading = true
-      await this.getDetailData()
-      this.loading = false
-      this.activeStep++
+      // this.loading = true
+      // await this.getDetailData()
+      // this.loading = false
+      // this.activeStep++
+      this.$router.replace({
+        path: '/admin/base-migration/import',
+        query: {
+          type: 'edit',
+          id: this.id,
+          timestamp: new Date().getTime() // 解决页面fullpath一样，不刷新问题
+        }
+      })
     },
     async handleSaveStepTwo() {
       this.loading = true
@@ -288,7 +300,35 @@ export default {
       this.loading = false
     },
     // 终止
-    handleStop() {}
+    handleStop() {
+      this.$Modal.confirm({
+        title: '提示',
+        content: '确认终止吗？',
+        onOk: async () => {
+          const params = {
+            transImportId: this.id,
+            status: 'exit'
+          }
+          const { status } = await updateImportStatus(params)
+          if (status === 'OK') {
+            this.loading = true
+            await this.getDetailData()
+            this.loading = false
+          }
+        },
+        onCancel: () => {}
+      })
+    },
+    // 重新发起
+    handleReLauch() {
+      this.$router.replace({
+        path: '/admin/base-migration/import',
+        query: {
+          type: 'republish',
+          id: this.id
+        }
+      })
+    }
   }
 }
 </script>
@@ -315,7 +355,7 @@ export default {
       }
       button {
         margin-left: 10px;
-        height: 22px;
+        height: 30px;
       }
     }
   }
@@ -335,6 +375,14 @@ export default {
   }
   ::-webkit-scrollbar-thumb:hover {
     background: #d4d4d4;
+  }
+}
+</style>
+<style lang="scss">
+.base-migration-import-create {
+  .ivu-tag-border {
+    height: 30px;
+    line-height: 30px;
   }
 }
 </style>

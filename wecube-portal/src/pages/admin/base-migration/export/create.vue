@@ -32,7 +32,7 @@
             <Button type="default" @click="handleToHistory" style="margin-left: 10px">历史列表</Button>
             <Button
               v-if="['success', 'fail'].includes(detailData.status)"
-              type="primary"
+              type="success"
               @click="handleReLauch"
               style="margin-left: 10px"
             >重新发起</Button>

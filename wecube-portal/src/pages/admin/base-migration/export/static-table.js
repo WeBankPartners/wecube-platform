@@ -130,7 +130,9 @@ export default {
               metric_list: this.$t('p_metric_list'),
               strategy_list: this.$t('p_warning_list'),
               logKeyword_service_group: this.$t('p_keyword_list'),
-              dashboard: this.$t('p_dashboard')
+              dashboard: this.$t('p_dashboard'),
+              endpoint: this.$t('p_endpoint'),
+              service_group: this.$t('p_endpoint_level')
             }
             return (
               <span
@@ -150,7 +152,9 @@ export default {
           render: (h, params) => {
             const conditionsMap = {
               monitor_type: ['全选'],
+              endpoint: ['CMDB'],
               endpoint_group: ['对象'],
+              service_group: ['CMDB'],
               log_monitor_template: ['指标-业务配置'],
               log_monitor_service_group: ['层级对象'],
               metric_list: ['层级对象', '对象组', '基础类型'],

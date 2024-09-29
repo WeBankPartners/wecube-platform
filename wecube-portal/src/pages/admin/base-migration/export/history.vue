@@ -116,8 +116,8 @@ export default {
       ],
       searchParams: {
         id: '',
-        time: [dayjs().subtract(3, 'month')
-          .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+        time: [dayjs(new Date()).subtract(3, 'month')
+          .format('YYYY-MM-DD'), dayjs(new Date()).format('YYYY-MM-DD')],
         execTimeStart: '',
         execTimeEnd: '',
         status: [],
