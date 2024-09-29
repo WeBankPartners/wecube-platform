@@ -107,7 +107,7 @@ CREATE TABLE `trans_import`
     `business_name`       varchar(1024) COLLATE utf8_bin NOT NULL COMMENT '业务名称',
     `environment`         varchar(64) COLLATE utf8_bin   NOT NULL COMMENT '环境',
     `environment_name`    varchar(64) COLLATE utf8_bin   NOT NULL COMMENT '环境名称',
-    `status`              varchar(32) COLLATE utf8_bin   NOT NULL COMMENT '状态: start开始,doing执行中,success成功,fail失败,cancel取消,suspend暂停',
+    `status`              varchar(32) COLLATE utf8_bin   NOT NULL COMMENT '状态: start开始,doing执行中,success成功,fail失败,exit 终止,suspend暂停',
     `association_system`  varchar(1024) COLLATE utf8_bin DEFAULT NULL COMMENT '关联系统',
     `association_product` varchar(1024) COLLATE utf8_bin DEFAULT NULL COMMENT '关联产品',
     `created_user`        varchar(45) COLLATE utf8_bin   DEFAULT NULL COMMENT '创建人',
