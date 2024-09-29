@@ -264,7 +264,7 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 		}
 	}
 	// 计算web跳转到哪一步
-	if detail.TransImport != nil && (transImport.Status == string(models.TransImportStatusDoing) || transImport.Status == string(models.TransImportStatusFail)) {
+	if detail.TransImport != nil && (transImport.Status == string(models.TransImportStatusDoing) || transImport.Status == string(models.TransImportStatusFail) || transImport.Status == string(models.TransImportStatusExit)) {
 		detail.TransImport.WebStep = int(CalcWebDisplayStep(transImportDetailList))
 	}
 	return
