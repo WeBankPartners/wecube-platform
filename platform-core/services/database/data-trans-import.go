@@ -223,11 +223,6 @@ func GetTransImportProcExecByDetailId(ctx context.Context, detailId string) (res
 	return
 }
 
-func GetTransImportProcExecIdsByDetailId(ctx context.Context, detailId string) (ids []string, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select proc_ins from trans_import_proc_exec where trans_import_detail=?", detailId).Find(&ids)
-	return
-}
-
 func GetTransImportProcDefId(ctx context.Context, procDefId, procDefKey string) (resultProcDefId string, err error) {
 	var procDefRows []*models.ProcDef
 	err = db.MysqlEngine.Context(ctx).SQL("select id,`key`,`version` from proc_def where id=? or `key`=?", procDefId, procDefKey).Find(&procDefRows)
