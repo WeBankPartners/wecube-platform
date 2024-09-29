@@ -30,6 +30,9 @@ const (
 	importMetricUrl        = "/monitor/api/v2/monitor/metric/import?serviceGroup=%s&monitorType=%s&endpointGroup=%s&comparison=%s"
 	importStrategyUrl      = "/monitor/api/v2/alarm/strategy/import/%s/%s"
 	importLogMetricUrl     = "/monitor/api/v2/service/log_metric/log_monitor_template/import"
+	importLogMonitorUrl    = "monitor/api/v2/service/log_metric/import?serviceGroup=%s"
+	importDashboardUrl     = "monitor/api/v2/dashboard/custom/trans_import"
+	importLogKeywordUrl    = "monitor/api/v2/service/log_keyword/import?serviceGroup=%s"
 
 	jsonUnmarshalErrTemplate = "json unmarshal http response body fail,body:%s,error:%s"
 )
@@ -300,6 +303,72 @@ func ImportLogMonitorTemplate(filePath, userToken, language string) (err error) 
 	}
 	if response.Status != "OK" {
 		err = fmt.Errorf("import log_metric_template fail,%+v", response.Message)
+		return
+	}
+	return
+}
+
+func ImportLogMonitor(filePath, userToken, language, serviceGroup string) (err error) {
+	var byteArr []byte
+	var response models.ResponseJson
+	uri := models.Config.Gateway.Url + fmt.Sprintf(importLogMonitorUrl, serviceGroup)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	if byteArr, err = network.HttpPostJsonFile(filePath, uri, userToken, language); err != nil {
+		return
+	}
+	if err = json.Unmarshal(byteArr, &response); err != nil {
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf("import log_monitor fail,%+v", response.Message)
+		return
+	}
+	return
+}
+
+func ImportDashboard(filePath, userToken, language string) (err error) {
+	var byteArr []byte
+	var response models.ResponseJson
+	uri := models.Config.Gateway.Url + importDashboardUrl
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	if byteArr, err = network.HttpPostJsonFile(filePath, uri, userToken, language); err != nil {
+		return
+	}
+	if err = json.Unmarshal(byteArr, &response); err != nil {
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf("import custom dashboard fail,%+v", response.Message)
+		return
+	}
+	return
+}
+
+func ImportLogKeyword(filePath, userToken, language, serviceGroup string) (err error) {
+	var byteArr []byte
+	var response models.ResponseJson
+	uri := models.Config.Gateway.Url + fmt.Sprintf(importLogKeywordUrl, serviceGroup)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	if byteArr, err = network.HttpPostJsonFile(filePath, uri, userToken, language); err != nil {
+		return
+	}
+	if err = json.Unmarshal(byteArr, &response); err != nil {
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf("import log_keyword fail,%+v", response.Message)
 		return
 	}
 	return
