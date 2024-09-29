@@ -537,6 +537,7 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 				UserToken:    transImportParam.Token,
 				Language:     transImportParam.Language,
 				ServiceGroup: serviceGroup,
+				MonitorType:  "process",
 				Comparison:   comparison,
 			}
 			if err = monitor.ImportMetric(param); err != nil {
