@@ -386,6 +386,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 						UserToken:     transImportParam.Token,
 						Language:      transImportParam.Language,
 						EndpointGroup: endpointGroup,
+						MonitorType:   "process",
 						Comparison:    comparison,
 					}
 					if err = monitor.ImportMetric(param); err != nil {
