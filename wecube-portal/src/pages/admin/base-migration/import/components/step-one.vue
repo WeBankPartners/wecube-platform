@@ -24,7 +24,7 @@
       <Spin v-if="loading" size="large" fix></Spin>
     </Card>
     <div class="footer">
-      <Button v-if="viewFlag" type="info" @click="$emit('nextStep')">下一步</Button>
+      <Button v-if="viewFlag && type !== 'republish'" type="info" @click="$emit('nextStep')">下一步</Button>
       <Button v-else type="info" @click="handleSave" :disabled="detail.businessList.length === 0">执行导入</Button>
     </div>
   </div>
@@ -39,6 +39,7 @@ export default {
   },
   data() {
     return {
+      type: this.$route.query.type || '',
       url: '',
       loading: false,
       detail: {
