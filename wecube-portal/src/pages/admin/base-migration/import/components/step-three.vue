@@ -5,7 +5,8 @@
         <template #desc>正在导入内容，请稍后... </template>
       </Alert>
       <Alert v-else-if="detailData.initWorkflowRes.status === 'fail'" type="error" show-icon>
-        <template #desc>导入失败！</template>
+        导入失败！
+        <template #desc>{{ detailData.initWorkflowRes.errMsg }}</template>
       </Alert>
       <Alert v-else-if="detailData.initWorkflowRes.status === 'success'" type="success" show-icon>
         <template #desc>导入成功！</template>
