@@ -84,7 +84,7 @@ type TransImportJobParam struct {
 type CallTransImportActionParam struct {
 	TransImportId       string `json:"transImportId"`
 	TransImportDetailId string `json:"transImportDetailId"`
-	Action              string `json:"action"` // 操作-> start(开始)|stop(暂停)|retry(重试)|cancel(取消)
+	Action              string `json:"action"` // 操作-> start(开始)|stop(暂停)|retry(重试)|exit(终止)
 	Operator            string `json:"-"`
 	ActionId            string `json:"-"`
 	ErrorMsg            string `json:"-"`
@@ -146,4 +146,10 @@ type RequestTemplateImportResponse struct {
 	StatusCode    string      `json:"statusCode"`
 	StatusMessage string      `json:"statusMessage"`
 	Data          interface{} `json:"data"`
+}
+
+type UpdateImportStatusParam struct {
+	Id       string `json:"transImportId"`
+	Status   string `json:"status"` // exit 终止,completed 完成
+	Operator string `json:"-"`
 }
