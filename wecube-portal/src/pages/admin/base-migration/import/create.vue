@@ -213,28 +213,18 @@ export default {
             ].includes(i.name)
         )
         // 第二步monitor数据拆分
-        this.detailData.monitorRes.data = this.detailData.monitorRes.data.filter(
-          i =>
-            [
-              'monitor_type',
-              'endpoint',
-              'endpoint_group',
-              'service_group',
-              'log_monitor_template'
-            ].includes(i.name)
-        )
+        this.detailData.monitorRes.data = this.detailData.monitorRes.data.filter(i =>
+          ['monitor_type', 'endpoint', 'endpoint_group', 'service_group', 'log_monitor_template'].includes(i.name))
         this.detailData.monitorCount = this.detailData.monitorRes.data.reduce((sum, cur) => sum + cur.count, 0)
         // 第四步monitor数据拆分
-        this.detailData.monitorBusinessRes.data = this.detailData.monitorBusinessRes.data.filter(
-          i =>
-            [
-              'metric_list',
-              'log_monitor_service_group',
-              'strategy_list',
-              'logKeyword_service_group',
-              'dashboard'
-            ].includes(i.name)
-        )
+        this.detailData.monitorBusinessRes.data = this.detailData.monitorBusinessRes.data.filter(i =>
+          [
+            'metric_list',
+            'log_monitor_service_group',
+            'strategy_list',
+            'logKeyword_service_group',
+            'dashboard'
+          ].includes(i.name))
         this.detailData.monitorBusinessCount = this.detailData.monitorBusinessRes.data.reduce(
           (sum, cur) => sum + cur.count,
           0
