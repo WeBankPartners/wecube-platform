@@ -33,7 +33,7 @@ var transImportDetailMap = map[models.TransImportStep]string{
 }
 
 const (
-	tempTransImportDir = "/tmp/trans_import/%s"
+	TempTransImportDir = "/tmp/trans_import/%s"
 )
 
 // DecompressExportZip 导出压缩文件解压
@@ -49,7 +49,7 @@ func DecompressExportZip(ctx context.Context, nexusUrl, transImportId string) (l
 	if lastPathIndex := strings.LastIndex(nexusUrl, "/"); lastPathIndex > 0 {
 		exportFileName = nexusUrl[lastPathIndex+1:]
 	}
-	tmpImportDir := fmt.Sprintf(tempTransImportDir, transImportId)
+	tmpImportDir := fmt.Sprintf(TempTransImportDir, transImportId)
 	localExportFilePath = fmt.Sprintf("%s/%s", tmpImportDir, exportFileName)
 	if err = os.MkdirAll(tmpImportDir, 0755); err != nil {
 		err = fmt.Errorf("make tmp import dir fail,%s ", err.Error())

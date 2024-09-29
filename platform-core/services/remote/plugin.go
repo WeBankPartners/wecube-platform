@@ -63,7 +63,6 @@ func GetPluginDataModels(ctx context.Context, pluginName, token string) (result 
 }
 
 func AnalyzeExpression(express string) (result []*models.ExpressionObj, err error) {
-	log.Logger.Info("getExpressResultList", log.String("express", express))
 	// Example expression -> "wecmdb:app_instance~(host_resource)wecmdb:host_resource{ip_address eq '***REMOVED***'}{code in '222'}.resource_set>wecmdb:resource_set.code"
 	var ciList, filterParams, tmpSplitList []string
 	// replace content 'xxx' to '$1' in case of content have '>~.:()[]'
