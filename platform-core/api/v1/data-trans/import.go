@@ -402,14 +402,12 @@ func StartExecWorkflowCron() {
 
 func doExecWorkflowDaemonJob() {
 	transactionId := fmt.Sprintf("import_exec_job_%d", time.Now().Unix())
-	log.Logger.Debug("start doExecWorkflowDaemonJob", log.String("id", transactionId))
 	ctx := db.NewDBCtx(transactionId)
 	procExecList, err := database.GetTransImportProcExecList(ctx)
 	if err != nil {
 		log.Logger.Error("doExecWorkflowDaemonJob fail with get proc exec list", log.Error(err))
 		return
 	}
-	log.Logger.Debug("doExecWorkflowDaemonJob", log.JsonObj("procExecList", procExecList))
 	if len(procExecList) == 0 {
 		log.Logger.Debug("done doExecWorkflowDaemonJob with empty procExecList", log.String("id", transactionId))
 		return
@@ -493,7 +491,6 @@ func doExecWorkflowDaemonJob() {
 			}
 		}
 	}
-	log.Logger.Debug("done doExecWorkflowDaemonJob", log.String("id", transactionId))
 }
 
 func startExecWorkflow(ctx context.Context, procExecRow *models.TransImportProcExecTable) (retProcInsId string, err error) {
