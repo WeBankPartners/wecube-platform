@@ -65,88 +65,6 @@
         </Table>
       </BaseHeaderTitle>
     </div>
-    <!--ITSM列表-->
-    <div class="item" v-if="detailData.itsmRes.status !== 'notStart'">
-      <BaseHeaderTitle title="ITSM流程" :fontSize="15">
-        <div slot="sub-title" class="title">
-          已选<span class="number">{{ detailData.itsmRes.data.length }}</span>
-          <span v-if="detailData.itsmRes.status === 'success'" class="success">(导入成功)</span>
-          <span v-if="detailData.itsmRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.itsmRes.errMsg }}</span>)</span>
-        </div>
-        <div style="margin: 10px 0">
-          是否导出组件库：<i-switch disabled v-model="detailData.exportComponentLibrary"></i-switch>
-        </div>
-        <div>
-          <Table
-            :border="false"
-            size="small"
-            :columns="itsmTableColumns"
-            :max-height="400"
-            :data="detailData.itsmRes.data"
-          >
-          </Table>
-        </div>
-      </BaseHeaderTitle>
-    </div>
-    <!--编排列表-->
-    <div class="item" v-if="detailData.flowRes.status !== 'notStart'">
-      <BaseHeaderTitle title="编排" :fontSize="15">
-        <div slot="sub-title" class="title">
-          已选<span class="number">{{ detailData.flowRes.data.length }}</span>
-          <span v-if="detailData.flowRes.status === 'success'" class="success">(导入成功)</span>
-          <span v-if="detailData.flowRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.flowRes.errMsg }}</span>)</span>
-        </div>
-        <Table
-          :border="false"
-          size="small"
-          :columns="flowTableColumns"
-          :max-height="400"
-          :data="detailData.flowRes.data"
-        >
-        </Table>
-      </BaseHeaderTitle>
-    </div>
-    <!--批量执行列表-->
-    <div class="item" v-if="detailData.batchRes.status !== 'notStart'">
-      <BaseHeaderTitle title="批量执行" :fontSize="15">
-        <div slot="sub-title" class="title">
-          已选<span class="number">{{ detailData.batchRes.data.length }}</span>
-          <span v-if="detailData.batchRes.status === 'success'" class="success">(导入成功)</span>
-          <span v-if="detailData.batchRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.batchRes.errMsg }}</span>)</span>
-        </div>
-        <Table
-          :border="false"
-          size="small"
-          :columns="batchTableColumns"
-          :max-height="400"
-          :data="detailData.batchRes.data"
-        >
-        </Table>
-      </BaseHeaderTitle>
-    </div>
-    <!--插件服务-->
-    <div class="item" v-if="detailData.pluginsRes.status !== 'notStart'">
-      <BaseHeaderTitle title="插件服务" :fontSize="15">
-        <div slot="sub-title" class="title">
-          已选配置类型<span class="number">{{ detailData.pluginsRes.data.length }}</span>
-          <span v-if="detailData.pluginsRes.status === 'success'" class="success">(导入成功)</span>
-          <span v-if="detailData.pluginsRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.pluginsRes.errMsg }}</span>)</span>
-        </div>
-        <Row :gutter="10">
-          <Col :span="16">
-            <Card>
-              <Table
-                :border="false"
-                size="small"
-                :columns="pluginColumns"
-                :max-height="400"
-                :data="detailData.pluginsRes.data"
-              />
-            </Card>
-          </Col>
-        </Row>
-      </BaseHeaderTitle>
-    </div>
     <!--CMDB-->
     <div class="item" v-if="detailData.cmdbRes.status !== 'notStart'">
       <BaseHeaderTitle title="CMDB" :fontSize="15">
@@ -190,6 +108,65 @@
             </Card>
           </Col>
         </Row>
+      </BaseHeaderTitle>
+    </div>
+    <!--插件服务-->
+    <div class="item" v-if="detailData.pluginsRes.status !== 'notStart'">
+      <BaseHeaderTitle title="插件服务" :fontSize="15">
+        <div slot="sub-title" class="title">
+          已选配置类型<span class="number">{{ detailData.pluginsRes.data.length }}</span>
+          <span v-if="detailData.pluginsRes.status === 'success'" class="success">(导入成功)</span>
+          <span v-if="detailData.pluginsRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.pluginsRes.errMsg }}</span>)</span>
+        </div>
+        <Row :gutter="10">
+          <Col :span="16">
+            <Card>
+              <Table
+                :border="false"
+                size="small"
+                :columns="pluginColumns"
+                :max-height="400"
+                :data="detailData.pluginsRes.data"
+              />
+            </Card>
+          </Col>
+        </Row>
+      </BaseHeaderTitle>
+    </div>
+    <!--编排列表-->
+    <div class="item" v-if="detailData.flowRes.status !== 'notStart'">
+      <BaseHeaderTitle title="编排" :fontSize="15">
+        <div slot="sub-title" class="title">
+          已选<span class="number">{{ detailData.flowRes.data.length }}</span>
+          <span v-if="detailData.flowRes.status === 'success'" class="success">(导入成功)</span>
+          <span v-if="detailData.flowRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.flowRes.errMsg }}</span>)</span>
+        </div>
+        <Table
+          :border="false"
+          size="small"
+          :columns="flowTableColumns"
+          :max-height="400"
+          :data="detailData.flowRes.data"
+        >
+        </Table>
+      </BaseHeaderTitle>
+    </div>
+    <!--批量执行列表-->
+    <div class="item" v-if="detailData.batchRes.status !== 'notStart'">
+      <BaseHeaderTitle title="批量执行" :fontSize="15">
+        <div slot="sub-title" class="title">
+          已选<span class="number">{{ detailData.batchRes.data.length }}</span>
+          <span v-if="detailData.batchRes.status === 'success'" class="success">(导入成功)</span>
+          <span v-if="detailData.batchRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.batchRes.errMsg }}</span>)</span>
+        </div>
+        <Table
+          :border="false"
+          size="small"
+          :columns="batchTableColumns"
+          :max-height="400"
+          :data="detailData.batchRes.data"
+        >
+        </Table>
       </BaseHeaderTitle>
     </div>
     <!--物料包-->
@@ -237,6 +214,29 @@
             </Card>
           </Col>
         </Row>
+      </BaseHeaderTitle>
+    </div>
+    <!--ITSM列表-->
+    <div class="item" v-if="detailData.itsmRes.status !== 'notStart'">
+      <BaseHeaderTitle title="ITSM流程" :fontSize="15">
+        <div slot="sub-title" class="title">
+          已选<span class="number">{{ detailData.itsmRes.data.length }}</span>
+          <span v-if="detailData.itsmRes.status === 'success'" class="success">(导入成功)</span>
+          <span v-if="detailData.itsmRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.itsmRes.errMsg }}</span>)</span>
+        </div>
+        <div style="margin: 10px 0">
+          是否导出组件库：<i-switch disabled v-model="detailData.exportComponentLibrary"></i-switch>
+        </div>
+        <div>
+          <Table
+            :border="false"
+            size="small"
+            :columns="itsmTableColumns"
+            :max-height="400"
+            :data="detailData.itsmRes.data"
+          >
+          </Table>
+        </div>
       </BaseHeaderTitle>
     </div>
     <div class="footer">
