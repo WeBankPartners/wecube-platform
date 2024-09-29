@@ -22,6 +22,7 @@ var importFuncList []func(context.Context, *models.TransImportJobParam) (string,
 var defaultRoles = []string{"SUB_SYSTEM", "IFA_OPS", "APP_DEV", "IFA_ARC", "APP_ARC", "STG_OPS", "PRD_OPS", "MONITOR_ADMIN", "CMDB_ADMIN", "SUPER_ADMIN"}
 
 const (
+	strategyServiceGroupConst  = "strategy_service_group_"
 	strategyEndpointGroupConst = "strategy_endpoint_group_"
 )
 
@@ -100,7 +101,7 @@ func StartTransImport(ctx context.Context, param models.ExecImportParam) (err er
 // 开始执行
 // 10、开始执行编排(创建资源、初始化资源、应用部署)
 // 继续导入
-// 11、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板、关键字层级对象、关键字对象
+// 11、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板、关键字层级对象
 func doImportAction(ctx context.Context, callParam *models.CallTransImportActionParam) (err error) {
 	transImportJobParam, getConfigErr := database.GetTransImportWithDetail(ctx, callParam.TransImportId, false)
 	if getConfigErr != nil {
@@ -505,9 +506,154 @@ func importTaskManTemplate(ctx context.Context, transImportParam *models.TransIm
 	return
 }
 
-// 11、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板
+// 11、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板、关键字层级对象
 func importMonitorServiceConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
+	log.Logger.Info("11. importMonitorServiceConfig start!!!")
+	var logMonitorExist, serviceGroupMetricExist, strategyExist, dashboardExist, logKeywordExist bool
+	// 导入监控业务配置
+	logMonitorPath := fmt.Sprintf("%s/monitor/log_monitor", transImportParam.DirPath)
+	if logMonitorExist, err = tools.PathExist(logMonitorPath); err != nil {
+		return
+	}
+	if logMonitorExist {
+		var files []fs.DirEntry
+		if files, err = os.ReadDir(logMonitorPath); err != nil {
+			log.Logger.Error("ReadDir fail", log.String("logMonitorPath", logMonitorPath), log.Error(err))
+			return
+		}
+		// 遍历文件和子目录
+		for _, file := range files {
+			serviceGroup := file.Name()[:strings.LastIndex(file.Name(), ".")]
+			err = monitor.ImportLogMonitor(fmt.Sprintf("%s/%s", logMonitorPath, file.Name()), transImportParam.Token, transImportParam.Language, serviceGroup)
+			if err != nil {
+				log.Logger.Error("ImportLogMonitor err", log.String("fileName", file.Name()))
+				return
+			}
+		}
+		log.Logger.Info("11-1. import log_monitor success!")
+	} else {
+		log.Logger.Info("11-1. import log_monitor data empty!")
+	}
+	// 导出层级对象指标
+	serviceGroupMetricPath := fmt.Sprintf("%s/monitor/metric/service_group", transImportParam.DirPath)
+	if serviceGroupMetricExist, err = tools.PathExist(serviceGroupMetricPath); err != nil {
+		return
+	}
+	if serviceGroupMetricExist {
+		var files []fs.DirEntry
+		if files, err = os.ReadDir(serviceGroupMetricPath); err != nil {
+			log.Logger.Error("ReadDir fail", log.String("serviceGroupMetricPath", serviceGroupMetricPath), log.Error(err))
+			return
+		}
+		files = sortDirEntry(files)
+		// 遍历文件和子目录
+		for _, file := range files {
+			comparison := "N"
+			serviceGroup := file.Name()[:strings.LastIndex(file.Name(), ".")]
+			if strings.Contains(file.Name(), "_comparison") {
+				comparison = "Y"
+				serviceGroup = file.Name()[:strings.LastIndex(file.Name(), "_comparison")]
+			}
+			param := monitor.ImportMetricParam{
+				FilePath:     fmt.Sprintf("%s/%s", serviceGroupMetricPath, file.Name()),
+				UserToken:    transImportParam.Token,
+				Language:     transImportParam.Language,
+				ServiceGroup: serviceGroup,
+				Comparison:   comparison,
+			}
+			if err = monitor.ImportMetric(param); err != nil {
+				log.Logger.Error("ImportMetric err", log.String("fileName", file.Name()), log.Error(err))
+				return
+			}
+		}
+		log.Logger.Info("11-2. import service_group metric success!")
+	} else {
+		log.Logger.Info("11-2. import service_group metric data empty!")
+	}
 
+	// 导出层级对象阈值配置
+	strategyPath := fmt.Sprintf("%s/monitor/strategy", transImportParam.DirPath)
+	if strategyExist, err = tools.PathExist(strategyPath); err != nil {
+		return
+	}
+	if strategyExist {
+		var strategyFiles []fs.DirEntry
+		if strategyFiles, err = os.ReadDir(strategyPath); err != nil {
+			log.Logger.Error("ReadDir fail", log.String("strategyPath", strategyPath), log.Error(err))
+			return
+		}
+		// 遍历文件和子目录
+		for _, file := range strategyFiles {
+			index := 0
+			endIndex := 0
+			if strings.HasPrefix(file.Name(), strategyServiceGroupConst) {
+				index = len(strategyServiceGroupConst)
+				endIndex = strings.LastIndex(file.Name(), ".")
+				serviceGroup := file.Name()[index:endIndex]
+				param := monitor.ImportStrategyParam{
+					StrategyType: "service",
+					Value:        serviceGroup,
+					FilePath:     fmt.Sprintf("%s/%s", strategyPath, file.Name()),
+					UserToken:    transImportParam.Token,
+					Language:     transImportParam.Language,
+				}
+				if err = monitor.ImportStrategy(param); err != nil {
+					log.Logger.Error("ImportStrategy err", log.String("fileName", file.Name()), log.Error(err))
+					return
+				}
+			}
+		}
+		log.Logger.Info("11-3. import strategy service_group success!")
+	} else {
+		log.Logger.Info("11-3. import strategy service_group data empty!")
+	}
+	// 导入自定义看板
+	dashboardPath := fmt.Sprintf("%s/monitor/dashboard", transImportParam.DirPath)
+	if dashboardExist, err = tools.PathExist(dashboardPath); err != nil {
+		return
+	}
+	if dashboardExist {
+		var files []fs.DirEntry
+		if files, err = os.ReadDir(dashboardPath); err != nil {
+			log.Logger.Error("ReadDir fail", log.String("dashboardPath", dashboardPath), log.Error(err))
+			return
+		}
+		// 遍历文件和子目录
+		for _, file := range files {
+			if err = monitor.ImportDashboard(fmt.Sprintf("%s/%s", dashboardPath, file.Name()), transImportParam.Token, transImportParam.Language); err != nil {
+				log.Logger.Error("ImportDashboard err", log.String("fileName", file.Name()), log.Error(err))
+				return
+			}
+		}
+		log.Logger.Info("11-4. import dashboard success!")
+	} else {
+		log.Logger.Info("11-4. import dashboard data empty!")
+	}
+
+	// 导入关键字(包含层级对象)
+	logKeywordPath := fmt.Sprintf("%s/monitor/keyword", transImportParam.DirPath)
+	if logKeywordExist, err = tools.PathExist(logKeywordPath); err != nil {
+		return
+	}
+	if logKeywordExist {
+		var files []fs.DirEntry
+		if files, err = os.ReadDir(logKeywordPath); err != nil {
+			log.Logger.Error("ReadDir fail", log.String("logKeywordPath", logKeywordPath), log.Error(err))
+			return
+		}
+		// 遍历文件和子目录
+		for _, file := range files {
+			serviceGroup := file.Name()[:strings.LastIndex(file.Name(), ".")]
+			if err = monitor.ImportLogKeyword(fmt.Sprintf("%s/%s", logKeywordPath, file.Name()), transImportParam.Token, transImportParam.Language, serviceGroup); err != nil {
+				log.Logger.Error("ImportLogKeyword err", log.String("fileName", file.Name()), log.Error(err))
+				return
+			}
+		}
+		log.Logger.Info("11-5. import log_keyword success!")
+	} else {
+		log.Logger.Info("11-5. import log_keyword data empty!")
+	}
+	log.Logger.Info("11. importMonitorServiceConfig end!!!")
 	return
 }
 
