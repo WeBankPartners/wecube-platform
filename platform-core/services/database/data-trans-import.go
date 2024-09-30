@@ -201,15 +201,23 @@ func UpdateTransImportProcExec(ctx context.Context, param *models.TransImportPro
 	var execResult sql.Result
 	if param.Status == models.TransImportInPreparationStatus {
 		execResult, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_proc_exec set status=? where id=? and status=?", models.TransImportInPreparationStatus, param.Id, models.JobStatusReady)
-	} else if param.Status == models.JobStatusSuccess {
+	} else if param.Status == models.JobStatusRunning {
 		execResult, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_proc_exec set status=?,proc_ins=?,start_time=? where id=?", models.JobStatusSuccess, param.ProcIns, time.Now(), param.Id)
 	} else if param.Status == models.JobStatusFail {
 		execResult, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_proc_exec set status=?,error_msg=? where id=?", models.JobStatusFail, param.ErrorMsg, param.Id)
 	} else if param.Status == models.JobStatusReady {
 		execResult, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_proc_exec set status=? where id=? and status=?", models.JobStatusReady, param.Id, models.TransImportInPreparationStatus)
+	} else if param.Status == models.JobStatusSuccess {
+		execResult, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_proc_exec set status=? where id=?", models.JobStatusSuccess, param.Id)
+	} else {
+		err = fmt.Errorf("status:%s illegal with proc exec update", param.Status)
+		return
 	}
 	if err != nil {
 		err = fmt.Errorf("update trans import proc exec status fail,%s ", err.Error())
+		return
+	}
+	if execResult == nil {
 		return
 	}
 	if rowAffectNum, _ := execResult.RowsAffected(); rowAffectNum > 0 {
