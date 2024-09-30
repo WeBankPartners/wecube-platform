@@ -202,7 +202,7 @@ func UpdateTransImportProcExec(ctx context.Context, param *models.TransImportPro
 	if param.Status == models.TransImportInPreparationStatus {
 		execResult, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_proc_exec set status=? where id=? and status=?", models.TransImportInPreparationStatus, param.Id, models.JobStatusReady)
 	} else if param.Status == models.JobStatusRunning {
-		execResult, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_proc_exec set status=?,proc_ins=?,start_time=? where id=?", models.JobStatusSuccess, param.ProcIns, time.Now(), param.Id)
+		execResult, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_proc_exec set status=?,proc_ins=?,start_time=? where id=?", models.JobStatusRunning, param.ProcIns, time.Now(), param.Id)
 	} else if param.Status == models.JobStatusFail {
 		execResult, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_proc_exec set status=?,error_msg=? where id=?", models.JobStatusFail, param.ErrorMsg, param.Id)
 	} else if param.Status == models.JobStatusReady {
