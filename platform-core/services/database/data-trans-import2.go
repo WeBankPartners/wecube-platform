@@ -450,7 +450,7 @@ func getInsertTransImportDetail(transImportId string, detail *models.TransExport
 			}
 		case models.TransImportStepMonitorBase:
 			if detail.Monitor != nil && detail.Monitor.Output != nil {
-				tempByte, _ := json.Marshal(detail.Artifacts.Output)
+				tempByte, _ := json.Marshal(detail.Monitor.Output)
 				json.Unmarshal(tempByte, &allMonitorList)
 			}
 			if len(allMonitorList) > 0 {
@@ -466,7 +466,7 @@ func getInsertTransImportDetail(transImportId string, detail *models.TransExport
 
 		case models.TransImportStepMonitorBusiness:
 			if detail.Monitor != nil && detail.Monitor.Output != nil {
-				tempByte, _ := json.Marshal(detail.Artifacts.Output)
+				tempByte, _ := json.Marshal(detail.Monitor.Output)
 				json.Unmarshal(tempByte, &allMonitorList)
 			}
 			if len(allMonitorList) > 0 {
