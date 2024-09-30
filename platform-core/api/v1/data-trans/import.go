@@ -438,15 +438,17 @@ func doExecWorkflowDaemonJob() {
 					}
 					if v.Status != v.ProcInsStatus {
 						v.Status = v.ProcInsStatus
-						if v.Status == models.JobStatusSuccess {
-							successRowCount = successRowCount + 1
-						}
 						if _, updateStatusErr := database.UpdateTransImportProcExec(ctx, v); updateStatusErr != nil {
 							log.Logger.Error("doExecWorkflowDaemonJob update running proc exec status fail", log.String("detailId", v.Id), log.String("status", v.Status), log.Error(updateStatusErr))
 						}
 					}
 				}
-				continue
+				if v.Status == models.JobStatusSuccess {
+					successRowCount = successRowCount + 1
+					continue
+				} else {
+					break
+				}
 			}
 			if v.Status == models.TransImportInPreparationStatus {
 				break
