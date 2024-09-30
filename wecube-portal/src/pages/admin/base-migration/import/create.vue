@@ -99,7 +99,11 @@ export default {
       await this.getDetailData()
       this.loading = false
       // 后台返回当前步骤
-      this.activeStep = this.detailData.step - 1
+      if (this.detailData.status !== 'success') {
+        this.activeStep = this.detailData.step - 1
+      } else {
+        this.activeStep = 3
+      }
     }
     // 重新发起
     if (this.id && this.type === 'republish') {
@@ -286,10 +290,6 @@ export default {
     },
     async handleSaveStepOne(id) {
       this.id = id
-      // this.loading = true
-      // await this.getDetailData()
-      // this.loading = false
-      // this.activeStep++
       this.$router.replace({
         path: '/admin/base-migration/import',
         query: {
@@ -345,6 +345,31 @@ export default {
           id: this.id
         }
       })
+    }
+  },
+  beforeRouteLeave(to, from, next) {
+    if (this.detailData.monitorBusinessRes && this.detailData.monitorBusinessRes.status === 'success' && this.detailData.status === 'doing') {
+      this.$Modal.confirm({
+        title: '提示',
+        content: '当前导入需要手动确认',
+        okText: '完成导入',
+        onOk: async () => {
+          const params = {
+            transImportId: this.id,
+            status: 'completed'
+          }
+          const { status } = await updateImportStatus(params)
+          if (status === 'OK') {
+            // 用户确认离开
+            next()
+          }
+        },
+        onCancel: () => {
+          next()
+        }
+      })
+    } else {
+      next()
     }
   }
 }
