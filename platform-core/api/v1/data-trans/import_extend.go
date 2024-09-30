@@ -514,6 +514,31 @@ func importTaskManTemplate(ctx context.Context, transImportParam *models.TransIm
 func importMonitorServiceConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	log.Logger.Info("11. importMonitorServiceConfig start!!!")
 	var logMonitorExist, serviceGroupMetricExist, strategyExist, dashboardExist, logKeywordExist bool
+	// 导入监控业务配置 (说明: 业务配置导入在层级对象指标之前导入,层级对象指标导入做了防止重复处理)
+	logMonitorPath := fmt.Sprintf("%s/monitor/log_monitor", transImportParam.DirPath)
+	if logMonitorExist, err = tools.PathExist(logMonitorPath); err != nil {
+		return
+	}
+	if logMonitorExist {
+		var files []fs.DirEntry
+		if files, err = os.ReadDir(logMonitorPath); err != nil {
+			log.Logger.Error("ReadDir fail", log.String("logMonitorPath", logMonitorPath), log.Error(err))
+			return
+		}
+		// 遍历文件和子目录
+		for _, file := range files {
+			serviceGroup := file.Name()[:strings.LastIndex(file.Name(), ".")]
+			err = monitor.ImportLogMonitor(fmt.Sprintf("%s/%s", logMonitorPath, file.Name()), transImportParam.Token, transImportParam.Language, serviceGroup)
+			if err != nil {
+				log.Logger.Error("ImportLogMonitor err", log.String("fileName", file.Name()))
+				return
+			}
+		}
+		log.Logger.Info("11-1. import log_monitor success!")
+	} else {
+		log.Logger.Info("11-1. import log_monitor data empty!")
+	}
+
 	// 导入层级对象指标
 	serviceGroupMetricPath := fmt.Sprintf("%s/monitor/metric/service_group", transImportParam.DirPath)
 	if serviceGroupMetricExist, err = tools.PathExist(serviceGroupMetricPath); err != nil {
@@ -547,34 +572,9 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 				return
 			}
 		}
-		log.Logger.Info("11-1. import service_group metric success!")
+		log.Logger.Info("11-2. import service_group metric success!")
 	} else {
-		log.Logger.Info("11-1. import service_group metric data empty!")
-	}
-
-	// 导入监控业务配置 (说明: 业务配置导入在层级对象指标导入之后,因为业务配置也能够生成层级对象指标,monitor业务配置导入需要做防重复处理)
-	logMonitorPath := fmt.Sprintf("%s/monitor/log_monitor", transImportParam.DirPath)
-	if logMonitorExist, err = tools.PathExist(logMonitorPath); err != nil {
-		return
-	}
-	if logMonitorExist {
-		var files []fs.DirEntry
-		if files, err = os.ReadDir(logMonitorPath); err != nil {
-			log.Logger.Error("ReadDir fail", log.String("logMonitorPath", logMonitorPath), log.Error(err))
-			return
-		}
-		// 遍历文件和子目录
-		for _, file := range files {
-			serviceGroup := file.Name()[:strings.LastIndex(file.Name(), ".")]
-			err = monitor.ImportLogMonitor(fmt.Sprintf("%s/%s", logMonitorPath, file.Name()), transImportParam.Token, transImportParam.Language, serviceGroup)
-			if err != nil {
-				log.Logger.Error("ImportLogMonitor err", log.String("fileName", file.Name()))
-				return
-			}
-		}
-		log.Logger.Info("11-2. import log_monitor success!")
-	} else {
-		log.Logger.Info("11-2. import log_monitor data empty!")
+		log.Logger.Info("11-2. import service_group metric data empty!")
 	}
 
 	// 导入层级对象阈值配置 @todo 依赖编排,先关闭执行
