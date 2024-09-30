@@ -83,19 +83,30 @@ func GetComponentLibrary(userToken, language string) (response models.QueryCompo
 }
 
 func ImportComponentLibrary(filePath, userToken, language string) (err error) {
+	var byteArr []byte
+	var response models.TaskManResponseJson
 	uri := models.Config.Gateway.Url + pathImportComponentLibrary
 	if models.Config.HttpsEnable == "true" {
 		uri = "https://" + uri
 	} else {
 		uri = "http://" + uri
 	}
-	_, err = network.HttpPostJsonFile(filePath, uri, userToken, language)
+	if byteArr, err = network.HttpPostJsonFile(filePath, uri, userToken, language); err != nil {
+		return
+	}
+	if err = json.Unmarshal(byteArr, &response); err != nil {
+		return
+	}
+	if response.StatusCode != "OK" {
+		err = fmt.Errorf("import ComponentLibrary fail,%+v", response.StatusMessage)
+		return
+	}
 	return
 }
 
 func ImportRequestTemplate(filePath, userToken, language string) (err error) {
 	var byteArr []byte
-	var response models.RequestTemplateImportResponse
+	var response models.TaskManResponseJson
 	uri := models.Config.Gateway.Url + pathImportRequestTemplate
 	if models.Config.HttpsEnable == "true" {
 		uri = "https://" + uri
