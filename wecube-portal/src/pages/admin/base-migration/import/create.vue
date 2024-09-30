@@ -348,7 +348,11 @@ export default {
     }
   },
   beforeRouteLeave(to, from, next) {
-    if (this.detailData.monitorBusinessRes && this.detailData.monitorBusinessRes.status === 'success' && this.detailData.status === 'doing') {
+    if (
+      this.detailData.monitorBusinessRes
+      && this.detailData.monitorBusinessRes.status === 'success'
+      && this.detailData.status === 'doing'
+    ) {
       this.$Modal.confirm({
         title: '提示',
         content: '当前导入需要手动确认',
