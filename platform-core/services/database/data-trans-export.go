@@ -260,6 +260,7 @@ func AutoAppendExportRoles(ctx context.Context, userToken, language string, para
 				for _, chart := range dashboard.Charts {
 					chartIds = append(chartIds, chart.Id)
 				}
+				log.Logger.Info("add dashboard", log.Int("dashboard", dashboardIntId))
 				newParam.ExportDashboardMap[dashboardIntId] = chartIds
 			}
 		}
@@ -1111,6 +1112,7 @@ func exportMonitor(ctx context.Context, transExportId, path, token string, expor
 		case models.TransExportAnalyzeMonitorDataTypeDashboard:
 			// 导出看板
 			for dashboardId, chartIds := range exportDashboardMap {
+				log.Logger.Info("export dashboard", log.Int("dashboardId", dashboardId))
 				if responseBytes, err = monitor.ExportCustomDashboard(dashboardId, chartIds, token); err != nil {
 					log.Logger.Error("ExportCustomDashboard err", log.JsonObj("dashboardId", dashboardId), log.Error(err))
 					return
