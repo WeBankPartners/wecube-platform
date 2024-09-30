@@ -176,7 +176,7 @@ export default {
       })
     },
     handleNext: debounce(async function () {
-      if (this.detailData.step > 3) {
+      if (this.detailData.step > 3 || this.detailData.status === 'success') {
         this.$emit('nextStep')
       } else {
         const params = {
