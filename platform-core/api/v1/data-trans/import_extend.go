@@ -489,7 +489,7 @@ func importTaskManComponentLibrary(ctx context.Context, transImportParam *models
 		// 导入组件库
 		err = remote.ImportComponentLibrary(fmt.Sprintf("%s/component_library.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
 		if err != nil {
-			log.Logger.Error("ImportComponentLibrary err", log.Error(err))
+			log.Logger.Error("importTaskManComponentLibrary", log.Error(err))
 			return
 		}
 	}

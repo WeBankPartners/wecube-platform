@@ -142,7 +142,7 @@ type TransImportHistoryParam struct {
 	ExecTimeEnd   string   `json:"ExecTimeEnd" `   // 执行时间-结束时间
 }
 
-type RequestTemplateImportResponse struct {
+type TaskManResponseJson struct {
 	StatusCode    string      `json:"statusCode"`
 	StatusMessage string      `json:"statusMessage"`
 	Data          interface{} `json:"data"`
