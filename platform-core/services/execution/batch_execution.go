@@ -703,9 +703,9 @@ func handleInputData(
 			if err != nil {
 				return
 			}
-			if procReqParamObj.IsSensitive {
-				inputParamData[inputDef.Name] = buildSensitiveData(inputParamData[inputDef.Name], entityInstance.Id)
-			}
+			//if procReqParamObj.IsSensitive {
+			//	inputParamData[inputDef.Name] = buildSensitiveData(inputParamData[inputDef.Name], entityInstance.Id)
+			//}
 			procReqParamObj.DataValue = fmt.Sprintf("%v", inputParamData[inputDef.Name])
 			procReqParamObj.CallbackId = entityInstance.Id
 			procInsNodeReq.Params = append(procInsNodeReq.Params, &procReqParamObj)
@@ -849,9 +849,9 @@ func handleOutputData(
 			if v, ok := output[models.PluginCallResultPresetErrorMsg]; ok {
 				tmpResultOutput[models.PluginCallResultPresetErrorMsg] = v
 			}
-			if procReqParamObj.IsSensitive {
-				tmpResultOutput[outputDef.Name] = buildSensitiveData(tmpResultOutput[outputDef.Name], procReqParamObj.CallbackId)
-			}
+			//if procReqParamObj.IsSensitive {
+			//	tmpResultOutput[outputDef.Name] = buildSensitiveData(tmpResultOutput[outputDef.Name], procReqParamObj.CallbackId)
+			//}
 			procReqParamObj.DataValue = fmt.Sprintf("%v", tmpResultOutput[outputDef.Name])
 			procInsNodeReq.Params = append(procInsNodeReq.Params, &procReqParamObj)
 		}
