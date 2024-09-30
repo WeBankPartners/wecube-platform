@@ -211,9 +211,6 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 					if checkArtifactCiTypeRefIllegal(ciType, depCiType, transConfig, false) {
 						continue
 					}
-					if _, ok := ciTypeDataMap[depCiType]; ok {
-						continue
-					}
 					queryDepCiGuidRows, tmpQueryDepCiGuidErr := cmdbEngine.QueryString(fmt.Sprintf("select guid from %s where %s in ('%s')", depCiType, depCiAttr.Name, strings.Join(newRowsGuidList, "','")))
 					if tmpQueryDepCiGuidErr != nil {
 						err = fmt.Errorf("try to get ciType:%s with dependent ciType:%s ref attr:%s guidList fail,%s ", ciType, depCiType, depCiAttr.Name, tmpQueryDepCiGuidErr.Error())
@@ -230,9 +227,6 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 					}
 				} else if depCiAttr.InputType == "multiRef" {
 					if checkArtifactCiTypeRefIllegal(ciType, depCiType, transConfig, false) {
-						continue
-					}
-					if _, ok := ciTypeDataMap[depCiType]; ok {
 						continue
 					}
 					depFromGuidList, tmpQueryDepCiGuidErr := getCMDBMultiRefGuidList(depCiType, depCiAttr.Name, "in", []string{}, newRowsGuidList, cmdbEngine)
