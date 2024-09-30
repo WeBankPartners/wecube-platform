@@ -4,18 +4,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/go-common-lib/guid"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"io"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/WeBankPartners/go-common-lib/guid"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
 )
+
+var baseMonitorList = []string{"monitor_type", "endpoint_group", "custom_metric_endpoint_group",
+	"custom_metric_monitor_type", "log_monitor_template", "strategy_endpoint_group"}
 
 // transImportDetailMap 导入
 var transImportDetailMap = map[models.TransImportStep]string{
@@ -397,7 +400,9 @@ func getInsertTransImportDetail(transImportId string, detail *models.TransExport
 	var input string
 	actions = []*db.ExecAction{}
 	guids := guid.CreateGuidList(len(transImportDetailMap))
+	baseMonitorMap := convertArray2Map(baseMonitorList)
 	i := 0
+	var allMonitorList, baseMonitorList, businessMonitorList []*models.CommonNameCount
 	for step, name := range transImportDetailMap {
 		input = ""
 		switch step {
@@ -445,13 +450,34 @@ func getInsertTransImportDetail(transImportId string, detail *models.TransExport
 			}
 		case models.TransImportStepMonitorBase:
 			if detail.Monitor != nil && detail.Monitor.Output != nil {
-				tempByte, _ := json.Marshal(detail.Monitor.Output)
+				tempByte, _ := json.Marshal(detail.Artifacts.Output)
+				json.Unmarshal(tempByte, &allMonitorList)
+			}
+			if len(allMonitorList) > 0 {
+				for _, monitor := range allMonitorList {
+					if baseMonitorMap[monitor.Name] {
+						baseMonitorList = append(baseMonitorList, monitor)
+					}
+				}
+				tempByte, _ := json.Marshal(baseMonitorList)
 				input = string(tempByte)
 			}
 		case models.TransImportStepInitWorkflow:
 
 		case models.TransImportStepMonitorBusiness:
-
+			if detail.Monitor != nil && detail.Monitor.Output != nil {
+				tempByte, _ := json.Marshal(detail.Artifacts.Output)
+				json.Unmarshal(tempByte, &allMonitorList)
+			}
+			if len(allMonitorList) > 0 {
+				for _, monitor := range allMonitorList {
+					if !baseMonitorMap[monitor.Name] {
+						businessMonitorList = append(businessMonitorList, monitor)
+					}
+				}
+				tempByte, _ := json.Marshal(businessMonitorList)
+				input = string(tempByte)
+			}
 		}
 		actions = append(actions, &db.ExecAction{Sql: "insert into trans_import_detail(id,trans_import,name,step,status,input) values (?,?,?,?,?,?)", Param: []interface{}{
 			guids[i], transImportId, name, step, models.TransExportStatusNotStart, input,
