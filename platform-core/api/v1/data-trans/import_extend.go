@@ -479,21 +479,27 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 // 8.importTaskManComponentLibrary 导入组件库
 func importTaskManComponentLibrary(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	// 判断是否要导入组件库
+	var input string
 	log.Logger.Info("8. importTaskManComponentLibrary start!!!")
 	if transImportParam.CurrentDetail == nil {
 		err = fmt.Errorf("importTaskManTemplate CurrentDetail is empty")
 		log.Logger.Error("err:", log.Error(err))
 		return
 	}
-	if transImportParam.CurrentDetail.Input == "true" {
+	if input, err = database.GetTransImportDetailInput(ctx, transImportParam.CurrentDetail.Id); err != nil {
+		return
+	}
+	if input == "true" {
 		// 导入组件库
 		err = remote.ImportComponentLibrary(fmt.Sprintf("%s/component_library.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
 		if err != nil {
 			log.Logger.Error("importTaskManComponentLibrary", log.Error(err))
 			return
 		}
+		log.Logger.Info("8. importTaskManComponentLibrary success end!!!")
+	} else {
+		log.Logger.Info("8. importTaskManComponentLibrary data empty!!!")
 	}
-	log.Logger.Info("8. importTaskManComponentLibrary success end!!!")
 	return
 }
 
