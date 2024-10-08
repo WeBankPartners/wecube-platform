@@ -5,7 +5,8 @@
         <div slot="sub-title" class="item-header">
           <span class="item-header-e">{{ $t('pe_env') }}<span class="number">{{ detailData.environmentName || '-' }}</span></span>
           <span class="item-header-p">{{ $t('pe_product') }}<span class="number">{{ detailData.businessNameList.length }}</span></span>
-          <span class="item-header-s">{{ $t('pe_system') }}<span class="number">{{
+          <span class="item-header-s">{{ $t('pe_system')
+          }}<span class="number">{{
             (detailData.associationSystems && detailData.associationSystems.length) || 0
           }}</span></span>
         </div>
@@ -156,8 +157,7 @@
       <BaseHeaderTitle title="CMDB" :fontSize="15">
         <div slot="sub-title" class="title">
           {{ $t('pe_select') }}CI<span class="number">{{ detailData.cmdbCICount }}</span>
-          <span class="name">{{ $t('pe_view') }}</span><span class="number">{{ detailData.cmdbViewCount }}</span>
-          <span class="name">{{ $t('pe_report') }}</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
+          <span class="name">{{ $t('pe_view') }}</span><span class="number">{{ detailData.cmdbViewCount }}</span> <span class="name">{{ $t('pe_report') }}</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
         </div>
         <Row :gutter="10">
           <Col :span="8">
