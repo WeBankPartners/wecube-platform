@@ -29,10 +29,14 @@
           </template>
           <template v-else-if="activeStep === 1">
             <Button type="default" @click="handleLast">{{ $t('privious_step') }}</Button>
-            <Button type="primary" @click="handleSaveExport" style="margin-left: 10px">{{ $t('pe_execute_export') }}</Button>
+            <Button type="primary" @click="handleSaveExport" style="margin-left: 10px">{{
+              $t('pe_execute_export')
+            }}</Button>
           </template>
           <template v-else-if="activeStep === 2">
-            <Button type="default" @click="handleToHistory" style="margin-left: 10px">{{ $t('pe_history_list') }}</Button>
+            <Button type="default" @click="handleToHistory" style="margin-left: 10px">{{
+              $t('pe_history_list')
+            }}</Button>
             <Button
               v-if="['success', 'fail'].includes(detailData.status)"
               type="success"

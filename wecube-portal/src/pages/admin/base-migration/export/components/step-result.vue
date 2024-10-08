@@ -168,8 +168,7 @@
       <BaseHeaderTitle title="CMDB" :fontSize="15">
         <div slot="sub-title" class="title">
           {{ $t('pe_select') }}CI<span class="number">{{ detailData.cmdbCICount }}</span>
-          <span class="name">{{ $t('pe_view') }}</span><span class="number">{{ detailData.cmdbViewCount }}</span>
-          <span class="name">{{ $t('pe_report') }}</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
+          <span class="name">{{ $t('pe_view') }}</span><span class="number">{{ detailData.cmdbViewCount }}</span> <span class="name">{{ $t('pe_report') }}</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
           <span v-if="detailData.cmdbRes.status === 'success'" class="success">({{ $t('pe_export_success') }})</span>
           <span v-if="detailData.cmdbRes.status === 'fail'" class="fail">({{ $t('pe_export_fail') }}：<span>{{ detailData.cmdbRes.errMsg }}</span>)</span>
         </div>
