@@ -41,8 +41,9 @@ func ProcDefList(ctx context.Context, includeDraft, permission, tag, plugin, sub
 		filterParams = append(filterParams, fmt.Sprintf("%%%s%%", plugin))
 	}
 	if rootEntity != "" {
-		filterSqlList = append(filterSqlList, "root_entity=?")
+		filterSqlList = append(filterSqlList, "(root_entity=? or root_entity like ?)")
 		filterParams = append(filterParams, rootEntity)
+		filterParams = append(filterParams, fmt.Sprintf("%s{%%", rootEntity))
 	}
 	if subProc == "main" {
 		filterSqlList = append(filterSqlList, "sub_proc=0")
