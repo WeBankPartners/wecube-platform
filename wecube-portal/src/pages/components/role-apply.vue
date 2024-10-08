@@ -23,40 +23,48 @@
           </div>
         </div>
         <div>
-          <Form :label-width="100" inline>
-            <FormItem :label="$t('be_apply_roles')" required>
-              <Select
-                v-model="selectedRole"
-                @on-open-change="getApplyRoles"
-                multiple
-                filterable
-                filter-by-label
-                :max-tag-count="3"
-                style="width: 300px; margin-right: 24px"
-                :placeholder="$t('be_apply_roles')"
-              >
-                <Option v-for="role in roleList" :value="role.id" :key="role.id" :label="role.displayName" />
-              </Select>
-            </FormItem>
-            <FormItem :label="$t('role_invalidDate')">
-              <DatePicker
-                type="datetime"
-                :value="expireTime"
-                @on-change="
-                  val => {
-                    expireTime = val
-                  }
-                "
-                :placeholder="$t('role_invalidDatePlaceholder')"
-                :options="{
-                  disabledDate(date) {
-                    return date && date.valueOf() < Date.now() - 86400000
-                  }
-                }"
-                style="width: 300px; margin-right: 24px"
-              ></DatePicker>
-              <Button type="primary" :disabled="selectedRole.length === 0" @click="apply">{{ $t('be_apply') }}</Button>
-            </FormItem>
+          <Form :label-width="100">
+            <Row>
+              <Col :span="10">
+                <FormItem :label="$t('be_apply_roles')" required>
+                  <Select
+                    v-model="selectedRole"
+                    @on-open-change="getApplyRoles"
+                    multiple
+                    filterable
+                    filter-by-label
+                    :max-tag-count="3"
+                    :placeholder="$t('be_apply_roles')"
+                    style="width: 300px"
+                  >
+                    <Option v-for="role in roleList" :value="role.id" :key="role.id" :label="role.displayName" />
+                  </Select>
+                </FormItem>
+              </Col>
+              <Col :span="14">
+                <FormItem :label="$t('role_invalidDate')">
+                  <DatePicker
+                    type="datetime"
+                    :value="expireTime"
+                    @on-change="
+                      val => {
+                        expireTime = val
+                      }
+                    "
+                    :placeholder="$t('role_invalidDatePlaceholder')"
+                    :options="{
+                      disabledDate(date) {
+                        return date && date.valueOf() < Date.now() - 86400000
+                      }
+                    }"
+                    style="margin-right: 10px; width: 300px"
+                  ></DatePicker>
+                  <Button type="primary" :disabled="selectedRole.length === 0" @click="apply">{{
+                    $t('be_apply')
+                  }}</Button>
+                </FormItem>
+              </Col>
+            </Row>
           </Form>
         </div>
         <div class="title" style="margin-top: 0px">
