@@ -69,15 +69,14 @@
               :style="{minHeight: 300 + 'px', maxHeight: tableHeight + 'px'}"
             >
               <div class="add-user">
-                <Form inline>
-                  <FormItem>
+                <Row>
+                  <Col :span="10">
                     <Select
                       v-model="pendingUser"
                       multiple
                       filterable
                       filter-by-label
                       @on-open-change="getPendingUserOptions"
-                      style="width: 250px"
                       :max-tag-count="2"
                       :placeholder="$t('user')"
                     >
@@ -88,8 +87,8 @@
                         :label="item.username"
                       />
                     </Select>
-                  </FormItem>
-                  <FormItem>
+                  </Col>
+                  <Col :span="14">
                     <DatePicker
                       type="datetime"
                       :value="pengdingExpireTime"
@@ -104,15 +103,13 @@
                           return date && date.valueOf() < Date.now() - 86400000
                         }
                       }"
-                      style="width: 185px"
+                      style="margin-left: 5px;"
                     ></DatePicker>
-                  </FormItem>
-                  <FormItem>
                     <Button type="primary" :disabled="!pendingUser.length || !pengdingExpireTime" @click="okSelect">{{
                       $t('add_user')
                     }}</Button>
-                  </FormItem>
-                </Form>
+                  </Col>
+                </Row>
               </div>
               <div class="role-item" v-for="item in userList" :key="item.id">
                 <div class="item-style" style="width: 90%; display: inline-block">
