@@ -4,7 +4,7 @@ export default {
       // cmdb CI
       cmdbCIColumns: [
         {
-          title: 'CI名称',
+          title: this.$t('pe_ci_name'),
           key: 'name',
           render: (h, params) => (
             <span
