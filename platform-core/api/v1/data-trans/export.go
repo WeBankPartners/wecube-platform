@@ -88,8 +88,8 @@ func ExecExport(c *gin.Context) {
 	}
 	userToken := c.GetHeader("Authorization")
 	language := c.GetHeader(middleware.AcceptLanguageHeader)
-	// 1. 根据选中编排、批量执行、请求模版角色追加到模版角色
-	if param, err = database.AutoAppendExportRoles(c, userToken, language, param); err != nil {
+	// 1. 追加导出信息
+	if param, err = database.AutoAppendExportParam(c, userToken, language, param); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}

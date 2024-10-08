@@ -199,87 +199,24 @@ func QueryTransExportByCondition(ctx context.Context, param models.TransExportHi
 	return
 }
 
-// AutoAppendExportRoles 自动追加导出角色,并且记录需要导出的看板和图表Id
-func AutoAppendExportRoles(ctx context.Context, userToken, language string, param models.DataTransExportParam) (newParam models.DataTransExportParam, err error) {
-	var procDefPermissionList []*models.ProcDefPermission
-	var batchExecutionTemplateRoles []*models.BatchExecutionTemplateRole
-	var requestTemplateRoles models.QueryRequestTemplateRolesResponse
-	var allCheckRoleMap = make(map[string]bool)
-	var dashboardAnalyze models.TransExportAnalyzeDataTable
-	var dashboardList []string
-	var dashboardIntId int
-	var chartIds, roles, newCheckRoles []string
-	var dashboard *monitor.CustomDashboardDto
+func AutoAppendExportParam(ctx context.Context, userToken, language string, param models.DataTransExportParam) (newParam models.DataTransExportParam, err error) {
+	var monitorWorkflowList []*monitor.WorkflowDto
+	var procDefDto *models.ProcDefDto
 	newParam = param
-	newParam.ExportDashboardMap = make(map[int][]string)
-	// 1.角色校验,编排、批量执行、请求模版的角色、看板&图表角色导出都需要自动加入.需要的角色自动加入
-	if procDefPermissionList, err = GetProcDefPermissionByIds(ctx, param.WorkflowIds); err != nil {
+	// 拼接导出看板map
+	if newParam.ExportDashboardMap, err = GetExportDashboardMap(ctx, param.TransExportId, userToken); err != nil {
 		return
 	}
-	for _, permission := range procDefPermissionList {
-		allCheckRoleMap[permission.Permission] = true
-	}
-	if batchExecutionTemplateRoles, err = GetBatchExecutionTemplatePermissionByIds(ctx, param.BatchExecutionIds); err != nil {
+	// 根据指标阈值&关键字 追加导出编排
+	if monitorWorkflowList, err = monitor.GetMonitorWorkflow(userToken); err != nil {
 		return
 	}
-	for _, templateRole := range batchExecutionTemplateRoles {
-		allCheckRoleMap[templateRole.RoleName] = true
-	}
-	if requestTemplateRoles, err = remote.GetRequestTemplateRoles(models.GetRequestTemplateRolesDto{RequestTemplateIds: param.RequestTemplateIds}, userToken, language); err != nil {
-		return
-	}
-	for _, role := range requestTemplateRoles.Roles {
-		allCheckRoleMap[role] = true
-	}
-	// 从导出分析表中获取导出看板信息
-	if dashboardAnalyze, err = GetDashboardTransExportAnalyzeData(ctx, param.TransExportId); err != nil {
-		return
-	}
-	if dashboardAnalyze.Data != "" {
-		if err = json.Unmarshal([]byte(dashboardAnalyze.Data), &dashboardList); err != nil {
-			log.Logger.Error("json Unmarshal dashboard analyze err", log.Error(err))
+	for _, workflow := range monitorWorkflowList {
+		if procDefDto, err = GetProcessDefinitionByName(ctx, workflow.Name, workflow.Version); err != nil {
 			return
 		}
-		for _, dashboardId := range dashboardList {
-			chartIds = []string{}
-			if dashboardIntId, err = strconv.Atoi(dashboardId); err != nil {
-				log.Logger.Error("dashboardId  string convert int err", log.Error(err))
-				return
-			}
-			if dashboard, err = monitor.QueryCustomDashboard(dashboardIntId, userToken); err != nil {
-				log.Logger.Error("QueryCustomDashboard err", log.Error(err))
-				return
-			}
-			if dashboard != nil {
-				for _, role := range dashboard.MgmtRoles {
-					allCheckRoleMap[role] = true
-				}
-				for _, role := range dashboard.UseRoles {
-					allCheckRoleMap[role] = true
-				}
-				for _, chart := range dashboard.Charts {
-					chartIds = append(chartIds, chart.Id)
-				}
-				log.Logger.Info("add dashboard", log.Int("dashboard", dashboardIntId))
-				newParam.ExportDashboardMap[dashboardIntId] = chartIds
-			}
-		}
-		// 查询图表的权限
-		chartIds = []string{}
-		for _, ids := range newParam.ExportDashboardMap {
-			chartIds = append(chartIds, ids...)
-		}
-		if roles, err = monitor.QueryCustomChartPermissionBatch(chartIds, userToken); err != nil {
-			log.Logger.Error("QueryCustomChartPermissionBatch err", log.Error(err))
-			return
-		}
-		newCheckRoles = append(newCheckRoles, roles...)
+		newParam.WorkflowIds = append(newParam.WorkflowIds, procDefDto.Id)
 	}
-	newCheckRoles = append(newCheckRoles, param.Roles...)
-	for role, _ := range allCheckRoleMap {
-		newCheckRoles = append(newCheckRoles, role)
-	}
-	newParam.Roles = newCheckRoles
 	return
 }
 
@@ -645,6 +582,8 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		step = models.TransExportStepWorkflow
 		log.Logger.Info("4. export workflow start!!!!")
 		exportWorkflowStartTime := time.Now().Format(models.DateTimeFormat)
+		// 编排ID数据去重复
+		param.WorkflowIds = filterRepeatWorkflowId(param.WorkflowIds)
 		for _, procDefId := range param.WorkflowIds {
 			if procDefDto, err = GetProcDefDetailByProcDefId(ctx, procDefId); err != nil {
 				log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err))
@@ -845,6 +784,55 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	updateTransExportDetail(ctx, transExportCreateAndUploadFile)
 	log.Logger.Info("11. create and upload file end!!!!")
 	updateTransExportSuccess(ctx, param.TransExportId, uploadUrl)
+	return
+}
+
+func filterRepeatWorkflowId(ids []string) []string {
+	var hashMap = make(map[string]bool)
+	var newIds []string
+	for _, id := range ids {
+		hashMap[id] = true
+	}
+	for key, _ := range hashMap {
+		newIds = append(newIds, key)
+	}
+	return newIds
+}
+
+func GetExportDashboardMap(ctx context.Context, transExportId, userToken string) (exportDashboardMap map[int][]string, err error) {
+	var dashboardAnalyze models.TransExportAnalyzeDataTable
+	var dashboardList []string
+	var chartIds []string
+	var dashboardIntId int
+	var dashboard *monitor.CustomDashboardDto
+	exportDashboardMap = make(map[int][]string)
+	// 从导出分析表中获取导出看板信息
+	if dashboardAnalyze, err = GetDashboardTransExportAnalyzeData(ctx, transExportId); err != nil {
+		return
+	}
+	if dashboardAnalyze.Data != "" {
+		if err = json.Unmarshal([]byte(dashboardAnalyze.Data), &dashboardList); err != nil {
+			log.Logger.Error("json Unmarshal dashboard analyze err", log.Error(err))
+			return
+		}
+		for _, dashboardId := range dashboardList {
+			if dashboardIntId, err = strconv.Atoi(dashboardId); err != nil {
+				log.Logger.Error("dashboardId  string convert int err", log.Error(err))
+				return
+			}
+			if dashboard, err = monitor.QueryCustomDashboard(dashboardIntId, userToken); err != nil {
+				log.Logger.Error("QueryCustomDashboard err", log.Error(err))
+				return
+			}
+			if dashboard != nil {
+				for _, chart := range dashboard.Charts {
+					chartIds = append(chartIds, chart.Id)
+				}
+				log.Logger.Info("add dashboard", log.Int("dashboard", dashboardIntId))
+				exportDashboardMap[dashboardIntId] = chartIds
+			}
+		}
+	}
 	return
 }
 

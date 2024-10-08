@@ -17,6 +17,7 @@ const (
 	analyzeMonitorExportDataUrl        = "/monitor/api/v2/trans-export/analyze"
 	exportMetricListUrl                = "/monitor/api/v2/monitor/metric/export?serviceGroup=%s&monitorType=%s&endpointGroup=%s&comparison=%s"
 	queryMonitorEndpointGroupUrl       = "/monitor/api/v2/alarm/endpoint_group/query"
+	queryMonitorWorkflowUrl            = "/monitor/api/v2/alarm/strategy/workflow"
 	exportMonitorLogMetricUrl          = "/monitor/api/v2/service/log_metric/export?serviceGroup=%s"
 	exportLogMonitorTemplateUrl        = "/monitor/api/v2/service/log_metric/log_monitor_template/export"
 	exportAlarmStrategyUrl             = "/monitor/api/v2/alarm/strategy/export/%s/%s"
@@ -174,6 +175,26 @@ func GetMonitorEndpointGroup(token string) (monitorEndpointGroupList []*Endpoint
 	}
 	if response.Data != nil {
 		monitorEndpointGroupList = response.Data.Data
+	}
+	return
+}
+
+func GetMonitorWorkflow(token string) (result []*WorkflowDto, err error) {
+	var responseBytes []byte
+	if responseBytes, err = requestMonitorPluginV2(queryMonitorWorkflowUrl, http.MethodGet, token, nil); err != nil {
+		return
+	}
+	var response GetWorkflowResp
+	if err = json.Unmarshal(responseBytes, &response); err != nil {
+		err = fmt.Errorf(jsonUnmarshalErrTemplate, string(responseBytes), err.Error())
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	if response.Data != nil {
+		result = response.Data
 	}
 	return
 }
