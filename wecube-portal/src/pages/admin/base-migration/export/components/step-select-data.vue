@@ -1,34 +1,35 @@
 <template>
   <div class="export-step-data">
     <div class="item">
-      <BaseHeaderTitle title="环境产品系统" :fontSize="15">
+      <BaseHeaderTitle :title="$t('pe_env_product_sysytem')" :fontSize="15">
         <div slot="sub-title" class="item-header">
-          <span class="item-header-e">环境<span class="number">{{ detailData.environmentName || '-' }}</span></span>
-          <span class="item-header-p">产品<span class="number">{{ detailData.businessNameList.length }}</span></span>
-          <span class="item-header-s">系统<span class="number">{{
+          <span class="item-header-e">{{ $t('pe_env') }}<span class="number">{{ detailData.environmentName || '-' }}</span></span>
+          <span class="item-header-p">{{ $t('pe_product') }}<span class="number">{{ detailData.businessNameList.length }}</span></span>
+          <span class="item-header-s">{{ $t('pe_system')
+          }}<span class="number">{{
             (detailData.associationSystems && detailData.associationSystems.length) || 0
           }}</span></span>
         </div>
         <card style="margin-top: 5px">
           <div class="content">
             <div class="content-list">
-              <span>已选环境</span>
+              <span>{{ $t('pe_selected_env') }}</span>
               <Tag>{{ detailData.environmentName }}</Tag>
             </div>
             <div class="content-list">
-              <span>已选业务产品</span>
+              <span>{{ $t('pe_select_busProduct') }}</span>
               <Tag v-for="(i, index) in detailData.businessNameList" class="tag" :key="index">
                 {{ i }}
               </Tag>
             </div>
             <div class="content-list">
-              <span>关联底座产品(自动分析)</span>
+              <span>{{ $t('pe_relate_baseProduct') }}</span>
               <Tag v-for="(i, index) in detailData.associationTechProducts || []" class="tag" :key="index">
                 {{ i }}
               </Tag>
             </div>
             <div class="content-list">
-              <span>关联系统(自动分析)</span>
+              <span>{{ $t('pe_relate_system') }}</span>
               <Tag v-for="(i, index) in detailData.associationSystems || []" class="tag" :key="index">
                 {{ i }}
               </Tag>
@@ -39,9 +40,9 @@
     </div>
     <!--角色列表-->
     <div class="item">
-      <BaseHeaderTitle title="角色" :fontSize="15">
+      <BaseHeaderTitle :title="$t('role')" :fontSize="15">
         <div slot="sub-title" class="title">
-          已选<span class="number">{{ roleSelectionList.length }}</span>
+          {{ $t('pe_select') }}<span class="number">{{ roleSelectionList.length }}</span>
         </div>
         <Table
           :border="false"
@@ -57,9 +58,9 @@
     </div>
     <!--ITSM列表-->
     <div class="item">
-      <BaseHeaderTitle title="ITSM流程" :fontSize="15">
+      <BaseHeaderTitle :title="$t('pe_itsm')" :fontSize="15">
         <div slot="sub-title" class="title">
-          已选<span class="number">{{ itsmSelectionList.length }}</span>
+          {{ $t('pe_select') }}<span class="number">{{ itsmSelectionList.length }}</span>
         </div>
         <BaseSearch
           :onlyShowReset="true"
@@ -67,7 +68,9 @@
           v-model="itsmSearchParams"
           @search="handleSearchTable('itsm')"
         ></BaseSearch>
-        <div style="margin: 10px 0">是否导出组件库：<i-switch v-model="exportComponentLibrary"></i-switch></div>
+        <div style="margin: 10px 0">
+          {{ $t('pe_export_library') }}：<i-switch v-model="exportComponentLibrary"></i-switch>
+        </div>
         <Table
           :border="false"
           size="small"
@@ -82,9 +85,9 @@
     </div>
     <!--编排列表-->
     <div class="item">
-      <BaseHeaderTitle title="编排" :fontSize="15">
+      <BaseHeaderTitle :title="$t('m_procDefId')" :fontSize="15">
         <div slot="sub-title" class="title">
-          已选<span class="number">{{ flowSelectionList.length }}</span>
+          {{ $t('pe_select') }}<span class="number">{{ flowSelectionList.length }}</span>
         </div>
         <BaseSearch
           :onlyShowReset="true"
@@ -106,9 +109,9 @@
     </div>
     <!--批量执行列表-->
     <div class="item">
-      <BaseHeaderTitle title="批量执行" :fontSize="15">
+      <BaseHeaderTitle :title="$t('bc_operation')" :fontSize="15">
         <div slot="sub-title" class="title">
-          已选<span class="number">{{ batchSelectionList.length }}</span>
+          {{ $t('pe_select') }}<span class="number">{{ batchSelectionList.length }}</span>
         </div>
         <BaseSearch
           :onlyShowReset="true"
@@ -130,9 +133,9 @@
     </div>
     <!--插件服务-->
     <div class="item">
-      <BaseHeaderTitle title="插件服务" :fontSize="15">
+      <BaseHeaderTitle :title="$t('pluginService')" :fontSize="15">
         <div slot="sub-title" class="title">
-          已选配置类型<span class="number">{{ detailData.pluginsRes.data.length }}</span>
+          {{ $t('pe_select_configType') }}<span class="number">{{ detailData.pluginsRes.data.length }}</span>
         </div>
         <Row :gutter="10">
           <Col :span="16">
@@ -153,7 +156,8 @@
     <div class="item">
       <BaseHeaderTitle title="CMDB" :fontSize="15">
         <div slot="sub-title" class="title">
-          已选CI<span class="number">{{ detailData.cmdbCICount }}</span> <span class="name">视图</span><span class="number">{{ detailData.cmdbViewCount }}</span> <span class="name">报表</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
+          {{ $t('pe_select') }}CI<span class="number">{{ detailData.cmdbCICount }}</span>
+          <span class="name">{{ $t('pe_view') }}</span><span class="number">{{ detailData.cmdbViewCount }}</span> <span class="name">{{ $t('pe_report') }}</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
         </div>
         <Row :gutter="10">
           <Col :span="8">
@@ -168,7 +172,7 @@
             </Card>
           </Col>
           <Col :span="8">
-            <Card title="视图">
+            <Card :title="$t('pe_view')">
               <Table
                 :border="false"
                 size="small"
@@ -179,7 +183,7 @@
             </Card>
           </Col>
           <Col :span="8">
-            <Card title="报表">
+            <Card :title="$t('pe_report')">
               <Table
                 :border="false"
                 size="small"
@@ -194,9 +198,9 @@
     </div>
     <!--物料包-->
     <div class="item">
-      <BaseHeaderTitle title="物料包" :fontSize="15">
+      <BaseHeaderTitle :title="$t('pe_articles')" :fontSize="15">
         <div slot="sub-title" class="title">
-          已选<span class="number">{{ detailData.artifactsCount }}</span>
+          {{ $t('pe_select') }}<span class="number">{{ detailData.artifactsCount }}</span>
         </div>
         <Row :gutter="10">
           <Col :span="16">
@@ -215,10 +219,10 @@
     </div>
     <!--监控-->
     <div class="item">
-      <BaseHeaderTitle title="监控配置" :fontSize="15">
+      <BaseHeaderTitle :title="$t('pe_monitor_config')" :fontSize="15">
         <div slot="sub-title" class="title">
-          已选配置类型<span class="number">{{ detailData.monitorRes.data.length }}</span>
-          <span class="name">总条数</span><span class="number">{{ detailData.monitorCount }}</span>
+          {{ $t('pe_select_configType') }}<span class="number">{{ detailData.monitorRes.data.length }}</span>
+          <span class="name">{{ $t('pe_total') }}</span><span class="number">{{ detailData.monitorCount }}</span>
         </div>
         <Row :gutter="10">
           <Col :span="16">

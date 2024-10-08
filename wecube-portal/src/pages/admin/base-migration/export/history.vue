@@ -65,33 +65,33 @@ export default {
         // 记录ID
         {
           key: 'id',
-          placeholder: '记录ID',
+          placeholder: this.$t('pe_record_id'),
           component: 'input'
         },
         // 导出状态
         {
           key: 'status',
-          placeholder: '导出状态',
+          placeholder: this.$t('pe_export_status'),
           component: 'tag-select',
           multiple: true,
           list: [
             {
-              label: '草稿',
+              label: this.$t('be_status_draft'),
               value: 'start',
               color: '#808695'
             },
             {
-              label: '执行中',
+              label: this.$t('fe_inProgress'),
               value: 'doing',
               color: '#2d8cf0'
             },
             {
-              label: '成功',
+              label: this.$t('be_success'),
               value: 'success',
               color: '#19be6b'
             },
             {
-              label: '失败',
+              label: this.$t('be_error'),
               value: 'fail',
               color: '#ed4014'
             }
@@ -100,7 +100,7 @@ export default {
         // 导出产品
         {
           key: 'business',
-          placeholder: '导出产品',
+          placeholder: this.$t('pe_export_product'),
           multiple: true,
           component: 'select',
           list: []
@@ -108,7 +108,7 @@ export default {
         // 执行人
         {
           key: 'operators',
-          placeholder: '执行人',
+          placeholder: this.$t('executor'),
           multiple: true,
           component: 'select',
           list: []
@@ -133,35 +133,37 @@ export default {
       tableData: [],
       loading: false,
       tableColumns: [
+        // 导出产品
         {
-          title: '导出产品',
+          title: this.$t('pe_export_product'),
           key: 'businessName',
           minWidth: 200,
           render: (h, params) => <span>{params.row.businessName || '-'}</span>
         },
+        // 导出状态
         {
-          title: '导出状态',
+          title: this.$t('pe_export_status'),
           key: 'status',
           minWidth: 120,
           render: (h, params) => {
             const list = [
               {
-                label: '草稿',
+                label: this.$t('be_status_draft'),
                 value: 'start',
                 color: '#808695'
               },
               {
-                label: '执行中',
+                label: this.$t('fe_inProgress'),
                 value: 'doing',
                 color: '#2d8cf0'
               },
               {
-                label: '成功',
+                label: this.$t('be_success'),
                 value: 'success',
                 color: '#19be6b'
               },
               {
-                label: '失败',
+                label: this.$t('be_error'),
                 value: 'fail',
                 color: '#ed4014'
               }
@@ -171,12 +173,12 @@ export default {
           }
         },
         {
-          title: '记录ID',
+          title: this.$t('pe_record_id'),
           minWidth: 160,
           key: 'id'
         },
         {
-          title: '执行人',
+          title: this.$t('executor'),
           key: 'createdUser',
           minWidth: 120
         },

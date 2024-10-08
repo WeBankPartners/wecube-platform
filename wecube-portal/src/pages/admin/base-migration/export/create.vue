@@ -2,40 +2,47 @@
   <Card :bordered="false" dis-hover :padding="0">
     <div class="base-migration-export-create">
       <div class="steps">
-        <BaseHeaderTitle title="导出步骤" :showExpand="false">
+        <BaseHeaderTitle :title="$t('pe_export_steps')" :showExpand="false">
           <Steps :current="activeStep" direction="vertical">
-            <Step title="选择产品、环境" content="系统自动分析需要导出的系统及数据"></Step>
-            <Step title="选择数据,执行导出" content="确认依赖系统、CMDB、编排、ITSM等配置项正确"></Step>
-            <Step title="确认导出结果" content="查看导出数据对比"></Step>
+            <Step :title="$t('pe_step1')" :content="$t('pe_step1_tips')"></Step>
+            <Step :title="$t('pe_step2')" :content="$t('pe_step2_tips')"></Step>
+            <Step :title="$t('pe_step3')" :content="$t('pe_step3_tips')"></Step>
           </Steps>
         </BaseHeaderTitle>
       </div>
       <div class="content" ref="scrollView">
-        <BaseHeaderTitle v-if="activeStep === 0" title="导出产品" :showExpand="false">
+        <!--导出产品-->
+        <BaseHeaderTitle v-if="activeStep === 0" :title="$t('pe_export_product')" :showExpand="false">
           <StepEnviroment ref="env" :detailData="detailData"></StepEnviroment>
         </BaseHeaderTitle>
-        <BaseHeaderTitle v-if="activeStep === 1" title="导出数据" :showExpand="false">
+        <!--导出数据-->
+        <BaseHeaderTitle v-if="activeStep === 1" :title="$t('pe_export_data')" :showExpand="false">
           <StepSelectData ref="data" :detailData="detailData"></StepSelectData>
         </BaseHeaderTitle>
-        <BaseHeaderTitle v-if="activeStep === 2" title="导出结果" :showExpand="false">
+        <!--导出结果-->
+        <BaseHeaderTitle v-if="activeStep === 2" :title="$t('pe_export_result')" :showExpand="false">
           <StepResult :detailData="detailData"></StepResult>
         </BaseHeaderTitle>
         <div class="footer">
           <template v-if="activeStep === 0">
-            <Button type="info" @click="handleSaveEnvBusiness">下一步</Button>
+            <Button type="info" @click="handleSaveEnvBusiness">{{ $t('next_step') }}</Button>
           </template>
           <template v-else-if="activeStep === 1">
-            <Button type="default" @click="handleLast">上一步</Button>
-            <Button type="primary" @click="handleSaveExport" style="margin-left: 10px">执行导出</Button>
+            <Button type="default" @click="handleLast">{{ $t('privious_step') }}</Button>
+            <Button type="primary" @click="handleSaveExport" style="margin-left: 10px">{{
+              $t('pe_execute_export')
+            }}</Button>
           </template>
           <template v-else-if="activeStep === 2">
-            <Button type="default" @click="handleToHistory" style="margin-left: 10px">历史列表</Button>
+            <Button type="default" @click="handleToHistory" style="margin-left: 10px">{{
+              $t('pe_history_list')
+            }}</Button>
             <Button
               v-if="['success', 'fail'].includes(detailData.status)"
               type="success"
               @click="handleReLauch"
               style="margin-left: 10px"
-            >重新发起</Button>
+            >{{ $t('be_republish') }}</Button>
           </template>
         </div>
       </div>
