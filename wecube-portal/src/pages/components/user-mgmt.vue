@@ -103,7 +103,7 @@
                           return date && date.valueOf() < Date.now() - 86400000
                         }
                       }"
-                      style="margin-left: 5px;"
+                      style="margin-left: 5px"
                     ></DatePicker>
                     <Button type="primary" :disabled="!pendingUser.length || !pengdingExpireTime" @click="okSelect">{{
                       $t('add_user')
