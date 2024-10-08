@@ -272,3 +272,14 @@ type ImportStrategyParam struct {
 	UserToken    string
 	Language     string
 }
+
+type WorkflowDto struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	Key     string `json:"key"`
+}
+
+type GetWorkflowResp struct {
+	models.HttpResponseMeta
+	Data []*WorkflowDto `json:"data"`
+}
