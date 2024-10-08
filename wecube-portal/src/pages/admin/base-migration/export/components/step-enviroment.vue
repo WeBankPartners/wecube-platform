@@ -1,13 +1,15 @@
 <template>
   <div class="export-step-enviroment">
+    <!--选择环境-->
     <div class="item">
-      <span class="title">选择环境：</span>
+      <span class="title">{{ $t('pe_select_env') }}：</span>
       <RadioGroup v-model="env" type="button" button-style="solid">
         <Radio v-for="(j, idx) in envList" :label="j.value" :key="idx" border>{{ j.label }}</Radio>
       </RadioGroup>
     </div>
+    <!--选择产品-->
     <div class="item">
-      <span class="title">选择产品<span class="number">{{ selectionList.length }}</span></span>
+      <span class="title">{{ $t('pe_select_product') }}<span class="number">{{ selectionList.length }}</span></span>
       <div>
         <BaseSearch
           :onlyShowReset="true"
@@ -49,12 +51,12 @@ export default {
       searchOptions: [
         {
           key: 'displayName',
-          placeholder: '业务产品名',
+          placeholder: this.$t('pe_business_product'),
           component: 'input'
         },
         {
           key: 'id',
-          placeholder: '产品ID',
+          placeholder: this.$t('pe_product_id'),
           component: 'input'
         }
       ],
@@ -65,7 +67,7 @@ export default {
           align: 'center'
         },
         {
-          title: '业务产品名',
+          title: this.$t('pe_business_product'),
           minWidth: 180,
           key: 'name',
           render: (h, params) => (
@@ -80,12 +82,12 @@ export default {
           )
         },
         {
-          title: '产品ID',
+          title: this.$t('pe_product_id'),
           minWidth: 180,
           key: 'id'
         },
         {
-          title: '产品描述',
+          title: this.$t('pe_product_des'),
           key: 'description',
           minWidth: 140,
           render: (h, params) => <span>{params.row.description || '-'}</span>
