@@ -35,7 +35,7 @@
                     filter-by-label
                     :max-tag-count="3"
                     :placeholder="$t('be_apply_roles')"
-                    style="width: 300px;"
+                    style="width: 300px"
                   >
                     <Option v-for="role in roleList" :value="role.id" :key="role.id" :label="role.displayName" />
                   </Select>
@@ -57,9 +57,11 @@
                         return date && date.valueOf() < Date.now() - 86400000
                       }
                     }"
-                    style="margin-right: 10px;width: 300px;"
+                    style="margin-right: 10px; width: 300px"
                   ></DatePicker>
-                  <Button type="primary" :disabled="selectedRole.length === 0" @click="apply">{{ $t('be_apply') }}</Button>
+                  <Button type="primary" :disabled="selectedRole.length === 0" @click="apply">{{
+                    $t('be_apply')
+                  }}</Button>
                 </FormItem>
               </Col>
             </Row>
