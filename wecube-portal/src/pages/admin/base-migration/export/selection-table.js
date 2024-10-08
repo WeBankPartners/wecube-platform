@@ -10,19 +10,19 @@ export default {
           align: 'center'
         },
         {
-          title: '角色key',
+          title: this.$t('pe_role_key'),
           minWidth: 200,
           key: 'name',
           render: (h, params) => <span>{params.row.name || '-'}</span>
         },
         {
-          title: '角色显示名',
+          title: this.$t('pe_role_name'),
           key: 'displayName',
           minWidth: 200,
           render: (h, params) => <span>{params.row.displayName || '-'}</span>
         },
         {
-          title: '角色邮箱',
+          title: this.$t('be_role_email'),
           key: 'email',
           minWidth: 200,
           render: (h, params) => <span>{params.row.email || '-'}</span>
@@ -106,12 +106,12 @@ export default {
       flowSearchOptions: [
         {
           key: 'name',
-          placeholder: '编排名称',
+          placeholder: this.$t('flow_name'),
           component: 'input'
         },
         {
           key: 'id',
-          placeholder: '编排ID',
+          placeholder: this.$t('workflow_id'),
           component: 'input'
         }
       ],
@@ -191,12 +191,12 @@ export default {
       batchSearchOptions: [
         {
           key: 'name',
-          placeholder: '模板名称',
+          placeholder: this.$t('be_template_name'),
           component: 'input'
         },
         {
           key: 'id',
-          placeholder: '模板ID',
+          placeholder: this.$t('be_template_id'),
           component: 'input'
         }
       ],
@@ -231,7 +231,7 @@ export default {
           }
         },
         {
-          title: '使用场景',
+          title: this.$t('pe_use_scene'),
           minWidth: 100,
           key: 'type',
           render: (h, params) => {
@@ -333,12 +333,12 @@ export default {
       itsmSearchOptions: [
         {
           key: 'name',
-          placeholder: '流程名称',
+          placeholder: this.$t('pe_progress_name'),
           component: 'input'
         },
         {
           key: 'scene',
-          placeholder: '场景',
+          placeholder: this.$t('pe_scene'),
           component: 'select',
           list: [
             {
