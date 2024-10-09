@@ -18,7 +18,7 @@ export default {
           )
         },
         {
-          title: '总数',
+          title: this.$t('count'),
           key: 'total',
           width: 90,
           render: (h, params) => (
@@ -39,7 +39,7 @@ export default {
       // cmdb视图
       cmdbViewColumns: [
         {
-          title: '视图名',
+          title: this.$t('pe_view_name'),
           key: 'name',
           render: (h, params) => (
             <span
@@ -53,7 +53,7 @@ export default {
           )
         },
         {
-          title: '创建人',
+          title: this.$t('createdBy'),
           key: 'creator',
           width: 90,
           render: (h, params) => <span>{params.row.creator || '-'}</span>
@@ -62,7 +62,7 @@ export default {
       // cmdb报表
       cmdbReportColumns: [
         {
-          title: '报表名',
+          title: this.$t('pe_report_name'),
           key: 'name',
           render: (h, params) => (
             <span
@@ -76,7 +76,7 @@ export default {
           )
         },
         {
-          title: '创建人',
+          title: this.$t('createdBy'),
           key: 'creator',
           width: 90,
           render: (h, params) => <span>{params.row.creator || '-'}</span>
@@ -85,7 +85,7 @@ export default {
       // 物料包数据
       artifactsColumns: [
         {
-          title: '所属单元设计',
+          title: this.$t('pe_unit_design'),
           key: 'unitDesignName',
           render: (h, params) => (
             <span
@@ -99,7 +99,7 @@ export default {
           )
         },
         {
-          title: '总包数',
+          title: this.$t('pe_total_package'),
           key: 'artifactLen',
           width: 120,
           render: (h, params) => (
@@ -120,7 +120,7 @@ export default {
       // 监控数据
       monitorColumns: [
         {
-          title: '数据类型',
+          title: this.$t('data_type'),
           render: (h, params) => {
             const nameMap = {
               monitor_type: this.$t('p_general_type'),
@@ -147,7 +147,7 @@ export default {
           }
         },
         {
-          title: '监控配置查询条件',
+          title: this.$t('pe_monitor_query'),
           key: 'conditions',
           render: (h, params) => {
             const conditionsMap = {
@@ -166,7 +166,7 @@ export default {
           }
         },
         {
-          title: '已选',
+          title: this.$t('pe_select'),
           key: 'total',
           width: 100,
           render: (h, params) => (
@@ -186,7 +186,7 @@ export default {
       ],
       pluginColumns: [
         {
-          title: '数据类型',
+          title: this.$t('data_type'),
           key: 'name',
           render: (h, params) => (
             <span
@@ -200,7 +200,7 @@ export default {
           )
         },
         {
-          title: '已选服务',
+          title: this.$t('pe_select_service'),
           key: 'total',
           width: 130,
           render: (h, params) => (
@@ -218,7 +218,7 @@ export default {
           )
         },
         {
-          title: '已选系统参数',
+          title: this.$t('pe_select_system'),
           key: 'total',
           width: 130,
           render: (h, params) => (
