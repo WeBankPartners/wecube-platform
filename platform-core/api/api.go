@@ -292,6 +292,7 @@ func InitHttpServer() {
 	}
 	r.GET(models.UrlPrefix+"/v1/route-items", system.GetRouteItems)
 	r.GET(models.UrlPrefix+"/v1/route-items/:name", system.GetRouteItems)
+	r.POST(models.UrlPrefix+"/entities/role/query", plugin.QueryRoleEntity)
 	r.Run(":" + models.Config.HttpServer.Port)
 }
 
