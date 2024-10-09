@@ -169,11 +169,7 @@ router.beforeEach(async (to, from, next) => {
         .find(_ => to.path.startsWith(_.link) && _.active)
       if (
         (isHasPermission && isHasPermission.active)
-        || [
-          '/collaboration/workflow-mgmt',
-          '/collaboration/registrationDetail',
-          '/wecmdb/designing/data-import-detail'
-        ].includes(to.path)
+        || ['/collaboration/workflow-mgmt', '/collaboration/registrationDetail'].includes(to.path)
       ) {
         /* has permission */
         window.sessionStorage.setItem(
