@@ -71,8 +71,7 @@
       <BaseHeaderTitle title="CMDB" :fontSize="15">
         <div slot="sub-title" class="title">
           {{ $t('pe_select') }}CI<span class="number">{{ detailData.cmdbCICount }}</span>
-          <span class="name">{{ $t('pe_view') }}</span><span class="number">{{ detailData.cmdbViewCount }}</span>
-          <span class="name">{{ $t('pe_report') }}</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
+          <span class="name">{{ $t('pe_view') }}</span><span class="number">{{ detailData.cmdbViewCount }}</span> <span class="name">{{ $t('pe_report') }}</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
           <span v-if="detailData.cmdbRes.status === 'success'" class="success">({{ $t('pi_import_success') }})</span>
           <span v-if="detailData.cmdbRes.status === 'fail'" class="fail">({{ $t('pi_import_fail') }}：<span>{{ detailData.cmdbRes.errMsg }}</span>)</span>
         </div>
@@ -244,7 +243,9 @@
     </div>
     <div class="footer">
       <Button type="default" @click="handleLast">{{ $t('privious_step') }}</Button>
-      <Button v-if="['success'].includes(detailData.stepTwoRes.status)" type="primary" @click="handleNext">{{ $t('next_step') }}</Button>
+      <Button v-if="['success'].includes(detailData.stepTwoRes.status)" type="primary" @click="handleNext">{{
+        $t('next_step')
+      }}</Button>
     </div>
   </div>
 </template>

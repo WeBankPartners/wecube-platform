@@ -9,9 +9,13 @@
               {{ $t('status') }}：<Tag type="border" :color="statusObj.color">{{ statusObj.label }}</Tag>
             </div>
             <!--终止-->
-            <Button v-if="['doing', 'fail'].includes(detailData.status)" type="error" @click="handleStop">{{ $t('stop_orch') }}</Button>
+            <Button v-if="['doing', 'fail'].includes(detailData.status)" type="error" @click="handleStop">{{
+              $t('stop_orch')
+            }}</Button>
             <!--重新发起-->
-            <Button v-if="['success', 'exit'].includes(detailData.status)" type="success" @click="handleReLauch">{{ $t('be_republish') }}</Button>
+            <Button v-if="['success', 'exit'].includes(detailData.status)" type="success" @click="handleReLauch">{{
+              $t('be_republish')
+            }}</Button>
           </div>
           <Steps :current="activeStep" direction="vertical">
             <Step :title="$t('pi_import_step1')" :content="$t('pi_import_step1_tips')"></Step>

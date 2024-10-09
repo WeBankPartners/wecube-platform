@@ -24,8 +24,12 @@
       <Spin v-if="loading" size="large" fix></Spin>
     </Card>
     <div class="footer">
-      <Button v-if="viewFlag && type !== 'republish'" type="info" @click="$emit('nextStep')">{{ $t('next_step') }}</Button>
-      <Button v-else type="info" @click="handleSave" :disabled="detail.businessList.length === 0">{{ $t('pi_execute_import') }}</Button>
+      <Button v-if="viewFlag && type !== 'republish'" type="info" @click="$emit('nextStep')">{{
+        $t('next_step')
+      }}</Button>
+      <Button v-else type="info" @click="handleSave" :disabled="detail.businessList.length === 0">{{
+        $t('pi_execute_import')
+      }}</Button>
     </div>
   </div>
 </template>
