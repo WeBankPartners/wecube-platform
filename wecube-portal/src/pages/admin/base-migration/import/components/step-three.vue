@@ -21,7 +21,9 @@
     />
     <div class="footer">
       <Button type="default" @click="handleLast">{{ $t('privious_step') }}</Button>
-      <Button v-if="['success'].includes(detailData.initWorkflowRes.status)" type="primary" @click="handleNext">{{ $t('next_step') }}</Button>
+      <Button v-if="['success'].includes(detailData.initWorkflowRes.status)" type="primary" @click="handleNext">{{
+        $t('next_step')
+      }}</Button>
     </div>
   </div>
 </template>
