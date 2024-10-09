@@ -2,43 +2,44 @@
   <div class="base-migration-import-two">
     <div class="export-message">
       <Alert v-if="detailData.stepTwoRes.status === 'doing'" type="info" show-icon>
-        <template #desc>正在导入...</template>
+        <template #desc>{{ $t('pi_importing') }}...</template>
       </Alert>
       <Alert v-else-if="detailData.stepTwoRes.status === 'fail'" type="error" show-icon>
-        导入失败！
+        {{ $t('pi_import_fail') }}！
         <template #desc>{{ detailData.stepTwoRes.errMsg || '' }}</template>
       </Alert>
       <Alert v-else-if="detailData.stepTwoRes.status === 'success'" type="success" show-icon>
-        <template #desc>导入成功！</template>
+        <template #desc>{{ $t('pi_import_success') }}！</template>
       </Alert>
     </div>
+    <!--环境产品-->
     <div class="item">
-      <BaseHeaderTitle title="环境产品系统" :fontSize="15">
+      <BaseHeaderTitle :title="$t('pe_env_product_sysytem')" :fontSize="15">
         <div slot="sub-title" class="item-header">
-          <span class="item-header-e">环境<span class="number">{{ detailData.environmentName || '-' }}</span></span>
-          <span class="item-header-p">产品<span class="number">{{ detailData.businessNameList.length }}</span></span>
-          <span class="item-header-s">系统<span class="number">{{ detailData.associationSystems.length || 0 }}</span></span>
+          <span class="item-header-e">{{ $t('pe_env') }}<span class="number">{{ detailData.environmentName || '-' }}</span></span>
+          <span class="item-header-p">{{ $t('pe_product') }}<span class="number">{{ detailData.businessNameList.length }}</span></span>
+          <span class="item-header-s">{{ $t('pe_system') }}<span class="number">{{ detailData.associationSystems.length || 0 }}</span></span>
         </div>
         <card style="margin-top: 5px">
           <div class="content">
             <div class="content-list">
-              <span>已选环境</span>
+              <span>{{ $t('pe_selected_env') }}</span>
               <Tag>{{ detailData.environmentName || '-' }}</Tag>
             </div>
             <div class="content-list">
-              <span>已选业务产品</span>
+              <span>{{ $t('pe_select_busProduct') }}</span>
               <Tag v-for="(i, index) in detailData.businessNameList" class="tag" :key="index">
                 {{ i }}
               </Tag>
             </div>
             <div class="content-list">
-              <span>关联底座产品(自动分析)</span>
+              <span>{{ $t('pe_relate_baseProduct') }}</span>
               <Tag v-for="(i, index) in detailData.associationTechProducts" class="tag" :key="index">
                 {{ i }}
               </Tag>
             </div>
             <div class="content-list">
-              <span>关联系统(自动分析)</span>
+              <span>{{ $t('pe_relate_system') }}</span>
               <Tag v-for="(i, index) in detailData.associationSystems" class="tag" :key="index">
                 {{ i }}
               </Tag>
@@ -49,11 +50,11 @@
     </div>
     <!--角色列表-->
     <div class="item" v-if="detailData.roleRes.status !== 'notStart'">
-      <BaseHeaderTitle title="角色" :fontSize="15">
+      <BaseHeaderTitle :title="$t('role')" :fontSize="15">
         <div slot="sub-title" class="title">
-          已选<span class="number">{{ detailData.roleRes.data.length }}</span>
-          <span v-if="detailData.roleRes.status === 'success'" class="success">(导入成功)</span>
-          <span v-if="detailData.roleRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.roleRes.errMsg }}</span>)</span>
+          {{ $t('pe_select') }}<span class="number">{{ detailData.roleRes.data.length }}</span>
+          <span v-if="detailData.roleRes.status === 'success'" class="success">({{ $t('pi_import_success') }})</span>
+          <span v-if="detailData.roleRes.status === 'fail'" class="fail">({{ $t('pi_import_fail') }}：<span>{{ detailData.roleRes.errMsg }}</span>)</span>
         </div>
         <Table
           :border="false"
@@ -69,9 +70,11 @@
     <div class="item" v-if="detailData.cmdbRes.status !== 'notStart'">
       <BaseHeaderTitle title="CMDB" :fontSize="15">
         <div slot="sub-title" class="title">
-          已选CI<span class="number">{{ detailData.cmdbCICount }}</span> <span class="name">视图</span><span class="number">{{ detailData.cmdbViewCount }}</span> <span class="name">报表</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
-          <span v-if="detailData.cmdbRes.status === 'success'" class="success">(导入成功)</span>
-          <span v-if="detailData.cmdbRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.cmdbRes.errMsg }}</span>)</span>
+          {{ $t('pe_select') }}CI<span class="number">{{ detailData.cmdbCICount }}</span>
+          <span class="name">{{ $t('pe_view') }}</span><span class="number">{{ detailData.cmdbViewCount }}</span>
+          <span class="name">{{ $t('pe_report') }}</span><span class="number">{{ detailData.cmdbReportFormCount }}</span>
+          <span v-if="detailData.cmdbRes.status === 'success'" class="success">({{ $t('pi_import_success') }})</span>
+          <span v-if="detailData.cmdbRes.status === 'fail'" class="fail">({{ $t('pi_import_fail') }}：<span>{{ detailData.cmdbRes.errMsg }}</span>)</span>
         </div>
         <Row :gutter="10">
           <Col :span="8">
@@ -86,7 +89,7 @@
             </Card>
           </Col>
           <Col :span="8">
-            <Card title="视图">
+            <Card :title="$t('pe_view')">
               <Table
                 :border="false"
                 size="small"
@@ -97,7 +100,7 @@
             </Card>
           </Col>
           <Col :span="8">
-            <Card title="报表">
+            <Card :title="$t('pe_report')">
               <Table
                 :border="false"
                 size="small"
@@ -112,11 +115,11 @@
     </div>
     <!--插件服务-->
     <div class="item" v-if="detailData.pluginsRes.status !== 'notStart'">
-      <BaseHeaderTitle title="插件服务" :fontSize="15">
+      <BaseHeaderTitle :title="$t('pluginService')" :fontSize="15">
         <div slot="sub-title" class="title">
-          已选配置类型<span class="number">{{ detailData.pluginsRes.data.length }}</span>
-          <span v-if="detailData.pluginsRes.status === 'success'" class="success">(导入成功)</span>
-          <span v-if="detailData.pluginsRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.pluginsRes.errMsg }}</span>)</span>
+          {{ $t('pe_select_configType') }}<span class="number">{{ detailData.pluginsRes.data.length }}</span>
+          <span v-if="detailData.pluginsRes.status === 'success'" class="success">({{ $t('pe_export_success') }})</span>
+          <span v-if="detailData.pluginsRes.status === 'fail'" class="fail">({{ $t('pe_export_fail') }}：<span>{{ detailData.pluginsRes.errMsg }}</span>)</span>
         </div>
         <Row :gutter="10">
           <Col :span="16">
@@ -135,11 +138,11 @@
     </div>
     <!--编排列表-->
     <div class="item" v-if="detailData.flowRes.status !== 'notStart'">
-      <BaseHeaderTitle title="编排" :fontSize="15">
+      <BaseHeaderTitle :title="$t('m_procDefId')" :fontSize="15">
         <div slot="sub-title" class="title">
-          已选<span class="number">{{ detailData.flowRes.data.length }}</span>
-          <span v-if="detailData.flowRes.status === 'success'" class="success">(导入成功)</span>
-          <span v-if="detailData.flowRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.flowRes.errMsg }}</span>)</span>
+          {{ $t('pe_select') }}<span class="number">{{ detailData.flowRes.data.length }}</span>
+          <span v-if="detailData.flowRes.status === 'success'" class="success">({{ $t('pe_export_success') }})</span>
+          <span v-if="detailData.flowRes.status === 'fail'" class="fail">({{ $t('pe_export_fail') }}：<span>{{ detailData.flowRes.errMsg }}</span>)</span>
         </div>
         <Table
           :border="false"
@@ -153,11 +156,11 @@
     </div>
     <!--批量执行列表-->
     <div class="item" v-if="detailData.batchRes.status !== 'notStart'">
-      <BaseHeaderTitle title="批量执行" :fontSize="15">
+      <BaseHeaderTitle :title="$t('bc_operation')" :fontSize="15">
         <div slot="sub-title" class="title">
-          已选<span class="number">{{ detailData.batchRes.data.length }}</span>
-          <span v-if="detailData.batchRes.status === 'success'" class="success">(导入成功)</span>
-          <span v-if="detailData.batchRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.batchRes.errMsg }}</span>)</span>
+          {{ $t('pe_select') }}<span class="number">{{ detailData.batchRes.data.length }}</span>
+          <span v-if="detailData.batchRes.status === 'success'" class="success">({{ $t('pe_export_success') }})</span>
+          <span v-if="detailData.batchRes.status === 'fail'" class="fail">({{ $t('pe_export_fail') }}：<span>{{ detailData.batchRes.errMsg }}</span>)</span>
         </div>
         <Table
           :border="false"
@@ -171,11 +174,11 @@
     </div>
     <!--物料包-->
     <div class="item" v-if="detailData.artifactsRes.status !== 'notStart'">
-      <BaseHeaderTitle title="物料包" :fontSize="15">
+      <BaseHeaderTitle :title="$t('pe_articles')" :fontSize="15">
         <div slot="sub-title" class="title">
-          已选<span class="number">{{ detailData.artifactsCount }}</span>
-          <span v-if="detailData.artifactsRes.status === 'success'" class="success">(导入成功)</span>
-          <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.artifactsRes.errMsg }}</span>)</span>
+          {{ $t('pe_select') }}<span class="number">{{ detailData.artifactsCount }}</span>
+          <span v-if="detailData.artifactsRes.status === 'success'" class="success">({{ $t('pe_export_success') }})</span>
+          <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">({{ $t('pe_export_fail') }}：<span>{{ detailData.artifactsRes.errMsg }}</span>)</span>
         </div>
         <Row :gutter="10">
           <Col :span="16">
@@ -194,12 +197,12 @@
     </div>
     <!--监控-->
     <div class="item" v-if="detailData.monitorRes.status !== 'notStart'">
-      <BaseHeaderTitle title="监控配置" :fontSize="15">
+      <BaseHeaderTitle :title="$t('pe_monitor_config')" :fontSize="15">
         <div slot="sub-title" class="title">
-          已选 <span class="name">配置类型</span><span class="number">{{ detailData.monitorRes.data.length }}</span>
-          <span class="name">总条数</span><span class="number">{{ detailData.monitorCount }}</span>
-          <span v-if="detailData.monitorRes.status === 'success'" class="success">(导入成功)</span>
-          <span v-if="detailData.monitorRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.monitorRes.errMsg }}</span>)</span>
+          {{ $t('pe_select_configType') }}<span class="number">{{ detailData.monitorRes.data.length }}</span>
+          <span class="name">{{ $t('pe_total') }}</span><span class="number">{{ detailData.monitorCount }}</span>
+          <span v-if="detailData.monitorRes.status === 'success'" class="success">({{ $t('pe_export_success') }})</span>
+          <span v-if="detailData.monitorRes.status === 'fail'" class="fail">({{ $t('pe_export_fail') }}：<span>{{ detailData.monitorRes.errMsg }}</span>)</span>
         </div>
         <Row :gutter="10">
           <Col :span="16">
@@ -218,14 +221,14 @@
     </div>
     <!--ITSM列表-->
     <div class="item" v-if="detailData.itsmRes.status !== 'notStart'">
-      <BaseHeaderTitle title="ITSM流程" :fontSize="15">
+      <BaseHeaderTitle :title="$t('pe_itsm')" :fontSize="15">
         <div slot="sub-title" class="title">
-          已选<span class="number">{{ detailData.itsmRes.data.length }}</span>
-          <span v-if="detailData.itsmRes.status === 'success'" class="success">(导入成功)</span>
-          <span v-if="detailData.itsmRes.status === 'fail'" class="fail">(导入失败：<span>{{ detailData.itsmRes.errMsg }}</span>)</span>
+          {{ $t('pe_select') }}<span class="number">{{ detailData.itsmRes.data.length }}</span>
+          <span v-if="detailData.itsmRes.status === 'success'" class="success">({{ $t('pe_export_success') }})</span>
+          <span v-if="detailData.itsmRes.status === 'fail'" class="fail">({{ $t('pe_export_fail') }}：<span>{{ detailData.itsmRes.errMsg }}</span>)</span>
         </div>
         <div style="margin: 10px 0">
-          是否导出组件库：<i-switch disabled v-model="detailData.exportComponentLibrary"></i-switch>
+          {{ $t('pe_export_library') }}：<i-switch disabled v-model="detailData.exportComponentLibrary"></i-switch>
         </div>
         <div>
           <Table
@@ -240,8 +243,8 @@
       </BaseHeaderTitle>
     </div>
     <div class="footer">
-      <Button type="default" @click="handleLast">上一步</Button>
-      <Button v-if="['success'].includes(detailData.stepTwoRes.status)" type="primary" @click="handleNext">下一步</Button>
+      <Button type="default" @click="handleLast">{{ $t('privious_step') }}</Button>
+      <Button v-if="['success'].includes(detailData.stepTwoRes.status)" type="primary" @click="handleNext">{{ $t('next_step') }}</Button>
     </div>
   </div>
 </template>
