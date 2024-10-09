@@ -20,7 +20,7 @@
     <div class="item">
       <span class="title">
         {{ $t('pe_monitor_config') }}：<span class="sub-title">{{ $t('pe_select_configType') }}<span class="number">{{ detailData.monitorBusinessRes.data.length }}</span>
-        <span class="name">{{ $t('pe_total') }}</span><span class="number">{{ detailData.monitorBusinessCount }}</span>
+          <span class="name">{{ $t('pe_total') }}</span><span class="number">{{ detailData.monitorBusinessCount }}</span>
         </span>
       </span>
       <Table
@@ -34,7 +34,11 @@
     <div class="footer">
       <template v-if="detailData.status !== 'success'">
         <Button type="default" @click="handleLast">{{ $t('privious_step') }}</Button>
-        <Button v-if="['success'].includes(detailData.monitorBusinessRes.status)" type="primary" @click="handleComplete">{{ $t('pi_complete_import') }}</Button>
+        <Button
+          v-if="['success'].includes(detailData.monitorBusinessRes.status)"
+          type="primary"
+          @click="handleComplete"
+        >{{ $t('pi_complete_import') }}</Button>
       </template>
       <template v-else>
         <Button type="default" @click="handleLast">{{ $t('privious_step') }}</Button>
