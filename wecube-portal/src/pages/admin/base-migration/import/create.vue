@@ -159,6 +159,7 @@ export default {
           step: data.step,
           ...data.transExport
         }
+        this.statusObj = this.statusList.find(i => i.value === this.detailData.status)
         this.detailData.roleRes.data = this.detailData.roleRes.data || []
         this.detailData.roleRes.title = '角色'
         this.detailData.flowRes.data = this.detailData.flowRes.data || []
@@ -182,64 +183,11 @@ export default {
         this.detailData.businessNameList = (this.detailData.businessName && this.detailData.businessName.split(',')) || []
         this.detailData.business = this.detailData.business || ''
         this.detailData.cmdbCICount = this.detailData.cmdbCIData.reduce((sum, cur) => sum + cur.count, 0)
-        // this.detailData.monitorCount = this.detailData.monitorRes.data.reduce((sum, cur) => sum + cur.count, 0)
-        // this.detailData.monitorBusinessCount = this.detailData.monitorBusinessRes.data.reduce(
-        //   (sum, cur) => sum + cur.count,
-        //   0
-        // )
         this.detailData.artifactsCount = this.detailData.artifactsRes.data.reduce(
           (sum, cur) => sum + cur.artifactLen,
           0
         )
-        this.statusObj = this.statusList.find(i => i.value === this.detailData.status)
-        // 合并monitor数据
-        const metric_list_obj = {
-          name: 'metric_list',
-          count: 0
-        }
-        const strategy_list_obj = {
-          name: 'strategy_list',
-          count: 0
-        }
-        this.detailData.monitorRes.data.forEach(i => {
-          if (
-            ['custom_metric_service_group', 'custom_metric_endpoint_group', 'custom_metric_monitor_type'].includes(
-              i.name
-            )
-          ) {
-            metric_list_obj.count += i.count
-          }
-          if (['strategy_service_group', 'strategy_endpoint_group'].includes(i.name)) {
-            strategy_list_obj.count += i.count
-          }
-        })
-        const metricIndex = this.detailData.monitorRes.data.findIndex(i => i.name === 'custom_metric_service_group')
-        const strategyIndex = this.detailData.monitorRes.data.findIndex(i => i.name === 'strategy_service_group')
-        this.detailData.monitorRes.data.splice(metricIndex, 0, metric_list_obj)
-        this.detailData.monitorRes.data.splice(strategyIndex, 0, strategy_list_obj)
-        this.detailData.monitorRes.data = this.detailData.monitorRes.data.filter(
-          i =>
-            ![
-              'strategy_service_group',
-              'strategy_endpoint_group',
-              'custom_metric_service_group',
-              'custom_metric_endpoint_group',
-              'custom_metric_monitor_type'
-            ].includes(i.name)
-        )
-        // 第二步monitor数据拆分
-        this.detailData.monitorRes.data = this.detailData.monitorRes.data.filter(i =>
-          ['monitor_type', 'endpoint', 'endpoint_group', 'service_group', 'log_monitor_template'].includes(i.name))
         this.detailData.monitorCount = this.detailData.monitorRes.data.reduce((sum, cur) => sum + cur.count, 0)
-        // 第四步monitor数据拆分
-        this.detailData.monitorBusinessRes.data = this.detailData.monitorBusinessRes.data.filter(i =>
-          [
-            'metric_list',
-            'log_monitor_service_group',
-            'strategy_list',
-            'logKeyword_service_group',
-            'dashboard'
-          ].includes(i.name))
         this.detailData.monitorBusinessCount = this.detailData.monitorBusinessRes.data.reduce(
           (sum, cur) => sum + cur.count,
           0
