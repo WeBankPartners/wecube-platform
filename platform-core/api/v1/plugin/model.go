@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"strings"
 )
 
@@ -196,7 +197,7 @@ func QueryRoleEntity(c *gin.Context) {
 	if err := c.ShouldBindJSON(&param); err != nil {
 		result.Status = "ERROR"
 		result.Message = fmt.Sprintf("Request body json unmarshal failed: %s", err.Error())
-		middleware.ReturnData(c, result)
+		c.JSON(http.StatusOK, result)
 		return
 	}
 	respData, err := remote.RetrieveAllLocalRoles("Y", c.GetHeader(models.AuthorizationHeader), c.GetHeader(models.AcceptLanguageHeader), false)
@@ -217,5 +218,5 @@ func QueryRoleEntity(c *gin.Context) {
 		result.Status = "OK"
 		result.Message = "Success"
 	}
-	middleware.ReturnData(c, result)
+	c.JSON(http.StatusOK, result)
 }
