@@ -583,10 +583,9 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 		log.Logger.Info("11-2. import service_group metric data empty!")
 	}
 
-	// 导入层级对象阈值配置 @todo 依赖编排,先关闭执行
+	// 导入层级对象阈值配置
 	strategyExist = false
-	fmt.Printf("strategyExist:%v", strategyExist)
-	/*strategyPath := fmt.Sprintf("%s/monitor/strategy", transImportParam.DirPath)
+	strategyPath := fmt.Sprintf("%s/monitor/strategy", transImportParam.DirPath)
 	if strategyExist, err = tools.PathExist(strategyPath); err != nil {
 		return
 	}
@@ -620,7 +619,7 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 		log.Logger.Info("11-3. import strategy service_group success!")
 	} else {
 		log.Logger.Info("11-3. import strategy service_group data empty!")
-	}*/
+	}
 	// 导入自定义看板
 	dashboardPath := fmt.Sprintf("%s/monitor/dashboard", transImportParam.DirPath)
 	if dashboardExist, err = tools.PathExist(dashboardPath); err != nil {
