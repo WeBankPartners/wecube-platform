@@ -132,7 +132,7 @@ export default {
               endpoint: this.$t('p_endpoint'), // 对象(仅分析)
               service_group: this.$t('p_endpoint_level'), // 层级对象(仅分析)
               metric_list: this.$t('p_metric_list'), // 指标-指标列表
-              strategy_list: this.$t('p_warning_list'), // 告警-指标阈值
+              strategy_list: this.$t('p_warning_list') // 告警-指标阈值
             }
             return (
               <span
