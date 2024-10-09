@@ -189,3 +189,33 @@ func QueryExpressionDataForPlugin(c *gin.Context) {
 		middleware.ReturnData(c, result)
 	}
 }
+
+func QueryRoleEntity(c *gin.Context) {
+	var param models.EntityQueryParam
+	result := models.RoleEntityResp{}
+	if err := c.ShouldBindJSON(&param); err != nil {
+		result.Status = "ERROR"
+		result.Message = fmt.Sprintf("Request body json unmarshal failed: %s", err.Error())
+		middleware.ReturnData(c, result)
+		return
+	}
+	respData, err := remote.RetrieveAllLocalRoles("Y", c.GetHeader(models.AuthorizationHeader), c.GetHeader(models.AcceptLanguageHeader), false)
+	if err != nil {
+		result.Status = "ERROR"
+		result.Message = err.Error()
+	} else {
+		result.Data = []*models.RoleEntityObj{}
+		for _, v := range respData.Data {
+			if v.Status == "NotDeleted" {
+				result.Data = append(result.Data, &models.RoleEntityObj{
+					Id:          v.Name,
+					DisplayName: v.DisplayName,
+					Email:       v.Email,
+				})
+			}
+		}
+		result.Status = "OK"
+		result.Message = "Success"
+	}
+	middleware.ReturnData(c, result)
+}

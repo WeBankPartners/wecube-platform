@@ -158,3 +158,15 @@ type BuildContextParam struct {
 	Token         string
 	Language      string
 }
+
+type RoleEntityResp struct {
+	Status  string           `json:"status"`
+	Message string           `json:"message"`
+	Data    []*RoleEntityObj `json:"data"`
+}
+
+type RoleEntityObj struct {
+	Id          string `json:"id" xorm:"guid"`
+	DisplayName string `json:"displayName" xorm:"display_name"`
+	Email       string `json:"email" xorm:"email"`
+}
