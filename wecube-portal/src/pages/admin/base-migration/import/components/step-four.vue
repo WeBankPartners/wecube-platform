@@ -2,24 +2,25 @@
   <div class="base-migration-import-four">
     <div v-if="detailData.status === 'success'" class="import-status">
       <Alert type="success" show-icon>
-        <template #desc>恭喜，全部数据已导入成功！</template>
+        <template #desc>{{ $t('pi_all_successTips') }}！</template>
       </Alert>
     </div>
     <div v-else class="import-status">
       <Alert v-if="detailData.monitorBusinessRes.status === 'doing'" type="info" show-icon>
-        <template #desc>正在导入内容，请稍后... </template>
+        <template #desc>{{ $t('pi_importing_tips') }}... </template>
       </Alert>
       <Alert v-else-if="detailData.monitorBusinessRes.status === 'fail'" type="error" show-icon>
-        导入失败！
+        {{ $t('pi_import_fail') }}！
         <template #desc>{{ detailData.monitorBusinessRes.errMsg }}</template>
       </Alert>
       <Alert v-else-if="detailData.monitorBusinessRes.status === 'success'" type="success" show-icon>
-        <template #desc>导入成功！</template>
+        <template #desc>{{ $t('pi_import_success') }}！</template>
       </Alert>
     </div>
     <div class="item">
       <span class="title">
-        监控配置：<span class="sub-title">已选 <span class="name">配置类型</span><span class="number">{{ detailData.monitorBusinessRes.data.length }}</span> <span class="name">总条数</span><span class="number">{{ detailData.monitorBusinessCount }}</span>
+        {{ $t('pe_monitor_config') }}：<span class="sub-title">{{ $t('pe_select_configType') }}<span class="number">{{ detailData.monitorBusinessRes.data.length }}</span>
+        <span class="name">{{ $t('pe_total') }}</span><span class="number">{{ detailData.monitorBusinessCount }}</span>
         </span>
       </span>
       <Table
@@ -32,12 +33,12 @@
     </div>
     <div class="footer">
       <template v-if="detailData.status !== 'success'">
-        <Button type="default" @click="handleLast">上一步</Button>
-        <Button v-if="['success'].includes(detailData.monitorBusinessRes.status)" type="primary" @click="handleComplete">完成导入</Button>
+        <Button type="default" @click="handleLast">{{ $t('privious_step') }}</Button>
+        <Button v-if="['success'].includes(detailData.monitorBusinessRes.status)" type="primary" @click="handleComplete">{{ $t('pi_complete_import') }}</Button>
       </template>
       <template v-else>
-        <Button type="default" @click="handleLast">上一步</Button>
-        <Button type="default" @click="handleToHistory">历史列表</Button>
+        <Button type="default" @click="handleLast">{{ $t('privious_step') }}</Button>
+        <Button type="default" @click="handleToHistory">{{ $t('pe_history_list') }}</Button>
       </template>
     </div>
   </div>
@@ -55,7 +56,7 @@ export default {
       // 监控数据
       monitorColumns: [
         {
-          title: '数据类型',
+          title: this.$t('data_type'),
           render: (h, params) => (
             <span
               style="cursor:pointer;color:#5cadff;"
@@ -68,12 +69,12 @@ export default {
           )
         },
         {
-          title: '监控配置查询条件',
+          title: this.$t('pe_monitor_query'),
           key: 'conditions',
           render: (h, params) => <span>{params.row.conditions || '-'}</span>
         },
         {
-          title: '已选',
+          title: this.$t('pe_select'),
           key: 'total',
           width: 100,
           render: (h, params) => (
