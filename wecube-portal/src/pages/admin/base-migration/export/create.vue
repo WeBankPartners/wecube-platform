@@ -194,9 +194,27 @@ export default {
         )
         // 错误信息提取
         const {
-          artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes, createAndUploadFileRes
+          artifactsRes,
+          batchRes,
+          cmdbRes,
+          monitorRes,
+          pluginsRes,
+          itsmRes,
+          roleRes,
+          flowRes,
+          createAndUploadFileRes
         } = this.detailData
-        const exportData = [artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes, createAndUploadFileRes]
+        const exportData = [
+          artifactsRes,
+          batchRes,
+          cmdbRes,
+          monitorRes,
+          pluginsRes,
+          itsmRes,
+          roleRes,
+          flowRes,
+          createAndUploadFileRes
+        ]
         const failObj = exportData.find(i => i.status === 'fail') || {}
         this.detailData.failMsg = `${failObj.title}：${failObj.errMsg}`
         // 成功或失败，取消轮询查状态
