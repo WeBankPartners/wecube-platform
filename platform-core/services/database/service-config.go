@@ -211,7 +211,7 @@ func QueryCoreObjectMetaV2(ctx context.Context, pluginConfigId string, objectNam
 
 	result = QueryCoreObjectMeta(ctx, packageName, objectName, pluginConfigId)
 	if result == nil {
-		err = fmt.Errorf("query coreObjectMeta by packageName: %s, objectName: %s, pluginConfigId: %s empty", packageName, objectName, pluginConfigId)
+		log.Logger.Warn("query coreObjectMeta empty", log.String("packageName", packageName), log.String("objectName", objectName), log.String("pluginConfigId", pluginConfigId))
 		return
 	}
 	return
