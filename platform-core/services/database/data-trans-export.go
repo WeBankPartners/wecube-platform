@@ -552,6 +552,8 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			}
 		}
 		log.Logger.Info("2. export requestTemplate end!!!!")
+	} else {
+		updateTransExportDetailSuccess(ctx, param.TransExportId, models.TransExportStepRequestTemplate)
 	}
 
 	// 3. 导出组件库
@@ -575,6 +577,8 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			return
 		}
 		log.Logger.Info("3. export componentLibrary start!!!!")
+	} else {
+		updateTransExportDetailSuccess(ctx, param.TransExportId, models.TransExportStepComponentLibrary)
 	}
 
 	// 4. 导出编排
@@ -1199,6 +1203,16 @@ func updateTransExportDetail(ctx context.Context, transExportDetail models.Trans
 		return
 	}
 	_, err = db.MysqlEngine.Context(ctx).Where("trans_export=? and step=?", transExportDetail.TransExport, transExportDetail.Step).Update(transExportDetail)
+	return
+}
+
+func updateTransExportDetailSuccess(ctx context.Context, transExportId string, step models.TransExportStep) (err error) {
+	if transExportId == "" || step == 0 {
+		return
+	}
+	updateData := make(map[string]interface{})
+	updateData["status"] = string(models.TransExportStatusSuccess)
+	_, err = db.MysqlEngine.Context(ctx).Where("trans_export=? and step=?", transExportId, step).Update(updateData)
 	return
 }
 
