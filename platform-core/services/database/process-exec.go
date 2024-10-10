@@ -1530,6 +1530,10 @@ func getInterfaceDataByDataType(valueString, dataType, name string, multiple, is
 		} else {
 			output = valueString
 		}
+	} else if dataType == "object" {
+		output = valueString
+	} else if dataType == "int" {
+		output = valueString
 	}
 	if err != nil {
 		log.Logger.Error("getInterfaceDataByDataType error", log.String("value", valueString), log.String("dataType", dataType), log.String("name", name), log.Error(err))

@@ -70,9 +70,8 @@ export default {
       id: this.$route.query.id || '',
       type: this.$route.query.type || '',
       activeStep: -1,
-      // 导出状态start草稿、doing执行中、success成功、fail失败
       loading: false,
-      detailData: {}
+      detailData: {} // 导出状态start草稿、doing执行中、success成功、fail失败
     }
   },
   async mounted() {

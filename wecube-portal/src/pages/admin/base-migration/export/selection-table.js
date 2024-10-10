@@ -43,7 +43,12 @@ export default {
           key: 'name',
           minWidth: 120,
           render: (h, params) => (
-            <div>
+            <div
+              style="cursor:pointer;color:#5cadff;"
+              onClick={() => {
+                this.handleDetail('flow', params.row)
+              }}
+            >
               {params.row.name}
               <Tag style="margin-left:2px">{params.row.version}</Tag>
             </div>
@@ -130,7 +135,17 @@ export default {
         {
           title: this.$t('be_template_name'),
           key: 'name',
-          minWidth: 140
+          minWidth: 140,
+          render: (h, params) => (
+            <div
+              style="cursor:pointer;color:#5cadff;"
+              onClick={() => {
+                this.handleDetail('batch', params.row)
+              }}
+            >
+              {params.row.name}
+            </div>
+          )
         },
         {
           title: this.$t('be_template_id'),
@@ -217,7 +232,16 @@ export default {
           resizable: true,
           width: 200,
           key: 'name',
-          render: (h, params) => <span>{params.row.name}</span>
+          render: (h, params) => (
+            <div
+              style="cursor:pointer;color:#5cadff;"
+              onClick={() => {
+                this.handleDetail('itsm', params.row)
+              }}
+            >
+              {params.row.name}
+            </div>
+          )
         },
         {
           title: this.$t('version'),
@@ -368,6 +392,20 @@ export default {
         name: '',
         scene: ''
       }
+    }
+  },
+  methods: {
+    handleDetail(type, row) {
+      let path = ''
+      if (type === 'flow') {
+        path = `${window.location.origin}/#/collaboration/workflow-mgmt?flowId=${row.id}&editFlow=false&flowListTab=deployed`
+      } else if (type === 'batch') {
+        path = `${window.location.origin}/#/implementation/batch-execution/template-create?id=${row.id}&type=view`
+      } else if (type === 'itsm') {
+        path = `${window.location.origin}/#/templateManagementIndex?requestTemplateId=${row.id}&isCheck=Y&parentStatus=confirm`
+      }
+      window.sessionStorage.currentPath = ''
+      window.open(path, '_blank')
     }
   }
 }
