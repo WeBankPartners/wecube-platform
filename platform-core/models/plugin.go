@@ -496,8 +496,8 @@ type CoreObjectPropertyMeta struct {
 	MappingEntityExpression   string          `json:"mappingEntityExpression" xorm:"-"`
 	ObjectMeta                *CoreObjectMeta `json:"objectMeta" xorm:"-"`
 	RefObjectMeta             *CoreObjectMeta `json:"refObjectMeta" xorm:"-"`
-	MappingVal                string          `json:"mappingVal" json:"-"`
-	MappingSystemVariableName string          `json:"mappingSystemVariableName" json:"-"`
+	MappingVal                string          `json:"mappingVal" xorm:"-"`
+	MappingSystemVariableName string          `json:"mappingSystemVariableName" xorm:"-"`
 }
 
 // TargetEntityFilterRuleDto 目标对象过滤

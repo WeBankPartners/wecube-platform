@@ -49,7 +49,7 @@
           size="small"
           :loading="roleTableLoading"
           :columns="roleTableColumns"
-          :max-height="400"
+          :max-height="500"
           :data="roleTableData"
           @on-selection-change="selection => handleSelectChange('role', selection)"
         >
@@ -76,7 +76,7 @@
           size="small"
           :loading="itsmTableLoading"
           :columns="itsmTableColumns"
-          :max-height="400"
+          :max-height="500"
           :data="itsmTableData"
           @on-selection-change="selection => handleSelectChange('itsm', selection)"
         >
@@ -100,7 +100,7 @@
           size="small"
           :loading="flowTableLoading"
           :columns="flowTableColumns"
-          :max-height="400"
+          :max-height="500"
           :data="flowTableData"
           @on-selection-change="selection => handleSelectChange('flow', selection)"
         >
@@ -124,7 +124,7 @@
           size="small"
           :loading="batchTableLoading"
           :columns="batchTableColumns"
-          :max-height="400"
+          :max-height="500"
           :data="batchTableData"
           @on-selection-change="selection => handleSelectChange('batch', selection)"
         >
@@ -144,7 +144,7 @@
                 :border="false"
                 size="small"
                 :columns="pluginColumns"
-                :max-height="400"
+                :max-height="500"
                 :data="detailData.pluginsRes.data"
               />
             </Card>
@@ -166,7 +166,7 @@
                 :border="false"
                 size="small"
                 :columns="cmdbCIColumns"
-                :max-height="400"
+                :max-height="500"
                 :data="detailData.cmdbCIData"
               />
             </Card>
@@ -177,7 +177,7 @@
                 :border="false"
                 size="small"
                 :columns="cmdbViewColumns"
-                :max-height="400"
+                :max-height="500"
                 :data="detailData.cmdbViewData"
               />
             </Card>
@@ -188,7 +188,7 @@
                 :border="false"
                 size="small"
                 :columns="cmdbReportColumns"
-                :max-height="400"
+                :max-height="500"
                 :data="detailData.cmdbReportData"
               />
             </Card>
@@ -209,7 +209,7 @@
                 :border="false"
                 size="small"
                 :columns="artifactsColumns"
-                :max-height="400"
+                :max-height="500"
                 :data="detailData.artifactsRes.data"
               />
             </Card>
@@ -231,7 +231,7 @@
                 :border="false"
                 size="small"
                 :columns="monitorColumns"
-                :max-height="400"
+                :max-height="500"
                 :data="detailData.monitorRes.data"
               />
             </Card>
