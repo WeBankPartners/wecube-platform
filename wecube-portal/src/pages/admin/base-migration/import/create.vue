@@ -155,24 +155,25 @@ export default {
           pluginsRes: data.plugins || {}, // 插件
           initWorkflowRes: data.procInstance || {},
           monitorBusinessRes: data.monitorBusiness || {},
-          exportComponentLibrary: data.exportComponentLibrary, // 组件库
+          componentLibraryRes: data.componentLibrary || {}, // 组件库
           step: data.step,
           ...data.transExport
         }
         this.statusObj = this.statusList.find(i => i.value === this.detailData.status)
         this.detailData.roleRes.data = this.detailData.roleRes.data || []
-        this.detailData.roleRes.title = '角色'
         this.detailData.flowRes.data = this.detailData.flowRes.data || []
-        this.detailData.flowRes.title = '编排'
         this.detailData.batchRes.data = this.detailData.batchRes.data || []
-        this.detailData.batchRes.title = '批量执行'
         this.detailData.itsmRes.data = this.detailData.itsmRes.data || []
-        this.detailData.itsmRes.title = 'ITSM流程'
         this.detailData.artifactsRes.data = this.detailData.artifactsRes.data || []
-        this.detailData.artifactsRes.title = '物料包'
         this.detailData.monitorRes.data = this.detailData.monitorRes.data || []
-        this.detailData.monitorRes.title = '监控配置'
         this.detailData.pluginsRes.data = this.detailData.pluginsRes.data || []
+        this.detailData.roleRes.title = '角色'
+        this.detailData.flowRes.title = '编排'
+        this.detailData.batchRes.title = '批量执行'
+        this.detailData.itsmRes.title = 'ITSM流程'
+        this.detailData.componentLibraryRes.title = 'ITSM组件库'
+        this.detailData.artifactsRes.title = '物料包'
+        this.detailData.monitorRes.title = '监控配置'
         this.detailData.pluginsRes.title = '插件服务'
         this.detailData.cmdbRes.title = 'CMDB'
         this.detailData.initWorkflowRes.data = this.detailData.initWorkflowRes.data || []
@@ -194,9 +195,9 @@ export default {
         )
         // 第二步导入状态判断
         const {
-          artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes
+          artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes, componentLibraryRes
         } = this.detailData
-        const stepTwoData = [artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes]
+        const stepTwoData = [artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes, componentLibraryRes]
         const success = stepTwoData.every(i => i.status === 'success')
         const fail = stepTwoData.some(i => i.status === 'fail')
         const failObj = stepTwoData.find(i => i.status === 'fail') || {}
@@ -211,7 +212,7 @@ export default {
           this.detailData.stepTwoRes.status = 'fail'
         }
         if (this.detailData.step === 2) {
-          if (!['success', 'fail'].includes(this.detailData.stepTwoRes.status)) {
+          if (this.detailData.stepTwoRes.status === 'doing') {
             if (!this.interval) {
               this.interval = setInterval(() => {
                 this.getDetailData()
@@ -223,7 +224,7 @@ export default {
         }
         // 第三步导入状态判断
         if (this.detailData.step === 3) {
-          if (!['success', 'fail'].includes(this.detailData.initWorkflowRes.status)) {
+          if (this.detailData.initWorkflowRes.status === 'doing') {
             if (!this.interval) {
               this.interval = setInterval(() => {
                 this.getDetailData()
@@ -235,7 +236,7 @@ export default {
         }
         // 第四步导入状态判断
         if (this.detailData.step === 4) {
-          if (!['success', 'fail'].includes(this.detailData.monitorBusinessRes.status)) {
+          if (this.detailData.monitorBusinessRes.status === 'doing') {
             if (!this.interval) {
               this.interval = setInterval(() => {
                 this.getDetailData()
