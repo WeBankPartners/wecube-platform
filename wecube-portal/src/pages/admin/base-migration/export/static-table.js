@@ -18,7 +18,7 @@ export default {
           )
         },
         {
-          title: '总数',
+          title: this.$t('count'),
           key: 'total',
           width: 90,
           render: (h, params) => (
@@ -39,7 +39,7 @@ export default {
       // cmdb视图
       cmdbViewColumns: [
         {
-          title: '视图名',
+          title: this.$t('pe_view_name'),
           key: 'name',
           render: (h, params) => (
             <span
@@ -53,7 +53,7 @@ export default {
           )
         },
         {
-          title: '创建人',
+          title: this.$t('createdBy'),
           key: 'creator',
           width: 90,
           render: (h, params) => <span>{params.row.creator || '-'}</span>
@@ -62,7 +62,7 @@ export default {
       // cmdb报表
       cmdbReportColumns: [
         {
-          title: '报表名',
+          title: this.$t('pe_report_name'),
           key: 'name',
           render: (h, params) => (
             <span
@@ -76,7 +76,7 @@ export default {
           )
         },
         {
-          title: '创建人',
+          title: this.$t('createdBy'),
           key: 'creator',
           width: 90,
           render: (h, params) => <span>{params.row.creator || '-'}</span>
@@ -85,7 +85,7 @@ export default {
       // 物料包数据
       artifactsColumns: [
         {
-          title: '所属单元设计',
+          title: this.$t('pe_unit_design'),
           key: 'unitDesignName',
           render: (h, params) => (
             <span
@@ -99,7 +99,7 @@ export default {
           )
         },
         {
-          title: '总包数',
+          title: this.$t('pe_total_package'),
           key: 'artifactLen',
           width: 120,
           render: (h, params) => (
@@ -120,19 +120,19 @@ export default {
       // 监控数据
       monitorColumns: [
         {
-          title: '数据类型',
+          title: this.$t('data_type'),
           render: (h, params) => {
             const nameMap = {
-              monitor_type: this.$t('p_general_type'),
-              endpoint_group: this.$t('p_endpoint_group'),
-              log_monitor_template: this.$t('p_log_monitor_template'),
-              log_monitor_service_group: this.$t('p_log_monitor_config'),
-              metric_list: this.$t('p_metric_list'),
-              strategy_list: this.$t('p_warning_list'),
-              logKeyword_service_group: this.$t('p_keyword_list'),
-              dashboard: this.$t('p_dashboard'),
-              endpoint: this.$t('p_endpoint'),
-              service_group: this.$t('p_endpoint_level')
+              monitor_type: this.$t('p_general_type'), // 基础类型
+              endpoint_group: this.$t('p_endpoint_group'), // 对象组
+              log_monitor_template: this.$t('p_log_monitor_template'), // 指标-业务日志模版
+              log_monitor_service_group: this.$t('p_log_monitor_config'), // 指标-业务配置
+              logKeyword_service_group: this.$t('p_keyword_list'), // 告警关键字
+              dashboard: this.$t('p_dashboard'), // 自定义看板
+              endpoint: this.$t('p_endpoint'), // 对象(仅分析)
+              service_group: this.$t('p_endpoint_level'), // 层级对象(仅分析)
+              metric_list: this.$t('p_metric_list'), // 指标-指标列表
+              strategy_list: this.$t('p_warning_list') // 告警-指标阈值
             }
             return (
               <span
@@ -147,26 +147,26 @@ export default {
           }
         },
         {
-          title: '监控配置查询条件',
+          title: this.$t('pe_monitor_query'),
           key: 'conditions',
           render: (h, params) => {
             const conditionsMap = {
-              monitor_type: ['全选'],
+              monitor_type: [this.$t('select_all')],
               endpoint: ['CMDB'],
-              endpoint_group: ['对象'],
+              endpoint_group: [this.$t('object')],
               service_group: ['CMDB'],
-              log_monitor_template: ['指标-业务配置'],
-              log_monitor_service_group: ['层级对象'],
-              metric_list: ['层级对象', '对象组', '基础类型'],
-              strategy_list: ['层级对象', '对象组'],
-              logKeyword_service_group: ['层级对象'],
-              dashboard: ['层级对象', '对象']
+              log_monitor_template: [this.$t('p_log_monitor_config')],
+              log_monitor_service_group: [this.$t('p_level_object')],
+              metric_list: [this.$t('p_level_object'), this.$t('p_endpoint_group'), this.$t('p_general_type')],
+              strategy_list: [this.$t('p_level_object'), this.$t('p_endpoint_group')],
+              logKeyword_service_group: [this.$t('p_level_object')],
+              dashboard: [this.$t('p_level_object'), this.$t('object')]
             }
             return conditionsMap[params.row.name].map(item => <Tag>{item}</Tag>)
           }
         },
         {
-          title: '已选',
+          title: this.$t('pe_select'),
           key: 'total',
           width: 100,
           render: (h, params) => (
@@ -186,7 +186,7 @@ export default {
       ],
       pluginColumns: [
         {
-          title: '数据类型',
+          title: this.$t('data_type'),
           key: 'name',
           render: (h, params) => (
             <span
@@ -200,7 +200,7 @@ export default {
           )
         },
         {
-          title: '已选服务',
+          title: this.$t('pe_select_service'),
           key: 'total',
           width: 130,
           render: (h, params) => (
@@ -218,7 +218,7 @@ export default {
           )
         },
         {
-          title: '已选系统参数',
+          title: this.$t('pe_select_system'),
           key: 'total',
           width: 130,
           render: (h, params) => (
