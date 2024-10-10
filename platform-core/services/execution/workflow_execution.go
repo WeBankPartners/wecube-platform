@@ -96,7 +96,7 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 	if errCall != nil {
 		if errCode != "" && errCode != "0" {
 			if pluginCallResult != nil && len(pluginCallResult.Outputs) > 0 {
-				_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq)
+				_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq, true)
 				if errHandle != nil {
 					log.Logger.Error("handle error output data fail", log.Error(errHandle))
 				}
@@ -108,7 +108,7 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 		return
 	}
 	// 处理output param(比如类型转换，数据模型写入), handleOutputData主要是用于格式化为output param定义的字段
-	_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq)
+	_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq, false)
 	if errHandle != nil {
 		err = errHandle
 		return
@@ -726,7 +726,7 @@ func HandleCallbackHumanJob(ctx context.Context, procRunNodeId string, callbackD
 	}
 	procInsNodeReq := models.ProcInsNodeReq{Id: callbackData.Results.RequestId}
 	// 处理output param(比如类型转换，数据模型写入), handleOutputData主要是用于格式化为output param定义的字段
-	_, errHandle := handleOutputData(ctx, remote.GetToken(), pluginCallOutput, pluginInterface.OutputParameters, &procInsNodeReq)
+	_, errHandle := handleOutputData(ctx, remote.GetToken(), pluginCallOutput, pluginInterface.OutputParameters, &procInsNodeReq, false)
 	if errHandle != nil {
 		err = errHandle
 		return
