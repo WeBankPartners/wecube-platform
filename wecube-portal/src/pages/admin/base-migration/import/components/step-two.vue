@@ -227,7 +227,10 @@
           <span v-if="detailData.itsmRes.status === 'fail'" class="fail">({{ $t('pe_export_fail') }}：<span>{{ detailData.itsmRes.errMsg }}</span>)</span>
         </div>
         <div style="margin: 10px 0">
-          {{ $t('pe_export_library') }}：<i-switch disabled v-model="detailData.componentLibraryRes.exportComponentLibrary"></i-switch>
+          {{ $t('pe_export_library') }}：<i-switch
+            disabled
+            v-model="detailData.componentLibraryRes.exportComponentLibrary"
+          ></i-switch>
         </div>
         <div>
           <Table
