@@ -131,7 +131,7 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		return
 	}
 	// 处理output param(比如类型转换，数据模型写入), handleOutputData主要是用于格式化为output param定义的字段
-	_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, pluginInterface.OutputParameters, &models.ProcInsNodeReq{})
+	_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, pluginInterface.OutputParameters, &models.ProcInsNodeReq{}, false)
 	if errHandle != nil {
 		err = errHandle
 		return
@@ -856,7 +856,7 @@ func handleOutputData(
 	ctx context.Context,
 	authToken string,
 	outputs []map[string]interface{},
-	outputParamDefs []*models.PluginConfigInterfaceParameters, procInsNodeReq *models.ProcInsNodeReq) (result *models.PluginInterfaceApiResultData, err error) {
+	outputParamDefs []*models.PluginConfigInterfaceParameters, procInsNodeReq *models.ProcInsNodeReq, failFlag bool) (result *models.PluginInterfaceApiResultData, err error) {
 	tmpResult := &models.PluginInterfaceApiResultData{Outputs: make([]map[string]interface{}, 0)}
 	tmpResultForEntity := &OutputEntityData{Data: make([]*OutputEntityRootData, 0)}
 	reqInputParamIndexMap := make(map[string]int)
@@ -1023,6 +1023,10 @@ func handleOutputData(
 				tmpResultForEntity.Data = append(tmpResultForEntity.Data, tmpResultOutputForEntity)
 			}
 		}
+	}
+	if failFlag {
+		result = tmpResult
+		return
 	}
 	// 处理entity写入
 	for _, rootData := range tmpResultForEntity.Data {
