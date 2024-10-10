@@ -2,6 +2,7 @@ package execution
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
@@ -829,7 +830,17 @@ func handleInputData(
 			//if procReqParamObj.IsSensitive {
 			//	inputParamData[inputDef.Name] = buildSensitiveData(inputParamData[inputDef.Name], entityInstance.Id)
 			//}
-			procReqParamObj.DataValue = fmt.Sprintf("%v", inputParamData[inputDef.Name])
+			if inputDef.DataType == models.PluginParamDataTypeObject {
+				objectJsonBytes, marshalErr := json.Marshal(inputParamData[inputDef.Name])
+				if marshalErr == nil {
+					procReqParamObj.DataValue = string(objectJsonBytes)
+				} else {
+					log.Logger.Warn("json marshal object data value fail", log.Error(marshalErr))
+					procReqParamObj.DataValue = fmt.Sprintf("%v", inputParamData[inputDef.Name])
+				}
+			} else {
+				procReqParamObj.DataValue = fmt.Sprintf("%v", inputParamData[inputDef.Name])
+			}
 			procReqParamObj.CallbackId = entityInstance.Id
 			procInsNodeReq.Params = append(procInsNodeReq.Params, &procReqParamObj)
 		}
