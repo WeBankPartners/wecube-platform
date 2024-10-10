@@ -195,9 +195,27 @@ export default {
         )
         // 第二步导入状态判断
         const {
-          artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes, componentLibraryRes
+          artifactsRes,
+          batchRes,
+          cmdbRes,
+          monitorRes,
+          pluginsRes,
+          itsmRes,
+          roleRes,
+          flowRes,
+          componentLibraryRes
         } = this.detailData
-        const stepTwoData = [artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes, componentLibraryRes]
+        const stepTwoData = [
+          artifactsRes,
+          batchRes,
+          cmdbRes,
+          monitorRes,
+          pluginsRes,
+          itsmRes,
+          roleRes,
+          flowRes,
+          componentLibraryRes
+        ]
         const success = stepTwoData.every(i => i.status === 'success')
         const fail = stepTwoData.some(i => i.status === 'fail')
         const failObj = stepTwoData.find(i => i.status === 'fail') || {}
