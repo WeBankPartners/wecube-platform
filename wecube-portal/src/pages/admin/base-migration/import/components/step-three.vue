@@ -2,14 +2,14 @@
   <div class="base-migration-import-three">
     <div class="import-status">
       <Alert v-if="detailData.initWorkflowRes.status === 'doing'" type="info" show-icon>
-        <template #desc>正在导入内容，请稍后... </template>
+        <template #desc>{{ $t('pi_importing_tips') }}... </template>
       </Alert>
       <Alert v-else-if="detailData.initWorkflowRes.status === 'fail'" type="error" show-icon>
-        导入失败！
+        {{ $t('pi_import_fail') }}！
         <template #desc>{{ detailData.initWorkflowRes.errMsg }}</template>
       </Alert>
       <Alert v-else-if="detailData.initWorkflowRes.status === 'success'" type="success" show-icon>
-        <template #desc>导入成功！</template>
+        <template #desc>{{ $t('pi_import_success') }}！</template>
       </Alert>
     </div>
     <Table
@@ -20,8 +20,10 @@
       :data="detailData.initWorkflowRes.data"
     />
     <div class="footer">
-      <Button type="default" @click="handleLast">上一步</Button>
-      <Button v-if="['success'].includes(detailData.initWorkflowRes.status)" type="primary" @click="handleNext">下一步</Button>
+      <Button type="default" @click="handleLast">{{ $t('privious_step') }}</Button>
+      <Button v-if="['success'].includes(detailData.initWorkflowRes.status)" type="primary" @click="handleNext">{{
+        $t('next_step')
+      }}</Button>
     </div>
   </div>
 </template>

@@ -369,6 +369,9 @@ func ExtractExpressionResultColumn(exprList []*models.ExpressionObj, exprResult 
 	}
 	expr := exprList[len(exprList)-1]
 	result = make([]interface{}, 0)
+	if expr.ResultColumn == "" {
+		expr.ResultColumn = "id"
+	}
 	for _, r := range exprResult {
 		if v, ok := r[expr.ResultColumn]; ok {
 			result = append(result, v)
