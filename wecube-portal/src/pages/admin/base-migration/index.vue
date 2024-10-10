@@ -16,35 +16,37 @@ export default {
     return {
       expand: true,
       menuList: [
+        // 一键导出
         {
-          title: '一键导出',
+          title: this.$t('pe_one_export'),
           icon: 'md-cloud-download',
           name: '1',
           children: [
             {
-              title: '创建',
+              title: this.$t('p_create'),
               path: '/admin/base-migration/export',
               name: '1-1'
             },
             {
-              title: '历史',
+              title: this.$t('fe_history'),
               path: '/admin/base-migration/export-history',
               name: '1-2'
             }
           ]
         },
+        // 一键导入
         {
-          title: '一键导入',
+          title: this.$t('pe_one_import'),
           icon: 'md-cloud-upload',
           name: '2',
           children: [
             {
-              title: '创建',
+              title: this.$t('p_create'),
               path: '/admin/base-migration/import',
               name: '2-1'
             },
             {
-              title: '历史',
+              title: this.$t('fe_history'),
               path: '/admin/base-migration/import-history',
               name: '2-2'
             }

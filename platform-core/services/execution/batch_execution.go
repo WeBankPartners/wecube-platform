@@ -140,7 +140,11 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 	return
 }
 
-func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfaceParameters, value interface{}) (interface{}, error) {
+// normalizePluginInterfaceParamData
+// 根据参数定义的 dataType和multiple 来做值转换
+// dataType -> int | string | object | list
+// multiple -> Y | N
+func normalizePluginInterfaceParamData(ctxParam *models.HandleProcessInputDataParam, inputParamDef *models.PluginConfigInterfaceParameters, value interface{}) (interface{}, error) {
 	// Required 空默认是N
 	// Multiple 空默认是N
 	// 如果value是nil，但required，则报错
@@ -157,6 +161,32 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 	log.Logger.Debug("normalizePluginInterfaceParamData", log.String("key", inputParamDef.Name), log.String("valueType", t.Kind().String()), log.String("value", fmt.Sprintf("%v", value)))
 	// value的kind可能是[]{int, string, float, object}, int, string, float, object
 	if t.Kind() == reflect.Slice {
+		if inputParamDef.DataType == models.PluginParamDataTypeObject {
+			if inputParamDef.RefObjectName == "" {
+				return result, nil
+			}
+			if inputParamDef.Multiple == "Y" {
+				if inputParamDef.RefObjectMeta != nil {
+					tv := reflect.ValueOf(value)
+					var resultList []interface{}
+					var err error
+					for i := 0; i < tv.Len(); i++ {
+						tmpResult, tmpErr := recursiveObjectParamData(ctxParam, inputParamDef.RefObjectMeta, tv.Index(i).Interface())
+						if tmpErr != nil {
+							err = fmt.Errorf("recursiveObjectParamData field:%s fail,%s ", inputParamDef.Name, tmpErr.Error())
+							break
+						} else {
+							resultList = append(resultList, tmpResult)
+						}
+					}
+					return resultList, err
+				} else {
+					return nil, fmt.Errorf("field:%s dataType is object but can not find refOject:%s ", inputParamDef.Name, inputParamDef.RefObjectName)
+				}
+			} else {
+				return nil, fmt.Errorf("field:%s dataType is not multiple object but get multiple value", inputParamDef.Name)
+			}
+		}
 		if inputParamDef.Multiple == "Y" || inputParamDef.DataType == models.PluginParamDataTypeList {
 			// FIXME： 列表元素类型转换
 			result = value
@@ -257,6 +287,98 @@ func normalizePluginInterfaceParamData(inputParamDef *models.PluginConfigInterfa
 		}
 	}
 	return result, nil
+}
+
+func recursiveObjectParamData(ctxParam *models.HandleProcessInputDataParam, refObjectMeta *models.CoreObjectMeta, inputRowData interface{}) (result map[string]interface{}, err error) {
+	result = make(map[string]interface{})
+	for _, inputDef := range refObjectMeta.PropertyMetas {
+		var inputCalResult interface{}
+		switch inputDef.MappingType {
+		case models.PluginParamMapTypeConstant:
+			if inputDef.MappingVal != "" {
+				inputCalResult = inputDef.MappingVal
+			} else {
+				inputCalResult = ctxParam.InputConstantMap[inputDef.Id]
+			}
+		case models.PluginParamMapTypeSystemVar:
+			if inputDef.MappingSystemVariableName == "" {
+				err = fmt.Errorf("input param %s is map to %s, but variable name is empty", inputDef.Name, inputDef.MappingType)
+				return
+			}
+			inputCalResult, err = database.GetSystemVariable(context.Background(), inputDef.MappingSystemVariableName)
+			if err != nil {
+				return
+			}
+		case models.PluginParamMapTypeContext:
+			// 上下文参数获取不支持
+			err = fmt.Errorf("input param %s is map to %s, not supported", inputDef.Name, inputDef.MappingType)
+			return
+		case models.PluginParamMapTypeEntity:
+			entityRowDataId := ""
+			if rowDataId, ok := inputRowData.(string); !ok {
+				err = fmt.Errorf("input param %s entity type can not find row data id,rowData:%v ", inputDef.Name, inputRowData)
+				return
+			} else {
+				entityRowDataId = rowDataId
+			}
+			// 从数据模型获取
+			if inputDef.MapExpr != "" {
+				inputDef.MappingEntityExpression = inputDef.MapExpr
+			}
+			if inputDef.MappingEntityExpression == "" {
+				err = fmt.Errorf("input param %s is map to %s, but entity expression is empty", inputDef.Name, inputDef.MappingType)
+				return
+			}
+			execExprList, errAnalyze2 := remote.AnalyzeExpression(inputDef.MappingEntityExpression)
+			if err != nil {
+				err = errAnalyze2
+				return
+			}
+			if len(execExprList) == 0 {
+				err = fmt.Errorf("input param %s entity expression %s illegal", inputDef.Name, inputDef.MappingEntityExpression)
+				return
+			}
+			execExprFilterList := make([]*models.QueryExpressionDataFilter, 0)
+			execExprFilter := &models.QueryExpressionDataFilter{
+				PackageName:      execExprList[0].Package,
+				EntityName:       execExprList[0].Entity,
+				AttributeFilters: make([]*models.QueryExpressionDataAttrFilter, 0),
+			}
+			execExprFilter.AttributeFilters = append(execExprFilter.AttributeFilters, &models.QueryExpressionDataAttrFilter{
+				Name:     "id",
+				Operator: "eq",
+				Value:    entityRowDataId,
+			})
+			execExprFilterList = append(execExprFilterList, execExprFilter)
+			execExprResult, errExec := remote.QueryPluginData(ctxParam.Ctx, execExprList, execExprFilterList, ctxParam.AuthToken)
+			if errExec != nil {
+				err = errExec
+				return
+			}
+			inputCalResult = remote.ExtractExpressionResultColumn(execExprList, execExprResult)
+		case models.PluginParamMapTypeObject:
+			// TODO: 从指定对象获取暂不支持(k8s)
+			err = fmt.Errorf("input param %s is map to %s, which batch execution is not supported", inputDef.Name, inputDef.MappingType)
+			return
+		}
+		transInputDef := &models.PluginConfigInterfaceParameters{
+			Name:                      inputDef.Name,
+			DataType:                  inputDef.DataType,
+			MappingType:               inputDef.MappingType,
+			MappingEntityExpression:   inputDef.MappingEntityExpression,
+			MappingSystemVariableName: inputDef.MappingSystemVariableName,
+			SensitiveData:             inputDef.SensitiveData,
+			MappingVal:                inputDef.MappingVal,
+			Multiple:                  inputDef.Multiple,
+			RefObjectName:             inputDef.RefObjectName,
+			RefObjectMeta:             inputDef.RefObjectMeta,
+		}
+		result[inputDef.Name], err = normalizePluginInterfaceParamData(ctxParam, transInputDef, inputCalResult)
+		if err != nil {
+			return
+		}
+	}
+	return
 }
 
 // handle inputData
@@ -618,6 +740,7 @@ func handleInputData(
 	inputConstantMap map[string]string,
 	inputContextMap map[string]interface{}, procInsNodeReq *models.ProcInsNodeReq) (inputParamDatas []models.BatchExecutionPluginExecInputParams, err error) {
 	inputParamDatas = make([]models.BatchExecutionPluginExecInputParams, 0)
+	ctxParam := models.HandleProcessInputDataParam{Ctx: ctx, AuthToken: authToken, InputConstantMap: inputConstantMap, InputContextMap: inputContextMap}
 	for dataIndex, entityInstance := range entityInstances {
 		// batch inputParamData = {"callbackParameter":"entity instance id", "confirmToken":"Y", xml props}
 		inputParamData := models.BatchExecutionPluginExecInputParams{}
@@ -699,13 +822,13 @@ func handleInputData(
 				err = fmt.Errorf("input param %s is map to %s, which batch execution is not supported", inputDef.Name, inputDef.MappingType)
 				return
 			}
-			inputParamData[inputDef.Name], err = normalizePluginInterfaceParamData(inputDef, inputCalResult)
+			inputParamData[inputDef.Name], err = normalizePluginInterfaceParamData(&ctxParam, inputDef, inputCalResult)
 			if err != nil {
 				return
 			}
-			if procReqParamObj.IsSensitive {
-				inputParamData[inputDef.Name] = buildSensitiveData(inputParamData[inputDef.Name], entityInstance.Id)
-			}
+			//if procReqParamObj.IsSensitive {
+			//	inputParamData[inputDef.Name] = buildSensitiveData(inputParamData[inputDef.Name], entityInstance.Id)
+			//}
 			procReqParamObj.DataValue = fmt.Sprintf("%v", inputParamData[inputDef.Name])
 			procReqParamObj.CallbackId = entityInstance.Id
 			procInsNodeReq.Params = append(procInsNodeReq.Params, &procReqParamObj)
@@ -726,6 +849,7 @@ func handleOutputData(
 	tmpResult := &models.PluginInterfaceApiResultData{Outputs: make([]map[string]interface{}, 0)}
 	tmpResultForEntity := &OutputEntityData{Data: make([]*OutputEntityRootData, 0)}
 	reqInputParamIndexMap := make(map[string]int)
+	ctxParam := models.HandleProcessInputDataParam{Ctx: ctx, AuthToken: authToken}
 	for _, v := range procInsNodeReq.Params {
 		if v.FromType == "input" {
 			reqInputParamIndexMap[v.CallbackId] = v.DataIndex
@@ -772,7 +896,7 @@ func handleOutputData(
 				if len(execExprList) > 1 {
 					branchResultOutput := make(map[string]interface{})
 					// outputCalResult规格化后保存进branchResultOutput
-					outputCalResultConv, errConv := normalizePluginInterfaceParamData(outputDef, outputCalResult)
+					outputCalResultConv, errConv := normalizePluginInterfaceParamData(&ctxParam, outputDef, outputCalResult)
 					if errConv != nil {
 						err = errConv
 						return
@@ -806,7 +930,7 @@ func handleOutputData(
 				if len(execExprList) > 1 {
 					branchResultOutput := make(map[string]interface{})
 					// outputCalResult规格化后保存进branchResultOutput
-					outputCalResultConv, errConv := normalizePluginInterfaceParamData(outputDef, outputCalResult)
+					outputCalResultConv, errConv := normalizePluginInterfaceParamData(&ctxParam, outputDef, outputCalResult)
 					if errConv != nil {
 						err = errConv
 						return
@@ -822,7 +946,7 @@ func handleOutputData(
 				err = fmt.Errorf("input param %s is map to %s, which batch execution is not supported", outputDef.Name, outputDef.MappingType)
 				return
 			}
-			tmpResultOutput[outputDef.Name], err = normalizePluginInterfaceParamData(outputDef, outputCalResult)
+			tmpResultOutput[outputDef.Name], err = normalizePluginInterfaceParamData(&ctxParam, outputDef, outputCalResult)
 			if err != nil {
 				return
 			}
@@ -849,9 +973,9 @@ func handleOutputData(
 			if v, ok := output[models.PluginCallResultPresetErrorMsg]; ok {
 				tmpResultOutput[models.PluginCallResultPresetErrorMsg] = v
 			}
-			if procReqParamObj.IsSensitive {
-				tmpResultOutput[outputDef.Name] = buildSensitiveData(tmpResultOutput[outputDef.Name], procReqParamObj.CallbackId)
-			}
+			//if procReqParamObj.IsSensitive {
+			//	tmpResultOutput[outputDef.Name] = buildSensitiveData(tmpResultOutput[outputDef.Name], procReqParamObj.CallbackId)
+			//}
 			procReqParamObj.DataValue = fmt.Sprintf("%v", tmpResultOutput[outputDef.Name])
 			procInsNodeReq.Params = append(procInsNodeReq.Params, &procReqParamObj)
 		}

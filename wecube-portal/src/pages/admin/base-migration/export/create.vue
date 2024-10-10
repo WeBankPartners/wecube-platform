@@ -116,7 +116,6 @@ export default {
           flowRes: data.workflows || {},
           batchRes: data.batchExecutions || {},
           itsmRes: data.requestTemplates || {},
-          failMsg: '',
           cmdbRes: data.cmdb, // cmdb
           cmdbCIData: data.cmdbCI || [], // cmdb CI
           cmdbViewData: data.cmdbView || [], // cmdb视图
@@ -127,23 +126,26 @@ export default {
           monitorRes: data.monitor || {}, // 监控
           pluginsRes: data.plugins || {}, // 插件
           exportComponentLibrary: data.exportComponentLibrary, // 组件库
+          createAndUploadFileRes: data.createAndUploadFile,
+          failMsg: '',
           ...data.transExport
         }
         this.detailData.roleRes.data = this.detailData.roleRes.data || []
-        this.detailData.roleRes.title = '角色'
         this.detailData.flowRes.data = this.detailData.flowRes.data || []
-        this.detailData.flowRes.title = '编排'
         this.detailData.batchRes.data = this.detailData.batchRes.data || []
-        this.detailData.batchRes.title = '批量执行'
         this.detailData.itsmRes.data = this.detailData.itsmRes.data || []
-        this.detailData.itsmRes.title = 'ITSM流程'
         this.detailData.artifactsRes.data = this.detailData.artifactsRes.data || []
-        this.detailData.artifactsRes.title = '物料包'
         this.detailData.monitorRes.data = this.detailData.monitorRes.data || []
-        this.detailData.monitorRes.title = '监控配置'
         this.detailData.pluginsRes.data = this.detailData.pluginsRes.data || []
+        this.detailData.roleRes.title = '角色'
+        this.detailData.flowRes.title = '编排'
+        this.detailData.batchRes.title = '批量执行'
+        this.detailData.itsmRes.title = 'ITSM流程'
+        this.detailData.artifactsRes.title = '物料包'
+        this.detailData.monitorRes.title = '监控配置'
         this.detailData.pluginsRes.title = '插件服务'
         this.detailData.cmdbRes.title = 'CMDB'
+        this.detailData.createAndUploadFileRes.title = '系统变量'
         this.detailData.associationSystems = this.detailData.associationSystems || []
         this.detailData.associationTechProducts = this.detailData.associationTechProducts || []
         this.detailData.businessName = this.detailData.businessName || ''
@@ -192,9 +194,27 @@ export default {
         )
         // 错误信息提取
         const {
-          artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes
+          artifactsRes,
+          batchRes,
+          cmdbRes,
+          monitorRes,
+          pluginsRes,
+          itsmRes,
+          roleRes,
+          flowRes,
+          createAndUploadFileRes
         } = this.detailData
-        const exportData = [artifactsRes, batchRes, cmdbRes, monitorRes, pluginsRes, itsmRes, roleRes, flowRes]
+        const exportData = [
+          artifactsRes,
+          batchRes,
+          cmdbRes,
+          monitorRes,
+          pluginsRes,
+          itsmRes,
+          roleRes,
+          flowRes,
+          createAndUploadFileRes
+        ]
         const failObj = exportData.find(i => i.status === 'fail') || {}
         this.detailData.failMsg = `${failObj.title}：${failObj.errMsg}`
         // 成功或失败，取消轮询查状态

@@ -1,22 +1,22 @@
 <template>
   <div class="base-migration-import-one">
     <div v-if="!viewFlag" class="item">
-      <span class="title">导入链接：</span>
+      <span class="title">{{ $t('pi_url') }}：</span>
       <div class="link">
-        <Input v-model="url" placeholder="请输入导入链接" clearable style="width: 600px" />
-        <Button type="primary" :disabled="!url" @click="getImportBusinessList">确认</Button>
+        <Input v-model="url" :placeholder="$t('please_input') + $t('pi_url')" clearable style="width: 600px" />
+        <Button type="primary" :disabled="!url" @click="getImportBusinessList">{{ $t('confirm') }}</Button>
       </div>
     </div>
     <Card :bordered="false" dis-hover :padding="0" style="min-height: 400px">
       <template v-if="detail.businessList.length > 0">
         <div class="item">
-          <span class="title">选择环境：</span>
+          <span class="title">{{ $t('pe_select_env') }}：</span>
           <RadioGroup v-model="detail.environment.env_id" type="button" button-style="solid">
             <Radio v-for="(j, idx) in envList" :label="j.value" :key="idx" border>{{ j.label }}</Radio>
           </RadioGroup>
         </div>
         <div class="item">
-          <span class="title">选择产品<span class="number">{{ detail.businessList.length }}</span></span>
+          <span class="title">{{ $t('pe_select_product') }}<span class="number">{{ detail.businessList.length }}</span></span>
           <Table :border="false" size="small" :columns="tableColumns" :max-height="500" :data="detail.businessList">
           </Table>
         </div>
@@ -24,8 +24,12 @@
       <Spin v-if="loading" size="large" fix></Spin>
     </Card>
     <div class="footer">
-      <Button v-if="viewFlag && type !== 'republish'" type="info" @click="$emit('nextStep')">下一步</Button>
-      <Button v-else type="info" @click="handleSave" :disabled="detail.businessList.length === 0">执行导入</Button>
+      <Button v-if="viewFlag && type !== 'republish'" type="info" @click="$emit('nextStep')">{{
+        $t('next_step')
+      }}</Button>
+      <Button v-else type="info" @click="handleSave" :disabled="detail.businessList.length === 0">{{
+        $t('pi_execute_import')
+      }}</Button>
     </div>
   </div>
 </template>
@@ -51,7 +55,7 @@ export default {
       envList: [],
       tableColumns: [
         {
-          title: '业务产品名',
+          title: this.$t('pe_business_product'),
           minWidth: 180,
           key: 'name',
           render: (h, params) => (
@@ -66,12 +70,12 @@ export default {
           )
         },
         {
-          title: '产品ID',
+          title: this.$t('pe_product_id'),
           minWidth: 180,
           key: 'id'
         },
         {
-          title: '产品描述',
+          title: this.$t('pe_product_des'),
           key: 'description',
           minWidth: 140,
           render: (h, params) => <span>{params.row.description || '-'}</span>
