@@ -1388,6 +1388,12 @@ func getImportPluginConfigData(pluginPackageId string, packagePluginsXmlData *mo
 				FilterRule:         interfaceInfo.FilterRule,
 				Description:        interfaceInfo.Description,
 			}
+			if pluginCfgInterface.IsAsyncProcessing == "" {
+				pluginCfgInterface.IsAsyncProcessing = "N"
+			}
+			if pluginCfgInterface.Type == "" {
+				pluginCfgInterface.Type = "EXECUTION"
+			}
 
 			// handle interfaces parameters
 			// handle input params
