@@ -10,7 +10,7 @@ export default {
             <span
               style="cursor:pointer;color:#5cadff;"
               onClick={() => {
-                this.jumpToHistory(params.row)
+                this.handleStaticTableLink(params.row, 'cmdb-ci')
               }}
             >
               {params.row.name}
@@ -29,7 +29,7 @@ export default {
                 size="36"
                 style="cursor:pointer;"
                 onClick={() => {
-                  this.handleDetai(params.row, 'cmdb')
+                  // this.handleOpenDetail(params.row, 'cmdb-ci')
                 }}
               />
             </span>
@@ -45,7 +45,7 @@ export default {
             <span
               style="cursor:pointer;color:#5cadff;"
               onClick={() => {
-                this.jumpToHistory(params.row)
+                this.handleStaticTableLink(params.row, 'cmdb-view')
               }}
             >
               {params.row.name}
@@ -68,7 +68,7 @@ export default {
             <span
               style="cursor:pointer;color:#5cadff;"
               onClick={() => {
-                this.jumpToHistory(params.row)
+                this.handleStaticTableLink(params.row, 'cmdb-report')
               }}
             >
               {params.row.name}
@@ -91,7 +91,7 @@ export default {
             <span
               style="cursor:pointer;color:#5cadff;"
               onClick={() => {
-                this.jumpToHistory(params.row)
+                this.handleStaticTableLink(params.row, 'artifacts')
               }}
             >
               {params.row.unitDesignName}
@@ -110,7 +110,7 @@ export default {
                 size="36"
                 style="cursor:pointer;"
                 onClick={() => {
-                  this.handleDetai(params.row, 'artifacts')
+                  // this.handleOpenDetail(params.row, 'artifacts')
                 }}
               />
             </span>
@@ -138,7 +138,7 @@ export default {
               <span
                 style="cursor:pointer;color:#5cadff;"
                 onClick={() => {
-                  this.jumpToHistory(params.row)
+                  this.handleStaticTableLink(params.row, 'monitor')
                 }}
               >
                 {nameMap[params.row.name] || '-'}
@@ -177,7 +177,7 @@ export default {
                 size="36"
                 style="cursor:pointer;"
                 onClick={() => {
-                  this.handleDetai(params.row, 'monitor')
+                  // this.handleOpenDetail(params.row, 'monitor')
                 }}
               />
             </span>
@@ -192,7 +192,7 @@ export default {
             <span
               style="cursor:pointer;color:#5cadff;"
               onClick={() => {
-                this.jumpToHistory(params.row)
+                this.handleStaticTableLink(params.row, 'plugin')
               }}
             >
               {params.row.name}
@@ -211,7 +211,7 @@ export default {
                 size="36"
                 style="cursor:pointer;"
                 onClick={() => {
-                  this.handleDetai(params.row, 'plugin')
+                  // this.handleOpenDetail(params.row, 'plugin')
                 }}
               />
             </span>
@@ -229,13 +229,21 @@ export default {
                 size="36"
                 style="cursor:pointer;"
                 onClick={() => {
-                  this.handleDetai(params.row, 'plugin')
+                  // this.handleOpenDetail(params.row, 'plugin')
                 }}
               />
             </span>
           )
         }
       ]
+    }
+  },
+  methods: {
+    handleStaticTableLink(type, row) {
+      return type + row
+    },
+    handleOpenDetail(type, row) {
+      return type + row
     }
   }
 }
