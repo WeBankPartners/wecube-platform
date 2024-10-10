@@ -330,6 +330,11 @@ type CommonOutput struct {
 	ErrMsg string      `json:"errMsg"`
 }
 
+type ExportComponentLibrary struct {
+	CommonOutput
+	ExportComponentLibrary bool `json:"exportComponentLibrary"`
+}
+
 type AnalyzeTransParam struct {
 	EndpointList     []string `json:"endpointList"`
 	ServiceGroupList []string `json:"serviceGroupList"`

@@ -112,23 +112,23 @@ type CmdbData struct {
 }
 
 type TransImportDetail struct {
-	TransImport            *TransImportTable    `json:"transExport"`
-	CmdbCI                 []*CommonNameCount   `json:"cmdbCI"`
-	CmdbView               []*CommonNameCreator `json:"cmdbView"`
-	CmdbViewCount          int                  `json:"cmdbViewCount"`
-	CmdbReportForm         []*CommonNameCreator `json:"cmdbReportForm"`
-	CmdbReportFormCount    int                  `json:"cmdbReportFormCount"`
-	Roles                  *CommonOutput        `json:"roles"`
-	Workflows              *CommonOutput        `json:"workflows"`
-	BatchExecution         *CommonOutput        `json:"batchExecutions"`
-	RequestTemplates       *CommonOutput        `json:"requestTemplates"`
-	ExportComponentLibrary bool                 `json:"exportComponentLibrary"` // 是否导出组件库
-	Artifacts              *CommonOutput        `json:"artifacts"`
-	MonitorBase            *CommonOutput        `json:"monitorBase"`     // 监控基础配置
-	MonitorBusiness        *CommonOutput        `json:"monitorBusiness"` // 监控业务配置
-	Plugins                *CommonOutput        `json:"plugins"`
-	Cmdb                   *CommonOutput        `json:"cmdb"`
-	ProcInstance           *CommonOutput        `json:"procInstance"` // 编排执行
+	TransImport         *TransImportTable       `json:"transExport"`
+	CmdbCI              []*CommonNameCount      `json:"cmdbCI"`
+	CmdbView            []*CommonNameCreator    `json:"cmdbView"`
+	CmdbViewCount       int                     `json:"cmdbViewCount"`
+	CmdbReportForm      []*CommonNameCreator    `json:"cmdbReportForm"`
+	CmdbReportFormCount int                     `json:"cmdbReportFormCount"`
+	Roles               *CommonOutput           `json:"roles"`
+	Workflows           *CommonOutput           `json:"workflows"`
+	BatchExecution      *CommonOutput           `json:"batchExecutions"`
+	RequestTemplates    *CommonOutput           `json:"requestTemplates"`
+	ComponentLibrary    *ExportComponentLibrary `json:"componentLibrary"` // 组件库
+	Artifacts           *CommonOutput           `json:"artifacts"`
+	MonitorBase         *CommonOutput           `json:"monitorBase"`     // 监控基础配置
+	MonitorBusiness     *CommonOutput           `json:"monitorBusiness"` // 监控业务配置
+	Plugins             *CommonOutput           `json:"plugins"`
+	Cmdb                *CommonOutput           `json:"cmdb"`
+	ProcInstance        *CommonOutput           `json:"procInstance"` // 编排执行
 }
 
 type TransImportHistoryParam struct {
