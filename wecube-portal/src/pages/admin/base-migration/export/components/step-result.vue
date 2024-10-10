@@ -412,5 +412,12 @@ export default {
   .ivu-table-body:hover {
     overflow: auto;
   }
+  .common-ui-header-title {
+    .title {
+      &:nth-child(2) {
+        white-space: nowrap !important;
+      }
+    }
+  }
 }
 </style>
