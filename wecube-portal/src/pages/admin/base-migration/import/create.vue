@@ -2,27 +2,36 @@
   <Card :bordered="false" dis-hover :padding="0">
     <div class="base-migration-import-create">
       <div class="steps">
-        <BaseHeaderTitle title="导入步骤" :showExpand="false">
+        <!--导入步骤-->
+        <BaseHeaderTitle :title="$t('pi_import_steps')" :showExpand="false">
           <div v-if="statusObj.label && type !== 'republish'" class="status-group">
             <div class="status">
-              状态：<Tag type="border" :color="statusObj.color">{{ statusObj.label }}</Tag>
+              {{ $t('status') }}：<Tag type="border" :color="statusObj.color">{{ statusObj.label }}</Tag>
             </div>
-            <Button v-if="['doing', 'fail'].includes(detailData.status)" type="error" @click="handleStop">终止</Button>
-            <Button v-if="['success', 'exit'].includes(detailData.status)" type="success" @click="handleReLauch">重新发起</Button>
+            <!--终止-->
+            <Button v-if="['doing', 'fail'].includes(detailData.status)" type="error" @click="handleStop">{{
+              $t('stop_orch')
+            }}</Button>
+            <!--重新发起-->
+            <Button v-if="['success', 'exit'].includes(detailData.status)" type="success" @click="handleReLauch">{{
+              $t('be_republish')
+            }}</Button>
           </div>
           <Steps :current="activeStep" direction="vertical">
-            <Step title="输入链接,确认产品、环境" content="系统自动分析需要导出的系统及数据"></Step>
-            <Step title="导入数据" content="确认依赖系统、CMDB、编排、ITSM等配置项正确"></Step>
-            <Step title="执行自动化编排" content="执行编排"></Step>
-            <Step title="配置监控" content="自动配置监控"></Step>
+            <Step :title="$t('pi_import_step1')" :content="$t('pi_import_step1_tips')"></Step>
+            <Step :title="$t('pi_import_step2')" :content="$t('pi_import_step2_tips')"></Step>
+            <Step :title="$t('pi_import_step3')" :content="$t('pi_import_step3_tips')"></Step>
+            <Step :title="$t('pi_import_step4')" :content="$t('pi_import_step4_tips')"></Step>
           </Steps>
         </BaseHeaderTitle>
       </div>
       <div class="content" ref="scrollView">
-        <BaseHeaderTitle v-if="activeStep === 0" title="导入产品" :showExpand="false">
+        <!--导入产品-->
+        <BaseHeaderTitle v-if="activeStep === 0" :title="$t('pi_import_product')" :showExpand="false">
           <StepOne :detailData="detailData" @saveStepOne="handleSaveStepOne" @nextStep="activeStep++"></StepOne>
         </BaseHeaderTitle>
-        <BaseHeaderTitle v-if="activeStep === 1" title="导入数据" :showExpand="false">
+        <!--导入数据-->
+        <BaseHeaderTitle v-if="activeStep === 1" :title="$t('pi_import_step2')" :showExpand="false">
           <StepTwo
             :detailData="detailData"
             @saveStepTwo="handleSaveStepTwo"
@@ -30,7 +39,8 @@
             @nextStep="activeStep++"
           ></StepTwo>
         </BaseHeaderTitle>
-        <BaseHeaderTitle v-if="activeStep === 2" title="执行自动化编排" :showExpand="false">
+        <!--执行自动化编排-->
+        <BaseHeaderTitle v-if="activeStep === 2" :title="$t('pi_import_step3')" :showExpand="false">
           <StepThree
             :detailData="detailData"
             @saveStepThree="handleSaveStepThree"
@@ -38,7 +48,8 @@
             @nextStep="activeStep++"
           ></StepThree>
         </BaseHeaderTitle>
-        <BaseHeaderTitle v-if="activeStep === 3" title="配置监控" :showExpand="false">
+        <!--监控配置-->
+        <BaseHeaderTitle v-if="activeStep === 3" :title="$t('pi_import_step4')" :showExpand="false">
           <StepFour :detailData="detailData" @saveStepFour="handleSaveStepFour" @lastStep="activeStep--"></StepFour>
         </BaseHeaderTitle>
       </div>
@@ -70,22 +81,22 @@ export default {
       statusObj: {},
       statusList: [
         {
-          label: '执行中',
+          label: this.$t('fe_inProgress'), // 执行中
           value: 'doing',
           color: '#2d8cf0'
         },
         {
-          label: '成功',
+          label: this.$t('be_success'), // 成功
           value: 'success',
           color: '#19be6b'
         },
         {
-          label: '失败',
+          label: this.$t('be_error'), // 失败
           value: 'fail',
           color: '#ed4014'
         },
         {
-          label: '终止',
+          label: this.$t('stop_orch'), // 终止
           value: 'exit',
           color: '#ff9900'
         }
@@ -148,6 +159,7 @@ export default {
           step: data.step,
           ...data.transExport
         }
+        this.statusObj = this.statusList.find(i => i.value === this.detailData.status)
         this.detailData.roleRes.data = this.detailData.roleRes.data || []
         this.detailData.roleRes.title = '角色'
         this.detailData.flowRes.data = this.detailData.flowRes.data || []
@@ -171,64 +183,11 @@ export default {
         this.detailData.businessNameList = (this.detailData.businessName && this.detailData.businessName.split(',')) || []
         this.detailData.business = this.detailData.business || ''
         this.detailData.cmdbCICount = this.detailData.cmdbCIData.reduce((sum, cur) => sum + cur.count, 0)
-        // this.detailData.monitorCount = this.detailData.monitorRes.data.reduce((sum, cur) => sum + cur.count, 0)
-        // this.detailData.monitorBusinessCount = this.detailData.monitorBusinessRes.data.reduce(
-        //   (sum, cur) => sum + cur.count,
-        //   0
-        // )
         this.detailData.artifactsCount = this.detailData.artifactsRes.data.reduce(
           (sum, cur) => sum + cur.artifactLen,
           0
         )
-        this.statusObj = this.statusList.find(i => i.value === this.detailData.status)
-        // 合并monitor数据
-        const metric_list_obj = {
-          name: 'metric_list',
-          count: 0
-        }
-        const strategy_list_obj = {
-          name: 'strategy_list',
-          count: 0
-        }
-        this.detailData.monitorRes.data.forEach(i => {
-          if (
-            ['custom_metric_service_group', 'custom_metric_endpoint_group', 'custom_metric_monitor_type'].includes(
-              i.name
-            )
-          ) {
-            metric_list_obj.count += i.count
-          }
-          if (['strategy_service_group', 'strategy_endpoint_group'].includes(i.name)) {
-            strategy_list_obj.count += i.count
-          }
-        })
-        const metricIndex = this.detailData.monitorRes.data.findIndex(i => i.name === 'custom_metric_service_group')
-        const strategyIndex = this.detailData.monitorRes.data.findIndex(i => i.name === 'strategy_service_group')
-        this.detailData.monitorRes.data.splice(metricIndex, 0, metric_list_obj)
-        this.detailData.monitorRes.data.splice(strategyIndex, 0, strategy_list_obj)
-        this.detailData.monitorRes.data = this.detailData.monitorRes.data.filter(
-          i =>
-            ![
-              'strategy_service_group',
-              'strategy_endpoint_group',
-              'custom_metric_service_group',
-              'custom_metric_endpoint_group',
-              'custom_metric_monitor_type'
-            ].includes(i.name)
-        )
-        // 第二步monitor数据拆分
-        this.detailData.monitorRes.data = this.detailData.monitorRes.data.filter(i =>
-          ['monitor_type', 'endpoint', 'endpoint_group', 'service_group', 'log_monitor_template'].includes(i.name))
         this.detailData.monitorCount = this.detailData.monitorRes.data.reduce((sum, cur) => sum + cur.count, 0)
-        // 第四步monitor数据拆分
-        this.detailData.monitorBusinessRes.data = this.detailData.monitorBusinessRes.data.filter(i =>
-          [
-            'metric_list',
-            'log_monitor_service_group',
-            'strategy_list',
-            'logKeyword_service_group',
-            'dashboard'
-          ].includes(i.name))
         this.detailData.monitorBusinessCount = this.detailData.monitorBusinessRes.data.reduce(
           (sum, cur) => sum + cur.count,
           0
