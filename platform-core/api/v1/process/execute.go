@@ -883,18 +883,3 @@ func SubProcDefList(c *gin.Context) {
 	}
 	middleware.ReturnData(c, result)
 }
-
-func GetProcessAssociationRequest(c *gin.Context) {
-	var result []*models.SimpleRequestDto
-	var err error
-	procInsId := c.Param("procInsId")
-	if strings.TrimSpace(procInsId) == "" {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("procInsId is empty")))
-		return
-	}
-	if result, err = remote.QueryAssociationRequest(procInsId, c.GetHeader("Authorization"), c.GetHeader("Accept-Language")); err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	middleware.ReturnData(c, result)
-}

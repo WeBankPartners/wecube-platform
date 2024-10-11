@@ -35,3 +35,5 @@ CREATE TABLE `plugin_object_property_meta` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 alter table plugin_object_meta modify id varchar(64) not null;
+
+alter table proc_ins add column request_info varchar(200) default null comment 'taskman请求信息';

@@ -787,7 +787,7 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 	var actions []*db.ExecAction
 	nowTime := time.Now()
 	newOidMap := make(map[string]string)
-	var entityDataId, entityTypeId, entityDataName string
+	var entityDataId, entityTypeId, entityDataName, requestInfo string
 	for _, row := range startParam.Entities {
 		if row.EntityDataOp == "create" {
 			newOidMap[row.Oid] = models.NewOidDataPrefix + row.Oid
@@ -804,8 +804,13 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 		}
 	}
 	procSessionId := "public_session_" + guid.CreateGuid()
-	actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,created_by,created_time,updated_by,updated_time,proc_session_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-		procInsId, procDefObj.Id, procDefObj.Key, procDefObj.Name, models.JobStatusReady, entityDataId, entityTypeId, entityDataName, operator, nowTime, operator, nowTime, procSessionId,
+	if startParam.SimpleRequestDto != nil {
+		byteArr, _ := json.Marshal(startParam.SimpleRequestDto)
+		requestInfo = string(byteArr)
+	}
+
+	actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,created_by,created_time,updated_by,updated_time,proc_session_id,request_info) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		procInsId, procDefObj.Id, procDefObj.Key, procDefObj.Name, models.JobStatusReady, entityDataId, entityTypeId, entityDataName, operator, nowTime, operator, nowTime, procSessionId, requestInfo,
 	}})
 	workflowRow = &models.ProcRunWorkflow{Id: "wf_" + guid.CreateGuid(), ProcInsId: procInsId, Name: procDefObj.Name, Status: models.JobStatusReady, CreatedTime: nowTime}
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_workflow(id,proc_ins_id,name,status,created_time) values (?,?,?,?,?)", Param: []interface{}{
@@ -986,6 +991,7 @@ func ListProcInstance(ctx context.Context, userRoles []string, withCronIns, with
 
 func GetProcInstance(ctx context.Context, procInsId string) (result *models.ProcInsDetail, err error) {
 	var procInsRows []*models.ProcIns
+	var requestInfo *models.SimpleRequestDto
 	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins where id=?", procInsId).Find(&procInsRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
@@ -996,6 +1002,9 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 		return
 	}
 	procInsObj := procInsRows[0]
+	if procInsObj.RequestInfo != "" {
+		json.Unmarshal([]byte(procInsObj.RequestInfo), &requestInfo)
+	}
 	procDefObj, getProcDefErr := GetSimpleProcDefRow(ctx, procInsObj.ProcDefId)
 	if getProcDefErr != nil {
 		err = getProcDefErr
@@ -1015,10 +1024,8 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 		CreatedTime:       procInsObj.CreatedTime.Format(models.DateTimeFormat),
 		SubProc:           procDefObj.SubProc,
 		DisplayStatus:     procInsObj.Status,
+		Request:           requestInfo,
 	}
-	//if transStatus, ok := models.ProcStatusTransMap[result.Status]; ok {
-	//	result.Status = transStatus
-	//}
 	if procInsObj.ParentInsNodeId != "" {
 		procInsParentMap := make(map[string]*models.ParentProcInsObj)
 		procInsParentMap, err = getProcInsParentMap(ctx, []string{procInsObj.Id})
