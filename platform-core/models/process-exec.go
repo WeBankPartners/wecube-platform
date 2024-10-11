@@ -589,4 +589,10 @@ type SimpleRequestDto struct {
 	Id              string `json:"id"`
 	Name            string `json:"name"`
 	RequestTemplate string `json:"requestTemplate"`
+	Status          string `json:"status"`
+	CreatedBy       string `json:"createdBy"`
+	CreatedTime     string `json:"createdTime"`
+	UpdatedBy       string `json:"updatedBy"`
+	UpdatedTime     string `json:"updatedTime"`
+	Type            int    `json:"type"`
 }
