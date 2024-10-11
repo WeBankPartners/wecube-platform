@@ -252,7 +252,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 		return
 	}
 	// 查询关联底座产品
-	if productAnalyzeData, err = GetTransExportAnalyzeDataByCond(ctx, transExportId, dataTransVariableConfig.ArtifactCiTechProduct); err != nil {
+	if productAnalyzeData, err = GetTransExportAnalyzeDataByCond(ctx, transExportId, dataTransVariableConfig.TechProductCiType); err != nil {
 		return
 	}
 	if productAnalyzeData.Data != "" {
@@ -271,7 +271,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 		}
 	}
 	// 查询关联系统
-	if systemAnalyzeData, err = GetTransExportAnalyzeDataByCond(ctx, transExportId, dataTransVariableConfig.ArtifactCiSystem); err != nil {
+	if systemAnalyzeData, err = GetTransExportAnalyzeDataByCond(ctx, transExportId, dataTransVariableConfig.SystemCiType); err != nil {
 		return
 	}
 	if systemAnalyzeData.Data != "" {
