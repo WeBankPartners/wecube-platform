@@ -584,3 +584,9 @@ type ParentProcInsObj struct {
 	ProcDefName string `json:"procDefName" xorm:"proc_def_name"`
 	Version     string `json:"version" xorm:"version"`
 }
+
+type SimpleRequestDto struct {
+	Id              string `json:"id"`
+	Name            string `json:"name"`
+	RequestTemplate string `json:"requestTemplate"`
+}
