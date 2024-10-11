@@ -40,9 +40,22 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 		err = fmt.Errorf("query ci type attribute table fail,%s ", err.Error())
 		return
 	}
+	var ciGroupRows []*models.SysBaseKeyCodeTable
+	err = cmdbEngine.SQL("select * from sys_basekey_code where cat_id='ci_group'").Find(&ciGroupRows)
+	if err != nil {
+		err = fmt.Errorf("query sys base key code table fail,%s ", err.Error())
+		return
+	}
 	ciTypeMap := make(map[string]*models.SysCiTypeTable)
+	ciTypeGroupNameMap := make(map[string]string)
 	for _, row := range ciTypeRows {
 		ciTypeMap[row.Id] = row
+		for _, ciGroupRow := range ciGroupRows {
+			if ciGroupRow.Id == row.CiGroup {
+				ciTypeGroupNameMap[row.Id] = ciGroupRow.Value
+				break
+			}
+		}
 	}
 	ciTypeAttrMap := make(map[string][]*models.SysCiTypeAttrTable)
 	for _, row := range ciTypeAttrRows {
@@ -60,6 +73,7 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 	ciTypeDataMap := make(map[string]*models.CiTypeData)
 	filters := []*models.CiTypeDataFilter{{CiType: transConfig.EnvCiType, Condition: "in", GuidList: []string{param.Env}}}
 	log.Logger.Info("<--- start analyzeCMDBData --->")
+	//err = analyzeCMDB(param, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig)
 	err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string))
 	if err != nil {
 		log.Logger.Error("<--- fail analyzeCMDBData --->", log.Error(err))
@@ -82,6 +96,11 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 		return
 	}
 	actions = append(actions, reportViewActions...)
+	// 写入ci层级数据
+	ciGroupNameBytes, _ := json.Marshal(ciTypeGroupNameMap)
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), param.TransExportId, "wecmdb_group", "group", "group", len(ciTypeGroupNameMap), string(ciGroupNameBytes), time.Now(),
+	}})
 	// 分析监控数据
 	var endpointList, serviceGroupList []string
 	for _, ciData := range ciTypeDataMap {
@@ -110,6 +129,91 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 		return
 	}
 	actions = append(actions, artifactActions...)
+	return
+}
+
+func analyzeCMDB(param *models.AnalyzeDataTransParam, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig) (err error) {
+	ctx := context.WithValue(context.Background(), models.TransactionIdHeader, "analyze_cmdb_"+guid.CreateGuid())
+	if transConfig.BusinessToSystemExpr == "" || transConfig.EnvToSystemExpr == "" || transConfig.SystemCiType == "" {
+		err = fmt.Errorf("trans export config illegal")
+		return
+	}
+	// 解析业务产品到系统表达式，找出业务产品关联到的系统
+	businessExprList, businessExprAnalyzeErr := remote.AnalyzeExpression(transConfig.BusinessToSystemExpr)
+	if businessExprAnalyzeErr != nil {
+		err = fmt.Errorf("analyze business product to system expression:%s fail,%s ", transConfig.BusinessToSystemExpr, businessExprAnalyzeErr.Error())
+		return
+	}
+	envExprList, envExprAnalyzeErr := remote.AnalyzeExpression(transConfig.EnvToSystemExpr)
+	if envExprAnalyzeErr != nil {
+		err = fmt.Errorf("analyze deploy env to system expression:%s fail,%s ", transConfig.EnvToSystemExpr, envExprAnalyzeErr.Error())
+		return
+	}
+	if len(businessExprList) == 0 || len(envExprList) == 0 {
+		err = fmt.Errorf("illegal search expression")
+		return
+	}
+	businessFilters := []*models.QueryExpressionDataFilter{{
+		PackageName: businessExprList[0].Package,
+		EntityName:  businessExprList[0].Entity,
+		AttributeFilters: []*models.QueryExpressionDataAttrFilter{{
+			Name:     "id",
+			Operator: "in",
+			Value:    param.Business,
+		}},
+	}}
+	businessQueryResult, businessQueryErr := remote.QueryPluginData(ctx, businessExprList, businessFilters, remote.GetToken())
+	if businessQueryErr != nil {
+		err = fmt.Errorf("business to system query fail,%s ", businessQueryErr.Error())
+		return
+	}
+	if len(businessQueryResult) == 0 {
+		err = fmt.Errorf("can not find any system data with business product:%s ", param.Business)
+		return
+	}
+	// 解析部署环境到系统表达式，找出部署环境关联到的系统
+	envFilters := []*models.QueryExpressionDataFilter{{
+		PackageName: envExprList[0].Package,
+		EntityName:  envExprList[0].Entity,
+		AttributeFilters: []*models.QueryExpressionDataAttrFilter{{
+			Name:     "id",
+			Operator: "eq",
+			Value:    param.Env,
+		}},
+	}}
+	envQueryResult, envQueryErr := remote.QueryPluginData(ctx, envExprList, envFilters, remote.GetToken())
+	if envQueryErr != nil {
+		err = fmt.Errorf("deploy env to system query fail,%s ", envQueryErr.Error())
+		return
+	}
+	if len(envQueryResult) == 0 {
+		err = fmt.Errorf("can not find any system data with deploy env:%s ", param.Env)
+		return
+	}
+	// 取上述两个分析的交集，得到需要导出的系统
+	systemMatchMap := make(map[string]int)
+	var systemGuidList []string
+	for _, row := range businessQueryResult {
+		tmpGuid := fmt.Sprintf("%s", row["id"])
+		if tmpGuid != "" {
+			systemMatchMap[tmpGuid] = 1
+		}
+	}
+	for _, row := range envQueryResult {
+		tmpGuid := fmt.Sprintf("%s", row["id"])
+		if tmpGuid != "" {
+			if _, ok := systemMatchMap[tmpGuid]; ok {
+				systemGuidList = append(systemGuidList, tmpGuid)
+			}
+		}
+	}
+	log.Logger.Info("analyze system data done", log.StringList("systemGuidList", systemGuidList))
+	if len(systemGuidList) == 0 {
+		err = fmt.Errorf("can not find any system data with business and env")
+		return
+	}
+	// 从系统数据出发，正向查找数据，反向通过配置里的反向属性查找
+	err = analyzeCMDBData(transConfig.SystemCiType, systemGuidList, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string))
 	return
 }
 
@@ -221,6 +325,17 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 	for depCiType, depCiTypeAttrList := range ciTypeAttrMap {
 		for _, depCiAttr := range depCiTypeAttrList {
 			if depCiAttr.RefCiType == ciType {
+				// 判断attr是否在配置里
+				legalFlag := false
+				for _, backwardAttr := range transConfig.BackwardSearchAttrList {
+					if backwardAttr == depCiAttr.Id {
+						legalFlag = true
+						break
+					}
+				}
+				if !legalFlag {
+					continue
+				}
 				if depCiAttr.InputType == "ref" {
 					if checkArtifactCiTypeRefIllegal(ciType, depCiType, transConfig, false) {
 						continue
@@ -348,11 +463,21 @@ func getDataTransVariableMap(ctx context.Context) (result *models.TransDataVaria
 		case "PLATFORM_EXPORT_CI_ARTIFACT_PACKAGE":
 			result.ArtifactPackageCiType = tmpValue
 		case "PLATFORM_EXPORT_CI_SYSTEM":
-			result.ArtifactCiSystem = tmpValue
+			result.SystemCiType = tmpValue
 		case "PLATFORM_EXPORT_CI_TECH_PRODUCT":
-			result.ArtifactCiTechProduct = tmpValue
+			result.TechProductCiType = tmpValue
 		case "PLATFORM_EXPORT_CI_ARTIFACT_UNIT_DESIGN":
 			result.ArtifactUnitDesignCiType = tmpValue
+		case "PLATFORM_EXPORT_CI_GROUP_DEPLOY":
+			result.CiGroupAppDeploy = tmpValue
+		case "PLATFORM_EXPORT_BUSINESS_EXPR":
+			result.BusinessToSystemExpr = tmpValue
+		case "PLATFORM_EXPORT_ENV_EXPR":
+			result.EnvToSystemExpr = tmpValue
+		case "PLATFORM_EXPORT_BACKWARD_ATTR_LIST":
+			if tmpValue != "" {
+				result.BackwardSearchAttrList = strings.Split(tmpValue, ",")
+			}
 		}
 	}
 	return
