@@ -30,10 +30,10 @@ export default {
     return {
       MODALHEIGHT: 0,
       searchOptions: [
-        // 执行时间
+        // 创建时间
         {
           key: 'time',
-          label: this.$t('execute_date'),
+          label: this.$t('table_created_date'),
           initDateType: 1,
           dateRange: [
             {
@@ -105,10 +105,10 @@ export default {
           component: 'select',
           list: []
         },
-        // 执行人
+        // 创建人
         {
           key: 'operators',
-          placeholder: this.$t('executor'),
+          placeholder: this.$t('createdBy'),
           multiple: true,
           component: 'select',
           list: []
@@ -176,12 +176,12 @@ export default {
           key: 'id'
         },
         {
-          title: this.$t('executor'),
+          title: this.$t('createdBy'),
           key: 'createdUser',
           minWidth: 120
         },
         {
-          title: this.$t('execute_date'),
+          title: this.$t('table_created_date'),
           key: 'createdTime',
           minWidth: 150
         },
