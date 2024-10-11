@@ -133,9 +133,13 @@ type TransDataVariableConfig struct {
 	NexusRepo                  string   `json:"nexusRepo"`
 	ArtifactInstanceCiTypeList []string `json:"artifactInstanceCiTypeList"`
 	ArtifactPackageCiType      string   `json:"artifactPackageCiType"`
-	ArtifactCiSystem           string   `json:"artifactCiSystem"`
-	ArtifactCiTechProduct      string   `json:"ArtifactCiTechProduct"`
-	ArtifactUnitDesignCiType   string   `json:"ArtifactUnitDesignCiType"`
+	SystemCiType               string   `json:"systemCiType"`
+	TechProductCiType          string   `json:"techProductCiType"`
+	ArtifactUnitDesignCiType   string   `json:"artifactUnitDesignCiType"`
+	CiGroupAppDeploy           string   `json:"ciGroupAppDeploy"`
+	BusinessToSystemExpr       string   `json:"businessToSystemExpr"`
+	EnvToSystemExpr            string   `json:"envToSystemExpr"`
+	BackwardSearchAttrList     []string `json:"backwardSearchAttrList"`
 }
 
 type CiTypeData struct {
@@ -417,4 +421,14 @@ type ExportMetricListDto struct {
 	ServiceGroupPath        string
 	EndpointGroupPath       string
 	Token                   string
+}
+
+type SysBaseKeyCodeTable struct {
+	Id          string `json:"codeId" xorm:"id"`
+	CatId       string `json:"catId" xorm:"cat_id"`
+	Code        string `json:"code" xorm:"code"`
+	Value       string `json:"value" xorm:"value"`
+	Description string `json:"codeDescription" xorm:"description"`
+	SeqNo       int    `json:"seqNo" xorm:"seq_no"`
+	Status      string `json:"status" xorm:"status"`
 }
