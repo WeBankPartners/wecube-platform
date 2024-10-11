@@ -93,10 +93,10 @@
               <!--编排关联的ITSM工单-->
               <Poptip placement="bottom" trigger="hover" width="500">
                 <Button icon="md-person">ITSM工单</Button>
-                <div slot="content" style="padding:8px 10px;">
-                  <div v-for="i in relateItsmList" :key="i.id" style="padding:3px 0;">
+                <div slot="content" style="padding: 8px 10px">
+                  <div v-for="i in relateItsmList" :key="i.id" style="padding: 3px 0">
                     <Icon type="md-person"></Icon>
-                    <span style="color:#2d8cf0;cursor:pointer;" @click="handleLinkItsmDetail(i)">{{ i.name }}</span>
+                    <span style="color: #2d8cf0; cursor: pointer" @click="handleLinkItsmDetail(i)">{{ i.name }}</span>
                   </div>
                 </div>
               </Poptip>
@@ -1113,8 +1113,14 @@ export default {
       from: this.$route.query.from, // 查看页面来源(create新增页 sub子编排预览 main主编排预览 normal普通执行列表查看 time定时执行列表查看)
       subProc: this.$route.query.subProc, // 是否子编排标识
       relateItsmList: [
-        { id: '1111', name: '全量应用首次部署(非K8S)-数据中心-240911103725'},
-        { id: '2222', name: '全量应用首次部署(非K8S)-数据中心-240911103729'}
+        {
+          id: '1111',
+          name: '全量应用首次部署(非K8S)-数据中心-240911103725'
+        },
+        {
+          id: '2222',
+          name: '全量应用首次部署(非K8S)-数据中心-240911103729'
+        }
       ] // 关联的ITSM工单
     }
   },
@@ -2939,7 +2945,9 @@ export default {
         5: 'detailChange'
       }
       window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
-      const path = `${window.location.origin}/#/taskman/workbench/${detailRouteMap[row.type]}?requestId=${row.id}&requestTemplate=${row.templateId}`
+      const path = `${window.location.origin}/#/taskman/workbench/${detailRouteMap[row.type]}?requestId=${
+        row.id
+      }&requestTemplate=${row.templateId}`
       window.open(path, '_blank')
     }
   }
