@@ -139,9 +139,10 @@ type TransDataVariableConfig struct {
 }
 
 type CiTypeData struct {
-	CiType     *SysCiTypeTable              `json:"ciType"`
-	Attributes []*SysCiTypeAttrTable        `json:"attributes"`
-	DataMap    map[string]map[string]string `json:"dataMap"` // key=ciDataGuid value=ciDataColumnKV
+	CiType       *SysCiTypeTable              `json:"ciType"`
+	Attributes   []*SysCiTypeAttrTable        `json:"attributes"`
+	DataMap      map[string]map[string]string `json:"dataMap"` // key=ciDataGuid value=ciDataColumnKV
+	DataChainMap map[string]string            `json:"dataChainMap"`
 }
 
 type CiTypeDataFilter struct {
