@@ -90,16 +90,16 @@
                 @click="stopHandler"
                 icon="md-square"
               >{{ $t('stop_orch') }}</Button>
-              <!-- disabled="currentInstanceStatus || stopSuccess"  stop_orch -->
-              <!--定时执行-->
-              <!-- <Button
-                v-if="currentInstanceStatusForNodeOperation === 'Completed'"
-                type="primary"
-                @click="setTimedExecution"
-                icon="md-stopwatch"
-                >{{ $t('timed_execution') }}</Button
-              > -->
-              <!-- :disabled="canAbleToSetting" timed_execution -->
+              <!--编排关联的ITSM工单-->
+              <Poptip placement="bottom" trigger="hover" width="500">
+                <Button icon="md-person">ITSM工单</Button>
+                <div slot="content" style="padding:8px 10px;">
+                  <div v-for="i in relateItsmList" :key="i.id" style="padding:3px 0;">
+                    <Icon type="md-person"></Icon>
+                    <span style="color:#2d8cf0;cursor:pointer;" @click="handleLinkItsmDetail(i)">{{ i.name }}</span>
+                  </div>
+                </div>
+              </Poptip>
             </FormItem>
             <Col v-if="!isEnqueryPage" span="7">
               <FormItem :label-width="100" :label="$t('select_orch')">
@@ -1111,7 +1111,11 @@ export default {
       noActionFlag: false, // 节点无操作按钮标识
       subProcBindParentFlag: true, // 子编排是否绑定主编排标识
       from: this.$route.query.from, // 查看页面来源(create新增页 sub子编排预览 main主编排预览 normal普通执行列表查看 time定时执行列表查看)
-      subProc: this.$route.query.subProc // 是否子编排标识
+      subProc: this.$route.query.subProc, // 是否子编排标识
+      relateItsmList: [
+        { id: '1111', name: '全量应用首次部署(非K8S)-数据中心-240911103725'},
+        { id: '2222', name: '全量应用首次部署(非K8S)-数据中心-240911103729'}
+      ] // 关联的ITSM工单
     }
   },
   computed: {
@@ -2925,14 +2929,28 @@ export default {
         },
         onCancel: () => {}
       })
+    },
+    handleLinkItsmDetail(row) {
+      const detailRouteMap = {
+        1: 'detailPublish',
+        2: 'detailRequest',
+        3: 'detailProblem',
+        4: 'detailEvent',
+        5: 'detailChange'
+      }
+      window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
+      const path = `${window.location.origin}/#/taskman/workbench/${detailRouteMap[row.type]}?requestId=${row.id}&requestTemplate=${row.templateId}`
+      window.open(path, '_blank')
     }
   }
 }
 </script>
 <style lang="scss">
-.platform-base-drawer .jv-container .jv-code {
-  overflow: hidden;
-  padding: 0px 20px;
+.workflow-execution {
+  .platform-base-drawer .jv-container .jv-code {
+    overflow: hidden;
+    padding: 0px 20px;
+  }
 }
 </style>
 <style lang="scss" scoped>
