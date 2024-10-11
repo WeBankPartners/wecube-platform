@@ -60,7 +60,7 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 	ciTypeDataMap := make(map[string]*models.CiTypeData)
 	filters := []*models.CiTypeDataFilter{{CiType: transConfig.EnvCiType, Condition: "in", GuidList: []string{param.Env}}}
 	log.Logger.Info("<--- start analyzeCMDBData --->")
-	err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig)
+	err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string))
 	if err != nil {
 		log.Logger.Error("<--- fail analyzeCMDBData --->", log.Error(err))
 		return
@@ -70,6 +70,9 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 	for k, ciData := range ciTypeDataMap {
 		ciData.CiType = ciTypeMap[k]
 		ciData.Attributes = ciTypeAttrMap[k]
+		for chainKey, chainValue := range ciData.DataChainMap {
+			log.Logger.Debug("CMDB Analyze Chain --- ", log.String("dataGuid", chainKey), log.String("chain", chainValue))
+		}
 	}
 	actions = getInsertAnalyzeCMDBActions(param.TransExportId, ciTypeDataMap)
 	// 写入cmdb 报表和视图列表
@@ -110,7 +113,7 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 	return
 }
 
-func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig) (err error) {
+func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig, parentMap map[string]string) (err error) {
 	log.Logger.Info("analyzeCMDBData", log.String("ciType", ciType), log.StringList("guidList", ciDataGuidList))
 	if len(ciDataGuidList) == 0 {
 		return
@@ -154,17 +157,20 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 		for _, row := range newRows {
 			tmpRowGuid := row["guid"]
 			existData.DataMap[tmpRowGuid] = row
+			existData.DataChainMap[tmpRowGuid] = fmt.Sprintf("%s -> %s[%s]", parentMap[tmpRowGuid], row["guid"], row["key_name"])
 			newRowsGuidList = append(newRowsGuidList, tmpRowGuid)
 		}
 	} else {
 		dataMap := make(map[string]map[string]string)
+		dataChainMap := make(map[string]string)
 		for _, row := range queryCiDataResult {
 			tmpRowGuid := row["guid"]
 			dataMap[tmpRowGuid] = row
+			dataChainMap[tmpRowGuid] = fmt.Sprintf("%s -> %s[%s]", parentMap[tmpRowGuid], row["guid"], row["key_name"])
 			newRowsGuidList = append(newRowsGuidList, tmpRowGuid)
 			newRows = append(newRows, row)
 		}
-		ciTypeDataMap[ciType] = &models.CiTypeData{DataMap: dataMap}
+		ciTypeDataMap[ciType] = &models.CiTypeData{DataMap: dataMap, DataChainMap: dataChainMap}
 	}
 	// 往下分析数据行的依赖
 	for _, attr := range ciTypeAttributes {
@@ -173,14 +179,16 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 				continue
 			}
 			refCiTypeGuidList := []string{}
+			tmpParentMap := make(map[string]string)
 			for _, row := range newRows {
 				tmpRefCiDataGuid := row[attr.RefCiType]
 				if tmpRefCiDataGuid != "" {
 					refCiTypeGuidList = append(refCiTypeGuidList, tmpRefCiDataGuid)
+					tmpParentMap[tmpRefCiDataGuid] = ciTypeDataMap[ciType].DataChainMap[row["guid"]]
 				}
 			}
 			if len(refCiTypeGuidList) > 0 {
-				if err = analyzeCMDBData(attr.RefCiType, refCiTypeGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig); err != nil {
+				if err = analyzeCMDBData(attr.RefCiType, refCiTypeGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap); err != nil {
 					break
 				}
 			}
@@ -188,13 +196,19 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 			if checkArtifactCiTypeRefIllegal(ciType, attr.RefCiType, transConfig, true) {
 				continue
 			}
-			toGuidList, getMultiToGuidErr := getCMDBMultiRefGuidList(ciType, attr.Name, "in", newRowsGuidList, []string{}, cmdbEngine)
+			toGuidList, toGuidRefMap, getMultiToGuidErr := getCMDBMultiRefGuidList(ciType, attr.Name, "in", newRowsGuidList, []string{}, cmdbEngine)
 			if getMultiToGuidErr != nil {
 				err = fmt.Errorf("try to analyze ciType:%s dependent multiRef attr:%s error:%s ", ciType, attr.Name, getMultiToGuidErr.Error())
 				break
 			}
 			if len(toGuidList) > 0 {
-				if err = analyzeCMDBData(attr.RefCiType, toGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig); err != nil {
+				tmpParentMap := make(map[string]string)
+				for tmpFromGuid, tmpToGuidList := range toGuidRefMap {
+					for _, tmpToGuid := range tmpToGuidList {
+						tmpParentMap[tmpToGuid] = ciTypeDataMap[ciType].DataChainMap[tmpFromGuid]
+					}
+				}
+				if err = analyzeCMDBData(attr.RefCiType, toGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap); err != nil {
 					break
 				}
 			}
@@ -214,17 +228,19 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 					if _, ok := ciTypeDataMap[depCiType]; ok {
 						continue
 					}
-					queryDepCiGuidRows, tmpQueryDepCiGuidErr := cmdbEngine.QueryString(fmt.Sprintf("select guid from %s where %s in ('%s')", depCiType, depCiAttr.Name, strings.Join(newRowsGuidList, "','")))
+					queryDepCiGuidRows, tmpQueryDepCiGuidErr := cmdbEngine.QueryString(fmt.Sprintf("select guid,%s from %s where %s in ('%s')", depCiAttr.Name, depCiType, depCiAttr.Name, strings.Join(newRowsGuidList, "','")))
 					if tmpQueryDepCiGuidErr != nil {
 						err = fmt.Errorf("try to get ciType:%s with dependent ciType:%s ref attr:%s guidList fail,%s ", ciType, depCiType, depCiAttr.Name, tmpQueryDepCiGuidErr.Error())
 						break
 					}
 					if len(queryDepCiGuidRows) > 0 {
 						depCiGuidList := []string{}
+						tmpParentMap := make(map[string]string)
 						for _, row := range queryDepCiGuidRows {
 							depCiGuidList = append(depCiGuidList, row["guid"])
+							tmpParentMap[row["guid"]] = ciTypeDataMap[ciType].DataChainMap[row[depCiAttr.Name]]
 						}
-						if err = analyzeCMDBData(depCiType, depCiGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig); err != nil {
+						if err = analyzeCMDBData(depCiType, depCiGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap); err != nil {
 							break
 						}
 					}
@@ -235,13 +251,19 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 					if _, ok := ciTypeDataMap[depCiType]; ok {
 						continue
 					}
-					depFromGuidList, tmpQueryDepCiGuidErr := getCMDBMultiRefGuidList(depCiType, depCiAttr.Name, "in", []string{}, newRowsGuidList, cmdbEngine)
+					depFromGuidList, toGuidRefMap, tmpQueryDepCiGuidErr := getCMDBMultiRefGuidList(depCiType, depCiAttr.Name, "in", []string{}, newRowsGuidList, cmdbEngine)
 					if tmpQueryDepCiGuidErr != nil {
 						err = fmt.Errorf("try to get ciType:%s with dependent ciType:%s multiRef attr:%s guidList fail,%s ", ciType, depCiType, depCiAttr.Name, tmpQueryDepCiGuidErr.Error())
 						break
 					}
 					if len(depFromGuidList) > 0 {
-						if err = analyzeCMDBData(depCiType, depFromGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig); err != nil {
+						tmpParentMap := make(map[string]string)
+						for tmpToGuid, tmpFromGuidList := range toGuidRefMap {
+							for _, tmpFromGuid := range tmpFromGuidList {
+								tmpParentMap[tmpFromGuid] = ciTypeDataMap[ciType].DataChainMap[tmpToGuid]
+							}
+						}
+						if err = analyzeCMDBData(depCiType, depFromGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap); err != nil {
 							break
 						}
 					}
@@ -353,7 +375,7 @@ func getCMDBFilterSql(ciTypeAttributes []*models.SysCiTypeAttrTable, filter *mod
 	}
 	if matchAttr.InputType == "multiRef" {
 		var fromGuidList []string
-		if fromGuidList, err = getCMDBMultiRefGuidList(matchAttr.CiType, matchAttr.Name, condition, []string{}, filter.GuidList, cmdbEngine); err != nil {
+		if fromGuidList, _, err = getCMDBMultiRefGuidList(matchAttr.CiType, matchAttr.Name, condition, []string{}, filter.GuidList, cmdbEngine); err != nil {
 			return
 		}
 		filterSql = fmt.Sprintf("guid in ('%s')", strings.Join(fromGuidList, "','"))
@@ -365,7 +387,7 @@ func getCMDBFilterSql(ciTypeAttributes []*models.SysCiTypeAttrTable, filter *mod
 	return
 }
 
-func getCMDBMultiRefGuidList(ciType, attrName, condition string, fromGuidList, toGuidList []string, cmdbEngine *xorm.Engine) (resultGuidList []string, err error) {
+func getCMDBMultiRefGuidList(ciType, attrName, condition string, fromGuidList, toGuidList []string, cmdbEngine *xorm.Engine) (resultGuidList []string, resultRefMap map[string][]string, err error) {
 	var filterColumn, filterSql, resultColumn string
 	if len(fromGuidList) > 0 {
 		filterColumn = "from_guid"
@@ -378,6 +400,7 @@ func getCMDBMultiRefGuidList(ciType, attrName, condition string, fromGuidList, t
 	} else {
 		return
 	}
+	resultRefMap = make(map[string][]string)
 	queryResult, queryErr := cmdbEngine.QueryString(fmt.Sprintf("select from_guid,to_guid from `%s$%s` where %s %s ('%s')", ciType, attrName, filterColumn, condition, filterSql))
 	if queryErr != nil {
 		err = fmt.Errorf("query multiRef list fail,ciType:%s attrName:%s,error:%s ", ciType, attrName, queryErr.Error())
@@ -385,6 +408,11 @@ func getCMDBMultiRefGuidList(ciType, attrName, condition string, fromGuidList, t
 	}
 	for _, row := range queryResult {
 		resultGuidList = append(resultGuidList, row[resultColumn])
+		if existList, ok := resultRefMap[row[filterColumn]]; ok {
+			resultRefMap[row[filterColumn]] = append(existList, row[resultColumn])
+		} else {
+			resultRefMap[row[filterColumn]] = []string{row[resultColumn]}
+		}
 	}
 	return
 }
