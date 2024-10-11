@@ -74,7 +74,7 @@
             <Col span="15" v-if="hidePanal" offset="1">
               <FormItem :label="$t('target_type')">
                 <span @click="getAllDataModels">
-                  <div style="width: 200px; display: inline-block">
+                  <div style="width: 100%; display: inline-block">
                     <FilterRules
                       v-model="selectedEntityType"
                       :rootEntity="clearedEntityType"
