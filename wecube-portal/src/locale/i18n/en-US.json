@@ -1007,5 +1007,14 @@
   "pi_import_step4": "配置监控",
   "pi_import_step4_tips": "自动配置监控",
   "pi_import_product": "导入产品",
-  "pi_import_status": "导入状态"
+  "pi_import_status": "导入状态",
+  "pi_publish": "Publish",
+  "pi_request": "Request",
+  "pi_problem": "Problem",
+  "pi_event": "Incident",
+  "pi_change": "Change",
+  "pi_product_requiredTips": "Please select at least one product",
+  "pi_system_variable": "System Variable",
+  "pi_component_library": "ITSM Component Library",
+  "pi_tips": "Tips"
 }
