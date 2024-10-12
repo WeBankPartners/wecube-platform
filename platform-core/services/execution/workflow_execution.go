@@ -10,6 +10,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -113,12 +114,55 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 		err = errHandle
 		return
 	}
+	// 记录调用 taskman 插件请求信息
+	RecordPluginRequestInfo(ctx, param.ProcIns, pluginCallResult.Outputs)
 	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, false); err != nil {
 		return
 	}
 	// 批量执行需要返回原始插件结果，而不是格式化output字段的值
 	result = pluginCallResult
 	return
+}
+
+// RecordPluginRequestInfo 记录调用插件请求信息,taskman插件创建请求调用生成的请求和模版信息,需要在 proc_ins表中记录下来详情展示用(此处没有考虑并发创建taskman请求)
+func RecordPluginRequestInfo(ctx context.Context, procIns *models.ProcIns, outputs []map[string]interface{}) {
+	if len(outputs) > 0 && procIns != nil {
+		outputMap := outputs[0]
+		var requestId, requestName, requestTemplate string
+		var requestTemplateType int
+		var err error
+		if v, ok := outputMap["requestId"]; ok {
+			requestId = fmt.Sprintf("%v", v)
+		}
+		if v, ok := outputMap["requestName"]; ok {
+			requestName = fmt.Sprintf("%v", v)
+		}
+		if v, ok := outputMap["requestTemplate"]; ok {
+			requestTemplate = fmt.Sprintf("%v", v)
+		}
+		if v, ok := outputMap["requestTemplateType"]; ok {
+			requestTemplateType, _ = strconv.Atoi(fmt.Sprintf("%v", v))
+		}
+		if requestId != "" && requestTemplate != "" {
+			var requestList []*models.SimpleRequestDto
+			var newRequestInfo []byte
+			if procIns.RequestInfo != "" {
+				if err = json.Unmarshal([]byte(procIns.RequestInfo), &requestList); err != nil {
+					log.Logger.Error("json Unmarshal requestInfo err", log.Error(err))
+				}
+			}
+			requestList = append(requestList, &models.SimpleRequestDto{
+				Id:              requestId,
+				Name:            requestName,
+				RequestTemplate: requestTemplate,
+				Type:            requestTemplateType,
+			})
+			newRequestInfo, _ = json.Marshal(requestList)
+			if err = database.UpdateProcInstanceRequestInfo(ctx, procIns.Id, string(newRequestInfo)); err != nil {
+				log.Logger.Error("UpdateProcInstanceRequestInfo err", log.Error(err))
+			}
+		}
+	}
 }
 
 func performWorkflowDangerousCheck(ctx context.Context, pluginCallParam interface{}, continueToken string, authToken string) (result *models.ItsdangerousWorkflowCheckResultData, err error) {
@@ -237,6 +281,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 		RiskCheck:         procDefNode.RiskCheck,
 		Operator:          "SYSTEM",
 		ProcInsNode:       procInsNode,
+		ProcIns:           procIns,
 	}
 	callOutput, dangerousCheckResult, pluginCallParam, callErr := WorkflowExecutionCallPluginService(ctx, &callPluginServiceParam)
 	if callErr != nil {
