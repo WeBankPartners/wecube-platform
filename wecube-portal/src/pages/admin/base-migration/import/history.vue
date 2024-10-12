@@ -346,8 +346,8 @@ export default {
     // 终止
     handleStop(row) {
       this.$Modal.confirm({
-        title: '提示',
-        content: '确认终止吗？',
+        title: this.$t('pi_tips'),
+        content: `${this.$t('confirm') + this.$t('stop_orch')}？`,
         onOk: async () => {
           const params = {
             transImportId: row.id,

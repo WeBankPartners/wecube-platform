@@ -167,14 +167,14 @@ export default {
         this.detailData.artifactsRes.data = this.detailData.artifactsRes.data || []
         this.detailData.monitorRes.data = this.detailData.monitorRes.data || []
         this.detailData.pluginsRes.data = this.detailData.pluginsRes.data || []
-        this.detailData.roleRes.title = '角色'
-        this.detailData.flowRes.title = '编排'
-        this.detailData.batchRes.title = '批量执行'
-        this.detailData.itsmRes.title = 'ITSM流程'
-        this.detailData.componentLibraryRes.title = 'ITSM组件库'
-        this.detailData.artifactsRes.title = '物料包'
-        this.detailData.monitorRes.title = '监控配置'
-        this.detailData.pluginsRes.title = '插件服务'
+        this.detailData.roleRes.title = this.$t('role')
+        this.detailData.flowRes.title = this.$t('m_procDefId')
+        this.detailData.batchRes.title = this.$t('bc_operation')
+        this.detailData.itsmRes.title = this.$t('pe_itsm')
+        this.detailData.componentLibraryRes.title = this.$t('pi_component_library')
+        this.detailData.artifactsRes.title = this.$t('pe_articles')
+        this.detailData.monitorRes.title = this.$t('pe_monitor_config')
+        this.detailData.pluginsRes.title = this.$t('pluginService')
         this.detailData.cmdbRes.title = 'CMDB'
         this.detailData.initWorkflowRes.data = this.detailData.initWorkflowRes.data || []
         this.detailData.monitorBusinessRes.data = this.detailData.monitorBusinessRes.data || []
@@ -297,8 +297,8 @@ export default {
     // 终止
     handleStop() {
       this.$Modal.confirm({
-        title: '提示',
-        content: '确认终止吗？',
+        title: this.$t('pi_tips'),
+        content: `${this.$t('confirm') + this.$t('stop_orch')}？`,
         onOk: async () => {
           const params = {
             transImportId: this.id,

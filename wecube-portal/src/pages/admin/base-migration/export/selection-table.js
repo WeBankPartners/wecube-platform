@@ -262,23 +262,23 @@ export default {
             const typeList = [
               {
                 value: '1',
-                label: '发布' // 发布
+                label: this.$t('pi_publish') // 发布
               },
               {
                 value: '2',
-                label: '请求' // 请求
+                label: this.$t('pi_request') // 请求
               },
               {
                 value: '3',
-                label: '问题' // 问题
+                label: this.$t('pi_problem') // 问题
               },
               {
                 value: '4',
-                label: '事件' // 事件
+                label: this.$t('pi_event') // 事件
               },
               {
                 value: '5',
-                label: '变更' // 变更
+                label: this.$t('pi_change') // 变更
               }
             ]
             const find = typeList.find(i => i.value === String(params.row.type)) || {}
@@ -367,23 +367,23 @@ export default {
           list: [
             {
               value: '1',
-              label: '发布' // 发布
+              label: this.$t('pi_publish') // 发布
             },
             {
               value: '2',
-              label: '请求' // 请求
+              label: this.$t('pi_request') // 请求
             },
             {
               value: '3',
-              label: '问题' // 问题
+              label: this.$t('pi_problem') // 问题
             },
             {
               value: '4',
-              label: '事件' // 事件
+              label: this.$t('pi_event') // 事件
             },
             {
               value: '5',
-              label: '变更' // 变更
+              label: this.$t('pi_change') // 变更
             }
           ]
         }
