@@ -40,9 +40,22 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 		err = fmt.Errorf("query ci type attribute table fail,%s ", err.Error())
 		return
 	}
+	var ciGroupRows []*models.SysBaseKeyCodeTable
+	err = cmdbEngine.SQL("select * from sys_basekey_code where cat_id='ci_group'").Find(&ciGroupRows)
+	if err != nil {
+		err = fmt.Errorf("query sys base key code table fail,%s ", err.Error())
+		return
+	}
 	ciTypeMap := make(map[string]*models.SysCiTypeTable)
+	ciTypeGroupNameMap := make(map[string]string)
 	for _, row := range ciTypeRows {
 		ciTypeMap[row.Id] = row
+		for _, ciGroupRow := range ciGroupRows {
+			if ciGroupRow.Id == row.CiGroup {
+				ciTypeGroupNameMap[row.Id] = ciGroupRow.Value
+				break
+			}
+		}
 	}
 	ciTypeAttrMap := make(map[string][]*models.SysCiTypeAttrTable)
 	for _, row := range ciTypeAttrRows {
@@ -60,7 +73,8 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 	ciTypeDataMap := make(map[string]*models.CiTypeData)
 	filters := []*models.CiTypeDataFilter{{CiType: transConfig.EnvCiType, Condition: "in", GuidList: []string{param.Env}}}
 	log.Logger.Info("<--- start analyzeCMDBData --->")
-	err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig)
+	//err = analyzeCMDB(param, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig)
+	err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string))
 	if err != nil {
 		log.Logger.Error("<--- fail analyzeCMDBData --->", log.Error(err))
 		return
@@ -70,6 +84,9 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 	for k, ciData := range ciTypeDataMap {
 		ciData.CiType = ciTypeMap[k]
 		ciData.Attributes = ciTypeAttrMap[k]
+		for chainKey, chainValue := range ciData.DataChainMap {
+			log.Logger.Debug("CMDB Analyze Chain --- ", log.String("dataGuid", chainKey), log.String("chain", chainValue))
+		}
 	}
 	actions = getInsertAnalyzeCMDBActions(param.TransExportId, ciTypeDataMap)
 	// 写入cmdb 报表和视图列表
@@ -79,6 +96,11 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 		return
 	}
 	actions = append(actions, reportViewActions...)
+	// 写入ci层级数据
+	ciGroupNameBytes, _ := json.Marshal(ciTypeGroupNameMap)
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export_analyze_data(id,trans_export,source,data_type,data_type_name,data_len,data,start_time) values (?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"ex_aly_" + guid.CreateGuid(), param.TransExportId, "wecmdb_group", "group", "group", len(ciTypeGroupNameMap), string(ciGroupNameBytes), time.Now(),
+	}})
 	// 分析监控数据
 	var endpointList, serviceGroupList []string
 	for _, ciData := range ciTypeDataMap {
@@ -110,7 +132,92 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 	return
 }
 
-func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig) (err error) {
+func analyzeCMDB(param *models.AnalyzeDataTransParam, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig) (err error) {
+	ctx := context.WithValue(context.Background(), models.TransactionIdHeader, "analyze_cmdb_"+guid.CreateGuid())
+	if transConfig.BusinessToSystemExpr == "" || transConfig.EnvToSystemExpr == "" || transConfig.SystemCiType == "" {
+		err = fmt.Errorf("trans export config illegal")
+		return
+	}
+	// 解析业务产品到系统表达式，找出业务产品关联到的系统
+	businessExprList, businessExprAnalyzeErr := remote.AnalyzeExpression(transConfig.BusinessToSystemExpr)
+	if businessExprAnalyzeErr != nil {
+		err = fmt.Errorf("analyze business product to system expression:%s fail,%s ", transConfig.BusinessToSystemExpr, businessExprAnalyzeErr.Error())
+		return
+	}
+	envExprList, envExprAnalyzeErr := remote.AnalyzeExpression(transConfig.EnvToSystemExpr)
+	if envExprAnalyzeErr != nil {
+		err = fmt.Errorf("analyze deploy env to system expression:%s fail,%s ", transConfig.EnvToSystemExpr, envExprAnalyzeErr.Error())
+		return
+	}
+	if len(businessExprList) == 0 || len(envExprList) == 0 {
+		err = fmt.Errorf("illegal search expression")
+		return
+	}
+	businessFilters := []*models.QueryExpressionDataFilter{{
+		PackageName: businessExprList[0].Package,
+		EntityName:  businessExprList[0].Entity,
+		AttributeFilters: []*models.QueryExpressionDataAttrFilter{{
+			Name:     "id",
+			Operator: "in",
+			Value:    param.Business,
+		}},
+	}}
+	businessQueryResult, businessQueryErr := remote.QueryPluginData(ctx, businessExprList, businessFilters, remote.GetToken())
+	if businessQueryErr != nil {
+		err = fmt.Errorf("business to system query fail,%s ", businessQueryErr.Error())
+		return
+	}
+	if len(businessQueryResult) == 0 {
+		err = fmt.Errorf("can not find any system data with business product:%s ", param.Business)
+		return
+	}
+	// 解析部署环境到系统表达式，找出部署环境关联到的系统
+	envFilters := []*models.QueryExpressionDataFilter{{
+		PackageName: envExprList[0].Package,
+		EntityName:  envExprList[0].Entity,
+		AttributeFilters: []*models.QueryExpressionDataAttrFilter{{
+			Name:     "id",
+			Operator: "eq",
+			Value:    param.Env,
+		}},
+	}}
+	envQueryResult, envQueryErr := remote.QueryPluginData(ctx, envExprList, envFilters, remote.GetToken())
+	if envQueryErr != nil {
+		err = fmt.Errorf("deploy env to system query fail,%s ", envQueryErr.Error())
+		return
+	}
+	if len(envQueryResult) == 0 {
+		err = fmt.Errorf("can not find any system data with deploy env:%s ", param.Env)
+		return
+	}
+	// 取上述两个分析的交集，得到需要导出的系统
+	systemMatchMap := make(map[string]int)
+	var systemGuidList []string
+	for _, row := range businessQueryResult {
+		tmpGuid := fmt.Sprintf("%s", row["id"])
+		if tmpGuid != "" {
+			systemMatchMap[tmpGuid] = 1
+		}
+	}
+	for _, row := range envQueryResult {
+		tmpGuid := fmt.Sprintf("%s", row["id"])
+		if tmpGuid != "" {
+			if _, ok := systemMatchMap[tmpGuid]; ok {
+				systemGuidList = append(systemGuidList, tmpGuid)
+			}
+		}
+	}
+	log.Logger.Info("analyze system data done", log.StringList("systemGuidList", systemGuidList))
+	if len(systemGuidList) == 0 {
+		err = fmt.Errorf("can not find any system data with business and env")
+		return
+	}
+	// 从系统数据出发，正向查找数据，反向通过配置里的反向属性查找
+	err = analyzeCMDBData(transConfig.SystemCiType, systemGuidList, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string))
+	return
+}
+
+func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig, parentMap map[string]string) (err error) {
 	log.Logger.Info("analyzeCMDBData", log.String("ciType", ciType), log.StringList("guidList", ciDataGuidList))
 	if len(ciDataGuidList) == 0 {
 		return
@@ -154,17 +261,20 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 		for _, row := range newRows {
 			tmpRowGuid := row["guid"]
 			existData.DataMap[tmpRowGuid] = row
+			existData.DataChainMap[tmpRowGuid] = fmt.Sprintf("%s -> %s[%s]", parentMap[tmpRowGuid], row["guid"], row["key_name"])
 			newRowsGuidList = append(newRowsGuidList, tmpRowGuid)
 		}
 	} else {
 		dataMap := make(map[string]map[string]string)
+		dataChainMap := make(map[string]string)
 		for _, row := range queryCiDataResult {
 			tmpRowGuid := row["guid"]
 			dataMap[tmpRowGuid] = row
+			dataChainMap[tmpRowGuid] = fmt.Sprintf("%s -> %s[%s]", parentMap[tmpRowGuid], row["guid"], row["key_name"])
 			newRowsGuidList = append(newRowsGuidList, tmpRowGuid)
 			newRows = append(newRows, row)
 		}
-		ciTypeDataMap[ciType] = &models.CiTypeData{DataMap: dataMap}
+		ciTypeDataMap[ciType] = &models.CiTypeData{DataMap: dataMap, DataChainMap: dataChainMap}
 	}
 	// 往下分析数据行的依赖
 	for _, attr := range ciTypeAttributes {
@@ -173,14 +283,16 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 				continue
 			}
 			refCiTypeGuidList := []string{}
+			tmpParentMap := make(map[string]string)
 			for _, row := range newRows {
 				tmpRefCiDataGuid := row[attr.RefCiType]
 				if tmpRefCiDataGuid != "" {
 					refCiTypeGuidList = append(refCiTypeGuidList, tmpRefCiDataGuid)
+					tmpParentMap[tmpRefCiDataGuid] = ciTypeDataMap[ciType].DataChainMap[row["guid"]]
 				}
 			}
 			if len(refCiTypeGuidList) > 0 {
-				if err = analyzeCMDBData(attr.RefCiType, refCiTypeGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig); err != nil {
+				if err = analyzeCMDBData(attr.RefCiType, refCiTypeGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap); err != nil {
 					break
 				}
 			}
@@ -188,13 +300,19 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 			if checkArtifactCiTypeRefIllegal(ciType, attr.RefCiType, transConfig, true) {
 				continue
 			}
-			toGuidList, getMultiToGuidErr := getCMDBMultiRefGuidList(ciType, attr.Name, "in", newRowsGuidList, []string{}, cmdbEngine)
+			toGuidList, toGuidRefMap, getMultiToGuidErr := getCMDBMultiRefGuidList(ciType, attr.Name, "in", newRowsGuidList, []string{}, cmdbEngine)
 			if getMultiToGuidErr != nil {
 				err = fmt.Errorf("try to analyze ciType:%s dependent multiRef attr:%s error:%s ", ciType, attr.Name, getMultiToGuidErr.Error())
 				break
 			}
 			if len(toGuidList) > 0 {
-				if err = analyzeCMDBData(attr.RefCiType, toGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig); err != nil {
+				tmpParentMap := make(map[string]string)
+				for tmpFromGuid, tmpToGuidList := range toGuidRefMap {
+					for _, tmpToGuid := range tmpToGuidList {
+						tmpParentMap[tmpToGuid] = ciTypeDataMap[ciType].DataChainMap[tmpFromGuid]
+					}
+				}
+				if err = analyzeCMDBData(attr.RefCiType, toGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap); err != nil {
 					break
 				}
 			}
@@ -207,6 +325,17 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 	for depCiType, depCiTypeAttrList := range ciTypeAttrMap {
 		for _, depCiAttr := range depCiTypeAttrList {
 			if depCiAttr.RefCiType == ciType {
+				// 判断attr是否在配置里
+				legalFlag := false
+				for _, backwardAttr := range transConfig.BackwardSearchAttrList {
+					if backwardAttr == depCiAttr.Id {
+						legalFlag = true
+						break
+					}
+				}
+				if !legalFlag {
+					continue
+				}
 				if depCiAttr.InputType == "ref" {
 					if checkArtifactCiTypeRefIllegal(ciType, depCiType, transConfig, false) {
 						continue
@@ -214,17 +343,19 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 					if _, ok := ciTypeDataMap[depCiType]; ok {
 						continue
 					}
-					queryDepCiGuidRows, tmpQueryDepCiGuidErr := cmdbEngine.QueryString(fmt.Sprintf("select guid from %s where %s in ('%s')", depCiType, depCiAttr.Name, strings.Join(newRowsGuidList, "','")))
+					queryDepCiGuidRows, tmpQueryDepCiGuidErr := cmdbEngine.QueryString(fmt.Sprintf("select guid,%s from %s where %s in ('%s')", depCiAttr.Name, depCiType, depCiAttr.Name, strings.Join(newRowsGuidList, "','")))
 					if tmpQueryDepCiGuidErr != nil {
 						err = fmt.Errorf("try to get ciType:%s with dependent ciType:%s ref attr:%s guidList fail,%s ", ciType, depCiType, depCiAttr.Name, tmpQueryDepCiGuidErr.Error())
 						break
 					}
 					if len(queryDepCiGuidRows) > 0 {
 						depCiGuidList := []string{}
+						tmpParentMap := make(map[string]string)
 						for _, row := range queryDepCiGuidRows {
 							depCiGuidList = append(depCiGuidList, row["guid"])
+							tmpParentMap[row["guid"]] = ciTypeDataMap[ciType].DataChainMap[row[depCiAttr.Name]]
 						}
-						if err = analyzeCMDBData(depCiType, depCiGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig); err != nil {
+						if err = analyzeCMDBData(depCiType, depCiGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap); err != nil {
 							break
 						}
 					}
@@ -235,13 +366,19 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 					if _, ok := ciTypeDataMap[depCiType]; ok {
 						continue
 					}
-					depFromGuidList, tmpQueryDepCiGuidErr := getCMDBMultiRefGuidList(depCiType, depCiAttr.Name, "in", []string{}, newRowsGuidList, cmdbEngine)
+					depFromGuidList, toGuidRefMap, tmpQueryDepCiGuidErr := getCMDBMultiRefGuidList(depCiType, depCiAttr.Name, "in", []string{}, newRowsGuidList, cmdbEngine)
 					if tmpQueryDepCiGuidErr != nil {
 						err = fmt.Errorf("try to get ciType:%s with dependent ciType:%s multiRef attr:%s guidList fail,%s ", ciType, depCiType, depCiAttr.Name, tmpQueryDepCiGuidErr.Error())
 						break
 					}
 					if len(depFromGuidList) > 0 {
-						if err = analyzeCMDBData(depCiType, depFromGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig); err != nil {
+						tmpParentMap := make(map[string]string)
+						for tmpToGuid, tmpFromGuidList := range toGuidRefMap {
+							for _, tmpFromGuid := range tmpFromGuidList {
+								tmpParentMap[tmpFromGuid] = ciTypeDataMap[ciType].DataChainMap[tmpToGuid]
+							}
+						}
+						if err = analyzeCMDBData(depCiType, depFromGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap); err != nil {
 							break
 						}
 					}
@@ -326,11 +463,21 @@ func getDataTransVariableMap(ctx context.Context) (result *models.TransDataVaria
 		case "PLATFORM_EXPORT_CI_ARTIFACT_PACKAGE":
 			result.ArtifactPackageCiType = tmpValue
 		case "PLATFORM_EXPORT_CI_SYSTEM":
-			result.ArtifactCiSystem = tmpValue
+			result.SystemCiType = tmpValue
 		case "PLATFORM_EXPORT_CI_TECH_PRODUCT":
-			result.ArtifactCiTechProduct = tmpValue
+			result.TechProductCiType = tmpValue
 		case "PLATFORM_EXPORT_CI_ARTIFACT_UNIT_DESIGN":
 			result.ArtifactUnitDesignCiType = tmpValue
+		case "PLATFORM_EXPORT_CI_GROUP_DEPLOY":
+			result.CiGroupAppDeploy = tmpValue
+		case "PLATFORM_EXPORT_BUSINESS_EXPR":
+			result.BusinessToSystemExpr = tmpValue
+		case "PLATFORM_EXPORT_ENV_EXPR":
+			result.EnvToSystemExpr = tmpValue
+		case "PLATFORM_EXPORT_BACKWARD_ATTR_LIST":
+			if tmpValue != "" {
+				result.BackwardSearchAttrList = strings.Split(tmpValue, ",")
+			}
 		}
 	}
 	return
@@ -353,7 +500,7 @@ func getCMDBFilterSql(ciTypeAttributes []*models.SysCiTypeAttrTable, filter *mod
 	}
 	if matchAttr.InputType == "multiRef" {
 		var fromGuidList []string
-		if fromGuidList, err = getCMDBMultiRefGuidList(matchAttr.CiType, matchAttr.Name, condition, []string{}, filter.GuidList, cmdbEngine); err != nil {
+		if fromGuidList, _, err = getCMDBMultiRefGuidList(matchAttr.CiType, matchAttr.Name, condition, []string{}, filter.GuidList, cmdbEngine); err != nil {
 			return
 		}
 		filterSql = fmt.Sprintf("guid in ('%s')", strings.Join(fromGuidList, "','"))
@@ -365,7 +512,7 @@ func getCMDBFilterSql(ciTypeAttributes []*models.SysCiTypeAttrTable, filter *mod
 	return
 }
 
-func getCMDBMultiRefGuidList(ciType, attrName, condition string, fromGuidList, toGuidList []string, cmdbEngine *xorm.Engine) (resultGuidList []string, err error) {
+func getCMDBMultiRefGuidList(ciType, attrName, condition string, fromGuidList, toGuidList []string, cmdbEngine *xorm.Engine) (resultGuidList []string, resultRefMap map[string][]string, err error) {
 	var filterColumn, filterSql, resultColumn string
 	if len(fromGuidList) > 0 {
 		filterColumn = "from_guid"
@@ -378,6 +525,7 @@ func getCMDBMultiRefGuidList(ciType, attrName, condition string, fromGuidList, t
 	} else {
 		return
 	}
+	resultRefMap = make(map[string][]string)
 	queryResult, queryErr := cmdbEngine.QueryString(fmt.Sprintf("select from_guid,to_guid from `%s$%s` where %s %s ('%s')", ciType, attrName, filterColumn, condition, filterSql))
 	if queryErr != nil {
 		err = fmt.Errorf("query multiRef list fail,ciType:%s attrName:%s,error:%s ", ciType, attrName, queryErr.Error())
@@ -385,6 +533,11 @@ func getCMDBMultiRefGuidList(ciType, attrName, condition string, fromGuidList, t
 	}
 	for _, row := range queryResult {
 		resultGuidList = append(resultGuidList, row[resultColumn])
+		if existList, ok := resultRefMap[row[filterColumn]]; ok {
+			resultRefMap[row[filterColumn]] = append(existList, row[resultColumn])
+		} else {
+			resultRefMap[row[filterColumn]] = []string{row[resultColumn]}
+		}
 	}
 	return
 }
