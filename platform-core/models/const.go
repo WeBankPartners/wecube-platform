@@ -144,6 +144,7 @@ type TransExportAnalyzeSource string
 
 const (
 	TransExportAnalyzeSourceWeCmdb        TransExportAnalyzeSource = "wecmdb"         // CMDB
+	TransExportAnalyzeSourceWeCmdbGroup   TransExportAnalyzeSource = "wecmdb_group"   // CMDB Group
 	TransExportAnalyzeSourceWeCmdbReport  TransExportAnalyzeSource = "wecmdb_report"  // report
 	TransExportAnalyzeSourceWeCmdbView    TransExportAnalyzeSource = "wecmdb_view"    // view
 	TransExportAnalyzeSourceMonitor       TransExportAnalyzeSource = "monitor"        // monitor
