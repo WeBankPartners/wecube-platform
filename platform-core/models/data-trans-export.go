@@ -133,15 +133,20 @@ type TransDataVariableConfig struct {
 	NexusRepo                  string   `json:"nexusRepo"`
 	ArtifactInstanceCiTypeList []string `json:"artifactInstanceCiTypeList"`
 	ArtifactPackageCiType      string   `json:"artifactPackageCiType"`
-	ArtifactCiSystem           string   `json:"artifactCiSystem"`
-	ArtifactCiTechProduct      string   `json:"ArtifactCiTechProduct"`
-	ArtifactUnitDesignCiType   string   `json:"ArtifactUnitDesignCiType"`
+	SystemCiType               string   `json:"systemCiType"`
+	TechProductCiType          string   `json:"techProductCiType"`
+	ArtifactUnitDesignCiType   string   `json:"artifactUnitDesignCiType"`
+	CiGroupAppDeploy           string   `json:"ciGroupAppDeploy"`
+	BusinessToSystemExpr       string   `json:"businessToSystemExpr"`
+	EnvToSystemExpr            string   `json:"envToSystemExpr"`
+	BackwardSearchAttrList     []string `json:"backwardSearchAttrList"`
 }
 
 type CiTypeData struct {
-	CiType     *SysCiTypeTable              `json:"ciType"`
-	Attributes []*SysCiTypeAttrTable        `json:"attributes"`
-	DataMap    map[string]map[string]string `json:"dataMap"` // key=ciDataGuid value=ciDataColumnKV
+	CiType       *SysCiTypeTable              `json:"ciType"`
+	Attributes   []*SysCiTypeAttrTable        `json:"attributes"`
+	DataMap      map[string]map[string]string `json:"dataMap"` // key=ciDataGuid value=ciDataColumnKV
+	DataChainMap map[string]string            `json:"dataChainMap"`
 }
 
 type CiTypeDataFilter struct {
@@ -417,4 +422,14 @@ type ExportMetricListDto struct {
 	ServiceGroupPath        string
 	EndpointGroupPath       string
 	Token                   string
+}
+
+type SysBaseKeyCodeTable struct {
+	Id          string `json:"codeId" xorm:"id"`
+	CatId       string `json:"catId" xorm:"cat_id"`
+	Code        string `json:"code" xorm:"code"`
+	Value       string `json:"value" xorm:"value"`
+	Description string `json:"codeDescription" xorm:"description"`
+	SeqNo       int    `json:"seqNo" xorm:"seq_no"`
+	Status      string `json:"status" xorm:"status"`
 }
