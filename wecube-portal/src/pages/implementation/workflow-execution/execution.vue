@@ -91,7 +91,12 @@
                 icon="md-square"
               >{{ $t('stop_orch') }}</Button>
               <!--编排关联的ITSM工单-->
-              <Poptip v-if="Array.isArray(flowData.request) && flowData.request.length > 0" placement="bottom" trigger="hover" width="500">
+              <Poptip
+                v-if="Array.isArray(flowData.request) && flowData.request.length > 0"
+                placement="bottom"
+                trigger="hover"
+                width="500"
+              >
                 <Button icon="md-person">ITSM工单</Button>
                 <div slot="content">
                   <div v-for="i in flowData.request" :key="i.id" style="padding: 3px 0">
