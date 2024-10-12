@@ -76,7 +76,7 @@ INSERT INTO system_variables (id, package_name, name, value, default_value, `sco
 VALUES ('system__global__PLATFORM_EXPORT_CI_ARTIFACT_PACKAGE', '', 'PLATFORM_EXPORT_CI_ARTIFACT_PACKAGE', '',
         'deploy_package', 'global', 'system', 'active');
 INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status)
-VALUES ('system__global__PLATFORM_EXPORT_CI_SYSTEM', '', 'PLATFORM_EXPORT_CI_SYSTEM', 'app_system_design', '', 'global',
+VALUES ('system__global__PLATFORM_EXPORT_CI_SYSTEM', '', 'PLATFORM_EXPORT_CI_SYSTEM', 'system_design', '', 'global',
         'system', 'active');
 INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status)
 VALUES ('system__global__PLATFORM_EXPORT_CI_TECH_PRODUCT', '', 'PLATFORM_EXPORT_CI_TECH_PRODUCT', 'tech_product', '',
@@ -168,3 +168,8 @@ CREATE TABLE `trans_import_proc_exec`
     PRIMARY KEY (`id`),
     CONSTRAINT `trans_import_proc_exec_force_detail` FOREIGN KEY (`trans_import_detail`) REFERENCES `trans_import_detail` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '数据迁移执行记录详情表';
+
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_EXPORT_BUSINESS_EXPR', '', 'PLATFORM_EXPORT_BUSINESS_EXPR', '', '', 'global','system', 'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_EXPORT_ENV_EXPR', '', 'PLATFORM_EXPORT_ENV_EXPR', '', '', 'global','system', 'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_EXPORT_BACKWARD_ATTR_LIST', '', 'PLATFORM_EXPORT_BACKWARD_ATTR_LIST', '', '', 'global','system', 'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_EXPORT_IGNORE_ATTR_LIST', '', 'PLATFORM_EXPORT_IGNORE_ATTR_LIST', '', '', 'global','system', 'active');
