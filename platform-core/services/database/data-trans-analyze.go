@@ -71,10 +71,10 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 		return
 	}
 	ciTypeDataMap := make(map[string]*models.CiTypeData)
-	filters := []*models.CiTypeDataFilter{{CiType: transConfig.EnvCiType, Condition: "in", GuidList: []string{param.Env}}}
+	//filters := []*models.CiTypeDataFilter{{CiType: transConfig.EnvCiType, Condition: "in", GuidList: []string{param.Env}}}
 	log.Logger.Info("<--- start analyzeCMDBData --->")
-	//err = analyzeCMDB(param, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig)
-	err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string))
+	err = analyzeCMDB(param, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig)
+	//err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string))
 	if err != nil {
 		log.Logger.Error("<--- fail analyzeCMDBData --->", log.Error(err))
 		return
@@ -213,6 +213,7 @@ func analyzeCMDB(param *models.AnalyzeDataTransParam, ciTypeAttrMap map[string][
 		return
 	}
 	// 从系统数据出发，正向查找数据，反向通过配置里的反向属性查找
+	err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string))
 	err = analyzeCMDBData(transConfig.SystemCiType, systemGuidList, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string))
 	return
 }
@@ -276,10 +277,13 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 		}
 		ciTypeDataMap[ciType] = &models.CiTypeData{DataMap: dataMap, DataChainMap: dataChainMap}
 	}
+	if ciType == transConfig.BusinessCiType {
+		return
+	}
 	// 往下分析数据行的依赖
 	for _, attr := range ciTypeAttributes {
 		if attr.InputType == "ref" {
-			if checkArtifactCiTypeRefIllegal(ciType, attr.RefCiType, transConfig, true) {
+			if checkArtifactCiTypeRefIllegal(ciType, attr.RefCiType, transConfig, true, attr) {
 				continue
 			}
 			refCiTypeGuidList := []string{}
@@ -297,7 +301,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 				}
 			}
 		} else if attr.InputType == "multiRef" {
-			if checkArtifactCiTypeRefIllegal(ciType, attr.RefCiType, transConfig, true) {
+			if checkArtifactCiTypeRefIllegal(ciType, attr.RefCiType, transConfig, true, attr) {
 				continue
 			}
 			toGuidList, toGuidRefMap, getMultiToGuidErr := getCMDBMultiRefGuidList(ciType, attr.Name, "in", newRowsGuidList, []string{}, cmdbEngine)
@@ -337,12 +341,12 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 					continue
 				}
 				if depCiAttr.InputType == "ref" {
-					if checkArtifactCiTypeRefIllegal(ciType, depCiType, transConfig, false) {
+					if checkArtifactCiTypeRefIllegal(ciType, depCiType, transConfig, false, depCiAttr) {
 						continue
 					}
-					if _, ok := ciTypeDataMap[depCiType]; ok {
-						continue
-					}
+					//if _, ok := ciTypeDataMap[depCiType]; ok {
+					//	continue
+					//}
 					queryDepCiGuidRows, tmpQueryDepCiGuidErr := cmdbEngine.QueryString(fmt.Sprintf("select guid,%s from %s where %s in ('%s')", depCiAttr.Name, depCiType, depCiAttr.Name, strings.Join(newRowsGuidList, "','")))
 					if tmpQueryDepCiGuidErr != nil {
 						err = fmt.Errorf("try to get ciType:%s with dependent ciType:%s ref attr:%s guidList fail,%s ", ciType, depCiType, depCiAttr.Name, tmpQueryDepCiGuidErr.Error())
@@ -360,12 +364,12 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 						}
 					}
 				} else if depCiAttr.InputType == "multiRef" {
-					if checkArtifactCiTypeRefIllegal(ciType, depCiType, transConfig, false) {
+					if checkArtifactCiTypeRefIllegal(ciType, depCiType, transConfig, false, depCiAttr) {
 						continue
 					}
-					if _, ok := ciTypeDataMap[depCiType]; ok {
-						continue
-					}
+					//if _, ok := ciTypeDataMap[depCiType]; ok {
+					//	continue
+					//}
 					depFromGuidList, toGuidRefMap, tmpQueryDepCiGuidErr := getCMDBMultiRefGuidList(depCiType, depCiAttr.Name, "in", []string{}, newRowsGuidList, cmdbEngine)
 					if tmpQueryDepCiGuidErr != nil {
 						err = fmt.Errorf("try to get ciType:%s with dependent ciType:%s multiRef attr:%s guidList fail,%s ", ciType, depCiType, depCiAttr.Name, tmpQueryDepCiGuidErr.Error())
@@ -468,8 +472,6 @@ func getDataTransVariableMap(ctx context.Context) (result *models.TransDataVaria
 			result.TechProductCiType = tmpValue
 		case "PLATFORM_EXPORT_CI_ARTIFACT_UNIT_DESIGN":
 			result.ArtifactUnitDesignCiType = tmpValue
-		case "PLATFORM_EXPORT_CI_GROUP_DEPLOY":
-			result.CiGroupAppDeploy = tmpValue
 		case "PLATFORM_EXPORT_BUSINESS_EXPR":
 			result.BusinessToSystemExpr = tmpValue
 		case "PLATFORM_EXPORT_ENV_EXPR":
@@ -477,6 +479,10 @@ func getDataTransVariableMap(ctx context.Context) (result *models.TransDataVaria
 		case "PLATFORM_EXPORT_BACKWARD_ATTR_LIST":
 			if tmpValue != "" {
 				result.BackwardSearchAttrList = strings.Split(tmpValue, ",")
+			}
+		case "PLATFORM_EXPORT_IGNORE_ATTR_LIST":
+			if tmpValue != "" {
+				result.IgnoreSearchAttrList = strings.Split(tmpValue, ",")
 			}
 		}
 	}
@@ -610,8 +616,17 @@ func QueryBusinessList(c context.Context, userToken, language string, param mode
 	return
 }
 
-func checkArtifactCiTypeRefIllegal(sourceCiType, refCiType string, transConfig *models.TransDataVariableConfig, forwardRef bool) (illegal bool) {
+func checkArtifactCiTypeRefIllegal(sourceCiType, refCiType string, transConfig *models.TransDataVariableConfig, forwardRef bool, attr *models.SysCiTypeAttrTable) (illegal bool) {
 	illegal = false
+	for _, v := range transConfig.IgnoreSearchAttrList {
+		if v == attr.Id {
+			illegal = true
+			break
+		}
+	}
+	if illegal {
+		return
+	}
 	if refCiType == transConfig.ArtifactPackageCiType {
 		matchFlag := false
 		for _, v := range transConfig.ArtifactInstanceCiTypeList {
@@ -707,6 +722,9 @@ func analyzePluginMonitorExportData(transExportId string, endpointList, serviceG
 }
 
 func parseStringListToJsonString(input []string) string {
+	if len(input) == 0 {
+		input = []string{}
+	}
 	b, _ := json.Marshal(input)
 	return string(b)
 }
