@@ -136,15 +136,15 @@ export default {
         this.detailData.artifactsRes.data = this.detailData.artifactsRes.data || []
         this.detailData.monitorRes.data = this.detailData.monitorRes.data || []
         this.detailData.pluginsRes.data = this.detailData.pluginsRes.data || []
-        this.detailData.roleRes.title = '角色'
-        this.detailData.flowRes.title = '编排'
-        this.detailData.batchRes.title = '批量执行'
-        this.detailData.itsmRes.title = 'ITSM流程'
-        this.detailData.artifactsRes.title = '物料包'
-        this.detailData.monitorRes.title = '监控配置'
-        this.detailData.pluginsRes.title = '插件服务'
+        this.detailData.roleRes.title = this.$t('role')
+        this.detailData.flowRes.title = this.$t('m_procDefId')
+        this.detailData.batchRes.title = this.$t('bc_operation')
+        this.detailData.itsmRes.title = this.$t('pe_itsm')
+        this.detailData.artifactsRes.title = this.$t('pe_articles')
+        this.detailData.monitorRes.title = this.$t('pe_monitor_config')
+        this.detailData.pluginsRes.title = this.$t('pluginService')
         this.detailData.cmdbRes.title = 'CMDB'
-        this.detailData.createAndUploadFileRes.title = '系统变量'
+        this.detailData.createAndUploadFileRes.title = this.$t('pi_system_variable')
         this.detailData.associationSystems = this.detailData.associationSystems || []
         this.detailData.associationTechProducts = this.detailData.associationTechProducts || []
         this.detailData.businessName = this.detailData.businessName || ''
@@ -229,7 +229,7 @@ export default {
       const pNames = selectionList.map(item => item.displayName)
       const envName = envList.find(item => item.value === env).label
       if (pIds.length === 0) {
-        return this.$Message.warning('至少勾选一条产品数据')
+        return this.$Message.warning(this.$t('pi_product_requiredTips'))
       }
       const params = {
         pIds,
