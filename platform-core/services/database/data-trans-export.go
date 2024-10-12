@@ -300,7 +300,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 		Plugins:        &models.CommonOutput{},
 	}
 	// 查询CMDB CI group
-	if ciGroupAnalyzeData, err = GetTransExportAnalyzeDataByCond(ctx, transExportId, string(models.TransExportAnalyzeSourceWeCmdbGroup)); err != nil {
+	if ciGroupAnalyzeData, err = GetTransExportAnalyzeDataBySource(ctx, transExportId, string(models.TransExportAnalyzeSourceWeCmdbGroup)); err != nil {
 		return
 	}
 	if ciGroupAnalyzeData.Data != "" {
@@ -438,8 +438,13 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 	return
 }
 
-func GetTransExportAnalyzeDataByCond(ctx context.Context, transExportId string, dataType string) (analyzeData models.TransExportAnalyzeDataTable, err error) {
+func GetTransExportAnalyzeDataByCond(ctx context.Context, transExportId, dataType string) (analyzeData models.TransExportAnalyzeDataTable, err error) {
 	_, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_analyze_data where trans_export=? and data_type=? limit 1", transExportId, dataType).Get(&analyzeData)
+	return
+}
+
+func GetTransExportAnalyzeDataBySource(ctx context.Context, transExportId, source string) (analyzeData models.TransExportAnalyzeDataTable, err error) {
+	_, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_analyze_data where trans_export=? and source=? limit 1", transExportId, source).Get(&analyzeData)
 	return
 }
 
