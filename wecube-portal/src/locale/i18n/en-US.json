@@ -979,6 +979,7 @@
   "pe_progress_name": "流程名称",
   "pe_scene": "场景",
   "pe_ci_name": "CI名称",
+  "pe_ci_level": "CI层级",
   "pe_view_name": "视图名",
   "pe_report_name": "报表名",
   "pe_unit_design": "所属单元设计",
