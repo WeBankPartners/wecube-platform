@@ -98,7 +98,7 @@
                 width="500"
               >
                 <Button icon="md-person">ITSM工单</Button>
-                <div slot="content" style="padding: 3px 0px;">
+                <div slot="content" style="padding: 3px 0px">
                   <div v-for="i in flowData.request" :key="i.id" style="padding: 3px 0">
                     <Icon type="md-person"></Icon>
                     <span style="color: #2d8cf0; cursor: pointer" @click="handleLinkItsmDetail(i)">{{ i.name }}</span>
