@@ -164,6 +164,14 @@ func normalizePluginInterfaceParamData(ctxParam *models.HandleProcessInputDataPa
 	if t.Kind() == reflect.Slice {
 		if inputParamDef.DataType == models.PluginParamDataTypeObject {
 			if inputParamDef.RefObjectName == "" {
+				if inputParamDef.Multiple == "Y" {
+					result = value
+				} else {
+					tv := reflect.ValueOf(value)
+					if tv.Len() > 0 {
+						result = tv.Index(0).Interface()
+					}
+				}
 				return result, nil
 			}
 			if inputParamDef.Multiple == "Y" {
