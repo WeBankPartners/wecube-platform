@@ -235,10 +235,11 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 	var transExport models.TransExportTable
 	var dataTransVariableConfig *models.TransDataVariableConfig
 	var transExportDetailList []*models.TransExportDetailTable
-	var systemAnalyzeData, productAnalyzeData models.TransExportAnalyzeDataTable
+	var systemAnalyzeData, productAnalyzeData, ciGroupAnalyzeData models.TransExportAnalyzeDataTable
 	var systemAnalyzeDataMap, productAnalyzeDataMap map[string]map[string]string
 	var transExportAnalyzeDataList []*models.TransExportAnalyzeDataTable
 	var monitorList []*models.CommonNameCount
+	var ciGroup = make(map[string]string)
 	if _, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export where id=?", transExportId).Get(&transExport); err != nil {
 		return
 	}
@@ -270,6 +271,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			}
 		}
 	}
+
 	// 查询关联系统
 	if systemAnalyzeData, err = GetTransExportAnalyzeDataByCond(ctx, transExportId, dataTransVariableConfig.ArtifactCiSystem); err != nil {
 		return
@@ -296,6 +298,13 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 		CmdbReportForm: make([]*models.CommonNameCreator, 0),
 		Monitor:        &models.CommonOutput{},
 		Plugins:        &models.CommonOutput{},
+	}
+	// 查询CMDB CI group
+	if ciGroupAnalyzeData, err = GetTransExportAnalyzeDataByCond(ctx, transExportId, string(models.TransExportAnalyzeSourceWeCmdbGroup)); err != nil {
+		return
+	}
+	if ciGroupAnalyzeData.Data != "" {
+		json.Unmarshal([]byte(ciGroupAnalyzeData.Data), &ciGroup)
 	}
 	for _, transExportDetail := range transExportDetailList {
 		var tempArr []string
@@ -352,6 +361,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			detail.CmdbCI = append(detail.CmdbCI, &models.CommonNameCount{
 				Name:  transExportAnalyze.DataTypeName,
 				Count: transExportAnalyze.DataLen,
+				Group: ciGroup[transExportAnalyze.DataType],
 			})
 		case models.TransExportAnalyzeSourceWeCmdbReport:
 			var tempArr []map[string]interface{}
