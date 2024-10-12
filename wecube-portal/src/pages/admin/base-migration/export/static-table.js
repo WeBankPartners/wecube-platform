@@ -4,6 +4,20 @@ export default {
       // cmdb CI
       cmdbCIColumns: [
         {
+          title: this.$t('pe_ci_level'),
+          key: 'group',
+          render: (h, params) => (
+            <span
+              style="cursor:pointer;color:#5cadff;"
+              onClick={() => {
+                this.handleStaticTableLink(params.row, 'cmdb-ci')
+              }}
+            >
+              {params.row.group}
+            </span>
+          )
+        },
+        {
           title: this.$t('pe_ci_name'),
           key: 'name',
           render: (h, params) => (
