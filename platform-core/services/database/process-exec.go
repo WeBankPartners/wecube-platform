@@ -788,6 +788,7 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 	nowTime := time.Now()
 	newOidMap := make(map[string]string)
 	var entityDataId, entityTypeId, entityDataName, requestInfo string
+	var requestList []*models.SimpleRequestDto
 	for _, row := range startParam.Entities {
 		if row.EntityDataOp == "create" {
 			newOidMap[row.Oid] = models.NewOidDataPrefix + row.Oid
@@ -805,7 +806,8 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 	}
 	procSessionId := "public_session_" + guid.CreateGuid()
 	if startParam.SimpleRequestDto != nil {
-		byteArr, _ := json.Marshal(startParam.SimpleRequestDto)
+		requestList = []*models.SimpleRequestDto{startParam.SimpleRequestDto}
+		byteArr, _ := json.Marshal(requestList)
 		requestInfo = string(byteArr)
 	}
 
@@ -991,7 +993,7 @@ func ListProcInstance(ctx context.Context, userRoles []string, withCronIns, with
 
 func GetProcInstance(ctx context.Context, procInsId string) (result *models.ProcInsDetail, err error) {
 	var procInsRows []*models.ProcIns
-	var requestInfo *models.SimpleRequestDto
+	var requestInfoList []*models.SimpleRequestDto
 	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins where id=?", procInsId).Find(&procInsRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
@@ -1003,7 +1005,7 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 	}
 	procInsObj := procInsRows[0]
 	if procInsObj.RequestInfo != "" {
-		json.Unmarshal([]byte(procInsObj.RequestInfo), &requestInfo)
+		json.Unmarshal([]byte(procInsObj.RequestInfo), &requestInfoList)
 	}
 	procDefObj, getProcDefErr := GetSimpleProcDefRow(ctx, procInsObj.ProcDefId)
 	if getProcDefErr != nil {
@@ -1024,7 +1026,7 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 		CreatedTime:       procInsObj.CreatedTime.Format(models.DateTimeFormat),
 		SubProc:           procDefObj.SubProc,
 		DisplayStatus:     procInsObj.Status,
-		Request:           requestInfo,
+		Request:           requestInfoList,
 	}
 	if procInsObj.ParentInsNodeId != "" {
 		procInsParentMap := make(map[string]*models.ParentProcInsObj)
@@ -2216,5 +2218,10 @@ func UpdateProcCacheData(ctx context.Context, procInsId string, dataBinding []*m
 			err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		}
 	}
+	return
+}
+
+func UpdateProcInstanceRequestInfo(ctx context.Context, procInstanceId, requestInfo string) (err error) {
+	_, err = db.MysqlEngine.Context(ctx).Exec("update proc_ins set request_info = ? where id=?", requestInfo, procInstanceId)
 	return
 }
