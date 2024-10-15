@@ -2,7 +2,7 @@
   <div class="plugin-register-page">
     <Row>
       <Col span="7" style="border-right: 1px solid #e8eaec">
-        <div style="height: calc(100vh - 350px); overflow-y: auto">
+        <div style="height: calc(100vh - 270px); overflow-y: auto">
           <div v-if="plugins.length < 1">{{ $t('no_plugin') }}</div>
           <div style="">
             <Menu theme="light" :active-name="currentPlugin" @on-select="selectPlugin" style="width: 100%; z-index: 10">
@@ -59,7 +59,7 @@
           <Button type="info" long ghost @click="batchRegist">{{ $t('batch_regist') }}</Button>
         </div>
       </Col>
-      <Col span="17" offset="0" style="padding-left: 10px">
+      <Col span="17" offset="0" style="padding-left: 10px; height: calc(100vh - 270px); overflow-y: auto">
         <Spin size="large" fix style="margin-top: 200px" v-show="isLoading">
           <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
           <div>{{ $t('loading') }}</div>
@@ -74,7 +74,7 @@
             <Col span="15" v-if="hidePanal" offset="1">
               <FormItem :label="$t('target_type')">
                 <span @click="getAllDataModels">
-                  <div style="width: 200px; display: inline-block">
+                  <div style="width: 400px; display: inline-block">
                     <FilterRules
                       v-model="selectedEntityType"
                       :rootEntity="clearedEntityType"
@@ -87,7 +87,7 @@
               </FormItem>
             </Col>
           </Row>
-          <div style="height: calc(100vh - 500px); overflow: auto" id="paramsContainer">
+          <div style="height: calc(100vh - 440px); overflow: auto" id="paramsContainer">
             <div style="background: #f7f7f7">
               <div
                 v-for="(inter, index) in currentPluginObj.interfaces"
@@ -148,7 +148,7 @@
               </div>
             </div>
           </div>
-          <Row v-if="currentPluginObjKeysLength > 1" style="margin: 45px auto; margin-bottom: 0">
+          <Row v-if="currentPluginObjKeysLength > 1" style="margin: 20px auto; margin-bottom: 0">
             <Col span="9" offset="8">
               <Button type="primary" ghost v-if="currentPluginObj.status === 'DISABLED'" @click="pluginSave">{{
                 $t('save')
