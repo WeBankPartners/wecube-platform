@@ -8,7 +8,7 @@
       </RadioGroup>
     </div>
     <div class="inline-item">
-      <div style="display:flex;align-items:center;">
+      <div style="display: flex; align-items: center">
         <span class="title">{{ $t('pi_data_confirmTime') }}</span>
         <DatePicker
           type="datetime"
@@ -20,7 +20,7 @@
             }
           "
           :placeholder="$t('tw_please_select')"
-          style="width:400px;"
+          style="width: 400px"
           clearable
         ></DatePicker>
         <span class="sub-title">*{{ $t('pi_data_confirmTimeTips') }}</span>
