@@ -90,16 +90,21 @@
                 @click="stopHandler"
                 icon="md-square"
               >{{ $t('stop_orch') }}</Button>
-              <!-- disabled="currentInstanceStatus || stopSuccess"  stop_orch -->
-              <!--定时执行-->
-              <!-- <Button
-                v-if="currentInstanceStatusForNodeOperation === 'Completed'"
-                type="primary"
-                @click="setTimedExecution"
-                icon="md-stopwatch"
-                >{{ $t('timed_execution') }}</Button
-              > -->
-              <!-- :disabled="canAbleToSetting" timed_execution -->
+              <!--编排关联的ITSM工单-->
+              <Poptip
+                v-if="Array.isArray(flowData.request) && flowData.request.length > 0"
+                placement="bottom"
+                trigger="hover"
+                width="500"
+              >
+                <Button icon="md-person">ITSM工单</Button>
+                <div slot="content" style="padding: 3px 0px">
+                  <div v-for="i in flowData.request" :key="i.id" style="padding: 3px 0">
+                    <Icon type="md-person"></Icon>
+                    <span style="color: #2d8cf0; cursor: pointer" @click="handleLinkItsmDetail(i)">{{ i.name }}</span>
+                  </div>
+                </div>
+              </Poptip>
             </FormItem>
             <Col v-if="!isEnqueryPage" span="7">
               <FormItem :label-width="100" :label="$t('select_orch')">
@@ -2925,14 +2930,30 @@ export default {
         },
         onCancel: () => {}
       })
+    },
+    handleLinkItsmDetail(row) {
+      const detailRouteMap = {
+        1: 'detailPublish',
+        2: 'detailRequest',
+        3: 'detailProblem',
+        4: 'detailEvent',
+        5: 'detailChange'
+      }
+      window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
+      const path = `${window.location.origin}/#/taskman/workbench/${detailRouteMap[row.type]}?requestId=${
+        row.id
+      }&requestTemplate=${row.requestTemplate}`
+      window.open(path, '_blank')
     }
   }
 }
 </script>
 <style lang="scss">
-.platform-base-drawer .jv-container .jv-code {
-  overflow: hidden;
-  padding: 0px 20px;
+.workflow-execution {
+  .platform-base-drawer .jv-container .jv-code {
+    overflow: hidden;
+    padding: 0px 20px;
+  }
 }
 </style>
 <style lang="scss" scoped>
