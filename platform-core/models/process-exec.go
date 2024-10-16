@@ -207,6 +207,7 @@ type ProcInsDetail struct {
 	ScheduleJobName   string               `json:"scheduleJobName"`
 	SubProc           bool                 `json:"subProc"`
 	DisplayStatus     string               `json:"displayStatus"`
+	Request           []*SimpleRequestDto  `json:"request"`
 }
 
 type ProcInsNodeDetail struct {
@@ -288,6 +289,7 @@ type RequestProcessData struct {
 	RootEntityOid string                           `json:"rootEntityOid"`
 	Entities      []*RequestCacheEntityValue       `json:"entities"`
 	Bindings      []*RequestProcessTaskNodeBindObj `json:"bindings"`
+	*SimpleRequestDto
 }
 
 type RequestProcessTaskNodeBindObj struct {
@@ -591,4 +593,13 @@ type HandleProcessInputDataParam struct {
 	AuthToken        string                 `json:"authToken"`
 	InputConstantMap map[string]string      `json:"inputConstantMap"`
 	InputContextMap  map[string]interface{} `json:"inputContextMap"`
+}
+
+type SimpleRequestDto struct {
+	Id              string `json:"id"`
+	Name            string `json:"name"`
+	RequestTemplate string `json:"requestTemplate"`
+	CreatedBy       string `json:"createdBy"`
+	CreatedTime     string `json:"createdTime"`
+	Type            int    `json:"type"`
 }
