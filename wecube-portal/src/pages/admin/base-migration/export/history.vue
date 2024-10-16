@@ -204,7 +204,7 @@ export default {
           align: 'center',
           fixed: 'right',
           render: (h, params) => (
-            <div style="display:flex;justify-content:flex-start;">
+            <div style="display:flex;justify-content:center;">
               {params.row.status !== 'start' && (
                 <Tooltip content={this.$t('be_details')} placement="top">
                   <Button

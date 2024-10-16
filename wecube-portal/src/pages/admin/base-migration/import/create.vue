@@ -63,6 +63,7 @@ import StepOne from './components/step-one.vue'
 import StepTwo from './components/step-two.vue'
 import StepThree from './components/step-three.vue'
 import StepFour from './components/step-four.vue'
+import { groupArrayByKey } from '@/const/util'
 import { getImportDetail, updateImportStatus } from '@/api/server'
 export default {
   components: {
@@ -193,6 +194,9 @@ export default {
           (sum, cur) => sum + cur.count,
           0
         )
+        // cmdbCI分组展示
+        this.detailData.cmdbCIData = groupArrayByKey(this.detailData.cmdbCIData, 'group')
+        this.detailData.cmdbCIData = this.detailData.cmdbCIData.flat()
         // 第二步导入状态判断
         const {
           artifactsRes,

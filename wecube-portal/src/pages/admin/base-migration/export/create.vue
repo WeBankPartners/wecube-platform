@@ -3,6 +3,9 @@
     <div class="base-migration-export-create">
       <div class="steps">
         <BaseHeaderTitle :title="$t('pe_export_steps')" :showExpand="false">
+          <div class="back-header">
+            <Icon size="22" type="md-arrow-back" class="icon" @click="handleBack" />
+          </div>
           <Steps :current="activeStep" direction="vertical">
             <Step :title="$t('pe_step1')" :content="$t('pe_step1_tips')"></Step>
             <Step :title="$t('pe_step2')" :content="$t('pe_step2_tips')"></Step>
@@ -55,7 +58,7 @@
 import StepEnviroment from './components/step-enviroment.vue'
 import StepSelectData from './components/step-select-data.vue'
 import StepResult from './components/step-result.vue'
-import { debounce } from '@/const/util'
+import { debounce, groupArrayByKey } from '@/const/util'
 import {
   saveEnvBusiness, updateEnvBusiness, exportBaseMigration, getExportDetail
 } from '@/api/server'
@@ -156,6 +159,9 @@ export default {
           (sum, cur) => sum + cur.artifactLen,
           0
         )
+        // cmdbCI分组展示
+        this.detailData.cmdbCIData = groupArrayByKey(this.detailData.cmdbCIData, 'group')
+        this.detailData.cmdbCIData = this.detailData.cmdbCIData.flat()
         // 合并monitor数据
         const metric_list_obj = {
           name: 'metric_list',
