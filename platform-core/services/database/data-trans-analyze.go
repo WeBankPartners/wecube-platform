@@ -23,6 +23,12 @@ import (
 
 // AnalyzeCMDBDataExport 分析cmdb数据并写入自动分析表
 func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransParam) (actions []*db.ExecAction, err error) {
+	lastConfirmTime, timeParseErr := time.ParseInLocation(models.DateTimeFormat, param.LastConfirmTime, time.Local)
+	if timeParseErr != nil {
+		log.Logger.Warn("AnalyzeCMDBDataExport try to parse lastConfirmTime fail", log.String("inputTime", param.LastConfirmTime), log.Error(timeParseErr))
+		lastConfirmTime = time.Now()
+	}
+	param.LastConfirmTime = lastConfirmTime.Format(models.DateTimeFormat)
 	cmdbEngine, getDBErr := getCMDBPluginDBResource(ctx)
 	if getDBErr != nil {
 		err = getDBErr
