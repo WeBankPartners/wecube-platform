@@ -58,6 +58,23 @@ export const deepClone = obj => {
   return objClone
 }
 
+// 扁平数组转树形数据
+export const groupArrayByKey = (array, key) => {
+  const grouped = array.reduce((acc, item) => {
+    // 找到对应的组
+    const group = acc.find(g => g[0][key] === item[key])
+    if (group) {
+      // 如果组存在，添加到组中
+      group.push(item)
+    } else {
+      // 如果组不存在，创建一个新组
+      acc.push([item])
+    }
+    return acc
+  }, [])
+  return grouped
+}
+
 // 获取全局menus
 export const getGlobalMenus = () =>
   new Promise(resolve => {
