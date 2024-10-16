@@ -4,6 +4,9 @@
       <div class="steps">
         <!--导入步骤-->
         <BaseHeaderTitle :title="$t('pi_import_steps')" :showExpand="false">
+          <div class="back-header">
+            <Icon size="24" type="md-arrow-back" class="icon" @click="handleBack" />
+          </div>
           <div v-if="statusObj.label && type !== 'republish'" class="status-group">
             <div class="status">
               {{ $t('status') }}：<Tag type="border" :color="statusObj.color">{{ statusObj.label }}</Tag>
@@ -327,6 +330,11 @@ export default {
           id: this.id
         }
       })
+    },
+    handleBack() {
+      return this.$router.push({
+        path: '/admin/base-migration/import-history'
+      })
     }
   },
   beforeRouteLeave(to, from, next) {
@@ -367,6 +375,7 @@ export default {
   height: calc(100vh - 100px);
   overflow: hidden;
   .steps {
+    position: relative;
     width: 260px;
     padding-right: 10px;
     border-right: 1px solid #e8eaec;
@@ -384,6 +393,29 @@ export default {
       button {
         margin-left: 10px;
         height: 30px;
+      }
+    }
+    .back-header {
+      width: 30px;
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      position: absolute;
+      right: 10px;
+      top: 0px;
+      .icon {
+        cursor: pointer;
+        width: 28px;
+        height: 24px;
+        color: #fff;
+        border-radius: 2px;
+        background: #2d8cf0;
+      }
+      .name {
+        font-size: 16px;
+        margin-left: 16px;
+        display: flex;
+        align-items: center;
       }
     }
   }

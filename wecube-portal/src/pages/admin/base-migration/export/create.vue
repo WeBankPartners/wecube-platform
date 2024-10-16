@@ -4,7 +4,7 @@
       <div class="steps">
         <BaseHeaderTitle :title="$t('pe_export_steps')" :showExpand="false">
           <div class="back-header">
-            <Icon size="22" type="md-arrow-back" class="icon" @click="handleBack" />
+            <Icon size="24" type="md-arrow-back" class="icon" @click="handleBack" />
           </div>
           <Steps :current="activeStep" direction="vertical">
             <Step :title="$t('pe_step1')" :content="$t('pe_step1_tips')"></Step>
@@ -316,6 +316,11 @@ export default {
           id: this.id
         }
       })
+    },
+    handleBack() {
+      return this.$router.push({
+        path: '/admin/base-migration/export-history'
+      })
     }
   }
 }
@@ -327,10 +332,34 @@ export default {
   height: calc(100vh - 100px);
   overflow: hidden;
   .steps {
+    position: relative;
     width: 260px;
     padding-right: 15px;
     border-right: 1px solid #e8eaec;
     height: 100%;
+    .back-header {
+      width: 30px;
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      position: absolute;
+      right: 10px;
+      top: 0px;
+      .icon {
+        cursor: pointer;
+        width: 28px;
+        height: 24px;
+        color: #fff;
+        border-radius: 2px;
+        background: #2d8cf0;
+      }
+      .name {
+        font-size: 16px;
+        margin-left: 16px;
+        display: flex;
+        align-items: center;
+      }
+    }
   }
   .content {
     width: calc(100% - 260px);
