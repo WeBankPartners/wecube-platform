@@ -234,7 +234,9 @@ export default {
     },
     // 保存or更新环境和产品
     handleSaveEnvBusiness: debounce(async function () {
-      const { env, lastConfirmTime, envList, selectionList } = this.$refs.env
+      const {
+        env, lastConfirmTime, envList, selectionList
+      } = this.$refs.env
       const pIds = selectionList.map(item => item.id)
       const pNames = selectionList.map(item => item.displayName)
       const envName = envList.find(item => item.value === env).label
