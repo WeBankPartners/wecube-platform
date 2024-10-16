@@ -164,18 +164,20 @@ type QueryBusinessParam struct {
 }
 
 type CreateExportParam struct {
-	PIds    []string `json:"pIds"`    // 产品ID
-	PNames  []string `json:"pNames"`  // 产品名称
-	Env     string   `json:"env"`     // 环境
-	EnvName string   `json:"envName"` // 环境名称
+	PIds            []string `json:"pIds"`    // 产品ID
+	PNames          []string `json:"pNames"`  // 产品名称
+	Env             string   `json:"env"`     // 环境
+	EnvName         string   `json:"envName"` // 环境名称
+	LastConfirmTime string   `json:"lastConfirmTime"`
 }
 
 type UpdateExportParam struct {
-	TransExportId string   `json:"transExportId"` // 导出Id
-	PIds          []string `json:"pIds"`          // 产品ID
-	PNames        []string `json:"pNames"`        // 产品名称
-	Env           string   `json:"env"`           // 环境
-	EnvName       string   `json:"envName"`       // 环境名称
+	TransExportId   string   `json:"transExportId"` // 导出Id
+	PIds            []string `json:"pIds"`          // 产品ID
+	PNames          []string `json:"pNames"`        // 产品名称
+	Env             string   `json:"env"`           // 环境
+	EnvName         string   `json:"envName"`       // 环境名称
+	LastConfirmTime string   `json:"lastConfirmTime"`
 }
 
 type DataTransExportParam struct {

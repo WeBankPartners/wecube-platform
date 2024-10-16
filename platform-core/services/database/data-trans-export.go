@@ -61,9 +61,10 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 		actions = append(actions, addTransExportDetailActions...)
 	}
 	dataTransParam := &models.AnalyzeDataTransParam{
-		TransExportId: transExportId,
-		Business:      param.PIds,
-		Env:           param.Env,
+		TransExportId:   transExportId,
+		Business:        param.PIds,
+		Env:             param.Env,
+		LastConfirmTime: param.LastConfirmTime,
 	}
 	pluginExportActions, analyzePluginErr := AnalyzePluginConfigDataExport(c, transExportId)
 	if analyzePluginErr != nil {
@@ -106,9 +107,10 @@ func UpdateExport(c context.Context, param models.UpdateExportParam, operator st
 	}
 	actions = append(actions, pluginExportActions...)
 	dataTransParam := &models.AnalyzeDataTransParam{
-		TransExportId: param.TransExportId,
-		Business:      param.PIds,
-		Env:           param.Env,
+		TransExportId:   param.TransExportId,
+		Business:        param.PIds,
+		Env:             param.Env,
+		LastConfirmTime: param.LastConfirmTime,
 	}
 	if analyzeDataActions, err = AnalyzeCMDBDataExport(c, dataTransParam); err != nil {
 		return
