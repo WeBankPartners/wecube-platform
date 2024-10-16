@@ -2,7 +2,7 @@
   <Card :bordered="false" dis-hover :padding="0">
     <div class="base-migration-export-create">
       <div class="steps">
-        <BaseHeaderTitle :title="$t('pe_export_steps')" :showExpand="false">
+        <BaseHeaderTitle :title="$t('pe_export_steps')" :showExpand="false" class="custom-header">
           <div class="back-header">
             <Icon size="24" type="md-arrow-back" class="icon" @click="handleBack" />
           </div>
@@ -350,7 +350,7 @@ export default {
       align-items: center;
       margin-bottom: 8px;
       position: absolute;
-      right: 10px;
+      left: 0px;
       top: 0px;
       .icon {
         cursor: pointer;
@@ -391,6 +391,15 @@ export default {
   }
   ::-webkit-scrollbar-thumb:hover {
     background: #d4d4d4;
+  }
+}
+</style>
+<style lang="scss">
+.base-migration-export-create {
+  .custom-header {
+    .w-header-title {
+      margin-left: 40px !important;
+    }
   }
 }
 </style>
