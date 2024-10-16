@@ -51,6 +51,7 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 		Status:          string(models.TransExportStatusStart),
 		CreatedUser:     operator,
 		UpdatedUser:     operator,
+		LastConfirmTime: param.LastConfirmTime,
 	}
 	// 新增导出记录
 	if addTransExportActions = getInsertTransExport(transExport); len(addTransExportActions) > 0 {
@@ -90,6 +91,7 @@ func UpdateExport(c context.Context, param models.UpdateExportParam, operator st
 		BusinessName:    strings.Join(param.PNames, ","),
 		Status:          string(models.TransExportStatusStart),
 		UpdatedUser:     operator,
+		LastConfirmTime: param.LastConfirmTime,
 		UpdatedTime:     time.Now().Format(models.DateTimeFormat),
 	}
 	// 更新导出记录
