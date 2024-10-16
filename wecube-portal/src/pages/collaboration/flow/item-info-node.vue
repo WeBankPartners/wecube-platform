@@ -875,22 +875,24 @@ export default {
     },
     // 获取子编排列表
     async getSubProcList() {
-      const params = {
-        entityExpr: this.itemCustomInfo.customAttrs.routineExpression
-      }
-      const { status, data } = await getChildFlowListNew(params)
-      if (status === 'OK') {
-        this.subProcRemoveFlag = false
-        this.subProcList = data || []
-        if (this.itemCustomInfo.customAttrs.subProcDefId) {
-          this.subProcItem = this.subProcList.find(i => i.procDefId === this.itemCustomInfo.customAttrs.subProcDefId) || {}
-          // 编辑操作，匹配不到对应子编排，删除子编排
-          if (!this.subProcItem.procDefId && this.editFlow !== 'false') {
-            this.itemCustomInfo.customAttrs.subProcDefId = ''
-          }
-          // 查看编排，匹配不到对应数据，给出提示
-          if (!this.subProcItem.procDefId && this.editFlow === 'false') {
-            this.subProcRemoveFlag = true
+      if (this.itemCustomInfo.customAttrs.nodeType === 'subProc') {
+        const params = {
+          entityExpr: this.itemCustomInfo.customAttrs.routineExpression
+        }
+        const { status, data } = await getChildFlowListNew(params)
+        if (status === 'OK') {
+          this.subProcRemoveFlag = false
+          this.subProcList = data || []
+          if (this.itemCustomInfo.customAttrs.subProcDefId) {
+            this.subProcItem = this.subProcList.find(i => i.procDefId === this.itemCustomInfo.customAttrs.subProcDefId) || {}
+            // 编辑操作，匹配不到对应子编排，删除子编排
+            if (!this.subProcItem.procDefId && this.editFlow !== 'false') {
+              this.itemCustomInfo.customAttrs.subProcDefId = ''
+            }
+            // 查看编排，匹配不到对应数据，给出提示
+            if (!this.subProcItem.procDefId && this.editFlow === 'false') {
+              this.subProcRemoveFlag = true
+            }
           }
         }
       }

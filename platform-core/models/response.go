@@ -85,3 +85,9 @@ type LoginResponse struct {
 	HttpResponseMeta
 	Data []JwtTokenDto `json:"data"`
 }
+
+type RequestResponse struct {
+	StatusCode    string              `json:"statusCode"`
+	StatusMessage string              `json:"statusMessage"`
+	Data          []*SimpleRequestDto `json:"data"`
+}
