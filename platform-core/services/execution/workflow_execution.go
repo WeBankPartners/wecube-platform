@@ -181,7 +181,7 @@ func performWorkflowDangerousCheck(ctx context.Context, pluginCallParam interfac
 	return
 }
 
-func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string, retryFlag bool) (err error) {
+func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string) (err error) {
 	ctx = context.WithValue(ctx, models.TransactionIdHeader, procRunNodeId)
 	// 查proc def node定义和proc ins绑定数据
 	procInsNode, procDefNode, procDefNodeParams, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, procRunNodeId)
@@ -296,7 +296,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 	return
 }
 
-func DoWorkflowDataJob(ctx context.Context, procRunNodeId string, retryFlag bool) (err error) {
+func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
 	ctx = context.WithValue(ctx, models.TransactionIdHeader, procRunNodeId)
 	// 查proc def node定义和proc ins绑定数据
 	procInsNode, procDefNode, _, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, procRunNodeId)
