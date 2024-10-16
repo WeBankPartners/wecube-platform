@@ -471,5 +471,8 @@ export default {
   .ivu-table-body:hover {
     overflow: auto;
   }
+  .common-ui-header-title .w-content {
+    padding: 10px;
+  }
 }
 </style>
