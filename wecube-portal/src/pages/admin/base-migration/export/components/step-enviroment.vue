@@ -20,7 +20,7 @@
             }
           "
           :placeholder="$t('tw_please_select')"
-          style="width: 400px"
+          style="width:250px;"
           clearable
         ></DatePicker>
         <span class="sub-title">*{{ $t('pi_data_confirmTimeTips') }}</span>
