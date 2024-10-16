@@ -162,6 +162,10 @@ export default {
         // cmdbCI分组展示
         this.detailData.cmdbCIData = groupArrayByKey(this.detailData.cmdbCIData, 'group')
         this.detailData.cmdbCIData = this.detailData.cmdbCIData.flat()
+        // 处理时间为空
+        if (this.detailData.lastConfirmTime === '0000-00-00 00:00:00') {
+          this.detailData.lastConfirmTime = ''
+        }
         // 合并monitor数据
         const metric_list_obj = {
           name: 'metric_list',
@@ -230,7 +234,7 @@ export default {
     },
     // 保存or更新环境和产品
     handleSaveEnvBusiness: debounce(async function () {
-      const { env, envList, selectionList } = this.$refs.env
+      const { env, lastConfirmTime, envList, selectionList } = this.$refs.env
       const pIds = selectionList.map(item => item.id)
       const pNames = selectionList.map(item => item.displayName)
       const envName = envList.find(item => item.value === env).label
@@ -241,7 +245,8 @@ export default {
         pIds,
         pNames,
         env,
-        envName
+        envName,
+        lastConfirmTime
       }
       this.loading = true
       const { status, data } = await (this.id && this.type !== 'republish'

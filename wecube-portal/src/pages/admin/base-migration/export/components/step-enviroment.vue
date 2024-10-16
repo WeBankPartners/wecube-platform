@@ -1,11 +1,30 @@
 <template>
   <div class="export-step-enviroment">
     <!--选择环境-->
-    <div class="item">
-      <span class="title">{{ $t('pe_select_env') }}：</span>
+    <div class="inline-item">
+      <span class="title">{{ $t('pe_select_env') }}</span>
       <RadioGroup v-model="env" type="button" button-style="solid">
         <Radio v-for="(j, idx) in envList" :label="j.value" :key="idx" border>{{ j.label }}</Radio>
       </RadioGroup>
+    </div>
+    <div class="inline-item">
+      <div style="display:flex;align-items:center;">
+        <span class="title">{{ $t('pi_data_confirmTime') }}</span>
+        <DatePicker
+          type="datetime"
+          format="yyyy-MM-dd HH:mm:ss"
+          :value="lastConfirmTime"
+          @on-change="
+            val => {
+              lastConfirmTime = val
+            }
+          "
+          :placeholder="$t('tw_please_select')"
+          style="width:400px;"
+          clearable
+        ></DatePicker>
+        <span class="sub-title">*{{ $t('pi_data_confirmTimeTips') }}</span>
+      </div>
     </div>
     <!--选择产品-->
     <div class="item">
@@ -35,6 +54,7 @@
 <script>
 import { getExportBusinessList } from '@/api/server'
 import { deepClone } from '@/const/util'
+import dayjs from 'dayjs'
 export default {
   props: {
     detailData: Object,
@@ -42,7 +62,8 @@ export default {
   },
   data() {
     return {
-      env: '',
+      env: '', // 选择环境
+      lastConfirmTime: dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss'), // 数据确认时间
       envList: [],
       searchParams: {
         displayName: '',
@@ -132,6 +153,7 @@ export default {
         }
       })
       this.selectionList = this.tableData.filter(i => i._checked)
+      this.lastConfirmTime = this.detailData.lastConfirmTime
     }
   },
   methods: {
@@ -193,6 +215,29 @@ export default {
 
 <style lang="scss" scoped>
 .export-step-enviroment {
+  .inline-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-left: 12px;
+    .title {
+      font-size: 14px;
+      margin-bottom: 5px;
+      font-weight: 600;
+      width: 100px;
+      .number {
+        font-size: 18px;
+        color: #2d8cf0;
+        margin-left: 6px;
+      }
+    }
+    .sub-title {
+      font-size: 14px;
+      font-weight: normal;
+      color: #ed4014;
+      margin-left: 5px;
+    }
+  }
   .item {
     display: flex;
     flex-direction: column;
