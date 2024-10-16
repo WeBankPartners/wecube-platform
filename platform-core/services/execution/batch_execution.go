@@ -805,6 +805,10 @@ func handleInputData(
 					err = errAnalyze2
 					return
 				}
+				if len(execExprList) == 0 {
+					err = fmt.Errorf("entity expr is empty")
+					return
+				}
 				execExprFilterList := make([]*models.QueryExpressionDataFilter, 0)
 				execExprFilter := &models.QueryExpressionDataFilter{
 					PackageName:      rootExpr.Package,
