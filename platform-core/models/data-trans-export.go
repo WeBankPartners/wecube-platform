@@ -78,6 +78,7 @@ type TransExportTable struct {
 	UpdatedTime             string   `json:"updatedTime" xorm:"updated_time"`
 	AssociationSystems      []string `json:"associationSystems" xorm:"-"`      // 关联系统
 	AssociationTechProducts []string `json:"associationTechProducts" xorm:"-"` // 关联产品
+	LastConfirmTime         string   `json:"lastConfirmTime" xorm:"last_confirm_time"`
 }
 
 type TransExportDetailTable struct {
