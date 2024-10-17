@@ -860,6 +860,12 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 		err = fmt.Errorf("query trans export analyze table data fail,%s ", err.Error())
 		return
 	}
+	var ciTypeRows []*models.SysCiTypeTable
+	err = cmdbEngine.SQL("select id from sys_ci_type where status='created'").Find(&ciTypeRows)
+	if err != nil {
+		err = fmt.Errorf("query ci type table fail,%s ", err.Error())
+		return
+	}
 	ciDataGuidMap := make(map[string][]string)
 	for _, row := range transExportAnalyzeRows {
 		if row.Source == "wecmdb_report" {
@@ -902,7 +908,13 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 		err = fmt.Errorf("get db meta error:%s ", getDBMetaErr.Error())
 		return
 	}
-	ciTypeFilterSql := strings.Join(ciTypeList, "','")
+	var ciTypeFilterSql string
+	//ciTypeFilterSql = strings.Join(ciTypeList, "','")
+	var ciTypeRowIdList []string
+	for _, row := range ciTypeRows {
+		ciTypeRowIdList = append(ciTypeRowIdList, row.Id)
+	}
+	ciTypeFilterSql = strings.Join(ciTypeRowIdList, "','")
 	reportFilterSql := strings.Join(reportList, "','")
 	viewFilterSql := strings.Join(viewList, "','")
 	sqlBuffer.WriteString("SET FOREIGN_KEY_CHECKS=0;\n")
