@@ -33,6 +33,8 @@ type OutputEntityRootData struct {
 	Data map[string]interface{}
 	// CI写入不止是根CI，还有基于根CI表达式分支数据更新(不可能是创建)
 	SubBranchs []*OutputEntityBranchData
+	// 数据是否失败，失败的话回写
+	FailFlag bool
 }
 
 type OutputEntityBranchData struct {
@@ -805,6 +807,10 @@ func handleInputData(
 					err = errAnalyze2
 					return
 				}
+				if len(execExprList) == 0 {
+					err = fmt.Errorf("entity expr is empty")
+					return
+				}
 				execExprFilterList := make([]*models.QueryExpressionDataFilter, 0)
 				execExprFilter := &models.QueryExpressionDataFilter{
 					PackageName:      rootExpr.Package,
@@ -988,6 +994,9 @@ func handleOutputData(
 			}
 			if v, ok := output[models.PluginCallResultPresetErrorCode]; ok {
 				tmpResultOutput[models.PluginCallResultPresetErrorCode] = v
+				if fmt.Sprintf("%s", v) != "0" {
+					tmpResultOutputForEntity.FailFlag = true
+				}
 			}
 			if v, ok := output[models.PluginCallResultPresetErrorMsg]; ok {
 				tmpResultOutput[models.PluginCallResultPresetErrorMsg] = v
@@ -1032,12 +1041,11 @@ func handleOutputData(
 			}
 		}
 	}
-	if failFlag {
-		result = tmpResult
-		return
-	}
 	// 处理entity写入
 	for _, rootData := range tmpResultForEntity.Data {
+		if rootData.FailFlag {
+			continue
+		}
 		if rootData.Id == "" {
 			ret, errCreate := remote.CreateEntityData(ctx, authToken, tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Data)
 			if errCreate != nil {
