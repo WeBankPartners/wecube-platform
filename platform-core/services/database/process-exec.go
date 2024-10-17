@@ -2279,3 +2279,11 @@ func UpdateProcInstanceRequestInfo(ctx context.Context, procInstanceId, requestI
 	_, err = db.MysqlEngine.Context(ctx).Exec("update proc_ins set request_info = ? where id=?", requestInfo, procInstanceId)
 	return
 }
+
+func CheckProcSubRunning(ctx context.Context, procRunNodeId string) (runningRows []*models.ProcRunNodeSubProc, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.workflow_id from proc_run_node_sub_proc t1 left join proc_run_workflow t2 on t1.workflow_id=t2.id where t1.proc_run_node_id=? and t2.status=?", procRunNodeId, models.JobStatusRunning).Find(&runningRows)
+	if err != nil {
+		err = fmt.Errorf("query proc run node sub proc table fail,%s ", err.Error())
+	}
+	return
+}

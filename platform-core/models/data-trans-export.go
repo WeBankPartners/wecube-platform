@@ -438,3 +438,11 @@ type SysBaseKeyCodeTable struct {
 	SeqNo       int    `json:"seqNo" xorm:"seq_no"`
 	Status      string `json:"status" xorm:"status"`
 }
+
+type CMDBHistoryTable struct {
+	Id          int64     `xorm:"id"`
+	FromGuid    string    `xorm:"from_guid"`
+	ToGuid      string    `xorm:"to_guid"`
+	HistoryToId int64     `xorm:"history_to_id"`
+	HistoryTime time.Time `xorm:"history_time"`
+}
