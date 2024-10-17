@@ -266,7 +266,7 @@ func importPluginConfig(ctx context.Context, transImportParam *models.TransImpor
 	return
 }
 
-func restartPluginInstance(ctx context.Context) {
+func restartPluginInstance(ctx context.Context, pluginPackageId string) {
 
 }
 

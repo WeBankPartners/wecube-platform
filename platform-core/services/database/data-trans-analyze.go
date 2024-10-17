@@ -917,10 +917,10 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 	reportFilterSql := strings.Join(reportList, "','")
 	viewFilterSql := strings.Join(viewList, "','")
 	sqlBuffer.WriteString("SET FOREIGN_KEY_CHECKS=0;\n")
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_basekey_cat", "", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_basekey_cat", "select * from sys_basekey_cat", sqlBuffer); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_basekey_code", "", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_basekey_code", "select * from sys_basekey_code", sqlBuffer); err != nil {
 		return
 	}
 	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_files", "select * from sys_files where guid in (select image_file from sys_ci_type where id in ('"+ciTypeFilterSql+"'))", sqlBuffer); err != nil {
