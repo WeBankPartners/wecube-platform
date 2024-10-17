@@ -219,12 +219,12 @@ func analyzeCMDB(param *models.AnalyzeDataTransParam, ciTypeAttrMap map[string][
 		return
 	}
 	// 从系统数据出发，正向查找数据，反向通过配置里的反向属性查找
-	err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string))
-	err = analyzeCMDBData(transConfig.SystemCiType, systemGuidList, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string))
+	err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime)
+	err = analyzeCMDBData(transConfig.SystemCiType, systemGuidList, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime)
 	return
 }
 
-func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig, parentMap map[string]string) (err error) {
+func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig, parentMap map[string]string, lastConfirmTime string) (err error) {
 	log.Logger.Info("analyzeCMDBData", log.String("ciType", ciType), log.StringList("guidList", ciDataGuidList))
 	if len(ciDataGuidList) == 0 {
 		return
@@ -232,20 +232,21 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 	ciTypeAttributes := ciTypeAttrMap[ciType]
 	var queryFilterList []string
 	queryFilterList = append(queryFilterList, fmt.Sprintf("guid in ('%s')", strings.Join(ciDataGuidList, "','")))
-	for _, filterObj := range filters {
-		filterSql, buildFilterSqlErr := getCMDBFilterSql(ciTypeAttributes, filterObj, cmdbEngine)
-		if buildFilterSqlErr != nil {
-			err = fmt.Errorf("try to build filter sql with ciType:%s fail,%s ", ciType, buildFilterSqlErr.Error())
-			break
-		}
-		if filterSql != "" {
-			queryFilterList = append(queryFilterList, filterSql)
-		}
-	}
+	//for _, filterObj := range filters {
+	//	filterSql, buildFilterSqlErr := getCMDBFilterSql(ciTypeAttributes, filterObj, cmdbEngine, lastConfirmTime)
+	//	if buildFilterSqlErr != nil {
+	//		err = fmt.Errorf("try to build filter sql with ciType:%s fail,%s ", ciType, buildFilterSqlErr.Error())
+	//		break
+	//	}
+	//	if filterSql != "" {
+	//		queryFilterList = append(queryFilterList, filterSql)
+	//	}
+	//}
 	if err != nil {
 		return
 	}
-	queryCiDataResult, queryErr := cmdbEngine.QueryString(fmt.Sprintf("select * from %s where "+strings.Join(queryFilterList, " and "), ciType))
+	//queryCiDataResult, queryErr := cmdbEngine.QueryString(fmt.Sprintf("select * from %s where "+strings.Join(queryFilterList, " and "), ciType))
+	queryCiDataResult, queryErr := cmdbEngine.QueryString("select * from history_" + ciType + " where id in (select max(id) from history_" + ciType + " where history_state_confirmed=1 and confirm_time<='" + lastConfirmTime + "' and " + strings.Join(queryFilterList, " and ") + " group by guid)")
 	if queryErr != nil {
 		err = fmt.Errorf("query ciType:%s data fail,%s ", ciType, queryErr.Error())
 		return
@@ -255,6 +256,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 	}
 	var newRows []map[string]string
 	var newRowsGuidList []string
+	newGuidHistoryTimeMap := make(map[string]string)
 	if existData, ok := ciTypeDataMap[ciType]; ok {
 		for _, row := range queryCiDataResult {
 			if _, existFlag := existData.DataMap[row["guid"]]; !existFlag {
@@ -270,6 +272,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 			existData.DataMap[tmpRowGuid] = row
 			existData.DataChainMap[tmpRowGuid] = fmt.Sprintf("%s -> %s[%s]", parentMap[tmpRowGuid], row["guid"], row["key_name"])
 			newRowsGuidList = append(newRowsGuidList, tmpRowGuid)
+			newGuidHistoryTimeMap[tmpRowGuid] = row["history_time"]
 		}
 	} else {
 		dataMap := make(map[string]map[string]string)
@@ -279,6 +282,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 			dataMap[tmpRowGuid] = row
 			dataChainMap[tmpRowGuid] = fmt.Sprintf("%s -> %s[%s]", parentMap[tmpRowGuid], row["guid"], row["key_name"])
 			newRowsGuidList = append(newRowsGuidList, tmpRowGuid)
+			newGuidHistoryTimeMap[tmpRowGuid] = row["history_time"]
 			newRows = append(newRows, row)
 		}
 		ciTypeDataMap[ciType] = &models.CiTypeData{DataMap: dataMap, DataChainMap: dataChainMap}
@@ -302,7 +306,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 				}
 			}
 			if len(refCiTypeGuidList) > 0 {
-				if err = analyzeCMDBData(attr.RefCiType, refCiTypeGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap); err != nil {
+				if err = analyzeCMDBData(attr.RefCiType, refCiTypeGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime); err != nil {
 					break
 				}
 			}
@@ -310,7 +314,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 			if checkArtifactCiTypeRefIllegal(ciType, attr.RefCiType, transConfig, true, attr) {
 				continue
 			}
-			toGuidList, toGuidRefMap, getMultiToGuidErr := getCMDBMultiRefGuidList(ciType, attr.Name, "in", newRowsGuidList, []string{}, cmdbEngine)
+			toGuidList, toGuidRefMap, getMultiToGuidErr := getCMDBMultiRefGuidList(ciType, attr.Name, "in", newRowsGuidList, []string{}, cmdbEngine, lastConfirmTime, newGuidHistoryTimeMap)
 			if getMultiToGuidErr != nil {
 				err = fmt.Errorf("try to analyze ciType:%s dependent multiRef attr:%s error:%s ", ciType, attr.Name, getMultiToGuidErr.Error())
 				break
@@ -322,7 +326,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 						tmpParentMap[tmpToGuid] = ciTypeDataMap[ciType].DataChainMap[tmpFromGuid]
 					}
 				}
-				if err = analyzeCMDBData(attr.RefCiType, toGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap); err != nil {
+				if err = analyzeCMDBData(attr.RefCiType, toGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime); err != nil {
 					break
 				}
 			}
@@ -365,7 +369,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 							depCiGuidList = append(depCiGuidList, row["guid"])
 							tmpParentMap[row["guid"]] = ciTypeDataMap[ciType].DataChainMap[row[depCiAttr.Name]]
 						}
-						if err = analyzeCMDBData(depCiType, depCiGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap); err != nil {
+						if err = analyzeCMDBData(depCiType, depCiGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime); err != nil {
 							break
 						}
 					}
@@ -376,7 +380,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 					//if _, ok := ciTypeDataMap[depCiType]; ok {
 					//	continue
 					//}
-					depFromGuidList, toGuidRefMap, tmpQueryDepCiGuidErr := getCMDBMultiRefGuidList(depCiType, depCiAttr.Name, "in", []string{}, newRowsGuidList, cmdbEngine)
+					depFromGuidList, toGuidRefMap, tmpQueryDepCiGuidErr := getCMDBMultiRefGuidList(depCiType, depCiAttr.Name, "in", []string{}, newRowsGuidList, cmdbEngine, lastConfirmTime, nil)
 					if tmpQueryDepCiGuidErr != nil {
 						err = fmt.Errorf("try to get ciType:%s with dependent ciType:%s multiRef attr:%s guidList fail,%s ", ciType, depCiType, depCiAttr.Name, tmpQueryDepCiGuidErr.Error())
 						break
@@ -388,7 +392,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 								tmpParentMap[tmpFromGuid] = ciTypeDataMap[ciType].DataChainMap[tmpToGuid]
 							}
 						}
-						if err = analyzeCMDBData(depCiType, depFromGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap); err != nil {
+						if err = analyzeCMDBData(depCiType, depFromGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime); err != nil {
 							break
 						}
 					}
@@ -495,7 +499,7 @@ func getDataTransVariableMap(ctx context.Context) (result *models.TransDataVaria
 	return
 }
 
-func getCMDBFilterSql(ciTypeAttributes []*models.SysCiTypeAttrTable, filter *models.CiTypeDataFilter, cmdbEngine *xorm.Engine) (filterSql string, err error) {
+func getCMDBFilterSql(ciTypeAttributes []*models.SysCiTypeAttrTable, filter *models.CiTypeDataFilter, cmdbEngine *xorm.Engine, lastConfirmTime string) (filterSql string, err error) {
 	matchAttr := &models.SysCiTypeAttrTable{}
 	for _, attr := range ciTypeAttributes {
 		if attr.RefCiType == filter.CiType {
@@ -512,7 +516,7 @@ func getCMDBFilterSql(ciTypeAttributes []*models.SysCiTypeAttrTable, filter *mod
 	}
 	if matchAttr.InputType == "multiRef" {
 		var fromGuidList []string
-		if fromGuidList, _, err = getCMDBMultiRefGuidList(matchAttr.CiType, matchAttr.Name, condition, []string{}, filter.GuidList, cmdbEngine); err != nil {
+		if fromGuidList, _, err = getCMDBMultiRefGuidList(matchAttr.CiType, matchAttr.Name, condition, []string{}, filter.GuidList, cmdbEngine, lastConfirmTime, nil); err != nil {
 			return
 		}
 		filterSql = fmt.Sprintf("guid in ('%s')", strings.Join(fromGuidList, "','"))
@@ -524,31 +528,77 @@ func getCMDBFilterSql(ciTypeAttributes []*models.SysCiTypeAttrTable, filter *mod
 	return
 }
 
-func getCMDBMultiRefGuidList(ciType, attrName, condition string, fromGuidList, toGuidList []string, cmdbEngine *xorm.Engine) (resultGuidList []string, resultRefMap map[string][]string, err error) {
-	var filterColumn, filterSql, resultColumn string
+func getCMDBMultiRefGuidList(ciType, attrName, condition string, fromGuidList, toGuidList []string, cmdbEngine *xorm.Engine, lastConfirmTime string, guidHistoryTimeMap map[string]string) (resultGuidList []string, resultRefMap map[string][]string, err error) {
+	var filterColumn, filterSql string
 	if len(fromGuidList) > 0 {
 		filterColumn = "from_guid"
-		resultColumn = "to_guid"
 		filterSql = strings.Join(fromGuidList, "','")
 	} else if len(toGuidList) > 0 {
 		filterColumn = "to_guid"
-		resultColumn = "from_guid"
 		filterSql = strings.Join(toGuidList, "','")
 	} else {
 		return
 	}
 	resultRefMap = make(map[string][]string)
-	queryResult, queryErr := cmdbEngine.QueryString(fmt.Sprintf("select from_guid,to_guid from `%s$%s` where %s %s ('%s')", ciType, attrName, filterColumn, condition, filterSql))
-	if queryErr != nil {
-		err = fmt.Errorf("query multiRef list fail,ciType:%s attrName:%s,error:%s ", ciType, attrName, queryErr.Error())
+	var historyRows []*models.CMDBHistoryTable
+	if len(fromGuidList) > 0 {
+		queryErr := cmdbEngine.SQL(fmt.Sprintf("select from_guid,to_guid,history_time from `history_%s$%s` where %s %s ('%s') and history_time<='%s'", ciType, attrName, filterColumn, condition, filterSql, lastConfirmTime)).Find(&historyRows)
+		if queryErr != nil {
+			err = fmt.Errorf("query multiRef list with fromGuid fail,ciType:%s attrName:%s,error:%s ", ciType, attrName, queryErr.Error())
+			return
+		}
+		for _, row := range historyRows {
+			if guidHistoryTimeMap[row.FromGuid] == row.HistoryTime.Format(models.DateTimeFormat) {
+				resultGuidList = append(resultGuidList, row.ToGuid)
+				if existList, ok := resultRefMap[row.FromGuid]; ok {
+					resultRefMap[row.FromGuid] = append(existList, row.ToGuid)
+				} else {
+					resultRefMap[row.FromGuid] = []string{row.ToGuid}
+				}
+			}
+		}
 		return
-	}
-	for _, row := range queryResult {
-		resultGuidList = append(resultGuidList, row[resultColumn])
-		if existList, ok := resultRefMap[row[filterColumn]]; ok {
-			resultRefMap[row[filterColumn]] = append(existList, row[resultColumn])
-		} else {
-			resultRefMap[row[filterColumn]] = []string{row[resultColumn]}
+	} else {
+		queryErr := cmdbEngine.SQL(fmt.Sprintf("select from_guid,to_guid,history_time from `history_%s$%s` where history_time<='%s' and from_guid in (select from_guid from `history_%s$%s` where %s %s ('%s') and history_time<='%s')", ciType, attrName, lastConfirmTime, ciType, attrName, filterColumn, condition, filterSql, lastConfirmTime)).Find(&historyRows)
+		if queryErr != nil {
+			err = fmt.Errorf("query multiRef list with toGuid fail,ciType:%s attrName:%s,error:%s ", ciType, attrName, queryErr.Error())
+			return
+		}
+		if len(historyRows) == 0 {
+			return
+		}
+		var fromGuidConfirmRows []*models.CMDBHistoryTable
+		var tmpFromGuidList []string
+		for _, row := range historyRows {
+			tmpFromGuidList = append(tmpFromGuidList, row.FromGuid)
+		}
+		queryErr = cmdbEngine.SQL("select guid as from_guid,max(history_time) as history_time from history_data_center where history_state_confirmed=1 and guid in ('" + strings.Join(tmpFromGuidList, "','") + "') group by guid").Find(&fromGuidConfirmRows)
+		if queryErr != nil {
+			err = fmt.Errorf("query multiRef list with toGuid fail, query confirm from guid error,ciType:%s attrName:%s,error:%s ", ciType, attrName, queryErr.Error())
+			return
+		}
+		fromGuidConfirmMap := make(map[string]*models.CMDBHistoryTable)
+		for _, row := range fromGuidConfirmRows {
+			fromGuidConfirmMap[row.FromGuid] = row
+		}
+		toGuidMap := make(map[string]int)
+		for _, v := range toGuidList {
+			toGuidMap[v] = 1
+		}
+		for _, row := range historyRows {
+			// 确保关联表中的数据是confirm态的，用history time对比
+			if confirmRow, confirmRowMatchOk := fromGuidConfirmMap[row.FromGuid]; confirmRowMatchOk {
+				if confirmRow.HistoryTime.Unix() == row.HistoryTime.Unix() {
+					if _, toGuidMatchOk := toGuidMap[row.ToGuid]; toGuidMatchOk {
+						resultGuidList = append(resultGuidList, row.FromGuid)
+						if existList, ok := resultRefMap[row.ToGuid]; ok {
+							resultRefMap[row.ToGuid] = append(existList, row.FromGuid)
+						} else {
+							resultRefMap[row.ToGuid] = []string{row.FromGuid}
+						}
+					}
+				}
+			}
 		}
 	}
 	return
@@ -810,6 +860,12 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 		err = fmt.Errorf("query trans export analyze table data fail,%s ", err.Error())
 		return
 	}
+	var ciTypeRows []*models.SysCiTypeTable
+	err = cmdbEngine.SQL("select id from sys_ci_type where status='created'").Find(&ciTypeRows)
+	if err != nil {
+		err = fmt.Errorf("query ci type table fail,%s ", err.Error())
+		return
+	}
 	ciDataGuidMap := make(map[string][]string)
 	for _, row := range transExportAnalyzeRows {
 		if row.Source == "wecmdb_report" {
@@ -852,7 +908,13 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 		err = fmt.Errorf("get db meta error:%s ", getDBMetaErr.Error())
 		return
 	}
-	ciTypeFilterSql := strings.Join(ciTypeList, "','")
+	var ciTypeFilterSql string
+	//ciTypeFilterSql = strings.Join(ciTypeList, "','")
+	var ciTypeRowIdList []string
+	for _, row := range ciTypeRows {
+		ciTypeRowIdList = append(ciTypeRowIdList, row.Id)
+	}
+	ciTypeFilterSql = strings.Join(ciTypeRowIdList, "','")
 	reportFilterSql := strings.Join(reportList, "','")
 	viewFilterSql := strings.Join(viewList, "','")
 	sqlBuffer.WriteString("SET FOREIGN_KEY_CHECKS=0;\n")

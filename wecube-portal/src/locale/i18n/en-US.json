@@ -1016,5 +1016,7 @@
   "pi_product_requiredTips": "Please select at least one product",
   "pi_system_variable": "System Variable",
   "pi_component_library": "ITSM Component Library",
-  "pi_tips": "Tips"
+  "pi_tips": "Tips",
+  "pi_data_confirmTime": "数据确认时间",
+  "pi_data_confirmTimeTips": "导出确认时间之前的所有定版数据"
 }

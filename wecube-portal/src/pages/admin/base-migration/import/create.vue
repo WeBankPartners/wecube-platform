@@ -3,7 +3,7 @@
     <div class="base-migration-import-create">
       <div class="steps">
         <!--导入步骤-->
-        <BaseHeaderTitle :title="$t('pi_import_steps')" :showExpand="false">
+        <BaseHeaderTitle :title="$t('pi_import_steps')" :showExpand="false" class="custom-header">
           <div class="back-header">
             <Icon size="24" type="md-arrow-back" class="icon" @click="handleBack" />
           </div>
@@ -401,7 +401,7 @@ export default {
       align-items: center;
       margin-bottom: 8px;
       position: absolute;
-      right: 10px;
+      left: 0px;
       top: 0px;
       .icon {
         cursor: pointer;
@@ -443,6 +443,11 @@ export default {
   .ivu-tag-border {
     height: 30px;
     line-height: 30px;
+  }
+  .custom-header {
+    .w-header-title {
+      margin-left: 40px !important;
+    }
   }
 }
 </style>

@@ -3,12 +3,10 @@
     <div class="item">
       <BaseHeaderTitle :title="$t('pe_env_product_sysytem')" :fontSize="15">
         <div slot="sub-title" class="item-header">
-          <span class="item-header-e">{{ $t('pe_env') }}<span class="number">{{ detailData.environmentName || '-' }}</span></span>
-          <span class="item-header-p">{{ $t('pe_product') }}<span class="number">{{ detailData.businessNameList.length }}</span></span>
-          <span class="item-header-s">{{ $t('pe_system')
-          }}<span class="number">{{
-            (detailData.associationSystems && detailData.associationSystems.length) || 0
-          }}</span></span>
+          <span class="item-header-title">{{ $t('pe_env') }}<span class="number">{{ detailData.environmentName || '-' }}</span></span>
+          <span class="item-header-title">{{ $t('pe_product') }}<span class="number">{{ detailData.businessNameList.length }}</span></span>
+          <span class="item-header-title">{{ $t('pe_system') }}<span class="number">{{ detailData.associationSystems.length }}</span></span>
+          <span class="item-header-title">{{ $t('pi_data_confirmTime') }}<span class="number">{{ detailData.lastConfirmTime || '-' }}</span></span>
         </div>
         <card style="margin-top: 5px">
           <div class="content">
@@ -377,20 +375,13 @@ export default {
     margin-bottom: 30px;
     position: relative;
     width: 100%;
-    &-header {
-      &-t {
+    &-header-title {
+      margin-left: 16px;
+      .number {
+        font-size: 16px;
         font-weight: bold;
-      }
-      &-e,
-      &-p,
-      &-s {
-        margin-left: 16px;
-        .number {
-          font-size: 18px;
-          font-weight: bold;
-          color: #2d8cf0;
-          margin-left: 6px;
-        }
+        color: #2d8cf0;
+        margin-left: 6px;
       }
     }
     .title {
@@ -454,6 +445,9 @@ export default {
   }
   .ivu-table-body:hover {
     overflow: auto;
+  }
+  .common-ui-header-title .w-content {
+    padding: 10px;
   }
 }
 </style>
