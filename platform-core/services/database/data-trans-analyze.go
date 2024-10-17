@@ -884,7 +884,7 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 				break
 			}
 			for _, v := range tmpViewList {
-				reportList = append(reportList, v.Id)
+				viewList = append(viewList, v.Id)
 			}
 		} else {
 			tmpDataMap := make(map[string]interface{})
