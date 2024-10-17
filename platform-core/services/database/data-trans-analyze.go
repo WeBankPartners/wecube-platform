@@ -852,7 +852,7 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 	}
 	var sqlBytes []byte
 	sqlBuffer := bytes.NewBuffer(sqlBytes)
-	var ciTypeList, reportList, viewList []string
+	var reportList, viewList []string
 	// 读analyze表cmdb数据
 	var transExportAnalyzeRows []*models.TransExportAnalyzeDataTable
 	err = db.MysqlEngine.Context(ctx).SQL("select `source`,data_type,`data`,data_len from trans_export_analyze_data where trans_export=? and `source` in ('wecmdb','wecmdb_report','wecmdb_view') order by data_type", transExportId).Find(&transExportAnalyzeRows)
@@ -892,7 +892,6 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 				err = fmt.Errorf("json unmarshal ciType:%s data fail,%s ", row.DataType, tmpErr.Error())
 				break
 			}
-			ciTypeList = append(ciTypeList, row.DataType)
 			tmpCiDataGuidList := []string{}
 			for k, _ := range tmpDataMap {
 				tmpCiDataGuidList = append(tmpCiDataGuidList, k)
@@ -910,11 +909,11 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 	}
 	var ciTypeFilterSql string
 	//ciTypeFilterSql = strings.Join(ciTypeList, "','")
-	var ciTypeRowIdList []string
+	var ciTypeList []string
 	for _, row := range ciTypeRows {
-		ciTypeRowIdList = append(ciTypeRowIdList, row.Id)
+		ciTypeList = append(ciTypeList, row.Id)
 	}
-	ciTypeFilterSql = strings.Join(ciTypeRowIdList, "','")
+	ciTypeFilterSql = strings.Join(ciTypeList, "','")
 	reportFilterSql := strings.Join(reportList, "','")
 	viewFilterSql := strings.Join(viewList, "','")
 	sqlBuffer.WriteString("SET FOREIGN_KEY_CHECKS=0;\n")
@@ -991,6 +990,8 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 		tmpQuerySql := "select * from " + ciType
 		if tmpGuidList, ok := ciDataGuidMap[ciType]; ok {
 			tmpQuerySql += " where guid in ('" + strings.Join(tmpGuidList, "','") + "')"
+		} else {
+			tmpQuerySql = ""
 		}
 		if err = dumpCMDBTableData(cmdbEngine, tables, ciType, tmpQuerySql, sqlBuffer); err != nil {
 			return
@@ -1057,7 +1058,7 @@ func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableNa
 		return
 	}
 	if querySql == "" {
-		querySql = fmt.Sprintf("select * from " + tableName)
+		return
 	}
 	queryRows, queryErr := cmdbEngine.Query(querySql)
 	if queryErr != nil {
