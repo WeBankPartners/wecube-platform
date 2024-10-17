@@ -203,7 +203,7 @@ func QueryTransExportByCondition(ctx context.Context, param models.TransExportHi
 	return
 }
 
-func AutoAppendExportParam(ctx context.Context, userToken, language string, param models.DataTransExportParam) (newParam models.DataTransExportParam, err error) {
+func AutoAppendExportParam(ctx context.Context, userToken string, param models.DataTransExportParam) (newParam models.DataTransExportParam, err error) {
 	var monitorWorkflowList []*monitor.WorkflowDto
 	var procDefDto *models.ProcDefDto
 	newParam = param
@@ -219,7 +219,10 @@ func AutoAppendExportParam(ctx context.Context, userToken, language string, para
 		if procDefDto, err = GetProcessDefinitionByName(ctx, workflow.Name, workflow.Version); err != nil {
 			return
 		}
-		newParam.WorkflowIds = append(newParam.WorkflowIds, procDefDto.Id)
+		if procDefDto != nil && procDefDto.Id != "" {
+			log.Logger.Info("trans-export monitor append workflow ", log.String("procDefId", procDefDto.Id))
+			newParam.WorkflowIds = append(newParam.WorkflowIds, procDefDto.Id)
+		}
 	}
 	return
 }
@@ -559,7 +562,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			return
 		}
 		// 请求模版关联的编排 自动加入 导出编排
-		/*for _, requestTemplateExport := range queryRequestTemplatesResponse.Data {
+		for _, requestTemplateExport := range queryRequestTemplatesResponse.Data {
 			if strings.TrimSpace(requestTemplateExport.RequestTemplate.ProcDefId) != "" && !contains(param.WorkflowIds, requestTemplateExport.RequestTemplate.ProcDefId) {
 				// 调用编排查询下数据是否真实存在
 				if procDefDto, err = GetProcDefDetailByProcDefId(ctx, requestTemplateExport.RequestTemplate.ProcDefId); err != nil {
@@ -569,7 +572,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 					param.WorkflowIds = append(param.WorkflowIds, requestTemplateExport.RequestTemplate.ProcDefId)
 				}
 			}
-		}*/
+		}
 		log.Logger.Info("2. export requestTemplate end!!!!")
 	} else {
 		updateTransExportDetailSuccess(ctx, param.TransExportId, models.TransExportStepRequestTemplate)
@@ -610,7 +613,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		for _, procDefId := range param.WorkflowIds {
 			if procDefDto, err = GetProcDefDetailByProcDefId(ctx, procDefId); err != nil {
 				log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err), log.String("procDefId", procDefId))
-				continue
+				return
 			}
 			if procDefDto != nil && procDefDto.ProcDef != nil {
 				procDefDataList = append(procDefDataList, buildProcDefDto(procDefDto, roleDisplayNameMap))
@@ -624,7 +627,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 					}
 				}
 			}
-			/*for _, subProcDefId := range subProcDefIds {
+			for _, subProcDefId := range subProcDefIds {
 				if !contains(param.WorkflowIds, subProcDefId) {
 					if procDefDto, err = GetProcDefDetailByProcDefId(ctx, subProcDefId); err != nil {
 						log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err))
@@ -636,7 +639,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 						procDefExportSubList = append(procDefExportSubList, procDefDto)
 					}
 				}
-			}*/
+			}
 		}
 		// 汇总导出 编排,注意子编排需要放在前面导出,因为导入时候需要先导入子编排,主编排依赖子编排
 		procDefExportList = append(procDefExportList, procDefExportSubList...)
@@ -817,6 +820,9 @@ func filterRepeatWorkflowId(ids []string) []string {
 		hashMap[id] = true
 	}
 	for key, _ := range hashMap {
+		if strings.TrimSpace(key) == "" {
+			continue
+		}
 		newIds = append(newIds, key)
 	}
 	return newIds
