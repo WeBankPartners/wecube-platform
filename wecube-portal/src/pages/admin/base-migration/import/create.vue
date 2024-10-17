@@ -445,7 +445,7 @@ export default {
     line-height: 30px;
   }
   .custom-header {
-    .w-header-title {
+    .w-header-title, .title {
       margin-left: 40px !important;
     }
   }
