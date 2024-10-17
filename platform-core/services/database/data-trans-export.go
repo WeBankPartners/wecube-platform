@@ -609,8 +609,8 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 		param.WorkflowIds = filterRepeatWorkflowId(param.WorkflowIds)
 		for _, procDefId := range param.WorkflowIds {
 			if procDefDto, err = GetProcDefDetailByProcDefId(ctx, procDefId); err != nil {
-				log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err))
-				return
+				log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err), log.String("procDefId", procDefId))
+				continue
 			}
 			if procDefDto != nil && procDefDto.ProcDef != nil {
 				procDefDataList = append(procDefDataList, buildProcDefDto(procDefDto, roleDisplayNameMap))
