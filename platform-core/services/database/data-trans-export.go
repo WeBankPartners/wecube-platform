@@ -559,7 +559,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			return
 		}
 		// 请求模版关联的编排 自动加入 导出编排
-		for _, requestTemplateExport := range queryRequestTemplatesResponse.Data {
+		/*for _, requestTemplateExport := range queryRequestTemplatesResponse.Data {
 			if strings.TrimSpace(requestTemplateExport.RequestTemplate.ProcDefId) != "" && !contains(param.WorkflowIds, requestTemplateExport.RequestTemplate.ProcDefId) {
 				// 调用编排查询下数据是否真实存在
 				if procDefDto, err = GetProcDefDetailByProcDefId(ctx, requestTemplateExport.RequestTemplate.ProcDefId); err != nil {
@@ -569,7 +569,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 					param.WorkflowIds = append(param.WorkflowIds, requestTemplateExport.RequestTemplate.ProcDefId)
 				}
 			}
-		}
+		}*/
 		log.Logger.Info("2. export requestTemplate end!!!!")
 	} else {
 		updateTransExportDetailSuccess(ctx, param.TransExportId, models.TransExportStepRequestTemplate)
