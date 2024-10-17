@@ -2,7 +2,7 @@
   <Card :bordered="false" dis-hover :padding="0">
     <div class="base-migration-export-create">
       <div class="steps">
-        <BaseHeaderTitle :title="$t('pe_export_steps')" :showExpand="false">
+        <BaseHeaderTitle :title="$t('pe_export_steps')" :showExpand="false" class="custom-header">
           <div class="back-header">
             <Icon size="24" type="md-arrow-back" class="icon" @click="handleBack" />
           </div>
@@ -162,6 +162,10 @@ export default {
         // cmdbCI分组展示
         this.detailData.cmdbCIData = groupArrayByKey(this.detailData.cmdbCIData, 'group')
         this.detailData.cmdbCIData = this.detailData.cmdbCIData.flat()
+        // 处理时间为空
+        if (this.detailData.lastConfirmTime === '0000-00-00 00:00:00') {
+          this.detailData.lastConfirmTime = ''
+        }
         // 合并monitor数据
         const metric_list_obj = {
           name: 'metric_list',
@@ -230,7 +234,9 @@ export default {
     },
     // 保存or更新环境和产品
     handleSaveEnvBusiness: debounce(async function () {
-      const { env, envList, selectionList } = this.$refs.env
+      const {
+        env, lastConfirmTime, envList, selectionList
+      } = this.$refs.env
       const pIds = selectionList.map(item => item.id)
       const pNames = selectionList.map(item => item.displayName)
       const envName = envList.find(item => item.value === env).label
@@ -241,7 +247,8 @@ export default {
         pIds,
         pNames,
         env,
-        envName
+        envName,
+        lastConfirmTime
       }
       this.loading = true
       const { status, data } = await (this.id && this.type !== 'republish'
@@ -343,7 +350,7 @@ export default {
       align-items: center;
       margin-bottom: 8px;
       position: absolute;
-      right: 10px;
+      left: 0px;
       top: 0px;
       .icon {
         cursor: pointer;
@@ -384,6 +391,15 @@ export default {
   }
   ::-webkit-scrollbar-thumb:hover {
     background: #d4d4d4;
+  }
+}
+</style>
+<style lang="scss">
+.base-migration-export-create {
+  .custom-header {
+    .w-header-title {
+      margin-left: 40px !important;
+    }
   }
 }
 </style>
