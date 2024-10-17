@@ -1015,5 +1015,7 @@
   "pi_product_requiredTips": "至少勾选一条产品",
   "pi_system_variable": "系统变量",
   "pi_component_library": "ITSM组件库",
-  "pi_tips": "提示"
+  "pi_tips": "提示",
+  "pi_data_confirmTime": "数据确认时间",
+  "pi_data_confirmTimeTips": "导出确认时间之前的所有定版数据"
 }
