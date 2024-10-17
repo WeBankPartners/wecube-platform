@@ -266,6 +266,10 @@ func importPluginConfig(ctx context.Context, transImportParam *models.TransImpor
 	return
 }
 
+func restartPluginInstance(ctx context.Context) {
+
+}
+
 // 6、导入物料包
 func importArtifactPackage(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	var input string
