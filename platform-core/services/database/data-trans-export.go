@@ -624,11 +624,11 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 					}
 				}
 			}
-			for _, subProcDefId := range subProcDefIds {
+			/*for _, subProcDefId := range subProcDefIds {
 				if !contains(param.WorkflowIds, subProcDefId) {
 					if procDefDto, err = GetProcDefDetailByProcDefId(ctx, subProcDefId); err != nil {
 						log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err))
-						return
+						continue
 					}
 					param.WorkflowIds = append(param.WorkflowIds, subProcDefId)
 					if procDefDto != nil && procDefDto.ProcDef != nil {
@@ -636,7 +636,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 						procDefExportSubList = append(procDefExportSubList, procDefDto)
 					}
 				}
-			}
+			}*/
 		}
 		// 汇总导出 编排,注意子编排需要放在前面导出,因为导入时候需要先导入子编排,主编排依赖子编排
 		procDefExportList = append(procDefExportList, procDefExportSubList...)
