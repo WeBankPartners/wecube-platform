@@ -397,7 +397,8 @@ export default {
 <style lang="scss">
 .base-migration-export-create {
   .custom-header {
-    .w-header-title, .title {
+    .w-header-title,
+    .title {
       margin-left: 40px !important;
     }
   }
