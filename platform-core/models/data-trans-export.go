@@ -446,3 +446,10 @@ type CMDBHistoryTable struct {
 	HistoryToId int64     `xorm:"history_to_id"`
 	HistoryTime time.Time `xorm:"history_time"`
 }
+
+type CMDBMultiRefRow struct {
+	FromCiType string
+	ToCiType   string
+	FromGuid   string
+	ToGuid     string
+}

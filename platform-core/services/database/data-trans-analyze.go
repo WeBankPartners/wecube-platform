@@ -232,21 +232,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 	ciTypeAttributes := ciTypeAttrMap[ciType]
 	var queryFilterList []string
 	queryFilterList = append(queryFilterList, fmt.Sprintf("guid in ('%s')", strings.Join(ciDataGuidList, "','")))
-	//for _, filterObj := range filters {
-	//	filterSql, buildFilterSqlErr := getCMDBFilterSql(ciTypeAttributes, filterObj, cmdbEngine, lastConfirmTime)
-	//	if buildFilterSqlErr != nil {
-	//		err = fmt.Errorf("try to build filter sql with ciType:%s fail,%s ", ciType, buildFilterSqlErr.Error())
-	//		break
-	//	}
-	//	if filterSql != "" {
-	//		queryFilterList = append(queryFilterList, filterSql)
-	//	}
-	//}
-	if err != nil {
-		return
-	}
-	//queryCiDataResult, queryErr := cmdbEngine.QueryString(fmt.Sprintf("select * from %s where "+strings.Join(queryFilterList, " and "), ciType))
-	queryCiDataResult, queryErr := cmdbEngine.QueryString("select * from history_" + ciType + " where id in (select max(id) from history_" + ciType + " where history_state_confirmed=1 and confirm_time<='" + lastConfirmTime + "' and " + strings.Join(queryFilterList, " and ") + " group by guid)")
+	queryCiDataResult, queryErr := cmdbEngine.QueryString("select * from history_" + ciType + " where id in (select max(id) from history_" + ciType + " where confirm_time is not null and confirm_time<='" + lastConfirmTime + "' and " + strings.Join(queryFilterList, " and ") + " group by guid)")
 	if queryErr != nil {
 		err = fmt.Errorf("query ciType:%s data fail,%s ", ciType, queryErr.Error())
 		return
@@ -299,7 +285,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 			refCiTypeGuidList := []string{}
 			tmpParentMap := make(map[string]string)
 			for _, row := range newRows {
-				tmpRefCiDataGuid := row[attr.RefCiType]
+				tmpRefCiDataGuid := row[attr.Name]
 				if tmpRefCiDataGuid != "" {
 					refCiTypeGuidList = append(refCiTypeGuidList, tmpRefCiDataGuid)
 					tmpParentMap[tmpRefCiDataGuid] = ciTypeDataMap[ciType].DataChainMap[row["guid"]]
@@ -325,6 +311,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 					for _, tmpToGuid := range tmpToGuidList {
 						tmpParentMap[tmpToGuid] = ciTypeDataMap[ciType].DataChainMap[tmpFromGuid]
 					}
+					ciTypeDataMap[ciType].DataMap[tmpFromGuid][attr.Name] = strings.Join(tmpToGuidList, ",")
 				}
 				if err = analyzeCMDBData(attr.RefCiType, toGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime); err != nil {
 					break
@@ -572,7 +559,7 @@ func getCMDBMultiRefGuidList(ciType, attrName, condition string, fromGuidList, t
 		for _, row := range historyRows {
 			tmpFromGuidList = append(tmpFromGuidList, row.FromGuid)
 		}
-		queryErr = cmdbEngine.SQL("select guid as from_guid,max(history_time) as history_time from history_data_center where history_state_confirmed=1 and guid in ('" + strings.Join(tmpFromGuidList, "','") + "') group by guid").Find(&fromGuidConfirmRows)
+		queryErr = cmdbEngine.SQL("select guid as from_guid,max(history_time) as history_time from history_data_center where confirm_time is not null and guid in ('" + strings.Join(tmpFromGuidList, "','") + "') group by guid").Find(&fromGuidConfirmRows)
 		if queryErr != nil {
 			err = fmt.Errorf("query multiRef list with toGuid fail, query confirm from guid error,ciType:%s attrName:%s,error:%s ", ciType, attrName, queryErr.Error())
 			return
@@ -867,6 +854,7 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 		return
 	}
 	ciDataGuidMap := make(map[string][]string)
+	ciTypeDataMap := make(map[string]map[string]map[string]string)
 	for _, row := range transExportAnalyzeRows {
 		if row.Source == "wecmdb_report" {
 			var tmpReportList []*models.SysReportTable
@@ -887,7 +875,7 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 				viewList = append(viewList, v.Id)
 			}
 		} else {
-			tmpDataMap := make(map[string]interface{})
+			tmpDataMap := make(map[string]map[string]string)
 			if tmpErr := json.Unmarshal([]byte(row.Data), &tmpDataMap); tmpErr != nil {
 				err = fmt.Errorf("json unmarshal ciType:%s data fail,%s ", row.DataType, tmpErr.Error())
 				break
@@ -897,6 +885,7 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 				tmpCiDataGuidList = append(tmpCiDataGuidList, k)
 			}
 			ciDataGuidMap[row.DataType] = tmpCiDataGuidList
+			ciTypeDataMap[row.DataType] = tmpDataMap
 		}
 	}
 	if err != nil {
@@ -917,73 +906,73 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 	reportFilterSql := strings.Join(reportList, "','")
 	viewFilterSql := strings.Join(viewList, "','")
 	sqlBuffer.WriteString("SET FOREIGN_KEY_CHECKS=0;\n")
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_basekey_cat", "select * from sys_basekey_cat", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_basekey_cat", "select * from sys_basekey_cat", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_basekey_code", "select * from sys_basekey_code", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_basekey_code", "select * from sys_basekey_code", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_files", "select * from sys_files where guid in (select image_file from sys_ci_type where id in ('"+ciTypeFilterSql+"'))", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_files", "select * from sys_files where guid in (select image_file from sys_ci_type where id in ('"+ciTypeFilterSql+"'))", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_state_machine", "select * from sys_state_machine where id in (select state_machine from sys_ci_template where id in (select ci_template from sys_ci_type where id in ('"+ciTypeFilterSql+"')))", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_state_machine", "select * from sys_state_machine where id in (select state_machine from sys_ci_template where id in (select ci_template from sys_ci_type where id in ('"+ciTypeFilterSql+"')))", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_state", "select * from sys_state where state_machine in (select state_machine from sys_ci_template where id in (select ci_template from sys_ci_type where id in ('"+ciTypeFilterSql+"')))", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_state", "select * from sys_state where state_machine in (select state_machine from sys_ci_template where id in (select ci_template from sys_ci_type where id in ('"+ciTypeFilterSql+"')))", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_state_transition", "select * from sys_state_transition where state_machine in (select state_machine from sys_ci_template where id in (select ci_template from sys_ci_type where id in ('"+ciTypeFilterSql+"')))", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_state_transition", "select * from sys_state_transition where state_machine in (select state_machine from sys_ci_template where id in (select ci_template from sys_ci_type where id in ('"+ciTypeFilterSql+"')))", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_ci_template", "select * from sys_ci_template where id in (select ci_template from sys_ci_type where id in ('"+ciTypeFilterSql+"'))", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_ci_template", "select * from sys_ci_template where id in (select ci_template from sys_ci_type where id in ('"+ciTypeFilterSql+"'))", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_ci_template_attr", "select * from sys_ci_template_attr where ci_template in (select ci_template from sys_ci_type where id in ('"+ciTypeFilterSql+"'))", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_ci_template_attr", "select * from sys_ci_template_attr where ci_template in (select ci_template from sys_ci_type where id in ('"+ciTypeFilterSql+"'))", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_ci_type", "select * from sys_ci_type where id in ('"+ciTypeFilterSql+"')", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_ci_type", "select * from sys_ci_type where id in ('"+ciTypeFilterSql+"')", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_ci_type_attr", "select * from sys_ci_type_attr where ci_type in ('"+ciTypeFilterSql+"')", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_ci_type_attr", "select * from sys_ci_type_attr where ci_type in ('"+ciTypeFilterSql+"')", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role", "select * from sys_role", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role", "select * from sys_role", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_ci_type", "select * from sys_role_ci_type where ci_type in ('"+ciTypeFilterSql+"')", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_ci_type", "select * from sys_role_ci_type where ci_type in ('"+ciTypeFilterSql+"')", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_ci_type_condition", "select * from sys_role_ci_type_condition where role_ci_type in (select guid from sys_role_ci_type where ci_type in ('"+ciTypeFilterSql+"'))", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_ci_type_condition", "select * from sys_role_ci_type_condition where role_ci_type in (select guid from sys_role_ci_type where ci_type in ('"+ciTypeFilterSql+"'))", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_ci_type_condition_filter", "select * from sys_role_ci_type_condition_filter where role_ci_type_condition in (select guid from sys_role_ci_type_condition where role_ci_type in (select guid from sys_role_ci_type where ci_type in ('"+ciTypeFilterSql+"')))", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_ci_type_condition_filter", "select * from sys_role_ci_type_condition_filter where role_ci_type_condition in (select guid from sys_role_ci_type_condition where role_ci_type in (select guid from sys_role_ci_type where ci_type in ('"+ciTypeFilterSql+"')))", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_ci_type_list", "select * from sys_role_ci_type_list where role_ci_type in (select guid from sys_role_ci_type where ci_type in ('"+ciTypeFilterSql+"'))", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_ci_type_list", "select * from sys_role_ci_type_list where role_ci_type in (select guid from sys_role_ci_type where ci_type in ('"+ciTypeFilterSql+"'))", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_report", "select * from sys_report where id in ('"+reportFilterSql+"')", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_report", "select * from sys_report where id in ('"+reportFilterSql+"')", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_report_object", "select * from sys_report_object where report in ('"+reportFilterSql+"')", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_report_object", "select * from sys_report_object where report in ('"+reportFilterSql+"')", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_report_object_attr", "select * from sys_report_object_attr where report_object in (select id from sys_report_object where report in ('"+reportFilterSql+"'))", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_report_object_attr", "select * from sys_report_object_attr where report_object in (select id from sys_report_object where report in ('"+reportFilterSql+"'))", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_report", "select * from sys_role_report where report in ('"+reportFilterSql+"')", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_report", "select * from sys_role_report where report in ('"+reportFilterSql+"')", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_view", "select * from sys_view where id in ('"+viewFilterSql+"')", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_view", "select * from sys_view where id in ('"+viewFilterSql+"')", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_graph", "select * from sys_graph where `view` in ('"+viewFilterSql+"')", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_graph", "select * from sys_graph where `view` in ('"+viewFilterSql+"')", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_graph_element", "select * from sys_graph_element where graph in (select id from sys_graph where `view` in ('"+viewFilterSql+"'))", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_graph_element", "select * from sys_graph_element where graph in (select id from sys_graph where `view` in ('"+viewFilterSql+"'))", sqlBuffer, nil); err != nil {
 		return
 	}
-	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_view", "select * from sys_role_view where `view` in ('"+viewFilterSql+"')", sqlBuffer); err != nil {
+	if err = dumpCMDBTableData(cmdbEngine, tables, "sys_role_view", "select * from sys_role_view where `view` in ('"+viewFilterSql+"')", sqlBuffer, nil); err != nil {
 		return
 	}
 	for _, ciType := range ciTypeList {
@@ -993,10 +982,10 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 		} else {
 			tmpQuerySql = ""
 		}
-		if err = dumpCMDBTableData(cmdbEngine, tables, ciType, tmpQuerySql, sqlBuffer); err != nil {
+		if err = dumpCMDBTableData(cmdbEngine, tables, "history_"+ciType, tmpQuerySql, sqlBuffer, nil); err != nil {
 			return
 		}
-		if err = dumpCMDBTableData(cmdbEngine, tables, "history_"+ciType, tmpQuerySql, sqlBuffer); err != nil {
+		if err = dumpCMDBTableData(cmdbEngine, tables, ciType, tmpQuerySql, sqlBuffer, ciTypeDataMap[ciType]); err != nil {
 			return
 		}
 	}
@@ -1009,8 +998,8 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 	return
 }
 
-func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableName, querySql string, bf *bytes.Buffer) (err error) {
-	var columnNameList []string
+func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableName, querySql string, bf *bytes.Buffer, ciDataMap map[string]map[string]string) (err error) {
+	var columnNameList, historyColumnNameList []string
 	var tableObj *schemas.Table
 	for _, t := range tables {
 		if t.Name == tableName {
@@ -1020,6 +1009,7 @@ func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableNa
 			}
 		}
 	}
+	historyColumnNameList = append(columnNameList, "history_action", "history_time", "history_state_confirmed")
 	if tableObj == nil {
 		err = fmt.Errorf("tableName:%s illegal", tableName)
 		return
@@ -1060,36 +1050,102 @@ func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableNa
 	if querySql == "" {
 		return
 	}
-	queryRows, queryErr := cmdbEngine.Query(querySql)
-	if queryErr != nil {
-		err = fmt.Errorf("query cmdb table %s data fail,%s ", tableName, queryErr.Error())
-		return
-	}
 	var rowValueList []string
-	for _, row := range queryRows {
-		tmpValueList := []string{}
-		for _, c := range tableObj.Columns() {
-			if c.SQLType.IsBlob() {
-				tmpValueList = append(tmpValueList, "0x"+hex.EncodeToString(row[c.Name]))
-				continue
-			}
-			tmpStringValue := string(row[c.Name])
-			tmpStringValue = strings.ReplaceAll(tmpStringValue, "'", "\\'")
-			if c.Name == "state" {
-				tmpStringValue = strings.ReplaceAll(tmpStringValue, "_1", "_0")
-			}
-			if c.Name == "confirm_time" {
-				tmpStringValue = ""
-			}
-			tmpValueList = append(tmpValueList, "'"+tmpStringValue+"'")
+	ciDataTableFlag := false
+	var multiRefRows []*models.CMDBMultiRefRow
+	if len(ciDataMap) > 0 {
+		ciDataTableFlag = true
+		var ciTypeAttrRows []*models.SysCiTypeAttrTable
+		err = cmdbEngine.SQL("select * from sys_ci_type_attr where status='created' and ci_type=?", tableName).Find(&ciTypeAttrRows)
+		if err != nil {
+			err = fmt.Errorf("query ci type attribute table fail,%s ", err.Error())
+			return
 		}
-		rowValueList = append(rowValueList, strings.Join(tmpValueList, ","))
+		var rowGuidList []string
+		for k, _ := range ciDataMap {
+			rowGuidList = append(rowGuidList, k)
+		}
+		sort.Strings(rowGuidList)
+		for _, rowGuid := range rowGuidList {
+			tmpValueList := []string{}
+			for _, c := range tableObj.Columns() {
+				tmpStringValue := ciDataMap[rowGuid][c.Name]
+				tmpStringValue = strings.ReplaceAll(tmpStringValue, "'", "\\'")
+				if c.Name == "state" {
+					tmpStringValue = strings.ReplaceAll(tmpStringValue, "_1", "_0")
+				}
+				if c.Name == "confirm_time" {
+					tmpStringValue = ""
+				}
+				if tmpStringValue == "" {
+					tmpValueList = append(tmpValueList, "NULL")
+				} else {
+					tmpValueList = append(tmpValueList, "'"+tmpStringValue+"'")
+				}
+			}
+			rowValueList = append(rowValueList, strings.Join(tmpValueList, ","))
+			for _, attr := range ciTypeAttrRows {
+				if attr.InputType == "multiRef" {
+					toGuidSplit := strings.Split(ciDataMap[rowGuid][attr.Name], ",")
+					for _, toGuid := range toGuidSplit {
+						multiRefRows = append(multiRefRows, &models.CMDBMultiRefRow{FromCiType: tableName, ToCiType: attr.Name, FromGuid: rowGuid, ToGuid: toGuid})
+					}
+				}
+			}
+		}
+	} else {
+		queryRows, queryErr := cmdbEngine.Query(querySql)
+		if queryErr != nil {
+			err = fmt.Errorf("query cmdb table %s data fail,%s ", tableName, queryErr.Error())
+			return
+		}
+		for _, row := range queryRows {
+			tmpValueList := []string{}
+			for _, c := range tableObj.Columns() {
+				if c.SQLType.IsBlob() {
+					tmpValueList = append(tmpValueList, "0x"+hex.EncodeToString(row[c.Name]))
+					continue
+				}
+				tmpStringValue := string(row[c.Name])
+				tmpStringValue = strings.ReplaceAll(tmpStringValue, "'", "\\'")
+				if c.Name == "state" {
+					tmpStringValue = strings.ReplaceAll(tmpStringValue, "_1", "_0")
+				}
+				if c.Name == "confirm_time" {
+					tmpStringValue = ""
+				}
+				if tmpStringValue == "" {
+					tmpValueList = append(tmpValueList, "NULL")
+				} else {
+					tmpValueList = append(tmpValueList, "'"+tmpStringValue+"'")
+				}
+			}
+			rowValueList = append(rowValueList, strings.Join(tmpValueList, ","))
+		}
 	}
 	if len(rowValueList) == 0 {
 		return
 	}
+	nowTime := time.Now().Format(models.DateTimeFormat)
 	for _, v := range rowValueList {
 		bf.WriteString("INSERT INTO " + tableName + " (`" + strings.Join(columnNameList, "`,`") + "`) VALUES (" + v + ");\n")
+		if ciDataTableFlag {
+			historyRowValue := v + ",'insert','" + nowTime + "','0'"
+			bf.WriteString("INSERT INTO history_" + tableName + " (`" + strings.Join(historyColumnNameList, "`,`") + "`) VALUES (" + historyRowValue + ");\n")
+		}
+	}
+	distinctMultiMap := make(map[string]int)
+	for _, row := range multiRefRows {
+		if row.FromGuid == "" || row.ToGuid == "" {
+			continue
+		}
+		tmpKey := row.FromGuid + "__" + row.ToGuid
+		if _, ok := distinctMultiMap[tmpKey]; ok {
+			continue
+		}
+		distinctMultiMap[tmpKey] = 1
+		bf.WriteString("INSERT INTO `" + row.FromCiType + "$" + row.ToCiType + "` (from_guid,to_guid) values ('" + row.FromGuid + "','" + row.ToGuid + "');\n")
+		bf.WriteString("INSERT INTO `history_" + row.FromCiType + "$" + row.ToCiType + "` (from_guid,to_guid,history_time) values ('" + row.FromGuid + "','" + row.ToGuid + "','" + nowTime + "');\n")
 	}
 	return
 }
