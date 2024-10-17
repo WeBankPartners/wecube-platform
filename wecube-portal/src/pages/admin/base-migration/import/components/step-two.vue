@@ -117,8 +117,8 @@
       <BaseHeaderTitle :title="$t('pluginService')" :fontSize="15">
         <div slot="sub-title" class="title">
           {{ $t('pe_select_configType') }}<span class="number">{{ detailData.pluginsRes.data.length }}</span>
-          <span v-if="detailData.pluginsRes.status === 'success'" class="success">({{ $t('pe_export_success') }})</span>
-          <span v-if="detailData.pluginsRes.status === 'fail'" class="fail">({{ $t('pe_export_fail') }}：<span>{{ detailData.pluginsRes.errMsg }}</span>)</span>
+          <span v-if="detailData.pluginsRes.status === 'success'" class="success">({{ $t('pi_import_success') }})</span>
+          <span v-if="detailData.pluginsRes.status === 'fail'" class="fail">({{ $t('pi_import_fail') }}：<span>{{ detailData.pluginsRes.errMsg }}</span>)</span>
         </div>
         <Row :gutter="10">
           <Col :span="16">
@@ -140,8 +140,8 @@
       <BaseHeaderTitle :title="$t('m_procDefId')" :fontSize="15">
         <div slot="sub-title" class="title">
           {{ $t('pe_select') }}<span class="number">{{ detailData.flowRes.data.length }}</span>
-          <span v-if="detailData.flowRes.status === 'success'" class="success">({{ $t('pe_export_success') }})</span>
-          <span v-if="detailData.flowRes.status === 'fail'" class="fail">({{ $t('pe_export_fail') }}：<span>{{ detailData.flowRes.errMsg }}</span>)</span>
+          <span v-if="detailData.flowRes.status === 'success'" class="success">({{ $t('pi_import_success') }})</span>
+          <span v-if="detailData.flowRes.status === 'fail'" class="fail">({{ $t('pi_import_fail') }}：<span>{{ detailData.flowRes.errMsg }}</span>)</span>
         </div>
         <Table
           :border="false"
@@ -158,8 +158,8 @@
       <BaseHeaderTitle :title="$t('bc_operation')" :fontSize="15">
         <div slot="sub-title" class="title">
           {{ $t('pe_select') }}<span class="number">{{ detailData.batchRes.data.length }}</span>
-          <span v-if="detailData.batchRes.status === 'success'" class="success">({{ $t('pe_export_success') }})</span>
-          <span v-if="detailData.batchRes.status === 'fail'" class="fail">({{ $t('pe_export_fail') }}：<span>{{ detailData.batchRes.errMsg }}</span>)</span>
+          <span v-if="detailData.batchRes.status === 'success'" class="success">({{ $t('pi_import_success') }})</span>
+          <span v-if="detailData.batchRes.status === 'fail'" class="fail">({{ $t('pi_import_fail') }}：<span>{{ detailData.batchRes.errMsg }}</span>)</span>
         </div>
         <Table
           :border="false"
@@ -176,8 +176,8 @@
       <BaseHeaderTitle :title="$t('pe_articles')" :fontSize="15">
         <div slot="sub-title" class="title">
           {{ $t('pe_select') }}<span class="number">{{ detailData.artifactsCount }}</span>
-          <span v-if="detailData.artifactsRes.status === 'success'" class="success">({{ $t('pe_export_success') }})</span>
-          <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">({{ $t('pe_export_fail') }}：<span>{{ detailData.artifactsRes.errMsg }}</span>)</span>
+          <span v-if="detailData.artifactsRes.status === 'success'" class="success">({{ $t('pi_import_success') }})</span>
+          <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">({{ $t('pi_import_fail') }}：<span>{{ detailData.artifactsRes.errMsg }}</span>)</span>
         </div>
         <Row :gutter="10">
           <Col :span="16">
@@ -200,8 +200,8 @@
         <div slot="sub-title" class="title">
           {{ $t('pe_select_configType') }}<span class="number">{{ detailData.monitorRes.data.length }}</span>
           <span class="name">{{ $t('pe_total') }}</span><span class="number">{{ detailData.monitorCount }}</span>
-          <span v-if="detailData.monitorRes.status === 'success'" class="success">({{ $t('pe_export_success') }})</span>
-          <span v-if="detailData.monitorRes.status === 'fail'" class="fail">({{ $t('pe_export_fail') }}：<span>{{ detailData.monitorRes.errMsg }}</span>)</span>
+          <span v-if="detailData.monitorRes.status === 'success'" class="success">({{ $t('pi_import_success') }})</span>
+          <span v-if="detailData.monitorRes.status === 'fail'" class="fail">({{ $t('pi_import_fail') }}：<span>{{ detailData.monitorRes.errMsg }}</span>)</span>
         </div>
         <Row :gutter="10">
           <Col :span="16">
@@ -223,8 +223,8 @@
       <BaseHeaderTitle :title="$t('pe_itsm')" :fontSize="15">
         <div slot="sub-title" class="title">
           {{ $t('pe_select') }}<span class="number">{{ detailData.itsmRes.data.length }}</span>
-          <span v-if="detailData.itsmRes.status === 'success'" class="success">({{ $t('pe_export_success') }})</span>
-          <span v-if="detailData.itsmRes.status === 'fail'" class="fail">({{ $t('pe_export_fail') }}：<span>{{ detailData.itsmRes.errMsg }}</span>)</span>
+          <span v-if="detailData.itsmRes.status === 'success'" class="success">({{ $t('pi_import_success') }})</span>
+          <span v-if="detailData.itsmRes.status === 'fail'" class="fail">({{ $t('pi_import_fail') }}：<span>{{ detailData.itsmRes.errMsg }}</span>)</span>
         </div>
         <div style="margin: 10px 0">
           {{ $t('pe_export_library') }}：<i-switch
