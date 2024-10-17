@@ -89,7 +89,7 @@ func ExecExport(c *gin.Context) {
 	userToken := c.GetHeader("Authorization")
 	language := c.GetHeader(middleware.AcceptLanguageHeader)
 	// 1. 追加导出信息
-	if param, err = database.AutoAppendExportParam(c, userToken, language, param); err != nil {
+	if param, err = database.AutoAppendExportParam(c, userToken, param); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
