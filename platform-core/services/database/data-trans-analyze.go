@@ -1074,6 +1074,12 @@ func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableNa
 			}
 			tmpStringValue := string(row[c.Name])
 			tmpStringValue = strings.ReplaceAll(tmpStringValue, "'", "\\'")
+			if c.Name == "state" {
+				tmpStringValue = strings.ReplaceAll(tmpStringValue, "_1", "_0")
+			}
+			if c.Name == "confirm_time" {
+				tmpStringValue = ""
+			}
 			tmpValueList = append(tmpValueList, "'"+tmpStringValue+"'")
 		}
 		rowValueList = append(rowValueList, strings.Join(tmpValueList, ","))
