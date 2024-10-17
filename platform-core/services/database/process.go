@@ -1251,7 +1251,7 @@ func GetProcDefDetailByProcDefId(ctx context.Context, procDefId string) (procDef
 		return
 	}
 	if procDef == nil {
-		err = fmt.Errorf("procDefId is invalid")
+		err = fmt.Errorf("procDefId:%s is invalid", procDefId)
 		return
 	}
 	procDefDto.ProcDef = models.ConvertProcDef2Dto(procDef)
