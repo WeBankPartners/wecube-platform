@@ -504,8 +504,11 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			log.Logger.Error("delete fail", log.String("path", path), log.Error(err))
 		}
 		// 删除导出压缩包
-		if err = os.Remove(zipPath + "/" + zipFile); err != nil {
-			log.Logger.Error("delete fail", log.String("filePath", zipPath), log.Error(err))
+		exportZipPath := zipPath + "/" + zipFile
+		if exist, _ := tools.PathExist(exportZipPath); exist {
+			if err = os.Remove(exportZipPath); err != nil {
+				log.Logger.Error("delete fail", log.String("filePath", zipPath), log.Error(err))
+			}
 		}
 	}(&step)
 	// 更新迁移导出表记录状态为执行中
