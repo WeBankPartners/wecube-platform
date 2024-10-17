@@ -138,7 +138,10 @@ export default {
           title: this.$t('pe_export_product'),
           key: 'businessName',
           minWidth: 200,
-          render: (h, params) => <span>{params.row.businessName || '-'}</span>
+          render: (h, params) => {
+            const productList = params.row.businessName.split(',')
+            return <BaseScrollTag list={productList} />
+          }
         },
         // 导出状态
         {
