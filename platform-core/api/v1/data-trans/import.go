@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/plugin"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/execution"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
 	"os"
@@ -261,13 +262,34 @@ func importPluginConfig(ctx context.Context, transImportParam *models.TransImpor
 				err = fmt.Errorf("import plugin:%s config fail,%s ", xmlFileName, err.Error())
 				break
 			}
+			if err = RestartPluginInstance(ctx, tmpPluginPackageId); err != nil {
+				break
+			}
 		}
 	}
 	return
 }
 
-func restartPluginInstance(ctx context.Context, pluginPackageId string) {
-
+func RestartPluginInstance(ctx context.Context, pluginPackageId string) (err error) {
+	pluginInstanceObj, getPluginInstanceErr := database.GetPluginInstance("", "", "", pluginPackageId, false)
+	if getPluginInstanceErr != nil {
+		err = getPluginInstanceErr
+		return
+	}
+	if pluginInstanceObj.Id == "" {
+		// 没有运行的实例，不用重启
+		return
+	}
+	err = plugin.RemovePluginInstanceFunc(ctx, pluginInstanceObj.Id)
+	if err != nil {
+		err = fmt.Errorf("remove plugin:%s fail,%s ", pluginInstanceObj.InstanceName, err.Error())
+		return
+	}
+	err = plugin.LaunchPluginFunc(ctx, pluginPackageId, pluginInstanceObj.Host, "system", pluginInstanceObj.Port)
+	if err != nil {
+		err = fmt.Errorf("launch plugin:%s fail,%s ", pluginInstanceObj.InstanceName, err.Error())
+	}
+	return
 }
 
 // 6、导入物料包
