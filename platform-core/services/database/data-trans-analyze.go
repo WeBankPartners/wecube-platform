@@ -311,7 +311,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 					for _, tmpToGuid := range tmpToGuidList {
 						tmpParentMap[tmpToGuid] = ciTypeDataMap[ciType].DataChainMap[tmpFromGuid]
 					}
-					ciTypeDataMap[ciType].DataMap[tmpFromGuid][attr.Name] = strings.Join(tmpToGuidList, ",")
+					ciTypeDataMap[ciType].DataMap[tmpFromGuid][attr.Name] = strings.Join(models.DistinctStringList(tmpToGuidList, []string{}), ",")
 				}
 				if err = analyzeCMDBData(attr.RefCiType, toGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime); err != nil {
 					break
@@ -1107,6 +1107,7 @@ func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableNa
 					continue
 				}
 				tmpStringValue := string(row[c.Name])
+				tmpStringValue = strings.ReplaceAll(tmpStringValue, "\\", "\\\\")
 				tmpStringValue = strings.ReplaceAll(tmpStringValue, "'", "\\'")
 				if c.Name == "state" {
 					tmpStringValue = strings.ReplaceAll(tmpStringValue, "_1", "_0")
