@@ -995,6 +995,9 @@ func handleOutputData(
 			if v, ok := output[models.PluginCallResultPresetErrorCode]; ok {
 				tmpResultOutput[models.PluginCallResultPresetErrorCode] = v
 				if fmt.Sprintf("%s", v) != "0" {
+					if tmpResultOutputForEntity == nil {
+						tmpResultOutputForEntity = &OutputEntityRootData{Data: make(map[string]interface{}), SubBranchs: make([]*OutputEntityBranchData, 0)}
+					}
 					tmpResultOutputForEntity.FailFlag = true
 				}
 			}
