@@ -178,6 +178,13 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 					},
 					ExportComponentLibrary: true,
 				}
+			} else {
+				detail.ComponentLibrary = &models.ExportComponentLibrary{
+					CommonOutput: models.CommonOutput{
+						Status: string(models.TransImportStatusSuccess),
+					},
+					ExportComponentLibrary: false,
+				}
 			}
 		case models.TransImportStepWorkflow:
 			detail.Workflows = &models.CommonOutput{
