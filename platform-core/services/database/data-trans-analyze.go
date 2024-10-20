@@ -76,10 +76,20 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 		err = getConfigErr
 		return
 	}
+	// 查ci初始数据状态
+	startStateQueryRows, startStateQueryErr := cmdbEngine.QueryString("select t1.id,t3.name from sys_ci_type t1 left join sys_ci_template t2 on t1.ci_template=t2.id left join (select state_machine,name from sys_state where id in (select target_state from sys_state_transition where current_state like '%null_0')) t3 on t2.state_machine=t3.state_machine")
+	if startStateQueryErr != nil {
+		err = fmt.Errorf("query ci type start state fail,%s ", startStateQueryErr.Error())
+		return
+	}
+	ciTypeStateMap := make(map[string]string)
+	for _, row := range startStateQueryRows {
+		ciTypeStateMap[row["id"]] = row["name"]
+	}
 	ciTypeDataMap := make(map[string]*models.CiTypeData)
 	//filters := []*models.CiTypeDataFilter{{CiType: transConfig.EnvCiType, Condition: "in", GuidList: []string{param.Env}}}
 	log.Logger.Info("<--- start analyzeCMDBData --->")
-	err = analyzeCMDB(param, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig)
+	err = analyzeCMDB(param, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, ciTypeStateMap)
 	//err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string))
 	if err != nil {
 		log.Logger.Error("<--- fail analyzeCMDBData --->", log.Error(err))
@@ -138,7 +148,7 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 	return
 }
 
-func analyzeCMDB(param *models.AnalyzeDataTransParam, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig) (err error) {
+func analyzeCMDB(param *models.AnalyzeDataTransParam, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig, ciTypeStateMap map[string]string) (err error) {
 	ctx := context.WithValue(context.Background(), models.TransactionIdHeader, "analyze_cmdb_"+guid.CreateGuid())
 	if transConfig.BusinessToSystemExpr == "" || transConfig.EnvToSystemExpr == "" || transConfig.SystemCiType == "" {
 		err = fmt.Errorf("trans export config illegal")
@@ -219,12 +229,12 @@ func analyzeCMDB(param *models.AnalyzeDataTransParam, ciTypeAttrMap map[string][
 		return
 	}
 	// 从系统数据出发，正向查找数据，反向通过配置里的反向属性查找
-	err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime)
-	err = analyzeCMDBData(transConfig.SystemCiType, systemGuidList, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime)
+	err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime, ciTypeStateMap)
+	err = analyzeCMDBData(transConfig.SystemCiType, systemGuidList, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime, ciTypeStateMap)
 	return
 }
 
-func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig, parentMap map[string]string, lastConfirmTime string) (err error) {
+func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig, parentMap map[string]string, lastConfirmTime string, ciTypeStateMap map[string]string) (err error) {
 	log.Logger.Info("analyzeCMDBData", log.String("ciType", ciType), log.StringList("guidList", ciDataGuidList))
 	if len(ciDataGuidList) == 0 {
 		return
@@ -254,6 +264,10 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 			return
 		}
 		for _, row := range newRows {
+			for _, emptyAttr := range transConfig.ResetEmptyAttrList {
+				row[emptyAttr] = ""
+			}
+			row["state"] = ciTypeStateMap[ciType]
 			tmpRowGuid := row["guid"]
 			existData.DataMap[tmpRowGuid] = row
 			existData.DataChainMap[tmpRowGuid] = fmt.Sprintf("%s -> %s[%s]", parentMap[tmpRowGuid], row["guid"], row["key_name"])
@@ -265,6 +279,10 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 		dataChainMap := make(map[string]string)
 		for _, row := range queryCiDataResult {
 			tmpRowGuid := row["guid"]
+			for _, emptyAttr := range transConfig.ResetEmptyAttrList {
+				row[emptyAttr] = ""
+			}
+			row["state"] = ciTypeStateMap[ciType]
 			dataMap[tmpRowGuid] = row
 			dataChainMap[tmpRowGuid] = fmt.Sprintf("%s -> %s[%s]", parentMap[tmpRowGuid], row["guid"], row["key_name"])
 			newRowsGuidList = append(newRowsGuidList, tmpRowGuid)
@@ -292,7 +310,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 				}
 			}
 			if len(refCiTypeGuidList) > 0 {
-				if err = analyzeCMDBData(attr.RefCiType, refCiTypeGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime); err != nil {
+				if err = analyzeCMDBData(attr.RefCiType, refCiTypeGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, ciTypeStateMap); err != nil {
 					break
 				}
 			}
@@ -313,7 +331,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 					}
 					ciTypeDataMap[ciType].DataMap[tmpFromGuid][attr.Name] = strings.Join(models.DistinctStringList(tmpToGuidList, []string{}), ",")
 				}
-				if err = analyzeCMDBData(attr.RefCiType, toGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime); err != nil {
+				if err = analyzeCMDBData(attr.RefCiType, toGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, ciTypeStateMap); err != nil {
 					break
 				}
 			}
@@ -356,7 +374,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 							depCiGuidList = append(depCiGuidList, row["guid"])
 							tmpParentMap[row["guid"]] = ciTypeDataMap[ciType].DataChainMap[row[depCiAttr.Name]]
 						}
-						if err = analyzeCMDBData(depCiType, depCiGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime); err != nil {
+						if err = analyzeCMDBData(depCiType, depCiGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, ciTypeStateMap); err != nil {
 							break
 						}
 					}
@@ -379,7 +397,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 								tmpParentMap[tmpFromGuid] = ciTypeDataMap[ciType].DataChainMap[tmpToGuid]
 							}
 						}
-						if err = analyzeCMDBData(depCiType, depFromGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime); err != nil {
+						if err = analyzeCMDBData(depCiType, depFromGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, ciTypeStateMap); err != nil {
 							break
 						}
 					}
@@ -480,6 +498,10 @@ func getDataTransVariableMap(ctx context.Context) (result *models.TransDataVaria
 		case "PLATFORM_EXPORT_IGNORE_ATTR_LIST":
 			if tmpValue != "" {
 				result.IgnoreSearchAttrList = strings.Split(tmpValue, ",")
+			}
+		case "PLATFORM_EXPORT_EMPTY_ATTR":
+			if tmpValue != "" {
+				result.ResetEmptyAttrList = strings.Split(tmpValue, ",")
 			}
 		}
 	}
