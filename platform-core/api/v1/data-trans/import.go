@@ -357,50 +357,70 @@ func BuildContext(ctx context.Context, param *models.BuildContextParam) context.
 
 // 10、开始执行编排(创建资源、初始化资源、应用部署)
 func execWorkflow(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-	var workflowImportDetailId, input string
+	var workflowDetailId, workflowInitDetailId, workflowDetailInput, workflowInitDetailInput string
 	for _, v := range transImportParam.Details {
 		if v.Name == "workflow" {
-			workflowImportDetailId = v.Id
-			break
+			workflowDetailId = v.Id
+		}
+		if v.Name == "workflow_init" {
+			workflowInitDetailId = v.Id
 		}
 	}
-	input, err = database.GetTransImportDetailInput(ctx, workflowImportDetailId)
+	workflowDetailInput, err = database.GetTransImportDetailInput(ctx, workflowDetailId)
+	if err != nil {
+		return
+	}
+	workflowInitDetailInput, err = database.GetTransImportDetailInput(ctx, workflowInitDetailId)
 	if err != nil {
 		return
 	}
 	var procDefList []*models.ProcDefDto
-	if err = json.Unmarshal([]byte(input), &procDefList); err != nil {
+	if err = json.Unmarshal([]byte(workflowDetailInput), &procDefList); err != nil {
 		err = fmt.Errorf("json unmarshal workflow proc def list fail,%s ", err.Error())
+		return
+	}
+	var workflowInitList models.TransExportWorkflowList
+	if err = json.Unmarshal([]byte(workflowInitDetailInput), &workflowInitList); err != nil {
+		err = fmt.Errorf("json unmarshal workflow_init data to export workflow list fail,%s ", err.Error())
 		return
 	}
 	var procExecList []*models.TransImportProcExecTable
 	nowTime := time.Now().Format(models.DateTimeFormat)
-	for _, v := range procDefList {
-		exprList, analyzeErr := remote.AnalyzeExpression(v.RootEntity)
-		if analyzeErr != nil || len(exprList) == 0 {
-			log.Logger.Warn("workflow proc def rootEntity analyze fail", log.String("name", v.Name), log.String("rootEntity", v.RootEntity), log.Error(analyzeErr))
+	sort.Sort(workflowInitList)
+	for _, workflowObj := range workflowInitList {
+		if !workflowObj.Executable {
 			continue
 		}
-		queryEntityRows, queryEntityDataErr := remote.RequestPluginModelData(ctx, exprList[0].Package, exprList[0].Entity, remote.GetToken(), []*models.EntityQueryObj{})
-		if queryEntityDataErr != nil {
-			err = queryEntityDataErr
-			break
-		}
-		for _, row := range queryEntityRows {
-			tmpProcExecRow := models.TransImportProcExecTable{
-				Id:                "tm_exec_" + guid.CreateGuid(),
-				TransImportDetail: transImportParam.CurrentDetail.Id,
-				ProcDef:           v.Id,
-				ProcDefKey:        v.Key,
-				ProcDefName:       v.Name,
-				RootEntity:        v.RootEntity,
-				EntityDataId:      fmt.Sprintf("%s", row["id"]),
-				EntityDataName:    fmt.Sprintf("%s", row["displayName"]),
-				Status:            models.JobStatusReady,
-				CreatedUser:       transImportParam.Operator,
-				CreatedTime:       nowTime,
+		for _, v := range procDefList {
+			if v.Id != workflowObj.WorkflowId {
+				continue
 			}
-			procExecList = append(procExecList, &tmpProcExecRow)
+			exprList, analyzeErr := remote.AnalyzeExpression(v.RootEntity)
+			if analyzeErr != nil || len(exprList) == 0 {
+				log.Logger.Warn("workflow proc def rootEntity analyze fail", log.String("name", v.Name), log.String("rootEntity", v.RootEntity), log.Error(analyzeErr))
+				continue
+			}
+			queryEntityRows, queryEntityDataErr := remote.QueryPluginData(ctx, exprList, []*models.QueryExpressionDataFilter{}, remote.GetToken())
+			if queryEntityDataErr != nil {
+				err = queryEntityDataErr
+				break
+			}
+			for _, row := range queryEntityRows {
+				tmpProcExecRow := models.TransImportProcExecTable{
+					Id:                "tm_exec_" + guid.CreateGuid(),
+					TransImportDetail: transImportParam.CurrentDetail.Id,
+					ProcDef:           v.Id,
+					ProcDefKey:        v.Key,
+					ProcDefName:       v.Name,
+					RootEntity:        v.RootEntity,
+					EntityDataId:      fmt.Sprintf("%s", row["id"]),
+					EntityDataName:    fmt.Sprintf("%s", row["displayName"]),
+					Status:            models.JobStatusReady,
+					CreatedUser:       transImportParam.Operator,
+					CreatedTime:       nowTime,
+				}
+				procExecList = append(procExecList, &tmpProcExecRow)
+			}
 		}
 	}
 	if err != nil {

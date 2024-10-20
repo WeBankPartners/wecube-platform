@@ -242,7 +242,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 	ciTypeAttributes := ciTypeAttrMap[ciType]
 	var queryFilterList []string
 	queryFilterList = append(queryFilterList, fmt.Sprintf("guid in ('%s')", strings.Join(ciDataGuidList, "','")))
-	queryCiDataResult, queryErr := cmdbEngine.QueryString("select * from history_" + ciType + " where id in (select max(id) from history_" + ciType + " where confirm_time is not null and confirm_time<='" + lastConfirmTime + "' and " + strings.Join(queryFilterList, " and ") + " group by guid)")
+	queryCiDataResult, queryErr := cmdbEngine.QueryString("select * from history_" + ciType + " where id in (select max(id) from history_" + ciType + " where history_action='confirm' and confirm_time<='" + lastConfirmTime + "' and " + strings.Join(queryFilterList, " and ") + " group by guid)")
 	if queryErr != nil {
 		err = fmt.Errorf("query ciType:%s data fail,%s ", ciType, queryErr.Error())
 		return
@@ -578,7 +578,7 @@ func getCMDBMultiRefGuidList(ciType, attrName, condition string, fromGuidList, t
 		for _, row := range historyRows {
 			tmpFromGuidList = append(tmpFromGuidList, row.FromGuid)
 		}
-		queryErr = cmdbEngine.SQL("select guid as from_guid,max(history_time) as history_time from history_" + ciType + " where confirm_time is not null and guid in ('" + strings.Join(tmpFromGuidList, "','") + "') group by guid").Find(&fromGuidConfirmRows)
+		queryErr = cmdbEngine.SQL("select guid as from_guid,max(history_time) as history_time from history_" + ciType + " where history_action='confirm' and guid in ('" + strings.Join(tmpFromGuidList, "','") + "') group by guid").Find(&fromGuidConfirmRows)
 		if queryErr != nil {
 			err = fmt.Errorf("query multiRef list with toGuid fail, query confirm from guid error,ciType:%s attrName:%s,error:%s ", ciType, attrName, queryErr.Error())
 			return
@@ -1097,7 +1097,11 @@ func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableNa
 					tmpStringValue = ""
 				}
 				if tmpStringValue == "" {
-					tmpValueList = append(tmpValueList, "NULL")
+					if c.Nullable {
+						tmpValueList = append(tmpValueList, "NULL")
+					} else {
+						tmpValueList = append(tmpValueList, "''")
+					}
 				} else {
 					tmpValueList = append(tmpValueList, "'"+tmpStringValue+"'")
 				}
@@ -1135,7 +1139,11 @@ func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableNa
 					tmpStringValue = ""
 				}
 				if tmpStringValue == "" {
-					tmpValueList = append(tmpValueList, "NULL")
+					if c.Nullable {
+						tmpValueList = append(tmpValueList, "NULL")
+					} else {
+						tmpValueList = append(tmpValueList, "''")
+					}
 				} else {
 					tmpValueList = append(tmpValueList, "'"+tmpStringValue+"'")
 				}

@@ -477,7 +477,10 @@ func getInsertTransImportDetail(transImportId string, detail *models.TransExport
 				input = string(tempByte)
 			}
 		case models.TransImportStepInitWorkflow:
-
+			if detail.Workflows != nil {
+				tempByte, _ := json.Marshal(detail.Workflows.WorkflowList)
+				input = string(tempByte)
+			}
 		case models.TransImportStepMonitorBusiness:
 			if detail.Monitor != nil && detail.Monitor.Output != nil {
 				tempByte, _ := json.Marshal(detail.Monitor.Output)
