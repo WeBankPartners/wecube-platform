@@ -182,3 +182,6 @@ VALUES ('system__global__PLATFORM_EXPORT_BACKWARD_ATTR_LIST', '', 'PLATFORM_EXPO
 INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status)
 VALUES ('system__global__PLATFORM_EXPORT_IGNORE_ATTR_LIST', '', 'PLATFORM_EXPORT_IGNORE_ATTR_LIST', '', '', 'global',
         'system', 'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status)
+VALUES ('system__global__PLATFORM_EXPORT_EMPTY_ATTR', '', 'PLATFORM_EXPORT_EMPTY_ATTR', '', 'asset_id', 'global',
+        'system', 'active');
