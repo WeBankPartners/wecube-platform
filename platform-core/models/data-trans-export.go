@@ -183,13 +183,14 @@ type UpdateExportParam struct {
 }
 
 type DataTransExportParam struct {
-	TransExportId          string           `json:"transExportId"`          // 导出Id
-	Roles                  []string         `json:"roles"`                  // 角色
-	WorkflowIds            []string         `json:"workflowIds"`            // 编排Ids
-	BatchExecutionIds      []string         `json:"batchExecutionIds"`      // 批量执行Ids
-	RequestTemplateIds     []string         `json:"requestTemplateIds"`     // 模版Ids
-	ExportComponentLibrary bool             `json:"exportComponentLibrary"` // 是否导出组件库
-	ExportDashboardMap     map[int][]string // 导出看板信息
+	TransExportId          string                    `json:"transExportId"` // 导出Id
+	Roles                  []string                  `json:"roles"`         // 角色
+	WorkflowIds            []string                  `json:"workflowIds"`   // 编排Ids
+	WorkflowList           []*TransExportWorkflowObj `json:"workflowList"`
+	BatchExecutionIds      []string                  `json:"batchExecutionIds"`      // 批量执行Ids
+	RequestTemplateIds     []string                  `json:"requestTemplateIds"`     // 模版Ids
+	ExportComponentLibrary bool                      `json:"exportComponentLibrary"` // 是否导出组件库
+	ExportDashboardMap     map[int][]string          // 导出看板信息
 }
 
 type TransExportHistoryParam struct {
@@ -294,23 +295,23 @@ type RequestTemplateDto struct {
 }
 
 type TransExportDetail struct {
-	TransExport            *TransExportTable    `json:"transExport"`
-	CmdbCI                 []*CommonNameCount   `json:"cmdbCI"`
-	CmdbView               []*CommonNameCreator `json:"cmdbView"`
-	CmdbViewCount          int                  `json:"cmdbViewCount"`
-	CmdbReportForm         []*CommonNameCreator `json:"cmdbReportForm"`
-	CmdbReportFormCount    int                  `json:"cmdbReportFormCount"`
-	Roles                  *CommonOutput        `json:"roles"`
-	Workflows              *CommonOutput        `json:"workflows"`
-	BatchExecution         *CommonOutput        `json:"batchExecutions"`
-	RequestTemplates       *CommonOutput        `json:"requestTemplates"`
-	ComponentLibrary       *CommonOutput        `json:"componentLibrary"`
-	ExportComponentLibrary bool                 `json:"exportComponentLibrary"` // 是否导出组件库
-	Artifacts              *CommonOutput        `json:"artifacts"`
-	Monitor                *CommonOutput        `json:"monitor"`
-	Plugins                *CommonOutput        `json:"plugins"`
-	Cmdb                   *CommonOutput        `json:"cmdb"`
-	CreateAndUploadFile    *CommonOutput        `json:"createAndUploadFile"`
+	TransExport            *TransExportTable     `json:"transExport"`
+	CmdbCI                 []*CommonNameCount    `json:"cmdbCI"`
+	CmdbView               []*CommonNameCreator  `json:"cmdbView"`
+	CmdbViewCount          int                   `json:"cmdbViewCount"`
+	CmdbReportForm         []*CommonNameCreator  `json:"cmdbReportForm"`
+	CmdbReportFormCount    int                   `json:"cmdbReportFormCount"`
+	Roles                  *CommonOutput         `json:"roles"`
+	Workflows              *ExportWorkflowOutput `json:"workflows"`
+	BatchExecution         *CommonOutput         `json:"batchExecutions"`
+	RequestTemplates       *CommonOutput         `json:"requestTemplates"`
+	ComponentLibrary       *CommonOutput         `json:"componentLibrary"`
+	ExportComponentLibrary bool                  `json:"exportComponentLibrary"` // 是否导出组件库
+	Artifacts              *CommonOutput         `json:"artifacts"`
+	Monitor                *CommonOutput         `json:"monitor"`
+	Plugins                *CommonOutput         `json:"plugins"`
+	Cmdb                   *CommonOutput         `json:"cmdb"`
+	CreateAndUploadFile    *CommonOutput         `json:"createAndUploadFile"`
 }
 
 type CommonNameCount struct {
@@ -345,6 +346,11 @@ type CommonOutput struct {
 type ExportComponentLibrary struct {
 	CommonOutput
 	ExportComponentLibrary bool `json:"exportComponentLibrary"`
+}
+
+type ExportWorkflowOutput struct {
+	CommonOutput
+	WorkflowList []*TransExportWorkflowObj `json:"workflowList"`
 }
 
 type AnalyzeTransParam struct {
@@ -453,4 +459,30 @@ type CMDBMultiRefRow struct {
 	ToCiType   string
 	FromGuid   string
 	ToGuid     string
+}
+
+type TransExportWorkflowObj struct {
+	WorkflowId   string `json:"workflowId"`
+	Executable   bool   `json:"executable"`
+	ExecuteOrder int    `json:"executeOrder"`
+}
+
+type TransExportWorkflowList []*TransExportWorkflowObj
+
+func (t TransExportWorkflowList) Len() int {
+	return len(t)
+}
+
+func (t TransExportWorkflowList) Less(i, j int) bool {
+	if t[i].ExecuteOrder == 0 && t[j].ExecuteOrder == 0 {
+		return t[i].WorkflowId < t[j].WorkflowId
+	}
+	if t[j].ExecuteOrder == 0 {
+		return true
+	}
+	return t[i].ExecuteOrder < t[j].ExecuteOrder
+}
+
+func (t TransExportWorkflowList) Swap(i, j int) {
+	t[i], t[j] = t[j], t[i]
 }
