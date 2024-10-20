@@ -42,6 +42,7 @@ func CreateExport(c *gin.Context) {
 
 	if transExportId, err = database.CreateExport(c, param, middleware.GetRequestUser(c)); err != nil {
 		middleware.ReturnError(c, err)
+		return
 	}
 	middleware.ReturnData(c, transExportId)
 }
