@@ -143,6 +143,7 @@ type TransDataVariableConfig struct {
 	EnvToSystemExpr            string   `json:"envToSystemExpr"`
 	BackwardSearchAttrList     []string `json:"backwardSearchAttrList"`
 	IgnoreSearchAttrList       []string `json:"ignoreSearchAttrList"`
+	ResetEmptyAttrList         []string `json:"resetEmptyAttrList"`
 }
 
 type CiTypeData struct {
