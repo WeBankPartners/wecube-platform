@@ -316,7 +316,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 	for _, transExportDetail := range transExportDetailList {
 		var tempArr []string
 		var data interface{}
-		if strings.TrimSpace(transExportDetail.Input) != "" {
+		if strings.TrimSpace(transExportDetail.Input) != "" && models.TransExportStep(transExportDetail.Step) != models.TransExportStepWorkflow {
 			if err = json.Unmarshal([]byte(transExportDetail.Input), &tempArr); err != nil {
 				log.Logger.Error("json Unmarshal Input err", log.Error(err))
 			}
@@ -343,7 +343,13 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 				detail.ExportComponentLibrary = true
 			}
 		case models.TransExportStepWorkflow:
-			detail.Workflows = output
+			tmpWorkflowList := []*models.TransExportWorkflowObj{}
+			if err = json.Unmarshal([]byte(transExportDetail.Input), &tmpWorkflowList); err != nil {
+				log.Logger.Error("json unmarshal workflow input fail", log.Error(err))
+				continue
+			}
+			workflowOutput := models.ExportWorkflowOutput{CommonOutput: *output, WorkflowList: tmpWorkflowList}
+			detail.Workflows = &workflowOutput
 		case models.TransExportStepBatchExecution:
 			detail.BatchExecution = output
 		case models.TransExportStepCreateAndUploadFile:
@@ -607,6 +613,16 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 	}
 
 	// 4. 导出编排
+	if len(param.WorkflowIds) > 0 && len(param.WorkflowList) == 0 {
+		for _, v := range param.WorkflowIds {
+			param.WorkflowList = append(param.WorkflowList, &models.TransExportWorkflowObj{WorkflowId: v})
+		}
+	}
+	if len(param.WorkflowIds) == 0 && len(param.WorkflowList) > 0 {
+		for _, v := range param.WorkflowList {
+			param.WorkflowIds = append(param.WorkflowIds, v.WorkflowId)
+		}
+	}
 	if len(param.WorkflowIds) > 0 {
 		step = models.TransExportStepWorkflow
 		log.Logger.Info("4. export workflow start!!!!")
@@ -654,7 +670,7 @@ func ExecTransExport(ctx context.Context, param models.DataTransExportParam, use
 			TransExportId: param.TransExportId,
 			StartTime:     exportWorkflowStartTime,
 			Step:          step,
-			Input:         param.WorkflowIds,
+			Input:         param.WorkflowList,
 			Data:          procDefDataList,
 			ExportData:    procDefExportList,
 		}
