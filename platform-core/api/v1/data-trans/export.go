@@ -26,7 +26,7 @@ func QueryBusinessList(c *gin.Context) {
 	middleware.ReturnData(c, result)
 }
 
-// CreateExport 创建导入,返回导入Id
+// CreateExport 创建导出,返回导出Id
 func CreateExport(c *gin.Context) {
 	var param models.CreateExportParam
 	var transExportId string
