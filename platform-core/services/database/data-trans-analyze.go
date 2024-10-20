@@ -229,7 +229,7 @@ func analyzeCMDB(param *models.AnalyzeDataTransParam, ciTypeAttrMap map[string][
 		return
 	}
 	// 从系统数据出发，正向查找数据，反向通过配置里的反向属性查找
-	err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime, ciTypeStateMap)
+	//err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime, ciTypeStateMap)
 	err = analyzeCMDBData(transConfig.SystemCiType, systemGuidList, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime, ciTypeStateMap)
 	return
 }
@@ -290,9 +290,6 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 			newRows = append(newRows, row)
 		}
 		ciTypeDataMap[ciType] = &models.CiTypeData{DataMap: dataMap, DataChainMap: dataChainMap}
-	}
-	if ciType == transConfig.BusinessCiType {
-		return
 	}
 	// 往下分析数据行的依赖
 	for _, attr := range ciTypeAttributes {
@@ -581,7 +578,7 @@ func getCMDBMultiRefGuidList(ciType, attrName, condition string, fromGuidList, t
 		for _, row := range historyRows {
 			tmpFromGuidList = append(tmpFromGuidList, row.FromGuid)
 		}
-		queryErr = cmdbEngine.SQL("select guid as from_guid,max(history_time) as history_time from history_data_center where confirm_time is not null and guid in ('" + strings.Join(tmpFromGuidList, "','") + "') group by guid").Find(&fromGuidConfirmRows)
+		queryErr = cmdbEngine.SQL("select guid as from_guid,max(history_time) as history_time from history_" + ciType + " where confirm_time is not null and guid in ('" + strings.Join(tmpFromGuidList, "','") + "') group by guid").Find(&fromGuidConfirmRows)
 		if queryErr != nil {
 			err = fmt.Errorf("query multiRef list with toGuid fail, query confirm from guid error,ciType:%s attrName:%s,error:%s ", ciType, attrName, queryErr.Error())
 			return
