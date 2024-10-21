@@ -533,7 +533,7 @@ func doExecWorkflowDaemonJob() {
 		}
 		if successRowCount == len(detailProcExecList) {
 			// 需要更新trans import detail 状态
-			tmpErr := database.UpdateTransImportDetailStatus(ctx, "", transImportDetailId, models.JobStatusSuccess, "", "")
+			tmpErr := database.UpdateTransImportDetailStatus(ctx, "", transImportDetailId, "success", "", "")
 			if tmpErr != nil {
 				log.Logger.Error("doExecWorkflowDaemonJob update trans import detail status fail", log.String("detailId", transImportDetailId), log.String("status", models.JobStatusSuccess), log.Error(tmpErr))
 			}
