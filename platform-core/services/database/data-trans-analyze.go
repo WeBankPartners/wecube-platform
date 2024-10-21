@@ -1089,6 +1089,7 @@ func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableNa
 			tmpValueList := []string{}
 			for _, c := range tableObj.Columns() {
 				tmpStringValue := ciDataMap[rowGuid][c.Name]
+				tmpStringValue = strings.ReplaceAll(tmpStringValue, "\\", "\\\\")
 				tmpStringValue = strings.ReplaceAll(tmpStringValue, "'", "\\'")
 				if c.Name == "state" {
 					tmpStringValue = strings.ReplaceAll(tmpStringValue, "_1", "_0")
