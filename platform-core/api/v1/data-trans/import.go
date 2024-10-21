@@ -312,7 +312,7 @@ func importArtifactPackage(ctx context.Context, transImportParam *models.TransIm
 				continue
 			}
 			tmpImportFilePath := fmt.Sprintf(models.TransImportTmpDir, transImportParam.TransImport.Id) + "/" + models.TransArtifactPackageDirName + "/" + tmpPackageName
-			tmpDeployPackageGuid, tmpErr := remote.UploadArtifactPackage(ctx, remote.GetToken(), artifactData.UnitDesign, tmpImportFilePath)
+			tmpDeployPackageGuid, tmpErr := remote.UploadArtifactPackageNew(ctx, remote.GetToken(), artifactData.UnitDesign, tmpImportFilePath)
 			if tmpErr != nil {
 				err = fmt.Errorf("upload artifact package to artifacts plugin fail,tmpPath:%s ,error:%s ", tmpImportFilePath, tmpErr.Error())
 				break
