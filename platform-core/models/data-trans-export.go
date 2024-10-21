@@ -144,6 +144,7 @@ type TransDataVariableConfig struct {
 	BackwardSearchAttrList     []string `json:"backwardSearchAttrList"`
 	IgnoreSearchAttrList       []string `json:"ignoreSearchAttrList"`
 	ResetEmptyAttrList         []string `json:"resetEmptyAttrList"`
+	WorkflowExecList           []string `json:"workflowExecList"`
 }
 
 type CiTypeData struct {
@@ -485,4 +486,16 @@ func (t TransExportWorkflowList) Less(i, j int) bool {
 
 func (t TransExportWorkflowList) Swap(i, j int) {
 	t[i], t[j] = t[j], t[i]
+}
+
+func (t TransExportWorkflowList) Parse(input []string) {
+	for _, workflowObj := range t {
+		for i, v := range input {
+			if v == workflowObj.WorkflowId {
+				workflowObj.Executable = true
+				workflowObj.ExecuteOrder = i + 1
+				break
+			}
+		}
+	}
 }

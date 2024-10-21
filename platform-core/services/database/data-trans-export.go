@@ -343,11 +343,12 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 				detail.ExportComponentLibrary = true
 			}
 		case models.TransExportStepWorkflow:
-			tmpWorkflowList := []*models.TransExportWorkflowObj{}
+			tmpWorkflowList := models.TransExportWorkflowList{}
 			if err = json.Unmarshal([]byte(transExportDetail.Input), &tmpWorkflowList); err != nil {
 				log.Logger.Error("json unmarshal workflow input fail", log.Error(err))
 				continue
 			}
+			tmpWorkflowList.Parse(dataTransVariableConfig.WorkflowExecList)
 			workflowOutput := models.ExportWorkflowOutput{CommonOutput: *output, WorkflowList: tmpWorkflowList}
 			detail.Workflows = &workflowOutput
 		case models.TransExportStepBatchExecution:
