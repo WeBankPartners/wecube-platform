@@ -906,6 +906,96 @@ func PushPackage(ctx context.Context, token string, unitDesignId string, deployP
 	return
 }
 
+func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId string, localPackagePath string) (deployPackageGuid string, err error) {
+	uri := fmt.Sprintf("%s/%s/unit-designs/%s/packages/upload", models.Config.Gateway.Url, models.PluginNameArtifacts, unitDesignId)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	urlObj, _ := url.Parse(uri)
+	buf := new(bytes.Buffer)
+	bodyWriter := multipart.NewWriter(buf)
+	if fileObj, tmpErr := os.Open(localPackagePath); tmpErr != nil {
+		err = fmt.Errorf("can not read multipart form file:%s ,err:%s", localPackagePath, tmpErr.Error())
+		return
+	} else {
+		fileName := localPackagePath
+		if lastPathIndex := strings.LastIndex(localPackagePath, "/"); lastPathIndex > 0 {
+			fileName = localPackagePath[lastPathIndex+1:]
+		}
+		tmpWriter, ffErr := bodyWriter.CreateFormFile("file", fileName)
+		if ffErr != nil {
+			err = fmt.Errorf("create multipart form file fail,key:file,%s ", err.Error())
+			return
+		}
+		if _, err = io.Copy(tmpWriter, fileObj); err != nil {
+			err = fmt.Errorf("io copy multipart file fail,%s ", err.Error())
+			return
+		}
+	}
+	bodyWriter.Close()
+	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), buf)
+	if reqErr != nil {
+		err = fmt.Errorf("new http request to %s fail,%s ", urlObj.String(), reqErr.Error())
+		return
+	}
+	req.Header.Set("Content-Type", bodyWriter.FormDataContentType())
+	reqId := "req_" + guid.CreateGuid()
+	var transId string
+	if ctx.Value(models.TransactionIdHeader) != nil {
+		transId = ctx.Value(models.TransactionIdHeader).(string)
+	} else {
+		transId = "trans_" + guid.CreateGuid()
+	}
+	req.Header.Set(models.RequestIdHeader, reqId)
+	req.Header.Set(models.TransactionIdHeader, transId)
+	req.Header.Set(models.AuthorizationHeader, token)
+
+	startTime := time.Now()
+	log.Logger.Info("Start remote uploadPackage to artifacts plugin request --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()))
+	resp, respErr := http.DefaultClient.Do(req)
+	if respErr != nil {
+		err = fmt.Errorf("do request fail,%s ", respErr.Error())
+		return
+	}
+
+	var response models.PluginArtifactsUploadResult
+	respBody, readBodyErr := io.ReadAll(resp.Body)
+	defer func() {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
+		if err != nil {
+			log.Logger.Error("End remote uploadPackage to artifacts plugin request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+		} else {
+			log.Logger.Info("End remote uploadPackage to artifacts plugin request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+		}
+	}()
+
+	if readBodyErr != nil {
+		err = fmt.Errorf("read response body fail,%s ", readBodyErr.Error())
+		return
+	}
+
+	if err = json.Unmarshal(respBody, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+
+	if response.Code >= 400 {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	if len(response.Data) > 0 {
+		if v, ok := response.Data[0]["guid"]; ok {
+			deployPackageGuid = fmt.Sprintf("%s", v)
+		}
+	}
+	return
+}
+
 func UploadArtifactPackage(ctx context.Context, token string, unitDesignId string, localPackagePath string) (deployPackageGuid string, err error) {
 	uri := fmt.Sprintf("%s/%s/unit-designs/%s/packages/upload", models.Config.Gateway.Url, models.PluginNameArtifacts, unitDesignId)
 	if models.Config.HttpsEnable == "true" {
