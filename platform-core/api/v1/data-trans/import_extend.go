@@ -519,9 +519,9 @@ func importTaskManTemplate(ctx context.Context, transImportParam *models.TransIm
 // 11、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板、关键字层级对象
 func importMonitorServiceConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	log.Logger.Info("11. importMonitorServiceConfig start!!!")
-	var logMonitorExist, serviceGroupMetricExist, strategyExist, dashboardExist, logKeywordExist bool
+	var serviceGroupMetricExist, strategyExist, dashboardExist, logKeywordExist bool
 	// 导入监控业务配置 (说明: 业务配置导入在层级对象指标之前导入,层级对象指标导入做了防止重复处理)
-	logMonitorPath := fmt.Sprintf("%s/monitor/log_monitor", transImportParam.DirPath)
+	/*logMonitorPath := fmt.Sprintf("%s/monitor/log_monitor", transImportParam.DirPath)
 	if logMonitorExist, err = tools.PathExist(logMonitorPath); err != nil {
 		return
 	}
@@ -543,7 +543,7 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 		log.Logger.Info("11-1. import log_monitor success!")
 	} else {
 		log.Logger.Info("11-1. import log_monitor data empty!")
-	}
+	}*/
 
 	// 导入层级对象指标
 	serviceGroupMetricPath := fmt.Sprintf("%s/monitor/metric/service_group", transImportParam.DirPath)
