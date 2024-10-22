@@ -220,4 +220,20 @@ type ImportCustomFormData struct {
 	DataCenterAZ2AssetId      string `json:"dataCenterAZ2AssetId"`      //地域数据中心可用区2资产ID
 	WecubeHostAssetId         string `json:"wecubeHostAssetId"`         //wecube主机的资产ID
 	WecubeHostPassword        string `json:"wecubeHostPassword"`        //wecube主机的管理员密码
+	WecubeHostPwd             string `json:"-"`
+}
+
+type TransDataImportConfig struct {
+	NexusUrl                  string `json:"nexusUrl"`
+	NexusUser                 string `json:"nexusUser"`
+	NexusPwd                  string `json:"nexusPwd"`
+	NexusRepo                 string `json:"nexusRepo"`
+	NetworkZoneCIDR           string `json:"networkZoneCIDR"`
+	NetworkSubZoneCIDR        string `json:"networkSubZoneCIDR"`
+	RouteTableCode            string `json:"routeTableCode"`
+	BasicSecurityGroupKeyName string `json:"basicSecurityGroupKeyName"`
+	DataCenterRegionKeyName   string `json:"dataCenterRegionKeyName"`
+	DataCenterAZ1KeyName      string `json:"dataCenterAZ1KeyName"`
+	DataCenterAZ2KeyName      string `json:"dataCenterAZ2KeyName"`
+	WecubeHostCode            string `json:"wecubeHostCode"`
 }
