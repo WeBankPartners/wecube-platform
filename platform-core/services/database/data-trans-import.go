@@ -245,7 +245,6 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 				ErrMsg: transImportDetail.ErrorMsg,
 			}
 		case models.TransImportStepInitWorkflow:
-			var ids []string
 			var workflowList, procInsList []*models.ProcInsDetail
 			var transImportExecList []*models.TransImportProcExecTable
 			var procDef *models.ProcDef
@@ -257,7 +256,11 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 				procName = ""
 				version = ""
 				if transImport.ProcIns != "" {
-					ids = append(ids, transImport.ProcIns)
+					if procInsList, err = QueryProcInstanceByIds(ctx, []string{transImport.ProcIns}); err != nil {
+						log.Logger.Error("QueryProcInstanceByIds err", log.Error(err))
+						return
+					}
+					workflowList = append(workflowList, procInsList...)
 				} else {
 					if procDef, err = GetProcessDefinition(ctx, transImport.ProcDef); err != nil {
 						return
@@ -281,11 +284,6 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 					})
 				}
 			}
-			if procInsList, err = QueryProcInstanceByIds(ctx, ids); err != nil {
-				log.Logger.Error("QueryProcInstanceByIds err", log.Error(err))
-				return
-			}
-			workflowList = append(workflowList, procInsList...)
 			detail.ProcInstance = &models.CommonOutput{
 				Status: transImportDetail.Status,
 				Output: workflowList,
