@@ -1,35 +1,47 @@
+<!--
+ * @Author: wanghao7717 792974788@qq.com
+ * @Date: 2024-10-16 15:32:21
+ * @LastEditors: wanghao7717 792974788@qq.com
+ * @LastEditTime: 2024-10-22 15:06:08
+-->
 <template>
   <div class="base-migration-import-three">
-    <div class="import-status">
-      <Alert v-if="detailData.initWorkflowRes.status === 'doing'" type="info" show-icon>
-        <template #desc>{{ $t('pi_importing_tips') }}... </template>
-      </Alert>
-      <Alert v-else-if="detailData.initWorkflowRes.status === 'fail'" type="error" show-icon>
-        {{ $t('pi_import_fail') }}！
-        <template #desc>{{ detailData.initWorkflowRes.errMsg }}</template>
-      </Alert>
-      <Alert v-else-if="detailData.initWorkflowRes.status === 'success'" type="success" show-icon>
-        <template #desc>{{ $t('pi_import_success') }}！</template>
-      </Alert>
-    </div>
-    <Table
-      :border="false"
-      size="small"
-      :columns="tableColumns"
-      :max-height="400"
-      :data="detailData.initWorkflowRes.data"
-    />
+    <Form ref="form" :model="importCustomFormData" :label-width="250">
+      <FormItem
+        v-for="(i, idx) in options"
+        :key="idx"
+        :label="i.label"
+        :prop="i.key"
+        :rules="{required: true, message: '不能为空', trigger: 'blur'}"
+      >
+        <!-- <Input
+          v-if="i.key === 'wecubeHostPassword'"
+          v-model="importCustomFormData[i.key]"
+          type="password"
+          :auto-complete="false"
+          password
+          :maxlength="100"
+          placeholder="请输入"
+          style="width:500px;"
+        /> -->
+        <Input
+          v-model="importCustomFormData[i.key]"
+          :maxlength="100"
+          clearable
+          placeholder="请输入"
+          style="width: 500px"
+        />
+      </FormItem>
+    </Form>
     <div class="footer">
       <Button type="default" @click="handleLast">{{ $t('privious_step') }}</Button>
-      <Button v-if="['success'].includes(detailData.initWorkflowRes.status)" type="primary" @click="handleNext">{{
-        $t('next_step')
-      }}</Button>
+      <Button type="primary" @click="handleNext">{{ $t('next_step') }}</Button>
     </div>
   </div>
 </template>
 
 <script>
-import { instancesWithPaging, saveImportData } from '@/api/server'
+import { saveImportData } from '@/api/server'
 import { debounce } from '@/const/util'
 export default {
   props: {
@@ -37,159 +49,81 @@ export default {
   },
   data() {
     return {
-      tableColumns: [
+      importCustomFormData: {
+        networkZoneAssetId: '',
+        networkSubZoneAssetId: '',
+        routeTableAssetId: '',
+        basicSecurityGroupAssetId: '',
+        dataCenterRegionAssetId: '',
+        dataCenterAZ1AssetId: '',
+        dataCenterAZ2AssetId: '',
+        wecubeHostAssetId: '',
+        wecubeHostPassword: ''
+      },
+      options: [
         {
-          title: this.$t('flow_name'),
-          minWidth: 180,
-          key: 'procInstName',
-          render: (h, params) => (
-            <div>
-              <span
-                style="cursor:pointer;color:#5cadff;"
-                onClick={() => {
-                  this.jumpToHistory(params.row)
-                }}
-              >
-                {params.row.procInstName}
-                <Tag style="margin-left:2px">{params.row.version}</Tag>
-              </span>
-            </div>
-          )
+          label: '网络区域-资产ID',
+          key: 'networkZoneAssetId'
         },
         {
-          title: this.$t('fe_flowInstanceId'),
-          minWidth: 180,
-          key: 'id'
+          label: '网络子区域 MGMT_APP-资产ID',
+          key: 'networkSubZoneAssetId'
         },
         {
-          title: this.$t('flow_status'),
-          key: 'status',
-          minWidth: 140,
-          render: (h, params) => {
-            const list = [
-              {
-                label: this.$t('fe_notStart'),
-                value: 'NotStarted',
-                color: '#808695'
-              },
-              {
-                label: this.$t('fe_notStart'),
-                value: 'InPreparation',
-                color: '#808695'
-              },
-              {
-                label: this.$t('fe_inProgressFaulted'),
-                value: 'InProgress(Faulted)',
-                color: '#ed4014'
-              },
-              {
-                label: this.$t('fe_inProgressTimeouted'),
-                value: 'InProgress(Timeouted)',
-                color: '#ed4014'
-              },
-              {
-                label: this.$t('fe_stop'),
-                value: 'Stop',
-                color: '#ed4014'
-              },
-              {
-                label: this.$t('fe_inProgress'),
-                value: 'InProgress',
-                color: '#1990ff'
-              },
-              {
-                label: this.$t('fe_completed'),
-                value: 'Completed',
-                color: '#7ac756'
-              },
-              {
-                label: this.$t('fe_faulted'),
-                value: 'Faulted',
-                color: '#e29836'
-              },
-              {
-                label: this.$t('fe_internallyTerminated'),
-                value: 'InternallyTerminated',
-                color: '#e29836'
-              }
-            ]
-            const findObj = list.find(item => item.value === params.row.status) || {}
-            return <Tag color={findObj.color}>{findObj.label}</Tag>
-          }
-        },
-        // 操作对象
-        {
-          title: this.$t('bc_execution_instance'),
-          key: 'entityDisplayName',
-          minWidth: 160,
-          render: (h, params) => {
-            if (params.row.entityDisplayName !== '') {
-              return <span>{params.row.entityDisplayName}</span>
-            }
-            return <span>-</span>
-          }
+          label: '路由表 默认路由表-资产ID',
+          key: 'routeTableAssetId'
         },
         {
-          title: this.$t('executor'),
-          key: 'operator',
-          minWidth: 120
+          label: '基础安全组 MGMT-APP-资产ID',
+          key: 'basicSecurityGroupAssetId'
         },
         {
-          title: this.$t('execute_date'),
-          key: 'createdTime',
-          minWidth: 150
+          label: '数据中心 地域数据中心-资产ID',
+          key: 'dataCenterRegionAssetId'
         },
         {
-          title: this.$t('updatedBy'),
-          key: 'updatedBy',
-          minWidth: 120
+          label: '地域数据中心可用区1-资产ID',
+          key: 'dataCenterAZ1AssetId'
         },
         {
-          title: this.$t('table_updated_date'),
-          key: 'updatedTime',
-          minWidth: 150
+          label: '地域数据中心可用区2-资产ID',
+          key: 'dataCenterAZ2AssetId'
+        },
+        {
+          label: '主机资源 wecube主机的-资产ID',
+          key: 'wecubeHostAssetId'
+        },
+        {
+          label: '主机资源 wecube主机的-管理员密码',
+          key: 'wecubeHostPassword'
         }
       ]
     }
   },
+  mounted() {
+    if (this.detailData && this.detailData.modifyNewEnvDataRes) {
+      this.importCustomFormData = this.detailData.modifyNewEnvDataRes.data
+    }
+  },
   methods: {
-    // 查看编排详情
-    async jumpToHistory(row) {
-      const params = {
-        id: row.id,
-        pageable: {
-          startIndex: 0,
-          pageSize: 5000
-        }
-      }
-      const { status, data } = await instancesWithPaging(params)
-      if (status === 'OK') {
-        const detail = Array.isArray(data.contents) && data.contents[0]
-        // 能获取到历史记录，跳转，否则给出提示
-        if (detail && detail.id) {
-          window.sessionStorage.currentPath = ''
-          const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${row.id}&from=normal`
-          window.open(path, '_blank')
-        }
-      }
-      this.$Notice.warning({
-        title: '',
-        desc: this.$t('no_detail_warning')
-      })
-    },
     handleNext: debounce(async function () {
       if (this.detailData.step > 3 || this.detailData.status === 'success') {
         this.$emit('nextStep')
       } else {
-        const params = {
-          transImportId: this.detailData.id,
-          step: 4
-        }
-        const { status } = await saveImportData(params)
-        if (status === 'OK') {
-          // 执行导入，生成ID
-          this.$emit('saveStepThree')
-        }
+        this.$refs.form.validate(async valid => {
+          if (valid) {
+            const params = {
+              transImportId: this.detailData.id,
+              step: 4,
+              importCustomFormData: this.importCustomFormData
+            }
+            const { status } = await saveImportData(params)
+            if (status === 'OK') {
+              // 执行导入，生成ID
+              this.$emit('saveStepThree')
+            }
+          }
+        })
       }
     }, 500),
     // 上一步
@@ -202,10 +136,6 @@ export default {
 
 <style lang="scss" scoped>
 .base-migration-import-three {
-  .import-status {
-    margin-top: -10px;
-    margin-bottom: 16px;
-  }
   .footer {
     position: fixed;
     bottom: 10px;
@@ -217,18 +147,6 @@ export default {
         margin-left: 10px;
       }
     }
-  }
-}
-</style>
-<style lang="scss">
-.base-migration-import-three {
-  .ivu-alert-with-desc .ivu-alert-icon {
-    left: 16px;
-    top: 26px;
-    font-size: 28px;
-  }
-  .ivu-alert-with-desc.ivu-alert-with-icon {
-    padding: 10px 16px 10px 55px;
   }
 }
 </style>
