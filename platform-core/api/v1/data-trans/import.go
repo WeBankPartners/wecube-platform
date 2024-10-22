@@ -115,7 +115,6 @@ func checkWebStepInvalid(ctx context.Context, param models.ExecImportParam) bool
 				// 1-10 步都执行成功,web不应该传递第2步
 				return true
 			}
-			return false
 		case int(models.ImportWebDisplayStepThree):
 			for _, detail := range transImportDetailList {
 				if detail.Step <= int(models.TransImportStepWebBaseImportSuccess) && detail.Status != string(models.TransImportStatusSuccess) {
