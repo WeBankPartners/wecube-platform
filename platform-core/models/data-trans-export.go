@@ -420,13 +420,6 @@ type AnalyzeArtifactDisplayData struct {
 	ArtifactLen    int                 `json:"artifactLen"`
 }
 
-type TransDataImportNexusConfig struct {
-	NexusUrl  string `json:"nexusUrl"`
-	NexusUser string `json:"nexusUser"`
-	NexusPwd  string `json:"nexusPwd"`
-	NexusRepo string `json:"nexusRepo"`
-}
-
 type ExportMetricListDto struct {
 	MonitorTypeMetricList   []string
 	ServiceGroupMetricList  []string
