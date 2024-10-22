@@ -2,6 +2,7 @@ package data_trans
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/fs"
 	"os"
@@ -37,6 +38,7 @@ func init() {
 	importFuncList = append(importFuncList, importMonitorBaseConfig)
 	importFuncList = append(importFuncList, importTaskManComponentLibrary)
 	importFuncList = append(importFuncList, importTaskManTemplate)
+	importFuncList = append(importFuncList, modifyNewEnvData)
 	importFuncList = append(importFuncList, execWorkflow)
 	importFuncList = append(importFuncList, importMonitorServiceConfig)
 }
@@ -75,14 +77,15 @@ func StartTransImport(ctx context.Context, param models.ExecImportParam) (err er
 		return
 	}
 	actionParam := &models.CallTransImportActionParam{
-		TransImportId: param.TransImportId,
-		Action:        string(models.TransImportStatusStart),
-		Operator:      param.Operator,
-		ActionId:      transImportAction.Id,
-		DirPath:       localPath,
-		Token:         param.Token,
-		Language:      param.Language,
-		WebStep:       param.WebStep,
+		TransImportId:        param.TransImportId,
+		Action:               string(models.TransImportStatusStart),
+		Operator:             param.Operator,
+		ActionId:             transImportAction.Id,
+		DirPath:              localPath,
+		Token:                param.Token,
+		Language:             param.Language,
+		WebStep:              param.WebStep,
+		ImportCustomFormData: param.ImportCustomFormData,
 	}
 	go doImportAction(ctx, actionParam)
 	return
@@ -100,10 +103,12 @@ func StartTransImport(ctx context.Context, param models.ExecImportParam) (err er
 // 8、导入taskman组件库
 // 9. 导入taskman请求模版
 
+// 10. 修改新环境数据
+
 // 开始执行
-// 10、开始执行编排(创建资源、初始化资源、应用部署)
+// 11、开始执行编排(创建资源、初始化资源、应用部署)
 // 继续导入
-// 11、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板、关键字层级对象
+// 12、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板、关键字层级对象
 func doImportAction(ctx context.Context, callParam *models.CallTransImportActionParam) (err error) {
 	transImportJobParam, getConfigErr := database.GetTransImportWithDetail(ctx, callParam.TransImportId, false)
 	if getConfigErr != nil {
@@ -120,6 +125,7 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 	transImportJobParam.Token = callParam.Token
 	transImportJobParam.Language = callParam.Language
 	transImportJobParam.Operator = callParam.Operator
+	transImportJobParam.ImportCustomFormData = callParam.ImportCustomFormData
 	if callParam.Action == string(models.TransImportActionStart) {
 		if checkImportHasExit(ctx, callParam.TransImportId) {
 			return
@@ -131,12 +137,16 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 				break
 			}
 		}
-		if currentStep == int(models.TransImportStepInitWorkflow) && callParam.WebStep == int(models.ImportWebDisplayStepThree) {
+		if currentStep == int(models.TransImportStepModifyNewEnvData) && callParam.WebStep == int(models.ImportWebDisplayStepThree) {
+			if err = callImportFunc(ctx, transImportJobParam, modifyNewEnvData); err != nil {
+				return
+			}
+		} else if currentStep == int(models.TransImportStepInitWorkflow) && callParam.WebStep == int(models.ImportWebDisplayStepFour) {
 			transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 			if err = callImportFunc(ctx, transImportJobParam, execWorkflow); err != nil {
 				return
 			}
-		} else if currentStep == int(models.TransImportStepMonitorBusiness) && callParam.WebStep == int(models.ImportWebDisplayStepFour) {
+		} else if currentStep == int(models.TransImportStepMonitorBusiness) && callParam.WebStep == int(models.ImportWebDisplayStepFive) {
 			transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 			if err = callImportFunc(ctx, transImportJobParam, importMonitorServiceConfig); err != nil {
 				return
@@ -512,16 +522,33 @@ func importTaskManTemplate(ctx context.Context, transImportParam *models.TransIm
 		log.Logger.Error("ImportRequestTemplate fail", log.Error(err))
 		return
 	}
-	log.Logger.Info("8. importTaskManTemplate success end!!!")
+	log.Logger.Info("9. importTaskManTemplate success end!!!")
 	return
 }
 
-// 11、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板、关键字层级对象
+// 10、修改新环境数据
+func modifyNewEnvData(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
+	log.Logger.Info("10. modifyNewEnvData start!!!")
+	if transImportParam.ImportCustomFormData == nil {
+		err = fmt.Errorf("modify new environment is empty")
+		log.Logger.Error("ImportCustomFormData err", log.Error(err))
+		return
+	}
+	byteArr, _ := json.Marshal(transImportParam.ImportCustomFormData)
+	if err = database.UpdateTransImportDetailInput(ctx, transImportParam.TransImport.Id, models.TransImportStepModifyNewEnvData, string(byteArr)); err != nil {
+		log.Logger.Error("UpdateTransImportDetailInput err", log.Error(err))
+		return
+	}
+	log.Logger.Info("10. modifyNewEnvData success end!!!")
+	return
+}
+
+// 12、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板、关键字层级对象
 func importMonitorServiceConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	log.Logger.Info("11. importMonitorServiceConfig start!!!")
-	var serviceGroupMetricExist, strategyExist, dashboardExist, logKeywordExist bool
+	var logMonitorExist, serviceGroupMetricExist, strategyExist, dashboardExist, logKeywordExist bool
 	// 导入监控业务配置 (说明: 业务配置导入在层级对象指标之前导入,层级对象指标导入做了防止重复处理)
-	/*logMonitorPath := fmt.Sprintf("%s/monitor/log_monitor", transImportParam.DirPath)
+	logMonitorPath := fmt.Sprintf("%s/monitor/log_monitor", transImportParam.DirPath)
 	if logMonitorExist, err = tools.PathExist(logMonitorPath); err != nil {
 		return
 	}
@@ -543,7 +570,7 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 		log.Logger.Info("11-1. import log_monitor success!")
 	} else {
 		log.Logger.Info("11-1. import log_monitor data empty!")
-	}*/
+	}
 
 	// 导入层级对象指标
 	serviceGroupMetricPath := fmt.Sprintf("%s/monitor/metric/service_group", transImportParam.DirPath)

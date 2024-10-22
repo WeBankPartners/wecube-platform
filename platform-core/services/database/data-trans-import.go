@@ -228,6 +228,12 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 				Output: data,
 				ErrMsg: transImportDetail.ErrorMsg,
 			}
+		case models.TransImportStepModifyNewEnvData:
+			detail.ModifyNewEnvData = &models.CommonOutput{
+				Status: transImportDetail.Status,
+				Output: data,
+				ErrMsg: transImportDetail.ErrorMsg,
+			}
 		case models.TransImportStepMonitorBusiness:
 			detail.MonitorBusiness = &models.CommonOutput{
 				Status: transImportDetail.Status,
@@ -290,7 +296,7 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 	return
 }
 
-// CalcWebDisplayStep 第二步 导入基础数据, 第三步 执行自动化编排,第四步 配置监控
+// CalcWebDisplayStep 第二步 导入基础数据, 第三步 修改新环境数据,第四步 执行自动化编排,第五步 配置监控
 func CalcWebDisplayStep(detailList []*models.TransImportDetailTable) models.ImportWebDisplayStep {
 	var hashMap = make(map[models.TransImportStep]*models.TransImportDetailTable)
 	for _, detail := range detailList {
@@ -299,11 +305,17 @@ func CalcWebDisplayStep(detailList []*models.TransImportDetailTable) models.Impo
 	// 监控业务配置是否完成
 	if v, ok := hashMap[models.TransImportStepMonitorBusiness]; ok {
 		if v.Status == string(models.TransImportStatusDoing) || v.Status == string(models.TransImportStatusSuccess) || v.Status == string(models.TransImportStatusFail) {
-			return models.ImportWebDisplayStepFour
+			return models.ImportWebDisplayStepFive
 		}
 	}
 	// 执行自动化是否完成
 	if v, ok := hashMap[models.TransImportStepInitWorkflow]; ok {
+		if v.Status == string(models.TransImportStatusDoing) || v.Status == string(models.TransImportStatusSuccess) || v.Status == string(models.TransImportStatusFail) {
+			return models.ImportWebDisplayStepFour
+		}
+	}
+	// 修改新环境数据是否完成
+	if v, ok := hashMap[models.TransImportStepModifyNewEnvData]; ok {
 		if v.Status == string(models.TransImportStatusDoing) || v.Status == string(models.TransImportStatusSuccess) || v.Status == string(models.TransImportStatusFail) {
 			return models.ImportWebDisplayStepThree
 		}
@@ -691,6 +703,11 @@ func GetTransImportWithDetail(ctx context.Context, transImportId string, withDet
 	if err != nil {
 		err = fmt.Errorf("query trans import detail table fail,%s ", err.Error())
 	}
+	return
+}
+
+func UpdateTransImportDetailInput(ctx context.Context, transImportId string, step models.TransImportStep, input string) (err error) {
+	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_detail set input=? where trans_import=? and step=?", input, transImportId, step)
 	return
 }
 

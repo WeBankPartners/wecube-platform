@@ -183,8 +183,9 @@ const (
 	TransImportStepMonitorBase      TransImportStep = 7  // 导入监控基础配置
 	TransImportStepComponentLibrary TransImportStep = 8  // 导入表单组件库
 	TransImportStepRequestTemplate  TransImportStep = 9  // 导入请求模版
-	TransImportStepInitWorkflow     TransImportStep = 10 // 执行基础编排初始化
-	TransImportStepMonitorBusiness  TransImportStep = 11 // 导入监控业务配置
+	TransImportStepModifyNewEnvData TransImportStep = 10 // 修改新环境数据
+	TransImportStepInitWorkflow     TransImportStep = 11 // 执行基础编排初始化
+	TransImportStepMonitorBusiness  TransImportStep = 12 // 导入监控业务配置
 )
 
 // TransImportAction 导入操作
@@ -211,4 +212,5 @@ const (
 	ImportWebDisplayStepTwo   ImportWebDisplayStep = 2
 	ImportWebDisplayStepThree ImportWebDisplayStep = 3
 	ImportWebDisplayStepFour  ImportWebDisplayStep = 4
+	ImportWebDisplayStepFive  ImportWebDisplayStep = 5
 )
