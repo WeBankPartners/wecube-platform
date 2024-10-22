@@ -168,6 +168,7 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 				if checkImportHasExit(ctx, callParam.TransImportId) {
 					return
 				}
+				transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 				funcObj := importFuncList[currentStep-1]
 				if err = callImportFunc(ctx, transImportJobParam, funcObj); err != nil {
 					break
