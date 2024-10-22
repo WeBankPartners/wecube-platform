@@ -15,8 +15,8 @@
         :rules="{required: true, message: '不能为空', trigger: 'blur'}"
       >
         <template v-if="i.key === 'wecubeHostPassword'">
-          <input type="text" style="display: none;">
-          <input type="password" autocomplete="new-password" style="display: none;">
+          <input type="text" style="display: none" />
+          <input type="password" autocomplete="new-password" style="display: none" />
           <Input
             v-model="importCustomFormData[i.key]"
             type="password"
@@ -25,7 +25,7 @@
             :maxlength="100"
             :disabled="getDisabled"
             placeholder="请输入"
-            style="width:500px;"
+            style="width: 500px"
           />
         </template>
         <Input
