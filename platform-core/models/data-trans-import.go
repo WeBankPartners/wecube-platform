@@ -72,35 +72,38 @@ type GetBusinessListRes struct {
 }
 
 type TransImportJobParam struct {
-	TransImport   *TransImportTable         `json:"transImport"`
-	Details       []*TransImportDetailTable `json:"details"`
-	CurrentDetail *TransImportDetailTable   `json:"currentDetail"`
-	DirPath       string                    `json:"dirPath"`  // 解压文件目录路径
-	Token         string                    `json:"token"`    // token
-	Language      string                    `json:"language"` // language
-	Operator      string                    `json:"operator"`
+	TransImport          *TransImportTable         `json:"transImport"`
+	Details              []*TransImportDetailTable `json:"details"`
+	CurrentDetail        *TransImportDetailTable   `json:"currentDetail"`
+	ImportCustomFormData *ImportCustomFormData     `json:"importCustomFormData"`
+	DirPath              string                    `json:"dirPath"`  // 解压文件目录路径
+	Token                string                    `json:"token"`    // token
+	Language             string                    `json:"language"` // language
+	Operator             string                    `json:"operator"`
 }
 
 type CallTransImportActionParam struct {
-	TransImportId       string `json:"transImportId"`
-	TransImportDetailId string `json:"transImportDetailId"`
-	Action              string `json:"action"` // 操作-> start(开始)|stop(暂停)|retry(重试)|exit(终止)
-	Operator            string `json:"-"`
-	ActionId            string `json:"-"`
-	ErrorMsg            string `json:"-"`
-	DirPath             string `json:"-"`        // 解压文件目录路径
-	Token               string `json:"token"`    // token
-	Language            string `json:"language"` // language
-	WebStep             int    `json:"-"`        // 前端页面第一步
+	TransImportId        string                `json:"transImportId"`
+	TransImportDetailId  string                `json:"transImportDetailId"`
+	Action               string                `json:"action"` // 操作-> start(开始)|stop(暂停)|retry(重试)|exit(终止)
+	Operator             string                `json:"-"`
+	ActionId             string                `json:"-"`
+	ErrorMsg             string                `json:"-"`
+	DirPath              string                `json:"-"`        // 解压文件目录路径
+	Token                string                `json:"token"`    // token
+	Language             string                `json:"language"` // language
+	WebStep              int                   `json:"-"`        // 前端页面第一步
+	ImportCustomFormData *ImportCustomFormData `json:"importCustomFormData"`
 }
 
 type ExecImportParam struct {
-	ExportNexusUrl string `json:"exportNexusUrl"`
-	TransImportId  string `json:"transImportId"` // 导入Id
-	Operator       string `json:"-"`
-	Token          string `json:"token"`    // token
-	Language       string `json:"language"` // language
-	WebStep        int    `json:"step"`     // web 第几步,2,3,4
+	ExportNexusUrl       string                `json:"exportNexusUrl"`
+	TransImportId        string                `json:"transImportId"` // 导入Id
+	Operator             string                `json:"-"`
+	Token                string                `json:"token"`    // token
+	Language             string                `json:"language"` // language
+	WebStep              int                   `json:"step"`     // web 第几步,2,3,4
+	ImportCustomFormData *ImportCustomFormData `json:"importCustomFormData"`
 }
 
 type CmdbData struct {
@@ -128,7 +131,8 @@ type TransImportDetail struct {
 	MonitorBusiness     *CommonOutput           `json:"monitorBusiness"` // 监控业务配置
 	Plugins             *CommonOutput           `json:"plugins"`
 	Cmdb                *CommonOutput           `json:"cmdb"`
-	ProcInstance        *CommonOutput           `json:"procInstance"` // 编排执行
+	ProcInstance        *CommonOutput           `json:"procInstance"`     // 编排执行
+	ModifyNewEnvData    *CommonOutput           `json:"modifyNewEnvData"` // 修改新环境数据
 }
 
 type TransImportHistoryParam struct {
