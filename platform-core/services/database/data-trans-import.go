@@ -5,10 +5,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/cipher"
 	"io"
 	"os"
 	"strings"
 	"time"
+	"xorm.io/xorm"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
@@ -44,7 +46,7 @@ const (
 // DecompressExportZip 导出压缩文件解压
 func DecompressExportZip(ctx context.Context, nexusUrl, transImportId string) (localPath string, err error) {
 	// 获取nexus配置
-	nexusConfig, getNexusConfigErr := GetDataTransImportNexusConfig(ctx)
+	nexusConfig, getNexusConfigErr := GetDataTransImportConfig(ctx)
 	if getNexusConfigErr != nil {
 		err = getNexusConfigErr
 		return
@@ -657,8 +659,9 @@ func ModifyImportStatus(ctx context.Context, param models.UpdateImportStatusPara
 	}
 	return
 }
-func GetDataTransImportNexusConfig(ctx context.Context) (result *models.TransDataImportNexusConfig, err error) {
-	result = &models.TransDataImportNexusConfig{}
+
+func GetDataTransImportConfig(ctx context.Context) (result *models.TransDataImportConfig, err error) {
+	result = &models.TransDataImportConfig{}
 	var sysVarRows []*models.SystemVariables
 	err = db.MysqlEngine.Context(ctx).SQL("select name,value,default_value from system_variables where status='active' and name like 'PLATFORM_IMPORT_%'").Find(&sysVarRows)
 	if err != nil {
@@ -679,6 +682,22 @@ func GetDataTransImportNexusConfig(ctx context.Context) (result *models.TransDat
 			result.NexusPwd = tmpValue
 		case "PLATFORM_IMPORT_NEXUS_REPO":
 			result.NexusRepo = tmpValue
+		case "PLATFORM_IMPORT_NZ_CIDR":
+			result.NetworkZoneCIDR = tmpValue
+		case "PLATFORM_IMPORT_NSZ_CIDR":
+			result.NetworkSubZoneCIDR = tmpValue
+		case "PLATFORM_IMPORT_RT_CODE":
+			result.RouteTableCode = tmpValue
+		case "PLATFORM_IMPORT_BSG_NAME":
+			result.BasicSecurityGroupKeyName = tmpValue
+		case "PLATFORM_IMPORT_DC_REGION_NAME":
+			result.DataCenterRegionKeyName = tmpValue
+		case "PLATFORM_IMPORT_DC_AZ1_NAME":
+			result.DataCenterAZ1KeyName = tmpValue
+		case "PLATFORM_IMPORT_DC_AZ2_NAME":
+			result.DataCenterAZ2KeyName = tmpValue
+		case "PLATFORM_IMPORT_WECUBE_HOST_CODE":
+			result.WecubeHostCode = tmpValue
 		}
 	}
 	return
@@ -761,7 +780,7 @@ func GetTransImportProcExecList(ctx context.Context) (result []*models.TransImpo
 
 func DownloadImportArtifactPackages(ctx context.Context, nexusUrl, transImportId string) (localDir string, fileNameList []string, err error) {
 	// 获取nexus配置
-	nexusConfig, getNexusConfigErr := GetDataTransImportNexusConfig(ctx)
+	nexusConfig, getNexusConfigErr := GetDataTransImportConfig(ctx)
 	if getNexusConfigErr != nil {
 		err = getNexusConfigErr
 		return
@@ -906,6 +925,89 @@ func GetTransImportProcDefId(ctx context.Context, procDefId, procDefKey string) 
 			resultProcDefId = row.Id
 			currentVersion = row.Version
 		}
+	}
+	return
+}
+
+func UpdateTransImportCMDBData(ctx context.Context, transImportParam *models.TransImportJobParam) (err error) {
+	if transImportParam.ImportCustomFormData == nil {
+		return
+	}
+	transImportConfig, getConfigErr := GetDataTransImportConfig(ctx)
+	if getConfigErr != nil {
+		err = fmt.Errorf("get trans import config fail,%s ", getConfigErr.Error())
+		return
+	}
+	encryptSeed, getSeedErr := GetEncryptSeed(ctx)
+	if getSeedErr != nil {
+		err = fmt.Errorf("get encrypt seed fail,%s ", getSeedErr.Error())
+		return
+	}
+	cmdbEngine, getDBErr := getCMDBPluginDBResource(ctx)
+	if getDBErr != nil {
+		err = getDBErr
+		return
+	}
+	session := cmdbEngine.NewSession()
+	session.Begin()
+	err = execTransImportCMDBData(session, transImportParam, transImportConfig, encryptSeed)
+	if err != nil {
+		fmt.Printf("error:%s \n", err.Error())
+		if rollbackErr := session.Rollback(); rollbackErr != nil {
+			fmt.Printf("rollback err:%s \n", rollbackErr.Error())
+		} else {
+			fmt.Println("rollback done")
+		}
+	} else {
+		if commitErr := session.Commit(); commitErr != nil {
+			fmt.Printf("commit err:%s \n", commitErr.Error())
+		} else {
+			fmt.Println("commit done")
+		}
+	}
+	session.Close()
+	return
+}
+
+func execTransImportCMDBData(session *xorm.Session, transImportParam *models.TransImportJobParam, transImportConfig *models.TransDataImportConfig, encryptSeed string) (err error) {
+	if transImportConfig.WecubeHostCode != "" {
+		queryRows, queryErr := session.QueryString("select guid from host_resource where code=?", transImportConfig.WecubeHostCode)
+		if queryErr != nil {
+			err = queryErr
+			return
+		}
+		if len(queryRows) > 0 {
+			rowGuid := queryRows[0]["guid"]
+			encryptPwd, encryptErr := cipher.AesEnPasswordByGuid(rowGuid, encryptSeed, transImportParam.ImportCustomFormData.WecubeHostPwd, "")
+			if encryptErr != nil {
+				err = fmt.Errorf("encrypt password fail,%s ", encryptErr.Error())
+				return
+			}
+			if _, err = session.Exec("update host_resource set asset_id=?,root_user_password=? where guid=?", transImportParam.ImportCustomFormData.WecubeHostAssetId, encryptPwd, rowGuid); err != nil {
+				return
+			}
+		}
+	}
+	if _, err = session.Exec("update network_zone set asset_id=? where cidr=?", transImportParam.ImportCustomFormData.NetworkZoneAssetId, transImportConfig.NetworkZoneCIDR); err != nil {
+		return
+	}
+	if _, err = session.Exec("update network_subzone set asset_id=? where cidr=?", transImportParam.ImportCustomFormData.NetworkSubZoneAssetId, transImportConfig.NetworkSubZoneCIDR); err != nil {
+		return
+	}
+	if _, err = session.Exec("update route_table set asset_id=? where code=?", transImportParam.ImportCustomFormData.RouteTableAssetId, transImportConfig.RouteTableCode); err != nil {
+		return
+	}
+	if _, err = session.Exec("update basic_security_group set asset_id=? where key_name=?", transImportParam.ImportCustomFormData.BasicSecurityGroupAssetId, transImportConfig.BasicSecurityGroupKeyName); err != nil {
+		return
+	}
+	if _, err = session.Exec("update data_center set asset_id=? where key_name=?", transImportParam.ImportCustomFormData.DataCenterRegionAssetId, transImportConfig.DataCenterRegionKeyName); err != nil {
+		return
+	}
+	if _, err = session.Exec("update data_center set asset_id=? where key_name=?", transImportParam.ImportCustomFormData.DataCenterAZ1AssetId, transImportConfig.DataCenterAZ1KeyName); err != nil {
+		return
+	}
+	if _, err = session.Exec("update data_center set asset_id=? where key_name=?", transImportParam.ImportCustomFormData.DataCenterAZ2AssetId, transImportConfig.DataCenterAZ2KeyName); err != nil {
+		return
 	}
 	return
 }

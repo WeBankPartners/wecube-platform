@@ -535,6 +535,7 @@ func modifyNewEnvData(ctx context.Context, transImportParam *models.TransImportJ
 		log.Logger.Error("ImportCustomFormData err", log.Error(err))
 		return
 	}
+	transImportParam.ImportCustomFormData.WecubeHostPwd = transImportParam.ImportCustomFormData.WecubeHostPassword
 	// 密码加密
 	if !strings.HasPrefix(transImportParam.ImportCustomFormData.WecubeHostPassword, models.AESPrefix) {
 		transImportParam.ImportCustomFormData.WecubeHostPassword = models.AESPrefix + encrypt.EncryptWithAesECB(transImportParam.ImportCustomFormData.WecubeHostPassword,
@@ -543,6 +544,11 @@ func modifyNewEnvData(ctx context.Context, transImportParam *models.TransImportJ
 	byteArr, _ := json.Marshal(transImportParam.ImportCustomFormData)
 	if err = database.UpdateTransImportDetailInput(ctx, transImportParam.TransImport.Id, models.TransImportStepModifyNewEnvData, string(byteArr)); err != nil {
 		log.Logger.Error("UpdateTransImportDetailInput err", log.Error(err))
+		return
+	}
+	// 更新cmdb数据
+	if err = database.UpdateTransImportCMDBData(ctx, transImportParam); err != nil {
+		log.Logger.Error("UpdateTransImportCMDBData err", log.Error(err))
 		return
 	}
 	log.Logger.Info("10. modifyNewEnvData success end!!!")
