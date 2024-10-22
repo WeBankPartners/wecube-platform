@@ -25,6 +25,7 @@
             <Step :title="$t('pi_import_step2')" :content="$t('pi_import_step2_tips')"></Step>
             <Step :title="$t('pi_import_step3')" :content="$t('pi_import_step3_tips')"></Step>
             <Step :title="$t('pi_import_step4')" :content="$t('pi_import_step4_tips')"></Step>
+            <Step :title="$t('pi_import_step5')" :content="$t('pi_import_step5_tips')"></Step>
           </Steps>
         </BaseHeaderTitle>
       </div>
@@ -42,7 +43,7 @@
             @nextStep="activeStep++"
           ></StepTwo>
         </BaseHeaderTitle>
-        <!--执行自动化编排-->
+        <!--修改数据-->
         <BaseHeaderTitle v-if="activeStep === 2" :title="$t('pi_import_step3')" :showExpand="false">
           <StepThree
             :detailData="detailData"
@@ -51,9 +52,18 @@
             @nextStep="activeStep++"
           ></StepThree>
         </BaseHeaderTitle>
-        <!--监控配置-->
+        <!--执行自动化编排-->
         <BaseHeaderTitle v-if="activeStep === 3" :title="$t('pi_import_step4')" :showExpand="false">
-          <StepFour :detailData="detailData" @saveStepFour="handleSaveStepFour" @lastStep="activeStep--"></StepFour>
+          <StepFour
+            :detailData="detailData"
+            @saveStepFour="handleSaveStepFour"
+            @lastStep="activeStep--"
+            @nextStep="activeStep++"
+          ></StepFour>
+        </BaseHeaderTitle>
+        <!--监控配置-->
+        <BaseHeaderTitle v-if="activeStep === 4" :title="$t('pi_import_step5')" :showExpand="false">
+          <StepFive :detailData="detailData" @saveStepFive="handleSaveStepFive" @lastStep="activeStep--"></StepFive>
         </BaseHeaderTitle>
       </div>
     </div>
@@ -66,6 +76,7 @@ import StepOne from './components/step-one.vue'
 import StepTwo from './components/step-two.vue'
 import StepThree from './components/step-three.vue'
 import StepFour from './components/step-four.vue'
+import StepFive from './components/step-five.vue'
 import { groupArrayByKey } from '@/const/util'
 import { getImportDetail, updateImportStatus } from '@/api/server'
 export default {
@@ -73,7 +84,8 @@ export default {
     StepOne,
     StepTwo,
     StepThree,
-    StepFour
+    StepFour,
+    StepFive
   },
   data() {
     return {
@@ -117,7 +129,7 @@ export default {
       if (this.detailData.status !== 'success') {
         this.activeStep = this.detailData.step - 1
       } else {
-        this.activeStep = 3
+        this.activeStep = 4
       }
     }
     // 重新发起
@@ -159,6 +171,7 @@ export default {
           pluginsRes: data.plugins || {}, // 插件
           initWorkflowRes: data.procInstance || {},
           monitorBusinessRes: data.monitorBusiness || {},
+          modifyNewEnvDataRes: data.modifyNewEnvData || {},
           componentLibraryRes: data.componentLibrary || {}, // 组件库
           step: data.step,
           ...data.transExport
@@ -182,6 +195,7 @@ export default {
         this.detailData.cmdbRes.title = 'CMDB'
         this.detailData.initWorkflowRes.data = this.detailData.initWorkflowRes.data || []
         this.detailData.monitorBusinessRes.data = this.detailData.monitorBusinessRes.data || []
+        this.detailData.modifyNewEnvDataRes.data = this.detailData.modifyNewEnvDataRes.data || {}
         this.detailData.associationSystems = (this.detailData.associationSystem && this.detailData.associationSystem.split(',')) || []
         this.detailData.associationTechProducts = (this.detailData.associationProduct && this.detailData.associationProduct.split(',')) || []
         this.detailData.businessName = this.detailData.businessName || ''
@@ -236,6 +250,7 @@ export default {
         if (fail) {
           this.detailData.stepTwoRes.status = 'fail'
         }
+        // 第二步导入状态判断
         if (this.detailData.step === 2) {
           if (this.detailData.stepTwoRes.status === 'doing') {
             if (!this.interval) {
@@ -248,7 +263,19 @@ export default {
           }
         }
         // 第三步导入状态判断
-        if (this.detailData.step === 3) {
+        // if (this.detailData.step === 3) {
+        //   if (this.detailData.initWorkflowRes.status === 'doing') {
+        //     if (!this.interval) {
+        //       this.interval = setInterval(() => {
+        //         this.getDetailData()
+        //       }, 30 * 1000)
+        //     }
+        //   } else {
+        //     clearInterval(this.interval)
+        //   }
+        // }
+        // 第四步导入状态判断
+        if (this.detailData.step === 4) {
           if (this.detailData.initWorkflowRes.status === 'doing') {
             if (!this.interval) {
               this.interval = setInterval(() => {
@@ -259,8 +286,8 @@ export default {
             clearInterval(this.interval)
           }
         }
-        // 第四步导入状态判断
-        if (this.detailData.step === 4) {
+        // 第五步导入状态判断
+        if (this.detailData.step === 5) {
           if (this.detailData.monitorBusinessRes.status === 'doing') {
             if (!this.interval) {
               this.interval = setInterval(() => {
@@ -297,6 +324,12 @@ export default {
       this.activeStep++
     },
     async handleSaveStepFour() {
+      this.loading = true
+      await this.getDetailData()
+      this.loading = false
+      this.activeStep++
+    },
+    async handleSaveStepFive() {
       this.loading = true
       await this.getDetailData()
       this.loading = false
