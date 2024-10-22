@@ -139,6 +139,9 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 				break
 			}
 		}
+		if currentStep > 0 {
+			transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
+		}
 		if currentStep == int(models.TransImportStepWebBaseImportSuccess) && callParam.WebStep == int(models.ImportWebDisplayStepTwo) {
 			if err = callImportFunc(ctx, transImportJobParam, updateWebBaseImportSuccess); err != nil {
 				return
@@ -153,7 +156,6 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 				return
 			}
 		} else if currentStep == int(models.TransImportStepMonitorBusiness) && callParam.WebStep == int(models.ImportWebDisplayStepFive) {
-			transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 			if err = callImportFunc(ctx, transImportJobParam, importMonitorServiceConfig); err != nil {
 				return
 			}
@@ -163,7 +165,6 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 				if checkImportHasExit(ctx, callParam.TransImportId) {
 					return
 				}
-				transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 				funcObj := importFuncList[currentStep-1]
 				if err = callImportFunc(ctx, transImportJobParam, funcObj); err != nil {
 					break
