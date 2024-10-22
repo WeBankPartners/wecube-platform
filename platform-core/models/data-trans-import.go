@@ -131,9 +131,8 @@ type TransImportDetail struct {
 	MonitorBusiness     *CommonOutput           `json:"monitorBusiness"` // 监控业务配置
 	Plugins             *CommonOutput           `json:"plugins"`
 	Cmdb                *CommonOutput           `json:"cmdb"`
-	ProcInstance        *CommonOutput           `json:"procInstance"`      // 编排执行
-	ModifyNewEnvData    *CommonOutput           `json:"modifyNewEnvData"`  // 修改新环境数据
-	WebImportBaseData   *CommonOutput           `json:"webImportBaseData"` // web导入基础数据是否成功
+	ProcInstance        *CommonOutput           `json:"procInstance"`     // 编排执行
+	ModifyNewEnvData    *CommonOutput           `json:"modifyNewEnvData"` // 修改新环境数据
 }
 
 type TransImportHistoryParam struct {
