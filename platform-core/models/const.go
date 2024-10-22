@@ -213,5 +213,4 @@ const (
 	ImportWebDisplayStepTwo   ImportWebDisplayStep = 2
 	ImportWebDisplayStepThree ImportWebDisplayStep = 3
 	ImportWebDisplayStepFour  ImportWebDisplayStep = 4
-	ImportWebDisplayStepFive  ImportWebDisplayStep = 5
 )
