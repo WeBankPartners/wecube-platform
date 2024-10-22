@@ -91,9 +91,6 @@ func checkWebStepInvalid(ctx context.Context, param models.ExecImportParam) bool
 	if param.WebStep == 0 {
 		return true
 	}
-	if param.ExportNexusUrl != "" && param.WebStep > int(models.ImportWebDisplayStepTwo) {
-		return true
-	}
 	if strings.TrimSpace(param.TransImportId) != "" {
 		if transImport, err = database.GetTransImport(ctx, param.TransImportId); err != nil {
 			return true
@@ -109,18 +106,18 @@ func checkWebStepInvalid(ctx context.Context, param models.ExecImportParam) bool
 		case int(models.ImportWebDisplayStepTwo):
 			count := 0
 			for _, detail := range transImportDetailList {
-				if detail.Step <= int(models.TransImportStepRequestTemplate) && detail.Status == string(models.TransImportStatusSuccess) {
+				if detail.Step <= int(models.TransImportStepWebBaseImportSuccess) && detail.Status == string(models.TransImportStatusSuccess) {
 					count++
 				}
 			}
-			if count == int(models.TransImportStepRequestTemplate) {
-				// 1-9步都执行成功,web不应该传递第2步
+			if count == int(models.TransImportStepWebBaseImportSuccess) {
+				// 1-10 步都执行成功,web不应该传递第2步
 				return true
 			}
 			return false
 		case int(models.ImportWebDisplayStepThree):
 			for _, detail := range transImportDetailList {
-				if detail.Step <= int(models.TransImportStepRequestTemplate) && detail.Status != string(models.TransImportStatusSuccess) {
+				if detail.Step <= int(models.TransImportStepWebBaseImportSuccess) && detail.Status != string(models.TransImportStatusSuccess) {
 					return true
 				}
 				if detail.Step == int(models.TransImportStepModifyNewEnvData) && detail.Status == string(models.TransImportStatusSuccess) {
@@ -129,7 +126,7 @@ func checkWebStepInvalid(ctx context.Context, param models.ExecImportParam) bool
 			}
 		case int(models.ImportWebDisplayStepFour):
 			for _, detail := range transImportDetailList {
-				if detail.Step <= int(models.TransImportStepRequestTemplate) && detail.Status != string(models.TransImportStatusSuccess) {
+				if detail.Step <= int(models.TransImportStepModifyNewEnvData) && detail.Status != string(models.TransImportStatusSuccess) {
 					return true
 				}
 				if detail.Step == int(models.TransImportStepInitWorkflow) && detail.Status == string(models.TransImportStatusSuccess) {
@@ -138,7 +135,7 @@ func checkWebStepInvalid(ctx context.Context, param models.ExecImportParam) bool
 			}
 		case int(models.ImportWebDisplayStepFive):
 			for _, detail := range transImportDetailList {
-				if detail.Step <= int(models.TransImportStepInitWorkflow) && detail.Status != string(models.TransImportStatusSuccess) {
+				if detail.Step <= int(models.TransImportStepMonitorBusiness) && detail.Status != string(models.TransImportStatusSuccess) {
 					return true
 				}
 			}
@@ -364,7 +361,7 @@ func BuildContext(ctx context.Context, param *models.BuildContextParam) context.
 	return ctx
 }
 
-// 11、开始执行编排(创建资源、初始化资源、应用部署)
+// 12、开始执行编排(创建资源、初始化资源、应用部署)
 func execWorkflow(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	var workflowDetailId, workflowInitDetailId, workflowDetailInput, workflowInitDetailInput string
 	for _, v := range transImportParam.Details {
