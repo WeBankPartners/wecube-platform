@@ -224,20 +224,21 @@ type ImportCustomFormData struct {
 }
 
 type TransDataImportConfig struct {
-	NexusUrl                  string `json:"nexusUrl"`
-	NexusUser                 string `json:"nexusUser"`
-	NexusPwd                  string `json:"nexusPwd"`
-	NexusRepo                 string `json:"nexusRepo"`
-	NetworkZoneCIDR           string `json:"networkZoneCIDR"`
-	NetworkSubZoneCIDR        string `json:"networkSubZoneCIDR"`
-	RouteTableCode            string `json:"routeTableCode"`
-	BasicSecurityGroupKeyName string `json:"basicSecurityGroupKeyName"`
-	DataCenterRegionKeyName   string `json:"dataCenterRegionKeyName"`
-	DataCenterAZ1KeyName      string `json:"dataCenterAZ1KeyName"`
-	DataCenterAZ2KeyName      string `json:"dataCenterAZ2KeyName"`
-	WecubeHostCode            string `json:"wecubeHostCode"`
-	SystemCiType              string `json:"systemCiType"`
-	SystemDeployBatchAttr     string `json:"systemDeployBatchAttr"`
+	NexusUrl                  string   `json:"nexusUrl"`
+	NexusUser                 string   `json:"nexusUser"`
+	NexusPwd                  string   `json:"nexusPwd"`
+	NexusRepo                 string   `json:"nexusRepo"`
+	NetworkZoneCIDR           string   `json:"networkZoneCIDR"`
+	NetworkSubZoneCIDR        string   `json:"networkSubZoneCIDR"`
+	RouteTableCode            string   `json:"routeTableCode"`
+	BasicSecurityGroupKeyName string   `json:"basicSecurityGroupKeyName"`
+	DataCenterRegionKeyName   string   `json:"dataCenterRegionKeyName"`
+	DataCenterAZ1KeyName      string   `json:"dataCenterAZ1KeyName"`
+	DataCenterAZ2KeyName      string   `json:"dataCenterAZ2KeyName"`
+	WecubeHostCode            string   `json:"wecubeHostCode"`
+	SystemCiType              string   `json:"systemCiType"`
+	SystemDeployBatchAttr     string   `json:"systemDeployBatchAttr"`
+	AutoConfirmViewList       []string `json:"autoConfirmViewList"`
 }
 
 type QueryImportEntityRow struct {
