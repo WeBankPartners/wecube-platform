@@ -77,10 +77,10 @@ INSERT INTO system_variables (id, package_name, name, value, default_value, `sco
 VALUES ('system__global__PLATFORM_EXPORT_CI_ARTIFACT_PACKAGE', '', 'PLATFORM_EXPORT_CI_ARTIFACT_PACKAGE', '',
         'deploy_package', 'global', 'system', 'active');
 INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status)
-VALUES ('system__global__PLATFORM_EXPORT_CI_SYSTEM', '', 'PLATFORM_EXPORT_CI_SYSTEM', 'system_design', '', 'global',
+VALUES ('system__global__PLATFORM_EXPORT_CI_SYSTEM', '', 'PLATFORM_EXPORT_CI_SYSTEM', 'system', '', 'global',
         'system', 'active');
 INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status)
-VALUES ('system__global__PLATFORM_EXPORT_CI_TECH_PRODUCT', '', 'PLATFORM_EXPORT_CI_TECH_PRODUCT', 'tech_product', '',
+VALUES ('system__global__PLATFORM_EXPORT_CI_TECH_PRODUCT', '', 'PLATFORM_EXPORT_CI_TECH_PRODUCT', 'application_domain', '',
         'global', 'system', 'active');
 INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status)
 VALUES ('system__global__PLATFORM_EXPORT_CI_ARTIFACT_UNIT_DESIGN', '', 'PLATFORM_EXPORT_CI_ARTIFACT_UNIT_DESIGN', '',
@@ -197,3 +197,5 @@ INSERT INTO system_variables (id, package_name, name, value, default_value, `sco
 INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_DC_AZ1_NAME', '', 'PLATFORM_IMPORT_DC_AZ1_NAME', '', 'RA1', 'global','system', 'active');
 INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_DC_AZ2_NAME', '', 'PLATFORM_IMPORT_DC_AZ2_NAME', '', 'RA2', 'global','system', 'active');
 INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_WECUBE_HOST_CODE', '', 'PLATFORM_IMPORT_WECUBE_HOST_CODE', '', 'wecube', 'global','system', 'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_CI_SYSTEM', '', 'PLATFORM_IMPORT_CI_SYSTEM', '', 'system', 'global','system', 'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_SYSTEM_DEPLOY_ATTR', '', 'PLATFORM_IMPORT_SYSTEM_DEPLOY_ATTR', '', 'deploy_batch_no', 'global','system', 'active');
