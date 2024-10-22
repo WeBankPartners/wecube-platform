@@ -318,9 +318,10 @@ func CalcWebDisplayStep(detailList []*models.TransImportDetailTable) models.Impo
 			return models.ImportWebDisplayStepFour
 		}
 	}
-	// 修改新环境数据是否完成
-	if v, ok := hashMap[models.TransImportStepModifyNewEnvData]; ok {
-		if v.Status == string(models.TransImportStatusDoing) || v.Status == string(models.TransImportStatusSuccess) || v.Status == string(models.TransImportStatusFail) {
+
+	// web第二步完成成功后,到第三步
+	if v, ok := hashMap[models.TransImportStepWebBaseImportSuccess]; ok {
+		if v.Status == string(models.TransImportStepWebBaseImportSuccess) {
 			return models.ImportWebDisplayStepThree
 		}
 	}
