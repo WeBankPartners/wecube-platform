@@ -188,3 +188,12 @@ VALUES ('system__global__PLATFORM_EXPORT_EMPTY_ATTR', '', 'PLATFORM_EXPORT_EMPTY
 INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status)
 VALUES ('system__global__PLATFORM_EXPORT_EXEC_WORKFLOW', '', 'PLATFORM_EXPORT_EXEC_WORKFLOW', '', '', 'global',
         'system', 'active');
+
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_NZ_CIDR', '', 'PLATFORM_IMPORT_NZ_CIDR', '', '', 'global','system', 'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_NSZ_CIDR', '', 'PLATFORM_IMPORT_NSZ_CIDR', '', '', 'global','system', 'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_RT_CODE', '', 'PLATFORM_IMPORT_RT_CODE', '', 'DEFAULT', 'global','system', 'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_BSG_NAME', '', 'PLATFORM_IMPORT_BSG_NAME', '', 'VPC_MGMT_APP', 'global','system', 'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_DC_REGION_NAME', '', 'PLATFORM_IMPORT_DC_REGION_NAME', '', 'GDCR', 'global','system', 'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_DC_AZ1_NAME', '', 'PLATFORM_IMPORT_DC_AZ1_NAME', '', 'RA1', 'global','system', 'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_DC_AZ2_NAME', '', 'PLATFORM_IMPORT_DC_AZ2_NAME', '', 'RA2', 'global','system', 'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_WECUBE_HOST_CODE', '', 'PLATFORM_IMPORT_WECUBE_HOST_CODE', '', 'wecube', 'global','system', 'active');
