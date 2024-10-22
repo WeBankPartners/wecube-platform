@@ -271,6 +271,11 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 			row["state"] = ciTypeStateMap[ciType]
 			row["create_time"] = nowTime
 			row["update_time"] = nowTime
+			for _, attrDef := range ciTypeAttrMap[ciType] {
+				if attrDef.InputType == "password" {
+					row[attrDef.Name] = ""
+				}
+			}
 			tmpRowGuid := row["guid"]
 			existData.DataMap[tmpRowGuid] = row
 			existData.DataChainMap[tmpRowGuid] = fmt.Sprintf("%s -> %s[%s]", parentMap[tmpRowGuid], row["guid"], row["key_name"])
@@ -288,6 +293,11 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 			row["state"] = ciTypeStateMap[ciType]
 			row["create_time"] = nowTime
 			row["update_time"] = nowTime
+			for _, attrDef := range ciTypeAttrMap[ciType] {
+				if attrDef.InputType == "password" {
+					row[attrDef.Name] = ""
+				}
+			}
 			dataMap[tmpRowGuid] = row
 			dataChainMap[tmpRowGuid] = fmt.Sprintf("%s -> %s[%s]", parentMap[tmpRowGuid], row["guid"], row["key_name"])
 			newRowsGuidList = append(newRowsGuidList, tmpRowGuid)
