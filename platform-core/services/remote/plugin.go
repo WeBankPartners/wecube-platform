@@ -1125,11 +1125,13 @@ func QueryBusinessList(query models.QueryBusinessListParam) (result []map[string
 }
 
 func AutoConfirmCMDBView(ctx context.Context, viewId string) (err error) {
-	structQueryBytes, structQueryErr := network.HttpGet(fmt.Sprintf("%s/wecmdb/api/v1/view/%s", models.Config.Gateway.Url, viewId), GetToken(), models.DefaultLanguage)
+	log.Logger.Debug("AutoConfirmCMDBView start", log.String("viewId", viewId))
+	structQueryBytes, structQueryErr := network.HttpGet(fmt.Sprintf("http://%s/wecmdb/api/v1/view/%s", models.Config.Gateway.Url, viewId), GetToken(), models.DefaultLanguage)
 	if structQueryErr != nil {
 		err = fmt.Errorf("query cmdb view struct fail,view:%s ,error:%s ", viewId, structQueryErr.Error())
 		return
 	}
+	log.Logger.Debug("AutoConfirmCMDBView query cmdb view struct done", log.String("viewId", viewId), log.String("response", string(structQueryBytes)))
 	var structQueryResp models.CMDBViewStructQueryResp
 	if err = json.Unmarshal(structQueryBytes, &structQueryResp); err != nil {
 		err = fmt.Errorf("json unmarshal query cmdb view struct response:%s fail,%s ", string(structQueryBytes), err.Error())
@@ -1152,11 +1154,13 @@ func AutoConfirmCMDBView(ctx context.Context, viewId string) (err error) {
 		queryCiDataParam.Filters = append(queryCiDataParam.Filters, &models.QueryRequestFilterObj{Name: structQueryResp.Data.FilterAttr, Operator: "eq", Value: structQueryResp.Data.FilterValue})
 	}
 	ciDataParamBytes, _ := json.Marshal(&queryCiDataParam)
-	ciDataRespBytes, ciDataRespErr := network.HttpPost(fmt.Sprintf("%s/wecmdb/api/v1/ci-data/query/%s", models.Config.Gateway.Url, structQueryResp.Data.CiType), GetToken(), models.DefaultLanguage, ciDataParamBytes)
+	log.Logger.Debug("AutoConfirmCMDBView start query ci data", log.String("viewId", viewId), log.String("ciType", structQueryResp.Data.CiType))
+	ciDataRespBytes, ciDataRespErr := network.HttpPost(fmt.Sprintf("http://%s/wecmdb/api/v1/ci-data/query/%s", models.Config.Gateway.Url, structQueryResp.Data.CiType), GetToken(), models.DefaultLanguage, ciDataParamBytes)
 	if ciDataRespErr != nil {
 		err = fmt.Errorf("query cmdb ci data fail,%s ", ciDataRespErr.Error())
 		return
 	}
+	log.Logger.Debug("AutoConfirmCMDBView query ci data done", log.String("viewId", viewId), log.String("ciDataRespBytes", string(ciDataRespBytes)))
 	var ciDataQueryResp models.QueryCiDataResp
 	if err = json.Unmarshal(ciDataRespBytes, &ciDataQueryResp); err != nil {
 		err = fmt.Errorf("json unmarshal query cmdb ci data response:%s fail,%s ", string(ciDataRespBytes), err.Error())
@@ -1175,10 +1179,12 @@ func AutoConfirmCMDBView(ctx context.Context, viewId string) (err error) {
 		if tmpGuid == "" {
 			continue
 		}
+		log.Logger.Debug("AutoConfirmCMDBView start confirm view", log.String("viewId", viewId), log.String("ciDataGuid", tmpGuid))
 		if err = confirmCMDBView(ctx, viewId, tmpGuid); err != nil {
 			err = fmt.Errorf("try to confirm view:%s ciData:%s fail,%s ", viewId, tmpGuid, err.Error())
 			break
 		}
+		log.Logger.Debug("AutoConfirmCMDBView confirm view done", log.String("viewId", viewId), log.String("ciDataGuid", tmpGuid))
 	}
 	return
 }
@@ -1186,7 +1192,7 @@ func AutoConfirmCMDBView(ctx context.Context, viewId string) (err error) {
 func confirmCMDBView(ctx context.Context, viewId, ciDataGuid string) (err error) {
 	postParam := models.ConfirmCMDBViewParam{ViewId: viewId, RootCi: ciDataGuid}
 	postBytes, _ := json.Marshal(&postParam)
-	respBytes, respErr := network.HttpPost(fmt.Sprintf("%s/wecmdb/api/v1/view-confirm", models.Config.Gateway.Url), GetToken(), models.DefaultLanguage, postBytes)
+	respBytes, respErr := network.HttpPost(fmt.Sprintf("http://%s/wecmdb/api/v1/view-confirm", models.Config.Gateway.Url), GetToken(), models.DefaultLanguage, postBytes)
 	if respErr != nil {
 		err = fmt.Errorf("confirm cmdb view fail,%s ", respErr.Error())
 		return
