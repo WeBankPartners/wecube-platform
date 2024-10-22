@@ -1,55 +1,35 @@
 <template>
   <div class="base-migration-import-four">
-    <div v-if="detailData.status === 'success'" class="import-status">
-      <Alert type="success" show-icon>
-        <template #desc>{{ $t('pi_all_successTips') }}！</template>
-      </Alert>
-    </div>
-    <div v-else class="import-status">
-      <Alert v-if="detailData.monitorBusinessRes.status === 'doing'" type="info" show-icon>
+    <div class="import-status">
+      <Alert v-if="detailData.initWorkflowRes.status === 'doing'" type="info" show-icon>
         <template #desc>{{ $t('pi_importing_tips') }}... </template>
       </Alert>
-      <Alert v-else-if="detailData.monitorBusinessRes.status === 'fail'" type="error" show-icon>
+      <Alert v-else-if="detailData.initWorkflowRes.status === 'fail'" type="error" show-icon>
         {{ $t('pi_import_fail') }}！
-        <template #desc>{{ detailData.monitorBusinessRes.errMsg }}</template>
+        <template #desc>{{ detailData.initWorkflowRes.errMsg }}</template>
       </Alert>
-      <Alert v-else-if="detailData.monitorBusinessRes.status === 'success'" type="success" show-icon>
+      <Alert v-else-if="detailData.initWorkflowRes.status === 'success'" type="success" show-icon>
         <template #desc>{{ $t('pi_import_success') }}！</template>
       </Alert>
     </div>
-    <div class="item">
-      <span class="title">
-        {{ $t('pe_monitor_config') }}：<span class="sub-title">{{ $t('pe_select_configType') }}<span class="number">{{ detailData.monitorBusinessRes.data.length }}</span>
-          <span class="name">{{ $t('pe_total') }}</span><span class="number">{{ detailData.monitorBusinessCount }}</span>
-        </span>
-      </span>
-      <Table
-        :border="false"
-        size="small"
-        :columns="monitorColumns"
-        :max-height="maxHeight"
-        :data="detailData.monitorBusinessRes.data"
-      />
-    </div>
+    <Table
+      :border="false"
+      size="small"
+      :columns="tableColumns"
+      :max-height="400"
+      :data="detailData.initWorkflowRes.data"
+    />
     <div class="footer">
-      <template v-if="detailData.status !== 'success'">
-        <Button type="default" @click="handleLast">{{ $t('privious_step') }}</Button>
-        <Button
-          v-if="['success'].includes(detailData.monitorBusinessRes.status)"
-          type="primary"
-          @click="handleComplete"
-        >{{ $t('pi_complete_import') }}</Button>
-      </template>
-      <template v-else>
-        <Button type="default" @click="handleLast">{{ $t('privious_step') }}</Button>
-        <Button type="default" @click="handleToHistory">{{ $t('pe_history_list') }}</Button>
-      </template>
+      <Button type="default" @click="handleLast">{{ $t('privious_step') }}</Button>
+      <Button v-if="['success'].includes(detailData.initWorkflowRes.status)" type="primary" @click="handleNext">{{
+        $t('next_step')
+      }}</Button>
     </div>
   </div>
 </template>
 
 <script>
-import { updateImportStatus } from '@/api/server'
+import { instancesWithPaging, saveImportData } from '@/api/server'
 import { debounce } from '@/const/util'
 export default {
   props: {
@@ -57,106 +37,164 @@ export default {
   },
   data() {
     return {
-      // 监控列表
-      monitorColumns: [
+      tableColumns: [
         {
-          title: this.$t('data_type'),
-          render: (h, params) => {
-            const nameMap = {
-              monitor_type: this.$t('p_general_type'), // 基础类型
-              endpoint_group: this.$t('p_endpoint_group'), // 对象组
-              log_monitor_template: this.$t('p_log_monitor_template'), // 指标-业务日志模版
-              log_monitor_service_group: this.$t('p_log_monitor_config'), // 指标-业务配置
-              logKeyword_service_group: this.$t('p_keyword_list'), // 告警关键字
-              dashboard: this.$t('p_dashboard'), // 自定义看板
-              endpoint: this.$t('p_endpoint'), // 对象(仅分析)
-              service_group: this.$t('p_endpoint_level'), // 层级对象(仅分析)
-              custom_metric_monitor_type: this.$t('p_metric_monitor_type'),
-              custom_metric_endpoint_group: this.$t('p_metric_endpoint_group'),
-              custom_metric_service_group: this.$t('p_metric_service_group'),
-              strategy_service_group: this.$t('p_strategy_service_group'),
-              strategy_endpoint_group: this.$t('p_strategy_endpoint_group')
-            }
-            return (
+          title: this.$t('flow_name'),
+          minWidth: 180,
+          key: 'procInstName',
+          render: (h, params) => (
+            <div>
               <span
                 style="cursor:pointer;color:#5cadff;"
                 onClick={() => {
                   this.jumpToHistory(params.row)
                 }}
               >
-                {nameMap[params.row.name] || '-'}
+                {params.row.procInstName}
+                <Tag style="margin-left:2px">{params.row.version}</Tag>
               </span>
-            )
-          }
-        },
-        {
-          title: this.$t('pe_monitor_query'),
-          key: 'conditions',
-          render: (h, params) => {
-            const conditionsMap = {
-              monitor_type: this.$t('p_monitor_type_des'),
-              endpoint: this.$t('p_endpoint_des'),
-              endpoint_group: this.$t('p_endpoint_group_des'),
-              service_group: this.$t('p_service_group_des'),
-              log_monitor_template: this.$t('p_log_monitor_template_des'),
-              log_monitor_service_group: this.$t('p_log_monitor_service_group_des'),
-              logKeyword_service_group: this.$t('p_logKeyword_service_group_des'),
-              dashboard: this.$t('p_dashboard_des'),
-              custom_metric_monitor_type: this.$t('p_custom_metric_monitor_type_des'),
-              custom_metric_endpoint_group: this.$t('p_custom_metric_endpoint_group_des'),
-              custom_metric_service_group: this.$t('p_custom_metric_service_group_des'),
-              strategy_service_group: this.$t('p_strategy_service_group_des'),
-              strategy_endpoint_group: this.$t('p_strategy_endpoint_group_des')
-            }
-            return <span>{conditionsMap[params.row.name] || '-'}</span>
-          }
-        },
-        {
-          title: this.$t('pe_select'),
-          key: 'total',
-          width: 100,
-          render: (h, params) => (
-            <span style="display:flex;align-items:center;">
-              <div style="width:25px">{params.row.count}</div>
-              <Icon
-                type="ios-list"
-                size="36"
-                style="cursor:pointer;"
-                onClick={() => {
-                  this.handleDetai(params.row, 'monitor')
-                }}
-              />
-            </span>
+            </div>
           )
+        },
+        {
+          title: this.$t('fe_flowInstanceId'),
+          minWidth: 180,
+          key: 'id'
+        },
+        {
+          title: this.$t('flow_status'),
+          key: 'status',
+          minWidth: 140,
+          render: (h, params) => {
+            const list = [
+              {
+                label: this.$t('fe_notStart'),
+                value: 'NotStarted',
+                color: '#808695'
+              },
+              {
+                label: this.$t('fe_notStart'),
+                value: 'InPreparation',
+                color: '#808695'
+              },
+              {
+                label: this.$t('fe_inProgressFaulted'),
+                value: 'InProgress(Faulted)',
+                color: '#ed4014'
+              },
+              {
+                label: this.$t('fe_inProgressTimeouted'),
+                value: 'InProgress(Timeouted)',
+                color: '#ed4014'
+              },
+              {
+                label: this.$t('fe_stop'),
+                value: 'Stop',
+                color: '#ed4014'
+              },
+              {
+                label: this.$t('fe_inProgress'),
+                value: 'InProgress',
+                color: '#1990ff'
+              },
+              {
+                label: this.$t('fe_completed'),
+                value: 'Completed',
+                color: '#7ac756'
+              },
+              {
+                label: this.$t('fe_faulted'),
+                value: 'Faulted',
+                color: '#e29836'
+              },
+              {
+                label: this.$t('fe_internallyTerminated'),
+                value: 'InternallyTerminated',
+                color: '#e29836'
+              }
+            ]
+            const findObj = list.find(item => item.value === params.row.status) || {}
+            return <Tag color={findObj.color}>{findObj.label}</Tag>
+          }
+        },
+        // 操作对象
+        {
+          title: this.$t('bc_execution_instance'),
+          key: 'entityDisplayName',
+          minWidth: 160,
+          render: (h, params) => {
+            if (params.row.entityDisplayName !== '') {
+              return <span>{params.row.entityDisplayName}</span>
+            }
+            return <span>-</span>
+          }
+        },
+        {
+          title: this.$t('executor'),
+          key: 'operator',
+          minWidth: 120
+        },
+        {
+          title: this.$t('execute_date'),
+          key: 'createdTime',
+          minWidth: 150
+        },
+        {
+          title: this.$t('updatedBy'),
+          key: 'updatedBy',
+          minWidth: 120
+        },
+        {
+          title: this.$t('table_updated_date'),
+          key: 'updatedTime',
+          minWidth: 150
         }
-      ],
-      maxHeight: 500
+      ]
     }
   },
-  mounted() {
-    this.maxHeight = document.body.clientHeight - 280
-  },
   methods: {
-    // 完成导入
-    handleComplete: debounce(async function () {
+    // 查看编排详情
+    async jumpToHistory(row) {
       const params = {
-        transImportId: this.detailData.id,
-        status: 'completed'
+        id: row.id,
+        pageable: {
+          startIndex: 0,
+          pageSize: 5000
+        }
       }
-      const { status } = await updateImportStatus(params)
+      const { status, data } = await instancesWithPaging(params)
       if (status === 'OK') {
-        this.$emit('saveStepFour')
+        const detail = Array.isArray(data.contents) && data.contents[0]
+        // 能获取到历史记录，跳转，否则给出提示
+        if (detail && detail.id) {
+          window.sessionStorage.currentPath = ''
+          const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${row.id}&from=normal`
+          window.open(path, '_blank')
+        }
+      }
+      this.$Notice.warning({
+        title: '',
+        desc: this.$t('no_detail_warning')
+      })
+    },
+    handleNext: debounce(async function () {
+      if (this.detailData.step > 4 || this.detailData.status === 'success') {
+        this.$emit('nextStep')
+      } else {
+        const params = {
+          transImportId: this.detailData.id,
+          step: 5
+        }
+        const { status } = await saveImportData(params)
+        if (status === 'OK') {
+          // 执行导入，生成ID
+          this.$emit('saveStepFour')
+        }
       }
     }, 500),
     // 上一步
     handleLast() {
       this.$emit('lastStep')
-    },
-    // 跳转到历史列表
-    handleToHistory() {
-      this.$router.push({
-        path: '/admin/base-migration/import-history'
-      })
     }
   }
 }
@@ -167,22 +205,6 @@ export default {
   .import-status {
     margin-top: -10px;
     margin-bottom: 16px;
-  }
-  .item {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 20px;
-    padding-left: 12px;
-    .title {
-      font-size: 14px;
-      margin-bottom: 5px;
-      font-weight: 600;
-      .number {
-        font-size: 18px;
-        color: #2d8cf0;
-        margin-left: 6px;
-      }
-    }
   }
   .footer {
     position: fixed;
