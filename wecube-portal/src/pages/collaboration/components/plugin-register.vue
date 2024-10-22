@@ -296,8 +296,7 @@
                         @on-open-change="retrieveSystemVariables"
                       >
                         <Option
-                          v-for="(item, index) in allSystemVariables"
-                          v-if="item.status === 'active'"
+                          v-for="(item, index) in allSystemVariables.filter(i => i.status === 'active')"
                           :value="item.name"
                           :key="index"
                         >{{ item.name }}</Option>
