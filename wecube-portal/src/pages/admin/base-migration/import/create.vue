@@ -424,7 +424,7 @@ export default {
         font-weight: bold;
       }
       button {
-        margin-left: 10px;
+        margin-left: 5px;
         height: 30px;
       }
     }

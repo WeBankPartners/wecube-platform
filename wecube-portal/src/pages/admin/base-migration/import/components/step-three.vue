@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2024-10-16 15:32:21
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2024-10-22 15:06:08
+ * @LastEditTime: 2024-10-22 17:43:01
 -->
 <template>
   <div class="base-migration-import-three">
@@ -14,20 +14,27 @@
         :prop="i.key"
         :rules="{required: true, message: '不能为空', trigger: 'blur'}"
       >
-        <!-- <Input
-          v-if="i.key === 'wecubeHostPassword'"
-          v-model="importCustomFormData[i.key]"
-          type="password"
-          :auto-complete="false"
-          password
-          :maxlength="100"
-          placeholder="请输入"
-          style="width:500px;"
-        /> -->
+        <template v-if="i.key === 'wecubeHostPassword'">
+          <input type="text" style="display: none;">
+          <input type="password" autocomplete="new-password" style="display: none;">
+          <Input
+            v-model="importCustomFormData[i.key]"
+            type="password"
+            autocomplete="off"
+            password
+            :maxlength="100"
+            :disabled="getDisabled"
+            placeholder="请输入"
+            style="width:500px;"
+          />
+        </template>
         <Input
+          v-else
           v-model="importCustomFormData[i.key]"
+          autocomplete="off"
           :maxlength="100"
           clearable
+          :disabled="getDisabled"
           placeholder="请输入"
           style="width: 500px"
         />
@@ -100,6 +107,11 @@ export default {
       ]
     }
   },
+  computed: {
+    getDisabled() {
+      return this.detailData.step > 3 || this.detailData.status === 'success'
+    }
+  },
   mounted() {
     if (this.detailData && this.detailData.modifyNewEnvDataRes) {
       this.importCustomFormData = this.detailData.modifyNewEnvDataRes.data
@@ -114,7 +126,7 @@ export default {
           if (valid) {
             const params = {
               transImportId: this.detailData.id,
-              step: 4,
+              step: 3,
               importCustomFormData: this.importCustomFormData
             }
             const { status } = await saveImportData(params)

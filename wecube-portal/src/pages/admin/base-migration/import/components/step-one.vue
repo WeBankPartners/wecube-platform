@@ -128,7 +128,7 @@ export default {
     handleSave: debounce(async function () {
       const params = {
         exportNexusUrl: this.detail.exportNexusUrl,
-        step: 2
+        step: 1
       }
       const { data, status } = await saveImportData(params)
       if (status === 'OK') {
