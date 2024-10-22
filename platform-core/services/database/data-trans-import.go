@@ -32,6 +32,7 @@ var transImportDetailMap = map[models.TransImportStep]string{
 	models.TransImportStepCmdb:             "wecmdb",
 	models.TransImportStepArtifacts:        "artifacts",
 	models.TransImportStepMonitorBase:      "monitor_base",
+	models.TransImportStepModifyNewEnvData: "modify_new_env_data",
 	models.TransImportStepInitWorkflow:     "workflow_init",
 	models.TransImportStepMonitorBusiness:  "monitor_business",
 }
