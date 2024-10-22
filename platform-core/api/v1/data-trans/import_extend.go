@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/encrypt"
 	"io/fs"
 	"os"
 	"strings"
@@ -533,6 +534,11 @@ func modifyNewEnvData(ctx context.Context, transImportParam *models.TransImportJ
 		err = fmt.Errorf("modify new environment is empty")
 		log.Logger.Error("ImportCustomFormData err", log.Error(err))
 		return
+	}
+	// 密码加密
+	if !strings.HasPrefix(transImportParam.ImportCustomFormData.WecubeHostPassword, models.AESPrefix) {
+		transImportParam.ImportCustomFormData.WecubeHostPassword = models.AESPrefix + encrypt.EncryptWithAesECB(transImportParam.ImportCustomFormData.WecubeHostPassword,
+			models.Config.Plugin.ResourcePasswordSeed, models.Config.Plugin.ResourcePasswordSeed)
 	}
 	byteArr, _ := json.Marshal(transImportParam.ImportCustomFormData)
 	if err = database.UpdateTransImportDetailInput(ctx, transImportParam.TransImport.Id, models.TransImportStepModifyNewEnvData, string(byteArr)); err != nil {
