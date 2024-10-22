@@ -1122,3 +1122,81 @@ func QueryBusinessList(query models.QueryBusinessListParam) (result []map[string
 	}
 	return
 }
+
+func AutoConfirmCMDBView(ctx context.Context, viewId string) (err error) {
+	structQueryBytes, structQueryErr := network.HttpGet(fmt.Sprintf("%s/wecmdb/api/v1/view/%s", models.Config.Gateway.Url, viewId), GetToken(), models.DefaultLanguage)
+	if structQueryErr != nil {
+		err = fmt.Errorf("query cmdb view struct fail,view:%s ,error:%s ", viewId, structQueryErr.Error())
+		return
+	}
+	var structQueryResp models.CMDBViewStructQueryResp
+	if err = json.Unmarshal(structQueryBytes, &structQueryResp); err != nil {
+		err = fmt.Errorf("json unmarshal query cmdb view struct response:%s fail,%s ", string(structQueryBytes), err.Error())
+		return
+	}
+	if structQueryResp.StatusCode != models.DefaultHttpSuccessCode {
+		err = fmt.Errorf(structQueryResp.StatusMessage)
+		return
+	}
+	if structQueryResp.Data == nil || structQueryResp.Data.CiType == "" {
+		err = fmt.Errorf("query cmdb view struct fail with illegal response:%s ", string(structQueryBytes))
+		return
+	}
+	if structQueryResp.Data.SupportVersion != "yes" {
+		log.Logger.Warn("AutoConfirmCMDBView ignore with view supportView=no", log.String("viewId", viewId))
+		return
+	}
+	queryCiDataParam := models.QueryCiDataRequestParam{Dialect: &models.QueryRequestDialect{QueryMode: "new"}, Sorting: &models.QueryRequestSorting{Asc: false, Field: "create_time"}, Filters: []*models.QueryRequestFilterObj{}}
+	if structQueryResp.Data.FilterAttr != "" {
+		queryCiDataParam.Filters = append(queryCiDataParam.Filters, &models.QueryRequestFilterObj{Name: structQueryResp.Data.FilterAttr, Operator: "eq", Value: structQueryResp.Data.FilterValue})
+	}
+	ciDataParamBytes, _ := json.Marshal(&queryCiDataParam)
+	ciDataRespBytes, ciDataRespErr := network.HttpPost(fmt.Sprintf("%s/wecmdb/api/v1/ci-data/query/%s", models.Config.Gateway.Url, structQueryResp.Data.CiType), GetToken(), models.DefaultLanguage, ciDataParamBytes)
+	if ciDataRespErr != nil {
+		err = fmt.Errorf("query cmdb ci data fail,%s ", ciDataRespErr.Error())
+		return
+	}
+	var ciDataQueryResp models.QueryCiDataResp
+	if err = json.Unmarshal(ciDataRespBytes, &ciDataQueryResp); err != nil {
+		err = fmt.Errorf("json unmarshal query cmdb ci data response:%s fail,%s ", string(ciDataRespBytes), err.Error())
+		return
+	}
+	if ciDataQueryResp.StatusCode != models.DefaultHttpSuccessCode {
+		err = fmt.Errorf(ciDataQueryResp.StatusMessage)
+		return
+	}
+	if ciDataQueryResp.Data == nil {
+		err = fmt.Errorf("query cmdb ci data fail with illegal response:%s ", string(ciDataRespBytes))
+		return
+	}
+	for _, dataRow := range ciDataQueryResp.Data.Contents {
+		tmpGuid := fmt.Sprintf("%s", dataRow["guid"])
+		if tmpGuid == "" {
+			continue
+		}
+		if err = confirmCMDBView(ctx, viewId, tmpGuid); err != nil {
+			err = fmt.Errorf("try to confirm view:%s ciData:%s fail,%s ", viewId, tmpGuid, err.Error())
+			break
+		}
+	}
+	return
+}
+
+func confirmCMDBView(ctx context.Context, viewId, ciDataGuid string) (err error) {
+	postParam := models.ConfirmCMDBViewParam{ViewId: viewId, RootCi: ciDataGuid}
+	postBytes, _ := json.Marshal(&postParam)
+	respBytes, respErr := network.HttpPost(fmt.Sprintf("%s/wecmdb/api/v1/view-confirm", models.Config.Gateway.Url), GetToken(), models.DefaultLanguage, postBytes)
+	if respErr != nil {
+		err = fmt.Errorf("confirm cmdb view fail,%s ", respErr.Error())
+		return
+	}
+	var response models.ConfirmCMDBViewResp
+	if err = json.Unmarshal(respBytes, &response); err != nil {
+		err = fmt.Errorf("json unmarshal confirm cmdb view response:%s fail,%s ", string(respBytes), err.Error())
+		return
+	}
+	if response.StatusCode != models.DefaultHttpSuccessCode {
+		err = fmt.Errorf(response.StatusMessage)
+	}
+	return
+}
