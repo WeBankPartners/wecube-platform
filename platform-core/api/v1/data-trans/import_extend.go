@@ -143,19 +143,22 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 			transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 		}
 		if currentStep == int(models.TransImportStepWebBaseImportSuccess) && callParam.WebStep == int(models.ImportWebDisplayStepTwo) {
+			// 第二步完成
 			if err = callImportFunc(ctx, transImportJobParam, updateWebBaseImportSuccess); err != nil {
 				return
 			}
 		} else if currentStep == int(models.TransImportStepModifyNewEnvData) && callParam.WebStep == int(models.ImportWebDisplayStepThree) {
+			// 完成第三步
 			if err = callImportFunc(ctx, transImportJobParam, modifyNewEnvData); err != nil {
 				return
 			}
-		} else if currentStep == int(models.TransImportStepInitWorkflow) && callParam.WebStep == int(models.ImportWebDisplayStepFour) {
+			// 触发第四步编排执行
+			currentStep++
 			transImportJobParam.CurrentDetail = transImportJobParam.Details[currentStep-1]
 			if err = callImportFunc(ctx, transImportJobParam, execWorkflow); err != nil {
 				return
 			}
-		} else if currentStep == int(models.TransImportStepMonitorBusiness) && callParam.WebStep == int(models.ImportWebDisplayStepFive) {
+		} else if currentStep == int(models.TransImportStepMonitorBusiness) && callParam.WebStep == int(models.ImportWebDisplayStepFour) {
 			if err = callImportFunc(ctx, transImportJobParam, importMonitorServiceConfig); err != nil {
 				return
 			}
