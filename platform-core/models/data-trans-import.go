@@ -153,3 +153,67 @@ type UpdateImportStatusParam struct {
 	Status   string `json:"status"` // exit 终止,completed 完成
 	Operator string `json:"-"`
 }
+
+type CMDBViewStructQueryResp struct {
+	StatusCode    string                   `json:"statusCode"`
+	StatusMessage string                   `json:"statusMessage"`
+	Data          *CMDBViewStructQueryData `json:"data"`
+}
+
+type CMDBViewStructQueryData struct {
+	CiType         string `json:"ciType"`
+	Editable       string `json:"editable"`
+	Report         string `json:"report"`
+	SupportVersion string `json:"suportVersion"`
+	FilterAttr     string `json:"filterAttr"`
+	FilterValue    string `json:"filterValue"`
+}
+
+type QueryRequestDialect struct {
+	AssociatedData map[string]string `json:"associatedData"`
+	QueryMode      string            `json:"queryMode"`
+}
+
+type QueryCiDataRequestParam struct {
+	Filters       []*QueryRequestFilterObj `json:"filters"`
+	Dialect       *QueryRequestDialect     `json:"dialect"`
+	Paging        bool                     `json:"paging"`
+	Pageable      *PageInfo                `json:"pageable"`
+	Sorting       *QueryRequestSorting     `json:"sorting"`
+	ResultColumns []string                 `json:"resultColumns"`
+}
+
+type QueryCiDataResp struct {
+	StatusCode    string               `json:"statusCode"`
+	StatusMessage string               `json:"statusMessage"`
+	Data          *QueryCiDataRespData `json:"data"`
+}
+
+type QueryCiDataRespData struct {
+	PageInfo *PageInfo                `json:"pageInfo"`
+	Contents []map[string]interface{} `json:"contents"`
+}
+
+type ConfirmCMDBViewParam struct {
+	ViewId      string `json:"viewId"`
+	RootCi      string `json:"rootCi"`
+	ConfirmTime string `json:"confirmTime"`
+}
+
+type ConfirmCMDBViewResp struct {
+	StatusCode    string      `json:"statusCode"`
+	StatusMessage string      `json:"statusMessage"`
+	Data          interface{} `json:"data"`
+}
+
+type ImportCustomFormData struct {
+	NetworkZoneAssetId        string `json:"networkZoneAssetId"`        //网络区域-资产ID
+	NetworkSubZoneAssetId     string `json:"networkSubZoneAssetId"`     //网络子区域 MGMT_APP -资产ID
+	RouteTableAssetId         string `json:"routeTableAssetId"`         //路由表 默认路由表-资产ID
+	BasicSecurityGroupAssetId string `json:"basicSecurityGroupAssetId"` //基础安全组 MGMT-APP -资产ID
+	DataCenterRegionAssetId   string `json:"dataCenterRegionAssetId"`   //地域数据中心资产ID
+	DataCenterAZ1AssetId      string `json:"dataCenterAZ1AssetId"`      //地域数据中心可用区1资产ID
+	DataCenterAZ2AssetId      string `json:"dataCenterAZ2AssetId"`      //地域数据中心可用区2资产ID
+	WecubeHostAssetId         string `json:"wecubeHostAssetId"`         //wecube主机的资产ID
+	WecubeHostPassword        string `json:"wecubeHostPassword"`        //wecube主机的管理员密码
+}
