@@ -127,16 +127,10 @@ func checkWebStepInvalid(ctx context.Context, param models.ExecImportParam) bool
 			}
 		case int(models.ImportWebDisplayStepFour):
 			for _, detail := range transImportDetailList {
-				if detail.Step <= int(models.TransImportStepModifyNewEnvData) && detail.Status != string(models.TransImportStatusSuccess) {
+				if detail.Step <= int(models.TransImportStepInitWorkflow) && detail.Status != string(models.TransImportStatusSuccess) {
 					return true
 				}
-				if detail.Step == int(models.TransImportStepInitWorkflow) && detail.Status == string(models.TransImportStatusSuccess) {
-					return true
-				}
-			}
-		case int(models.ImportWebDisplayStepFive):
-			for _, detail := range transImportDetailList {
-				if detail.Step <= int(models.TransImportStepMonitorBusiness) && detail.Status != string(models.TransImportStatusSuccess) {
+				if detail.Step == int(models.TransImportStepMonitorBusiness) && detail.Status == string(models.TransImportStatusSuccess) {
 					return true
 				}
 			}
