@@ -693,7 +693,11 @@ func QueryBusinessList(c context.Context, userToken, language string, param mode
 			})
 		}
 	}
-	result, err = remote.QueryBusinessList(query)
+	// 系统初始化,DB都没有,隐藏掉 db查询报错展示
+	if result, err = remote.QueryBusinessList(query); err != nil && strings.Contains(err.Error(), "Query database fail") {
+		log.Logger.Error("QueryBusinessList err", log.Error(err))
+		err = nil
+	}
 	return
 }
 
