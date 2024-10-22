@@ -236,4 +236,32 @@ type TransDataImportConfig struct {
 	DataCenterAZ1KeyName      string `json:"dataCenterAZ1KeyName"`
 	DataCenterAZ2KeyName      string `json:"dataCenterAZ2KeyName"`
 	WecubeHostCode            string `json:"wecubeHostCode"`
+	SystemCiType              string `json:"systemCiType"`
+	SystemDeployBatchAttr     string `json:"systemDeployBatchAttr"`
+}
+
+type QueryImportEntityRow struct {
+	Id          string `json:"id"`
+	DisplayName string `json:"displayName"`
+	Order       int    `json:"order"`
+}
+
+type QueryImportEntityRows []*QueryImportEntityRow
+
+func (q QueryImportEntityRows) Len() int {
+	return len(q)
+}
+
+func (q QueryImportEntityRows) Less(i, j int) bool {
+	if q[i].Order == 0 && q[j].Order == 0 {
+		return q[i].DisplayName < q[j].DisplayName
+	}
+	if q[i].Order == 0 {
+		return false
+	}
+	return q[i].Order < q[j].Order
+}
+
+func (q QueryImportEntityRows) Swap(i, j int) {
+	q[i], q[j] = q[j], q[i]
 }
