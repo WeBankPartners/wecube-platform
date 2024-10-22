@@ -25,18 +25,19 @@ var baseMonitorList = []string{"monitor_type", "endpoint_group", "custom_metric_
 
 // transImportDetailMap 导入
 var transImportDetailMap = map[models.TransImportStep]string{
-	models.TransImportStepRole:             "role",
-	models.TransImportStepWorkflow:         "workflow",
-	models.TransImportStepPluginConfig:     "plugin_config",
-	models.TransImportStepComponentLibrary: "component_library",
-	models.TransImportStepBatchExecution:   "batch_execution",
-	models.TransImportStepRequestTemplate:  "request_template",
-	models.TransImportStepCmdb:             "wecmdb",
-	models.TransImportStepArtifacts:        "artifacts",
-	models.TransImportStepMonitorBase:      "monitor_base",
-	models.TransImportStepModifyNewEnvData: "modify_new_env_data",
-	models.TransImportStepInitWorkflow:     "workflow_init",
-	models.TransImportStepMonitorBusiness:  "monitor_business",
+	models.TransImportStepRole:                 "role",
+	models.TransImportStepWorkflow:             "workflow",
+	models.TransImportStepPluginConfig:         "plugin_config",
+	models.TransImportStepComponentLibrary:     "component_library",
+	models.TransImportStepBatchExecution:       "batch_execution",
+	models.TransImportStepRequestTemplate:      "request_template",
+	models.TransImportStepCmdb:                 "wecmdb",
+	models.TransImportStepArtifacts:            "artifacts",
+	models.TransImportStepMonitorBase:          "monitor_base",
+	models.TransImportStepWebBaseImportSuccess: "web_base_import_success",
+	models.TransImportStepModifyNewEnvData:     "modify_new_env_data",
+	models.TransImportStepInitWorkflow:         "workflow_init",
+	models.TransImportStepMonitorBusiness:      "monitor_business",
 }
 
 const (
@@ -236,6 +237,10 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 				Status: transImportDetail.Status,
 				Output: data,
 				ErrMsg: transImportDetail.ErrorMsg,
+			}
+		case models.TransImportStepWebBaseImportSuccess:
+			detail.WebImportBaseData = &models.CommonOutput{
+				Status: transImportDetail.Status,
 			}
 		case models.TransImportStepMonitorBusiness:
 			detail.MonitorBusiness = &models.CommonOutput{

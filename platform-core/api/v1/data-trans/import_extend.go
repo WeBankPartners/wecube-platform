@@ -39,6 +39,7 @@ func init() {
 	importFuncList = append(importFuncList, importMonitorBaseConfig)
 	importFuncList = append(importFuncList, importTaskManComponentLibrary)
 	importFuncList = append(importFuncList, importTaskManTemplate)
+	importFuncList = append(importFuncList, updateWebBaseImportSuccess)
 	importFuncList = append(importFuncList, modifyNewEnvData)
 	importFuncList = append(importFuncList, execWorkflow)
 	importFuncList = append(importFuncList, importMonitorServiceConfig)
@@ -138,7 +139,11 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 				break
 			}
 		}
-		if currentStep == int(models.TransImportStepModifyNewEnvData) && callParam.WebStep == int(models.ImportWebDisplayStepThree) {
+		if currentStep == int(models.TransImportStepWebBaseImportSuccess) && callParam.WebStep == int(models.ImportWebDisplayStepTwo) {
+			if err = callImportFunc(ctx, transImportJobParam, updateWebBaseImportSuccess); err != nil {
+				return
+			}
+		} else if currentStep == int(models.TransImportStepModifyNewEnvData) && callParam.WebStep == int(models.ImportWebDisplayStepThree) {
 			if err = callImportFunc(ctx, transImportJobParam, modifyNewEnvData); err != nil {
 				return
 			}
@@ -527,9 +532,21 @@ func importTaskManTemplate(ctx context.Context, transImportParam *models.TransIm
 	return
 }
 
-// 10、修改新环境数据
+// 10、页面第二步导入数据成功,点击下一步触发
+func updateWebBaseImportSuccess(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
+	log.Logger.Info("10. updateWebBaseImportSuccess start!!!")
+	err = database.UpdateTransImportDetailStatus(ctx, transImportParam.TransImport.Id, transImportParam.CurrentDetail.Id, string(models.TransImportStatusSuccess), "", "")
+	if err != nil {
+		log.Logger.Error("UpdateTransImportDetailStatus fail", log.Error(err))
+		return
+	}
+	log.Logger.Info("10. updateWebBaseImportSuccess end!!!")
+	return
+}
+
+// 11、修改新环境数据
 func modifyNewEnvData(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-	log.Logger.Info("10. modifyNewEnvData start!!!")
+	log.Logger.Info("11. modifyNewEnvData start!!!")
 	if transImportParam.ImportCustomFormData == nil {
 		err = fmt.Errorf("modify new environment is empty")
 		log.Logger.Error("ImportCustomFormData err", log.Error(err))
@@ -551,13 +568,13 @@ func modifyNewEnvData(ctx context.Context, transImportParam *models.TransImportJ
 		log.Logger.Error("UpdateTransImportCMDBData err", log.Error(err))
 		return
 	}
-	log.Logger.Info("10. modifyNewEnvData success end!!!")
+	log.Logger.Info("11. modifyNewEnvData success end!!!")
 	return
 }
 
-// 12、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板、关键字层级对象
+// 13、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板、关键字层级对象
 func importMonitorServiceConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-	log.Logger.Info("11. importMonitorServiceConfig start!!!")
+	log.Logger.Info("13. importMonitorServiceConfig start!!!")
 	var logMonitorExist, serviceGroupMetricExist, strategyExist, dashboardExist, logKeywordExist bool
 	// 导入监控业务配置 (说明: 业务配置导入在层级对象指标之前导入,层级对象指标导入做了防止重复处理)
 	logMonitorPath := fmt.Sprintf("%s/monitor/log_monitor", transImportParam.DirPath)
@@ -579,9 +596,9 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 				return
 			}
 		}
-		log.Logger.Info("11-1. import log_monitor success!")
+		log.Logger.Info("13-1. import log_monitor success!")
 	} else {
-		log.Logger.Info("11-1. import log_monitor data empty!")
+		log.Logger.Info("13-1. import log_monitor data empty!")
 	}
 
 	// 导入层级对象指标
@@ -617,9 +634,9 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 				return
 			}
 		}
-		log.Logger.Info("11-2. import service_group metric success!")
+		log.Logger.Info("13-2. import service_group metric success!")
 	} else {
-		log.Logger.Info("11-2. import service_group metric data empty!")
+		log.Logger.Info("13-2. import service_group metric data empty!")
 	}
 
 	// 导入层级对象阈值配置
@@ -655,9 +672,9 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 				}
 			}
 		}
-		log.Logger.Info("11-3. import strategy service_group success!")
+		log.Logger.Info("13-3. import strategy service_group success!")
 	} else {
-		log.Logger.Info("11-3. import strategy service_group data empty!")
+		log.Logger.Info("13-3. import strategy service_group data empty!")
 	}
 	// 导入自定义看板
 	dashboardPath := fmt.Sprintf("%s/monitor/dashboard", transImportParam.DirPath)
@@ -677,9 +694,9 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 				return
 			}
 		}
-		log.Logger.Info("11-4. import dashboard success!")
+		log.Logger.Info("13-4. import dashboard success!")
 	} else {
-		log.Logger.Info("11-4. import dashboard data empty!")
+		log.Logger.Info("13-4. import dashboard data empty!")
 	}
 
 	// 导入关键字(包含层级对象)
@@ -701,11 +718,11 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 				return
 			}
 		}
-		log.Logger.Info("11-5. import log_keyword success!")
+		log.Logger.Info("13-5. import log_keyword success!")
 	} else {
-		log.Logger.Info("11-5. import log_keyword data empty!")
+		log.Logger.Info("13-5. import log_keyword data empty!")
 	}
-	log.Logger.Info("11. importMonitorServiceConfig end!!!")
+	log.Logger.Info("13. importMonitorServiceConfig end!!!")
 	return
 }
 
