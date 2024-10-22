@@ -102,7 +102,7 @@ type ExecImportParam struct {
 	Operator             string                `json:"-"`
 	Token                string                `json:"token"`    // token
 	Language             string                `json:"language"` // language
-	WebStep              int                   `json:"step"`     // web 第几步,2,3,4
+	WebStep              int                   `json:"step"`     // web 第几步,2,3,4,5
 	ImportCustomFormData *ImportCustomFormData `json:"importCustomFormData"`
 }
 
