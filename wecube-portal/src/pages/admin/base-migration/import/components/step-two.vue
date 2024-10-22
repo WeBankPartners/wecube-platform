@@ -355,7 +355,7 @@ export default {
       } else {
         const params = {
           transImportId: this.detailData.id,
-          step: 3
+          step: 2
         }
         const { status } = await saveImportData(params)
         if (status === 'OK') {
