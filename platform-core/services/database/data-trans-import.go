@@ -320,10 +320,8 @@ func CalcWebDisplayStep(detailList []*models.TransImportDetailTable) models.Impo
 	}
 
 	// web第二步完成成功后,到第三步
-	if v, ok := hashMap[models.TransImportStepWebBaseImportSuccess]; ok {
-		if v.Status == string(models.TransImportStepWebBaseImportSuccess) {
-			return models.ImportWebDisplayStepThree
-		}
+	if v, ok := hashMap[models.TransImportStepWebBaseImportSuccess]; ok && v.Status == string(models.TransImportStatusSuccess) {
+		return models.ImportWebDisplayStepThree
 	}
 	return models.ImportWebDisplayStepTwo
 }
