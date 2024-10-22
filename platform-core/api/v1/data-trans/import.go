@@ -123,11 +123,20 @@ func checkWebStepInvalid(ctx context.Context, param models.ExecImportParam) bool
 				if detail.Step <= int(models.TransImportStepRequestTemplate) && detail.Status != string(models.TransImportStatusSuccess) {
 					return true
 				}
-				if detail.Step == int(models.TransImportStepInitWorkflow) && detail.Status == string(models.TransImportStatusSuccess) {
+				if detail.Step == int(models.TransImportStepModifyNewEnvData) && detail.Status == string(models.TransImportStatusSuccess) {
 					return true
 				}
 			}
 		case int(models.ImportWebDisplayStepFour):
+			for _, detail := range transImportDetailList {
+				if detail.Step <= int(models.TransImportStepRequestTemplate) && detail.Status != string(models.TransImportStatusSuccess) {
+					return true
+				}
+				if detail.Step == int(models.TransImportStepInitWorkflow) && detail.Status == string(models.TransImportStatusSuccess) {
+					return true
+				}
+			}
+		case int(models.ImportWebDisplayStepFive):
 			for _, detail := range transImportDetailList {
 				if detail.Step <= int(models.TransImportStepInitWorkflow) && detail.Status != string(models.TransImportStatusSuccess) {
 					return true
@@ -355,7 +364,7 @@ func BuildContext(ctx context.Context, param *models.BuildContextParam) context.
 	return ctx
 }
 
-// 10、开始执行编排(创建资源、初始化资源、应用部署)
+// 11、开始执行编排(创建资源、初始化资源、应用部署)
 func execWorkflow(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	var workflowDetailId, workflowInitDetailId, workflowDetailInput, workflowInitDetailInput string
 	for _, v := range transImportParam.Details {
