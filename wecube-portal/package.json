@@ -31,7 +31,7 @@
     "less-loader": "^4.1.0",
     "lint-staged": "^8.1.5",
     "lodash": "^4.17.21",
-    "mermaid": "^8.1.0",
+    "mermaid": "^10.9.3",
     "moment": "^2.29.4",
     "view-design": "^4.7.0",
     "vis": "^4.21.0",
