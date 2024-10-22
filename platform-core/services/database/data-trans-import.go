@@ -238,10 +238,6 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 				Output: data,
 				ErrMsg: transImportDetail.ErrorMsg,
 			}
-		case models.TransImportStepWebBaseImportSuccess:
-			detail.WebImportBaseData = &models.CommonOutput{
-				Status: transImportDetail.Status,
-			}
 		case models.TransImportStepMonitorBusiness:
 			detail.MonitorBusiness = &models.CommonOutput{
 				Status: transImportDetail.Status,
