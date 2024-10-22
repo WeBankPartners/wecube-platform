@@ -1,4 +1,3 @@
-<!--底座迁移-->
 <template>
   <div id="base-migration">
     <div :style="benchStyle">
