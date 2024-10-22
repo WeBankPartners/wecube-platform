@@ -698,6 +698,10 @@ func GetDataTransImportConfig(ctx context.Context) (result *models.TransDataImpo
 			result.DataCenterAZ2KeyName = tmpValue
 		case "PLATFORM_IMPORT_WECUBE_HOST_CODE":
 			result.WecubeHostCode = tmpValue
+		case "PLATFORM_IMPORT_CI_SYSTEM":
+			result.SystemCiType = tmpValue
+		case "PLATFORM_IMPORT_SYSTEM_DEPLOY_ATTR":
+			result.SystemDeployBatchAttr = tmpValue
 		}
 	}
 	return
@@ -895,7 +899,7 @@ func UpdateTransImportProcExec(ctx context.Context, param *models.TransImportPro
 }
 
 func GetTransImportProcExecByDetailId(ctx context.Context, detailId string) (result []*models.TransImportProcExecTable, err error) {
-	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_proc_exec where trans_import_detail=?", detailId).Find(&result)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_proc_exec where trans_import_detail=? order by exec_order", detailId).Find(&result)
 	return
 }
 
