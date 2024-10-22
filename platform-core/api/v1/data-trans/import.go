@@ -10,6 +10,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -380,6 +381,11 @@ func execWorkflow(ctx context.Context, transImportParam *models.TransImportJobPa
 	if err != nil {
 		return
 	}
+	transImportConfig, transImportErr := database.GetDataTransImportConfig(ctx)
+	if transImportErr != nil {
+		err = fmt.Errorf("get trans import config fail,%s ", transImportErr.Error())
+		return
+	}
 	var procDefList []*models.ProcDefDto
 	if err = json.Unmarshal([]byte(workflowDetailInput), &procDefList); err != nil {
 		err = fmt.Errorf("json unmarshal workflow proc def list fail,%s ", err.Error())
@@ -411,7 +417,13 @@ func execWorkflow(ctx context.Context, transImportParam *models.TransImportJobPa
 				err = queryEntityDataErr
 				break
 			}
-			for _, row := range queryEntityRows {
+			batchSortAttr := ""
+			if exprList[0].Entity == transImportConfig.SystemCiType {
+				batchSortAttr = transImportConfig.SystemDeployBatchAttr
+			}
+			importEntityRows := parseQueryImportEntityRows(queryEntityRows, batchSortAttr)
+			sort.Sort(importEntityRows)
+			for _, row := range importEntityRows {
 				tmpProcExecRow := models.TransImportProcExecTable{
 					Id:                "tm_exec_" + guid.CreateGuid(),
 					TransImportDetail: transImportParam.CurrentDetail.Id,
@@ -419,8 +431,8 @@ func execWorkflow(ctx context.Context, transImportParam *models.TransImportJobPa
 					ProcDefKey:        v.Key,
 					ProcDefName:       v.Name,
 					RootEntity:        v.RootEntity,
-					EntityDataId:      fmt.Sprintf("%s", row["id"]),
-					EntityDataName:    fmt.Sprintf("%s", row["displayName"]),
+					EntityDataId:      row.Id,
+					EntityDataName:    row.DisplayName,
 					Status:            models.JobStatusReady,
 					CreatedUser:       transImportParam.Operator,
 					CreatedTime:       nowTime,
@@ -579,5 +591,22 @@ func startExecWorkflow(ctx context.Context, procExecRow *models.TransImportProcE
 	workObj := workflow.Workflow{ProcRunWorkflow: *workflowRow}
 	workObj.Init(context.Background(), workNodes, workLinks)
 	go workObj.Start(&models.ProcOperation{CreatedBy: procExecRow.CreatedUser})
+	return
+}
+
+func parseQueryImportEntityRows(input []map[string]interface{}, orderAttr string) (result models.QueryImportEntityRows) {
+	result = models.QueryImportEntityRows{}
+	for _, v := range input {
+		tmpRow := models.QueryImportEntityRow{Id: fmt.Sprintf("%s", v["id"]), DisplayName: fmt.Sprintf("%s", v["displayName"]), Order: 0}
+		if orderAttr != "" {
+			if orderValue, ok := v[orderAttr]; ok {
+				tmpRow.Order, _ = strconv.Atoi(fmt.Sprintf("%s", orderValue))
+			}
+		}
+		if tmpRow.Order < 0 {
+			continue
+		}
+		result = append(result, &tmpRow)
+	}
 	return
 }
