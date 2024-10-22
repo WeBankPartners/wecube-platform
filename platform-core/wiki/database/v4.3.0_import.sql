@@ -199,4 +199,5 @@ INSERT INTO system_variables (id, package_name, name, value, default_value, `sco
 INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_WECUBE_HOST_CODE', '', 'PLATFORM_IMPORT_WECUBE_HOST_CODE', '', 'wecube', 'global','system', 'active');
 INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_CI_SYSTEM', '', 'PLATFORM_IMPORT_CI_SYSTEM', '', 'system', 'global','system', 'active');
 INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_SYSTEM_DEPLOY_ATTR', '', 'PLATFORM_IMPORT_SYSTEM_DEPLOY_ATTR', '', 'deploy_batch_no', 'global','system', 'active');
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_IMPORT_CONFIRM_VIEW_LIST', '', 'PLATFORM_IMPORT_CONFIRM_VIEW_LIST', '', '', 'global','system', 'active');
 

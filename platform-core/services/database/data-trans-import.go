@@ -702,6 +702,10 @@ func GetDataTransImportConfig(ctx context.Context) (result *models.TransDataImpo
 			result.SystemCiType = tmpValue
 		case "PLATFORM_IMPORT_SYSTEM_DEPLOY_ATTR":
 			result.SystemDeployBatchAttr = tmpValue
+		case "PLATFORM_IMPORT_CONFIRM_VIEW_LIST":
+			if tmpValue != "" {
+				result.AutoConfirmViewList = strings.Split(tmpValue, ",")
+			}
 		}
 	}
 	return
