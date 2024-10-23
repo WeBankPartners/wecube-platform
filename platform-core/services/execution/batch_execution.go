@@ -107,8 +107,8 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 	}
 	// 需要有运行时的高危插件
 	// 获取subsystem token
-	subsysToken := remote.GetToken()
-	dangerousResult, errDangerous := performBatchDangerousCheck(ctx, itsdangerousCallParam, continueToken, subsysToken)
+	//subsysToken := remote.GetToken()
+	dangerousResult, errDangerous := performBatchDangerousCheck(ctx, itsdangerousCallParam, continueToken, remote.GetToken())
 	if errDangerous != nil {
 		err = errDangerous
 		return
@@ -127,13 +127,13 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 		Inputs:          inputParamDatas,
 	}
 	pluginCallParam.RequestId = "batchexec_" + guid.CreateGuid()
-	pluginCallResult, _, errCall := remote.PluginInterfaceApi(ctx, subsysToken, pluginInterface, pluginCallParam)
+	pluginCallResult, _, errCall := remote.PluginInterfaceApi(ctx, remote.GetToken(), pluginInterface, pluginCallParam)
 	if errCall != nil {
 		err = errCall
 		return
 	}
 	// 处理output param(比如类型转换，数据模型写入), handleOutputData主要是用于格式化为output param定义的字段
-	_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, pluginInterface.OutputParameters, &models.ProcInsNodeReq{}, false)
+	_, errHandle = handleOutputData(ctx, remote.GetToken(), pluginCallResult.Outputs, pluginInterface.OutputParameters, &models.ProcInsNodeReq{}, false)
 	if errHandle != nil {
 		err = errHandle
 		return
