@@ -301,6 +301,7 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 // CalcWebDisplayStep 第二步 导入基础数据, 第三步 修改新环境数据,第四步 执行自动化编排,第五步 配置监控
 func CalcWebDisplayStep(detailList []*models.TransImportDetailTable) models.ImportWebDisplayStep {
 	var hashMap = make(map[models.TransImportStep]*models.TransImportDetailTable)
+	var workflowInitNotStart bool
 	for _, detail := range detailList {
 		hashMap[models.TransImportStep(detail.Step)] = detail
 	}
@@ -315,6 +316,15 @@ func CalcWebDisplayStep(detailList []*models.TransImportDetailTable) models.Impo
 		if v.Status == string(models.TransImportStatusDoing) || v.Status == string(models.TransImportStatusSuccess) || v.Status == string(models.TransImportStatusFail) {
 			return models.ImportWebDisplayStepFour
 		}
+		// 第四步还没开始
+		if v.Status == string(models.TransImportStatusNotStart) {
+			workflowInitNotStart = true
+		}
+	}
+
+	// 第三步成功(一定会触发第四步执行),第四步还没开始,也记为第四步.
+	if v, ok := hashMap[models.TransImportStepModifyNewEnvData]; ok && v.Status == string(models.TransImportStatusSuccess) && workflowInitNotStart {
+		return models.ImportWebDisplayStepFour
 	}
 
 	// web第二步完成成功后,到第三步
