@@ -387,6 +387,7 @@ export default {
     .title {
       font-size: 14px;
       font-weight: 600;
+      margin-left: 10px;
       .name {
         margin-left: 10px;
       }

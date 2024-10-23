@@ -7,7 +7,7 @@
       </Alert>
       <Alert v-else-if="detailData.status === 'fail'" type="error" show-icon>
         {{ $t('pe_export_fail') }}
-        <template #desc>{{ detailData.failMsg || '' }}</template>
+        <div slot="desc" style="word-break: break-all">{{ detailData.failMsg || '' }}</div>
       </Alert>
       <Alert v-else-if="detailData.status === 'success'" type="success" show-icon>
         {{ $t('pe_export_success') }}
@@ -349,6 +349,7 @@ export default {
     .title {
       font-size: 14px;
       font-weight: 600;
+      margin-left: 10px;
       .name {
         margin-left: 10px;
       }
