@@ -12,8 +12,8 @@
       <Alert v-else-if="detailData.status === 'success'" type="success" show-icon>
         {{ $t('pe_export_success') }}
         <template #desc>
-          <div>
-            {{ $t('pe_export_success_link1') }}
+          <div style="display:flex;flex-wrap:wrap;">
+            <span>{{ $t('pe_export_success_link1') }}：</span>
             <span class="link">{{ detailData.outputUrl || '-' }}</span>
             <Icon
               type="md-copy"

@@ -262,21 +262,9 @@ export default {
             clearInterval(this.interval)
           }
         }
-        // 第三步导入状态判断
-        // if (this.detailData.step === 3) {
-        //   if (this.detailData.initWorkflowRes.status === 'doing') {
-        //     if (!this.interval) {
-        //       this.interval = setInterval(() => {
-        //         this.getDetailData()
-        //       }, 30 * 1000)
-        //     }
-        //   } else {
-        //     clearInterval(this.interval)
-        //   }
-        // }
         // 第四步导入状态判断
         if (this.detailData.step === 4) {
-          if (this.detailData.initWorkflowRes.status === 'doing') {
+          if (['doing', 'notStart'].includes(this.detailData.initWorkflowRes.status)) {
             if (!this.interval) {
               this.interval = setInterval(() => {
                 this.getDetailData()
@@ -288,7 +276,7 @@ export default {
         }
         // 第五步导入状态判断
         if (this.detailData.step === 5) {
-          if (this.detailData.monitorBusinessRes.status === 'doing') {
+          if (['doing', 'notStart'].includes(this.detailData.monitorBusinessRes.status)) {
             if (!this.interval) {
               this.interval = setInterval(() => {
                 this.getDetailData()
@@ -409,7 +397,7 @@ export default {
   overflow: hidden;
   .steps {
     position: relative;
-    width: 260px;
+    width: 250px;
     padding-right: 10px;
     border-right: 1px solid #e8eaec;
     height: 100%;
@@ -453,12 +441,13 @@ export default {
     }
   }
   .content {
-    width: calc(100% - 260px);
+    width: calc(100% - 250px);
     padding-left: 15px;
     overflow-y: auto;
   }
   ::-webkit-scrollbar {
     width: 6px;
+    height: 10px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
@@ -481,6 +470,9 @@ export default {
     .w-header-title,
     .title {
       margin-left: 40px !important;
+    }
+    .w-content {
+      padding: 20px 5px;
     }
   }
 }
