@@ -49,9 +49,9 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 	}
 	rootExpr := rootExprList[len(rootExprList)-1]
 	// 获取subsystem token
-	subsysToken := remote.GetToken()
+	//subsysToken := remote.GetToken()
 	// 构造输入参数
-	inputParamDatas, errHandle := handleInputData(ctx, subsysToken, param.ContinueToken, param.EntityInstances, param.PluginInterface.InputParameters, rootExpr, param.InputConstantMap, param.InputParamContext, &procInsNodeReq)
+	inputParamDatas, errHandle := handleInputData(ctx, remote.GetToken(), param.ContinueToken, param.EntityInstances, param.PluginInterface.InputParameters, rootExpr, param.InputConstantMap, param.InputParamContext, &procInsNodeReq)
 	if errHandle != nil {
 		err = errHandle
 		return
@@ -68,7 +68,7 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 			InputParams:     inputParamDatas,
 		}
 		// 需要有运行时的高危插件
-		dangerousResult, errDangerous := performWorkflowDangerousCheck(ctx, itsdangerousCallParam, param.ContinueToken, subsysToken)
+		dangerousResult, errDangerous := performWorkflowDangerousCheck(ctx, itsdangerousCallParam, param.ContinueToken, remote.GetToken())
 		if errDangerous != nil {
 			err = errDangerous
 			return
@@ -93,11 +93,11 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, true); err != nil {
 		return
 	}
-	pluginCallResult, errCode, errCall := remote.PluginInterfaceApi(ctx, subsysToken, param.PluginInterface, pluginCallParam)
+	pluginCallResult, errCode, errCall := remote.PluginInterfaceApi(ctx, remote.GetToken(), param.PluginInterface, pluginCallParam)
 	if errCall != nil {
 		if errCode != "" && errCode != "0" {
 			if pluginCallResult != nil && len(pluginCallResult.Outputs) > 0 {
-				_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq, true)
+				_, errHandle = handleOutputData(ctx, remote.GetToken(), pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq, true)
 				if errHandle != nil {
 					log.Logger.Error("handle error output data fail", log.Error(errHandle))
 				}
@@ -109,7 +109,7 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 		return
 	}
 	// 处理output param(比如类型转换，数据模型写入), handleOutputData主要是用于格式化为output param定义的字段
-	_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq, false)
+	_, errHandle = handleOutputData(ctx, remote.GetToken(), pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq, false)
 	if errHandle != nil {
 		err = errHandle
 		return
@@ -595,7 +595,7 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 	}
 	rootExpr := rootExprList[len(rootExprList)-1]
 	// 获取subsystem token
-	subsysToken := remote.GetToken()
+	//subsysToken := remote.GetToken()
 	// 构造输入参数
 	for _, paramObj := range param.PluginInterface.InputParameters {
 		if paramObj.Name == "taskFormInput" {
@@ -618,7 +618,7 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 	if err != nil {
 		return
 	}
-	inputParamDatas, errHandle := handleInputData(ctx, subsysToken, param.ContinueToken, param.EntityInstances, param.PluginInterface.InputParameters, rootExpr, param.InputConstantMap, param.InputParamContext, &procInsNodeReq)
+	inputParamDatas, errHandle := handleInputData(ctx, remote.GetToken(), param.ContinueToken, param.EntityInstances, param.PluginInterface.InputParameters, rootExpr, param.InputConstantMap, param.InputParamContext, &procInsNodeReq)
 	if errHandle != nil {
 		err = errHandle
 		return
@@ -639,7 +639,7 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, true); err != nil {
 		return
 	}
-	pluginCallResult, _, errCall := remote.PluginInterfaceApi(ctx, subsysToken, param.PluginInterface, pluginCallParam)
+	pluginCallResult, _, errCall := remote.PluginInterfaceApi(ctx, remote.GetToken(), param.PluginInterface, pluginCallParam)
 	log.Logger.Info("human job call plugin api response", log.JsonObj("result", pluginCallResult), log.String("error", fmt.Sprintf("%v", errCall)))
 	if errCall != nil {
 		err = errCall
