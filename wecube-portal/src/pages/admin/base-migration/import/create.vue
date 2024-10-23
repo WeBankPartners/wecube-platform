@@ -252,7 +252,7 @@ export default {
         }
         // 第二步导入状态判断
         if (this.detailData.step === 2) {
-          if (this.detailData.stepTwoRes.status === 'doing') {
+          if (['doing', 'notStart'].includes(this.detailData.stepTwoRes.status)) {
             if (!this.interval) {
               this.interval = setInterval(() => {
                 this.getDetailData()
@@ -316,11 +316,23 @@ export default {
       await this.getDetailData()
       this.loading = false
       this.activeStep++
+      // 刷新status字段，避免后台status字段为空，不会轮询
+      if (!this.detailData.initWorkflowRes.status) {
+        setTimeout(() => {
+          this.getDetailData()
+        }, 5000)
+      }
     },
     async handleSaveStepFive() {
       this.loading = true
       await this.getDetailData()
       this.loading = false
+      // 刷新status字段，避免后台status字段为空，不会轮询
+      if (!this.detailData.monitorBusinessRes.status) {
+        setTimeout(() => {
+          this.getDetailData()
+        }, 5000)
+      }
     },
     // 终止
     handleStop() {
