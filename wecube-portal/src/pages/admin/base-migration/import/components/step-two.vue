@@ -6,7 +6,7 @@
       </Alert>
       <Alert v-else-if="detailData.stepTwoRes.status === 'fail'" type="error" show-icon>
         {{ $t('pi_import_fail') }}！
-        <template #desc>{{ detailData.stepTwoRes.errMsg || '' }}</template>
+        <div slot="desc" style="word-break: break-all">{{ detailData.stepTwoRes.errMsg || '' }}</div>
       </Alert>
       <Alert v-else-if="detailData.stepTwoRes.status === 'success'" type="success" show-icon>
         <template #desc>{{ $t('pi_import_success') }}！</template>
@@ -402,6 +402,7 @@ export default {
     .title {
       font-size: 14px;
       font-weight: 600;
+      margin-left: 10px;
       .name {
         margin-left: 10px;
       }
