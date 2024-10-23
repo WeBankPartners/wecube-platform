@@ -934,7 +934,7 @@
 
   "pe_select_env": "选择环境" ,
   "pe_select_product": "选择产品",
-  "pe_business_product": "业务产品名",
+  "pe_business_product": "产品名",
   "pe_product_id": "产品ID",
   "pe_product_des": "产品描述",
   "pe_export_doing": "正在导出内容，请稍后... ",
@@ -947,7 +947,7 @@
   "pe_product": "产品",
   "pe_system": "系统",
   "pe_selected_env": "已选环境",
-  "pe_select_busProduct": "已选业务产品",
+  "pe_select_busProduct": "已选产品",
   "pe_relate_baseProduct": "关联底座产品(自动分析)",
   "pe_relate_system": "关联系统(自动分析)",
   "pe_select": "已选",
