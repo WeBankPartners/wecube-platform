@@ -35,7 +35,7 @@
     "moment": "^2.29.4",
     "view-design": "^4.7.0",
     "vis": "^4.21.0",
-    "vue": "2.6.6",
+    "vue": "3.0.0",
     "vue-i18n": "8.28.2",
     "vue-json-viewer": "^2.2.20",
     "vue-router": "3.0.1",
