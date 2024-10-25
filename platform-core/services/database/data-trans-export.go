@@ -208,12 +208,14 @@ func exportRequestTemplate(ctx context.Context, param *models.TransExportJobPara
 func exportComponentLibrary(ctx context.Context, param *models.TransExportJobParam) (result models.ExportResult, err error) {
 	var queryComponentLibraryResponse models.QueryComponentLibraryResponse
 	log.Logger.Info("3. export componentLibrary start!!!!")
-	if queryComponentLibraryResponse, err = remote.GetComponentLibrary(param.UserToken, param.Language); err != nil {
-		log.Logger.Error("remote GetComponentLibrary error", log.Error(err))
-		return
+	if param.ExportComponentLibrary {
+		if queryComponentLibraryResponse, err = remote.GetComponentLibrary(param.UserToken, param.Language); err != nil {
+			log.Logger.Error("remote GetComponentLibrary error", log.Error(err))
+			return
+		}
+		result.OutputData = queryComponentLibraryResponse.Data
+		result.ExportData = result.OutputData
 	}
-	result.OutputData = queryComponentLibraryResponse.Data
-	result.ExportData = result.OutputData
 	return
 }
 
