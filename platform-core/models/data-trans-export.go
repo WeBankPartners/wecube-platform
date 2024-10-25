@@ -5,6 +5,22 @@ import (
 	"time"
 )
 
+type TransExportJobParam struct {
+	*DataTransExportParam
+	Step               int
+	UserToken          string
+	Language           string
+	Path               string
+	AllRoles           []*SimpleLocalRoleDto
+	RoleDisplayNameMap map[string]string
+}
+
+type CallTransExportActionParam struct {
+	DataTransExportParam
+	UserToken string
+	Language  string
+}
+
 type AnalyzeDataTransParam struct {
 	TransExportId   string   `json:"transExportId"`
 	Business        []string `json:"business"`
