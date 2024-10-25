@@ -18,6 +18,12 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote/monitor"
 )
 
+const (
+	zipFile           = "export.zip"
+	tempWeCubeDataDir = "/tmp/wecube/%s"
+	tempWeCubeZipDir  = "/tmp/wecube/zip"
+)
+
 // transExportDetailMap 导出map
 var transExportDetailMap = map[models.TransExportStep]string{
 	models.TransExportStepRole:                "role",
@@ -33,11 +39,218 @@ var transExportDetailMap = map[models.TransExportStep]string{
 	models.TransExportUIData:                  "ui_data",
 }
 
-const (
-	zipFile           = "export.zip"
-	tempWeCubeDataDir = "/tmp/wecube/%s"
-	tempWeCubeZipDir  = "/tmp/wecube/zip"
-)
+// exportFuncList  inputData 用户选择数据, outputData 回显数据, exportData 导出数据
+var exportFuncList []func(ctx context.Context, exportParam *models.TransExportJobParam) (inputData, outputData, exportData interface{}, err error)
+
+func init() {
+	exportFuncList = append(exportFuncList, exportRole)
+	exportFuncList = append(exportFuncList, exportRequestTemplate)
+	exportFuncList = append(exportFuncList, exportComponentLibrary)
+	exportFuncList = append(exportFuncList, exportWorkflow)
+	exportFuncList = append(exportFuncList, batchExecution)
+}
+
+func ExecImportAction(ctx context.Context, callParam *models.CallTransExportActionParam) (err error) {
+	var transExportDetails []*models.TransExportDetailTable
+	var queryRolesResponse models.QueryRolesResponse
+	if transExportDetails, err = getTransExportDetail(ctx, callParam.TransExportId); err != nil {
+		return
+	}
+	if queryRolesResponse, err = remote.RetrieveAllLocalRoles("Y", callParam.UserToken, callParam.Language, false); err != nil {
+		log.Logger.Error("remote retrieveAllLocalRoles error", log.Error(err))
+		return
+	}
+	transExportJobParam := &models.TransExportJobParam{
+		DataTransExportParam: &callParam.DataTransExportParam,
+		UserToken:            callParam.UserToken,
+		Language:             callParam.Language,
+		Path:                 fmt.Sprintf(tempWeCubeDataDir, callParam.TransExportId),
+		AllRoles:             queryRolesResponse.Data,
+		RoleDisplayNameMap:   make(map[string]string),
+	}
+	if len(queryRolesResponse.Data) > 0 {
+		for _, role := range queryRolesResponse.Data {
+			transExportJobParam.RoleDisplayNameMap[role.Name] = role.DisplayName
+		}
+	}
+	for _, detail := range transExportDetails {
+		transExportJobParam.Step = detail.Step
+		if err = callExportFunc(ctx, transExportJobParam, exportFuncList[detail.Step-1]); err != nil {
+			break
+		}
+	}
+	return
+}
+
+func callExportFunc(ctx context.Context, transExportJobParam *models.TransExportJobParam, funcObj func(context.Context, *models.TransExportJobParam) (inputData, outputData, exportData interface{}, err error)) (err error) {
+	var inputData, outputData, exportData interface{}
+	now := time.Now().Format(models.DateTimeFormat)
+	transExportMonitorDetail := models.TransExportDetailTable{
+		TransExport: &transExportJobParam.TransExportId,
+		Step:        transExportJobParam.Step,
+		StartTime:   now,
+		Status:      string(models.TransExportStatusDoing),
+	}
+	// 设置成 doing
+	updateTransExportDetail(ctx, transExportMonitorDetail)
+	inputData, outputData, exportData, err = funcObj(ctx, transExportJobParam)
+	if inputData != nil {
+		inputByteArr, _ := json.Marshal(inputData)
+		if string(inputByteArr) != "null" {
+			transExportMonitorDetail.Input = string(inputByteArr)
+		}
+	}
+	transExportMonitorDetail.EndTime = time.Now().Format(models.DateTimeFormat)
+	if err != nil {
+		// 设置为失败
+		transExportMonitorDetail.Status = string(models.TransExportStatusFail)
+		transExportMonitorDetail.ErrorMsg = err.Error()
+		updateTransExportDetail(ctx, transExportMonitorDetail)
+		return
+	}
+	if outputData != nil {
+		outputByteArr, _ := json.Marshal(outputData)
+		if string(outputByteArr) != "null" {
+			transExportMonitorDetail.Output = string(outputByteArr)
+		}
+	}
+	if exportData != nil {
+		// 导出数据不为空,即执行导出
+		if err = tools.WriteJsonData2File(getExportJsonFile(transExportJobParam.Path, transExportDetailMap[models.TransExportStep(transExportJobParam.Step)]), exportData); err != nil {
+			log.Logger.Error("WriteJsonData2File error", log.String("name", transExportDetailMap[models.TransExportStep(transExportJobParam.Step)]), log.Error(err))
+			return
+		}
+	}
+	transExportMonitorDetail.EndTime = time.Now().Format(models.DateTimeFormat)
+	log.Logger.Info(fmt.Sprintf("%d. export %s success!!!", transExportJobParam.Step, transExportDetailMap[models.TransExportStep(transExportJobParam.Step)]))
+	transExportMonitorDetail.Status = string(models.TransImportStatusSuccess)
+	updateTransExportDetail(ctx, transExportMonitorDetail)
+	return
+}
+
+// exportRole  1.导出角色
+func exportRole(ctx context.Context, param *models.TransExportJobParam) (inputData, outputData, exportData interface{}, err error) {
+	// 1. 导出选中角色
+	log.Logger.Info("1. export role start!!!!")
+	inputData = param.Roles
+	outputData = buildRoleResultData(param.Roles, param.AllRoles)
+	exportData = outputData
+	return
+}
+
+// exportRequestTemplate 2.导出请求模版
+func exportRequestTemplate(ctx context.Context, param *models.TransExportJobParam) (inputData, outputData, exportData interface{}, err error) {
+	var queryRequestTemplatesResponse models.QueryRequestTemplatesResponse
+	var procDefDto *models.ProcessDefinitionDto
+	log.Logger.Info("2. export requestTemplate start!!!!")
+	if queryRequestTemplatesResponse, err = remote.GetRequestTemplates(models.GetRequestTemplatesDto{RequestTemplateIds: param.RequestTemplateIds}, param.UserToken, param.Language); err != nil {
+		log.Logger.Error("remote GetRequestTemplates error", log.Error(err))
+		return
+	}
+	inputData = param.RequestTemplateIds
+	exportData = queryRequestTemplatesResponse.Data
+	outputData = convertRequestTemplateExportDto2List(queryRequestTemplatesResponse.Data, param.AllRoles)
+	// 请求模版关联的编排 自动加入 导出编排
+	for _, requestTemplateExport := range queryRequestTemplatesResponse.Data {
+		if strings.TrimSpace(requestTemplateExport.RequestTemplate.ProcDefId) != "" && !contains(param.WorkflowIds, requestTemplateExport.RequestTemplate.ProcDefId) {
+			// 调用编排查询下数据是否真实存在
+			if procDefDto, err = GetProcDefDetailByProcDefId(ctx, requestTemplateExport.RequestTemplate.ProcDefId); err != nil {
+				continue
+			}
+			if procDefDto != nil && procDefDto.ProcDef != nil && procDefDto.ProcDef.Id != "" {
+				param.WorkflowIds = append(param.WorkflowIds, requestTemplateExport.RequestTemplate.ProcDefId)
+			}
+		}
+	}
+	return
+}
+
+// exportComponentLibrary 3.导出组件库
+func exportComponentLibrary(ctx context.Context, param *models.TransExportJobParam) (inputData, outputData, exportData interface{}, err error) {
+	var queryComponentLibraryResponse models.QueryComponentLibraryResponse
+	log.Logger.Info("3. export componentLibrary start!!!!")
+	if queryComponentLibraryResponse, err = remote.GetComponentLibrary(param.UserToken, param.Language); err != nil {
+		log.Logger.Error("remote GetComponentLibrary error", log.Error(err))
+		return
+	}
+	outputData = queryComponentLibraryResponse.Data
+	exportData = outputData
+	return
+}
+
+// exportWorkflow 4.导出编排
+func exportWorkflow(ctx context.Context, param *models.TransExportJobParam) (inputData, outputData, exportData interface{}, err error) {
+	var procDefDto *models.ProcessDefinitionDto
+	var procDefDataList []*models.ProcDefDto
+	var procDefExportList, procDefExportMainList, procDefExportSubList []*models.ProcessDefinitionDto
+	var subProcDefIds []string
+	log.Logger.Info("4. export workflow start!!!!")
+	if len(param.WorkflowIds) > 0 && len(param.WorkflowList) == 0 {
+		for _, v := range param.WorkflowIds {
+			param.WorkflowList = append(param.WorkflowList, &models.TransExportWorkflowObj{WorkflowId: v})
+		}
+	}
+	if len(param.WorkflowIds) == 0 && len(param.WorkflowList) > 0 {
+		for _, v := range param.WorkflowList {
+			param.WorkflowIds = append(param.WorkflowIds, v.WorkflowId)
+		}
+	}
+	if len(param.WorkflowIds) > 0 {
+		// 编排ID数据去重复
+		param.WorkflowIds = filterRepeatWorkflowId(param.WorkflowIds)
+		for _, procDefId := range param.WorkflowIds {
+			if procDefDto, err = GetProcDefDetailByProcDefId(ctx, procDefId); err != nil {
+				log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err), log.String("procDefId", procDefId))
+				return
+			}
+			if procDefDto != nil && procDefDto.ProcDef != nil {
+				procDefDataList = append(procDefDataList, buildProcDefDto(procDefDto, param.RoleDisplayNameMap))
+				procDefExportMainList = append(procDefExportMainList, procDefDto)
+			}
+			// 导出编排节点里面如果关联子编排,子编排也需要导出
+			if procDefDto.ProcDefNodeExtend != nil && len(procDefDto.ProcDefNodeExtend.Nodes) > 0 {
+				for _, node := range procDefDto.ProcDefNodeExtend.Nodes {
+					if node.ProcDefNodeCustomAttrs != nil && node.ProcDefNodeCustomAttrs.SubProcDefId != "" {
+						subProcDefIds = append(subProcDefIds, node.ProcDefNodeCustomAttrs.SubProcDefId)
+					}
+				}
+			}
+			for _, subProcDefId := range subProcDefIds {
+				if !contains(param.WorkflowIds, subProcDefId) {
+					if procDefDto, err = GetProcDefDetailByProcDefId(ctx, subProcDefId); err != nil {
+						log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err))
+						continue
+					}
+					param.WorkflowIds = append(param.WorkflowIds, subProcDefId)
+					if procDefDto != nil && procDefDto.ProcDef != nil {
+						procDefDataList = append(procDefDataList, buildProcDefDto(procDefDto, param.RoleDisplayNameMap))
+						procDefExportSubList = append(procDefExportSubList, procDefDto)
+					}
+				}
+			}
+		}
+		// 汇总导出 编排,注意子编排需要放在前面导出,因为导入时候需要先导入子编排,主编排依赖子编排
+		procDefExportList = append(procDefExportList, procDefExportSubList...)
+		procDefExportList = append(procDefExportList, procDefExportMainList...)
+		inputData = param.WorkflowList
+		outputData = procDefDataList
+		exportData = procDefExportList
+	}
+	return
+}
+
+func batchExecution(ctx context.Context, param *models.TransExportJobParam) (inputData, outputData, exportData interface{}, err error) {
+	var batchExecutionTemplateList []*models.BatchExecutionTemplate
+	log.Logger.Info("5. export batchExecution start!!!!")
+	if batchExecutionTemplateList, err = ExportTemplate(ctx, param.UserToken, &models.ExportBatchExecTemplateReqParam{BatchExecTemplateIds: param.BatchExecutionIds}); err != nil {
+		log.Logger.Error("ExportTemplate error", log.Error(err))
+		return
+	}
+	inputData = param.BatchExecutionIds
+	outputData = batchExecutionTemplateList
+	exportData = outputData
+	return
+}
 
 func CreateExport(c context.Context, param models.CreateExportParam, operator string) (transExportId string, err error) {
 	var actions, addTransExportActions, addTransExportDetailActions, analyzeDataActions []*db.ExecAction
@@ -1276,6 +1489,11 @@ func GetTransExport(ctx context.Context, transExportId string) (transExport *mod
 func getDeleteTransExportAnalyzeDataActions(transExportId string) (actions []*db.ExecAction) {
 	actions = []*db.ExecAction{}
 	actions = append(actions, &db.ExecAction{Sql: "delete from trans_export_analyze_data where trans_export=?", Param: []interface{}{transExportId}})
+	return
+}
+
+func getTransExportDetail(ctx context.Context, transExportId string) (result []*models.TransExportDetailTable, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_detail where trans_export=? order by step", transExportId).Find(&result)
 	return
 }
 
