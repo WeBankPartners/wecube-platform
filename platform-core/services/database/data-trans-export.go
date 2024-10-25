@@ -105,6 +105,17 @@ func ExecImportAction(ctx context.Context, callParam *models.CallTransExportActi
 			break
 		}
 	}
+	// 删除导出目录
+	if err = os.RemoveAll(transExportJobParam.Path); err != nil {
+		log.Logger.Error("delete fail", log.String("path", transExportJobParam.Path), log.Error(err))
+	}
+	// 删除导出压缩包
+	exportZipPath := transExportJobParam.ZipPath + "/" + zipFile
+	if exist, _ := tools.PathExist(exportZipPath); exist {
+		if err = os.Remove(exportZipPath); err != nil {
+			log.Logger.Error("delete fail", log.String("filePath", transExportJobParam.ZipPath), log.Error(err))
+		}
+	}
 	return
 }
 
@@ -147,17 +158,6 @@ func callExportFunc(ctx context.Context, transExportJobParam *models.TransExport
 		if err = tools.WriteJsonData2File(getExportJsonFile(transExportJobParam.Path, transExportDetailMap[models.TransExportStep(transExportJobParam.Step)]), result.ExportData); err != nil {
 			log.Logger.Error("WriteJsonData2File error", log.String("name", transExportDetailMap[models.TransExportStep(transExportJobParam.Step)]), log.Error(err))
 			return
-		}
-	}
-	// 删除导出目录
-	if err = os.RemoveAll(transExportJobParam.Path); err != nil {
-		log.Logger.Error("delete fail", log.String("path", transExportJobParam.Path), log.Error(err))
-	}
-	// 删除导出压缩包
-	exportZipPath := transExportJobParam.ZipPath + "/" + zipFile
-	if exist, _ := tools.PathExist(exportZipPath); exist {
-		if err = os.Remove(exportZipPath); err != nil {
-			log.Logger.Error("delete fail", log.String("filePath", transExportJobParam.ZipPath), log.Error(err))
 		}
 	}
 	transExportMonitorDetail.EndTime = time.Now().Format(models.DateTimeFormat)
