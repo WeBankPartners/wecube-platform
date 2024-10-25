@@ -128,10 +128,12 @@ func callExportFunc(ctx context.Context, transExportJobParam *models.TransExport
 	}
 	transExportMonitorDetail.EndTime = time.Now().Format(models.DateTimeFormat)
 	if err != nil {
-		// 设置为失败
+		// 导出详情,设置为失败
 		transExportMonitorDetail.Status = string(models.TransExportStatusFail)
 		transExportMonitorDetail.ErrorMsg = err.Error()
 		updateTransExportDetail(ctx, transExportMonitorDetail)
+		// 导出记录设置为失败
+		updateTransExportStatus(ctx, transExportJobParam.TransExportId, models.TransExportStatusFail)
 		return
 	}
 	if result.OutputData != nil {
@@ -145,6 +147,17 @@ func callExportFunc(ctx context.Context, transExportJobParam *models.TransExport
 		if err = tools.WriteJsonData2File(getExportJsonFile(transExportJobParam.Path, transExportDetailMap[models.TransExportStep(transExportJobParam.Step)]), result.ExportData); err != nil {
 			log.Logger.Error("WriteJsonData2File error", log.String("name", transExportDetailMap[models.TransExportStep(transExportJobParam.Step)]), log.Error(err))
 			return
+		}
+	}
+	// 删除导出目录
+	if err = os.RemoveAll(transExportJobParam.Path); err != nil {
+		log.Logger.Error("delete fail", log.String("path", transExportJobParam.Path), log.Error(err))
+	}
+	// 删除导出压缩包
+	exportZipPath := transExportJobParam.ZipPath + "/" + zipFile
+	if exist, _ := tools.PathExist(exportZipPath); exist {
+		if err = os.Remove(exportZipPath); err != nil {
+			log.Logger.Error("delete fail", log.String("filePath", transExportJobParam.ZipPath), log.Error(err))
 		}
 	}
 	transExportMonitorDetail.EndTime = time.Now().Format(models.DateTimeFormat)
@@ -912,11 +925,13 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			}
 		case models.TransExportStepWorkflow:
 			tmpWorkflowList := models.TransExportWorkflowList{}
-			if err = json.Unmarshal([]byte(transExportDetail.Input), &tmpWorkflowList); err != nil {
-				log.Logger.Error("json unmarshal workflow input fail", log.Error(err))
-				continue
+			if transExportDetail.Input != "" {
+				if err = json.Unmarshal([]byte(transExportDetail.Input), &tmpWorkflowList); err != nil {
+					log.Logger.Error("json unmarshal workflow input fail", log.Error(err))
+					continue
+				}
+				tmpWorkflowList.Parse(dataTransVariableConfig.WorkflowExecList)
 			}
-			tmpWorkflowList.Parse(dataTransVariableConfig.WorkflowExecList)
 			workflowOutput := models.ExportWorkflowOutput{CommonOutput: *output, WorkflowList: tmpWorkflowList}
 			detail.Workflows = &workflowOutput
 		case models.TransExportStepBatchExecution:
