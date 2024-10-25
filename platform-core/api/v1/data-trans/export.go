@@ -95,7 +95,12 @@ func ExecExport(c *gin.Context) {
 		return
 	}
 	// 3.开始导出,采用异步导出方式
-	go database.ExecTransExport(c, param, userToken, language)
+	callParam := &models.CallTransExportActionParam{
+		DataTransExportParam: param,
+		UserToken:            userToken,
+		Language:             language,
+	}
+	go database.ExecImportAction(c, callParam)
 	middleware.ReturnSuccess(c)
 }
 
