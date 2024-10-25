@@ -7,18 +7,21 @@ import (
 
 type TransExportJobParam struct {
 	*DataTransExportParam
-	Step               int
-	UserToken          string
-	Language           string
-	Path               string // 通用路径
-	AllRoles           []*SimpleLocalRoleDto
-	RoleDisplayNameMap map[string]string
+	Step                               int
+	UserToken, Language, Path, ZipPath string // Path 通用路径, ZipPath 压缩文件路径
+	AllRoles                           []*SimpleLocalRoleDto
+	RoleDisplayNameMap                 map[string]string
+	DataTransVariableConfig            *TransDataVariableConfig
+}
+
+type ExportResult struct {
+	InputData, OutputData, ExportData interface{}
+	UploadUrl                         string
 }
 
 type CallTransExportActionParam struct {
 	DataTransExportParam
-	UserToken string
-	Language  string
+	UserToken, Language string
 }
 
 type AnalyzeDataTransParam struct {
