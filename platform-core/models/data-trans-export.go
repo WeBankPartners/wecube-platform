@@ -10,7 +10,7 @@ type TransExportJobParam struct {
 	Step               int
 	UserToken          string
 	Language           string
-	Path               string
+	Path               string // 通用路径
 	AllRoles           []*SimpleLocalRoleDto
 	RoleDisplayNameMap map[string]string
 }
