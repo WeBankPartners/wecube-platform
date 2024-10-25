@@ -53,6 +53,7 @@ func init() {
 func ExecImportAction(ctx context.Context, callParam *models.CallTransExportActionParam) (err error) {
 	var transExportDetails []*models.TransExportDetailTable
 	var queryRolesResponse models.QueryRolesResponse
+	var path string
 	if transExportDetails, err = getTransExportDetail(ctx, callParam.TransExportId); err != nil {
 		return
 	}
@@ -60,11 +61,16 @@ func ExecImportAction(ctx context.Context, callParam *models.CallTransExportActi
 		log.Logger.Error("remote retrieveAllLocalRoles error", log.Error(err))
 		return
 	}
+	// 通用路径
+	if path, err = tools.GetPath(fmt.Sprintf(tempWeCubeDataDir, callParam.TransExportId)); err != nil {
+		log.Logger.Error("getPath error", log.Error(err))
+		return
+	}
 	transExportJobParam := &models.TransExportJobParam{
 		DataTransExportParam: &callParam.DataTransExportParam,
 		UserToken:            callParam.UserToken,
 		Language:             callParam.Language,
-		Path:                 fmt.Sprintf(tempWeCubeDataDir, callParam.TransExportId),
+		Path:                 path,
 		AllRoles:             queryRolesResponse.Data,
 		RoleDisplayNameMap:   make(map[string]string),
 	}
