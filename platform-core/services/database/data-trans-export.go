@@ -56,7 +56,7 @@ func init() {
 	exportFuncList = append(exportFuncList, exportFileUpload)
 }
 
-func ExecImportAction(ctx context.Context, callParam *models.CallTransExportActionParam) (err error) {
+func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActionParam) (err error) {
 	var transExportDetails []*models.TransExportDetailTable
 	var queryRolesResponse models.QueryRolesResponse
 	var transDataVariableConfig *models.TransDataVariableConfig
@@ -216,6 +216,7 @@ func exportComponentLibrary(ctx context.Context, param *models.TransExportJobPar
 		result.OutputData = queryComponentLibraryResponse.Data
 		result.ExportData = result.OutputData
 	}
+	result.InputData = param.ExportComponentLibrary
 	return
 }
 
@@ -899,7 +900,8 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 	for _, transExportDetail := range transExportDetailList {
 		var tempArr []string
 		var data interface{}
-		if strings.TrimSpace(transExportDetail.Input) != "" && models.TransExportStep(transExportDetail.Step) != models.TransExportStepWorkflow {
+		if strings.TrimSpace(transExportDetail.Input) != "" && models.TransExportStep(transExportDetail.Step) != models.TransExportStepWorkflow &&
+			models.TransExportStep(transExportDetail.Step) != models.TransExportStepComponentLibrary {
 			if err = json.Unmarshal([]byte(transExportDetail.Input), &tempArr); err != nil {
 				log.Logger.Error("json Unmarshal Input err", log.Error(err))
 			}
@@ -922,7 +924,8 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			detail.RequestTemplates = output
 		case models.TransExportStepComponentLibrary:
 			detail.ComponentLibrary = output
-			if transExportDetail.Status != string(models.TransExportStatusNotStart) {
+			detail.ExportComponentLibrary = false
+			if transExportDetail.Input == "true" {
 				detail.ExportComponentLibrary = true
 			}
 		case models.TransExportStepWorkflow:

@@ -100,7 +100,7 @@ func ExecExport(c *gin.Context) {
 		UserToken:            userToken,
 		Language:             language,
 	}
-	go database.ExecImportAction(c, callParam)
+	go database.ExecExportAction(c, callParam)
 	middleware.ReturnSuccess(c)
 }
 
