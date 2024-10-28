@@ -570,10 +570,10 @@ export default {
       }
     },
     getPortByHostIp() {
-      this.allowCreationIpPort = []
       this.selectedIp.forEach(async ip => {
         const { data, status } = await getAvailablePortByHostIp(ip)
         if (status === 'OK') {
+          this.allowCreationIpPort = []
           this.allowCreationIpPort.push({
             ip,
             port: data
