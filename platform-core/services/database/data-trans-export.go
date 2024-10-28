@@ -164,6 +164,13 @@ func callExportFunc(ctx context.Context, transExportJobParam *models.TransExport
 	log.Logger.Info(fmt.Sprintf("%d. export %s success!!!", transExportJobParam.Step, transExportDetailMap[models.TransExportStep(transExportJobParam.Step)]))
 	transExportMonitorDetail.Status = string(models.TransImportStatusSuccess)
 	updateTransExportDetail(ctx, transExportMonitorDetail)
+	// 上传url不为空表示整个导出ok,更新导出状态
+	if result.UploadUrl != "" {
+		if err = updateTransExportSuccess(ctx, transExportJobParam.TransExportId, result.UploadUrl); err != nil {
+			log.Logger.Error("updateTransExportSuccess fail", log.Error(err))
+			return
+		}
+	}
 	return
 }
 
@@ -1205,22 +1212,6 @@ func updateTransExportDetail(ctx context.Context, transExportDetail models.Trans
 		return
 	}
 	_, err = db.MysqlEngine.Context(ctx).Where("trans_export=? and step=?", transExportDetail.TransExport, transExportDetail.Step).Update(transExportDetail)
-	return
-}
-
-func updateTransExportDetailSuccess(ctx context.Context, transExportId string, step models.TransExportStep) (err error) {
-	if transExportId == "" || step == 0 {
-		return
-	}
-	updateData := make(map[string]interface{})
-	updateData["status"] = string(models.TransExportStatusSuccess)
-	_, err = db.MysqlEngine.Context(ctx).Where("trans_export=? and step=?", transExportId, step).Update(updateData)
-	return
-}
-
-func updateTransExportDetailFail(ctx context.Context, transExportId string, step models.TransExportStep, errMsg string) (err error) {
-	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_export_detail set status=?,error_msg=?,end_time=? where trans_export=? and step =?",
-		models.TransExportStatusFail, errMsg, time.Now().Format(models.DateTimeFormat), transExportId, step)
 	return
 }
 
