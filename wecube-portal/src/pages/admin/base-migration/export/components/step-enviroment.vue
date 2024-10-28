@@ -223,8 +223,10 @@ export default {
     .title {
       font-size: 14px;
       margin-bottom: 5px;
+      margin-right: 10px;
       font-weight: 600;
-      width: 100px;
+      width: fit-content;
+      min-width: 90px;
       .number {
         font-size: 18px;
         color: #2d8cf0;
