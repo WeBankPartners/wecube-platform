@@ -1207,3 +1207,40 @@ func confirmCMDBView(ctx context.Context, viewId, ciDataGuid string) (err error)
 	}
 	return
 }
+
+func ConfirmCMDBDataList(ctx context.Context, ciTypeEntity string, dataGuidList []string) (err error) {
+	if len(dataGuidList) == 0 {
+		return
+	}
+	requestParam := models.PluginCiDataOperationRequest{RequestId: "req_" + guid.CreateGuid(), Inputs: []*models.PluginCiDataOperationRequestObj{}}
+	var jsonData []map[string]interface{}
+	for _, tmpGuid := range dataGuidList {
+		tmpRowMap := make(map[string]interface{})
+		tmpRowMap["id"] = tmpGuid
+		jsonData = append(jsonData, tmpRowMap)
+	}
+	jsonDataBytes, _ := json.Marshal(jsonData)
+	requestParam.Inputs = append(requestParam.Inputs, &models.PluginCiDataOperationRequestObj{CallbackParameter: fmt.Sprintf("%s_%d", ciTypeEntity, time.Now().Unix()), CiType: ciTypeEntity, Operation: "Confirm", JsonData: string(jsonDataBytes)})
+
+	var responseBodyBytes []byte
+	var response models.PluginCiDataOperationResp
+	uri := fmt.Sprintf("%s/wecmdb/plugin/ci-data/operation", models.Config.Gateway.Url)
+	postBytes, _ := json.Marshal(requestParam)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	if responseBodyBytes, err = network.HttpPost(uri, GetToken(), models.DefaultLanguage, postBytes); err != nil {
+		return
+	}
+	if err = json.Unmarshal(responseBodyBytes, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+	if response.ResultCode != "0" {
+		err = fmt.Errorf(response.ResultMessage)
+		return
+	}
+	return
+}

@@ -540,23 +540,6 @@ func importTaskManTemplate(ctx context.Context, transImportParam *models.TransIm
 // 10、页面第二步导入数据成功,点击下一步触发
 func updateWebBaseImportSuccess(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	log.Logger.Info("10. updateWebBaseImportSuccess start!!!")
-	transImportConfig, transImportErr := database.GetDataTransImportConfig(ctx)
-	if transImportErr != nil {
-		err = fmt.Errorf("get trans import config fail,%s ", transImportErr.Error())
-		return
-	}
-	if len(transImportConfig.AutoConfirmViewList) > 0 {
-		for _, viewId := range transImportConfig.AutoConfirmViewList {
-			if err = remote.AutoConfirmCMDBView(ctx, viewId); err != nil {
-				log.Logger.Error("confirm view fail", log.String("viewId", viewId), log.Error(err))
-				err = fmt.Errorf("confirm view:%s fail,%s ", viewId, err.Error())
-				break
-			}
-		}
-		if err != nil {
-			return
-		}
-	}
 	err = database.UpdateTransImportDetailStatus(ctx, transImportParam.TransImport.Id, transImportParam.CurrentDetail.Id, string(models.TransImportStatusSuccess), "", "")
 	if err != nil {
 		log.Logger.Error("UpdateTransImportDetailStatus fail", log.Error(err))

@@ -210,6 +210,83 @@ func importCmdbConfig(ctx context.Context, transImportParam *models.TransImportJ
 		err = fmt.Errorf("import cmdb data fail,%s ", err.Error())
 		return
 	}
+	transImportConfig, getImportConfigErr := database.GetDataTransImportConfig(ctx)
+	if getImportConfigErr != nil {
+		err = fmt.Errorf("get import config fail,%s ", getImportConfigErr.Error())
+		return
+	}
+	if len(transImportConfig.AutoConfirmCiList) > 0 {
+		for _, confirmCiType := range transImportConfig.AutoConfirmCiList {
+			if confirmCiType == "" {
+				continue
+			}
+			var confirmGuidList []string
+			tmpQueryCiDataRows, tmpErr := remote.RequestPluginModelData(ctx, "wecmdb", confirmCiType, remote.GetToken(), []*models.EntityQueryObj{})
+			if tmpErr != nil {
+				err = fmt.Errorf("try to confirm ci data,query ciType:%s data fail,%s ", confirmCiType, tmpErr.Error())
+				break
+			}
+			for _, row := range tmpQueryCiDataRows {
+				tmpRowGuid := fmt.Sprintf("%s", row["id"])
+				if tmpRowGuid != "" {
+					confirmGuidList = append(confirmGuidList, tmpRowGuid)
+				}
+			}
+			if len(confirmGuidList) > 0 {
+				err = remote.ConfirmCMDBDataList(ctx, confirmCiType, confirmGuidList)
+				if err != nil {
+					err = fmt.Errorf("try to do confirm ciType:%s data action fail,%s ", confirmCiType, err.Error())
+					break
+				}
+			}
+		}
+		if err != nil {
+			return
+		}
+	}
+	if len(transImportConfig.AutoConfirmViewList) > 0 {
+		for _, viewId := range transImportConfig.AutoConfirmViewList {
+			if err = remote.AutoConfirmCMDBView(ctx, viewId); err != nil {
+				log.Logger.Error("confirm view fail", log.String("viewId", viewId), log.Error(err))
+				err = fmt.Errorf("confirm view:%s fail,%s ", viewId, err.Error())
+				break
+			}
+		}
+		if err != nil {
+			return
+		}
+	}
+	if len(transImportConfig.AutoUpdateCiList) > 0 {
+		for _, updateCiType := range transImportConfig.AutoUpdateCiList {
+			if updateCiType == "" {
+				continue
+			}
+			var updateGuidMapList []map[string]interface{}
+			tmpQueryCiDataRows, tmpErr := remote.RequestPluginModelData(ctx, "wecmdb", updateCiType, remote.GetToken(), []*models.EntityQueryObj{})
+			if tmpErr != nil {
+				err = fmt.Errorf("try to update ci data,query ciType:%s data fail,%s ", updateCiType, tmpErr.Error())
+				break
+			}
+			for _, row := range tmpQueryCiDataRows {
+				tmpRowGuid := fmt.Sprintf("%s", row["id"])
+				if tmpRowGuid != "" {
+					tmpRowMap := make(map[string]interface{})
+					tmpRowMap["id"] = tmpRowGuid
+					updateGuidMapList = append(updateGuidMapList, tmpRowMap)
+				}
+			}
+			if len(updateGuidMapList) > 0 {
+				_, err = remote.UpdatePluginModelData(ctx, "wecmdb", updateCiType, remote.GetToken(), "", updateGuidMapList)
+				if err != nil {
+					err = fmt.Errorf("try to do update ciType:%s data action fail,%s ", updateCiType, err.Error())
+					break
+				}
+			}
+		}
+		if err != nil {
+			return
+		}
+	}
 	return
 }
 

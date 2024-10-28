@@ -239,6 +239,8 @@ type TransDataImportConfig struct {
 	SystemCiType              string   `json:"systemCiType"`
 	SystemDeployBatchAttr     string   `json:"systemDeployBatchAttr"`
 	AutoConfirmViewList       []string `json:"autoConfirmViewList"`
+	AutoConfirmCiList         []string `json:"autoConfirmCiList"`
+	AutoUpdateCiList          []string `json:"autoUpdateCiList"`
 }
 
 type QueryImportEntityRow struct {
@@ -265,4 +267,33 @@ func (q QueryImportEntityRows) Less(i, j int) bool {
 
 func (q QueryImportEntityRows) Swap(i, j int) {
 	q[i], q[j] = q[j], q[i]
+}
+
+type PluginCiDataOperationRequest struct {
+	RequestId string                             `json:"requestId"`
+	Inputs    []*PluginCiDataOperationRequestObj `json:"inputs"`
+}
+
+type PluginCiDataOperationRequestObj struct {
+	CallbackParameter string `json:"callbackParameter"`
+	CiType            string `json:"ciType"`
+	Operation         string `json:"operation"`
+	JsonData          string `json:"jsonData"`
+}
+
+type PluginCiDataOperationResp struct {
+	ResultCode    string                      `json:"resultCode"`
+	ResultMessage string                      `json:"resultMessage"`
+	Results       PluginCiDataOperationOutput `json:"results"`
+}
+type PluginCiDataOperationOutput struct {
+	Outputs []*PluginCiDataOperationOutputObj `json:"outputs"`
+}
+
+type PluginCiDataOperationOutputObj struct {
+	CallbackParameter string `json:"callbackParameter"`
+	Guid              string `json:"guid"`
+	ErrorCode         string `json:"errorCode"`
+	ErrorMessage      string `json:"errorMessage"`
+	ErrorDetail       string `json:"errorDetail,omitempty"`
 }
