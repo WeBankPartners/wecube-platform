@@ -1193,3 +1193,8 @@ func getUserProcDefCollectMap(ctx context.Context, userId string) (procDefMap ma
 	}
 	return
 }
+
+func QueryProcDefListByRootEntity(ctx context.Context, rootEntity string) (result []*models.ProcDef, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def where status = ? and  root_entity like ?", models.Deployed, rootEntity+"%").Find(&result)
+	return
+}
