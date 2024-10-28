@@ -898,5 +898,9 @@
   "p_instance_destroy_failed": "Instance destruction failed",
   "p_instance_destroy": "Instance being destroyed",
   "p_online_plugin_installation": "Online plugin installation",
-  "fd_platform": "Platform"
+  "fd_platform": "Platform",
+  "p_taskman": "Task Man Plugin",
+  "p_cmdb": "CMDB Plugin",
+  "p_layout": "Layout Plugin",
+  "p_monitor": "Monitor Plugin"
 }
