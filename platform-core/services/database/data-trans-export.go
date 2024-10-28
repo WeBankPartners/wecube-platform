@@ -60,7 +60,7 @@ func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActi
 	var transExportDetails []*models.TransExportDetailTable
 	var queryRolesResponse models.QueryRolesResponse
 	var transDataVariableConfig *models.TransDataVariableConfig
-	var path, zipPath string
+	var path, zipPath, monitorPath, exportDataPath string
 	if transExportDetails, err = getTransExportDetail(ctx, callParam.TransExportId); err != nil {
 		return
 	}
@@ -69,8 +69,13 @@ func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActi
 		return
 	}
 	// 通用路径
-	if path, err = tools.GetPath(fmt.Sprintf(tempWeCubeDataDir, callParam.TransExportId)); err != nil {
-		log.Logger.Error("getPath error", log.Error(err))
+	path = fmt.Sprintf(tempWeCubeDataDir, callParam.TransExportId)
+	// 监控路径
+	if monitorPath, err = tools.GetPath(fmt.Sprintf("%s/monitor", path)); err != nil {
+		return
+	}
+	// 导出目录路径
+	if exportDataPath, err = tools.GetPath(fmt.Sprintf("%s/export", path)); err != nil {
 		return
 	}
 	// 压缩文件路径
@@ -87,6 +92,8 @@ func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActi
 		Language:                callParam.Language,
 		Path:                    path,
 		ZipPath:                 zipPath,
+		ExportDataPath:          exportDataPath,
+		MonitorPath:             monitorPath,
 		AllRoles:                queryRolesResponse.Data,
 		RoleDisplayNameMap:      make(map[string]string),
 		DataTransVariableConfig: transDataVariableConfig,
@@ -348,14 +355,14 @@ func exportMonitor(ctx context.Context, param *models.TransExportJobParam) (resu
 		return
 	}
 	// 监控分目录导出
-	metricPath := fmt.Sprintf("%s/metric", param.Path)
+	metricPath := fmt.Sprintf("%s/metric", param.MonitorPath)
 	serviceGroupPath := fmt.Sprintf("%s/service_group", metricPath)
 	endpointGroupPath := fmt.Sprintf("%s/endpoint_group", metricPath)
 
-	strategyPath := fmt.Sprintf("%s/strategy", param.Path)
-	dashboardPath := fmt.Sprintf("%s/dashboard", param.Path)
-	keywordPath := fmt.Sprintf("%s/keyword", param.Path)
-	logMonitorPath := fmt.Sprintf("%s/log_monitor", param.Path)
+	strategyPath := fmt.Sprintf("%s/strategy", param.MonitorPath)
+	dashboardPath := fmt.Sprintf("%s/dashboard", param.MonitorPath)
+	keywordPath := fmt.Sprintf("%s/keyword", param.MonitorPath)
+	logMonitorPath := fmt.Sprintf("%s/log_monitor", param.MonitorPath)
 	if err = os.MkdirAll(serviceGroupPath, 0755); err != nil {
 		return
 	}
@@ -394,11 +401,11 @@ func exportMonitor(ctx context.Context, param *models.TransExportJobParam) (resu
 		switch models.TransExportAnalyzeMonitorDataType(monitorAnalyzeData.DataType) {
 		case models.TransExportAnalyzeMonitorDataTypeMonitorType:
 			// 导出基础类型
-			filePathList = []string{fmt.Sprintf("%s/%s.json", param.Path, monitorAnalyzeData.DataType)}
+			filePathList = []string{fmt.Sprintf("%s/%s.json", param.MonitorPath, monitorAnalyzeData.DataType)}
 			finalExportDataList = []interface{}{exportDataKeyList}
 		case models.TransExportAnalyzeMonitorDataTypeEndpointGroup:
 			// 导出对象组
-			filePathList = []string{fmt.Sprintf("%s/%s.json", param.Path, monitorAnalyzeData.DataType)}
+			filePathList = []string{fmt.Sprintf("%s/%s.json", param.MonitorPath, monitorAnalyzeData.DataType)}
 			if allMonitorEndpointGroupList, err = monitor.GetMonitorEndpointGroup(param.UserToken); err != nil {
 				log.Logger.Error("GetMonitorEndpointGroup  err", log.Error(err))
 				return
@@ -434,7 +441,7 @@ func exportMonitor(ctx context.Context, param *models.TransExportJobParam) (resu
 			if isEffectiveJson(responseBytes) {
 				var temp interface{}
 				json.Unmarshal(responseBytes, &temp)
-				filePathList = []string{fmt.Sprintf("%s/%s.json", param.Path, models.TransExportAnalyzeMonitorDataTypeLogMonitorTemplate)}
+				filePathList = []string{fmt.Sprintf("%s/%s.json", param.MonitorPath, models.TransExportAnalyzeMonitorDataTypeLogMonitorTemplate)}
 				finalExportDataList = []interface{}{temp}
 			}
 		case models.TransExportAnalyzeMonitorDataTypeStrategyServiceGroup:
@@ -579,12 +586,12 @@ func exportImportShowData(ctx context.Context, param *models.TransExportJobParam
 		}
 	}
 	// 导出环境
-	if err = tools.WriteJsonData2File(fmt.Sprintf("%s/env.json", param.Path), environmentMap); err != nil {
+	if err = tools.WriteJsonData2File(fmt.Sprintf("%s/env.json", param.ExportDataPath), environmentMap); err != nil {
 		log.Logger.Error("WriteJsonData2File env.json err", log.Error(err))
 		return
 	}
 	// 导出产品
-	if err = tools.WriteJsonData2File(fmt.Sprintf("%s/product.json", param.Path), showResult); err != nil {
+	if err = tools.WriteJsonData2File(fmt.Sprintf("%s/product.json", param.ExportDataPath), showResult); err != nil {
 		log.Logger.Error("WriteJsonData2File product.json err", log.Error(err))
 		return
 	}
@@ -593,7 +600,7 @@ func exportImportShowData(ctx context.Context, param *models.TransExportJobParam
 		return
 	}
 	// 导出ui数据,导入回显用
-	if err = tools.WriteJsonData2File(fmt.Sprintf("%s/ui-data.json", param.Path), detail); err != nil {
+	if err = tools.WriteJsonData2File(fmt.Sprintf("%s/ui-data.json", param.ExportDataPath), detail); err != nil {
 		log.Logger.Error("WriteJsonData2File ui-data err", log.Error(err))
 	}
 	return
