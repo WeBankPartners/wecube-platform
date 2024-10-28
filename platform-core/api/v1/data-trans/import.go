@@ -292,7 +292,7 @@ func importCmdbConfig(ctx context.Context, transImportParam *models.TransImportJ
 
 // 3、导入cmdb插件服务
 func importPluginConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-	ctx = BuildContext(ctx, &models.BuildContextParam{UserId: transImportParam.Operator, Token: transImportParam.Token})
+	ctx = BuildContext(ctx, &models.BuildContextParam{UserId: transImportParam.Operator, Token: remote.GetToken()})
 	// 同步cmdb数据模型
 	pluginModels, getModelsErr := remote.GetPluginDataModels(ctx, "wecmdb", remote.GetToken())
 	if getModelsErr != nil {
