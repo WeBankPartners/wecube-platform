@@ -37,3 +37,6 @@ CREATE TABLE `plugin_object_property_meta` (
 alter table plugin_object_meta modify id varchar(64) not null;
 
 alter table proc_ins add column request_info text default null comment 'taskman请求信息';
+
+alter table proc_def add index index_pd_root_entity(root_entity);
+

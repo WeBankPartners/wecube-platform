@@ -807,6 +807,9 @@ func buildStartNodeContextMap(inputContextMap map[string]interface{}, procIns *m
 	inputContextMap["procInstName"] = procIns.ProcDefName
 	inputContextMap["rootEntityId"] = procIns.EntityDataId
 	inputContextMap["rootEntityName"] = procIns.EntityDataName
+	inputContextMap["procStartTime"] = procIns.CreatedTime
+	inputContextMap["procExecutor"] = procIns.CreatedBy
+
 	if procDefNodeParam.CtxBindName != procDefNodeParam.Name {
 		if v, ok := inputContextMap[procDefNodeParam.CtxBindName]; ok {
 			inputContextMap[procDefNodeParam.Name] = v
