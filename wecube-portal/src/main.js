@@ -18,6 +18,7 @@ import req from './api/base'
 import implicitRoutes from './implicitRoutes.js'
 import { getChildRouters } from './pages/util/router.js'
 import { getGlobalMenus } from '@/const/util.js'
+import { pluginNameMap } from '@/const/util.js'
 // 引用wecube公共组件
 import commonUI from 'wecube-common-ui'
 import 'wecube-common-ui/lib/wecube-common-ui.css'
@@ -74,6 +75,18 @@ WatchRouter.on('change', oldPath => {
   }
   window.location.href = window.location.origin + '/#' + path
 })
+
+const rewriteDocumentTitle = path => {
+  document.title = ''
+  for (const key in pluginNameMap) {
+    if (path.startsWith(key)) {
+      document.title = i18n.t(pluginNameMap[key])
+    }
+  }
+  if (!document.title) {
+    document.title = i18n.t('p_monitor')
+  }
+}
 
 window.childRouters = []
 
@@ -155,6 +168,7 @@ router.beforeEach(async (to, from, next) => {
   if (window.isLoadingPlugin && to.path === '/homepage') {
     return
   }
+  document.title = i18n.t('fd_platform')
   if (['/404', '/login', '/homepage'].includes(to.path)) {
     return next()
   }
@@ -176,6 +190,7 @@ router.beforeEach(async (to, from, next) => {
           'currentPath',
           to.path === '/404' || to.path === '/login' ? '/homepage' : to.fullPath
         )
+        rewriteDocumentTitle(to.path)
         next()
       } else {
         /* has no permission */
