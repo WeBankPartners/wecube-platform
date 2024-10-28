@@ -251,7 +251,7 @@ export default {
           this.detailData.stepTwoRes.status = 'fail'
         }
         // 第二步导入状态判断
-        if (this.activeStep === 1) {
+        if (this.detailData.step === 2) {
           if (!['success', 'fail'].includes(this.detailData.stepTwoRes.status)) {
             if (!this.interval) {
               this.interval = setInterval(() => {
@@ -263,7 +263,7 @@ export default {
           }
         }
         // 第四步导入状态判断
-        if (this.activeStep === 3) {
+        if (this.detailData.step === 4) {
           if (!['success', 'fail'].includes(this.detailData.initWorkflowRes.status)) {
             if (!this.interval) {
               this.interval = setInterval(() => {
@@ -275,7 +275,7 @@ export default {
           }
         }
         // 第五步导入状态判断
-        if (this.activeStep === 4) {
+        if (this.detailData.step === 5) {
           if (!['success', 'fail'].includes(this.detailData.monitorBusinessRes.status)) {
             if (!this.interval) {
               this.interval = setInterval(() => {
@@ -310,12 +310,22 @@ export default {
       await this.getDetailData()
       this.loading = false
       this.activeStep++
+      if (!this.interval) {
+        setTimeout(() => {
+          this.getDetailData()
+        }, 5000)
+      }
     },
     async handleSaveStepFour() {
       this.loading = true
       await this.getDetailData()
       this.loading = false
       this.activeStep++
+      if (!this.interval) {
+        setTimeout(() => {
+          this.getDetailData()
+        }, 5000)
+      }
     },
     async handleSaveStepFive() {
       this.loading = true
