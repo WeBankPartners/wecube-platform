@@ -35,7 +35,7 @@
           <StepOne :detailData="detailData" @saveStepOne="handleSaveStepOne" @nextStep="activeStep++"></StepOne>
         </BaseHeaderTitle>
         <!--导入数据-->
-        <BaseHeaderTitle v-if="activeStep === 2" :title="$t('pi_import_step2')" :showExpand="false">
+        <BaseHeaderTitle v-if="activeStep === 1" :title="$t('pi_import_step2')" :showExpand="false">
           <StepTwo
             :detailData="detailData"
             @saveStepTwo="handleSaveStepTwo"
@@ -44,7 +44,7 @@
           ></StepTwo>
         </BaseHeaderTitle>
         <!--修改数据-->
-        <BaseHeaderTitle v-if="activeStep === 1" :title="$t('pi_import_step3')" :showExpand="false">
+        <BaseHeaderTitle v-if="activeStep === 2" :title="$t('pi_import_step3')" :showExpand="false">
           <StepThree
             :detailData="detailData"
             @saveStepThree="handleSaveStepThree"
