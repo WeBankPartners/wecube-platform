@@ -125,3 +125,11 @@ export const getGlobalMenus = () =>
       }
     })
   })
+
+export const pluginNameMap = {
+  '/taskman': 'p_taskman',
+  '/wecmdb': 'p_cmdb',
+  '/implementation': 'p_layout',
+  '/collaboration': 'fd_platform',
+  '/admin': 'fd_platform'
+}
