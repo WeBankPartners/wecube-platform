@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -1323,6 +1324,37 @@ func ImportTemplate(c *gin.Context, batchExecTemplateData []*models.BatchExecuti
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		return
+	}
+	return
+}
+
+func GetProcDefByEntity(ctx context.Context, entity, guid string) (result []*models.ProcDef, err error) {
+	var list []*models.ProcDef
+	var exprList []*models.ExpressionObj
+	var queryResult []map[string]interface{}
+	result = []*models.ProcDef{}
+	if entity == "" || guid == "" {
+		err = fmt.Errorf("entity or guid is empty")
+		return
+	}
+	// 1. 先编排表里面匹配所有RootEntity编排(只匹配根)
+	rootEntity := strings.Split(entity, "{")
+	if list, err = QueryProcDefListByRootEntity(ctx, rootEntity[0]); err != nil {
+		return
+	}
+	// 2. 调用编排分析,获取操作对象列表
+	for _, procDef := range list {
+		if exprList, err = remote.AnalyzeExpression(procDef.RootEntity); err != nil {
+			return
+		}
+		if queryResult, err = remote.QueryPluginData(ctx, exprList, []*models.QueryExpressionDataFilter{}, remote.GetToken()); err != nil {
+			return
+		}
+		for _, data := range queryResult {
+			if v, ok := data[guid]; ok && v == guid {
+				result = append(result, procDef)
+			}
+		}
 	}
 	return
 }

@@ -32,6 +32,8 @@ const (
 	ContextNameRootEntityId   string = "rootEntityId"
 	ContextNameProcInstId     string = "procInstId"
 	ContextNameProcInstKey    string = "procInstKey"
+	ContextNameProcStartTime  string = "procStartTime"
+	ContextNameProcExecutor   string = "procExecutor"
 	PluginDataTypeString      string = "string"
 	PluginParamTypeInput      string = "INPUT"
 	PluginParamTypeOutput     string = "OUTPUT"
@@ -1173,6 +1175,18 @@ func prepareNodeParameters() []*models.InterfaceParameterDto {
 	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
 		Type:     PluginParamTypeInput,
 		Name:     ContextNameRootEntityId,
+		DataType: PluginDataTypeString,
+	})
+
+	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
+		Type:     PluginParamTypeInput,
+		Name:     ContextNameProcStartTime,
+		DataType: PluginDataTypeString,
+	})
+
+	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
+		Type:     PluginParamTypeInput,
+		Name:     ContextNameProcExecutor,
 		DataType: PluginDataTypeString,
 	})
 
