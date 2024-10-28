@@ -50,6 +50,9 @@ func PublicProcDefList(c *gin.Context) {
 	withAll := c.Query("all")
 	subProc := c.Query("subProc")
 	rootEntity := c.Query("rootEntity")
+	rootEntityGuid := c.Query("rootEntityGuid")
+	var exprList []*models.ExpressionObj
+	var queryResult []map[string]interface{}
 	if permission == "" {
 		permission = "USE"
 	}
@@ -64,6 +67,9 @@ func PublicProcDefList(c *gin.Context) {
 		middleware.ReturnData(c, []*models.PublicProcDefObj{})
 		return
 	}
+	if strings.TrimSpace(rootEntity) != "" {
+		rootEntity = strings.Split(rootEntity, "{")[0]
+	}
 	log.Logger.Debug("public procDefList", log.String(permission, "permission"), log.String("tag", tag))
 	procList, err := database.ProcDefList(c, "0", permission, tag, plugin, subProc, middleware.GetRequestUser(c), rootEntity, middleware.GetRequestRoles(c))
 	if err != nil {
@@ -71,7 +77,7 @@ func PublicProcDefList(c *gin.Context) {
 		return
 	}
 	if withAll == "N" {
-		newProcList := []*models.ProcDefListObj{}
+		var newProcList []*models.ProcDefListObj
 		procKeyMap := make(map[string]int)
 		for _, row := range procList {
 			if _, ok := procKeyMap[row.ProcDefKey]; ok {
@@ -82,7 +88,7 @@ func PublicProcDefList(c *gin.Context) {
 		}
 		procList = newProcList
 	}
-	result := []*models.PublicProcDefObj{}
+	var result, newResult []*models.PublicProcDefObj
 	entityMap := make(map[string]*models.ProcEntity)
 	for _, row := range procList {
 		resultObj := models.PublicProcDefObj{
@@ -125,10 +131,28 @@ func PublicProcDefList(c *gin.Context) {
 		}
 		result = append(result, &resultObj)
 	}
+	if strings.TrimSpace(rootEntityGuid) != "" {
+		// 调用编排分析,获取操作对象列表
+		for _, procDef := range result {
+			if exprList, err = remote.AnalyzeExpression(procDef.RootEntityExpression); err != nil {
+				return
+			}
+			if queryResult, err = remote.QueryPluginData(c, exprList, []*models.QueryExpressionDataFilter{}, remote.GetToken()); err != nil {
+				return
+			}
+			for _, data := range queryResult {
+				if v, ok := data[rootEntityGuid]; ok && v == rootEntityGuid {
+					result = append(result, procDef)
+				}
+			}
+		}
+	} else {
+		newResult = result
+	}
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
-		middleware.ReturnData(c, result)
+		middleware.ReturnData(c, newResult)
 	}
 }
 
