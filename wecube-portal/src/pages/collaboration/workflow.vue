@@ -216,7 +216,7 @@ export default {
         {
           key: 'createdTime',
           label: this.$t('table_created_date'),
-          initDateType: 1,
+          initDateType: 4,
           dateRange: [
             {
               label: this.$t('fe_recent3Months'),
