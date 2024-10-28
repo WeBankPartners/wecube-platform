@@ -222,7 +222,7 @@ func importRole(ctx context.Context, transImportParam *models.TransImportJobPara
 			// 系统默认角色不需要导入
 			continue
 		}
-		if response, err = remote.RegisterLocalRole(role, remote.GetToken(), transImportParam.Language); err != nil {
+		if response, err = remote.RegisterLocalRole(role, transImportParam.Token, transImportParam.Language); err != nil {
 			log.Logger.Error("RegisterLocalRole err", log.Error(err))
 			return
 		}
@@ -261,7 +261,7 @@ func importWorkflow(ctx context.Context, transImportParam *models.TransImportJob
 			Ctx:           ctx,
 			InputList:     procDefList,
 			Operator:      transImportParam.Operator,
-			UserToken:     remote.GetToken(),
+			UserToken:     transImportParam.Token,
 			Language:      transImportParam.Language,
 			IsTransImport: true,
 		}
@@ -343,7 +343,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 		if err = database.ParseJsonData(monitorTypePath, &monitorTypeList); err != nil {
 			return
 		}
-		if response, err = monitor.ImportMonitorType(monitorTypeList, remote.GetToken()); err != nil {
+		if response, err = monitor.ImportMonitorType(monitorTypeList, transImportParam.Token); err != nil {
 			log.Logger.Error("ImportMonitorType fail", log.Error(err))
 			return
 		}
@@ -362,7 +362,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 		return
 	}
 	if endpointGroupExist {
-		if err = monitor.ImportEndpointGroup(endpointGroupPath, remote.GetToken(), transImportParam.Language); err != nil {
+		if err = monitor.ImportEndpointGroup(endpointGroupPath, transImportParam.Token, transImportParam.Language); err != nil {
 			log.Logger.Error("ImportEndpointGroup fail", log.Error(err))
 			return
 		}
@@ -404,7 +404,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 					}
 					param := monitor.ImportMetricParam{
 						FilePath:      fmt.Sprintf("%s/endpoint_group/%s", metricPath, newFile.Name()),
-						UserToken:     remote.GetToken(),
+						UserToken:     transImportParam.Token,
 						Language:      transImportParam.Language,
 						EndpointGroup: endpointGroup,
 						MonitorType:   "process",
@@ -426,7 +426,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 			}
 			param := monitor.ImportMetricParam{
 				FilePath:    fmt.Sprintf("%s/%s", metricPath, file.Name()),
-				UserToken:   remote.GetToken(),
+				UserToken:   transImportParam.Token,
 				Language:    transImportParam.Language,
 				MonitorType: monitorType,
 				Comparison:  comparison,
@@ -464,7 +464,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 					StrategyType: "group",
 					Value:        endpointGroup,
 					FilePath:     fmt.Sprintf("%s/%s", strategyPath, file.Name()),
-					UserToken:    remote.GetToken(),
+					UserToken:    transImportParam.Token,
 					Language:     transImportParam.Language,
 				}
 				if err = monitor.ImportStrategy(param); err != nil {
@@ -484,7 +484,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 		return
 	}
 	if logMonitorTemplateExist {
-		err = monitor.ImportLogMonitorTemplate(logMonitorTemplatePath, remote.GetToken(), transImportParam.Language)
+		err = monitor.ImportLogMonitorTemplate(logMonitorTemplatePath, transImportParam.Token, transImportParam.Language)
 		if err != nil {
 			log.Logger.Error("ImportLogMetricTemplate fail", log.Error(err))
 			return
@@ -512,7 +512,7 @@ func importTaskManComponentLibrary(ctx context.Context, transImportParam *models
 	}
 	if input == "true" {
 		// 导入组件库
-		err = remote.ImportComponentLibrary(fmt.Sprintf("%s/component_library.json", transImportParam.DirPath), remote.GetToken(), transImportParam.Language)
+		err = remote.ImportComponentLibrary(fmt.Sprintf("%s/component_library.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
 		if err != nil {
 			log.Logger.Error("importTaskManComponentLibrary", log.Error(err))
 			return
@@ -528,7 +528,7 @@ func importTaskManComponentLibrary(ctx context.Context, transImportParam *models
 func importTaskManTemplate(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	log.Logger.Info("9. importTaskManTemplate start!!!")
 	// 导入模版
-	err = remote.ImportRequestTemplate(fmt.Sprintf("%s/request_template.json", transImportParam.DirPath), remote.GetToken(), transImportParam.Language)
+	err = remote.ImportRequestTemplate(fmt.Sprintf("%s/request_template.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
 	if err != nil {
 		log.Logger.Error("ImportRequestTemplate fail", log.Error(err))
 		return
@@ -595,7 +595,7 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 		// 遍历文件和子目录
 		for _, file := range files {
 			serviceGroup := file.Name()[:strings.LastIndex(file.Name(), ".")]
-			err = monitor.ImportLogMonitor(fmt.Sprintf("%s/%s", logMonitorPath, file.Name()), remote.GetToken(), transImportParam.Language, serviceGroup)
+			err = monitor.ImportLogMonitor(fmt.Sprintf("%s/%s", logMonitorPath, file.Name()), transImportParam.Token, transImportParam.Language, serviceGroup)
 			if err != nil {
 				log.Logger.Error("ImportLogMonitor err", log.String("fileName", file.Name()))
 				return
@@ -628,7 +628,7 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 			}
 			param := monitor.ImportMetricParam{
 				FilePath:     fmt.Sprintf("%s/%s", serviceGroupMetricPath, file.Name()),
-				UserToken:    remote.GetToken(),
+				UserToken:    transImportParam.Token,
 				Language:     transImportParam.Language,
 				ServiceGroup: serviceGroup,
 				MonitorType:  "process",
@@ -668,7 +668,7 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 					StrategyType: "service",
 					Value:        serviceGroup,
 					FilePath:     fmt.Sprintf("%s/%s", strategyPath, file.Name()),
-					UserToken:    remote.GetToken(),
+					UserToken:    transImportParam.Token,
 					Language:     transImportParam.Language,
 				}
 				if err = monitor.ImportStrategy(param); err != nil {
@@ -694,7 +694,7 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 		}
 		// 遍历文件和子目录
 		for _, file := range files {
-			if err = monitor.ImportDashboard(fmt.Sprintf("%s/%s", dashboardPath, file.Name()), remote.GetToken(), transImportParam.Language); err != nil {
+			if err = monitor.ImportDashboard(fmt.Sprintf("%s/%s", dashboardPath, file.Name()), transImportParam.Token, transImportParam.Language); err != nil {
 				log.Logger.Error("ImportDashboard err", log.String("fileName", file.Name()), log.Error(err))
 				return
 			}
@@ -718,7 +718,7 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 		// 遍历文件和子目录
 		for _, file := range files {
 			serviceGroup := file.Name()[:strings.LastIndex(file.Name(), ".")]
-			if err = monitor.ImportLogKeyword(fmt.Sprintf("%s/%s", logKeywordPath, file.Name()), remote.GetToken(), transImportParam.Language, serviceGroup); err != nil {
+			if err = monitor.ImportLogKeyword(fmt.Sprintf("%s/%s", logKeywordPath, file.Name()), transImportParam.Token, transImportParam.Language, serviceGroup); err != nil {
 				log.Logger.Error("ImportLogKeyword err", log.String("fileName", file.Name()), log.Error(err))
 				return
 			}
