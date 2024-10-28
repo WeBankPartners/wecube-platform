@@ -13,7 +13,9 @@
         :label="i.label"
         :prop="i.key"
         :rules="{
-          required: ['dataCenterRegionAssetId', 'dataCenterAZ1AssetId', 'dataCenterAZ2AssetId'].includes(i.key) ? true : false,
+          required: ['dataCenterRegionAssetId', 'dataCenterAZ1AssetId', 'dataCenterAZ2AssetId'].includes(i.key)
+            ? true
+            : false,
           message: '不能为空',
           trigger: 'blur'
         }"
