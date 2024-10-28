@@ -35,7 +35,7 @@
           <StepOne :detailData="detailData" @saveStepOne="handleSaveStepOne" @nextStep="activeStep++"></StepOne>
         </BaseHeaderTitle>
         <!--导入数据-->
-        <BaseHeaderTitle v-if="activeStep === 1" :title="$t('pi_import_step2')" :showExpand="false">
+        <BaseHeaderTitle v-if="activeStep === 2" :title="$t('pi_import_step2')" :showExpand="false">
           <StepTwo
             :detailData="detailData"
             @saveStepTwo="handleSaveStepTwo"
@@ -44,7 +44,7 @@
           ></StepTwo>
         </BaseHeaderTitle>
         <!--修改数据-->
-        <BaseHeaderTitle v-if="activeStep === 2" :title="$t('pi_import_step3')" :showExpand="false">
+        <BaseHeaderTitle v-if="activeStep === 1" :title="$t('pi_import_step3')" :showExpand="false">
           <StepThree
             :detailData="detailData"
             @saveStepThree="handleSaveStepThree"
@@ -252,11 +252,11 @@ export default {
         }
         // 第二步导入状态判断
         if (this.detailData.step === 2) {
-          if (['doing', 'notStart'].includes(this.detailData.stepTwoRes.status)) {
+          if (!['success', 'fail'].includes(this.detailData.stepTwoRes.status)) {
             if (!this.interval) {
               this.interval = setInterval(() => {
                 this.getDetailData()
-              }, 30 * 1000)
+              }, 5 * 1000)
             }
           } else {
             clearInterval(this.interval)
@@ -264,11 +264,11 @@ export default {
         }
         // 第四步导入状态判断
         if (this.detailData.step === 4) {
-          if (['doing', 'notStart'].includes(this.detailData.initWorkflowRes.status)) {
+          if (!['success', 'fail'].includes(this.detailData.initWorkflowRes.status)) {
             if (!this.interval) {
               this.interval = setInterval(() => {
                 this.getDetailData()
-              }, 30 * 1000)
+              }, 5 * 1000)
             }
           } else {
             clearInterval(this.interval)
@@ -276,11 +276,11 @@ export default {
         }
         // 第五步导入状态判断
         if (this.detailData.step === 5) {
-          if (['doing', 'notStart'].includes(this.detailData.monitorBusinessRes.status)) {
+          if (!['success', 'fail'].includes(this.detailData.monitorBusinessRes.status)) {
             if (!this.interval) {
               this.interval = setInterval(() => {
                 this.getDetailData()
-              }, 30 * 1000)
+              }, 5 * 1000)
             }
           } else {
             clearInterval(this.interval)
@@ -316,23 +316,11 @@ export default {
       await this.getDetailData()
       this.loading = false
       this.activeStep++
-      // 刷新status字段，避免后台status字段为空，不会轮询
-      if (!this.detailData.initWorkflowRes.status) {
-        setTimeout(() => {
-          this.getDetailData()
-        }, 5000)
-      }
     },
     async handleSaveStepFive() {
       this.loading = true
       await this.getDetailData()
       this.loading = false
-      // 刷新status字段，避免后台status字段为空，不会轮询
-      if (!this.detailData.monitorBusinessRes.status) {
-        setTimeout(() => {
-          this.getDetailData()
-        }, 5000)
-      }
     },
     // 终止
     handleStop() {
