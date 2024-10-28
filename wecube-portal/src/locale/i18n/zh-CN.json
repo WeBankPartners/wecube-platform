@@ -897,5 +897,9 @@
   "p_instance_destroy_failed": "实例销毁失败",
   "p_instance_destroy": "实例销毁中",
   "p_online_plugin_installation": "在线插件安装中",
-  "fd_platform": "平台"
+  "fd_platform": "平台",
+  "p_taskman": "Task Man插件",
+  "p_cmdb": "CMDB 插件",
+  "p_layout": "编排插件",
+  "p_monitor": "监控插件"
 }
