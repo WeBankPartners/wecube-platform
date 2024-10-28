@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2024-10-16 15:32:21
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2024-10-22 17:43:01
+ * @LastEditTime: 2024-10-28 10:17:24
 -->
 <template>
   <div class="base-migration-import-three">
@@ -12,7 +12,11 @@
         :key="idx"
         :label="i.label"
         :prop="i.key"
-        :rules="{required: true, message: '不能为空', trigger: 'blur'}"
+        :rules="{
+          required: ['dataCenterRegionAssetId', 'dataCenterAZ1AssetId', 'dataCenterAZ2AssetId'].includes(i.key) ? true : false,
+          message: '不能为空',
+          trigger: 'blur'
+        }"
       >
         <template v-if="i.key === 'wecubeHostPassword'">
           <input type="text" style="display: none" />
@@ -69,6 +73,18 @@ export default {
       },
       options: [
         {
+          label: '数据中心 地域数据中心-资产ID',
+          key: 'dataCenterRegionAssetId'
+        },
+        {
+          label: '地域数据中心可用区1-资产ID',
+          key: 'dataCenterAZ1AssetId'
+        },
+        {
+          label: '地域数据中心可用区2-资产ID',
+          key: 'dataCenterAZ2AssetId'
+        },
+        {
           label: '网络区域-资产ID',
           key: 'networkZoneAssetId'
         },
@@ -83,18 +99,6 @@ export default {
         {
           label: '基础安全组 MGMT-APP-资产ID',
           key: 'basicSecurityGroupAssetId'
-        },
-        {
-          label: '数据中心 地域数据中心-资产ID',
-          key: 'dataCenterRegionAssetId'
-        },
-        {
-          label: '地域数据中心可用区1-资产ID',
-          key: 'dataCenterAZ1AssetId'
-        },
-        {
-          label: '地域数据中心可用区2-资产ID',
-          key: 'dataCenterAZ2AssetId'
         },
         {
           label: '主机资源 wecube主机的-资产ID',
