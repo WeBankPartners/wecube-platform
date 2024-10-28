@@ -901,5 +901,7 @@
   "p_taskman": "Task Man插件",
   "p_cmdb": "CMDB 插件",
   "p_layout": "编排插件",
-  "p_monitor": "监控插件"
+  "p_open-monitor": "监控插件",
+  "p_dangerous": "Terraform插件",
+  "p_artifacts": "物料插件"
 }
