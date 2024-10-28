@@ -78,19 +78,28 @@ WatchRouter.on('change', oldPath => {
 
 const rewriteDocumentTitle = path => {
   document.title = ''
-  for (const key in pluginNameMap) {
-    if (path.startsWith(key)) {
+  Object.keys(pluginNameMap).forEach(key => {
+    if (path.startsWith(key) || path.startsWith('/' + key)) {
       document.title = i18n.t(pluginNameMap[key])
     }
-  }
-  if (!document.title) {
-    document.title = i18n.t('p_monitor')
+    if (!document.title) {
+      document.title = i18n.t('fd_platform')
+    }
+  })
+}
+
+const getDocumentTitleMap = (routeArr, name) => {
+  if (routeArr.length > 0) {
+    routeArr.forEach(item => {
+      pluginNameMap[item.path] = `p_${name}`
+    })
   }
 }
 
 window.childRouters = []
 
 window.addRoutes = (route, name) => {
+  getDocumentTitleMap(route, name)
   window.routers = window.routers.concat(route)
   getChildRouters(route)
   router.addRoutes([
