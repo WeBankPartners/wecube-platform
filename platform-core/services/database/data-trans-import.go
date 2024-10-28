@@ -714,6 +714,14 @@ func GetDataTransImportConfig(ctx context.Context) (result *models.TransDataImpo
 			if tmpValue != "" {
 				result.AutoConfirmViewList = strings.Split(tmpValue, ",")
 			}
+		case "PLATFORM_IMPORT_CONFIRM_CI_LIST":
+			if tmpValue != "" {
+				result.AutoConfirmCiList = strings.Split(tmpValue, ",")
+			}
+		case "PLATFORM_IMPORT_UPDATE_CI_LIST":
+			if tmpValue != "" {
+				result.AutoUpdateCiList = strings.Split(tmpValue, ",")
+			}
 		}
 	}
 	return
