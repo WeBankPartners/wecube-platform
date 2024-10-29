@@ -135,6 +135,22 @@ func CheckCollectTemplate(c *gin.Context) {
 	}
 }
 
+// GetAllTemplate 获取所有模版
+func GetAllTemplate(c *gin.Context) {
+	var templateData []*models.BatchExecutionTemplate
+	var err error
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+	if templateData, err = database.GetAllTemplate(c); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnData(c, templateData)
+}
+
 // RetrieveTemplate 查询批量执行模板列表
 func RetrieveTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
@@ -620,7 +636,7 @@ func ExportTemplate(c *gin.Context) {
 		return
 	}
 
-	retData, err := database.ExportTemplate(c, &param)
+	retData, err := database.ExportTemplate(c, c.GetHeader("Authorization"), &param)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -661,7 +677,7 @@ func ImportTemplate(c *gin.Context) {
 		return
 	}
 
-	err = database.ImportTemplate(c, batchExecTemplateData)
+	err = database.ImportTemplate(c, middleware.GetRequestUser(c), batchExecTemplateData)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {

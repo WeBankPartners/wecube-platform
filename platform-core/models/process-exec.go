@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -585,6 +586,13 @@ type ParentProcInsObj struct {
 	ProcInsId   string `json:"procInsId" xorm:"proc_ins_id"`
 	ProcDefName string `json:"procDefName" xorm:"proc_def_name"`
 	Version     string `json:"version" xorm:"version"`
+}
+
+type HandleProcessInputDataParam struct {
+	Ctx              context.Context        `json:"ctx"`
+	AuthToken        string                 `json:"authToken"`
+	InputConstantMap map[string]string      `json:"inputConstantMap"`
+	InputContextMap  map[string]interface{} `json:"inputContextMap"`
 }
 
 type SimpleRequestDto struct {

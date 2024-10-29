@@ -802,7 +802,8 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #e8eaec;
   }
 }
 </style>

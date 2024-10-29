@@ -536,3 +536,11 @@ func QueryPluginInterfaceParam(ctx context.Context, param *models.PluginInterfac
 	}
 	return
 }
+
+func GetRunningPluginPackages(ctx context.Context) (result []*models.PluginPackages, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select id,name from plugin_packages where status='REGISTERED' and id in (select package_id from plugin_instances where container_status='RUNNING')").Find(&result)
+	if err != nil {
+		err = fmt.Errorf("query running plugin packages fail,%s ", err.Error())
+	}
+	return
+}
