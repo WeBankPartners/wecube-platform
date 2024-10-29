@@ -129,5 +129,55 @@ export default {
       'en-US': 'Conjoin',
       'zh-CN': '协同'
     }
+  },
+  'admin/base-migration/export': {
+    childBreadcrumb: {
+      'en-US': 'Create Export',
+      'zh-CN': '新建导出'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Base Migration',
+      'zh-CN': '一键迁移'
+    }
+  },
+  'admin/base-migration/export-history': {
+    childBreadcrumb: {
+      'en-US': 'Export History',
+      'zh-CN': '导出历史'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Base Migration',
+      'zh-CN': '一键迁移'
+    }
+  },
+  'admin/base-migration/import': {
+    childBreadcrumb: {
+      'en-US': 'Create Import',
+      'zh-CN': '新建导入'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Base Migration',
+      'zh-CN': '一键迁移'
+    }
+  },
+  'admin/base-migration/import-history': {
+    childBreadcrumb: {
+      'en-US': 'Import History',
+      'zh-CN': '导入历史'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Base Migration',
+      'zh-CN': '一键迁移'
+    }
+  },
+  'wecmdb/designing/data-import-detail': {
+    childBreadcrumb: {
+      'en-US': 'Data Management (Import)',
+      'zh-CN': '数据管理(导入)'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Cube Back',
+      'zh-CN': '设计'
+    }
   }
 }

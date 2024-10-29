@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api"
+	data_trans "github.com/WeBankPartners/wecube-platform/platform-core/api/v1/data-trans"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
@@ -32,6 +33,7 @@ func main() {
 	go bash.InitPluginDockerHostSSH()
 	workflow.StartCronJob()
 	process.InitProcScheduleTimer()
+	go data_trans.StartExecWorkflowCron()
 	//start http
 	api.InitHttpServer()
 }
