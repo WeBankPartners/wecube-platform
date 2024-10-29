@@ -1,9 +1,9 @@
 export default G6 => {
   G6.registerBehavior('delete-item', {
     getEvents() {
-      return {
-        keydown: 'onKeydown'
-      }
+      // return {
+      //   keydown: 'onKeydown'
+      // }
     },
     shouldBegin() {
       return true

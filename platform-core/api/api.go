@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"fmt"
+	data_trans "github.com/WeBankPartners/wecube-platform/platform-core/api/v1/data-trans"
 	"io"
 	"net/http"
 	"strings"
@@ -141,6 +142,7 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id", Method: "GET", HandlerFunc: process.GetProcessDefinition, ApiCode: "get-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions/:proc-def-id/copy/:association", Method: "POST", HandlerFunc: process.CopyProcessDefinition, ApiCode: "copy-process-definition"},
 		&handlerFuncObj{Url: "/process/definitions/list", Method: "POST", HandlerFunc: process.QueryProcessDefinitionList, ApiCode: "process-definition-list"},
+		&handlerFuncObj{Url: "/process/definitions/all", Method: "GET", HandlerFunc: process.QueryAllProcessDefinitionList, ApiCode: "process-definition-all"},
 		&handlerFuncObj{Url: "/process/definitions/list/:plugin", Method: "GET", HandlerFunc: process.QueryPluginProcessDefinitionList, ApiCode: "plugin-process-definition-list"},
 		&handlerFuncObj{Url: "/process/definitions/status", Method: "POST", HandlerFunc: process.BatchUpdateProcessDefinitionStatus, ApiCode: "update-process-definition-status"},
 		&handlerFuncObj{Url: "/process/definitions/permission", Method: "POST", HandlerFunc: process.BatchUpdateProcessDefinitionPermission, ApiCode: "update-process-definition-permission"},
@@ -204,6 +206,7 @@ func init() {
 		// batch-execution
 		&handlerFuncObj{Url: "/batch-execution/templates", Method: "POST", HandlerFunc: batch_execution.CreateOrUpdateTemplate, ApiCode: "create-update-batch-execution-template"},
 		&handlerFuncObj{Url: "/batch-execution/templates/list", Method: "POST", HandlerFunc: batch_execution.RetrieveTemplate, ApiCode: "retrieve-batch-execution-template"},
+		&handlerFuncObj{Url: "/batch-execution/templates/all", Method: "GET", HandlerFunc: batch_execution.GetAllTemplate, ApiCode: "retrieve-batch-execution-template"},
 		&handlerFuncObj{Url: "/batch-execution/templates/:templateId", Method: "GET", HandlerFunc: batch_execution.GetTemplate, ApiCode: "get-batch-execution-template"},
 		&handlerFuncObj{Url: "/batch-execution/templates/:templateId", Method: "DELETE", HandlerFunc: batch_execution.DeleteTemplate, ApiCode: "delete-batch-execution-template"},
 		&handlerFuncObj{Url: "/batch-execution/templates/collect", Method: "POST", HandlerFunc: batch_execution.CollectTemplate, ApiCode: "collect-batch-execution-template"},
@@ -239,6 +242,22 @@ func init() {
 		&handlerFuncObj{Url: "/statistics/process/definitions/service-ids/tasknode-bindings/query", Method: "POST", HandlerFunc: process.StatisticsBindingsEntityByService, ApiCode: "statistics-bindings-entity-by-service"},
 		&handlerFuncObj{Url: "/statistics/process/definitions/executions/plugin/reports/query", Method: "POST", HandlerFunc: process.StatisticsPluginExec, ApiCode: "statistics-plugin-exec"},
 		&handlerFuncObj{Url: "/statistics/process/definitions/executions/plugin/report-details/query", Method: "POST", HandlerFunc: process.StatisticsPluginExecDetails, ApiCode: "statistics-plugin-exec-details"},
+
+		// 底座导入导出
+		&handlerFuncObj{Url: "/data/transfer/business/list", Method: "POST", HandlerFunc: data_trans.QueryBusinessList, ApiCode: "data-transfer-business-list"},
+		&handlerFuncObj{Url: "/data/transfer/export/create", Method: "POST", HandlerFunc: data_trans.CreateExport, ApiCode: "data-transfer-export-create"},
+		&handlerFuncObj{Url: "/data/transfer/export/update", Method: "POST", HandlerFunc: data_trans.UpdateExport, ApiCode: "data-transfer-export-update"},
+		&handlerFuncObj{Url: "/data/transfer/export", Method: "POST", HandlerFunc: data_trans.ExecExport, ApiCode: "data-transfer-export"},
+		&handlerFuncObj{Url: "/data/transfer/export/detail", Method: "GET", HandlerFunc: data_trans.ExportDetail, ApiCode: "data-transfer-export-detail"},
+		&handlerFuncObj{Url: "/data/transfer/export/list/options", Method: "GET", HandlerFunc: data_trans.GetExportListOptions, ApiCode: "data-transfer-export-options"},
+		&handlerFuncObj{Url: "/data/transfer/export/list", Method: "POST", HandlerFunc: data_trans.ExportList, ApiCode: "data-transfer-export-list"},
+
+		&handlerFuncObj{Url: "/data/transfer/import/business", Method: "GET", HandlerFunc: data_trans.GetBusinessList, ApiCode: "data-transfer-get-business-list"},
+		&handlerFuncObj{Url: "/data/transfer/import", Method: "POST", HandlerFunc: data_trans.ExecImport, ApiCode: "data-transfer-exec-import"},
+		&handlerFuncObj{Url: "/data/transfer/import/detail", Method: "GET", HandlerFunc: data_trans.ImportDetail, ApiCode: "data-transfer-import-detail"},
+		&handlerFuncObj{Url: "/data/transfer/import/list/options", Method: "GET", HandlerFunc: data_trans.GetImportListOptions, ApiCode: "data-transfer-import-options"},
+		&handlerFuncObj{Url: "/data/transfer/import/list", Method: "POST", HandlerFunc: data_trans.ImportList, ApiCode: "data-transfer-import-list"},
+		&handlerFuncObj{Url: "/data/transfer/import/status", Method: "POST", HandlerFunc: data_trans.UpdateImportStatus, ApiCode: "data-transfer-update-import-status"},
 	)
 }
 
@@ -255,7 +274,7 @@ func InitHttpServer() {
 		if !strings.HasPrefix(funcObj.Url, "/resource/") {
 			funcObj.Url = "/v1" + funcObj.Url
 		}
-		apiCodeMap[fmt.Sprintf("%s_%s", funcObj.Method, funcObj.Url)] = funcObj.ApiCode
+		apiCodeMap[fmt.Sprintf("%s_%s%s", funcObj.Method, models.UrlPrefix, funcObj.Url)] = funcObj.ApiCode
 		handleFuncList := []gin.HandlerFunc{funcObj.HandlerFunc}
 		if funcObj.PreHandle != nil {
 			handleFuncList = append([]gin.HandlerFunc{funcObj.PreHandle}, funcObj.HandlerFunc)
@@ -273,6 +292,7 @@ func InitHttpServer() {
 	}
 	r.GET(models.UrlPrefix+"/v1/route-items", system.GetRouteItems)
 	r.GET(models.UrlPrefix+"/v1/route-items/:name", system.GetRouteItems)
+	r.POST(models.UrlPrefix+"/entities/role/query", plugin.QueryRoleEntity)
 	r.Run(":" + models.Config.HttpServer.Port)
 }
 
@@ -295,14 +315,15 @@ func httpLogHandle() gin.HandlerFunc {
 			c.Request.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 			c.Set(models.ContextRequestBody, string(bodyBytes))
 		}
-		log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] ->", requestId, transactionId), log.String("uri", c.Request.RequestURI), log.String("method", c.Request.Method), log.String("sourceIp", getRemoteIp(c)), log.String(models.ContextOperator, c.GetString(models.ContextOperator)), log.String(models.ContextRequestBody, c.GetString(models.ContextRequestBody)))
+		apiCode := apiCodeMap[c.Request.Method+"_"+c.FullPath()]
+		log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] ->", requestId, transactionId), log.String("uri", c.Request.RequestURI), log.String("serviceCode", apiCode), log.String("method", c.Request.Method), log.String("sourceIp", getRemoteIp(c)), log.String(models.ContextOperator, c.GetString(models.ContextOperator)), log.String(models.ContextRequestBody, c.GetString(models.ContextRequestBody)))
 		c.Next()
 		costTime := time.Since(start).Seconds() * 1000
 		userId := c.GetString(models.ContextUserId)
 		if log.DebugEnable {
-			log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] [%s] <-", requestId, transactionId, userId), log.String("uri", c.Request.RequestURI), log.String("method", c.Request.Method), log.Int("httpCode", c.Writer.Status()), log.Int(models.ContextErrorCode, c.GetInt(models.ContextErrorCode)), log.String(models.ContextErrorMessage, c.GetString(models.ContextErrorMessage)), log.Float64("costTime", costTime), log.String(models.ContextResponseBody, c.GetString(models.ContextResponseBody)))
+			log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] [%s] <-", requestId, transactionId, userId), log.String("uri", c.Request.RequestURI), log.String("serviceCode", apiCode), log.String("method", c.Request.Method), log.Int("httpCode", c.Writer.Status()), log.Int(models.ContextErrorCode, c.GetInt(models.ContextErrorCode)), log.String(models.ContextErrorMessage, c.GetString(models.ContextErrorMessage)), log.Float64("costTime", costTime), log.String(models.ContextResponseBody, c.GetString(models.ContextResponseBody)))
 		} else {
-			log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] [%s] <-", requestId, transactionId, userId), log.String("uri", c.Request.RequestURI), log.String("method", c.Request.Method), log.Int("httpCode", c.Writer.Status()), log.Int(models.ContextErrorCode, c.GetInt(models.ContextErrorCode)), log.String(models.ContextErrorMessage, c.GetString(models.ContextErrorMessage)), log.Float64("costTime", costTime))
+			log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] [%s] <-", requestId, transactionId, userId), log.String("uri", c.Request.RequestURI), log.String("serviceCode", apiCode), log.String("method", c.Request.Method), log.Int("httpCode", c.Writer.Status()), log.Int(models.ContextErrorCode, c.GetInt(models.ContextErrorCode)), log.String(models.ContextErrorMessage, c.GetString(models.ContextErrorMessage)), log.Float64("costTime", costTime))
 		}
 	}
 }
