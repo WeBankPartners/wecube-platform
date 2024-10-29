@@ -51,7 +51,9 @@ export default {
     }
   },
   created() {
-    this.getData(false)
+    setTimeout(() => {
+      this.getData(false)
+    }, 1000)
   },
   methods: {
     ResetModel() {
