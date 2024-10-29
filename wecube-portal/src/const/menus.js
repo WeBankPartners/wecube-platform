@@ -99,5 +99,11 @@ export const MENUS = [
     cnName: '编排报表',
     enName: 'Workflow Report',
     link: '/admin/workflow-report'
+  },
+  {
+    code: 'ADMIN_BASE_MIGRATION',
+    cnName: '一键迁移',
+    enName: 'Base Migration',
+    link: '/admin/base-migration'
   }
 ]
