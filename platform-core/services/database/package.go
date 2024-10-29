@@ -694,10 +694,12 @@ func LaunchPlugin(ctx context.Context, pluginInstance *models.PluginInstances, r
 	return
 }
 
-func GetPluginInstance(pluginInstanceId, instanceName, host string, forceCheck bool) (pluginInstance *models.PluginInstances, err error) {
+func GetPluginInstance(pluginInstanceId, instanceName, host, pluginPackageId string, forceCheck bool) (pluginInstance *models.PluginInstances, err error) {
 	var instanceRows []*models.PluginInstances
 	if pluginInstanceId != "" {
 		err = db.MysqlEngine.SQL("select * from plugin_instances where id=?", pluginInstanceId).Find(&instanceRows)
+	} else if pluginPackageId != "" {
+		err = db.MysqlEngine.SQL("select * from plugin_instances where package_id=?", pluginPackageId).Find(&instanceRows)
 	} else {
 		err = db.MysqlEngine.SQL("select * from plugin_instances where container_name=? and host=?", instanceName, host).Find(&instanceRows)
 	}
