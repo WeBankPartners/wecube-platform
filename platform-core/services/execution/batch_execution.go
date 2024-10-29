@@ -1016,6 +1016,9 @@ func handleOutputData(
 				procReqParamObj.DataValue = fmt.Sprintf("%v", outVal)
 				if v, ok := output[models.PluginCallResultPresetCallback]; ok {
 					procReqParamObj.CallbackId = fmt.Sprintf("%s", v)
+					if outputIndex, matchOutputIndex := reqInputParamIndexMap[procReqParamObj.CallbackId]; matchOutputIndex {
+						procReqParamObj.DataIndex = outputIndex
+					}
 				}
 				procInsNodeReq.Params = append(procInsNodeReq.Params, &procReqParamObj)
 			}
