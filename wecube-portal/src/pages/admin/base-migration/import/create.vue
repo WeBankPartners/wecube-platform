@@ -485,5 +485,9 @@ export default {
       padding: 20px 5px;
     }
   }
+  .status-group .ivu-btn {
+    font-size: 12px;
+    padding: 0 10px !important;
+  }
 }
 </style>
