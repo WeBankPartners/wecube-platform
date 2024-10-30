@@ -974,10 +974,17 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 	for _, transExportAnalyze := range transExportAnalyzeDataList {
 		switch models.TransExportAnalyzeSource(transExportAnalyze.Source) {
 		case models.TransExportAnalyzeSourceWeCmdb:
+			var dataObj interface{}
+			if strings.TrimSpace(transExportAnalyze.Data) != "" {
+				if err = json.Unmarshal([]byte(transExportAnalyze.Data), &dataObj); err != nil {
+					log.Logger.Error("json Unmarshal transExportAnalyze err", log.Error(err))
+				}
+			}
 			detail.CmdbCI = append(detail.CmdbCI, &models.CommonNameCount{
 				Name:  transExportAnalyze.DataTypeName,
 				Count: transExportAnalyze.DataLen,
 				Group: ciGroup[transExportAnalyze.DataType],
+				Data:  dataObj,
 			})
 		case models.TransExportAnalyzeSourceWeCmdbReport:
 			var tempArr []map[string]interface{}
@@ -1008,10 +1015,18 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			}
 			detail.CmdbViewCount = transExportAnalyze.DataLen
 		case models.TransExportAnalyzeSourceMonitor:
-			monitorList = append(monitorList, &models.CommonNameCount{
+			var strData []string
+			if strings.TrimSpace(transExportAnalyze.Data) != "" {
+				json.Unmarshal([]byte(transExportAnalyze.Data), &strData)
+			}
+			// 监控层级对象、业务配置模版、自定义看板存储的ID需要转化成名称
+			strData = GetMonitorNameById(transExportAnalyze.DataTypeName, strData)
+			monitorData := &models.CommonNameCount{
 				Name:  transExportAnalyze.DataTypeName,
 				Count: transExportAnalyze.DataLen,
-			})
+				Data:  strData,
+			}
+			monitorList = append(monitorList, monitorData)
 		case models.TransExportAnalyzeSourceArtifact:
 			var dataList []*models.AnalyzeArtifactDisplayData
 			if transExportAnalyze.Data != "" {
@@ -1067,6 +1082,33 @@ func GetTransExportAnalyzeDataBySource(ctx context.Context, transExportId, sourc
 func QuerySimpleTransExportAnalyzeDataByTransExport(ctx context.Context, transExportId string) (result []*models.TransExportAnalyzeDataTable, err error) {
 	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_analyze_data where trans_export=?", transExportId).Find(&result)
 	return
+}
+
+func GetMonitorNameById(dataTypeName string, ids []string) []string {
+	// 监控业务配置模版存储是ID需要转换成名称
+	var result []string
+	var err error
+	if dataTypeName == string(models.TransExportAnalyzeMonitorDataTypeLogMonitorTemplate) {
+		if result, err = monitor.QueryLogMonitorTemplateNameBatch(ids, remote.GetToken()); err != nil {
+			log.Logger.Error("QueryLogMonitorTemplateNameBatch err", log.Error(err))
+		}
+		return result
+	}
+	// 看板存储是ID 需要转换成名称
+	if dataTypeName == string(models.TransExportAnalyzeMonitorDataTypeDashboard) {
+		if result, err = monitor.QueryDashboardNameBatch(ids, remote.GetToken()); err != nil {
+			log.Logger.Error("QueryDashboardNameBatch err", log.Error(err))
+		}
+		return result
+	}
+	// service_group存储是Id,需要转化成名称
+	if dataTypeName == string(models.TransExportAnalyzeMonitorDataTypeServiceGroup) {
+		if result, err = monitor.QueryServiceGroupNameBatch(ids, remote.GetToken()); err != nil {
+			log.Logger.Error("QueryServiceGroupNameBatch err", log.Error(err))
+		}
+		return result
+	}
+	return ids
 }
 
 func filterRepeatWorkflowId(ids []string) []string {

@@ -216,7 +216,7 @@ type LogMonitorTemplateIds struct {
 	GuidList []string `json:"guidList"`
 }
 
-type ChartPermissionBatchParam struct {
+type CommonBatchIdsParam struct {
 	Ids []string `json:"ids"`
 }
 
@@ -230,7 +230,7 @@ type QueryCustomDashboardResp struct {
 	Data *CustomDashboardDto `json:"data"`
 }
 
-type ChartPermissionBatchResp struct {
+type CommonBatchNameResp struct {
 	models.HttpResponseMeta
 	Data []string `json:"data"`
 }
