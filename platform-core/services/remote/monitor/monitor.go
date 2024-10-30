@@ -26,6 +26,10 @@ const (
 	QueryCustomDashboardUrl            = "/monitor/api/v2/dashboard/custom?id=%d"
 	QueryCustomChartPermissionBatchUrl = "/monitor/api/v2/chart/custom/permission/batch"
 
+	QueryLogMonitorTemplateNameBatchUrl = "/monitor/api/v2/trans-export/log_monitor_template/batch"
+	QueryDashboardNameBatchUrl          = "/monitor/api/v2/trans-export/dashboard/batch"
+	QueryServiceGroupNameBatchUrl       = "/monitor/api/v2/trans-export/service_group/batch"
+
 	importMonitorTypeUrl   = "/monitor/api/v2/config/type-batch"
 	importEndpointGroupUrl = "/monitor/api/v2/alarm/endpoint_group/import"
 	importMetricUrl        = "/monitor/api/v2/monitor/metric/import?serviceGroup=%s&monitorType=%s&endpointGroup=%s&comparison=%s"
@@ -141,9 +145,9 @@ func QueryCustomChartPermissionBatch(ids []string, token string) (roles []string
 	if len(ids) == 0 {
 		return
 	}
-	var response ChartPermissionBatchResp
+	var response CommonBatchNameResp
 	var responseBytes []byte
-	param := ChartPermissionBatchParam{Ids: ids}
+	param := CommonBatchIdsParam{Ids: ids}
 	responseBytes, err = requestMonitorPluginV2(QueryCustomChartPermissionBatchUrl, http.MethodPost, token, param)
 	if err = json.Unmarshal(responseBytes, &response); err != nil {
 		err = fmt.Errorf(jsonUnmarshalErrTemplate, string(responseBytes), err.Error())
@@ -155,6 +159,72 @@ func QueryCustomChartPermissionBatch(ids []string, token string) (roles []string
 	}
 	if response.Data != nil {
 		roles = response.Data
+	}
+	return
+}
+
+func QueryLogMonitorTemplateNameBatch(ids []string, token string) (list []string, err error) {
+	if len(ids) == 0 {
+		return
+	}
+	var response CommonBatchNameResp
+	var responseBytes []byte
+	param := CommonBatchIdsParam{Ids: ids}
+	responseBytes, err = requestMonitorPluginV2(QueryLogMonitorTemplateNameBatchUrl, http.MethodPost, token, param)
+	if err = json.Unmarshal(responseBytes, &response); err != nil {
+		err = fmt.Errorf(jsonUnmarshalErrTemplate, string(responseBytes), err.Error())
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	if response.Data != nil {
+		list = response.Data
+	}
+	return
+}
+
+func QueryDashboardNameBatch(ids []string, token string) (list []string, err error) {
+	if len(ids) == 0 {
+		return
+	}
+	var response CommonBatchNameResp
+	var responseBytes []byte
+	param := CommonBatchIdsParam{Ids: ids}
+	responseBytes, err = requestMonitorPluginV2(QueryDashboardNameBatchUrl, http.MethodPost, token, param)
+	if err = json.Unmarshal(responseBytes, &response); err != nil {
+		err = fmt.Errorf(jsonUnmarshalErrTemplate, string(responseBytes), err.Error())
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	if response.Data != nil {
+		list = response.Data
+	}
+	return
+}
+
+func QueryServiceGroupNameBatch(ids []string, token string) (list []string, err error) {
+	if len(ids) == 0 {
+		return
+	}
+	var response CommonBatchNameResp
+	var responseBytes []byte
+	param := CommonBatchIdsParam{Ids: ids}
+	responseBytes, err = requestMonitorPluginV2(QueryServiceGroupNameBatchUrl, http.MethodPost, token, param)
+	if err = json.Unmarshal(responseBytes, &response); err != nil {
+		err = fmt.Errorf(jsonUnmarshalErrTemplate, string(responseBytes), err.Error())
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	if response.Data != nil {
+		list = response.Data
 	}
 	return
 }
