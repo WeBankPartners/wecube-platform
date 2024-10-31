@@ -367,7 +367,7 @@ export default {
             title: this.$t('pi_baseline'),
             key: 'baseline_package',
             render: (h, params) => {
-              const baseLine = params.row.baseline_package ? params.row.baseline_package.key_name  || '-' : '-'
+              const baseLine = params.row.baseline_package ? params.row.baseline_package.key_name || '-' : '-'
               return <span>{baseLine}</span>
             }
           },
