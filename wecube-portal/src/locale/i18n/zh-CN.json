@@ -1025,5 +1025,6 @@
   "pi_component_library": "ITSM组件库",
   "pi_tips": "提示",
   "pi_data_confirmTime": "数据确认时间",
-  "pi_data_confirmTimeTips": "导出确认时间之前的所有定版数据"
+  "pi_data_confirmTimeTips": "导出确认时间之前的所有定版数据",
+  "pi_enter_to_filter": "请输入后过滤"
 }
