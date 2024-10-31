@@ -249,32 +249,47 @@ export default {
     handleOpenDetail(row, type) {
       if (type === 'cmdb-ci') {
         this.detailTitle = row.name
-        this.detailTableData = row.data && Object.values(row.data) || []
+        this.detailTableData = (row.data && Object.values(row.data)) || []
         this.detailColumns = [
-          { title: this.$t('name'), key: 'key_name' },
-          { title: this.$t('createdBy'), key: 'create_user' },
-          { title: this.$t('table_created_date'), key: 'create_time' }
+          {
+            title: this.$t('name'),
+            key: 'key_name'
+          },
+          {
+            title: this.$t('createdBy'),
+            key: 'create_user'
+          },
+          {
+            title: this.$t('table_created_date'),
+            key: 'create_time'
+          }
         ]
       } else if (type === 'artifacts') {
         this.detailTitle = row.unitDesignName
         this.detailTableData = row.artifactRows || []
         this.detailColumns = [
-          { title: this.$t('package_name'), key: 'name' },
-          { title: 'GUID', key: 'guid' },
-          { 
+          {
+            title: this.$t('package_name'),
+            key: 'name'
+          },
+          {
+            title: 'GUID',
+            key: 'guid'
+          },
+          {
             title: this.$t('pi_package_type'),
             key: 'package_type',
             render: (h, params) => {
               const typeMap = {
-                'APP': this.$t('pi_app'),
-                'DB': this.$t('pi_db'),
+                APP: this.$t('pi_app'),
+                DB: this.$t('pi_db'),
                 'APP&DB': this.$t('pi_app_db'),
-                'IMAGE': this.$t('pi_image')
+                IMAGE: this.$t('pi_image')
               }
               return <span>{typeMap[params.row.package_type]}</span>
             }
           },
-          { 
+          {
             title: this.$t('pi_baseline'),
             key: 'baseline_package',
             render: (h, params) => {
@@ -282,7 +297,7 @@ export default {
               return <span>{baseLine}</span>
             }
           },
-          { 
+          {
             title: this.$t('status'),
             key: 'state',
             render: (h, params) => {
@@ -302,16 +317,19 @@ export default {
               return <span style={style}>{params.row.state}</span>
             }
           },
-          { title: this.$t('upload_by'), key: 'upload_user' }
+          {
+            title: this.$t('upload_by'),
+            key: 'upload_user'
+          }
         ]
       } else if (type === 'monitor') {
         this.detailTitle = row.mapName
-        this.detailTableData = row.data && row.data.map(i => {
-          return { name: i }
-        })
-        this.detailColumns = [
-          { title: this.$t('name'), key: 'name' }
-        ]
+        this.detailTableData = row.data
+          && row.data.map(i => ({ name: i }))
+        this.detailColumns = [{
+          title: this.$t('name'),
+          key: 'name'
+        }]
       }
       this.detailVisible = true
     }
