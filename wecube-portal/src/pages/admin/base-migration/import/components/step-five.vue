@@ -53,7 +53,13 @@
       :maskClosable="false"
     >
       <template slot-scope="{maxHeight}" slot="content">
-        <Table :columns="detailColumns" :max-height="maxHeight" :data="detailTableData" size="small" :border="false"></Table>
+        <Table
+          :columns="detailColumns"
+          :max-height="maxHeight"
+          :data="detailTableData"
+          size="small"
+          :border="false"
+        ></Table>
       </template>
     </BaseDrawer>
   </div>
