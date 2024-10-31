@@ -1026,5 +1026,6 @@
   "pi_component_library": "ITSM Component Library",
   "pi_tips": "Tips",
   "pi_data_confirmTime": "Data confirmation time",
-  "pi_data_confirmTimeTips": "Export all subscription data before the confirmation time"
+  "pi_data_confirmTimeTips": "Export all subscription data before the confirmation time",
+  "pi_enter_to_filter": "Please enter to filter"
 }
