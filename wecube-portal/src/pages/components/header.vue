@@ -243,6 +243,8 @@ export default {
     },
     logout() {
       clearCookie()
+      window.sessionStorage.clear()
+      window.localStorage.clear()
       window.location.href = window.location.origin + window.location.pathname + '#/login'
     },
     showChangePassword() {
