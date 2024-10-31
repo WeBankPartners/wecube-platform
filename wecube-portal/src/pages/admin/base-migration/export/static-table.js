@@ -324,12 +324,13 @@ export default {
         ]
       } else if (type === 'monitor') {
         this.detailTitle = row.mapName
-        this.detailTableData = row.data
-          && row.data.map(i => ({ name: i }))
-        this.detailColumns = [{
-          title: this.$t('name'),
-          key: 'name'
-        }]
+        this.detailTableData = row.data && row.data.map(i => ({ name: i }))
+        this.detailColumns = [
+          {
+            title: this.$t('name'),
+            key: 'name'
+          }
+        ]
       }
       this.detailVisible = true
     }
