@@ -22,7 +22,7 @@
       :loading="loading"
     ></Table>
     <!--查看详情-->
-    <BaseDrawer :title="$t('be_details')" :visible.sync="showModal" realWidth="70%">
+    <BaseDrawer :title="$t('be_details')" :visible.sync="showModal" realWidth="70%" :maskClosable="false">
       <template slot-scope="{maxHeight}" slot="content">
         <Table :columns="detailTableColums" size="small" :max-height="maxHeight" :data="detailTableData"></Table>
       </template>
@@ -32,6 +32,7 @@
       :title="$t('full_word_add') + $t('timed_execution')"
       :visible.sync="timeConfig.isShow"
       :realWidth="1000"
+      :maskClosable="false"
     >
       <template slot="content">
         <Form :label-width="100" label-colon>
