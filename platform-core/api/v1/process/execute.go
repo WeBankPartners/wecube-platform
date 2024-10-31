@@ -141,7 +141,7 @@ func PublicProcDefList(c *gin.Context) {
 				return
 			}
 			for _, data := range queryResult {
-				if v, ok := data[rootEntityGuid]; ok && v == rootEntityGuid {
+				if v, ok := data["id"]; ok && v == rootEntityGuid {
 					result = append(result, procDef)
 				}
 			}
