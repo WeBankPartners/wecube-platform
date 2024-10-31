@@ -236,6 +236,80 @@ export default {
           )
         }
       ],
+      // 导入监控基础配置
+      importMonitorColumns: [
+        {
+          title: this.$t('data_type'),
+          render: (h, params) => {
+            const nameMap = {
+              monitor_type: this.$t('p_general_type'), // 基础类型
+              endpoint_group: this.$t('p_endpoint_group'), // 对象组
+              log_monitor_template: this.$t('p_log_monitor_template'), // 指标-业务日志模版
+              log_monitor_service_group: this.$t('p_log_monitor_config'), // 指标-业务配置
+              logKeyword_service_group: this.$t('p_keyword_list'), // 告警关键字
+              dashboard: this.$t('p_dashboard'), // 自定义看板
+              endpoint: this.$t('p_endpoint'), // 对象(仅分析)
+              service_group: this.$t('p_endpoint_level'), // 层级对象(仅分析)
+              custom_metric_monitor_type: this.$t('p_metric_monitor_type'),
+              custom_metric_endpoint_group: this.$t('p_metric_endpoint_group'),
+              custom_metric_service_group: this.$t('p_metric_service_group'),
+              strategy_service_group: this.$t('p_strategy_service_group'),
+              strategy_endpoint_group: this.$t('p_strategy_endpoint_group')
+            }
+            params.row.mapName = nameMap[params.row.name]
+            return (
+              <span
+                style="cursor:pointer;color:#5cadff;"
+                onClick={() => {
+                  this.jumpToHistory(params.row)
+                }}
+              >
+                {params.row.mapName || '-'}
+              </span>
+            )
+          }
+        },
+        {
+          title: this.$t('pe_monitor_query'),
+          key: 'conditions',
+          render: (h, params) => {
+            const conditionsMap = {
+              monitor_type: this.$t('p_monitor_type_des'),
+              endpoint: this.$t('p_endpoint_des'),
+              endpoint_group: this.$t('p_endpoint_group_des'),
+              service_group: this.$t('p_service_group_des'),
+              log_monitor_template: this.$t('p_log_monitor_template_des'),
+              log_monitor_service_group: this.$t('p_log_monitor_service_group_des'),
+              logKeyword_service_group: this.$t('p_logKeyword_service_group_des'),
+              dashboard: this.$t('p_dashboard_des'),
+              custom_metric_monitor_type: this.$t('p_custom_metric_monitor_type_des'),
+              custom_metric_endpoint_group: this.$t('p_custom_metric_endpoint_group_des'),
+              custom_metric_service_group: this.$t('p_custom_metric_service_group_des'),
+              strategy_service_group: this.$t('p_strategy_service_group_des'),
+              strategy_endpoint_group: this.$t('p_strategy_endpoint_group_des')
+            }
+            return <span>{conditionsMap[params.row.name] || '-'}</span>
+          }
+        },
+        {
+          title: this.$t('pe_select'),
+          key: 'total',
+          width: 100,
+          render: (h, params) => (
+            <span style="display:flex;align-items:center;">
+              <div style="width:25px">{params.row.count}</div>
+              <Icon
+                type="ios-list"
+                size="36"
+                style="cursor:pointer;"
+                onClick={() => {
+                  this.handleOpenDetail(params.row, 'monitor')
+                }}
+              />
+            </span>
+          )
+        }
+      ],
       detailVisible: false,
       detailColumns: [],
       detailTableData: [],
@@ -293,7 +367,7 @@ export default {
             title: this.$t('pi_baseline'),
             key: 'baseline_package',
             render: (h, params) => {
-              const baseLine = params.row.baseline_package ? params.row.baseline_package.key_name : '-'
+              const baseLine = params.row.baseline_package ? params.row.baseline_package.key_name  || '-' : '-'
               return <span>{baseLine}</span>
             }
           },
