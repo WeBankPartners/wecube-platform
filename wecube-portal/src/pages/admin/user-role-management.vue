@@ -9,7 +9,7 @@
               $t('add_user')
             }}</Button>
           </p>
-          <Input v-model="userFilter" clearable	 :placeholder="$t('pi_enter_to_filter')" style="margin-bottom: 12px"/>
+          <Input v-model="userFilter" clearable :placeholder="$t('pi_enter_to_filter')" style="margin-bottom: 12px" />
           <div class="tagContainers">
             <div class="user-item" v-for="item in userFilterRes" :key="item.id">
               <Tag
@@ -60,7 +60,7 @@
               $t('add_role')
             }}</Button>
           </p>
-          <Input v-model="roleFilter" clearable	 :placeholder="$t('pi_enter_to_filter')" style="margin-bottom: 12px"/>
+          <Input v-model="roleFilter" clearable :placeholder="$t('pi_enter_to_filter')" style="margin-bottom: 12px" />
           <div class="tagContainers">
             <div class="role-item" v-for="item in roleFilterRes" :key="item.id">
               <Tag
@@ -106,7 +106,14 @@
       </Col>
     </Row>
     <Modal v-model="addUserModalVisible" :title="$t('add_user')">
-      <Form v-if="addUserModalVisible" class="validation-form" ref="addedUserForm" :model="addedUser" label-position="left" :label-width="100">
+      <Form
+        v-if="addUserModalVisible"
+        class="validation-form"
+        ref="addedUserForm"
+        :model="addedUser"
+        label-position="left"
+        :label-width="100"
+      >
         <FormItem :label="$t('username')" prop="username">
           <Input v-model="addedUser.username" />
         </FormItem>
@@ -619,7 +626,7 @@ export default {
       this.userManageModal = false
     },
     async openUserManageModal(id) {
-      this.transferStyle.height = (window.innerHeight - 260) + 'px'
+      this.transferStyle.height = window.innerHeight - 260 + 'px'
       this.usersKeyBySelectedRole = []
       this.allUsersForTransfer = []
       this.selectedRole = id
