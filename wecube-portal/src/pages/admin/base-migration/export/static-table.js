@@ -43,7 +43,7 @@ export default {
                 size="36"
                 style="cursor:pointer;"
                 onClick={() => {
-                  // this.handleOpenDetail(params.row, 'cmdb-ci')
+                  this.handleOpenDetail(params.row, 'cmdb-ci')
                 }}
               />
             </span>
@@ -96,7 +96,7 @@ export default {
           render: (h, params) => <span>{params.row.creator || '-'}</span>
         }
       ],
-      // 物料包数据
+      // 物料包
       artifactsColumns: [
         {
           title: this.$t('pe_unit_design'),
@@ -124,14 +124,14 @@ export default {
                 size="36"
                 style="cursor:pointer;"
                 onClick={() => {
-                  // this.handleOpenDetail(params.row, 'artifacts')
+                  this.handleOpenDetail(params.row, 'artifacts')
                 }}
               />
             </span>
           )
         }
       ],
-      // 监控数据
+      // 监控配置
       monitorColumns: [
         {
           title: this.$t('data_type'),
@@ -148,6 +148,7 @@ export default {
               metric_list: this.$t('p_metric_list'), // 指标-指标列表
               strategy_list: this.$t('p_warning_list') // 告警-指标阈值
             }
+            params.row.mapName = nameMap[params.row.name]
             return (
               <span
                 style="cursor:pointer;color:#5cadff;"
@@ -155,7 +156,7 @@ export default {
                   this.handleStaticTableLink(params.row, 'monitor')
                 }}
               >
-                {nameMap[params.row.name] || '-'}
+                {params.row.mapName || '-'}
               </span>
             )
           }
@@ -191,13 +192,14 @@ export default {
                 size="36"
                 style="cursor:pointer;"
                 onClick={() => {
-                  // this.handleOpenDetail(params.row, 'monitor')
+                  this.handleOpenDetail(params.row, 'monitor')
                 }}
               />
             </span>
           )
         }
       ],
+      // 插件服务
       pluginColumns: [
         {
           title: this.$t('data_type'),
@@ -220,14 +222,6 @@ export default {
           render: (h, params) => (
             <span style="display:flex;align-items:center;">
               <div style="width:25px">{params.row.pluginInterfaceNum}</div>
-              <Icon
-                type="ios-list"
-                size="36"
-                style="cursor:pointer;"
-                onClick={() => {
-                  // this.handleOpenDetail(params.row, 'plugin')
-                }}
-              />
             </span>
           )
         },
@@ -238,26 +232,88 @@ export default {
           render: (h, params) => (
             <span style="display:flex;align-items:center;">
               <div style="width:25px">{params.row.systemVariableNum}</div>
-              <Icon
-                type="ios-list"
-                size="36"
-                style="cursor:pointer;"
-                onClick={() => {
-                  // this.handleOpenDetail(params.row, 'plugin')
-                }}
-              />
             </span>
           )
         }
-      ]
+      ],
+      detailVisible: false,
+      detailColumns: [],
+      detailTableData: [],
+      detailTitle: ''
     }
   },
   methods: {
     handleStaticTableLink(type, row) {
       return type + row
     },
-    handleOpenDetail(type, row) {
-      return type + row
+    handleOpenDetail(row, type) {
+      if (type === 'cmdb-ci') {
+        this.detailTitle = row.name
+        this.detailTableData = row.data && Object.values(row.data) || []
+        this.detailColumns = [
+          { title: this.$t('name'), key: 'key_name' },
+          { title: this.$t('createdBy'), key: 'create_user' },
+          { title: this.$t('table_created_date'), key: 'create_time' }
+        ]
+      } else if (type === 'artifacts') {
+        this.detailTitle = row.unitDesignName
+        this.detailTableData = row.artifactRows || []
+        this.detailColumns = [
+          { title: this.$t('package_name'), key: 'name' },
+          { title: 'GUID', key: 'guid' },
+          { 
+            title: this.$t('pi_package_type'),
+            key: 'package_type',
+            render: (h, params) => {
+              const typeMap = {
+                'APP': this.$t('pi_app'),
+                'DB': this.$t('pi_db'),
+                'APP&DB': this.$t('pi_app_db'),
+                'IMAGE': this.$t('pi_image')
+              }
+              return <span>{typeMap[params.row.package_type]}</span>
+            }
+          },
+          { 
+            title: this.$t('pi_baseline'),
+            key: 'baseline_package',
+            render: (h, params) => {
+              const baseLine = params.row.baseline_package ? params.row.baseline_package.key_name : '-'
+              return <span>{baseLine}</span>
+            }
+          },
+          { 
+            title: this.$t('status'),
+            key: 'state',
+            render: (h, params) => {
+              const stateColor = {
+                added_0: '#19be6b',
+                added_1: '#19be6b',
+                updated_0: '#5cadff',
+                updated_1: '#5cadff',
+                delete: '#ed4014',
+                created: '#2b85e4',
+                changed: 'purple',
+                destroyed: '#ff9900'
+              }
+              const style = {
+                color: stateColor[params.row.state] || '#2b85e4'
+              }
+              return <span style={style}>{params.row.state}</span>
+            }
+          },
+          { title: this.$t('upload_by'), key: 'upload_user' }
+        ]
+      } else if (type === 'monitor') {
+        this.detailTitle = row.mapName
+        this.detailTableData = row.data && row.data.map(i => {
+          return { name: i }
+        })
+        this.detailColumns = [
+          { title: this.$t('name'), key: 'name' }
+        ]
+      }
+      this.detailVisible = true
     }
   }
 }
