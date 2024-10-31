@@ -68,7 +68,7 @@ export default {
       this.$router.push({
         path: '/implementation/batch-execution/template-list',
         query: {
-          status: this.type === 'edit' ? 'draft' : ''
+          status: this.type === 'edit' ? 'draft' : 'published'
         }
       })
     },
@@ -343,13 +343,7 @@ export default {
         this.$router.push({
           path: '/implementation/batch-execution/template-list',
           query: {
-            status: this.type === 'edit' ? 'draft' : ''
-          }
-        })
-        this.$router.replace({
-          name: this.$route.name,
-          query: {
-            status: this.templateStatus
+            status: this.templateStatus === 'draft' ? 'draft' : 'published'
           }
         })
       }
