@@ -1052,10 +1052,8 @@ func transProcDefNodeUpdateConditionToSQL(procDefNode *models.ProcDefNode) (sql 
 	}
 	sql = sql + ",dynamic_bind=?"
 	params = append(params, procDefNode.DynamicBind)
-	if procDefNode.BindNodeId != "" {
-		sql = sql + ",bind_node_id=?"
-		params = append(params, procDefNode.BindNodeId)
-	}
+	sql = sql + ",bind_node_id=?"
+	params = append(params, procDefNode.BindNodeId)
 	sql = sql + ",allow_continue=?"
 	params = append(params, procDefNode.AllowContinue)
 	sql = sql + ",risk_check=?"
