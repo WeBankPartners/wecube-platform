@@ -1026,5 +1026,11 @@
   "pi_component_library": "ITSM Component Library",
   "pi_tips": "Tips",
   "pi_data_confirmTime": "Data confirmation time",
-  "pi_data_confirmTimeTips": "Export all subscription data before the confirmation time"
+  "pi_data_confirmTimeTips": "Export all subscription data before the confirmation time",
+  "pi_app": "Application",
+  "pi_db": "DB Instance",
+  "pi_app_db": "APP&DB",
+  "pi_image": "Docker Image",
+  "pi_package_type": "Package Type",
+  "pi_baseline": "BaseLine"
 }

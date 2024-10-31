@@ -257,6 +257,24 @@
         </Row>
       </BaseHeaderTitle>
     </div>
+    <BaseDrawer
+      :title="detailTitle"
+      :visible.sync="detailVisible"
+      realWidth="60%"
+      :scrollable="true"
+      :maskClosable="false"
+    >
+      <template slot-scope="{maxHeight}" slot="content">
+        <Table
+          border
+          :columns="detailColumns"
+          :max-height="maxHeight"
+          :data="detailTableData"
+          size="small"
+        >
+        </Table>
+      </template>
+    </BaseDrawer>
   </div>
 </template>
 
