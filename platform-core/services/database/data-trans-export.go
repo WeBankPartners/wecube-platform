@@ -1021,6 +1021,9 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			}
 			// 监控层级对象、业务配置模版、自定义看板存储的ID需要转化成名称
 			strData = GetMonitorNameById(transExportAnalyze.DataTypeName, strData)
+			if len(strData) == 0 {
+				strData = []string{}
+			}
 			monitorData := &models.CommonNameCount{
 				Name:  transExportAnalyze.DataTypeName,
 				Count: transExportAnalyze.DataLen,

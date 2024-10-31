@@ -219,7 +219,11 @@ func QueryCoreObjectMetaV2(ctx context.Context, pluginConfigId string, objectNam
 
 func GetConfigInterfaces(ctx context.Context, pluginConfigId string) (result []*models.PluginInterfaceQueryObj, err error) {
 	var interfaceRows []*models.PluginConfigInterfaces
-	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_config_interfaces where plugin_config_id=?", pluginConfigId).Find(&interfaceRows)
+	if pluginConfigId == "enabled" {
+		err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_config_interfaces where plugin_config_id in (select id from plugin_configs where plugin_package_id in (select package_id from plugin_instances)) order by plugin_config_id,service_name").Find(&interfaceRows)
+	} else {
+		err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_config_interfaces where plugin_config_id=?", pluginConfigId).Find(&interfaceRows)
+	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return

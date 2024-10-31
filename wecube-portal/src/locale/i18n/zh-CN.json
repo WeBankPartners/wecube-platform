@@ -1031,5 +1031,6 @@
   "pi_app_db": "应用&数据库",
   "pi_image": "镜像",
   "pi_package_type": "部署包类型",
-  "pi_baseline": "基线版本"
+  "pi_baseline": "基线版本",
+  "pi_enter_to_filter": "请输入后过滤"
 }

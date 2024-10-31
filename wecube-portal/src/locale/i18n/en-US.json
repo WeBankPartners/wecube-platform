@@ -1032,5 +1032,6 @@
   "pi_app_db": "APP&DB",
   "pi_image": "Docker Image",
   "pi_package_type": "Package Type",
-  "pi_baseline": "BaseLine"
+  "pi_baseline": "BaseLine",
+  "pi_enter_to_filter": "Please enter to filter"
 }
