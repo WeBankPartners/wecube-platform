@@ -3,7 +3,7 @@
     <Drawer
       :title="$t('be_edit_filter')"
       v-model="drawerVisible"
-      width="620"
+      width="50%"
       :mask-closable="false"
       :lock-scroll="true"
       @on-close="handleCancel"
