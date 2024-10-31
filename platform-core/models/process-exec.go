@@ -49,21 +49,27 @@ func (p *ProcDefListObj) Parse(input *ProcDef) {
 }
 
 type ProcDefFlowNode struct {
-	NodeId            string   `json:"nodeId"`
-	NodeDefId         string   `json:"nodeDefId"`
-	NodeName          string   `json:"nodeName"`
-	NodeType          string   `json:"nodeType"`
-	ProcDefId         string   `json:"procDefId"`
-	ProcDefKey        string   `json:"procDefKey"`
-	RoutineExpression string   `json:"routineExpression"`
-	ServiceId         string   `json:"serviceId"`
-	Status            string   `json:"status"`
-	Description       string   `json:"description"`
-	DynamicBind       string   `json:"dynamicBind"`
-	PreviousNodeIds   []string `json:"previousNodeIds"`
-	SucceedingNodeIds []string `json:"succeedingNodeIds"`
-	OrderedNo         string   `json:"orderedNo"`
-	SubProcDefId      string   `json:"subProcDefId"`
+	NodeId            string              `json:"nodeId"`
+	NodeDefId         string              `json:"nodeDefId"`
+	NodeName          string              `json:"nodeName"`
+	NodeType          string              `json:"nodeType"`
+	ProcDefId         string              `json:"procDefId"`
+	ProcDefKey        string              `json:"procDefKey"`
+	RoutineExpression string              `json:"routineExpression"`
+	ServiceId         string              `json:"serviceId"`
+	Status            string              `json:"status"`
+	Description       string              `json:"description"`
+	DynamicBind       string              `json:"dynamicBind"` // 动态绑定 -> 0(启动时绑定)|1->(绑定节点)|2->(运行时)
+	DynamicBindInt    int                 `json:"dynamicBindInt"`
+	PreviousNodeIds   []string            `json:"previousNodeIds"`
+	SucceedingNodeIds []string            `json:"succeedingNodeIds"`
+	OrderedNo         string              `json:"orderedNo"`
+	SubProcDefId      string              `json:"subProcDefId"`
+	ParamInfos        []*ProcDefNodeParam `json:"paramInfos"`        // 节点参数
+	ContextParamNodes []string            `json:"contextParamNodes"` // 上下文参数节点
+	ServiceName       string              `json:"serviceName"`       // 插件服务名
+	BindNodeId        string              `json:"bindNodeId"`        // 动态绑定节点
+	FilterRule        string              `json:"filterRule"`        // 插件过滤规则
 }
 
 type ProcPreviewEntityNode struct {

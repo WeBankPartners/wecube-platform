@@ -156,6 +156,20 @@ func ProcDefOutline(ctx context.Context, procDefId string) (result *models.ProcD
 	}
 	orderIndex := 1
 	for _, node := range procDefNodes {
+		var nodeParamList []*models.ProcDefNodeParam
+		var contextParamNodes []string
+		if len(node.ContextParamNodes) > 0 {
+			contextParamNodes = strings.Split(node.ContextParamNodes, ",")
+		}
+		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_param where proc_def_node_id = ?", node.Id).Find(&nodeParamList)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		// 节点参数中,节点id设置为前端展示nodeId
+		for _, nodeParam := range nodeParamList {
+			nodeParam.ProcDefNodeId = node.NodeId
+		}
 		nodeObj := models.ProcDefFlowNode{
 			NodeId:            node.Id,
 			NodeDefId:         node.Id,
@@ -168,9 +182,21 @@ func ProcDefOutline(ctx context.Context, procDefId string) (result *models.ProcD
 			Status:            node.Status,
 			Description:       node.Description,
 			DynamicBind:       "N",
+			DynamicBindInt:    node.DynamicBind,
 			PreviousNodeIds:   []string{},
 			SucceedingNodeIds: []string{},
 			SubProcDefId:      node.SubProcDefId,
+			ServiceName:       node.ServiceName,
+			BindNodeId:        node.BindNodeId,
+			ContextParamNodes: contextParamNodes,
+			ParamInfos:        nodeParamList,
+		}
+		if strings.TrimSpace(node.ServiceName) != "" {
+			if interfaceObj, err2 := GetSimpleLastPluginInterface(ctx, node.ServiceName); err2 != nil {
+				log.Logger.Error("GetSimpleLastPluginInterface err", log.Error(err2))
+			} else if interfaceObj != nil {
+				nodeObj.FilterRule = interfaceObj.FilterRule
+			}
 		}
 		if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) || node.NodeType == models.JobSubProcType {
 			nodeObj.OrderedNo = fmt.Sprintf("%d", orderIndex)
