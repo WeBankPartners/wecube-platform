@@ -1025,5 +1025,11 @@
   "pi_component_library": "ITSM组件库",
   "pi_tips": "提示",
   "pi_data_confirmTime": "数据确认时间",
-  "pi_data_confirmTimeTips": "导出确认时间之前的所有定版数据"
+  "pi_data_confirmTimeTips": "导出确认时间之前的所有定版数据",
+  "pi_app": "应用",
+  "pi_db": "数据库",
+  "pi_app_db": "应用&数据库",
+  "pi_image": "镜像",
+  "pi_package_type": "部署包类型",
+  "pi_baseline": "基线版本"
 }
