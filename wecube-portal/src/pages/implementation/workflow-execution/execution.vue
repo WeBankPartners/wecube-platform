@@ -394,7 +394,13 @@
       </div>
     </Modal>
     <!--左侧编排节点弹窗(新建)-->
-    <BaseDrawer :title="currentNodeTitle" :visible.sync="targetModalVisible" realWidth="70%" :scrollable="true" :maskClosable="false">
+    <BaseDrawer
+      :title="currentNodeTitle"
+      :visible.sync="targetModalVisible"
+      realWidth="70%"
+      :scrollable="true"
+      :maskClosable="false"
+    >
       <template slot-scope="{maxHeight}" slot="content">
         <Input
           v-model="tableFilterParam"
