@@ -245,7 +245,8 @@
       :maskClosable="false"
     >
       <template slot-scope="{maxHeight}" slot="content">
-        <Table :border="false" :columns="detailColumns" :max-height="maxHeight" :data="detailTableData" size="small"> </Table>
+        <Table :border="false" :columns="detailColumns" :max-height="maxHeight" :data="detailTableData" size="small">
+        </Table>
       </template>
     </BaseDrawer>
   </div>
