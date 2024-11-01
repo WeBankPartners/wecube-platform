@@ -7,6 +7,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/network"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
 	"github.com/gin-gonic/gin"
+	"math/rand/v2"
 	"strings"
 	"sync"
 )
@@ -26,16 +27,16 @@ type RedirectRule struct {
 	//ResponseHandler support.ResponseHandlerFunc
 }
 
-//var redirectRuleMap map[string]*RedirectRule
+// var redirectRuleMap map[string]*RedirectRule
 var redirectRuleMap sync.Map
 
-//from configuration
+// from configuration
 var platformRedirectRuleMap = make(map[string]RedirectRule)
 var lock sync.Mutex
 
 //var mapLock sync.Mutex
 
-//var RedirectRules []RedirectRule
+// var RedirectRules []RedirectRule
 func Init() {
 	for i := range model.Config.RedirectRoutes {
 		platformRedirectRuleMap[model.Config.RedirectRoutes[i].Context] = RedirectRule{
@@ -65,8 +66,7 @@ func Redirect() gin.HandlerFunc {
 
 			if val, has := redirectRuleMap.Load(requestKey); has {
 				rules := val.([]RedirectRule)
-				validIdx := -1
-				for i := range rules {
+				for _, i := range genRandIntList(len(rules)) {
 					targetUrl := rules[i].TargetPath + uri
 					invoke := support.RedirectInvoke{
 						TargetUrl: targetUrl,
@@ -75,17 +75,30 @@ func Redirect() gin.HandlerFunc {
 					if err != nil {
 						log.Logger.Warn("failed to request", log.String("targetUrl", targetUrl), log.Error(err))
 					} else {
-						validIdx = i
 						break
 					}
 				}
-
-				if validIdx > 0 {
-					tmp := rules[validIdx]
-					rules[validIdx] = rules[0]
-					rules[0] = tmp
-					redirectRuleMap.Store(requestKey, rules)
-				}
+				//validIdx := -1
+				//for i := range rules {
+				//	targetUrl := rules[i].TargetPath + uri
+				//	invoke := support.RedirectInvoke{
+				//		TargetUrl: targetUrl,
+				//	}
+				//	err := invoke.Do(c)
+				//	if err != nil {
+				//		log.Logger.Warn("failed to request", log.String("targetUrl", targetUrl), log.Error(err))
+				//	} else {
+				//		validIdx = i
+				//		break
+				//	}
+				//}
+				//
+				//if validIdx > 0 {
+				//	tmp := rules[validIdx]
+				//	rules[validIdx] = rules[0]
+				//	rules[0] = tmp
+				//	redirectRuleMap.Store(requestKey, rules)
+				//}
 
 				if len(rules) > 0 {
 				} else {
@@ -152,4 +165,24 @@ func GetAllRedirectRules() []RedirectRule {
 func BuildRequestKey(context string) string {
 	//return fmt.Sprintf("%s_%s", path, method)
 	return fmt.Sprintf("%s/**", context)
+}
+
+func genRandIntList(length int) (output []int) {
+	var input []int
+	for i := 0; i < length; i++ {
+		input = append(input, i)
+	}
+	for len(input) > 0 {
+		tmpLength := len(input)
+		index := rand.IntN(tmpLength)
+		output = append(output, input[index])
+		if index > 0 {
+			input = append(input[:index], input[index+1:]...)
+		} else if index == tmpLength-1 {
+			input = input[:index]
+		} else {
+			input = input[index+1:]
+		}
+	}
+	return
 }
