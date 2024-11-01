@@ -163,11 +163,11 @@ func QueryCustomChartPermissionBatch(ids []string, token string) (roles []string
 	return
 }
 
-func QueryLogMonitorTemplateNameBatch(ids []string, token string) (list []string, err error) {
+func QueryLogMonitorTemplateBatch(ids []string, token string) (list []*LogMonitorTemplate, err error) {
 	if len(ids) == 0 {
 		return
 	}
-	var response CommonBatchNameResp
+	var response QueryLogMonitorTemplateResp
 	var responseBytes []byte
 	param := CommonBatchIdsParam{Ids: ids}
 	responseBytes, err = requestMonitorPluginV2(QueryLogMonitorTemplateNameBatchUrl, http.MethodPost, token, param)
@@ -185,11 +185,11 @@ func QueryLogMonitorTemplateNameBatch(ids []string, token string) (list []string
 	return
 }
 
-func QueryDashboardNameBatch(ids []string, token string) (list []string, err error) {
+func QueryDashboardBatch(ids []string, token string) (list []*CustomDashboardTable, err error) {
 	if len(ids) == 0 {
 		return
 	}
-	var response CommonBatchNameResp
+	var response QueryDashboardResp
 	var responseBytes []byte
 	param := CommonBatchIdsParam{Ids: ids}
 	responseBytes, err = requestMonitorPluginV2(QueryDashboardNameBatchUrl, http.MethodPost, token, param)
@@ -207,11 +207,11 @@ func QueryDashboardNameBatch(ids []string, token string) (list []string, err err
 	return
 }
 
-func QueryServiceGroupNameBatch(ids []string, token string) (list []string, err error) {
+func QueryServiceGroupBatch(ids []string, token string) (list []*ServiceGroupTable, err error) {
 	if len(ids) == 0 {
 		return
 	}
-	var response CommonBatchNameResp
+	var response QueryServiceGroupResp
 	var responseBytes []byte
 	param := CommonBatchIdsParam{Ids: ids}
 	responseBytes, err = requestMonitorPluginV2(QueryServiceGroupNameBatchUrl, http.MethodPost, token, param)
