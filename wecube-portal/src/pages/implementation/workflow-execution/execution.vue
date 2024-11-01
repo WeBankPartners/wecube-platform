@@ -341,11 +341,17 @@
           </div>
         </BaseHeaderTitle>
         <!--插件服务-->
-        <BaseHeaderTitle v-if="['human', 'automatic'].includes(nodeInstance.nodeType)" :title="$t('workflow_plugin_aspect')">
+        <BaseHeaderTitle
+          v-if="['human', 'automatic'].includes(nodeInstance.nodeType)"
+          :title="$t('workflow_plugin_aspect')"
+        >
           <PluginService :nodeInstance="nodeInstance" />
         </BaseHeaderTitle>
         <!--数据绑定-->
-        <BaseHeaderTitle v-if="['human', 'automatic', 'data'].includes(nodeInstance.nodeType)" :title="$t('dataBinding')">
+        <BaseHeaderTitle
+          v-if="['human', 'automatic', 'data'].includes(nodeInstance.nodeType)"
+          :title="$t('dataBinding')"
+        >
           <DataBind :currentSelectedEntity="flowData.rootEntity" :nodeInstance="nodeInstance" />
         </BaseHeaderTitle>
         <!--节点信息-->
@@ -411,11 +417,17 @@
     >
       <template slot-scope="{maxHeight}" slot="content">
         <!--插件服务-->
-        <BaseHeaderTitle v-if="['human', 'automatic'].includes(nodeInstance.nodeType)" :title="$t('workflow_plugin_aspect')">
+        <BaseHeaderTitle
+          v-if="['human', 'automatic'].includes(nodeInstance.nodeType)"
+          :title="$t('workflow_plugin_aspect')"
+        >
           <PluginService :nodeInstance="nodeInstance" />
         </BaseHeaderTitle>
         <!--数据绑定-->
-        <BaseHeaderTitle v-if="['human', 'automatic', 'data'].includes(nodeInstance.nodeType)" :title="$t('dataBinding')">
+        <BaseHeaderTitle
+          v-if="['human', 'automatic', 'data'].includes(nodeInstance.nodeType)"
+          :title="$t('dataBinding')"
+        >
           <DataBind :currentSelectedEntity="flowData.rootEntity" :nodeInstance="nodeInstance" />
         </BaseHeaderTitle>
         <!--操作对象-->

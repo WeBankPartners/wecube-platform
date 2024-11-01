@@ -8,9 +8,9 @@
     </div>
     <!--子编排列表支持主编排搜索-->
     <div v-if="searchConfig.params.subProc === 'sub'" class="extra-search">
-       <Select
+      <Select
         v-model="searchConfig.params.mainProcInsId"
-        style="width:600px;margin-bottom:10px;"
+        style="width: 600px; margin-bottom: 10px"
         filterable
         clearable
         :placeholder="$t('main_workflow')"
@@ -508,37 +508,39 @@ export default {
           // 添加主编排列
           const hasFlag = this.tableColumns.some(i => i.key === 'parentProcIns')
           if (!hasFlag) {
-            this.tableColumns.splice(3, 0, ...[
-              {
-                title: this.$t('main_workflow'),
-                minWidth: 150,
-                key: 'parentProcIns',
-                render: (h, params) => {
-                  if (params.row.parentProcIns && params.row.parentProcIns.procDefName) {
-                    return (
-                      <span
-                        style="cursor:pointer;color:#5cadff;"
-                        onClick={() => {
-                          this.viewParentFlowGraph(params.row)
-                        }}
-                      >
-                        {params.row.parentProcIns.procDefName}
-                        <Tag style="margin-left:2px">{params.row.parentProcIns.version}</Tag>
-                      </span>
-                    )
+            this.tableColumns.splice(
+              3,
+              0,
+              ...[
+                {
+                  title: this.$t('main_workflow'),
+                  minWidth: 150,
+                  key: 'parentProcIns',
+                  render: (h, params) => {
+                    if (params.row.parentProcIns && params.row.parentProcIns.procDefName) {
+                      return (
+                        <span
+                          style="cursor:pointer;color:#5cadff;"
+                          onClick={() => {
+                            this.viewParentFlowGraph(params.row)
+                          }}
+                        >
+                          {params.row.parentProcIns.procDefName}
+                          <Tag style="margin-left:2px">{params.row.parentProcIns.version}</Tag>
+                        </span>
+                      )
+                    }
+                    return <span>-</span>
                   }
-                  return <span>-</span>
+                },
+                {
+                  title: this.$t('main_workflow_id'),
+                  minWidth: 120,
+                  key: 'parentProcInsId',
+                  render: (h, params) => <span>{(params.row.parentProcIns && params.row.parentProcIns.procInsId) || '-'}</span>
                 }
-              },
-              {
-                title: this.$t('main_workflow_id'),
-                minWidth: 120,
-                key: 'parentProcInsId',
-                render: (h, params) => {
-                  return <span>{params.row.parentProcIns && params.row.parentProcIns.procInsId || '-'}</span>
-                }
-              }
-            ])
+              ]
+            )
           }
         } else if (val === 'main') {
           this.tableColumns = this.tableColumns.filter(i => !['parentProcIns', 'parentProcInsId'].includes(i.key))
@@ -749,7 +751,8 @@ export default {
         status: this.searchConfig.params.status !== '' ? this.searchConfig.params.status : undefined,
         startTime: this.searchConfig.params.time[0] ? this.searchConfig.params.time[0] + ' 00:00:00' : undefined,
         endTime: this.searchConfig.params.time[1] ? this.searchConfig.params.time[1] + ' 23:59:59' : undefined,
-        mainProcInsId: this.searchConfig.params.mainProcInsId !== '' ? this.searchConfig.params.mainProcInsId : undefined,
+        mainProcInsId:
+          this.searchConfig.params.mainProcInsId !== '' ? this.searchConfig.params.mainProcInsId : undefined,
         pageable: {
           startIndex: (this.pageable.current - 1) * this.pageable.pageSize,
           pageSize: this.pageable.pageSize
