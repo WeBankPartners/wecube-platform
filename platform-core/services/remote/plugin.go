@@ -273,6 +273,9 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 			err = lastErr
 			break
 		}
+		if len(lastQueryResult) == 0 {
+			break
+		}
 		if i == exprLastIndex && rootFilter.Index == i && len(lastQueryResult) > 0 {
 			// 表达式与根表达式一样
 			log.Logger.Debug("QueryPluginFullData expr same with root", log.Int("index", i), log.Int("rootIndex", rootFilter.Index), log.JsonObj("lastQueryResult", lastQueryResult))
@@ -654,7 +657,7 @@ func DangerousBatchCheck(ctx context.Context, token string, reqParam interface{}
 }
 
 func DangerousWorkflowCheck(ctx context.Context, token string, reqParam interface{}) (result *models.ItsdangerousWorkflowCheckResultData, err error) {
-	uri := fmt.Sprintf("%s/%s/v1/detection", models.Config.Gateway.Url, models.PluginNameItsdangerous)
+	uri := fmt.Sprintf("%s/%s/v1/batch_execution_detection", models.Config.Gateway.Url, models.PluginNameItsdangerous)
 	if models.Config.HttpsEnable == "true" {
 		uri = "https://" + uri
 	} else {
@@ -700,6 +703,7 @@ func DangerousWorkflowCheck(ctx context.Context, token string, reqParam interfac
 			log.Logger.Info("End remote dangerousWorkflowCheck request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
 		}
 	}()
+	log.Logger.Debug("End remote dangerousWorkflowCheck request 1111", log.String("respBody", string(respBody)))
 	if readBodyErr != nil {
 		err = fmt.Errorf("read response body fail,%s ", readBodyErr.Error())
 		return
