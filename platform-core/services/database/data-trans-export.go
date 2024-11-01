@@ -1097,14 +1097,14 @@ func GetMonitorNameById(dataTypeName string, ids []string) interface{} {
 	}
 	// 看板存储是ID 需要转换成名称
 	if dataTypeName == string(models.TransExportAnalyzeMonitorDataTypeDashboard) {
-		if result, err = monitor.QueryDashboardNameBatch(ids, remote.GetToken()); err != nil {
+		if result, err = monitor.QueryDashboardBatch(ids, remote.GetToken()); err != nil {
 			log.Logger.Error("QueryDashboardNameBatch err", log.Error(err))
 		}
 		return result
 	}
 	// service_group存储是Id,需要转化成名称
 	if dataTypeName == string(models.TransExportAnalyzeMonitorDataTypeServiceGroup) {
-		if result, err = monitor.QueryServiceGroupNameBatch(ids, remote.GetToken()); err != nil {
+		if result, err = monitor.QueryServiceGroupBatch(ids, remote.GetToken()); err != nil {
 			log.Logger.Error("QueryServiceGroupNameBatch err", log.Error(err))
 		}
 		return result
