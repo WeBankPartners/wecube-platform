@@ -3,38 +3,22 @@
     <Row>
       <Col :span="12">
         <Form :label-width="80">
-          <FormItem
-            :label="$t('locate_approach')"
-            v-if="['human', 'automatic', 'subProc'].includes(nodeObj.nodeType)"
-          >
+          <FormItem :label="$t('locate_approach')" v-if="['human', 'automatic', 'subProc'].includes(nodeObj.nodeType)">
             <Select v-model="nodeObj.dynamicBindInt" disabled>
-              <Option v-for="item in dynamicBindOptions" :value="item.value" :key="item.value">{{
-                item.label
-              }}</Option>
+              <Option v-for="item in dynamicBindOptions" :value="item.value" :key="item.value">{{ item.label }}</Option>
             </Select>
           </FormItem>
           <FormItem
-            v-if="
-              ['human', 'automatic', 'subProc'].includes(nodeObj.nodeType) &&
-                [1].includes(nodeObj.dynamicBindInt)
-            "
+            v-if="['human', 'automatic', 'subProc'].includes(nodeObj.nodeType) && [1].includes(nodeObj.dynamicBindInt)"
           >
             <label slot="label">
               <span style="color: red" v-if="nodeObj.dynamicBindInt === 1">*</span>
               {{ $t('bind_node') }}
             </label>
-            <Select
-              v-model="nodeObj.bindNodeId"
-              disabled
-            >
-              <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{
-                i.nodeName
-              }}</Option>
+            <Select v-model="nodeObj.bindNodeId" disabled>
+              <Option v-for="(i, index) in associatedNodes" :value="i.nodeId" :key="index">{{ i.nodeName }}</Option>
             </Select>
-            <span
-              v-if="[1].includes(nodeObj.dynamicBindInt) && nodeObj.bindNodeId === ''"
-              style="color: red"
-            >{{ $t('bind_node') }}{{ $t('cannotBeEmpty') }}</span>
+            <span v-if="[1].includes(nodeObj.dynamicBindInt) && nodeObj.bindNodeId === ''" style="color: red">{{ $t('bind_node') }}{{ $t('cannotBeEmpty') }}</span>
           </FormItem>
           <FormItem>
             <label slot="label">
