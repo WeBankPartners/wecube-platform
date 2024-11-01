@@ -702,6 +702,10 @@ func QueryProcInsPageData(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
+	// 查询主编排下的子编排实例,不需要传递 subProc字段
+	if strings.TrimSpace(param.MainProcInsId) != "" {
+		param.SubProc = ""
+	}
 	result, err := database.QueryProcInsPage(c, &param, middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)

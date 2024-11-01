@@ -505,6 +505,7 @@ type QueryProcPageParam struct {
 	SubProc           string    `json:"subProc"`
 	Name              string    `json:"name"`
 	RootEntityGuid    string    `json:"rootEntityGuid"`
+	MainProcInsId     string    `json:"mainProcInsId"` // 主编排
 }
 
 type QueryProcPageResponse struct {
