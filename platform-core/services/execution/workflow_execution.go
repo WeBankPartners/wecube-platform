@@ -32,7 +32,7 @@ import (
  * @return 调用结果, 高危结果, 错误
  */
 
-func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcCallPluginServiceFuncParam) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousWorkflowCheckResultData, pluginCallParam *models.BatchExecutionPluginExecParam, err error) {
+func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcCallPluginServiceFuncParam) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousBatchCheckResultData, pluginCallParam *models.BatchExecutionPluginExecParam, err error) {
 	procInsNodeReq := models.ProcInsNodeReq{
 		Id:            "proc_req_" + guid.CreateGuid(),
 		ProcInsNodeId: param.ProcInsNode.Id,
@@ -57,6 +57,10 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 		return
 	}
 	procInsNodeReq.ReqDataAmount = len(inputParamDatas)
+	// 纪录参数
+	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, true); err != nil {
+		return
+	}
 	// 调用高危插件
 	if param.RiskCheck {
 		itsdangerousCallParam := &models.BatchExecutionItsdangerousExecParam{
@@ -88,10 +92,6 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 		Inputs:          inputParamDatas,
 		DueDate:         param.DueDate,
 		AllowedOptions:  param.AllowedOptions,
-	}
-	// 纪录参数
-	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, true); err != nil {
-		return
 	}
 	pluginCallResult, errCode, errCall := remote.PluginInterfaceApi(ctx, remote.GetToken(), param.PluginInterface, pluginCallParam)
 	if errCall != nil {
@@ -165,7 +165,7 @@ func RecordPluginRequestInfo(ctx context.Context, procIns *models.ProcIns, outpu
 	}
 }
 
-func performWorkflowDangerousCheck(ctx context.Context, pluginCallParam interface{}, continueToken string, authToken string) (result *models.ItsdangerousWorkflowCheckResultData, err error) {
+func performWorkflowDangerousCheck(ctx context.Context, pluginCallParam interface{}, continueToken string, authToken string) (result *models.ItsdangerousBatchCheckResultData, err error) {
 	if continueToken != "" {
 		return
 	}
@@ -177,7 +177,7 @@ func performWorkflowDangerousCheck(ctx context.Context, pluginCallParam interfac
 		return
 	}
 	// 调用检查
-	result, err = remote.DangerousWorkflowCheck(ctx, authToken, pluginCallParam)
+	result, err = remote.DangerousBatchCheck(ctx, authToken, pluginCallParam)
 	return
 }
 
