@@ -35,7 +35,6 @@ func init() {
 	importFuncList = append(importFuncList, importWorkflow)
 	importFuncList = append(importFuncList, importBatchExecution)
 	importFuncList = append(importFuncList, importArtifactPackage)
-	//importFuncList = append(importFuncList, testImportArtifactPackage)
 	importFuncList = append(importFuncList, importMonitorBaseConfig)
 	importFuncList = append(importFuncList, importTaskManComponentLibrary)
 	importFuncList = append(importFuncList, importTaskManTemplate)
@@ -323,11 +322,6 @@ func importBatchExecution(ctx context.Context, transImportParam *models.TransImp
 	return
 }
 
-func testImportArtifactPackage(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-	log.Logger.Info("6. testImportArtifactPackage data  empty!!!")
-	return
-}
-
 // 7、导入监控基础类型、对象组、基础类型指标、对象组指标、对象组阈值配置、业务配置模版
 func importMonitorBaseConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	log.Logger.Info("6. importMonitorBaseConfig start!!!")
@@ -432,6 +426,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 				Comparison:  comparison,
 			}
 			if err = monitor.ImportMetric(param); err != nil {
+				err = fmt.Errorf("%s,fileName:%s", err.Error(), file.Name())
 				log.Logger.Error("ImportMetric err", log.String("fileName", file.Name()), log.Error(err))
 				return
 			}

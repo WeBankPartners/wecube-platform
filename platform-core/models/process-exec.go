@@ -70,6 +70,7 @@ type ProcDefFlowNode struct {
 	ServiceName       string              `json:"serviceName"`       // 插件服务名
 	BindNodeId        string              `json:"bindNodeId"`        // 动态绑定节点
 	FilterRule        string              `json:"filterRule"`        // 插件过滤规则
+	ProcDefNodeId     string              `json:"procDefNodeId"`     // 编排设计nodeId
 }
 
 type ProcPreviewEntityNode struct {
