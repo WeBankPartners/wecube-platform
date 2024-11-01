@@ -163,11 +163,11 @@ func QueryCustomChartPermissionBatch(ids []string, token string) (roles []string
 	return
 }
 
-func QueryLogMonitorTemplateNameBatch(ids []string, token string) (list []string, err error) {
+func QueryLogMonitorTemplateBatch(ids []string, token string) (list []*LogMonitorTemplate, err error) {
 	if len(ids) == 0 {
 		return
 	}
-	var response CommonBatchNameResp
+	var response QueryLogMonitorTemplateResp
 	var responseBytes []byte
 	param := CommonBatchIdsParam{Ids: ids}
 	responseBytes, err = requestMonitorPluginV2(QueryLogMonitorTemplateNameBatchUrl, http.MethodPost, token, param)
