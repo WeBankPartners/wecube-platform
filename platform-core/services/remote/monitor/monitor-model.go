@@ -230,6 +230,11 @@ type QueryCustomDashboardResp struct {
 	Data *CustomDashboardDto `json:"data"`
 }
 
+type QueryLogMonitorTemplateResp struct {
+	models.HttpResponseMeta
+	Data []*LogMonitorTemplate `json:"data"`
+}
+
 type CommonBatchNameResp struct {
 	models.HttpResponseMeta
 	Data []string `json:"data"`
@@ -282,4 +287,15 @@ type WorkflowDto struct {
 type GetWorkflowResp struct {
 	models.HttpResponseMeta
 	Data []*WorkflowDto `json:"data"`
+}
+
+type LogMonitorTemplate struct {
+	Guid             string `json:"guid"`
+	Name             string `json:"name"`
+	LogType          string `json:"log_type"`
+	DemoLog          string `json:"demo_log"`
+	JsonRegular      string `json:"json_regular"`
+	CreateUser       string `json:"create_user"`
+	UpdateUser       string `json:"update_user"`
+	UpdateTimeString string `json:"update_time"`
 }
