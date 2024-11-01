@@ -537,7 +537,9 @@ export default {
                   title: this.$t('main_workflow_id'),
                   minWidth: 120,
                   key: 'parentProcInsId',
-                  render: (h, params) => <span>{(params.row.parentProcIns && params.row.parentProcIns.procInsId) || '-'}</span>
+                  render: (h, params) => (
+                    <span>{(params.row.parentProcIns && params.row.parentProcIns.procInsId) || '-'}</span>
+                  )
                 }
               ]
             )
