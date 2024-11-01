@@ -230,6 +230,21 @@ type QueryCustomDashboardResp struct {
 	Data *CustomDashboardDto `json:"data"`
 }
 
+type QueryLogMonitorTemplateResp struct {
+	models.HttpResponseMeta
+	Data []*LogMonitorTemplate `json:"data"`
+}
+
+type QueryDashboardResp struct {
+	models.HttpResponseMeta
+	Data []*CustomDashboardTable `json:"data"`
+}
+
+type QueryServiceGroupResp struct {
+	models.HttpResponseMeta
+	Data []*ServiceGroupTable `json:"data"`
+}
+
 type CommonBatchNameResp struct {
 	models.HttpResponseMeta
 	Data []string `json:"data"`
@@ -282,4 +297,33 @@ type WorkflowDto struct {
 type GetWorkflowResp struct {
 	models.HttpResponseMeta
 	Data []*WorkflowDto `json:"data"`
+}
+
+type LogMonitorTemplate struct {
+	Guid             string `json:"guid"`
+	Name             string `json:"name"`
+	LogType          string `json:"log_type"`
+	DemoLog          string `json:"demo_log"`
+	JsonRegular      string `json:"json_regular"`
+	CreateUser       string `json:"create_user"`
+	UpdateUser       string `json:"update_user"`
+	UpdateTimeString string `json:"update_time"`
+}
+
+type CustomDashboardTable struct {
+	Id          int    `json:"id"`
+	Name        string `json:"name"`
+	Main        int    `json:"main"`
+	UpdateUser  string `json:"update_user"`
+	UpdateAtStr string `json:"update_at_str"`
+}
+
+type ServiceGroupTable struct {
+	Guid        string `json:"guid"`
+	DisplayName string `json:"display_name"`
+	Description string `json:"description"`
+	Parent      string `json:"parent"`
+	ServiceType string `json:"service_type"`
+	UpdateTime  string `json:"update_time"`
+	UpdateUser  string `json:"update_user"`
 }

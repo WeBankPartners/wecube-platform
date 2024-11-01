@@ -156,6 +156,20 @@ func ProcDefOutline(ctx context.Context, procDefId string) (result *models.ProcD
 	}
 	orderIndex := 1
 	for _, node := range procDefNodes {
+		var nodeParamList []*models.ProcDefNodeParam
+		var contextParamNodes []string
+		if len(node.ContextParamNodes) > 0 {
+			contextParamNodes = strings.Split(node.ContextParamNodes, ",")
+		}
+		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_param where proc_def_node_id = ?", node.Id).Find(&nodeParamList)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		// 节点参数中,节点id设置为前端展示nodeId
+		for _, nodeParam := range nodeParamList {
+			nodeParam.ProcDefNodeId = node.NodeId
+		}
 		nodeObj := models.ProcDefFlowNode{
 			NodeId:            node.Id,
 			NodeDefId:         node.Id,
@@ -168,9 +182,22 @@ func ProcDefOutline(ctx context.Context, procDefId string) (result *models.ProcD
 			Status:            node.Status,
 			Description:       node.Description,
 			DynamicBind:       "N",
+			DynamicBindInt:    node.DynamicBind,
 			PreviousNodeIds:   []string{},
 			SucceedingNodeIds: []string{},
 			SubProcDefId:      node.SubProcDefId,
+			ServiceName:       node.ServiceName,
+			BindNodeId:        node.BindNodeId,
+			ContextParamNodes: contextParamNodes,
+			ParamInfos:        nodeParamList,
+			ProcDefNodeId:     node.NodeId,
+		}
+		if strings.TrimSpace(node.ServiceName) != "" {
+			if interfaceObj, err2 := GetSimpleLastPluginInterface(ctx, node.ServiceName); err2 != nil {
+				log.Logger.Error("GetSimpleLastPluginInterface err", log.Error(err2))
+			} else if interfaceObj != nil {
+				nodeObj.FilterRule = interfaceObj.FilterRule
+			}
 		}
 		if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) || node.NodeType == models.JobSubProcType {
 			nodeObj.OrderedNo = fmt.Sprintf("%d", orderIndex)
@@ -1830,6 +1857,11 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 	}
 	filterSqlList = append(filterSqlList, "proc_def_id in (select proc_def_id from proc_def_permission where permission=? and role_id in ('"+strings.Join(userRoles, "','")+"'))")
 	filterParams = append(filterParams, models.PermissionTypeUSE)
+
+	if param.MainProcInsId != "" {
+		filterSqlList = append(filterSqlList, "parent_ins_node_id in (select id from proc_ins_node where proc_ins_id=? and node_type='subProc')")
+		filterParams = append(filterParams, param.MainProcInsId)
+	}
 
 	if len(filterSqlList) > 0 {
 		baseSql += " where " + strings.Join(filterSqlList, " and ")
