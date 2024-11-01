@@ -340,6 +340,14 @@
             </template>
           </div>
         </BaseHeaderTitle>
+        <!--插件服务-->
+        <BaseHeaderTitle v-if="['human', 'automatic'].includes(nodeInstance.nodeType)" :title="$t('workflow_plugin_aspect')">
+          <PluginService :nodeInstance="nodeInstance" />
+        </BaseHeaderTitle>
+        <!--数据绑定-->
+        <BaseHeaderTitle v-if="['human', 'automatic', 'data'].includes(nodeInstance.nodeType)" :title="$t('dataBinding')">
+          <DataBind :currentSelectedEntity="flowData.rootEntity" :nodeInstance="nodeInstance" />
+        </BaseHeaderTitle>
         <!--节点信息-->
         <BaseHeaderTitle :title="$t('fe_nodeInfo')">
           <template v-if="nodeDetailResponseHeader && Object.keys(nodeDetailResponseHeader).length > 0">
@@ -397,46 +405,58 @@
     <BaseDrawer
       :title="currentNodeTitle"
       :visible.sync="targetModalVisible"
-      realWidth="70%"
+      :realWidth="1200"
       :scrollable="true"
       :maskClosable="false"
     >
       <template slot-scope="{maxHeight}" slot="content">
-        <Input
-          v-model="tableFilterParam"
-          :placeholder="$t('please_input') + $t('object')"
-          style="width: 400px; margin-bottom: 8px"
-        />
-        <!-- {{ catchNodeTableList.length }} -->
-        <Table
-          border
-          ref="selection"
-          :max-height="maxHeight - 100"
-          @on-select="singleSelect"
-          @on-select-cancel="singleCancel"
-          @on-select-all-cancel="selectAllCancel"
-          @on-select-all="selectAll"
-          :columns="targetModelColums.filter(col => !col.disabled)"
-          :data="tartetModels"
-        >
-          <template slot-scope="{row}" slot="action">
-            <div style="display: flex; justify-content: space-around">
-              <Button type="info" size="small" @click="modelGraphMouseenterHandler(row)">{{
-                $t('view') + $t('object')
-              }}</Button>
-              <Button
-                v-if="row.nodeType === 'subProc'"
-                type="default"
-                size="small"
-                style="margin-left: 5px"
-                @click="viewSubProcExecution(row)"
-              >{{ $t('fe_view_childFlow') }}</Button>
-            </div>
-          </template>
-        </Table>
-        <span v-if="isNodeCanBindData" style="font-size: 12px; color: red; margin-right: 8px">{{
-          $t('be_dynamic_binding_warning')
-        }}</span>
+        <!--插件服务-->
+        <BaseHeaderTitle v-if="['human', 'automatic'].includes(nodeInstance.nodeType)" :title="$t('workflow_plugin_aspect')">
+          <PluginService :nodeInstance="nodeInstance" />
+        </BaseHeaderTitle>
+        <!--数据绑定-->
+        <BaseHeaderTitle v-if="['human', 'automatic', 'data'].includes(nodeInstance.nodeType)" :title="$t('dataBinding')">
+          <DataBind :currentSelectedEntity="flowData.rootEntity" :nodeInstance="nodeInstance" />
+        </BaseHeaderTitle>
+        <!--操作对象-->
+        <BaseHeaderTitle :title="$t('bc_execution_instance')">
+          <Input
+            v-model="tableFilterParam"
+            :placeholder="$t('please_input') + $t('object')"
+            style="width: 400px; margin-bottom: 8px"
+          />
+          <!-- {{ catchNodeTableList.length }} -->
+          <Table
+            :border="false"
+            size="small"
+            ref="selection"
+            :max-height="maxHeight - 100"
+            @on-select="singleSelect"
+            @on-select-cancel="singleCancel"
+            @on-select-all-cancel="selectAllCancel"
+            @on-select-all="selectAll"
+            :columns="targetModelColums.filter(col => !col.disabled)"
+            :data="tartetModels"
+          >
+            <template slot-scope="{row}" slot="action">
+              <div style="display: flex; justify-content: space-around">
+                <Button type="info" size="small" @click="modelGraphMouseenterHandler(row)">{{
+                  $t('view') + $t('object')
+                }}</Button>
+                <Button
+                  v-if="row.nodeType === 'subProc'"
+                  type="default"
+                  size="small"
+                  style="margin-left: 5px"
+                  @click="viewSubProcExecution(row)"
+                >{{ $t('fe_view_childFlow') }}</Button>
+              </div>
+            </template>
+          </Table>
+          <span v-if="isNodeCanBindData" style="font-size: 12px; color: red; margin-right: 8px">{{
+            $t('be_dynamic_binding_warning')
+          }}</span>
+        </BaseHeaderTitle>
       </template>
       <template slot="footer">
         <Button @click="targetModalVisible = false">{{ $t('cancel') }}</Button>
@@ -603,9 +623,13 @@ import * as d3 from 'd3-selection'
 import * as d3Graphviz from 'd3-graphviz'
 import { addEvent, removeEvent } from '@/pages/util/event.js'
 import { debounce, deepClone } from '@/const/util'
+import PluginService from './components/plugin-service.vue'
+import DataBind from './components/data-bind.vue'
 export default {
   components: {
-    JsonViewer
+    JsonViewer,
+    PluginService,
+    DataBind
   },
   data() {
     return {
@@ -641,6 +665,7 @@ export default {
       flowGraph: {},
       modelData: [],
       flowData: {},
+      nodeInstance: {}, // 编排节点完整数据(查看插件服务和绑定数据用到)
       currentNodeTitle: null,
       rowContent: null,
       allFlowInstances: [],
@@ -2012,6 +2037,12 @@ export default {
         this.nodesCannotBindData = data.flowNodes.filter(d => d.dynamicBind === 'Y').map(d => d.nodeId)
       }
     },
+    async getOutlineNodeInstance(id, node) {
+      const { status, data } = await getFlowOutlineByID(id)
+      if (status === 'OK') {
+        this.nodeInstance = data.flowNodes.find(item => item.nodeId === node.nodeId)
+      }
+    },
     formatRefNodeIds() {
       this.modelData.forEach(i => {
         i.refFlowNodeIds = []
@@ -2320,6 +2351,7 @@ export default {
             removeEvent('.decision-node', 'click', this.executeBranchHandler)
           }
         })
+      // 新建执行-节点绑定事件
       this.bindFlowEvent()
     },
     async excutionFlow() {
@@ -2474,7 +2506,7 @@ export default {
       this.start()
     },
     // 通用节点操作弹框
-    retryHandler(e, id) {
+    async retryHandler(e, id) {
       this.currentFailedNodeID = id || e.target.parentNode.getAttribute('id')
       this.isNodeCanBindData = this.nodesCannotBindData.includes(this.currentFailedNodeID)
       this.retryTargetModelColums[0].disabled = this.isNodeCanBindData
@@ -2482,6 +2514,8 @@ export default {
       this.targetModalVisible = false
       this.showNodeDetail = false
       const node = this.flowData.flowNodes.find(i => i.nodeId === (id || e.target.parentNode.getAttribute('id'))) || {}
+      // 获取节点outline数据(新建执行调用该接口，执行历史单独调用获取节点完整数据)
+      this.getOutlineNodeInstance(this.selectedFlow, node)
       // 时间节点手动调过
       if (['timeInterval', 'date'].includes(node.nodeType) && node.status === 'InProgress') {
         this.timeNodeHandler(e)
@@ -2775,6 +2809,7 @@ export default {
       const g = e.currentTarget
       this.currentFlowNodeId = g.id
       const currentNode = this.flowData.flowNodes.find(_ => _.nodeId === this.currentFlowNodeId)
+      this.nodeInstance = currentNode
       this.currentNodeTitle = `${currentNode.orderedNo}${currentNode.orderedNo ? '、' : ''}${currentNode.nodeName}`
       this.highlightModel(g.id, currentNode.nodeDefId, currentNode.nodeType)
       this.renderFlowGraph()
