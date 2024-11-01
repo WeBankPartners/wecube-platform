@@ -190,6 +190,7 @@ func ProcDefOutline(ctx context.Context, procDefId string) (result *models.ProcD
 			BindNodeId:        node.BindNodeId,
 			ContextParamNodes: contextParamNodes,
 			ParamInfos:        nodeParamList,
+			ProcDefNodeId:     node.NodeId,
 		}
 		if strings.TrimSpace(node.ServiceName) != "" {
 			if interfaceObj, err2 := GetSimpleLastPluginInterface(ctx, node.ServiceName); err2 != nil {

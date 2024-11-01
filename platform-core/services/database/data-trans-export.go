@@ -1016,18 +1016,16 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			detail.CmdbViewCount = transExportAnalyze.DataLen
 		case models.TransExportAnalyzeSourceMonitor:
 			var strData []string
+			var dataInterface interface{}
 			if strings.TrimSpace(transExportAnalyze.Data) != "" {
 				json.Unmarshal([]byte(transExportAnalyze.Data), &strData)
-			}
-			// 监控层级对象、业务配置模版、自定义看板存储的ID需要转化成名称
-			strData = GetMonitorNameById(transExportAnalyze.DataTypeName, strData)
-			if len(strData) == 0 {
-				strData = []string{}
+				// 监控层级对象、业务配置模版、自定义看板存储的ID需要转化成名称
+				dataInterface = GetMonitorNameById(transExportAnalyze.DataTypeName, strData)
 			}
 			monitorData := &models.CommonNameCount{
 				Name:  transExportAnalyze.DataTypeName,
 				Count: transExportAnalyze.DataLen,
-				Data:  strData,
+				Data:  dataInterface,
 			}
 			monitorList = append(monitorList, monitorData)
 		case models.TransExportAnalyzeSourceArtifact:
@@ -1087,12 +1085,12 @@ func QuerySimpleTransExportAnalyzeDataByTransExport(ctx context.Context, transEx
 	return
 }
 
-func GetMonitorNameById(dataTypeName string, ids []string) []string {
+func GetMonitorNameById(dataTypeName string, ids []string) interface{} {
 	// 监控业务配置模版存储是ID需要转换成名称
-	var result []string
+	var result interface{}
 	var err error
 	if dataTypeName == string(models.TransExportAnalyzeMonitorDataTypeLogMonitorTemplate) {
-		if result, err = monitor.QueryLogMonitorTemplateNameBatch(ids, remote.GetToken()); err != nil {
+		if result, err = monitor.QueryLogMonitorTemplateBatch(ids, remote.GetToken()); err != nil {
 			log.Logger.Error("QueryLogMonitorTemplateNameBatch err", log.Error(err))
 		}
 		return result
