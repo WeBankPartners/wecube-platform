@@ -1857,6 +1857,11 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 	filterSqlList = append(filterSqlList, "proc_def_id in (select proc_def_id from proc_def_permission where permission=? and role_id in ('"+strings.Join(userRoles, "','")+"'))")
 	filterParams = append(filterParams, models.PermissionTypeUSE)
 
+	if param.MainProcInsId != "" {
+		filterSqlList = append(filterSqlList, "parent_ins_node_id in (select id from proc_ins_node where proc_ins_id=? and node_type='subProc')")
+		filterParams = append(filterParams, param.MainProcInsId)
+	}
+
 	if len(filterSqlList) > 0 {
 		baseSql += " where " + strings.Join(filterSqlList, " and ")
 	}
