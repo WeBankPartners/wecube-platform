@@ -7,7 +7,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/network"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
 	"github.com/gin-gonic/gin"
-	"math/rand/v2"
+	"math/rand"
 	"strings"
 	"sync"
 )
@@ -174,7 +174,7 @@ func genRandIntList(length int) (output []int) {
 	}
 	for len(input) > 0 {
 		tmpLength := len(input)
-		index := rand.IntN(tmpLength)
+		index := rand.Intn(tmpLength)
 		output = append(output, input[index])
 		if index > 0 {
 			input = append(input[:index], input[index+1:]...)
