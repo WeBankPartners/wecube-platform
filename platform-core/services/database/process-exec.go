@@ -1892,7 +1892,7 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 		return
 	}
 	procInsParentMap := make(map[string]*models.ParentProcInsObj)
-	if param.SubProc == "sub" {
+	if param.SubProc == "sub" || strings.TrimSpace(param.MainProcInsId) != "" {
 		procInsParentMap, err = getProcInsParentMap(ctx, procInsIdList)
 		if err != nil {
 			return
