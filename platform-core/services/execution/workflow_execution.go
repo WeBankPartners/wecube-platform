@@ -77,7 +77,7 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 			err = errDangerous
 			return
 		}
-		if dangerousResult != nil {
+		if dangerousResult != nil && len(dangerousResult.Data) > 0 {
 			dangerousCheckResult = dangerousResult
 			return
 		}
