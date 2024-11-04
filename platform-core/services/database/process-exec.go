@@ -1431,6 +1431,12 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 	if queryObj.Status == models.JobStatusRisky {
 		result.ErrorCode = "CONFIRM"
 		result.ErrorMessage = queryObj.RiskCheckResult
+		if queryObj.RiskCheckResult != "" {
+			var riskResult models.ItsdangerousBatchCheckResultData
+			if tmpErr := json.Unmarshal([]byte(queryObj.RiskCheckResult), &riskResult); tmpErr == nil {
+				result.ErrorMessage = riskResult.Text
+			}
+		}
 	}
 	if queryObj.NodeType == models.JobSubProcType {
 		// 子编排的节点处理信息
