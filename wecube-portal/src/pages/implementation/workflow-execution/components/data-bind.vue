@@ -1,8 +1,8 @@
 <template>
   <div class="workflow-execution-data-bind">
     <Row>
-      <Col :span="12">
-        <Form :label-width="80">
+      <Col :span="14">
+        <Form :label-width="90">
           <FormItem :label="$t('locate_approach')" v-if="['human', 'automatic', 'subProc'].includes(nodeObj.nodeType)">
             <Select v-model="nodeObj.dynamicBindInt" disabled>
               <Option v-for="item in dynamicBindOptions" :value="item.value" :key="item.value">{{ item.label }}</Option>
