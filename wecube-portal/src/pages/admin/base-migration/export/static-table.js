@@ -324,6 +324,7 @@ export default {
       if (type === 'cmdb-ci') {
         this.detailTitle = row.name
         this.detailTableData = (row.data && Object.values(row.data)) || []
+        this.detailVisible = true
         this.detailColumns = [
           {
             title: this.$t('name'),
@@ -341,6 +342,7 @@ export default {
       } else if (type === 'artifacts') {
         this.detailTitle = row.unitDesignName
         this.detailTableData = row.artifactRows || []
+        this.detailVisible = true
         this.detailColumns = [
           {
             title: this.$t('package_name'),
@@ -361,14 +363,6 @@ export default {
                 IMAGE: this.$t('pi_image')
               }
               return <span>{typeMap[params.row.package_type]}</span>
-            }
-          },
-          {
-            title: this.$t('pi_baseline'),
-            key: 'baseline_package',
-            render: (h, params) => {
-              const baseLine = params.row.baseline_package ? params.row.baseline_package.key_name || '-' : '-'
-              return <span>{baseLine}</span>
             }
           },
           {
@@ -398,15 +392,99 @@ export default {
         ]
       } else if (type === 'monitor') {
         this.detailTitle = row.mapName
-        this.detailTableData = row.data && row.data.map(i => ({ name: i }))
-        this.detailColumns = [
-          {
-            title: this.$t('name'),
-            key: 'name'
-          }
-        ]
+        this.detailTableData = row.data || []
+        this.detailVisible = true
+        switch (row.name) {
+          case 'monitor_type':
+            this.detailColumns = [
+              {
+                title: '类型名',
+                key: 'displayName'
+              },
+              {
+                title: '对象数',
+                key: 'objectCount'
+              },
+              {
+                title: '创建人',
+                key: 'createUser'
+              },
+              {
+                title: '创建时间',
+                key: 'createTime'
+              }
+            ]
+            break
+          case 'log_monitor_template':
+            this.detailColumns = [
+              {
+                title: '模板名称',
+                key: 'name'
+              },
+              {
+                title: '模板类型',
+                key: 'log_type'
+              },
+              {
+                title: '更新人',
+                key: 'update_time'
+              },
+              {
+                title: '更新时间',
+                key: 'update_user'
+              }
+            ]
+            break
+          case 'dashboard':
+            this.detailColumns = [
+              {
+                title: '看板名',
+                key: 'name'
+              },
+              {
+                title: '看板id',
+                key: 'id'
+              },
+              {
+                title: '更新人',
+                key: 'update_user'
+              },
+              {
+                title: '更新时间',
+                key: 'update_at_str'
+              }
+            ]
+            break
+          case 'service_group':
+            this.detailColumns = [
+              {
+                title: '层级对象名',
+                key: 'name'
+              },
+              {
+                title: '层级对象类型',
+                key: 'type'
+              },
+              {
+                title: '更新人',
+                key: 'update_user'
+              },
+              {
+                title: '更新时间',
+                key: 'update_time'
+              }
+            ]
+            break
+          default:
+            this.detailTableData = row.data && row.data.map(i => ({ name: i }))
+            this.detailColumns = [
+              {
+                title: this.$t('name'),
+                key: 'name'
+              }
+            ]
+        }
       }
-      this.detailVisible = true
     }
   }
 }
