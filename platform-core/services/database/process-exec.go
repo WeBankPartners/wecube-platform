@@ -1279,19 +1279,6 @@ func AddProcCacheData(ctx context.Context, procInsId string, dataBinding []*mode
 	return
 }
 
-func UpdateProcInsNodeData(ctx context.Context, procInsId, status, errorMsg, riskCheckResult string) (err error) {
-	if riskCheckResult != "" {
-		_, err = db.MysqlEngine.Context(ctx).Exec("update proc_ins_node set risk_check_result=? where id=?", riskCheckResult, procInsId)
-	}
-	if status != "" {
-		_, err = db.MysqlEngine.Context(ctx).Exec("update proc_ins_node set status=? where id=?", status, procInsId)
-	}
-	if errorMsg != "" {
-		_, err = db.MysqlEngine.Context(ctx).Exec("update proc_ins_node set error_msg=? where id=?", errorMsg, procInsId)
-	}
-	return
-}
-
 func GetSimpleLastPluginInterface(ctx context.Context, serviceName string) (interfaceObj *models.PluginInterfaceWithVer, err error) {
 	var interfaceRows []*models.PluginInterfaceWithVer
 	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t3.`version` from plugin_config_interfaces t1 left join plugin_configs t2 on t1.plugin_config_id=t2.id left join plugin_packages t3 on t2.plugin_package_id=t3.id where t1.service_name=? and t2.status='ENABLED'", serviceName).Find(&interfaceRows)
@@ -1416,9 +1403,9 @@ func RecordProcCallReq(ctx context.Context, param *models.ProcInsNodeReq, inputF
 func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDefNodeId string) (result *models.ProcNodeContextReq, err error) {
 	var queryRows []*models.ProcNodeContextQueryObj
 	if procInsNodeId != "" {
-		err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.name,t1.proc_def_node_id,t1.error_msg,t2.routine_expression,t2.service_name,t2.node_type,t3.start_time,t3.end_time from proc_ins_node t1 left join proc_def_node t2 on t1.proc_def_node_id=t2.id left join proc_run_node t3 on t3.proc_ins_node_id=t1.id where t1.proc_ins_id=? and t1.id=?", procInsId, procInsNodeId).Find(&queryRows)
+		err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.name,t1.proc_def_node_id,t1.error_msg,t1.status,t1.risk_check_result,t2.routine_expression,t2.service_name,t2.node_type,t3.start_time,t3.end_time from proc_ins_node t1 left join proc_def_node t2 on t1.proc_def_node_id=t2.id left join proc_run_node t3 on t3.proc_ins_node_id=t1.id where t1.proc_ins_id=? and t1.id=?", procInsId, procInsNodeId).Find(&queryRows)
 	} else if procDefNodeId != "" {
-		err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.name,t1.proc_def_node_id,t1.error_msg,t2.routine_expression,t2.service_name,t2.node_type,t3.start_time,t3.end_time from proc_ins_node t1 left join proc_def_node t2 on t1.proc_def_node_id=t2.id left join proc_run_node t3 on t3.proc_ins_node_id=t1.id where t1.proc_ins_id=? and t1.proc_def_node_id=?", procInsId, procDefNodeId).Find(&queryRows)
+		err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.name,t1.proc_def_node_id,t1.error_msg,t1.status,t1.risk_check_result,t2.routine_expression,t2.service_name,t2.node_type,t3.start_time,t3.end_time from proc_ins_node t1 left join proc_def_node t2 on t1.proc_def_node_id=t2.id left join proc_run_node t3 on t3.proc_ins_node_id=t1.id where t1.proc_ins_id=? and t1.proc_def_node_id=?", procInsId, procDefNodeId).Find(&queryRows)
 	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
@@ -1441,6 +1428,10 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 	result.EndTime = queryObj.EndTime.Format(models.DateTimeFormat)
 	result.Operator = getProcNodeOperator(ctx, procInsNodeId)
 	result.RequestObjects = []models.ProcNodeContextReqObject{}
+	if queryObj.Status == models.JobStatusRisky {
+		result.ErrorCode = "CONFIRM"
+		result.ErrorMessage = queryObj.RiskCheckResult
+	}
 	if queryObj.NodeType == models.JobSubProcType {
 		// 子编排的节点处理信息
 		var sucProcRows []*models.ProcContextSubProcRow

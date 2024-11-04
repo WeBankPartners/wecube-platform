@@ -181,7 +181,7 @@ func performWorkflowDangerousCheck(ctx context.Context, pluginCallParam interfac
 	return
 }
 
-func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string) (err error) {
+func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string) (risky bool, err error) {
 	ctx = context.WithValue(ctx, models.TransactionIdHeader, procRunNodeId)
 	// 查proc def node定义和proc ins绑定数据
 	procInsNode, procDefNode, procDefNodeParams, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, procRunNodeId)
@@ -290,7 +290,15 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 	}
 	if dangerousCheckResult != nil {
 		dangerousCheckResultBytes, _ := json.Marshal(dangerousCheckResult)
-		database.UpdateProcInsNodeData(ctx, procInsNode.Id, "", "", string(dangerousCheckResultBytes))
+		risky = true
+		err = fmt.Errorf(string(dangerousCheckResultBytes))
+		//err = database.UpdateProcInsNodeData(ctx, procInsNode.Id, models.JobStatusRisky, "", string(dangerousCheckResultBytes))
+		//if err != nil {
+		//	err = fmt.Errorf("update proc instance node status fail, %s ", err.Error())
+		//}else{
+		//	risky = true
+		//	err = fmt.Errorf(string(dangerousCheckResultBytes))
+		//}
 	}
 	log.Logger.Debug("WorkflowExecutionCallPluginService", log.JsonObj("output", callOutput), log.JsonObj("pluginCallParam", pluginCallParam))
 	return
