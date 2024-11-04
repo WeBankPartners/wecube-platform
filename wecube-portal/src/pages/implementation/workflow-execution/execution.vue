@@ -250,7 +250,8 @@
     <BaseDrawer
       :title="$t('select_an_operation')"
       :visible.sync="workflowActionModalVisible"
-      realWidth="70%"
+      v-if="workflowActionModalVisible"
+      :realWidth="1100"
       :scrollable="true"
       :maskClosable="false"
       class="json-viewer"
@@ -411,7 +412,8 @@
     <BaseDrawer
       :title="currentNodeTitle"
       :visible.sync="targetModalVisible"
-      :realWidth="1200"
+      v-if="targetModalVisible"
+      :realWidth="1100"
       :scrollable="true"
       :maskClosable="false"
     >
