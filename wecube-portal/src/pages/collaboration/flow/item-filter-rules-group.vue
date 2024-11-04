@@ -3,7 +3,7 @@
     <Row>
       <template>
         <div v-for="(express, index) in routineExpressionItem" :key="index">
-          <Col :span="isBatch ? 16 : 22">
+          <Col :span="isBatch ? 16 : 24">
             <FilterRules
               :needAttr="true"
               ref="filterRules"
@@ -16,9 +16,9 @@
             </FilterRules>
           </Col>
           <Col span="6" v-if="isBatch">
-            <Input v-model="express.operate" placeholder="Operation" />
+            <Input v-model="express.operate" placeholder="Operation" :disabled="disabled" />
           </Col>
-          <Col span="2" v-if="isBatch">
+          <Col span="2" v-if="isBatch && !disabled">
             <Button
               size="small"
               ghost
@@ -32,7 +32,7 @@
         </div>
       </template>
     </Row>
-    <div v-if="isBatch">
+    <div v-if="isBatch && !disabled">
       <Button type="success" ghost @click="addFilterRule" size="small" icon="md-add"></Button>
     </div>
   </div>
