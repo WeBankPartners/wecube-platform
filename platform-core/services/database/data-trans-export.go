@@ -1109,6 +1109,13 @@ func GetMonitorNameById(dataTypeName string, ids []string) interface{} {
 		}
 		return result
 	}
+	// 基础类型,需要添加数据展示
+	if dataTypeName == string(models.TransExportAnalyzeMonitorDataTypeMonitorType) {
+		if result, err = monitor.QueryBasicTypeConfigBatch(ids, remote.GetToken()); err != nil {
+			log.Logger.Error("QueryBasicTypeConfigBatch err", log.Error(err))
+		}
+	}
+
 	return ids
 }
 

@@ -29,6 +29,7 @@ const (
 	QueryLogMonitorTemplateNameBatchUrl = "/monitor/api/v2/trans-export/log_monitor_template/batch"
 	QueryDashboardNameBatchUrl          = "/monitor/api/v2/trans-export/dashboard/batch"
 	QueryServiceGroupNameBatchUrl       = "/monitor/api/v2/trans-export/service_group/batch"
+	QueryBasicTypeConfigBatchUrl        = "/monitor/api/v2/trans-export/config/type/batch"
 
 	importMonitorTypeUrl   = "/monitor/api/v2/config/type-batch"
 	importEndpointGroupUrl = "/monitor/api/v2/alarm/endpoint_group/import"
@@ -215,6 +216,28 @@ func QueryServiceGroupBatch(ids []string, token string) (list []*ServiceGroupTab
 	var responseBytes []byte
 	param := CommonBatchIdsParam{Ids: ids}
 	responseBytes, err = requestMonitorPluginV2(QueryServiceGroupNameBatchUrl, http.MethodPost, token, param)
+	if err = json.Unmarshal(responseBytes, &response); err != nil {
+		err = fmt.Errorf(jsonUnmarshalErrTemplate, string(responseBytes), err.Error())
+		return
+	}
+	if response.Status != "OK" {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	if response.Data != nil {
+		list = response.Data
+	}
+	return
+}
+
+func QueryBasicTypeConfigBatch(names []string, token string) (list []*TypeConfig, err error) {
+	if len(names) == 0 {
+		return
+	}
+	var response QueryTypeConfigResp
+	var responseBytes []byte
+	param := CommonBatchNamesParam{Names: names}
+	responseBytes, err = requestMonitorPluginV2(QueryBasicTypeConfigBatchUrl, http.MethodPost, token, param)
 	if err = json.Unmarshal(responseBytes, &response); err != nil {
 		err = fmt.Errorf(jsonUnmarshalErrTemplate, string(responseBytes), err.Error())
 		return

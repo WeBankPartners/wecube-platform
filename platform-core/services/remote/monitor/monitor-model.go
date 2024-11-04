@@ -220,6 +220,10 @@ type CommonBatchIdsParam struct {
 	Ids []string `json:"ids"`
 }
 
+type CommonBatchNamesParam struct {
+	Names []string `json:"names"`
+}
+
 type CustomDashboardExportParam struct {
 	Id       int      `json:"id"`
 	ChartIds []string `json:"chartIds"`
@@ -243,6 +247,11 @@ type QueryDashboardResp struct {
 type QueryServiceGroupResp struct {
 	models.HttpResponseMeta
 	Data []*ServiceGroupTable `json:"data"`
+}
+
+type QueryTypeConfigResp struct {
+	models.HttpResponseMeta
+	Data []*TypeConfig `json:"data"`
 }
 
 type CommonBatchNameResp struct {
@@ -326,4 +335,14 @@ type ServiceGroupTable struct {
 	ServiceType string `json:"service_type"`
 	UpdateTime  string `json:"update_time"`
 	UpdateUser  string `json:"update_user"`
+}
+
+type TypeConfig struct {
+	Guid        string `json:"guid"`
+	DisplayName string `json:"displayName"`
+	Description string `json:"description"`
+	SystemType  int    `json:"systemType"` //系统类型,0为非系统类型,1为系统类型
+	CreateUser  string `json:"createUser"`
+	CreateTime  string `json:"createTime"`
+	ObjectCount int    `json:"objectCount"` // 对象数
 }
