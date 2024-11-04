@@ -1114,8 +1114,8 @@ func GetMonitorNameById(dataTypeName string, ids []string) interface{} {
 		if result, err = monitor.QueryBasicTypeConfigBatch(ids, remote.GetToken()); err != nil {
 			log.Logger.Error("QueryBasicTypeConfigBatch err", log.Error(err))
 		}
+		return result
 	}
-
 	return ids
 }
 
