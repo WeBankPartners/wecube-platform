@@ -1,8 +1,8 @@
 <template>
   <div class="workflow-execution-plugin-service">
     <Row :gutter="40">
-      <Col :span="12" style="border-right: 1px solid #e8eaec">
-        <Form inline :label-width="80" label-position="left">
+      <Col :span="14" style="border-right: 1px solid #e8eaec">
+        <Form inline :label-width="90">
           <FormItem :label="$t('pluginService')">
             <Select v-model="nodeObj.serviceName" disabled>
               <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
@@ -11,7 +11,7 @@
             </Select>
           </FormItem>
         </Form>
-        <Form inline :label-width="80" label-position="left">
+        <Form inline :label-width="90">
           <FormItem :label="$t('parameterSettings')">
             <Tabs type="card">
               <TabPane :label="$t('context_parameters')">
@@ -90,7 +90,7 @@
           </FormItem>
         </Form>
       </Col>
-      <Col :span="12">
+      <Col :span="10">
         <Form inline :label-width="80" label-position="left">
           <FormItem label="过滤规则">
             <template v-if="filterRules && filterRules.length > 0">
@@ -107,7 +107,7 @@
               </div>
             </template>
             <template v-else>
-              <span style="color: #515a6e">暂无数据</span>
+              <span style="color: #515a6e">-</span>
             </template>
           </FormItem>
         </Form>
