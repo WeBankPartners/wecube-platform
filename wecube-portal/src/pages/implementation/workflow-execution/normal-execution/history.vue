@@ -11,11 +11,13 @@
       <Select
         v-model="searchConfig.params.mainProcInsId"
         style="width: 600px; margin-bottom: 10px"
-        filterable
         clearable
+        filterable
         :placeholder="$t('main_workflow')"
+        :remote-method="() => {}"
+        @on-query-change="handleRemoteInstance"
         @on-change="handleQuery"
-        @on-open-change="getAllFlowInstances"
+        @on-open-change="getAllFlowInstances()"
       >
         <Option
           v-for="item in allFlowInstances"
@@ -100,6 +102,7 @@ import {
   getProcessInstances
 } from '@/api/server'
 import dayjs from 'dayjs'
+import { debounce } from '@/const/util'
 export default {
   data() {
     return {
@@ -814,20 +817,12 @@ export default {
         desc: this.$t('no_detail_warning')
       })
     },
-    // getDate (dateRange, type) {
-    //   if (type === 'date' && dateRange[1].slice(-8) === '00:00:00') {
-    //     // type类型判断等于date,是为了防止用户手动选时间为 00:00:00 时触发，变成 '23:59:59'
-    //     dateRange[1] = dateRange[1].slice(0, -8) + '23:59:59'
-    //   }
-    //   this.searchConfig.params.time = dateRange
-    //   this.searchConfig.params.startTime = dateRange[0]
-    //   this.searchConfig.params.endTime = dateRange[1]
-    // }
-    async getAllFlowInstances() {
+    // 获取父编排实例下拉列表
+    async getAllFlowInstances(query = '') {
       const params = {
         params: {
           withCronIns: 'no',
-          search: '',
+          search: query,
           withSubProc: '',
           mgmtRole: ''
         }
@@ -836,7 +831,10 @@ export default {
       if (status === 'OK') {
         this.allFlowInstances = data || []
       }
-    }
+    },
+    handleRemoteInstance: debounce(async function (query) {
+      this.getAllFlowInstances(query)
+    }, 500)
   }
 }
 </script>
