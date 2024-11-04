@@ -1,7 +1,7 @@
 <template>
   <div class="workflow-execution-plugin-service">
-    <Row :gutter="40">
-      <Col :span="14" style="border-right: 1px solid #e8eaec">
+    <Row>
+      <Col :span="24">
         <Form inline :label-width="90">
           <FormItem :label="$t('pluginService')">
             <Select v-model="nodeObj.serviceName" disabled>
@@ -66,6 +66,7 @@
                     </template>
                   </div>
                 </template>
+                <template v-else><div style="padding: 0px 10px">暂无数据</div></template>
               </TabPane>
               <TabPane :label="$t('constant_parameters')">
                 <template v-if="paramInfos && paramInfos.filter(p => p.bindType === 'constant').length > 0">
@@ -85,30 +86,9 @@
                     </template>
                   </div>
                 </template>
+                <template v-else><div style="padding: 0px 10px">暂无数据</div></template>
               </TabPane>
             </Tabs>
-          </FormItem>
-        </Form>
-      </Col>
-      <Col :span="10">
-        <Form inline :label-width="80" label-position="left">
-          <FormItem label="过滤规则">
-            <template v-if="filterRules && filterRules.length > 0">
-              <div v-for="(i, index) in filterRules" :key="index" style="display: flex; margin-bottom: 5px">
-                <div style="width: 35%; margin-right: 5px">
-                  <Input v-model="i.key" disabled />
-                </div>
-                <div style="width: 30%; margin-right: 5px">
-                  <Input v-model="i.operation" disabled />
-                </div>
-                <div style="width: 35%">
-                  <Input v-model="i.value" disabled />
-                </div>
-              </div>
-            </template>
-            <template v-else>
-              <span style="color: #515a6e">-</span>
-            </template>
           </FormItem>
         </Form>
       </Col>
@@ -155,7 +135,6 @@ export default {
           this.getFilteredPluginInterfaceList(this.nodeObj.routineExpression)
           this.getRootNode()
           this.mgmtParamInfos()
-          this.getFilterRules()
         }
       },
       immediate: true,
@@ -230,20 +209,6 @@ export default {
           this.$set(this.paramInfos[index], 'currentParamNames', res)
         }
       }
-    },
-    getFilterRules() {
-      const pattern = /{[^}]+}/g
-      const array = (this.nodeObj.filterRule && this.nodeObj.filterRule.match(pattern)) || []
-      this.filterRules = array.map(item => {
-        const withoutBrackets = item.slice(1, -1)
-        const parts = withoutBrackets.split(' ')
-        const [key, operation, value] = parts.map(part => part.replace(/['"]/g, ''))
-        return {
-          key,
-          operation,
-          value
-        }
-      })
     }
   }
 }
