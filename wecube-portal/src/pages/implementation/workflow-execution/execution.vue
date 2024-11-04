@@ -274,14 +274,13 @@
             </div>
             <template v-else>
               <!--高危检测-->
-              <div v-if="['Risky'].includes(currentNodeStatus)">
-                <span>{{ $t('fe_riskyTips') }}</span>
-                <Button
-                  style="background-color: #bf22e0; color: white; margin-top: 10px"
-                  @click="workFlowActionHandler('risky')"
-                  :loading="btnLoading"
-                >{{ $t('dangerous_confirm') }}</Button>
-              </div>
+              <Alert v-if="['Risky'].includes(currentNodeStatus)" type="warning" show-icon>{{ $t('fe_riskyTips') }}</Alert>
+              <Button
+                v-if="['Risky'].includes(currentNodeStatus)"
+                style="background-color:#bf22e0;color:white;"
+                @click="workFlowActionHandler('risky')"
+                :loading="btnLoading"
+              >{{ $t('dangerous_confirm') }}</Button>
               <!--反选数据-->
               <Button
                 type="primary"
