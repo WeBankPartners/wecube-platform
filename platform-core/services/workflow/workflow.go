@@ -221,7 +221,7 @@ func (w *Workflow) updateErrorList(addFlag bool, nodeId string, errorObj *models
 	db.WorkflowMysqlEngine.Exec("update proc_run_workflow set error_message=?,updated_time=? where id=?", errorMesg, time.Now(), w.Id)
 }
 
-func (w *Workflow) RetryNode(nodeId string) {
+func (w *Workflow) RetryNode(nodeId string, confirmFlag bool) {
 	// check node status fail
 	var nodeObj *WorkNode
 	for _, node := range w.Nodes {
@@ -237,6 +237,7 @@ func (w *Workflow) RetryNode(nodeId string) {
 	nodeObj.Input = ""
 	nodeObj.Status = models.JobStatusRunning
 	nodeObj.RetryFlag = true
+	nodeObj.ConfirmFlag = confirmFlag
 	go nodeObj.Ready()
 	time.Sleep(500 * time.Millisecond)
 	nodeObj.StartTime = time.Now()
@@ -270,16 +271,6 @@ func (w *Workflow) IgnoreNode(nodeId string) {
 	updateNodeDB(&nodeObj.ProcRunNode)
 	w.updateErrorList(false, nodeId, nil)
 	w.nodeDoneCallback(nodeObj)
-	//for _, ref := range w.Links {
-	//	if ref.Source == nodeId {
-	//		for _, targetNode := range w.Nodes {
-	//			if targetNode.Id == ref.Target {
-	//				targetNode.StartChan <- 1
-	//				break
-	//			}
-	//		}
-	//	}
-	//}
 }
 
 func (w *Workflow) ApproveNode(nodeId, message string) {
@@ -328,6 +319,7 @@ type WorkNode struct {
 	callbackChan chan string
 	ContinueChan chan int
 	RetryFlag    bool
+	ConfirmFlag  bool
 }
 
 func (n *WorkNode) Init(w *Workflow) {
@@ -471,11 +463,13 @@ func (n *WorkNode) start() {
 		n.Status = models.JobStatusSuccess
 		updateNodeDB(&n.ProcRunNode)
 	} else {
-		n.Status = models.JobStatusFail
-		n.ErrorMessage = n.Err.Error()
-		if customErr, ok := n.Err.(exterror.CustomError); ok {
-			if customErr.DetailErr != nil {
-				n.ErrorMessage = fmt.Sprintf("%s (%s)", customErr.Error(), customErr.DetailErr.Error())
+		if n.Status != models.JobStatusRisky {
+			n.Status = models.JobStatusFail
+			n.ErrorMessage = n.Err.Error()
+			if customErr, ok := n.Err.(exterror.CustomError); ok {
+				if customErr.DetailErr != nil {
+					n.ErrorMessage = fmt.Sprintf("%s (%s)", customErr.Error(), customErr.DetailErr.Error())
+				}
 			}
 		}
 		updateNodeDB(&n.ProcRunNode)
@@ -488,7 +482,16 @@ func (n *WorkNode) start() {
 
 func (n *WorkNode) doAutoJob() (output string, err error) {
 	log.WorkflowLogger.Info("do auto job", log.String("nodeId", n.Id), log.String("input", n.Input))
-	err = execution.DoWorkflowAutoJob(n.Ctx, n.Id, "")
+	continueToken := ""
+	if n.ConfirmFlag {
+		continueToken = "Y"
+	}
+	var risky bool
+	risky, err = execution.DoWorkflowAutoJob(n.Ctx, n.Id, continueToken)
+	if risky {
+		n.Status = models.JobStatusRisky
+		n.ErrorMessage = err.Error()
+	}
 	if err != nil {
 		log.WorkflowLogger.Error("do auto job error", log.Error(err))
 	}
@@ -821,6 +824,9 @@ func updateNodeDB(n *models.ProcRunNode) {
 	} else if n.Status == models.JobStatusTimeout {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,error_message=?,end_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, nowTime, nowTime, n.Id}})
 		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,error_msg=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, nowTime, n.ProcInsNodeId}})
+	} else if n.Status == models.JobStatusRisky {
+		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,error_message=?,end_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, nowTime, nowTime, n.Id}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,risk_check_result=?,error_msg=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, n.ErrorMessage, nowTime, n.ProcInsNodeId}})
 	} else {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, n.Id}})
 		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, n.ProcInsNodeId}})
