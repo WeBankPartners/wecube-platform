@@ -13,7 +13,7 @@
         style="width: 600px; margin-bottom: 10px"
         clearable
         filterable
-        :placeholder="$t('main_workflow')"
+        :placeholder="$t('main_workflow_example')"
         :remote-method="() => {}"
         @on-query-change="handleRemoteInstance"
         @on-change="handleQuery"
@@ -352,22 +352,22 @@ export default {
         {
           title: this.$t('executor'),
           key: 'operator',
-          minWidth: 120
+          minWidth: 90
         },
         {
           title: this.$t('execute_date'),
           key: 'createdTime',
-          minWidth: 150
+          minWidth: 130
         },
         {
           title: this.$t('updatedBy'),
           key: 'updatedBy',
-          minWidth: 120
+          minWidth: 90
         },
         {
           title: this.$t('table_updated_date'),
           key: 'updatedTime',
-          minWidth: 150
+          minWidth: 130
         },
         {
           title: this.$t('table_action'),
