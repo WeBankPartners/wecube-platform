@@ -781,6 +781,7 @@
   "workflow_type": "Flow Type",
   "child_workflow": "Child Flow",
   "main_workflow": "Main Flow",
+  "main_workflow_example": "Parent Flow Instance",
   "main_workflow_id": "Main Flow ID",
   "call_childFlow": "Call Child Flow",
   "workflow_id": "Flow ID",
