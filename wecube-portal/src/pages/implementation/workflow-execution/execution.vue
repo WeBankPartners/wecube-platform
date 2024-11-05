@@ -364,7 +364,11 @@
           :title="$t('dataBinding')"
           :defaultExpand="false"
         >
-          <DataBind :currentSelectedEntity="flowData.rootEntity" :nodeInstance="nodeInstance" :subProcItem="subProcItem" />
+          <DataBind
+            :currentSelectedEntity="flowData.rootEntity"
+            :nodeInstance="nodeInstance"
+            :subProcItem="subProcItem"
+          />
         </BaseHeaderTitle>
         <!--节点信息-->
         <BaseHeaderTitle :title="$t('fe_nodeInfo')">
