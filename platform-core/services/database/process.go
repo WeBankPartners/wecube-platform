@@ -262,7 +262,7 @@ func AddProcessDefinition(ctx context.Context, user string, param models.Process
 	return
 }
 
-func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefinitionDto, userToken, language, operator string) (err error) {
+func CopyProcessDefinitionByDto(param models.ProcDefImportDto, procDef *models.ProcessDefinitionDto) (err error) {
 	var permissionList []*models.ProcDefPermission
 	var nodeList []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
@@ -275,37 +275,40 @@ func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefi
 		return
 	}
 	// 编排的创建更新人设置为当前人
-	procDefModel.CreatedBy = operator
-	procDefModel.UpdatedBy = operator
+	procDefModel.CreatedBy = param.Operator
+	procDefModel.UpdatedBy = param.Operator
 	procDefModel.CreatedTime = now
 	procDefModel.UpdatedTime = now
-	// 获取操作用户的角色
-	response, err = remote.GetRolesByUsername(operator, userToken, language)
-	if err != nil {
-		return
-	}
-	if len(response.Data) > 0 {
-		// 设置当前用户的默认角色为属主和使用角色
-		roleName := response.Data[0].Name
-		permissionList = append(permissionList, &models.ProcDefPermission{
-			ProcDefId:  procDef.ProcDef.Id,
-			RoleId:     roleName,
-			RoleName:   roleName,
-			Permission: "USE",
-		})
-		permissionList = append(permissionList, &models.ProcDefPermission{
-			ProcDefId:  procDef.ProcDef.Id,
-			RoleId:     roleName,
-			RoleName:   roleName,
-			Permission: "MGMT",
-		})
+	// 底座迁移导入,之前已经导入所有角色,此处复用角色就可以.
+	if !param.IsTransImport {
+		// 获取操作用户的角色(新环境导入获取当前用户角色)
+		response, err = remote.GetRolesByUsername(param.Operator, param.UserToken, param.Language)
+		if err != nil {
+			return
+		}
+		if len(response.Data) > 0 {
+			// 设置当前用户的默认角色为属主和使用角色
+			roleName := response.Data[0].Name
+			permissionList = append(permissionList, &models.ProcDefPermission{
+				ProcDefId:  procDef.ProcDef.Id,
+				RoleId:     roleName,
+				RoleName:   roleName,
+				Permission: "USE",
+			})
+			permissionList = append(permissionList, &models.ProcDefPermission{
+				ProcDefId:  procDef.ProcDef.Id,
+				RoleId:     roleName,
+				RoleName:   roleName,
+				Permission: "MGMT",
+			})
+		}
 	}
 
 	if len(procDef.ProcDefNodeExtend.Nodes) > 0 {
 		for _, node := range procDef.ProcDefNodeExtend.Nodes {
 			if node != nil {
 				if node.ProcDefNodeCustomAttrs.SubProcDefName != "" && node.ProcDefNodeCustomAttrs.SubProcDefVersion != "" {
-					subProcDefList, tmpErr := GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Name: node.ProcDefNodeCustomAttrs.SubProcDefName, Version: node.ProcDefNodeCustomAttrs.SubProcDefVersion})
+					subProcDefList, tmpErr := GetProcessDefinitionByCondition(param.Ctx, models.ProcDefCondition{Name: node.ProcDefNodeCustomAttrs.SubProcDefName, Version: node.ProcDefNodeCustomAttrs.SubProcDefVersion})
 					if tmpErr != nil {
 						err = tmpErr
 						return
@@ -318,8 +321,8 @@ func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefi
 				}
 				nodeModel, nodeParams := models.ConvertProcDefNodeResultDto2Model(node)
 				if nodeModel != nil {
-					nodeModel.CreatedBy = operator
-					nodeModel.UpdatedBy = operator
+					nodeModel.CreatedBy = param.Operator
+					nodeModel.UpdatedBy = param.Operator
 					nodeModel.CreatedTime = now
 					nodeModel.UpdatedTime = now
 					nodeList = append(nodeList, nodeModel)
@@ -336,7 +339,7 @@ func CopyProcessDefinitionByDto(ctx context.Context, procDef *models.ProcessDefi
 		}
 	}
 
-	return execCopyProcessDefinition(ctx, procDefModel, nodeList, linkList, nodeParamList, permissionList, operator)
+	return execCopyProcessDefinition(param.Ctx, procDefModel, nodeList, linkList, nodeParamList, permissionList, param.Operator)
 }
 
 // CopyProcessDefinition 复制编排
