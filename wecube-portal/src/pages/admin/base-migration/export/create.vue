@@ -59,6 +59,7 @@ import StepEnviroment from './components/step-enviroment.vue'
 import StepSelectData from './components/step-select-data.vue'
 import StepResult from './components/step-result.vue'
 import { debounce, groupArrayByKey } from '@/const/util'
+import dayjs from 'dayjs'
 import {
   saveEnvBusiness, updateEnvBusiness, exportBaseMigration, getExportDetail
 } from '@/api/server'
@@ -93,6 +94,7 @@ export default {
     // 重新发起
     if (_id && _type === 'republish') {
       await this.getDetailData()
+      this.detailData.lastConfirmTime = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss')
       this.activeStep = 0
     }
     // 新建操作
@@ -240,6 +242,9 @@ export default {
       const pIds = selectionList.map(item => item.id)
       const pNames = selectionList.map(item => item.displayName)
       const envName = envList.find(item => item.value === env).label
+      if (!lastConfirmTime) {
+        return this.$Message.warning(this.$t('pi_data_confirmTime') + this.$t('required'))
+      }
       if (pIds.length === 0) {
         return this.$Message.warning(this.$t('pi_product_requiredTips'))
       }
