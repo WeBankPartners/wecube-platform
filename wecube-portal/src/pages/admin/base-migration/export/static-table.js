@@ -204,9 +204,7 @@ export default {
         {
           title: this.$t('data_type'),
           key: 'name',
-          render: (h, params) => (
-            <span>{params.row.name}</span>
-          )
+          render: (h, params) => <span>{params.row.name}</span>
         },
         {
           title: this.$t('pe_select_service'),
@@ -326,13 +324,22 @@ export default {
         path = `${window.location.origin}/#/adminConfig/typeConfig`
       } else if (row.name === 'endpoint_group' && type === 'monitor') {
         path = `${window.location.origin}/#/monitorConfigIndex/groupManagement`
-      } else if ((row.name === 'metric_list' || ['custom_metric_service_group', 'custom_metric_endpoint_group', 'custom_metric_monitor_type'].includes(row.name)) && type === 'monitor') {
+      } else if (
+        (row.name === 'metric_list'
+          || ['custom_metric_service_group', 'custom_metric_endpoint_group', 'custom_metric_monitor_type'].includes(
+            row.name
+          ))
+        && type === 'monitor'
+      ) {
         path = `${window.location.origin}/#/monitorConfigIndex/metricConfig`
       } else if (row.name === 'log_monitor_service_group' && type === 'monitor') {
         path = `${window.location.origin}/#/monitorConfigIndex/businessMonitor`
       } else if (row.name === 'log_monitor_template' && type === 'monitor') {
         path = `${window.location.origin}/#/monitorConfigIndex/logTemplate`
-      } else if ((row.name === 'strategy_list' || ['strategy_service_group', 'strategy_endpoint_group'].includes(row.name)) && type === 'monitor') {
+      } else if (
+        (row.name === 'strategy_list' || ['strategy_service_group', 'strategy_endpoint_group'].includes(row.name))
+        && type === 'monitor'
+      ) {
         path = `${window.location.origin}/#/monitorConfigIndex/thresholdManagement`
       } else if (row.name === 'logKeyword_service_group' && type === 'monitor') {
         path = `${window.location.origin}/#/monitorConfigIndex/logManagement`
