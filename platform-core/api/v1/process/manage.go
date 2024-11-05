@@ -1399,7 +1399,7 @@ func ProcDefImport(param models.ProcDefImportDto) (importResult *models.ImportRe
 		if !param.IsTransImport || procDefDto.ProcDef.Id == "" {
 			procDefDto.ProcDef.Id = "pdef_" + guid.CreateGuid()
 		}
-		err = database.CopyProcessDefinitionByDto(param.Ctx, procDefDto, param.UserToken, param.Language, param.Operator)
+		err = database.CopyProcessDefinitionByDto(param, procDefDto)
 		if err != nil {
 			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
 				ProcDefId:      procDefDto.ProcDef.Id,
