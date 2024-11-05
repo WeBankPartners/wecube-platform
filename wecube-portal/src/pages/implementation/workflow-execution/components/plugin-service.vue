@@ -66,7 +66,7 @@
                     </template>
                   </div>
                 </template>
-                <template v-else><div style="padding: 0px 10px">暂无数据</div></template>
+                <template v-else><div style="padding: 0px 10px">{{ $t('noData') }}</div></template>
               </TabPane>
               <TabPane :label="$t('constant_parameters')">
                 <template v-if="paramInfos && paramInfos.filter(p => p.bindType === 'constant').length > 0">
@@ -86,7 +86,7 @@
                     </template>
                   </div>
                 </template>
-                <template v-else><div style="padding: 0px 10px">暂无数据</div></template>
+                <template v-else><div style="padding: 0px 10px">{{ $t('noData') }}</div></template>
               </TabPane>
             </Tabs>
           </FormItem>

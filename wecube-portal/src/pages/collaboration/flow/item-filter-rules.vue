@@ -352,6 +352,7 @@ export default {
       this.currentPathFilterRules = []
     },
     showPoptip(node, index) {
+      if (this.disabled) return
       this.currentNodeIndex = index
       this.currentNode = node
       this.formatNextCurrentOptions(node)
