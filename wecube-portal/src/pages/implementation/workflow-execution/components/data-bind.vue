@@ -1,7 +1,7 @@
 <template>
   <div class="workflow-execution-data-bind">
-    <Row>
-      <Col :span="14">
+    <Row :gutter="40">
+      <Col :span="12" style="border-right: 1px solid #e8eaec">
         <Form :label-width="90">
           <FormItem :label="$t('locate_approach')" v-if="['human', 'automatic', 'subProc'].includes(nodeObj.nodeType)">
             <Select v-model="nodeObj.dynamicBindInt" disabled>
@@ -38,6 +38,28 @@
                 :currentSelectedEntity="currentSelectedEntity"
               >
               </ItemFilterRulesGroup>
+            </template>
+          </FormItem>
+        </Form>
+      </Col>
+      <Col :span="12">
+        <Form inline :label-width="80" label-position="left">
+          <FormItem label="过滤规则">
+            <template v-if="filterRules && filterRules.length > 0">
+              <div v-for="(i, index) in filterRules" :key="index" style="display: flex; margin-bottom: 5px">
+                <div style="width: 35%; margin-right: 5px">
+                  <Input v-model="i.key" disabled />
+                </div>
+                <div style="width: 30%; margin-right: 5px">
+                  <Input v-model="i.operation" disabled />
+                </div>
+                <div style="width: 35%">
+                  <Input v-model="i.value" disabled />
+                </div>
+              </div>
+            </template>
+            <template v-else>
+              <span style="color: #515a6e">-</span>
             </template>
           </FormItem>
         </Form>
@@ -92,6 +114,7 @@ export default {
           })
           this.getAssociatedNodes()
           this.getAllDataModels()
+          this.getFilterRules()
         }
       },
       immediate: true,
@@ -118,6 +141,20 @@ export default {
       if (status === 'OK') {
         this.allEntityType = data.filter(d => d.packageName === this.currentSelectedEntity.split(':')[0])
       }
+    },
+    getFilterRules() {
+      const pattern = /{[^}]+}/g
+      const array = (this.nodeObj.filterRule && this.nodeObj.filterRule.match(pattern)) || []
+      this.filterRules = array.map(item => {
+        const withoutBrackets = item.slice(1, -1)
+        const parts = withoutBrackets.split(' ')
+        const [key, operation, value] = parts.map(part => part.replace(/['"]/g, ''))
+        return {
+          key,
+          operation,
+          value
+        }
+      })
     }
   }
 }
