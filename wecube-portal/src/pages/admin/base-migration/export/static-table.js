@@ -10,7 +10,7 @@ export default {
             <span
               style="cursor:pointer;color:#5cadff;"
               onClick={() => {
-                this.handleStaticTableLink(params.row, 'cmdb-ci')
+                this.handleStaticTableLink(params.row, 'cmdb-ci-level')
               }}
             >
               {params.row.group}
@@ -24,7 +24,7 @@ export default {
             <span
               style="cursor:pointer;color:#5cadff;"
               onClick={() => {
-                this.handleStaticTableLink(params.row, 'cmdb-ci')
+                this.handleStaticTableLink(params.row, 'cmdb-ci-name')
               }}
             >
               {params.row.name}
@@ -317,8 +317,41 @@ export default {
     }
   },
   methods: {
-    handleStaticTableLink(type, row) {
-      return type + row
+    handleStaticTableLink(row, type) {
+      let path = ''
+      if (type === 'cmdb-ci-level') {
+        path = `${window.location.origin}/#/wecmdb/data-mgmt-ci`
+      } else if (type === 'cmdb-ci-name') {
+        path = `${window.location.origin}/#/wecmdb/data-mgmt-ci?ciTypeId=${'application_domain'}&name=${'作用域'}`
+      } else if (type === 'cmdb-view') {
+        path = `${window.location.origin}/#/wecmdb/data-mgmt-view`
+      } else if (type === 'cmdb-report') {
+        path = `${window.location.origin}/#/wecmdb/report-query`
+      } else if (type === 'artifacts') {
+        path = `${window.location.origin}/#/artifacts/implementation/artifact-management`
+      } else if (row.name === 'monitor_type' && type === 'monitor') {
+        path = `${window.location.origin}/#/adminConfig/typeConfig`
+      } else if (row.name === 'endpoint_group' && type === 'monitor') {
+        path = `${window.location.origin}/#/monitorConfigIndex/groupManagement`
+      } else if ((row.name === 'metric_list' || ['custom_metric_service_group', 'custom_metric_endpoint_group', 'custom_metric_monitor_type'].includes(row.name)) && type === 'monitor') {
+        path = `${window.location.origin}/#/monitorConfigIndex/metricConfig`
+      } else if (row.name === 'log_monitor_service_group' && type === 'monitor') {
+        path = `${window.location.origin}/#/monitorConfigIndex/businessMonitor`
+      } else if (row.name === 'log_monitor_template' && type === 'monitor') {
+        path = `${window.location.origin}/#/monitorConfigIndex/logTemplate`
+      } else if ((row.name === 'strategy_list' || ['strategy_service_group', 'strategy_endpoint_group'].includes(row.name)) && type === 'monitor') {
+        path = `${window.location.origin}/#/monitorConfigIndex/thresholdManagement`
+      } else if (row.name === 'logKeyword_service_group' && type === 'monitor') {
+        path = `${window.location.origin}/#/monitorConfigIndex/logManagement`
+      } else if (row.name === 'dashboard' && type === 'monitor') {
+        path = `${window.location.origin}/#/viewConfigIndex/boardList`
+      } else if (row.name === 'endpoint' && type === 'monitor') {
+        path = `${window.location.origin}/#/monitorConfigIndex/endpointManagement`
+      } else if (row.name === 'service_group' && type === 'monitor') {
+        path = `${window.location.origin}/#/monitorConfigIndex/resourceLevel`
+      }
+      window.sessionStorage.currentPath = ''
+      window.open(path, '_blank')
     },
     handleOpenDetail(row, type) {
       if (type === 'cmdb-ci') {
