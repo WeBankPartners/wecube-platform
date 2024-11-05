@@ -780,6 +780,7 @@
   "workflow_type": "编排类型",
   "child_workflow": "子编排",
   "main_workflow": "主编排",
+  "main_workflow_example": "父编排实例",
   "main_workflow_id": "主编排实例ID",
   "call_childFlow": "调用子编排",
   "workflow_id": "编排ID",
