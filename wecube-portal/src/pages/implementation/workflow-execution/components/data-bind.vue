@@ -81,7 +81,10 @@ import { getAssociatedNodes, getAllDataModels } from '@/api/server'
 import ItemFilterRulesGroup from '@/pages/collaboration/flow/item-filter-rules-group.vue'
 import FilterRules from '@/pages/collaboration/flow/item-filter-rules.vue'
 export default {
-  components: { ItemFilterRulesGroup, FilterRules },
+  components: {
+    ItemFilterRulesGroup,
+    FilterRules
+  },
   props: {
     currentSelectedEntity: {
       type: String,
@@ -93,11 +96,9 @@ export default {
     },
     subProcItem: {
       type: Object,
-      default: () => {
-        return {
-          rootEntity: ''
-        }
-      }
+      default: () => ({
+        rootEntity: ''
+      })
     }
   },
   data() {
@@ -105,7 +106,7 @@ export default {
       nodeObj: {},
       associatedNodes: [], // 绑定节点
       allEntityType: [], // 系统中所有根CI
-      allEntityTypeGroup: [], 
+      allEntityTypeGroup: [],
       filterRules: [], // 过滤规则
       dynamicBindOptions: [
         {
