@@ -266,6 +266,7 @@ type ProcNodeContextReq struct {
 	NodeType       string                     `json:"nodeType"`
 	PluginInfo     string                     `json:"pluginInfo"`
 	RequestId      string                     `json:"requestId"`
+	ErrorCode      string                     `json:"errorCode,omitempty"`
 	ErrorMessage   string                     `json:"errorMessage,omitempty"`
 	Operator       string                     `json:"operator,omitempty"`
 	RequestObjects []ProcNodeContextReqObject `json:"requestObjects"`
@@ -288,6 +289,8 @@ type ProcNodeContextQueryObj struct {
 	EndTime           time.Time `json:"endTime" xorm:"end_time"`
 	ReqId             string    `json:"reqId" xorm:"req_id"`
 	NodeType          string    `json:"nodeType" xorm:"node_type"`
+	Status            string    `json:"status" xorm:"status"`
+	RiskCheckResult   string    `json:"-" xorm:"risk_check_result"`
 }
 
 type RequestProcessData struct {

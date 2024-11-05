@@ -584,6 +584,18 @@ func ProcInsOperation(c *gin.Context) {
 		}
 		go workflow.HandleProOperation(&operationObj)
 		time.Sleep(2500 * time.Millisecond)
+	} else if param.Act == "retry" {
+		if procInsObj.Status != models.JobStatusRunning {
+			middleware.ReturnError(c, exterror.New().ProcStatusOperationError)
+			return
+		}
+		operationObj := models.ProcRunOperation{WorkflowId: workflowId, NodeId: nodeId, Operation: "confirm", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
+		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		go workflow.HandleProOperation(&operationObj)
 	}
 	middleware.ReturnSuccess(c)
 }

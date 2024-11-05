@@ -777,7 +777,7 @@ export default {
           scene: '',
           authPlugins: [],
           tags: '',
-          conflictCheck: false,
+          conflictCheck: true,
           rootEntity: '',
           permissionToRole: {
             MGMT: mgmt,
