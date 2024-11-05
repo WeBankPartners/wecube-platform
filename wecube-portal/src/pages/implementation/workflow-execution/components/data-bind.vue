@@ -46,7 +46,7 @@
       <!--过滤规则-->
       <Col :span="12">
         <Form inline :label-width="80" label-position="left">
-          <FormItem :label="$t('Filtering_rule')">
+          <FormItem :label="nodeObj.nodeType === 'subProc' ? $t('child_workflow_object_entity') : $t('Filtering_rule')">
             <template v-if="nodeObj.nodeType === 'subProc'">
               <FilterRules
                 v-model="subProcItem.rootEntity"
