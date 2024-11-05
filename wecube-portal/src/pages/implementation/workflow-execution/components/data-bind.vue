@@ -1,6 +1,7 @@
 <template>
   <div class="workflow-execution-data-bind">
     <Row :gutter="40">
+      <!--数据绑定-->
       <Col :span="12" style="border-right: 1px solid #e8eaec">
         <Form :label-width="90">
           <FormItem :label="$t('locate_approach')" v-if="['human', 'automatic', 'subProc'].includes(nodeObj.nodeType)">
@@ -34,7 +35,7 @@
                 ref="filterRulesGroupRef"
                 :disabled="true"
                 :routineExpression="nodeObj.routineExpression || currentSelectedEntity"
-                :allEntityType="allEntityType"
+                :allEntityType="allEntityTypeGroup"
                 :currentSelectedEntity="currentSelectedEntity"
               >
               </ItemFilterRulesGroup>
@@ -42,10 +43,19 @@
           </FormItem>
         </Form>
       </Col>
+      <!--过滤规则-->
       <Col :span="12">
         <Form inline :label-width="80" label-position="left">
-          <FormItem label="过滤规则">
-            <template v-if="filterRules && filterRules.length > 0">
+          <FormItem :label="$t('Filtering_rule')">
+            <template v-if="nodeObj.nodeType === 'subProc'">
+              <FilterRules
+                v-model="subProcItem.rootEntity"
+                :allDataModelsWithAttrs="allEntityType"
+                :rootOnly="true"
+                style="width: 100%"
+              ></FilterRules>
+            </template>
+            <template v-else>
               <div v-for="(i, index) in filterRules" :key="index" style="display: flex; margin-bottom: 5px">
                 <div style="width: 35%; margin-right: 5px">
                   <Input v-model="i.key" disabled />
@@ -57,9 +67,7 @@
                   <Input v-model="i.value" disabled />
                 </div>
               </div>
-            </template>
-            <template v-else>
-              <span style="color: #515a6e">-</span>
+              <span v-if="filterRules.length === 0" style="color: #515a6e">-</span>
             </template>
           </FormItem>
         </Form>
@@ -71,8 +79,9 @@
 <script>
 import { getAssociatedNodes, getAllDataModels } from '@/api/server'
 import ItemFilterRulesGroup from '@/pages/collaboration/flow/item-filter-rules-group.vue'
+import FilterRules from '@/pages/collaboration/flow/item-filter-rules.vue'
 export default {
-  components: { ItemFilterRulesGroup },
+  components: { ItemFilterRulesGroup, FilterRules },
   props: {
     currentSelectedEntity: {
       type: String,
@@ -81,13 +90,23 @@ export default {
     nodeInstance: {
       type: Object,
       default: () => {}
+    },
+    subProcItem: {
+      type: Object,
+      default: () => {
+        return {
+          rootEntity: ''
+        }
+      }
     }
   },
   data() {
     return {
       nodeObj: {},
-      associatedNodes: [],
-      allEntityType: [],
+      associatedNodes: [], // 绑定节点
+      allEntityType: [], // 系统中所有根CI
+      allEntityTypeGroup: [], 
+      filterRules: [], // 过滤规则
       dynamicBindOptions: [
         {
           label: this.$t('during_startup'),
@@ -139,9 +158,11 @@ export default {
     async getAllDataModels() {
       const { data, status } = await getAllDataModels()
       if (status === 'OK') {
-        this.allEntityType = data.filter(d => d.packageName === this.currentSelectedEntity.split(':')[0])
+        this.allEntityTypeGroup = data.filter(d => d.packageName === this.currentSelectedEntity.split(':')[0])
+        this.allEntityType = data || []
       }
     },
+    // 解析过滤规则
     getFilterRules() {
       const pattern = /{[^}]+}/g
       const array = (this.nodeObj.filterRule && this.nodeObj.filterRule.match(pattern)) || []
@@ -154,7 +175,7 @@ export default {
           operation,
           value
         }
-      })
+      }) || []
     }
   }
 }

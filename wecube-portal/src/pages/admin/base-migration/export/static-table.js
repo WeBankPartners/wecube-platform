@@ -205,14 +205,7 @@ export default {
           title: this.$t('data_type'),
           key: 'name',
           render: (h, params) => (
-            <span
-              style="cursor:pointer;color:#5cadff;"
-              onClick={() => {
-                this.handleStaticTableLink(params.row, 'plugin')
-              }}
-            >
-              {params.row.name}
-            </span>
+            <span>{params.row.name}</span>
           )
         },
         {
