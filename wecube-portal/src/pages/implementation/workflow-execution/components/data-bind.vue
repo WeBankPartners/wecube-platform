@@ -46,30 +46,28 @@
       <!--过滤规则-->
       <Col :span="12">
         <Form inline :label-width="80" label-position="left">
-          <FormItem :label="nodeObj.nodeType === 'subProc' ? $t('child_workflow_object_entity') : $t('Filtering_rule')">
-            <template v-if="nodeObj.nodeType === 'subProc'">
-              <FilterRules
-                v-model="subProcItem.rootEntity"
-                :allDataModelsWithAttrs="allEntityType"
-                :rootOnly="true"
-                disabled
-                style="min-width: 400px"
-              ></FilterRules>
-            </template>
-            <template v-else>
-              <div v-for="(i, index) in filterRules" :key="index" style="display: flex; margin-bottom: 5px">
-                <div style="width: 35%; margin-right: 5px">
-                  <Input v-model="i.key" disabled />
-                </div>
-                <div style="width: 30%; margin-right: 5px">
-                  <Input v-model="i.operation" disabled />
-                </div>
-                <div style="width: 35%">
-                  <Input v-model="i.value" disabled />
-                </div>
+          <FormItem v-if="nodeObj.nodeType === 'subProc'" :label="$t('child_workflow_object_entity')">
+            <FilterRules
+              v-model="subProcItem.rootEntity"
+              :allDataModelsWithAttrs="allEntityType"
+              :rootOnly="true"
+              disabled
+              style="min-width: 400px"
+            ></FilterRules>
+          </FormItem>
+          <FormItem v-if="['human', 'automatic'].includes(nodeObj.nodeType)" :label="$t('Filtering_rule')">
+            <div v-for="(i, index) in filterRules" :key="index" style="display: flex; margin-bottom: 5px">
+              <div style="width: 35%; margin-right: 5px">
+                <Input v-model="i.key" disabled />
               </div>
-              <span v-if="filterRules.length === 0" style="color: #515a6e">-</span>
-            </template>
+              <div style="width: 30%; margin-right: 5px">
+                <Input v-model="i.operation" disabled />
+              </div>
+              <div style="width: 35%">
+                <Input v-model="i.value" disabled />
+              </div>
+            </div>
+            <span v-if="filterRules.length === 0" style="color: #515a6e">-</span>
           </FormItem>
         </Form>
       </Col>
