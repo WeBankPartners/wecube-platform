@@ -2426,6 +2426,7 @@ export default {
       this.currentFailedNodeID = id || e.target.parentNode.getAttribute('id')
       this.isNodeCanBindData = this.nodesCannotBindData.includes(this.currentFailedNodeID)
       this.retryTargetModelColums[0].disabled = this.isNodeCanBindData
+      this.nodeInstance = {}
       this.workflowActionModalVisible = true
       this.targetModalVisible = false
       this.showNodeDetail = false
