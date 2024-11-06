@@ -50,8 +50,16 @@ export default {
       subProcRemoveFlag: false
     }
   },
-  mounted() {
-    this.getSubProcList()
+  watch: {
+    nodeInstance: {
+      handler(val) {
+        if (val.subProcDefId) {
+          this.getSubProcList()
+        }
+      },
+      immediate: true,
+      deep: true
+    }
   },
   methods: {
     // 获取子编排列表
