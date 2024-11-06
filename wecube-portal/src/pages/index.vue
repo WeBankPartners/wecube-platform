@@ -84,6 +84,7 @@ export default {
         this.parentBreadcrumb = implicitRoute ? implicitRoute['parentBreadcrumb'][currentLangKey] : '-'
         this.childBreadcrumb = implicitRoute ? implicitRoute['childBreadcrumb'][currentLangKey] : '-'
       }
+      // web title显示面包屑
       document.title = `${this.parentBreadcrumb}/${this.childBreadcrumb}`
     },
     homePageClickHandler() {
