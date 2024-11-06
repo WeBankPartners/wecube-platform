@@ -52,7 +52,8 @@
                 v-model="subProcItem.rootEntity"
                 :allDataModelsWithAttrs="allEntityType"
                 :rootOnly="true"
-                style="width: 100%"
+                disabled
+                style="min-width:400px;"
               ></FilterRules>
             </template>
             <template v-else>
