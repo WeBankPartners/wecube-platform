@@ -455,7 +455,7 @@
           :title="$t('dataBinding')"
           :defaultExpand="false"
         >
-          <DataBind :currentSelectedEntity="flowData.rootEntity" :nodeInstance="nodeInstance" />
+          <DataBind :currentSelectedEntity="flowData.rootEntity" :nodeInstance="nodeInstance" :subProcItem="subProcItem" />
         </BaseHeaderTitle>
         <!--操作对象-->
         <BaseHeaderTitle :title="$t('bc_execution_instance')">
