@@ -451,7 +451,7 @@
         </BaseHeaderTitle>
         <!--数据绑定-->
         <BaseHeaderTitle
-          v-if="['human', 'automatic', 'data'].includes(nodeInstance.nodeType)"
+          v-if="['human', 'automatic', 'data', 'subProc'].includes(nodeInstance.nodeType)"
           :title="$t('dataBinding')"
           :defaultExpand="false"
         >
