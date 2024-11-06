@@ -447,7 +447,7 @@
           :title="$t('child_workflow')"
           :defaultExpand="false"
         >
-          <ChildFlow :nodeInstance="nodeInstance" />
+          <ChildFlow :nodeInstance="nodeInstance" @getSubProcItem="getSubProcItem" />
         </BaseHeaderTitle>
         <!--数据绑定-->
         <BaseHeaderTitle
