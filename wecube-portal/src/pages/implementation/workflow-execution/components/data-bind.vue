@@ -53,7 +53,7 @@
                 :allDataModelsWithAttrs="allEntityType"
                 :rootOnly="true"
                 disabled
-                style="min-width:400px;"
+                style="min-width: 400px"
               ></FilterRules>
             </template>
             <template v-else>
