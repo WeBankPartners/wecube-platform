@@ -726,7 +726,6 @@ export default {
           desc: response.message
         })
       }
-      this.$refs.importXML.clearFiles()
     },
     exportPluginFile(pluginId) {
       this.currentPluginId = pluginId
