@@ -1,6 +1,6 @@
 <template>
   <div class="filter_rules_contain" :class="disabled ? 'disabled-filter' : ''" ref="filter_rules_contain">
-    <Poptip v-model="poptipVisable" placement="bottom">
+    <Poptip v-model="poptipVisable" :disabled="disabled" placement="bottom">
       <div ref="wecube_cmdb_attr" class="filter_rules_path_contains">
         <span
           class="path_exp"
@@ -48,9 +48,8 @@
           </ul>
           <hr style="margin-top: 5px" />
           <template v-if="(rootOnly && pathList.length === 0) || (!rootOnly && pathList.length > 0)">
-            <div style="max-height: 145px; overflow: auto; margin-top: 5px">
+            <div v-if="!needNativeAttr" style="max-height: 145px; overflow: auto; margin-top: 5px">
               <ul
-                v-if="!needNativeAttr"
                 v-for="opt in filterCurrentLeafOptiongs"
                 :key="opt.pathExp + Math.random() * 1000"
               >

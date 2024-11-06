@@ -3,7 +3,7 @@
     <!--子编排实例信息-->
     <Form :label-width="90">
       <FormItem :label="$t('child_workflow')">
-        <Select v-model="nodeInstance.subProcDefId">
+        <Select v-model="nodeInstance.subProcDefId" disabled>
           <Option v-for="item in subProcList" :value="item.procDefId" :key="item.procDefId">{{
             `${item.procDefName}【${item.procDefVersion}】`
           }}</Option>
