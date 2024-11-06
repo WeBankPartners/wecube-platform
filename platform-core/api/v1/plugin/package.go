@@ -1176,10 +1176,20 @@ func RegisterPackageDone(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("pluginPackage status:%s illegal", pluginPackageObj.Status))
 		return
 	}
-	err := database.SetPluginPackageRegisterDone(c, param.Id, middleware.GetRequestUser(c))
+	dynamicModel, err := database.SetPluginPackageRegisterDone(c, param.Id, middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
+		if dynamicModel {
+			pluginModels, syncDynamicErr := remote.GetPluginDataModels(c, pluginPackageObj.Name, c.GetHeader(models.AuthorizationHeader))
+			if syncDynamicErr != nil {
+				log.Logger.Error("syncDynamic fail with get plugin data model", log.String("package", pluginPackageObj.Name), log.Error(syncDynamicErr))
+			} else {
+				if syncDynamicErr = database.SyncPluginDataModels(c, pluginPackageObj.Name, pluginModels); syncDynamicErr != nil {
+					log.Logger.Error("syncDynamic fail with update plugin data model", log.String("package", pluginPackageObj.Name), log.Error(syncDynamicErr))
+				}
+			}
+		}
 		middleware.ReturnSuccess(c)
 	}
 }
