@@ -84,6 +84,7 @@ export default {
         this.parentBreadcrumb = implicitRoute ? implicitRoute['parentBreadcrumb'][currentLangKey] : '-'
         this.childBreadcrumb = implicitRoute ? implicitRoute['childBreadcrumb'][currentLangKey] : '-'
       }
+      document.title = `${this.parentBreadcrumb}/${this.childBreadcrumb}`
     },
     homePageClickHandler() {
       window.needReLoad = false
