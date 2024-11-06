@@ -135,7 +135,9 @@ export default {
     addFilters() {
       if (this.rootEntity && this.rootEntity.length > 0) {
         this.currentPathFilterRules = []
-        this.currentNodeEntityAttrs = this.allEntity.find(_ => _.name === this.rootEntity).attributes
+        this.currentNodeEntityAttrs = this.allEntity.find(_ => _.name === this.rootEntity)
+          ? this.allEntity.find(_ => _.name === this.rootEntity).attributes
+          : []
         const rules = this.value.match(/[^{]+(?=})/g)
         if (rules) {
           rules.forEach(async r => {
@@ -144,7 +146,7 @@ export default {
             // eslint-disable-next-line
             let [attr, op, value] = r.split(' ')
             const found = this.currentNodeEntityAttrs.find(a => a.name === attr)
-            if (found.dataType === 'ref') {
+            if (found && found.dataType === 'ref') {
               const { status, data } = await getTargetOptions(found.refPackageName, found.refEntityName)
               if (status === 'OK') {
                 enums = data
