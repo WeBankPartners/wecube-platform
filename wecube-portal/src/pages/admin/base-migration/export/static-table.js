@@ -492,11 +492,11 @@ export default {
             this.detailColumns = [
               {
                 title: '层级对象名',
-                key: 'name'
+                key: 'display_name'
               },
               {
                 title: '层级对象类型',
-                key: 'type'
+                key: 'service_type'
               },
               {
                 title: '更新人',
@@ -512,7 +512,7 @@ export default {
             this.detailTableData = row.data && row.data.map(i => ({ name: i }))
             this.detailColumns = [
               {
-                title: this.$t('name'),
+                title: '对象名',
                 key: 'name'
               }
             ]
