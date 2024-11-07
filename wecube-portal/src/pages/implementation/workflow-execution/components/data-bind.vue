@@ -2,7 +2,7 @@
   <div class="workflow-execution-data-bind">
     <Row :gutter="40">
       <!--数据绑定-->
-      <Col :span="12" style="border-right: 1px solid #e8eaec">
+      <Col :span="12">
         <Form :label-width="90">
           <FormItem :label="$t('locate_approach')" v-if="['human', 'automatic', 'subProc'].includes(nodeObj.nodeType)">
             <Select v-model="nodeObj.dynamicBindInt" disabled>
@@ -44,7 +44,7 @@
         </Form>
       </Col>
       <!--过滤规则-->
-      <Col :span="12">
+      <Col :span="12" v-if="['human', 'automatic', 'subProc'].includes(nodeObj.nodeType)">
         <Form inline :label-width="80" label-position="left">
           <FormItem v-if="nodeObj.nodeType === 'subProc'" :label="$t('child_workflow_object_entity')">
             <FilterRules
