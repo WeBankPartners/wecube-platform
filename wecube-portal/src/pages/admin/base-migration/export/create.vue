@@ -171,10 +171,12 @@ export default {
         // 合并monitor数据
         const metric_list_obj = {
           name: 'metric_list',
+          data: [],
           count: 0
         }
         const strategy_list_obj = {
           name: 'strategy_list',
+          data: [],
           count: 0
         }
         this.detailData.monitorRes.data.forEach(i => {
@@ -184,9 +186,11 @@ export default {
             )
           ) {
             metric_list_obj.count += i.count
+            metric_list_obj.data = [...metric_list_obj.data, ...(i.data || [])]
           }
           if (['strategy_service_group', 'strategy_endpoint_group'].includes(i.name)) {
             strategy_list_obj.count += i.count
+            strategy_list_obj.data = [...strategy_list_obj.data, ...(i.data || [])]
           }
         })
         const metricIndex = this.detailData.monitorRes.data.findIndex(i => i.name === 'custom_metric_service_group')
