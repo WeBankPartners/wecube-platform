@@ -4,16 +4,12 @@
       <Col :span="24">
         <Form inline :label-width="90">
           <FormItem :label="$t('pluginService')">
-            <Select v-model="nodeObj.serviceName" disabled>
-              <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
-                item.serviceDisplayName
-              }}</Option>
-            </Select>
+            <Input :value="nodeObj.serviceName" style="width:700px;" disabled></Input>
           </FormItem>
         </Form>
         <Form inline :label-width="90">
           <FormItem :label="$t('parameterSettings')">
-            <Tabs type="card">
+            <Tabs type="card" style="width:700px;">
               <TabPane :label="$t('context_parameters')">
                 <template v-if="paramInfos && paramInfos.filter(p => p.bindType === 'context').length > 0">
                   <div>
@@ -97,7 +93,7 @@
 </template>
 
 <script>
-import { getPluginFunByRule, getSourceNode, getNodeParams } from '@/api/server'
+import { getSourceNode, getNodeParams } from '@/api/server'
 export default {
   props: {
     nodeInstance: {
@@ -132,7 +128,6 @@ export default {
           this.nodeObj = JSON.parse(JSON.stringify(val))
           this.contextParamNodes = this.nodeObj.contextParamNodes || []
           this.paramInfos = this.nodeObj.paramInfos || []
-          this.getFilteredPluginInterfaceList(this.nodeObj.routineExpression)
           this.getRootNode()
           this.mgmtParamInfos()
         }
@@ -142,44 +137,6 @@ export default {
     }
   },
   methods: {
-    // 获取插件函数列表
-    async getFilteredPluginInterfaceList(path) {
-      let pkg = ''
-      let entity = ''
-      let payload = {}
-      if (path) {
-        const pathList = path.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
-        const last = pathList[pathList.length - 1]
-        const index = pathList[pathList.length - 1].indexOf('{')
-        const isBy = last.indexOf(')')
-        const current = last.split(':')
-        const ruleIndex = current[1].indexOf('{')
-        if (isBy > 0) {
-          entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
-          pkg = current[0].split(')')[1]
-        } else {
-          entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
-          pkg = last.match(/[^>]+(?=:)/)[0]
-        }
-        payload = {
-          pkgName: pkg,
-          entityName: entity.split('#DMEOP#')[0],
-          targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : ''
-        }
-      } else {
-        payload = {
-          pkgName: '',
-          entityName: '',
-          targetEntityFilterRule: ''
-        }
-      }
-
-      payload.nodeType = this.nodeObj.nodeType
-      const { status, data } = await getPluginFunByRule(payload)
-      if (status === 'OK') {
-        this.filteredPlugins = data || []
-      }
-    },
     // 获取可选根节点
     async getRootNode() {
       const { status, data } = await getSourceNode(this.nodeObj.procDefId)
