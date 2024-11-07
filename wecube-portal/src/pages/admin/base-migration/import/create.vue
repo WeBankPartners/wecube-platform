@@ -251,11 +251,10 @@ export default {
           this.detailData.stepTwoRes.status = 'fail'
         }
         // 进行态，轮询查询
-        const intervalFlag = (
-          !['success', 'fail'].includes(this.detailData.stepTwoRes.status) ||
-          !['success', 'fail'].includes(this.detailData.initWorkflowRes.status) ||
-          !['success', 'fail'].includes(this.detailData.monitorBusinessRes.status)
-        ) && this.detailData.status === 'doing'
+        const intervalFlag = (!['success', 'fail'].includes(this.detailData.stepTwoRes.status)
+            || !['success', 'fail'].includes(this.detailData.initWorkflowRes.status)
+            || !['success', 'fail'].includes(this.detailData.monitorBusinessRes.status))
+          && this.detailData.status === 'doing'
         if (intervalFlag) {
           if (!this.interval) {
             this.interval = setInterval(() => {
