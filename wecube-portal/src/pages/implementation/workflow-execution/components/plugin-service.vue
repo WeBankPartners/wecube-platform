@@ -4,12 +4,12 @@
       <Col :span="24">
         <Form inline :label-width="90">
           <FormItem :label="$t('pluginService')">
-            <Input :value="nodeObj.serviceName" style="width:700px;" disabled></Input>
+            <Input :value="nodeObj.serviceName" style="width: 700px" disabled></Input>
           </FormItem>
         </Form>
         <Form inline :label-width="90">
           <FormItem :label="$t('parameterSettings')">
-            <Tabs type="card" style="width:700px;">
+            <Tabs type="card" style="width: 700px">
               <TabPane :label="$t('context_parameters')">
                 <template v-if="paramInfos && paramInfos.filter(p => p.bindType === 'context').length > 0">
                   <div>
