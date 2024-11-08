@@ -350,13 +350,25 @@
         >
           <PluginService :nodeInstance="nodeInstance" />
         </BaseHeaderTitle>
+        <!--子编排-->
+        <BaseHeaderTitle
+          v-if="['subProc'].includes(nodeInstance.nodeType)"
+          :title="$t('child_workflow')"
+          :defaultExpand="false"
+        >
+          <ChildFlow :nodeInstance="nodeInstance" @getSubProcItem="getSubProcItem" />
+        </BaseHeaderTitle>
         <!--数据绑定-->
         <BaseHeaderTitle
-          v-if="['human', 'automatic', 'data'].includes(nodeInstance.nodeType)"
+          v-if="['human', 'automatic', 'data', 'subProc'].includes(nodeInstance.nodeType)"
           :title="$t('dataBinding')"
           :defaultExpand="false"
         >
-          <DataBind :currentSelectedEntity="flowData.rootEntity" :nodeInstance="nodeInstance" />
+          <DataBind
+            :currentSelectedEntity="flowData.rootEntity"
+            :nodeInstance="nodeInstance"
+            :subProcItem="subProcItem"
+          />
         </BaseHeaderTitle>
         <!--节点信息-->
         <BaseHeaderTitle :title="$t('fe_nodeInfo')">
@@ -429,13 +441,25 @@
         >
           <PluginService :nodeInstance="nodeInstance" />
         </BaseHeaderTitle>
+        <!--子编排-->
+        <BaseHeaderTitle
+          v-if="['subProc'].includes(nodeInstance.nodeType)"
+          :title="$t('child_workflow')"
+          :defaultExpand="false"
+        >
+          <ChildFlow :nodeInstance="nodeInstance" @getSubProcItem="getSubProcItem" />
+        </BaseHeaderTitle>
         <!--数据绑定-->
         <BaseHeaderTitle
-          v-if="['human', 'automatic', 'data'].includes(nodeInstance.nodeType)"
+          v-if="['human', 'automatic', 'data', 'subProc'].includes(nodeInstance.nodeType)"
           :title="$t('dataBinding')"
           :defaultExpand="false"
         >
-          <DataBind :currentSelectedEntity="flowData.rootEntity" :nodeInstance="nodeInstance" />
+          <DataBind
+            :currentSelectedEntity="flowData.rootEntity"
+            :nodeInstance="nodeInstance"
+            :subProcItem="subProcItem"
+          />
         </BaseHeaderTitle>
         <!--操作对象-->
         <BaseHeaderTitle :title="$t('bc_execution_instance')">
@@ -644,11 +668,13 @@ import { addEvent, removeEvent } from '@/pages/util/event.js'
 import { debounce, deepClone } from '@/const/util'
 import PluginService from './components/plugin-service.vue'
 import DataBind from './components/data-bind.vue'
+import ChildFlow from './components/child-flow.vue'
 export default {
   components: {
     JsonViewer,
     PluginService,
-    DataBind
+    DataBind,
+    ChildFlow
   },
   data() {
     return {
@@ -942,7 +968,6 @@ export default {
       allBindingsList: [],
       isShowExect: false, // 模型查询返回，激活执行按钮
       stopSuccess: false,
-
       confirmModal: {
         isShowConfirmModal: false,
         check: false,
@@ -1044,7 +1069,8 @@ export default {
       noActionFlag: false, // 节点无操作按钮标识
       subProcBindParentFlag: true, // 子编排是否绑定主编排标识
       from: this.$route.query.from, // 查看页面来源(create新增页 sub子编排预览 main主编排预览 normal普通执行列表查看 time定时执行列表查看)
-      subProc: this.$route.query.subProc // 是否子编排标识
+      subProc: this.$route.query.subProc, // 是否子编排标识
+      subProcItem: {} // 子编排实例
     }
   },
   computed: {
@@ -2404,6 +2430,7 @@ export default {
       this.currentFailedNodeID = id || e.target.parentNode.getAttribute('id')
       this.isNodeCanBindData = this.nodesCannotBindData.includes(this.currentFailedNodeID)
       this.retryTargetModelColums[0].disabled = this.isNodeCanBindData
+      this.nodeInstance = {}
       this.workflowActionModalVisible = true
       this.targetModalVisible = false
       this.showNodeDetail = false
@@ -2882,6 +2909,9 @@ export default {
         row.id
       }&requestTemplate=${row.requestTemplate}`
       window.open(path, '_blank')
+    },
+    getSubProcItem(item) {
+      this.subProcItem = item
     }
   }
 }
