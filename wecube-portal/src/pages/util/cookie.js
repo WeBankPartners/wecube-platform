@@ -1,5 +1,4 @@
 function setCookie(tokens) {
-  console.error(11, tokens)
   tokens.forEach(_ => {
     document.cookie = `${_.tokenType}=${_.token};path=/`
     document.cookie = `${_.tokenType}ExpirationTime=${_.expiration};path=/`
