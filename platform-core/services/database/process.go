@@ -293,14 +293,35 @@ func CopyProcessDefinitionByDto(param models.ProcDefImportDto, procDef *models.P
 				ProcDefId:  procDef.ProcDef.Id,
 				RoleId:     roleName,
 				RoleName:   roleName,
-				Permission: "USE",
+				Permission: string(models.USE),
 			})
 			permissionList = append(permissionList, &models.ProcDefPermission{
 				ProcDefId:  procDef.ProcDef.Id,
 				RoleId:     roleName,
 				RoleName:   roleName,
-				Permission: "MGMT",
+				Permission: string(models.MGMT),
 			})
+		}
+	} else {
+		if len(procDef.PermissionToRole.USE) > 0 {
+			for _, useRole := range procDef.PermissionToRole.USE {
+				permissionList = append(permissionList, &models.ProcDefPermission{
+					ProcDefId:  procDef.ProcDef.Id,
+					RoleId:     useRole,
+					RoleName:   useRole,
+					Permission: string(models.USE),
+				})
+			}
+		}
+		if len(procDef.PermissionToRole.MGMT) > 0 {
+			for _, mgmtRole := range procDef.PermissionToRole.MGMT {
+				permissionList = append(permissionList, &models.ProcDefPermission{
+					ProcDefId:  procDef.ProcDef.Id,
+					RoleId:     mgmtRole,
+					RoleName:   mgmtRole,
+					Permission: string(models.MGMT),
+				})
+			}
 		}
 	}
 
