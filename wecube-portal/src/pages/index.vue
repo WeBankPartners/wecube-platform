@@ -84,6 +84,12 @@ export default {
         this.parentBreadcrumb = implicitRoute ? implicitRoute['parentBreadcrumb'][currentLangKey] : '-'
         this.childBreadcrumb = implicitRoute ? implicitRoute['childBreadcrumb'][currentLangKey] : '-'
       }
+      // web title显示面包屑
+      if (this.parentBreadcrumb !== '-' && this.childBreadcrumb !== '-') {
+        document.title = `${this.parentBreadcrumb}/${this.childBreadcrumb}`
+      } else {
+        document.title = 'Wecube'
+      }
     },
     homePageClickHandler() {
       window.needReLoad = false

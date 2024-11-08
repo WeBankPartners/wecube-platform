@@ -1028,7 +1028,7 @@ func DecommissionPluginPackage(ctx context.Context, pluginPackageId, operator st
 	return
 }
 
-func SetPluginPackageRegisterDone(ctx context.Context, pluginPackageId, operator string) (err error) {
+func SetPluginPackageRegisterDone(ctx context.Context, pluginPackageId, operator string) (dynamicModel bool, err error) {
 	execResult, execErr := db.MysqlEngine.Context(ctx).Exec("update plugin_packages set register_done=1,updated_by=?,updated_time=? where id=?", operator, time.Now(), pluginPackageId)
 	if execErr != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
@@ -1036,6 +1036,13 @@ func SetPluginPackageRegisterDone(ctx context.Context, pluginPackageId, operator
 	}
 	if affectNum, _ := execResult.RowsAffected(); affectNum <= 0 {
 		err = fmt.Errorf("can not find plugin packages with id=%s ", pluginPackageId)
+	} else {
+		queryRows, _ := db.MysqlEngine.Context(ctx).QueryString("select id,`version`,package_name,is_dynamic from plugin_package_data_model where package_name='wecmdb' order by update_time desc limit 1")
+		if len(queryRows) > 0 {
+			if queryRows[0]["is_dynamic"] == "1" {
+				dynamicModel = true
+			}
+		}
 	}
 	return
 }
