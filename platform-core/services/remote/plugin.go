@@ -5,9 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/network"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
 	"reflect"
 	"strings"
 	"time"
@@ -60,7 +63,6 @@ func GetPluginDataModels(ctx context.Context, pluginName, token string) (result 
 }
 
 func AnalyzeExpression(express string) (result []*models.ExpressionObj, err error) {
-	log.Logger.Info("getExpressResultList", log.String("express", express))
 	// Example expression -> "wecmdb:app_instance~(host_resource)wecmdb:host_resource{ip_address eq '***REMOVED***'}{code in '222'}.resource_set>wecmdb:resource_set.code"
 	var ciList, filterParams, tmpSplitList []string
 	// replace content 'xxx' to '$1' in case of content have '>~.:()[]'
@@ -271,9 +273,13 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 			err = lastErr
 			break
 		}
+		if len(lastQueryResult) == 0 {
+			break
+		}
 		if i == exprLastIndex && rootFilter.Index == i && len(lastQueryResult) > 0 {
 			// 表达式与根表达式一样
 			log.Logger.Debug("QueryPluginFullData expr same with root", log.Int("index", i), log.Int("rootIndex", rootFilter.Index), log.JsonObj("lastQueryResult", lastQueryResult))
+			rootEntityNode.LastFlag = true
 			resultNodeList = append(resultNodeList, rootEntityNode)
 			continue
 		}
@@ -367,6 +373,9 @@ func ExtractExpressionResultColumn(exprList []*models.ExpressionObj, exprResult 
 	}
 	expr := exprList[len(exprList)-1]
 	result = make([]interface{}, 0)
+	if expr.ResultColumn == "" {
+		expr.ResultColumn = "id"
+	}
 	for _, r := range exprResult {
 		if v, ok := r[expr.ResultColumn]; ok {
 			result = append(result, v)
@@ -648,7 +657,7 @@ func DangerousBatchCheck(ctx context.Context, token string, reqParam interface{}
 }
 
 func DangerousWorkflowCheck(ctx context.Context, token string, reqParam interface{}) (result *models.ItsdangerousWorkflowCheckResultData, err error) {
-	uri := fmt.Sprintf("%s/%s/v1/detection", models.Config.Gateway.Url, models.PluginNameItsdangerous)
+	uri := fmt.Sprintf("%s/%s/v1/batch_execution_detection", models.Config.Gateway.Url, models.PluginNameItsdangerous)
 	if models.Config.HttpsEnable == "true" {
 		uri = "https://" + uri
 	} else {
@@ -694,6 +703,7 @@ func DangerousWorkflowCheck(ctx context.Context, token string, reqParam interfac
 			log.Logger.Info("End remote dangerousWorkflowCheck request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
 		}
 	}()
+	log.Logger.Debug("End remote dangerousWorkflowCheck request 1111", log.String("respBody", string(respBody)))
 	if readBodyErr != nil {
 		err = fmt.Errorf("read response body fail,%s ", readBodyErr.Error())
 		return
@@ -828,4 +838,413 @@ func UpdatentityDataWithExpr(ctx context.Context, authToken, packageName, entity
 		}
 	}
 	return nil
+}
+
+// nexus 推送物料包
+func PushPackage(ctx context.Context, token string, unitDesignId string, deployPackageId string, subDirPath string) (result *models.PushArtifactPluginPackageData, err error) {
+	uri := fmt.Sprintf("%s/%s/unit-designs/%s/packages/%s/push", models.Config.Gateway.Url, models.PluginNameArtifacts, unitDesignId, deployPackageId)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	postData := models.PushArtifactPluginPackageParam{Path: subDirPath}
+	postBytes, _ := json.Marshal(postData)
+	urlObj, _ := url.Parse(uri)
+	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), bytes.NewReader(postBytes))
+	if reqErr != nil {
+		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
+		return
+	}
+
+	reqId := "req_" + guid.CreateGuid()
+	var transId string
+	if ctx.Value(models.TransactionIdHeader) != nil {
+		transId = ctx.Value(models.TransactionIdHeader).(string)
+	} else {
+		transId = "trans_" + guid.CreateGuid()
+	}
+
+	req.Header.Set(models.RequestIdHeader, reqId)
+	req.Header.Set(models.TransactionIdHeader, transId)
+	req.Header.Set(models.AuthorizationHeader, token)
+	req.Header.Set("Content-type", "application/json")
+
+	startTime := time.Now()
+	log.Logger.Info("Start remote pushPackage request --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.JsonObj("Authorization", token))
+
+	resp, respErr := http.DefaultClient.Do(req)
+	if respErr != nil {
+		err = fmt.Errorf("do request fail,%s ", respErr.Error())
+		return
+	}
+
+	var response models.PluginArtifactsPushResult
+	respBody, readBodyErr := io.ReadAll(resp.Body)
+	defer func() {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
+		if err != nil {
+			log.Logger.Error("End remote pushPackage request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+		} else {
+			log.Logger.Info("End remote pushPackage request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+		}
+	}()
+
+	if readBodyErr != nil {
+		err = fmt.Errorf("read response body fail,%s ", readBodyErr.Error())
+		return
+	}
+
+	if err = json.Unmarshal(respBody, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+
+	if response.Code >= 400 {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	result = response.Data
+	return
+}
+
+func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId string, localPackagePath string) (deployPackageGuid string, err error) {
+	uri := fmt.Sprintf("%s/%s/unit-designs/%s/packages/upload", models.Config.Gateway.Url, models.PluginNameArtifacts, unitDesignId)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	urlObj, _ := url.Parse(uri)
+	buf := new(bytes.Buffer)
+	bodyWriter := multipart.NewWriter(buf)
+	if fileObj, tmpErr := os.Open(localPackagePath); tmpErr != nil {
+		err = fmt.Errorf("can not read multipart form file:%s ,err:%s", localPackagePath, tmpErr.Error())
+		return
+	} else {
+		fileName := localPackagePath
+		if lastPathIndex := strings.LastIndex(localPackagePath, "/"); lastPathIndex > 0 {
+			fileName = localPackagePath[lastPathIndex+1:]
+		}
+		tmpWriter, ffErr := bodyWriter.CreateFormFile("file", fileName)
+		if ffErr != nil {
+			err = fmt.Errorf("create multipart form file fail,key:file,%s ", err.Error())
+			return
+		}
+		if _, err = io.Copy(tmpWriter, fileObj); err != nil {
+			err = fmt.Errorf("io copy multipart file fail,%s ", err.Error())
+			return
+		}
+	}
+	bodyWriter.Close()
+	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), buf)
+	if reqErr != nil {
+		err = fmt.Errorf("new http request to %s fail,%s ", urlObj.String(), reqErr.Error())
+		return
+	}
+	req.Header.Set("Content-Type", bodyWriter.FormDataContentType())
+	reqId := "req_" + guid.CreateGuid()
+	var transId string
+	if ctx.Value(models.TransactionIdHeader) != nil {
+		transId = ctx.Value(models.TransactionIdHeader).(string)
+	} else {
+		transId = "trans_" + guid.CreateGuid()
+	}
+	req.Header.Set(models.RequestIdHeader, reqId)
+	req.Header.Set(models.TransactionIdHeader, transId)
+	req.Header.Set(models.AuthorizationHeader, token)
+
+	startTime := time.Now()
+	log.Logger.Info("Start remote uploadPackage to artifacts plugin request --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()))
+	resp, respErr := http.DefaultClient.Do(req)
+	if respErr != nil {
+		err = fmt.Errorf("do request fail,%s ", respErr.Error())
+		return
+	}
+
+	var response models.PluginArtifactsUploadResult
+	respBody, readBodyErr := io.ReadAll(resp.Body)
+	defer func() {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
+		if err != nil {
+			log.Logger.Error("End remote uploadPackage to artifacts plugin request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+		} else {
+			log.Logger.Info("End remote uploadPackage to artifacts plugin request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+		}
+	}()
+
+	if readBodyErr != nil {
+		err = fmt.Errorf("read response body fail,%s ", readBodyErr.Error())
+		return
+	}
+
+	if err = json.Unmarshal(respBody, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+
+	if response.Code >= 400 {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	if len(response.Data) > 0 {
+		if v, ok := response.Data[0]["guid"]; ok {
+			deployPackageGuid = fmt.Sprintf("%s", v)
+		}
+	}
+	return
+}
+
+func UploadArtifactPackage(ctx context.Context, token string, unitDesignId string, localPackagePath string) (deployPackageGuid string, err error) {
+	uri := fmt.Sprintf("%s/%s/unit-designs/%s/packages/upload", models.Config.Gateway.Url, models.PluginNameArtifacts, unitDesignId)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	urlObj, _ := url.Parse(uri)
+	var req *http.Request
+	r, w := io.Pipe()
+	bodyWriter := multipart.NewWriter(w)
+	go func() {
+		defer w.Close()
+		defer bodyWriter.Close()
+		if fileObj, tmpErr := os.Open(localPackagePath); tmpErr != nil {
+			err = fmt.Errorf("can not read multipart form file:%s ,err:%s", localPackagePath, tmpErr.Error())
+			return
+		} else {
+			fileName := localPackagePath
+			if lastPathIndex := strings.LastIndex(localPackagePath, "/"); lastPathIndex > 0 {
+				fileName = localPackagePath[lastPathIndex+1:]
+			}
+			tmpWriter, ffErr := bodyWriter.CreateFormFile("file", fileName)
+			if ffErr != nil {
+				err = fmt.Errorf("create multipart form file fail,key:file,%s ", err.Error())
+				return
+			}
+			if _, err = io.Copy(tmpWriter, fileObj); err != nil {
+				fileObj.Close()
+				err = fmt.Errorf("io copy file to multipart form fail,%s ", err.Error())
+				return
+			}
+			fileObj.Close()
+		}
+		if err != nil {
+			log.Logger.Error("build multipart form data fail", log.Error(err))
+		}
+	}()
+	if err != nil {
+		return
+	}
+	req, err = http.NewRequest(http.MethodPost, urlObj.String(), r)
+	if err != nil {
+		err = fmt.Errorf("new http request to %s fail,%s ", urlObj.String(), err.Error())
+		return
+	}
+	req.Header.Set("Content-Type", bodyWriter.FormDataContentType())
+	reqId := "req_" + guid.CreateGuid()
+	var transId string
+	if ctx.Value(models.TransactionIdHeader) != nil {
+		transId = ctx.Value(models.TransactionIdHeader).(string)
+	} else {
+		transId = "trans_" + guid.CreateGuid()
+	}
+	req.Header.Set(models.RequestIdHeader, reqId)
+	req.Header.Set(models.TransactionIdHeader, transId)
+	req.Header.Set(models.AuthorizationHeader, token)
+
+	startTime := time.Now()
+	log.Logger.Info("Start remote uploadPackage to artifacts plugin request --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()))
+	resp, respErr := http.DefaultClient.Do(req)
+	if respErr != nil {
+		err = fmt.Errorf("do request fail,%s ", respErr.Error())
+		return
+	}
+
+	var response models.PluginArtifactsUploadResult
+	respBody, readBodyErr := io.ReadAll(resp.Body)
+	defer func() {
+		if resp.Body != nil {
+			resp.Body.Close()
+		}
+		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
+		if err != nil {
+			log.Logger.Error("End remote uploadPackage to artifacts plugin request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+		} else {
+			log.Logger.Info("End remote uploadPackage to artifacts plugin request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+		}
+	}()
+
+	if readBodyErr != nil {
+		err = fmt.Errorf("read response body fail,%s ", readBodyErr.Error())
+		return
+	}
+
+	if err = json.Unmarshal(respBody, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+
+	if response.Code >= 400 {
+		err = fmt.Errorf(response.Message)
+		return
+	}
+	if len(response.Data) > 0 {
+		if v, ok := response.Data[0]["guid"]; ok {
+			deployPackageGuid = fmt.Sprintf("%s", v)
+		}
+	}
+	return
+}
+
+func QueryBusinessList(query models.QueryBusinessListParam) (result []map[string]interface{}, err error) {
+	var responseBodyBytes []byte
+	var response models.EntityResponse
+	uri := fmt.Sprintf("%s/%s/entities/%s/query", models.Config.Gateway.Url, query.PackageName, query.Entity)
+	postBytes, _ := json.Marshal(query.EntityQueryParam)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	if responseBodyBytes, err = network.HttpPost(uri, query.UserToken, query.Language, postBytes); err != nil {
+		return
+	}
+	if err = json.Unmarshal(responseBodyBytes, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+	if response.Status != models.DefaultHttpSuccessCode {
+		err = fmt.Errorf(response.Message)
+	} else {
+		result = response.Data
+	}
+	return
+}
+
+func AutoConfirmCMDBView(ctx context.Context, viewId string) (err error) {
+	log.Logger.Debug("AutoConfirmCMDBView start", log.String("viewId", viewId))
+	structQueryBytes, structQueryErr := network.HttpGet(fmt.Sprintf("http://%s/wecmdb/api/v1/view/%s", models.Config.Gateway.Url, viewId), GetToken(), models.DefaultLanguage)
+	if structQueryErr != nil {
+		err = fmt.Errorf("query cmdb view struct fail,view:%s ,error:%s ", viewId, structQueryErr.Error())
+		return
+	}
+	log.Logger.Debug("AutoConfirmCMDBView query cmdb view struct done", log.String("viewId", viewId), log.String("response", string(structQueryBytes)))
+	var structQueryResp models.CMDBViewStructQueryResp
+	if err = json.Unmarshal(structQueryBytes, &structQueryResp); err != nil {
+		err = fmt.Errorf("json unmarshal query cmdb view struct response:%s fail,%s ", string(structQueryBytes), err.Error())
+		return
+	}
+	if structQueryResp.StatusCode != models.DefaultHttpSuccessCode {
+		err = fmt.Errorf(structQueryResp.StatusMessage)
+		return
+	}
+	if structQueryResp.Data == nil || structQueryResp.Data.CiType == "" {
+		err = fmt.Errorf("query cmdb view struct fail with illegal response:%s ", string(structQueryBytes))
+		return
+	}
+	if structQueryResp.Data.SupportVersion != "yes" {
+		log.Logger.Warn("AutoConfirmCMDBView ignore with view supportView=no", log.String("viewId", viewId))
+		return
+	}
+	queryCiDataParam := models.QueryCiDataRequestParam{Dialect: &models.QueryRequestDialect{QueryMode: "new"}, Sorting: &models.QueryRequestSorting{Asc: false, Field: "create_time"}, Filters: []*models.QueryRequestFilterObj{}}
+	if structQueryResp.Data.FilterAttr != "" {
+		queryCiDataParam.Filters = append(queryCiDataParam.Filters, &models.QueryRequestFilterObj{Name: structQueryResp.Data.FilterAttr, Operator: "eq", Value: structQueryResp.Data.FilterValue})
+	}
+	ciDataParamBytes, _ := json.Marshal(&queryCiDataParam)
+	log.Logger.Debug("AutoConfirmCMDBView start query ci data", log.String("viewId", viewId), log.String("ciType", structQueryResp.Data.CiType))
+	ciDataRespBytes, ciDataRespErr := network.HttpPost(fmt.Sprintf("http://%s/wecmdb/api/v1/ci-data/query/%s", models.Config.Gateway.Url, structQueryResp.Data.CiType), GetToken(), models.DefaultLanguage, ciDataParamBytes)
+	if ciDataRespErr != nil {
+		err = fmt.Errorf("query cmdb ci data fail,%s ", ciDataRespErr.Error())
+		return
+	}
+	log.Logger.Debug("AutoConfirmCMDBView query ci data done", log.String("viewId", viewId), log.String("ciDataRespBytes", string(ciDataRespBytes)))
+	var ciDataQueryResp models.QueryCiDataResp
+	if err = json.Unmarshal(ciDataRespBytes, &ciDataQueryResp); err != nil {
+		err = fmt.Errorf("json unmarshal query cmdb ci data response:%s fail,%s ", string(ciDataRespBytes), err.Error())
+		return
+	}
+	if ciDataQueryResp.StatusCode != models.DefaultHttpSuccessCode {
+		err = fmt.Errorf(ciDataQueryResp.StatusMessage)
+		return
+	}
+	if ciDataQueryResp.Data == nil {
+		err = fmt.Errorf("query cmdb ci data fail with illegal response:%s ", string(ciDataRespBytes))
+		return
+	}
+	for _, dataRow := range ciDataQueryResp.Data.Contents {
+		tmpGuid := fmt.Sprintf("%s", dataRow["guid"])
+		if tmpGuid == "" {
+			continue
+		}
+		log.Logger.Debug("AutoConfirmCMDBView start confirm view", log.String("viewId", viewId), log.String("ciDataGuid", tmpGuid))
+		if err = confirmCMDBView(ctx, viewId, tmpGuid); err != nil {
+			err = fmt.Errorf("try to confirm view:%s ciData:%s fail,%s ", viewId, tmpGuid, err.Error())
+			break
+		}
+		log.Logger.Debug("AutoConfirmCMDBView confirm view done", log.String("viewId", viewId), log.String("ciDataGuid", tmpGuid))
+	}
+	return
+}
+
+func confirmCMDBView(ctx context.Context, viewId, ciDataGuid string) (err error) {
+	postParam := models.ConfirmCMDBViewParam{ViewId: viewId, RootCi: ciDataGuid}
+	postBytes, _ := json.Marshal(&postParam)
+	respBytes, respErr := network.HttpPost(fmt.Sprintf("http://%s/wecmdb/api/v1/view-confirm", models.Config.Gateway.Url), GetToken(), models.DefaultLanguage, postBytes)
+	if respErr != nil {
+		err = fmt.Errorf("confirm cmdb view fail,%s ", respErr.Error())
+		return
+	}
+	var response models.ConfirmCMDBViewResp
+	if err = json.Unmarshal(respBytes, &response); err != nil {
+		err = fmt.Errorf("json unmarshal confirm cmdb view response:%s fail,%s ", string(respBytes), err.Error())
+		return
+	}
+	if response.StatusCode != models.DefaultHttpSuccessCode {
+		err = fmt.Errorf(response.StatusMessage)
+	}
+	return
+}
+
+func ConfirmCMDBDataList(ctx context.Context, ciTypeEntity string, dataGuidList []string) (err error) {
+	if len(dataGuidList) == 0 {
+		return
+	}
+	requestParam := models.PluginCiDataOperationRequest{RequestId: "req_" + guid.CreateGuid(), Inputs: []*models.PluginCiDataOperationRequestObj{}}
+	var jsonData []map[string]interface{}
+	for _, tmpGuid := range dataGuidList {
+		tmpRowMap := make(map[string]interface{})
+		tmpRowMap["id"] = tmpGuid
+		jsonData = append(jsonData, tmpRowMap)
+	}
+	jsonDataBytes, _ := json.Marshal(jsonData)
+	requestParam.Inputs = append(requestParam.Inputs, &models.PluginCiDataOperationRequestObj{CallbackParameter: fmt.Sprintf("%s_%d", ciTypeEntity, time.Now().Unix()), CiType: ciTypeEntity, Operation: "Confirm", JsonData: string(jsonDataBytes)})
+
+	var responseBodyBytes []byte
+	var response models.PluginCiDataOperationResp
+	uri := fmt.Sprintf("%s/wecmdb/plugin/ci-data/operation", models.Config.Gateway.Url)
+	postBytes, _ := json.Marshal(requestParam)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	if responseBodyBytes, err = network.HttpPost(uri, GetToken(), models.DefaultLanguage, postBytes); err != nil {
+		return
+	}
+	if err = json.Unmarshal(responseBodyBytes, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+	if response.ResultCode != "0" {
+		err = fmt.Errorf(response.ResultMessage)
+		return
+	}
+	return
 }

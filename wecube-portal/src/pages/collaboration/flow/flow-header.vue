@@ -59,7 +59,7 @@ export default {
     return {
       nodeHasAlert: false,
       flowListTab: '', // 对应编排列表状态tab
-      subProc: '', // 对应编排列表是否主编排tab
+      subProc: '', // main主编排、sub子编排
       editFlow: true, // 在查看时隐藏按钮
       itemCustomInfo: {}
     }
@@ -69,7 +69,7 @@ export default {
       this.nodeHasAlert = false
       this.editFlow = editFlow
       this.flowListTab = flowListTab
-      this.subProc = data.subProc
+      this.subProc = data.subProc ? 'sub' : 'main'
       const defaultNode = {
         id: '',
         label: '', // 编排名称
@@ -145,8 +145,7 @@ export default {
             this.$Message.success(this.$t(actionTip) + this.$t('action_successful'))
             if (statusCode === 'deleted') {
               this.backToFlowList()
-            }
-            else {
+            } else {
               this.$emit('updateFlowData', '')
             }
           }
@@ -174,8 +173,7 @@ export default {
             const blob = new Blob([response.data])
             if ('msSaveOrOpenBlob' in navigator) {
               window.navigator.msSaveOrOpenBlob(blob, fileName)
-            }
-            else {
+            } else {
               if ('download' in document.createElement('a')) {
                 // 非IE下载
                 const elink = document.createElement('a')
@@ -186,8 +184,7 @@ export default {
                 elink.click()
                 URL.revokeObjectURL(elink.href) // 释放URL 对象
                 document.body.removeChild(elink)
-              }
-              else {
+              } else {
                 // IE10+下载
                 navigator.msSaveOrOpenBlob(blob, fileName)
               }

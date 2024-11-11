@@ -9,8 +9,9 @@
               $t('add_user')
             }}</Button>
           </p>
+          <Input v-model="userFilter" clearable :placeholder="$t('pi_enter_to_filter')" style="margin-bottom: 12px" />
           <div class="tagContainers">
-            <div class="role-item" v-for="item in users" :key="item.id">
+            <div class="user-item" v-for="item in userFilterRes" :key="item.id">
               <Tag
                 :name="item.username"
                 :color="item.color"
@@ -59,8 +60,9 @@
               $t('add_role')
             }}</Button>
           </p>
+          <Input v-model="roleFilter" clearable :placeholder="$t('pi_enter_to_filter')" style="margin-bottom: 12px" />
           <div class="tagContainers">
-            <div class="role-item" v-for="item in roles" :key="item.id">
+            <div class="role-item" v-for="item in roleFilterRes" :key="item.id">
               <Tag
                 :name="item.id"
                 :color="item.color"
@@ -93,7 +95,7 @@
       <Col span="7" offset="1">
         <Card>
           <p slot="title">{{ $t('menus') }}</p>
-          <div class="tagContainers">
+          <div class="tagContainers-menus">
             <Spin size="large" fix v-if="menuTreeLoading">
               <Icon type="ios-loading" size="24" class="spin-icon-load"></Icon>
               <div>{{ $t('loading') }}</div>
@@ -104,7 +106,14 @@
       </Col>
     </Row>
     <Modal v-model="addUserModalVisible" :title="$t('add_user')">
-      <Form class="validation-form" ref="addedUserForm" :model="addedUser" label-position="left" :label-width="100">
+      <Form
+        v-if="addUserModalVisible"
+        class="validation-form"
+        ref="addedUserForm"
+        :model="addedUser"
+        label-position="left"
+        :label-width="100"
+      >
         <FormItem :label="$t('username')" prop="username">
           <Input v-model="addedUser.username" />
         </FormItem>
@@ -244,11 +253,16 @@ import {
   resetPassword,
   editUser
 } from '@/api/server'
+import { debounce } from '@/const/util'
 import { MENUS } from '@/const/menus.js'
 
 export default {
   data() {
     return {
+      userFilter: '', // 用户过滤条件
+      userFilterRes: [],
+      roleFilter: '', // 用户过滤条件
+      roleFilterRes: [],
       addRoleToUser: {
         isShow: false,
         params: {
@@ -290,7 +304,10 @@ export default {
       },
       addedRoleValue: '',
       transferTitles: [this.$t('unselected_user'), this.$t('selected_user')],
-      transferStyle: { width: '300px' },
+      transferStyle: {
+        width: '300px',
+        height: '300px'
+      },
       usersKeyBySelectedRole: [],
       allUsersForTransfer: [],
       addUserModalVisible: false,
@@ -298,6 +315,30 @@ export default {
       originMenus: [],
       menus: [],
       menuTreeLoading: false
+    }
+  },
+  watch: {
+    userFilter: {
+      handler: debounce(function (newValue) {
+        const filter = newValue.trim()
+        if (filter === '') {
+          this.userFilterRes = this.users
+        } else {
+          this.userFilterRes = this.users.filter(u => u.username.includes(filter))
+        }
+      }, 300), // 300ms防抖时间
+      immediate: true
+    },
+    roleFilter: {
+      handler: debounce(function (newValue) {
+        const filter = newValue.trim()
+        if (filter === '') {
+          this.roleFilterRes = this.roles
+        } else {
+          this.roleFilterRes = this.roles.filter(r => r.name.includes(filter) || r.displayName.includes(filter))
+        }
+      }, 300), // 300ms防抖时间'
+      immediate: true
     }
   },
   methods: {
@@ -311,8 +352,7 @@ export default {
         }
         if (val1 < val2) {
           return -1
-        }
-        else if (val1 > val2) {
+        } else if (val1 > val2) {
           return 1
         }
         return 0
@@ -475,6 +515,7 @@ export default {
           checked: false,
           color: '#5cadff'
         }))
+        this.userFilterRes = this.users
       }
       this.getAllRoles()
     },
@@ -488,6 +529,7 @@ export default {
           color: 'success'
         }))
         this.roles.sort(this.compare('status')).reverse()
+        this.roleFilterRes = this.roles
       }
     },
     async handleUserClick(checked, name) {
@@ -515,8 +557,7 @@ export default {
             }
           })
         }
-      }
-      else {
+      } else {
         this.roles.forEach(_ => {
           _.checked = false
         })
@@ -551,8 +592,7 @@ export default {
             }
           })
         }
-      }
-      else {
+      } else {
         this.users.forEach(_ => {
           _.checked = false
         })
@@ -568,8 +608,7 @@ export default {
           })
           this.usersKeyBySelectedRole = newTargetKeys
         }
-      }
-      else {
+      } else {
         const { status, message } = await revokeRolesForUser(moveKeys, this.selectedRole)
         if (status === 'OK') {
           this.$Notice.success({
@@ -587,6 +626,7 @@ export default {
       this.userManageModal = false
     },
     async openUserManageModal(id) {
+      this.transferStyle.height = window.innerHeight - 260 + 'px'
       this.usersKeyBySelectedRole = []
       this.allUsersForTransfer = []
       this.selectedRole = id
@@ -642,8 +682,7 @@ export default {
       if (!this.addedUser.email) {
         this.$Message.warning(`${this.$t('email')}${this.$t('cannotBeEmpty')}`)
         return
-      }
-      else if (!emailRegex.test(this.addedUser.email)) {
+      } else if (!emailRegex.test(this.addedUser.email)) {
         this.$Message.warning(`${this.$t('email')}${this.$t('invalidFormat')}`)
         return
       }
@@ -674,8 +713,7 @@ export default {
       if (!this.addedRole.params.email) {
         this.$Message.warning(`${this.$t('email')}${this.$t('cannotBeEmpty')}`)
         return
-      }
-      else if (!emailRegex.test(this.addedRole.params.email)) {
+      } else if (!emailRegex.test(this.addedRole.params.email)) {
         this.$Message.warning(`${this.$t('email')}${this.$t('invalidFormat')}`)
         return
       }
@@ -710,8 +748,7 @@ export default {
       this.addedRole.params = { ...item }
       if (item.status === 'Deleted') {
         this.addedRole.params.status = true
-      }
-      else {
+      } else {
         this.addedRole.params.status = false
       }
       this.addedRole.isShow = true
@@ -755,6 +792,10 @@ export default {
 }
 .tagContainers {
   overflow: auto;
+  height: calc(100vh - 250px);
+}
+.tagContainers-menus {
+  overflow: auto;
   height: calc(100vh - 210px);
 }
 .ivu-tag {
@@ -768,10 +809,16 @@ export default {
   }
 }
 
+.user-item {
+  .ivu-tag {
+    display: inline-block;
+    width: calc(100% - 140px);
+  }
+}
 .role-item {
   .ivu-tag {
     display: inline-block;
-    width: 65%;
+    width: calc(100% - 74px);
   }
 }
 .data-permissions {

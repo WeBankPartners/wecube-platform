@@ -85,9 +85,9 @@
               <div class="card-content-list mb-1" v-for="(keyItem, index) in cardContentList" :key="index">
                 <span style="min-width: 80px">{{ $t(keyItem.label) }}: </span>
                 <Tooltip v-if="keyItem.key === 'menus'" max-width="450" placement="left">
-                  <div slot="content" v-html="item[keyItem.key].length ? item[keyItem.key].join('</br>') : '-'"></div>
+                  <div slot="content" v-html="getMenuText(item).length ? getMenuText(item).join('</br>') : '-'"></div>
                   <div class="card-menu-content">
-                    {{ getMenuText(item) }}
+                    {{ getMenuText(item).length ? getMenuText(item).join(';') : '-' }}
                   </div>
                 </Tooltip>
                 <div v-else-if="keyItem.key === 'instances'">
@@ -447,8 +447,7 @@ export default {
           this.processOptionList(res.data, this.searchNameOptionList, 'name')
           if (this.pluginListType === 'isDeleted') {
             this.deletedPluginList = res.data || []
-          }
-          else {
+          } else {
             this.dataList = res.data || []
           }
           resolve(res.data)
@@ -467,8 +466,7 @@ export default {
             needFillArray.push(item[key])
           }
         })
-      }
-      else {
+      } else {
         // eslint-disable-next-line
         needFillArray = []
       }
@@ -486,8 +484,7 @@ export default {
           desc: response.message || ''
         })
         this.startInstallPlugin(response.data.id)
-      }
-      else {
+      } else {
         this.$Notice.warning({
           title: 'Warning',
           desc: response.message || ''
@@ -595,8 +592,7 @@ export default {
         this.allowCreationIpPort.splice(index, 1)
         await this.getAvailableInstancesByPackageId(this.currentPluginId)
         this.reloadPage()
-      }
-      else {
+      } else {
         this.isSpinShow = false
         clearTimeout(timeId)
       }
@@ -621,8 +617,7 @@ export default {
       if (status === 'OK') {
         this.$Message.success(this.$t('action_successful'))
         this.reloadPage()
-      }
-      else {
+      } else {
         this.$Message.error(this.$t('p_execute_fail'))
       }
     },
@@ -645,8 +640,7 @@ export default {
         data.forEach(item => {
           if (item.keyName.split('-v')[0] in this.originPluginsGroupFilter) {
             this.originPluginsGroupFilter[item.keyName.split('-v')[0]].push(item)
-          }
-          else {
+          } else {
             this.originPluginsGroupFilter[item.keyName.split('-v')[0]] = [item]
           }
         })
@@ -661,8 +655,7 @@ export default {
         .forEach(item => {
           if (item.keyName.split('-v')[0] in this.originPluginsGroupFilter) {
             this.originPluginsGroupFilter[item.keyName.split('-v')[0]].push(item)
-          }
-          else {
+          } else {
             this.originPluginsGroupFilter[item.keyName.split('-v')[0]] = [item]
           }
         })
@@ -727,14 +720,12 @@ export default {
           desc: response.message
         })
         await this.getViewList()
-      }
-      else {
+      } else {
         this.$Notice.warning({
           title: 'Warning',
           desc: response.message
         })
       }
-      this.$refs.importXML.clearFiles()
     },
     exportPluginFile(pluginId) {
       this.currentPluginId = pluginId
@@ -790,10 +781,10 @@ export default {
     },
     getMenuText(item) {
       if (Vue.config.lang === 'zh-CN') {
-        return item.localMenus && item.localMenus.length ? item.localMenus.join(';') : '-'
+        return item.localMenus && item.localMenus.length ? item.localMenus : []
       }
 
-      return item.menus && item.menus.length ? item.menus.join(';') : '-'
+      return item.menus && item.menus.length ? item.menus : []
     }
   }
 }
@@ -836,12 +827,16 @@ export default {
 }
 
 .card-content {
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+  width: 100%;
   .no-card-tips {
     display: flex;
     justify-content: center;
     margin-top: 50px;
   }
   .all-card-item {
+    width: 100%;
     .panal-list {
       margin-bottom: 10px;
       .panal-list-card {

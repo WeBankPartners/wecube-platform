@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -48,21 +49,28 @@ func (p *ProcDefListObj) Parse(input *ProcDef) {
 }
 
 type ProcDefFlowNode struct {
-	NodeId            string   `json:"nodeId"`
-	NodeDefId         string   `json:"nodeDefId"`
-	NodeName          string   `json:"nodeName"`
-	NodeType          string   `json:"nodeType"`
-	ProcDefId         string   `json:"procDefId"`
-	ProcDefKey        string   `json:"procDefKey"`
-	RoutineExpression string   `json:"routineExpression"`
-	ServiceId         string   `json:"serviceId"`
-	Status            string   `json:"status"`
-	Description       string   `json:"description"`
-	DynamicBind       string   `json:"dynamicBind"`
-	PreviousNodeIds   []string `json:"previousNodeIds"`
-	SucceedingNodeIds []string `json:"succeedingNodeIds"`
-	OrderedNo         string   `json:"orderedNo"`
-	SubProcDefId      string   `json:"subProcDefId"`
+	NodeId            string              `json:"nodeId"`
+	NodeDefId         string              `json:"nodeDefId"`
+	NodeName          string              `json:"nodeName"`
+	NodeType          string              `json:"nodeType"`
+	ProcDefId         string              `json:"procDefId"`
+	ProcDefKey        string              `json:"procDefKey"`
+	RoutineExpression string              `json:"routineExpression"`
+	ServiceId         string              `json:"serviceId"`
+	Status            string              `json:"status"`
+	Description       string              `json:"description"`
+	DynamicBind       string              `json:"dynamicBind"` // 动态绑定 -> 0(启动时绑定)|1->(绑定节点)|2->(运行时)
+	DynamicBindInt    int                 `json:"dynamicBindInt"`
+	PreviousNodeIds   []string            `json:"previousNodeIds"`
+	SucceedingNodeIds []string            `json:"succeedingNodeIds"`
+	OrderedNo         string              `json:"orderedNo"`
+	SubProcDefId      string              `json:"subProcDefId"`
+	ParamInfos        []*ProcDefNodeParam `json:"paramInfos"`        // 节点参数
+	ContextParamNodes []string            `json:"contextParamNodes"` // 上下文参数节点
+	ServiceName       string              `json:"serviceName"`       // 插件服务名
+	BindNodeId        string              `json:"bindNodeId"`        // 动态绑定节点
+	FilterRule        string              `json:"filterRule"`        // 插件过滤规则
+	ProcDefNodeId     string              `json:"procDefNodeId"`     // 编排设计nodeId
 }
 
 type ProcPreviewEntityNode struct {
@@ -206,6 +214,7 @@ type ProcInsDetail struct {
 	ScheduleJobName   string               `json:"scheduleJobName"`
 	SubProc           bool                 `json:"subProc"`
 	DisplayStatus     string               `json:"displayStatus"`
+	Request           []*SimpleRequestDto  `json:"request"`
 }
 
 type ProcInsNodeDetail struct {
@@ -257,6 +266,7 @@ type ProcNodeContextReq struct {
 	NodeType       string                     `json:"nodeType"`
 	PluginInfo     string                     `json:"pluginInfo"`
 	RequestId      string                     `json:"requestId"`
+	ErrorCode      string                     `json:"errorCode,omitempty"`
 	ErrorMessage   string                     `json:"errorMessage,omitempty"`
 	Operator       string                     `json:"operator,omitempty"`
 	RequestObjects []ProcNodeContextReqObject `json:"requestObjects"`
@@ -279,6 +289,8 @@ type ProcNodeContextQueryObj struct {
 	EndTime           time.Time `json:"endTime" xorm:"end_time"`
 	ReqId             string    `json:"reqId" xorm:"req_id"`
 	NodeType          string    `json:"nodeType" xorm:"node_type"`
+	Status            string    `json:"status" xorm:"status"`
+	RiskCheckResult   string    `json:"-" xorm:"risk_check_result"`
 }
 
 type RequestProcessData struct {
@@ -287,6 +299,7 @@ type RequestProcessData struct {
 	RootEntityOid string                           `json:"rootEntityOid"`
 	Entities      []*RequestCacheEntityValue       `json:"entities"`
 	Bindings      []*RequestProcessTaskNodeBindObj `json:"bindings"`
+	*SimpleRequestDto
 }
 
 type RequestProcessTaskNodeBindObj struct {
@@ -495,6 +508,8 @@ type QueryProcPageParam struct {
 	ProcDefId         string    `json:"procDefId"`
 	SubProc           string    `json:"subProc"`
 	Name              string    `json:"name"`
+	RootEntityGuid    string    `json:"rootEntityGuid"`
+	MainProcInsId     string    `json:"mainProcInsId"` // 主编排
 }
 
 type QueryProcPageResponse struct {
@@ -582,4 +597,20 @@ type ParentProcInsObj struct {
 	ProcInsId   string `json:"procInsId" xorm:"proc_ins_id"`
 	ProcDefName string `json:"procDefName" xorm:"proc_def_name"`
 	Version     string `json:"version" xorm:"version"`
+}
+
+type HandleProcessInputDataParam struct {
+	Ctx              context.Context        `json:"ctx"`
+	AuthToken        string                 `json:"authToken"`
+	InputConstantMap map[string]string      `json:"inputConstantMap"`
+	InputContextMap  map[string]interface{} `json:"inputContextMap"`
+}
+
+type SimpleRequestDto struct {
+	Id              string `json:"id"`
+	Name            string `json:"name"`
+	RequestTemplate string `json:"requestTemplate"`
+	CreatedBy       string `json:"createdBy"`
+	CreatedTime     string `json:"createdTime"`
+	Type            int    `json:"type"`
 }

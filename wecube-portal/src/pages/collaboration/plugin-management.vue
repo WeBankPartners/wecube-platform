@@ -481,8 +481,7 @@ export default {
           .forEach(item => {
             if (item.keyName.split('-v')[0] in this.originPluginsGroupFilter) {
               this.originPluginsGroupFilter[item.keyName.split('-v')[0]].push(item)
-            }
-            else {
+            } else {
               this.originPluginsGroupFilter[item.keyName.split('-v')[0]] = [item]
             }
           })
@@ -551,8 +550,7 @@ export default {
         data.forEach(item => {
           if (item.keyName.split('-v')[0] in this.originPluginsGroupFilter) {
             this.originPluginsGroupFilter[item.keyName.split('-v')[0]].push(item)
-          }
-          else {
+          } else {
             this.originPluginsGroupFilter[item.keyName.split('-v')[0]] = [item]
           }
         })
@@ -571,8 +569,7 @@ export default {
           desc: response.message || ''
         })
         this.getAllPluginPkgs()
-      }
-      else {
+      } else {
         this.$Notice.warning({
           title: 'Warning',
           desc: response.message || ''
@@ -588,8 +585,7 @@ export default {
           desc: response.message || ''
         })
         this.getAllPluginPkgs()
-      }
-      else {
+      } else {
         this.$Notice.warning({
           title: 'Warning',
           desc: response.message || ''
@@ -665,12 +661,10 @@ export default {
               window.location.href = window.location.origin + window.location.pathname + '#/login'
             }
           )
-        }
-        else {
+        } else {
           this.setUploadActionHeader()
         }
-      }
-      else {
+      } else {
         window.location.href = window.location.origin + window.location.pathname + '#/login'
       }
       this.isShowImportXMLModal = true
@@ -953,13 +947,11 @@ export default {
               window.location.href = window.location.origin + window.location.pathname + '#/login'
             }
           )
-        }
-        else {
+        } else {
           this.setUploadActionHeader()
           this.$refs.uploadButton.handleClick()
         }
-      }
-      else {
+      } else {
         window.location.href = window.location.origin + window.location.pathname + '#/login'
       }
     },

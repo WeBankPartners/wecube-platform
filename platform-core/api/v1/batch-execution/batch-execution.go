@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -132,6 +133,22 @@ func CheckCollectTemplate(c *gin.Context) {
 	} else {
 		middleware.ReturnData(c, retData)
 	}
+}
+
+// GetAllTemplate 获取所有模版
+func GetAllTemplate(c *gin.Context) {
+	var templateData []*models.BatchExecutionTemplate
+	var err error
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+	if templateData, err = database.GetAllTemplate(c); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnData(c, templateData)
 }
 
 // RetrieveTemplate 查询批量执行模板列表
@@ -596,5 +613,74 @@ func GetSeed(c *gin.Context) {
 		middleware.ReturnError(c, err)
 	} else {
 		middleware.ReturnData(c, result)
+	}
+}
+
+// 导出批量执行模板
+func ExportTemplate(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	var param models.ExportBatchExecTemplateReqParam
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+
+	if len(param.BatchExecTemplateIds) == 0 {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("batchExecTemplateIds shoule not be empty")))
+		return
+	}
+
+	retData, err := database.ExportTemplate(c, c.GetHeader("Authorization"), &param)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		fileName := "empty"
+		if len(retData) > 0 {
+			fileName = fmt.Sprintf("%s et al.%d", retData[0].Id, len(retData))
+		}
+		fileName = fmt.Sprintf("%s-%s.json", fileName, time.Now().Format("20060102150405"))
+
+		retDataBytes, tmpErr := json.Marshal(retData)
+		if tmpErr != nil {
+			err = fmt.Errorf("marshal exportTemplate failed: %s", tmpErr.Error())
+			middleware.ReturnError(c, err)
+			return
+		}
+		c.Header("Content-Disposition", fmt.Sprintf("attachment;filename=%s", fileName))
+		c.Data(http.StatusOK, "application/octet-stream", retDataBytes)
+	}
+}
+
+// 导入批量执行模板
+func ImportTemplate(c *gin.Context) {
+	defer try.ExceptionStack(func(e interface{}, err interface{}) {
+		retErr := fmt.Errorf("%v", err)
+		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
+		log.Logger.Error(e.(string))
+	})
+
+	_, fileBytes, err := middleware.ReadFormFile(c, "file")
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	var batchExecTemplateData []*models.BatchExecutionTemplate
+	if err = json.Unmarshal(fileBytes, &batchExecTemplateData); err != nil {
+		middleware.ReturnError(c, fmt.Errorf("json unmarshal batch execution template data failed: %s", err.Error()))
+		return
+	}
+
+	err = database.ImportTemplate(c, middleware.GetRequestUser(c), batchExecTemplateData)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
 	}
 }

@@ -1,10 +1,73 @@
 <template>
   <div class="normal-execution-history">
     <div class="search">
-      <Search :options="searchOptions" v-model="searchConfig.params" @search="handleQuery"></Search>
+      <BaseSearch :options="searchOptions" v-model="searchConfig.params" @search="handleQuery"></BaseSearch>
       <Button :disabled="selectData.length === 0" type="error" class="btn-right" @click="batchStopTask">
         {{ $t('fe_batchStop') }}
       </Button>
+    </div>
+    <!--子编排列表支持主编排搜索-->
+    <div v-if="searchConfig.params.subProc === 'sub'" class="extra-search">
+      <Select
+        v-model="searchConfig.params.mainProcInsId"
+        style="width: 600px; margin-bottom: 10px"
+        clearable
+        filterable
+        :placeholder="$t('main_workflow_example')"
+        :remote-method="() => {}"
+        @on-query-change="handleRemoteInstance"
+        @on-change="handleQuery"
+        @on-open-change="getAllFlowInstances()"
+      >
+        <Option
+          v-for="item in allFlowInstances"
+          :value="item.id"
+          :key="item.id"
+          :label="
+            item.procInstName +
+            '  ' +
+            '[' +
+            item.version +
+            ']  ' +
+            item.entityDisplayName +
+            '  ' +
+            (item.operator || 'operator') +
+            '  ' +
+            (item.createdTime || '0000-00-00 00:00:00') +
+            '  ' +
+            getStatusStyleAndName(item.displayStatus, 'label')
+          "
+        >
+          <div style="display: flex; justify-content: space-between">
+            <div>
+              <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
+              <span style="color: #2b85e4">{{ '[' + item.version + '] ' }}</span>
+              <div
+                :style="{
+                  backgroundColor: '#c5c8ce',
+                  padding: '4px 15px',
+                  width: 'fit-content',
+                  color: '#fff',
+                  borderRadius: '4px',
+                  display: 'inline-block',
+                  marginLeft: '10px'
+                }"
+              >
+                {{ item.entityDisplayName + ' ' }}
+              </div>
+            </div>
+            <div style="display: flex; align-items: center">
+              <span style="color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
+              <span style="color: #ccc">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
+              <div style="width: 100px">
+                <span :style="getStatusStyleAndName(item.displayStatus, 'style')">{{
+                  getStatusStyleAndName(item.displayStatus, 'label')
+                }}</span>
+              </div>
+            </div>
+          </div>
+        </Option>
+      </Select>
     </div>
     <Table
       size="small"
@@ -29,20 +92,18 @@
 </template>
 
 <script>
-import Search from '@/pages/components/base-search.vue'
 import {
   instancesWithPaging,
   getUserList,
   getAllFlow,
   createWorkflowInstanceTerminationRequest,
   batchWorkflowInstanceTermination,
-  pauseAndContinueFlow
+  pauseAndContinueFlow,
+  getProcessInstances
 } from '@/api/server'
 import dayjs from 'dayjs'
+import { debounce } from '@/const/util'
 export default {
-  components: {
-    Search
-  },
   data() {
     return {
       MODALHEIGHT: 0,
@@ -181,7 +242,9 @@ export default {
           procDefId: '',
           entityDisplayName: '',
           operator: '',
-          status: ''
+          status: '',
+          rootEntityGuid: '',
+          mainProcInsId: ''
         }
       },
       pageable: {
@@ -202,7 +265,7 @@ export default {
         },
         {
           title: this.$t('flow_name'),
-          minWidth: 180,
+          minWidth: 150,
           key: 'procInstName',
           render: (h, params) => (
             <div>
@@ -220,7 +283,7 @@ export default {
         },
         {
           title: this.$t('fe_flowInstanceId'),
-          minWidth: 180,
+          minWidth: 120,
           key: 'id'
         },
         {
@@ -289,22 +352,22 @@ export default {
         {
           title: this.$t('executor'),
           key: 'operator',
-          minWidth: 120
+          minWidth: 90
         },
         {
           title: this.$t('execute_date'),
           key: 'createdTime',
-          minWidth: 150
+          minWidth: 130
         },
         {
           title: this.$t('updatedBy'),
           key: 'updatedBy',
-          minWidth: 120
+          minWidth: 90
         },
         {
           title: this.$t('table_updated_date'),
           key: 'updatedTime',
-          minWidth: 150
+          minWidth: 130
         },
         {
           title: this.$t('table_action'),
@@ -373,41 +436,119 @@ export default {
           )
         }
       ],
-      users: []
+      users: [],
+      allFlowInstances: []
+    }
+  },
+  computed: {
+    getStatusStyleAndName() {
+      return function (status, type) {
+        const list = [
+          {
+            label: this.$t('fe_notStart'),
+            value: 'NotStarted',
+            color: '#808695'
+          },
+          {
+            label: this.$t('fe_stop'),
+            value: 'Stop',
+            color: '#ed4014'
+          },
+          {
+            label: this.$t('fe_inProgressFaulted'),
+            value: 'InProgress(Faulted)',
+            color: '#ed4014'
+          },
+          {
+            label: this.$t('fe_inProgressTimeouted'),
+            value: 'InProgress(Timeouted)',
+            color: '#ed4014'
+          },
+          {
+            label: this.$t('fe_inProgress'),
+            value: 'InProgress',
+            color: '#1990ff'
+          },
+          {
+            label: this.$t('fe_completed'),
+            value: 'Completed',
+            color: '#7ac756'
+          },
+          {
+            label: this.$t('fe_faulted'),
+            value: 'Faulted',
+            color: '#e29836'
+          },
+          {
+            label: this.$t('fe_internallyTerminated'),
+            value: 'InternallyTerminated',
+            color: '#e29836'
+          }
+        ]
+        const findObj = list.find(i => i.value === status) || {}
+        if (type === 'style') {
+          return {
+            display: 'inline-block',
+            backgroundColor: findObj.color,
+            padding: '4px 10px',
+            width: 'fit-content',
+            color: '#fff',
+            borderRadius: '4px',
+            float: 'right',
+            fontSize: '12px',
+            marginLeft: '5px'
+          }
+        }
+        return findObj.label
+      }
     }
   },
   watch: {
     'searchConfig.params.subProc': {
       handler(val) {
+        this.searchConfig.params.mainProcInsId = ''
         if (val === 'sub') {
           // 添加主编排列
           const hasFlag = this.tableColumns.some(i => i.key === 'parentProcIns')
           if (!hasFlag) {
-            this.tableColumns.splice(3, 0, {
-              title: this.$t('main_workflow'),
-              minWidth: 180,
-              key: 'parentProcIns',
-              render: (h, params) => {
-                if (params.row.parentProcIns.procDefName) {
-                  return (
-                    <span
-                      style="cursor:pointer;color:#5cadff;"
-                      onClick={() => {
-                        this.viewParentFlowGraph(params.row)
-                      }}
-                    >
-                      {params.row.parentProcIns.procDefName}
-                      <Tag style="margin-left:2px">{params.row.parentProcIns.version}</Tag>
-                    </span>
+            this.tableColumns.splice(
+              3,
+              0,
+              ...[
+                {
+                  title: this.$t('main_workflow'),
+                  minWidth: 150,
+                  key: 'parentProcIns',
+                  render: (h, params) => {
+                    if (params.row.parentProcIns && params.row.parentProcIns.procDefName) {
+                      return (
+                        <span
+                          style="cursor:pointer;color:#5cadff;"
+                          onClick={() => {
+                            this.viewParentFlowGraph(params.row)
+                          }}
+                        >
+                          {params.row.parentProcIns.procDefName}
+                          <Tag style="margin-left:2px">{params.row.parentProcIns.version}</Tag>
+                        </span>
+                      )
+                    }
+                    return <span>-</span>
+                  }
+                },
+                {
+                  title: this.$t('main_workflow_id'),
+                  minWidth: 120,
+                  key: 'parentProcInsId',
+                  render: (h, params) => (
+                    <span>{(params.row.parentProcIns && params.row.parentProcIns.procInsId) || '-'}</span>
                   )
                 }
-                return <span>-</span>
-              }
-            })
+              ]
+            )
           }
-        }
-        else if (val === 'main') {
-          this.tableColumns = this.tableColumns.filter(i => i.key !== 'parentProcIns')
+        } else if (val === 'main') {
+          this.tableColumns = this.tableColumns.filter(i => !['parentProcIns', 'parentProcInsId'].includes(i.key))
         }
       },
       immediate: true
@@ -424,6 +565,8 @@ export default {
           vm.searchOptions = searchOptions
         }
       }
+      // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+      vm.initData()
     })
   },
   beforeDestroy() {
@@ -434,13 +577,17 @@ export default {
     }
     window.sessionStorage.setItem('search_normalExecution', JSON.stringify(storage))
   },
-  async mounted() {
-    this.MODALHEIGHT = document.body.scrollHeight - 220
-    this.getFlows()
-    this.getProcessInstances()
-    this.getAllUsers()
+  mounted() {
+    this.searchConfig.params.entityDisplayName = this.$route.query.entityDisplayName || ''
+    this.searchConfig.params.rootEntityGuid = this.$route.query.rootEntityGuid || ''
   },
   methods: {
+    initData() {
+      this.MODALHEIGHT = document.body.scrollHeight - 220
+      this.getFlows()
+      this.getProcessInstances()
+      this.getAllUsers()
+    },
     // 查看主编排
     viewParentFlowGraph(row) {
       window.sessionStorage.currentPath = '' // 先清空session缓存页面，不然打开新标签页面会回退到缓存的页面
@@ -603,14 +750,21 @@ export default {
         procDefId: this.searchConfig.params.procDefId !== '' ? this.searchConfig.params.procDefId : undefined,
         entityDisplayName:
           this.searchConfig.params.entityDisplayName !== '' ? this.searchConfig.params.entityDisplayName : undefined,
+        rootEntityGuid:
+          this.searchConfig.params.rootEntityGuid !== '' ? this.searchConfig.params.rootEntityGuid : undefined,
         operator: this.searchConfig.params.operator !== '' ? this.searchConfig.params.operator : undefined,
         status: this.searchConfig.params.status !== '' ? this.searchConfig.params.status : undefined,
         startTime: this.searchConfig.params.time[0] ? this.searchConfig.params.time[0] + ' 00:00:00' : undefined,
         endTime: this.searchConfig.params.time[1] ? this.searchConfig.params.time[1] + ' 23:59:59' : undefined,
+        mainProcInsId:
+          this.searchConfig.params.mainProcInsId !== '' ? this.searchConfig.params.mainProcInsId : undefined,
         pageable: {
           startIndex: (this.pageable.current - 1) * this.pageable.pageSize,
           pageSize: this.pageable.pageSize
         }
+      }
+      if (params.subProc === 'main') {
+        delete params.mainProcInsId
       }
       this.tableData = []
       this.selectData = []
@@ -662,16 +816,25 @@ export default {
         title: '',
         desc: this.$t('no_detail_warning')
       })
-    }
-    // getDate (dateRange, type) {
-    //   if (type === 'date' && dateRange[1].slice(-8) === '00:00:00') {
-    //     // type类型判断等于date,是为了防止用户手动选时间为 00:00:00 时触发，变成 '23:59:59'
-    //     dateRange[1] = dateRange[1].slice(0, -8) + '23:59:59'
-    //   }
-    //   this.searchConfig.params.time = dateRange
-    //   this.searchConfig.params.startTime = dateRange[0]
-    //   this.searchConfig.params.endTime = dateRange[1]
-    // }
+    },
+    // 获取父编排实例下拉列表
+    async getAllFlowInstances(query = '') {
+      const params = {
+        params: {
+          withCronIns: 'no',
+          search: query,
+          withSubProc: '',
+          mgmtRole: ''
+        }
+      }
+      const { status, data } = await getProcessInstances(params)
+      if (status === 'OK') {
+        this.allFlowInstances = data || []
+      }
+    },
+    handleRemoteInstance: debounce(async function (query) {
+      this.getAllFlowInstances(query)
+    }, 500)
   }
 }
 </script>

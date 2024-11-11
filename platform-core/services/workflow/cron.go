@@ -117,7 +117,7 @@ func doWorkflowOperation(operation *models.ProcRunOperation, workObj *Workflow) 
 	case "kill":
 		workObj.Kill(&opObj)
 	case "retry":
-		workObj.RetryNode(operation.NodeId)
+		workObj.RetryNode(operation.NodeId, false)
 	case "ignore":
 		workObj.IgnoreNode(operation.NodeId)
 	case "approve":
@@ -126,6 +126,8 @@ func doWorkflowOperation(operation *models.ProcRunOperation, workObj *Workflow) 
 		workObj.Stop(&opObj)
 	case "continue":
 		workObj.Continue(&opObj)
+	case "confirm":
+		workObj.RetryNode(operation.NodeId, true)
 	default:
 		log.WorkflowLogger.Error("handle operation error with illegal operation", log.String("operation", operation.Operation))
 	}

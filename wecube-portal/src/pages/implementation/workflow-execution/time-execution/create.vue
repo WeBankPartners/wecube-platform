@@ -11,7 +11,7 @@
       </Button>
     </div>
     <div class="search">
-      <Search :options="searchOptions" v-model="searchConfig.params" @search="getUserScheduledTasks"></Search>
+      <BaseSearch :options="searchOptions" v-model="searchConfig.params" @search="getUserScheduledTasks"></BaseSearch>
     </div>
     <Table
       size="small"
@@ -22,13 +22,18 @@
       :loading="loading"
     ></Table>
     <!--查看详情-->
-    <BaseDrawer :title="$t('be_details')" :visible.sync="showModal" width="70%">
+    <BaseDrawer :title="$t('be_details')" :visible.sync="showModal" realWidth="70%" :maskClosable="false">
       <template slot-scope="{maxHeight}" slot="content">
         <Table :columns="detailTableColums" size="small" :max-height="maxHeight" :data="detailTableData"></Table>
       </template>
     </BaseDrawer>
     <!--新增定时执行-->
-    <BaseDrawer :title="$t('full_word_add') + $t('timed_execution')" :visible.sync="timeConfig.isShow" :width="1000">
+    <BaseDrawer
+      :title="$t('full_word_add') + $t('timed_execution')"
+      :visible.sync="timeConfig.isShow"
+      :realWidth="1000"
+      :maskClosable="false"
+    >
       <template slot="content">
         <Form :label-width="100" label-colon>
           <!--任务名-->
@@ -157,8 +162,6 @@
 </template>
 
 <script>
-import Search from '@/pages/components/base-search.vue'
-import BaseDrawer from '@/pages/components/base-drawer.vue'
 import {
   getUserScheduledTasks,
   deleteUserScheduledTasks,
@@ -172,10 +175,6 @@ import {
 } from '@/api/server'
 import { debounce } from '@/const/util'
 export default {
-  components: {
-    Search,
-    BaseDrawer
-  },
   data() {
     return {
       showModal: false,
@@ -1026,8 +1025,7 @@ export default {
         if (this.timeConfig.params.scheduleMode === 'Hourly') {
           scheduleExpr = this.timeConfig.params.time.substring(3)
         }
-      }
-      else {
+      } else {
         scheduleExpr = this.timeConfig.params.cycle + ' ' + this.timeConfig.params.time
       }
       const params = {

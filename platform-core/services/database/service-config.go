@@ -173,6 +173,7 @@ func QueryCoreObjectMeta(ctx context.Context, packageName, objectName string, co
 
 	propertyMetaEntities, err := getPluginObjectPropertyMetaListByObjectMeta(ctx, objectMetaEntity.Id)
 	if err != nil {
+		log.Logger.Error("getPluginObjectPropertyMetaListByObjectMeta err", log.Error(err))
 		return nil
 	}
 	if len(propertyMetaEntities) == 0 {
@@ -196,9 +197,33 @@ func QueryCoreObjectMeta(ctx context.Context, packageName, objectName string, co
 	return objectMetaEntity
 }
 
+func QueryCoreObjectMetaV2(ctx context.Context, pluginConfigId string, objectName string) (result *models.CoreObjectMeta, err error) {
+	var packageName string
+	existed, tmpErr := db.MysqlEngine.Context(ctx).SQL("select pkg.name from plugin_configs cfg left join plugin_packages pkg on cfg.plugin_package_id=pkg.id where cfg.id=?", pluginConfigId).Get(&packageName)
+	if tmpErr != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, tmpErr)
+		return
+	}
+	if !existed {
+		err = fmt.Errorf("can not find packageName by pluginConfigId: %s", pluginConfigId)
+		return
+	}
+
+	result = QueryCoreObjectMeta(ctx, packageName, objectName, pluginConfigId)
+	if result == nil {
+		log.Logger.Warn("query coreObjectMeta empty", log.String("packageName", packageName), log.String("objectName", objectName), log.String("pluginConfigId", pluginConfigId))
+		return
+	}
+	return
+}
+
 func GetConfigInterfaces(ctx context.Context, pluginConfigId string) (result []*models.PluginInterfaceQueryObj, err error) {
 	var interfaceRows []*models.PluginConfigInterfaces
-	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_config_interfaces where plugin_config_id=?", pluginConfigId).Find(&interfaceRows)
+	if pluginConfigId == "enabled" {
+		err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_config_interfaces where plugin_config_id in (select id from plugin_configs where plugin_package_id in (select package_id from plugin_instances)) order by plugin_config_id,service_name").Find(&interfaceRows)
+	} else {
+		err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_config_interfaces where plugin_config_id=?", pluginConfigId).Find(&interfaceRows)
+	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -597,7 +622,7 @@ func UpdatePluginConfigStatus(c *gin.Context, pluginConfigId string, status stri
 	return
 }
 
-func SavePluginConfig(c *gin.Context, reqParam *models.PluginConfigDto) (result *models.PluginConfigDto, err error) {
+func SavePluginConfig(c context.Context, reqParam *models.PluginConfigDto) (result *models.PluginConfigDto, err error) {
 	var actions []*db.ExecAction
 	// check whether pluginPackageId is valid
 	pluginPackageId := reqParam.PluginPackageId
@@ -678,7 +703,11 @@ func SavePluginConfig(c *gin.Context, reqParam *models.PluginConfigDto) (result 
 	// query pluginConfig
 	// result, err = GetPluginConfigQueryObjById(c, pluginConfigId)
 	var pluginConfigQueryObjList []*models.PluginConfigQueryObj
-	pluginConfigQueryObjList, err = GetPluginConfigsWithInterfaces(c, "", middleware.GetRequestRoles(c), pluginConfigId)
+	var userRoles []string
+	if v := c.Value(models.ContextRoles); v != nil {
+		userRoles = v.([]string)
+	}
+	pluginConfigQueryObjList, err = GetPluginConfigsWithInterfaces(c, "", userRoles, pluginConfigId)
 	if err != nil {
 		return
 	}
@@ -690,7 +719,7 @@ func SavePluginConfig(c *gin.Context, reqParam *models.PluginConfigDto) (result 
 	return
 }
 
-func validateRegisterName(c *gin.Context, pluginPackageId, pluginConfigName, pluginConfigRegisterName, pluginConfigId string) (isValid bool, err error) {
+func validateRegisterName(c context.Context, pluginPackageId, pluginConfigName, pluginConfigRegisterName, pluginConfigId string) (isValid bool, err error) {
 	var exists bool
 	pluginConfigData := &models.PluginConfigs{}
 	// todo!!
@@ -718,7 +747,7 @@ func validateRegisterName(c *gin.Context, pluginPackageId, pluginConfigName, plu
 	return
 }
 
-func GetDelPluginConfigActionsForImportData(c *gin.Context, pluginPackageId string, pluginConfigDtoForImportList []*models.PluginConfigDto) (resultActions []*db.ExecAction, err error) {
+func GetDelPluginConfigActionsForImportData(ctx context.Context, pluginPackageId string, pluginConfigDtoForImportList []*models.PluginConfigDto) (resultActions []*db.ExecAction, err error) {
 	resultActions = []*db.ExecAction{}
 
 	if pluginPackageId == "" {
@@ -736,7 +765,7 @@ func GetDelPluginConfigActionsForImportData(c *gin.Context, pluginPackageId stri
 			Where("plugin_package_id = ?", pluginPackageId).
 			Find(&pluginConfigsExistedList)
 	*/
-	err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where plugin_package_id = ?", models.TableNamePluginConfigs), pluginPackageId).Find(&pluginConfigsExistedList)
+	err = db.MysqlEngine.Context(ctx).SQL(fmt.Sprintf("select * from %s where plugin_package_id = ?", models.TableNamePluginConfigs), pluginPackageId).Find(&pluginConfigsExistedList)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -760,7 +789,7 @@ func GetDelPluginConfigActionsForImportData(c *gin.Context, pluginPackageId stri
 	}
 
 	for _, pluginCfgId := range pluginCfgIdToDelList {
-		curDelActions, tmpErr := GetDelPluginConfigActions(c, pluginCfgId)
+		curDelActions, tmpErr := GetDelPluginConfigActions(ctx, pluginCfgId)
 		if tmpErr != nil {
 			err = fmt.Errorf("get del pluginConfig actions for pluginCfgId: %s failed: %s", pluginCfgId, tmpErr.Error())
 			return
@@ -770,7 +799,7 @@ func GetDelPluginConfigActionsForImportData(c *gin.Context, pluginPackageId stri
 	return
 }
 
-func GetDelPluginConfigActions(c *gin.Context, pluginConfigId string) (resultActions []*db.ExecAction, err error) {
+func GetDelPluginConfigActions(ctx context.Context, pluginConfigId string) (resultActions []*db.ExecAction, err error) {
 	resultActions = []*db.ExecAction{}
 
 	if pluginConfigId == "" {
@@ -784,7 +813,7 @@ func GetDelPluginConfigActions(c *gin.Context, pluginConfigId string) (resultAct
 			Cols("id").
 			Find(&pluginCfgInterfaceIds)
 	*/
-	err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select id from %s where plugin_config_id = ?", models.TableNamePluginConfigInterfaces), pluginConfigId).Find(&pluginCfgInterfaceIds)
+	err = db.MysqlEngine.Context(ctx).SQL(fmt.Sprintf("select id from %s where plugin_config_id = ?", models.TableNamePluginConfigInterfaces), pluginConfigId).Find(&pluginCfgInterfaceIds)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -821,10 +850,35 @@ func GetDelPluginConfigActions(c *gin.Context, pluginConfigId string) (resultAct
 		Param: []interface{}{pluginConfigId},
 	}
 	resultActions = append(resultActions, action)
+
+	var pluginObjectMetaIds []string
+	err = db.MysqlEngine.Context(ctx).SQL(fmt.Sprintf("select id from %s where config_id = ?", models.TableNamePluginObjectMeta), pluginConfigId).Find(&pluginObjectMetaIds)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	// delete plugin_object_property_meta by pluginConfigId
+	for _, objectMetaId := range pluginObjectMetaIds {
+		action = &db.ExecAction{
+			Sql:   db.CombineDBSql("DELETE FROM ", models.TableNamePluginObjectPropertyMeta, " WHERE object_meta_id=?"),
+			Param: []interface{}{objectMetaId},
+		}
+		resultActions = append(resultActions, action)
+	}
+
+	// delete plugin_object_meta by pluginConfigId
+	for _, objectMetaId := range pluginObjectMetaIds {
+		action = &db.ExecAction{
+			Sql:   db.CombineDBSql("DELETE FROM ", models.TableNamePluginObjectMeta, " WHERE id=?"),
+			Param: []interface{}{objectMetaId},
+		}
+		resultActions = append(resultActions, action)
+	}
 	return
 }
 
-func GetCreatePluginConfigActions(c *gin.Context, pluginConfigId string, pluginConfigDto *models.PluginConfigDto, isImportRequest bool, pluginPackageData *models.PluginPackages) (resultActions []*db.ExecAction, err error) {
+func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pluginConfigDto *models.PluginConfigDto, isImportRequest bool, pluginPackageData *models.PluginPackages) (resultActions []*db.ExecAction, err error) {
 	resultActions = []*db.ExecAction{}
 
 	pluginConfigDto.Id = pluginConfigId
@@ -851,6 +905,9 @@ func GetCreatePluginConfigActions(c *gin.Context, pluginConfigId string, pluginC
 		return
 	}
 	resultActions = append(resultActions, action)
+
+	now := time.Now()
+	reqUser := fmt.Sprintf("%s", ctx.Value(models.ContextUserId))
 
 	// handle pluginConfigInterfaces and pluginConfigInterfaceParameters
 	for _, interfaceInfo := range pluginConfigDto.Interfaces {
@@ -886,6 +943,18 @@ func GetCreatePluginConfigActions(c *gin.Context, pluginConfigId string, pluginC
 				return
 			}
 			resultActions = append(resultActions, action)
+
+			// handle object type
+			if inputParam.DataType == models.PluginParamDataTypeObject {
+				if inputParam.RefObjectMeta != nil {
+					objectActions, tmpErr := getHandleObjectTypeActions(inputParam.RefObjectMeta, pluginConfigId, reqUser, now)
+					if tmpErr != nil {
+						err = fmt.Errorf("getHandleObjectTypeActions for inputParam: %s failed: %s", inputParam.Name, tmpErr.Error())
+						return
+					}
+					resultActions = append(resultActions, objectActions...)
+				}
+			}
 		}
 
 		// handle outputParam
@@ -900,11 +969,23 @@ func GetCreatePluginConfigActions(c *gin.Context, pluginConfigId string, pluginC
 				return
 			}
 			resultActions = append(resultActions, action)
+
+			// handle object type
+			if outputParam.DataType == models.PluginParamDataTypeObject {
+				if outputParam.RefObjectMeta != nil {
+					objectActions, tmpErr := getHandleObjectTypeActions(outputParam.RefObjectMeta, pluginConfigId, reqUser, now)
+					if tmpErr != nil {
+						err = fmt.Errorf("getHandleObjectTypeActions for outputParam: %s failed: %s", outputParam.Name, tmpErr.Error())
+						return
+					}
+					resultActions = append(resultActions, objectActions...)
+				}
+			}
 		}
 	}
 
 	// handle pluginConfigRoles
-	pluginConfigRolesActions, tmpErr := getCreatePluginCfgRolesActions(c, pluginConfigId, pluginConfigDto.PermissionToRole)
+	pluginConfigRolesActions, tmpErr := getCreatePluginCfgRolesActions(ctx, pluginConfigId, pluginConfigDto.PermissionToRole)
 	if tmpErr != nil {
 		err = fmt.Errorf("get insert sql for pluginConfigRoles failed: %s", tmpErr.Error())
 		log.Logger.Error(err.Error())
@@ -914,14 +995,50 @@ func GetCreatePluginConfigActions(c *gin.Context, pluginConfigId string, pluginC
 	return
 }
 
-func getCreatePluginCfgRolesActions(c *gin.Context,
+func getHandleObjectTypeActions(objectMeta *models.CoreObjectMeta, pluginConfigId string, reqUser string, now time.Time) (resultActions []*db.ExecAction, err error) {
+	objectMeta.Id = models.IdPrefixPluObjMeta + guid.CreateGuid()
+	objectMeta.ConfigId = pluginConfigId
+	objectMeta.CreatedBy = reqUser
+	objectMeta.CreatedTime = now
+	objectMeta.UpdatedBy = reqUser
+	objectMeta.UpdatedTime = now
+
+	action, tmpErr := db.GetInsertTableExecAction(models.TableNamePluginObjectMeta, *objectMeta, nil)
+	if tmpErr != nil {
+		err = fmt.Errorf("get insert sql for objectMeta failed: %s", tmpErr.Error())
+		log.Logger.Error(err.Error())
+		return
+	}
+	resultActions = append(resultActions, action)
+
+	for _, propertyMeta := range objectMeta.PropertyMetas {
+		propertyMeta.Id = models.IdPrefixPluObjPropertyMeta + guid.CreateGuid()
+		propertyMeta.ObjectMetaId = objectMeta.Id
+		propertyMeta.ConfigId = pluginConfigId
+		propertyMeta.CreatedBy = reqUser
+		propertyMeta.CreatedTime = now
+		propertyMeta.UpdatedBy = reqUser
+		propertyMeta.UpdatedTime = now
+
+		action, tmpErr = db.GetInsertTableExecAction(models.TableNamePluginObjectPropertyMeta, *propertyMeta, nil)
+		if tmpErr != nil {
+			err = fmt.Errorf("get insert sql for inputParam.RefObjectMeta.PropertyMeta failed: %s", tmpErr.Error())
+			log.Logger.Error(err.Error())
+			return
+		}
+		resultActions = append(resultActions, action)
+	}
+	return
+}
+
+func getCreatePluginCfgRolesActions(ctx context.Context,
 	pluginConfigId string,
 	permissionToRole *models.PermissionRoleData) (resultActions []*db.ExecAction, err error) {
 	var actions []*db.ExecAction
 	now := time.Now()
-	reqUser := middleware.GetRequestUser(c)
-	userToken := c.GetHeader(models.AuthorizationHeader)
-	language := c.GetHeader(middleware.AcceptLanguageHeader)
+	reqUser := fmt.Sprintf("%s", ctx.Value(models.ContextUserId))
+	userToken := fmt.Sprintf("%s", ctx.Value(models.AuthorizationHeader))
+	language := fmt.Sprintf("%s", ctx.Value(models.AcceptLanguageHeader))
 	respData, err := remote.RetrieveAllLocalRoles("Y", userToken, language, false)
 	if err != nil {
 		err = fmt.Errorf("retrieve all local roles failed: %s", err.Error())
@@ -1019,7 +1136,7 @@ func DeletePluginConfig(c *gin.Context, pluginConfigId string) (err error) {
 	return
 }
 
-func GetPluginConfigsWithInterfaces(c *gin.Context, pluginPackageId string, roles []string, pluginConfigId string) (result []*models.PluginConfigQueryObj, err error) {
+func GetPluginConfigsWithInterfaces(c context.Context, pluginPackageId string, roles []string, pluginConfigId string) (result []*models.PluginConfigQueryObj, err error) {
 	result, err = GetPluginConfigs(c, pluginPackageId, roles, pluginConfigId)
 	if err != nil {
 		return
@@ -1068,7 +1185,7 @@ func GetPluginConfigQueryObjById(c *gin.Context, pluginConfigId string) (result 
 	return
 }
 
-func enrichPluginConfigInterfaces(c *gin.Context, pluginConfigQueryObjList []*models.PluginConfigQueryObj) (err error) {
+func enrichPluginConfigInterfaces(c context.Context, pluginConfigQueryObjList []*models.PluginConfigQueryObj) (err error) {
 	for _, pluginConfigQueryObj := range pluginConfigQueryObjList {
 		for _, pluginConfigDto := range pluginConfigQueryObj.PluginConfigDtoList {
 			pluginInterfaceQueryObjList, tmpErr := GetConfigInterfaces(c, pluginConfigDto.Id)
@@ -1089,7 +1206,7 @@ func enrichPluginConfigInterfaces(c *gin.Context, pluginConfigQueryObjList []*mo
 	return
 }
 
-func ImportPluginConfigs(c *gin.Context, pluginPackageId string, packagePluginsXmlData *models.PackagePluginsXML) (result *models.PluginConfigDto, err error) {
+func ImportPluginConfigs(ctx context.Context, pluginPackageId string, packagePluginsXmlData *models.PackagePluginsXML) (result *models.PluginConfigDto, err error) {
 	// validate pluginPackageId
 	pluginPackageData := &models.PluginPackages{}
 	var exists bool
@@ -1099,7 +1216,7 @@ func ImportPluginConfigs(c *gin.Context, pluginPackageId string, packagePluginsX
 			Where("id = ?", pluginPackageId).
 			Get(pluginPackageData)
 	*/
-	exists, err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where id=?", models.TableNamePluginPackages), pluginPackageId).Get(pluginPackageData)
+	exists, err = db.MysqlEngine.Context(ctx).SQL(fmt.Sprintf("select * from %s where id=?", models.TableNamePluginPackages), pluginPackageId).Get(pluginPackageData)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -1114,7 +1231,7 @@ func ImportPluginConfigs(c *gin.Context, pluginPackageId string, packagePluginsX
 	var actions []*db.ExecAction
 
 	// handle del actions for import data
-	delActions, tmpErr := GetDelPluginConfigActionsForImportData(c, pluginPackageId, savePluginConfigList)
+	delActions, tmpErr := GetDelPluginConfigActionsForImportData(ctx, pluginPackageId, savePluginConfigList)
 	if tmpErr != nil {
 		err = fmt.Errorf("get del pluginConfig actions for import data failed: %s", tmpErr.Error())
 		return
@@ -1124,7 +1241,7 @@ func ImportPluginConfigs(c *gin.Context, pluginPackageId string, packagePluginsX
 	// handle creation actions for import data
 	for i := range savePluginConfigList {
 		curPluginConfigId := models.IdPrefixPluCfg + guid.CreateGuid()
-		curCreationActions, tmpErr := GetCreatePluginConfigActions(c, curPluginConfigId, savePluginConfigList[i], true, pluginPackageData)
+		curCreationActions, tmpErr := GetCreatePluginConfigActions(ctx, curPluginConfigId, savePluginConfigList[i], true, pluginPackageData)
 		if tmpErr != nil {
 			err = fmt.Errorf("get create pluginConfig actions failed: %s", tmpErr.Error())
 			return
@@ -1141,7 +1258,7 @@ func ImportPluginConfigs(c *gin.Context, pluginPackageId string, packagePluginsX
 	}
 	actions = append(actions, updateSystemVarActions...)
 
-	err = db.Transaction(actions, c)
+	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		return
@@ -1195,6 +1312,43 @@ func getImportSystemVariablesData(packagePluginsXmlData *models.PackagePluginsXM
 	return
 }
 
+func handleImportObjectParameter(paramObjectNameMapInfo map[string]*models.ParamObjectXML, refObjectName string) (resultObjectMeta *models.CoreObjectMeta) {
+	if _, isExisted := paramObjectNameMapInfo[refObjectName]; !isExisted {
+		return
+	}
+
+	paramObjectXML := paramObjectNameMapInfo[refObjectName]
+	resultObjectMeta = &models.CoreObjectMeta{
+		Name:         paramObjectXML.Name,
+		PackageName:  paramObjectXML.PackageName,
+		Source:       paramObjectXML.Source,
+		LatestSource: paramObjectXML.LatestSource,
+	}
+
+	if len(paramObjectXML.Property) > 0 {
+		propertyList := make([]*models.CoreObjectPropertyMeta, 0, len(paramObjectXML.Property))
+		for _, property := range paramObjectXML.Property {
+			curProperty := &models.CoreObjectPropertyMeta{
+				Name:          property.Name,
+				DataType:      property.DataType,
+				Multiple:      property.Multiple,
+				MappingType:   property.MapType,
+				SensitiveData: property.SensitiveData,
+				MapExpr:       property.MapExpr,
+				ObjectName:    resultObjectMeta.Name,
+				PackageName:   resultObjectMeta.PackageName,
+			}
+			curProperty.Sensitive = false
+			if curProperty.SensitiveData == "Y" {
+				curProperty.Sensitive = true
+			}
+			propertyList = append(propertyList, curProperty)
+		}
+		resultObjectMeta.PropertyMetas = propertyList
+	}
+	return
+}
+
 func getImportPluginConfigData(pluginPackageId string, packagePluginsXmlData *models.PackagePluginsXML) (result []*models.PluginConfigDto) {
 	savePluginConfigList := []*models.PluginConfigDto{}
 	for i := range packagePluginsXmlData.Plugins.Plugin {
@@ -1207,6 +1361,14 @@ func getImportPluginConfigData(pluginPackageId string, packagePluginsXmlData *mo
 			TargetEntityFilterRule: pluginInfo.TargetEntityFilterRule,
 			RegisterName:           pluginInfo.RegisterName,
 			Status:                 pluginInfo.Status,
+		}
+
+		// handle paramObject
+		paramObjectNameMapInfo := make(map[string]*models.ParamObjectXML)
+		if len(pluginInfo.ParamObject) > 0 {
+			for _, paramObj := range pluginInfo.ParamObject {
+				paramObjectNameMapInfo[paramObj.Name] = paramObj
+			}
 		}
 
 		// handle interfaces
@@ -1230,6 +1392,12 @@ func getImportPluginConfigData(pluginPackageId string, packagePluginsXmlData *mo
 				FilterRule:         interfaceInfo.FilterRule,
 				Description:        interfaceInfo.Description,
 			}
+			if pluginCfgInterface.IsAsyncProcessing == "" {
+				pluginCfgInterface.IsAsyncProcessing = "N"
+			}
+			if pluginCfgInterface.Type == "" {
+				pluginCfgInterface.Type = "EXECUTION"
+			}
 
 			// handle interfaces parameters
 			// handle input params
@@ -1251,6 +1419,11 @@ func getImportPluginConfigData(pluginPackageId string, packagePluginsXmlData *mo
 					RefObjectName:             inputParamInfo.RefObjectName,
 				}
 				inputParamList = append(inputParamList, inputParam)
+
+				// handle object parameter
+				if inputParam.DataType == models.PluginParamDataTypeObject {
+					inputParam.RefObjectMeta = handleImportObjectParameter(paramObjectNameMapInfo, inputParamInfo.RefObjectName)
+				}
 			}
 			pluginCfgInterface.InputParameters = inputParamList
 
@@ -1273,6 +1446,11 @@ func getImportPluginConfigData(pluginPackageId string, packagePluginsXmlData *mo
 					RefObjectName:             outputParamInfo.RefObjectName,
 				}
 				outputParamList = append(outputParamList, outputParam)
+
+				// handle object parameter
+				if outputParam.DataType == models.PluginParamDataTypeObject {
+					outputParam.RefObjectMeta = handleImportObjectParameter(paramObjectNameMapInfo, outputParam.RefObjectName)
+				}
 			}
 			pluginCfgInterface.OutputParameters = outputParamList
 
@@ -1310,7 +1488,63 @@ func getImportPluginConfigData(pluginPackageId string, packagePluginsXmlData *mo
 	return
 }
 
-func ExportPluginConfigs(c *gin.Context, pluginPackageId string, exportConfigList []*models.PluginConfigsBatchEnable) (result *models.PackagePluginsXML, err error) {
+func handleExportObjectParameter(c context.Context, pluginConfigId string) (result []*models.ParamObjectXML, err error) {
+	var pluginObjectMetaList []*models.CoreObjectMeta
+	err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where config_id = ?", models.TableNamePluginObjectMeta), pluginConfigId).Find(&pluginObjectMetaList)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	if len(pluginObjectMetaList) > 0 {
+		var pluginObjectPropertyMetaList []*models.CoreObjectPropertyMeta
+		err = db.MysqlEngine.Context(c).SQL(fmt.Sprintf("select * from %s where config_id = ?", models.TableNamePluginObjectPropertyMeta), pluginConfigId).Find(&pluginObjectPropertyMetaList)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+
+		objectMetaIdMapPropertyData := make(map[string][]*models.CoreObjectPropertyMeta)
+		if len(pluginObjectPropertyMetaList) > 0 {
+			for _, propertyData := range pluginObjectPropertyMetaList {
+				objectMetaIdMapPropertyData[propertyData.ObjectMetaId] = append(objectMetaIdMapPropertyData[propertyData.ObjectMetaId], propertyData)
+			}
+		}
+
+		for _, objectMetaData := range pluginObjectMetaList {
+			curParamObjectXML := &models.ParamObjectXML{
+				Name:         objectMetaData.Name,
+				PackageName:  objectMetaData.PackageName,
+				Source:       objectMetaData.Source,
+				LatestSource: objectMetaData.LatestSource,
+			}
+
+			if len(objectMetaIdMapPropertyData[objectMetaData.Id]) > 0 {
+				for _, propertyData := range objectMetaIdMapPropertyData[objectMetaData.Id] {
+					sensitiveData := "N"
+					if propertyData.Sensitive {
+						sensitiveData = "Y"
+					}
+					curPropertyXML := &models.PropertyXML{
+						Name:          propertyData.Name,
+						DataType:      propertyData.DataType,
+						Multiple:      propertyData.Multiple,
+						MapType:       propertyData.MappingType,
+						SensitiveData: sensitiveData,
+						MapExpr:       propertyData.MapExpr,
+					}
+
+					curParamObjectXML.Property = append(curParamObjectXML.Property, curPropertyXML)
+				}
+			}
+
+			result = append(result, curParamObjectXML)
+		}
+	}
+	return
+}
+
+func ExportPluginConfigs(c context.Context, pluginPackageId string, exportConfigList []*models.PluginConfigsBatchEnable, userRoles []string) (result *models.PackagePluginsXML, err error) {
 	// validate pluginPackageId
 	pluginPackageData := &models.PluginPackages{}
 	var exists bool
@@ -1343,7 +1577,7 @@ func ExportPluginConfigs(c *gin.Context, pluginPackageId string, exportConfigLis
 		}
 	}
 	// query pluginConfigs by pluginPackageId
-	pluginConfigQueryObjList, err := GetPluginConfigsWithInterfaces(c, pluginPackageId, middleware.GetRequestRoles(c), "")
+	pluginConfigQueryObjList, err := GetPluginConfigsWithInterfaces(c, pluginPackageId, userRoles, "")
 	if err != nil {
 		return
 	}
@@ -1369,6 +1603,14 @@ func ExportPluginConfigs(c *gin.Context, pluginPackageId string, exportConfigLis
 				RegisterName:           pluginCfgDto.RegisterName,
 				Status:                 pluginCfgDto.Status,
 			}
+
+			// handle paramObject
+			paramObjectXML, tmpErr := handleExportObjectParameter(c, pluginCfgDto.Id)
+			if tmpErr != nil {
+				err = fmt.Errorf("handleExportObjectParameter for pluginConfigId: %s failed: %s", pluginCfgDto.Id, tmpErr.Error())
+				return
+			}
+			pluginXMLData.ParamObject = paramObjectXML
 
 			// handle interfaces
 			interfaceXMLList := []models.InterfaceXML{}

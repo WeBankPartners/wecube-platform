@@ -106,8 +106,7 @@ export default {
             this.$emit('hideItemInfo')
           }
         })
-      }
-      else {
+      } else {
         this.$emit('hideItemInfo')
       }
     },

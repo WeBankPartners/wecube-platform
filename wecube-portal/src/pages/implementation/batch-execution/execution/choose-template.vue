@@ -2,7 +2,7 @@
 <template>
   <div class="batch-execution-template-list">
     <div class="search">
-      <Search :options="searchOptions" v-model="form" @search="handleSearch"></Search>
+      <BaseSearch :options="searchOptions" v-model="form" @search="handleSearch"></BaseSearch>
     </div>
     <div class="template-card">
       <Card :bordered="false" dis-hover :padding="0">
@@ -38,13 +38,9 @@
 </template>
 
 <script>
-import Search from '@/pages/components/base-search.vue'
 import { getBatchExecuteTemplateList, collectBatchTemplate, uncollectBatchTemplate } from '@/api/server'
 import { debounce } from '@/const/util'
 export default {
-  components: {
-    Search
-  },
   props: {
     from: {
       type: String,
@@ -187,30 +183,55 @@ export default {
       }
     }
   },
-  mounted() {
-    // 新建执行页面
-    this.tableColumns = [
-      this.baseColumns.name,
-      this.baseColumns.id,
-      this.baseColumns.pluginService,
-      this.baseColumns.operateObject,
-      {
-        title: this.$t('be_createby_role'),
-        key: 'createdBy',
-        minWidth: 90,
-        render: (h, params) => (
-          <div style="display:flex;flex-direction:column">
-            <span>{params.row.createdBy}</span>
-            <span>{params.row.permissionToRole.MGMTDisplayName && params.row.permissionToRole.MGMTDisplayName[0]}</span>
-          </div>
-        )
-      },
-      this.baseColumns.status,
-      this.baseColumns.createdTime
-    ]
-    this.getTemplateList()
+  beforeRouteEnter(to, from, next) {
+    next(vm => {
+      if (from.path === '/implementation/batch-execution/create-execution') {
+        // 读取列表搜索参数
+        const storage = window.sessionStorage.getItem('search_batchCreateList') || ''
+        if (storage) {
+          const { searchParams, searchOptions } = JSON.parse(storage)
+          vm.form = searchParams
+          vm.searchOptions = searchOptions
+        }
+      }
+      // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+      vm.initData()
+    })
+  },
+  beforeDestroy() {
+    // 缓存列表搜索条件
+    const storage = {
+      searchParams: this.form,
+      searchOptions: this.searchOptions
+    }
+    window.sessionStorage.setItem('search_batchCreateList', JSON.stringify(storage))
   },
   methods: {
+    initData() {
+      // 新建执行页面
+      this.tableColumns = [
+        this.baseColumns.name,
+        this.baseColumns.id,
+        this.baseColumns.pluginService,
+        this.baseColumns.operateObject,
+        {
+          title: this.$t('be_createby_role'),
+          key: 'createdBy',
+          minWidth: 90,
+          render: (h, params) => (
+            <div style="display:flex;flex-direction:column">
+              <span>{params.row.createdBy}</span>
+              <span>
+                {params.row.permissionToRole.MGMTDisplayName && params.row.permissionToRole.MGMTDisplayName[0]}
+              </span>
+            </div>
+          )
+        },
+        this.baseColumns.status,
+        this.baseColumns.createdTime
+      ]
+      this.getTemplateList()
+    },
     // 选择模板新建执行
     handleChooseTemplate(row) {
       if (row.status === 'unauthorized') {

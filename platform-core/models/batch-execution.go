@@ -204,3 +204,7 @@ type BatchExecutionPluginDefInputParams struct {
 	ParamId     string `json:"inputParamId"`
 	ParameValue string `json:"inputParamValue"`
 }
+
+type ExportBatchExecTemplateReqParam struct {
+	BatchExecTemplateIds []string `json:"batchExecTemplateIds"`
+}

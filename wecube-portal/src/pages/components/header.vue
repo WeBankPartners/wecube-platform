@@ -231,8 +231,7 @@ export default {
       if (status === 'OK') {
         this.version = data
         window.localStorage.setItem('wecube_version', this.version)
-      }
-      else {
+      } else {
         this.version = window.localStorage.getItem('wecube_version') || ''
       }
     },
@@ -244,6 +243,8 @@ export default {
     },
     logout() {
       clearCookie()
+      window.sessionStorage.clear()
+      window.localStorage.clear()
       window.location.href = window.location.origin + window.location.pathname + '#/login'
     },
     showChangePassword() {
@@ -276,8 +277,7 @@ export default {
               this.$Message.success('Success !')
               this.changePassword = false
             }
-          }
-          else {
+          } else {
             this.$Message.warning(this.$t('confirm_password_error'))
           }
         }
@@ -346,8 +346,7 @@ export default {
                 script[key].onreadystatechange = null
               }
             }
-          }
-          else {
+          } else {
             // Non IE
             script[key].onload = () => {
               setTimeout(() => {
@@ -357,7 +356,9 @@ export default {
                   this.loadPlugin.isShow = false
                   window.isLoadingPlugin = false
                   this.$nextTick(() => {
-                    window.location.href = window.location.origin + '/#' + window.sessionStorage.currentPath
+                    window.location.href = window.location.origin
+                      + '/#'
+                      + (window.sessionStorage.currentPath ? window.sessionStorage.currentPath : '/')
                   })
                 }
               }, 0)

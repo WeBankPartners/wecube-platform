@@ -2,7 +2,7 @@
 <template>
   <div class="normal-execution-template">
     <div class="search">
-      <Search :options="searchOptions" v-model="searchParams" @search="handleSearch"></Search>
+      <BaseSearch :options="searchOptions" v-model="searchParams" @search="handleSearch"></BaseSearch>
     </div>
     <div class="template-card">
       <Card :bordered="false" dis-hover :padding="0">
@@ -38,13 +38,9 @@
 </template>
 
 <script>
-import Search from '@/pages/components/base-search.vue'
 import { debounce, deepClone } from '@/const/util'
 import { flowList, collectFlow, unCollectFlow } from '@/api/server'
 export default {
-  components: {
-    Search
-  },
   props: {
     from: {
       type: String,
@@ -56,7 +52,7 @@ export default {
       searchParams: {
         procDefId: '',
         procDefName: '',
-        plugins: [],
+        plugins: ['platform'],
         createdTime: [],
         createdTimeStart: '',
         createdTimeEnd: '',
@@ -284,6 +280,8 @@ export default {
           vm.searchOptions = searchOptions
         }
       }
+      // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+      vm.getTemplateList()
     })
   },
   beforeDestroy() {
@@ -293,9 +291,6 @@ export default {
       searchOptions: this.searchOptions
     }
     window.sessionStorage.setItem('search_normalExecutionAdd', JSON.stringify(storage))
-  },
-  mounted() {
-    this.getTemplateList()
   },
   methods: {
     // 选择模板新建执行

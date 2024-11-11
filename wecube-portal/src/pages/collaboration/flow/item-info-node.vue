@@ -511,8 +511,7 @@ export default {
           if (this.itemCustomInfo.customAttrs.bindNodeId === '') {
             res = true
           }
-        }
-        else if (this.itemCustomInfo.customAttrs.routineExpression === '') {
+        } else if (this.itemCustomInfo.customAttrs.routineExpression === '') {
           res = true
         }
       }
@@ -550,8 +549,7 @@ export default {
           selfAttrs: tmpData
         }
         this.saveItem()
-      }
-      else {
+      } else {
         const { status, data } = await getNodeDetailById(nodeData.customAttrs.procDefId, nodeData.id)
         if (status === 'OK') {
           this.itemCustomInfo = data
@@ -655,8 +653,7 @@ export default {
             this.$emit('hideItemInfo')
           }
         })
-      }
-      else {
+      } else {
         this.$emit('hideItemInfo')
       }
     },
@@ -698,8 +695,7 @@ export default {
     singleFilterRuleChanged(val) {
       if (val === '') {
         this.changDynamicBind()
-      }
-      else {
+      } else {
         this.itemCustomInfo.customAttrs.routineExpression = val
         this.getPlugin()
         this.getSubProcList()
@@ -770,8 +766,7 @@ export default {
         if (isBy > 0) {
           entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
           pkg = current[0].split(')')[1]
-        }
-        else {
+        } else {
           entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
           pkg = last.match(/[^>]+(?=:)/)[0]
         }
@@ -780,8 +775,7 @@ export default {
           entityName: entity.split('#DMEOP#')[0],
           targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : ''
         }
-      }
-      else {
+      } else {
         payload = {
           pkgName: '',
           entityName: '',
@@ -881,22 +875,24 @@ export default {
     },
     // 获取子编排列表
     async getSubProcList() {
-      const params = {
-        entityExpr: this.itemCustomInfo.customAttrs.routineExpression
-      }
-      const { status, data } = await getChildFlowListNew(params)
-      if (status === 'OK') {
-        this.subProcRemoveFlag = false
-        this.subProcList = data || []
-        if (this.itemCustomInfo.customAttrs.subProcDefId) {
-          this.subProcItem = this.subProcList.find(i => i.procDefId === this.itemCustomInfo.customAttrs.subProcDefId) || {}
-          // 编辑操作，匹配不到对应子编排，删除子编排
-          if (!this.subProcItem.procDefId && this.editFlow !== 'false') {
-            this.itemCustomInfo.customAttrs.subProcDefId = ''
-          }
-          // 查看编排，匹配不到对应数据，给出提示
-          if (!this.subProcItem.procDefId && this.editFlow === 'false') {
-            this.subProcRemoveFlag = true
+      if (this.itemCustomInfo.customAttrs.nodeType === 'subProc') {
+        const params = {
+          entityExpr: this.itemCustomInfo.customAttrs.routineExpression
+        }
+        const { status, data } = await getChildFlowListNew(params)
+        if (status === 'OK') {
+          this.subProcRemoveFlag = false
+          this.subProcList = data || []
+          if (this.itemCustomInfo.customAttrs.subProcDefId) {
+            this.subProcItem = this.subProcList.find(i => i.procDefId === this.itemCustomInfo.customAttrs.subProcDefId) || {}
+            // 编辑操作，匹配不到对应子编排，删除子编排
+            if (!this.subProcItem.procDefId && this.editFlow !== 'false') {
+              this.itemCustomInfo.customAttrs.subProcDefId = ''
+            }
+            // 查看编排，匹配不到对应数据，给出提示
+            if (!this.subProcItem.procDefId && this.editFlow === 'false') {
+              this.subProcRemoveFlag = true
+            }
           }
         }
       }

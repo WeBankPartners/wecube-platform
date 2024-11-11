@@ -121,8 +121,7 @@ export default (G6, config) => {
 
     // 注册自定义节点/边等
     registerFactory(G6)
-  }
-  else {
+  } else {
     console.warn('未找到注册节点!')
   }
 

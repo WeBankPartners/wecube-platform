@@ -221,7 +221,7 @@ func (w *Workflow) updateErrorList(addFlag bool, nodeId string, errorObj *models
 	db.WorkflowMysqlEngine.Exec("update proc_run_workflow set error_message=?,updated_time=? where id=?", errorMesg, time.Now(), w.Id)
 }
 
-func (w *Workflow) RetryNode(nodeId string) {
+func (w *Workflow) RetryNode(nodeId string, confirmFlag bool) {
 	// check node status fail
 	var nodeObj *WorkNode
 	for _, node := range w.Nodes {
@@ -236,6 +236,8 @@ func (w *Workflow) RetryNode(nodeId string) {
 	}
 	nodeObj.Input = ""
 	nodeObj.Status = models.JobStatusRunning
+	nodeObj.RetryFlag = true
+	nodeObj.ConfirmFlag = confirmFlag
 	go nodeObj.Ready()
 	time.Sleep(500 * time.Millisecond)
 	nodeObj.StartTime = time.Now()
@@ -269,16 +271,6 @@ func (w *Workflow) IgnoreNode(nodeId string) {
 	updateNodeDB(&nodeObj.ProcRunNode)
 	w.updateErrorList(false, nodeId, nil)
 	w.nodeDoneCallback(nodeObj)
-	//for _, ref := range w.Links {
-	//	if ref.Source == nodeId {
-	//		for _, targetNode := range w.Nodes {
-	//			if targetNode.Id == ref.Target {
-	//				targetNode.StartChan <- 1
-	//				break
-	//			}
-	//		}
-	//	}
-	//}
 }
 
 func (w *Workflow) ApproveNode(nodeId, message string) {
@@ -326,6 +318,8 @@ type WorkNode struct {
 	Err          error
 	callbackChan chan string
 	ContinueChan chan int
+	RetryFlag    bool
+	ConfirmFlag  bool
 }
 
 func (n *WorkNode) Init(w *Workflow) {
@@ -401,6 +395,12 @@ func (n *WorkNode) start() {
 		n.Status = models.JobStatusRunning
 		updateNodeDB(&n.ProcRunNode)
 	}
+	// 区分是重试还是编排重新加载，如果n.RetryFlag是true的话就是重试
+	recoverFlag := false
+	if retryFlag && !n.RetryFlag {
+		recoverFlag = true
+	}
+	n.RetryFlag = false
 	switch n.JobType {
 	case models.JobStartType:
 		break
@@ -409,11 +409,11 @@ func (n *WorkNode) start() {
 	case models.JobBreakType:
 		break
 	case models.JobAutoType:
-		n.Output, n.Err = n.doAutoJob(retryFlag)
+		n.Output, n.Err = n.doAutoJob()
 	case models.JobDataType:
-		n.Output, n.Err = n.doDataJob(retryFlag)
+		n.Output, n.Err = n.doDataJob()
 	case models.JobHumanType:
-		n.Output, n.Err = n.doHumanJob(retryFlag)
+		n.Output, n.Err = n.doHumanJob(recoverFlag)
 	case models.JobForkType:
 		break
 	case models.JobMergeType:
@@ -434,9 +434,9 @@ func (n *WorkNode) start() {
 			}
 		}
 	case models.JobTimeType:
-		n.Output, n.Err = n.doTimeJob(retryFlag)
+		n.Output, n.Err = n.doTimeJob(recoverFlag)
 	case models.JobDateType:
-		n.Output, n.Err = n.doDateJob(retryFlag)
+		n.Output, n.Err = n.doDateJob(recoverFlag)
 	case models.JobDecisionType:
 		n.Input = getNodeInputData(n.Id)
 		if n.Input == "" {
@@ -455,7 +455,7 @@ func (n *WorkNode) start() {
 			}
 		}
 	case models.JobSubProcType:
-		n.Output, n.Err = n.doSubProcessJob(retryFlag)
+		n.Output, n.Err = n.doSubProcessJob(recoverFlag)
 	case models.JobDecisionMergeType:
 		break
 	}
@@ -463,11 +463,13 @@ func (n *WorkNode) start() {
 		n.Status = models.JobStatusSuccess
 		updateNodeDB(&n.ProcRunNode)
 	} else {
-		n.Status = models.JobStatusFail
-		n.ErrorMessage = n.Err.Error()
-		if customErr, ok := n.Err.(exterror.CustomError); ok {
-			if customErr.DetailErr != nil {
-				n.ErrorMessage = fmt.Sprintf("%s (%s)", customErr.Error(), customErr.DetailErr.Error())
+		if n.Status != models.JobStatusRisky {
+			n.Status = models.JobStatusFail
+			n.ErrorMessage = n.Err.Error()
+			if customErr, ok := n.Err.(exterror.CustomError); ok {
+				if customErr.DetailErr != nil {
+					n.ErrorMessage = fmt.Sprintf("%s (%s)", customErr.Error(), customErr.DetailErr.Error())
+				}
 			}
 		}
 		updateNodeDB(&n.ProcRunNode)
@@ -478,18 +480,27 @@ func (n *WorkNode) start() {
 	n.DoneChan <- 1
 }
 
-func (n *WorkNode) doAutoJob(retry bool) (output string, err error) {
+func (n *WorkNode) doAutoJob() (output string, err error) {
 	log.WorkflowLogger.Info("do auto job", log.String("nodeId", n.Id), log.String("input", n.Input))
-	err = execution.DoWorkflowAutoJob(n.Ctx, n.Id, "", retry)
+	continueToken := ""
+	if n.ConfirmFlag {
+		continueToken = "Y"
+	}
+	var risky bool
+	risky, err = execution.DoWorkflowAutoJob(n.Ctx, n.Id, continueToken)
+	if risky {
+		n.Status = models.JobStatusRisky
+		n.ErrorMessage = err.Error()
+	}
 	if err != nil {
 		log.WorkflowLogger.Error("do auto job error", log.Error(err))
 	}
 	return
 }
 
-func (n *WorkNode) doDataJob(retry bool) (output string, err error) {
+func (n *WorkNode) doDataJob() (output string, err error) {
 	log.WorkflowLogger.Info("do data job", log.String("nodeId", n.Id), log.String("input", n.Input))
-	err = execution.DoWorkflowDataJob(n.Ctx, n.Id, retry)
+	err = execution.DoWorkflowDataJob(n.Ctx, n.Id)
 	if err != nil {
 		log.WorkflowLogger.Error("do data job error", log.Error(err))
 	}
@@ -499,12 +510,12 @@ func (n *WorkNode) doDataJob(retry bool) (output string, err error) {
 func (n *WorkNode) doHumanJob(recoverFlag bool) (output string, err error) {
 	log.WorkflowLogger.Info("do human job", log.String("nodeId", n.Id), log.String("input", n.Input))
 	// call task
-	if recoverFlag {
-		if n.ErrorMessage != "" {
-			// 区分是重试还是编排重新加载，重试(有报错的情况下)的话要发过请求，加载的话不需要
-			recoverFlag = false
-		}
-	}
+	//if recoverFlag {
+	//	if n.ErrorMessage != "" {
+	//		// 区分是重试还是编排重新加载，重试(有报错的情况下)的话要发过请求，加载的话不需要
+	//		recoverFlag = false
+	//	}
+	//}
 	err = execution.DoWorkflowHumanJob(n.Ctx, n.Id, recoverFlag)
 	if err != nil {
 		log.WorkflowLogger.Error("do human job error", log.Error(err))
@@ -612,110 +623,128 @@ func (n *WorkNode) doDateJob(recoverFlag bool) (output string, err error) {
 	return
 }
 
-func (n *WorkNode) doSubProcessJob(retry bool) (output string, err error) {
+func (n *WorkNode) doSubProcessJob(recoverFlag bool) (output string, err error) {
 	log.WorkflowLogger.Info("do sub process job", log.String("nodeId", n.Id), log.String("input", n.Input))
 	ctx := context.WithValue(n.Ctx, models.TransactionIdHeader, n.Id)
-	// 查proc def node定义和proc ins绑定数据
-	procInsNode, procDefNode, _, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, n.Id)
-	if getNodeDataErr != nil {
-		err = getNodeDataErr
-		return
-	}
-	if procDefNode.DynamicBind == 1 {
-		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
-		if err != nil {
-			err = fmt.Errorf("get node dynamic bind data fail,%s ", err.Error())
+	if recoverFlag {
+		t := time.NewTicker(5 * time.Second).C
+		for {
+			<-t
+			runningRows, tmpErr := database.CheckProcSubRunning(ctx, n.Id)
+			if tmpErr != nil {
+				log.WorkflowLogger.Error("doSubProcessJob recover check fail", log.String("procRunNodeId", n.Id), log.Error(tmpErr))
+				continue
+			}
+			if len(runningRows) > 0 {
+				log.WorkflowLogger.Debug("doSubProcessJob recover check continue", log.String("procRunNodeId", n.Id), log.Int("runningSubProcessNum", len(runningRows)))
+				continue
+			}
+			break
+		}
+		log.WorkflowLogger.Info("doSubProcessJob recover done", log.String("procRunNodeId", n.Id))
+	} else {
+		// 查proc def node定义和proc ins绑定数据
+		procInsNode, procDefNode, _, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, n.Id)
+		if getNodeDataErr != nil {
+			err = getNodeDataErr
 			return
 		}
-		if len(dataBindings) > 0 {
-			err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
+		if procDefNode.DynamicBind == 1 {
+			dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
 			if err != nil {
-				err = fmt.Errorf("try to update dynamic node binding data fail,%s ", err.Error())
+				err = fmt.Errorf("get node dynamic bind data fail,%s ", err.Error())
 				return
 			}
-		}
-	} else if procDefNode.DynamicBind == 2 {
-		dataBindings, err = execution.DynamicBindNodeInRuntime(ctx, procInsNode, procDefNode)
-		if err != nil {
-			err = fmt.Errorf("get runtime dynamic bind data fail,%s ", err.Error())
-			return
-		}
-		if len(dataBindings) > 0 {
-			err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
+			if len(dataBindings) > 0 {
+				err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
+				if err != nil {
+					err = fmt.Errorf("try to update dynamic node binding data fail,%s ", err.Error())
+					return
+				}
+			}
+		} else if procDefNode.DynamicBind == 2 {
+			dataBindings, err = execution.DynamicBindNodeInRuntime(ctx, procInsNode, procDefNode)
 			if err != nil {
-				err = fmt.Errorf("try to update runtime dynamic node binding data fail,%s ", err.Error())
+				err = fmt.Errorf("get runtime dynamic bind data fail,%s ", err.Error())
 				return
 			}
-		}
-	}
-	if len(dataBindings) == 0 {
-		log.WorkflowLogger.Warn("sub process job return with empty binding data", log.String("procIns", procInsNode.ProcInsId), log.String("procInsNode", procInsNode.Id))
-		// 无数据，空跑
-		return
-	}
-	operator := procInsNode.CreatedBy
-	if procInsNode.UpdatedBy != "" {
-		operator = procInsNode.UpdatedBy
-	}
-	var subWorkflowList []*Workflow
-	var subWorkNodeList [][]*models.ProcRunNode
-	var subProcWorkflowList []*models.ProcRunNodeSubProc
-	for _, dataRow := range dataBindings {
-		if dataRow.SubSessionId == "" {
-			subPreviewResult, subPreviewErr := execution.BuildProcPreviewData(ctx, procDefNode.SubProcDefId, dataRow.EntityDataId, operator)
-			if subPreviewErr != nil {
-				err = fmt.Errorf("try to build sub proc preview data fail,%s ", subPreviewErr.Error())
-				return
+			if len(dataBindings) > 0 {
+				err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
+				if err != nil {
+					err = fmt.Errorf("try to update runtime dynamic node binding data fail,%s ", err.Error())
+					return
+				}
 			}
-			dataRow.SubSessionId = subPreviewResult.ProcessSessionId
 		}
-	}
-	for i, dataRow := range dataBindings {
-		if dataRow.SubSessionId == "" {
-			continue
-		}
-		tmpCreateInsParam := models.ProcInsStartParam{
-			ProcessSessionId:  dataRow.SubSessionId,
-			EntityDataId:      dataRow.EntityDataId,
-			EntityDisplayName: dataRow.EntityDataName,
-			EntityTypeId:      dataRow.EntityTypeId,
-			ProcDefId:         procDefNode.SubProcDefId,
-			ParentInsNodeId:   procInsNode.Id,
-			ParentRunNodeId:   n.Id,
-		}
-		log.WorkflowLogger.Debug("doSubProcessJob", log.Int("i", i), log.JsonObj("tmpCreateInsParam", tmpCreateInsParam))
-		// 新增 proc_ins,proc_ins_node,proc_data_binding 纪录
-		subProcInsId, subWorkflowRow, subWorkNodes, subWorkLinks, tmpCreateInsErr := database.CreateProcInstance(context.WithValue(n.Ctx, models.TransactionIdHeader, fmt.Sprintf("%s_%d", n.Id, i)), &tmpCreateInsParam, operator)
-		if tmpCreateInsErr != nil {
-			err = tmpCreateInsErr
+		if len(dataBindings) == 0 {
+			log.WorkflowLogger.Warn("sub process job return with empty binding data", log.String("procIns", procInsNode.ProcInsId), log.String("procInsNode", procInsNode.Id))
+			// 无数据，空跑
 			return
 		}
-		// 初始化workflow并开始
-		workObj := Workflow{ProcRunWorkflow: *subWorkflowRow}
-		workObj.ProcInsId = subProcInsId
-		dataRow.SubProcInsId = subProcInsId
-		workObj.Links = subWorkLinks
-		subWorkflowList = append(subWorkflowList, &workObj)
-		subWorkNodeList = append(subWorkNodeList, subWorkNodes)
-		subProcWorkflowList = append(subProcWorkflowList, &models.ProcRunNodeSubProc{WorkflowId: subWorkflowRow.Id, EntityTypeId: dataRow.EntityTypeId, EntityDataId: dataRow.EntityDataId})
+		operator := procInsNode.CreatedBy
+		if procInsNode.UpdatedBy != "" {
+			operator = procInsNode.UpdatedBy
+		}
+		var subWorkflowList []*Workflow
+		var subWorkNodeList [][]*models.ProcRunNode
+		var subProcWorkflowList []*models.ProcRunNodeSubProc
+		for _, dataRow := range dataBindings {
+			if dataRow.SubSessionId == "" {
+				subPreviewResult, subPreviewErr := execution.BuildProcPreviewData(ctx, procDefNode.SubProcDefId, dataRow.EntityDataId, operator)
+				if subPreviewErr != nil {
+					err = fmt.Errorf("try to build sub proc preview data fail,%s ", subPreviewErr.Error())
+					return
+				}
+				dataRow.SubSessionId = subPreviewResult.ProcessSessionId
+			}
+		}
+		for i, dataRow := range dataBindings {
+			if dataRow.SubSessionId == "" {
+				continue
+			}
+			tmpCreateInsParam := models.ProcInsStartParam{
+				ProcessSessionId:  dataRow.SubSessionId,
+				EntityDataId:      dataRow.EntityDataId,
+				EntityDisplayName: dataRow.EntityDataName,
+				EntityTypeId:      dataRow.EntityTypeId,
+				ProcDefId:         procDefNode.SubProcDefId,
+				ParentInsNodeId:   procInsNode.Id,
+				ParentRunNodeId:   n.Id,
+			}
+			log.WorkflowLogger.Debug("doSubProcessJob", log.Int("i", i), log.JsonObj("tmpCreateInsParam", tmpCreateInsParam))
+			// 新增 proc_ins,proc_ins_node,proc_data_binding 纪录
+			subProcInsId, subWorkflowRow, subWorkNodes, subWorkLinks, tmpCreateInsErr := database.CreateProcInstance(context.WithValue(n.Ctx, models.TransactionIdHeader, fmt.Sprintf("%s_%d", n.Id, i)), &tmpCreateInsParam, operator)
+			if tmpCreateInsErr != nil {
+				err = tmpCreateInsErr
+				return
+			}
+			// 初始化workflow并开始
+			workObj := Workflow{ProcRunWorkflow: *subWorkflowRow}
+			workObj.ProcInsId = subProcInsId
+			dataRow.SubProcInsId = subProcInsId
+			workObj.Links = subWorkLinks
+			subWorkflowList = append(subWorkflowList, &workObj)
+			subWorkNodeList = append(subWorkNodeList, subWorkNodes)
+			subProcWorkflowList = append(subProcWorkflowList, &models.ProcRunNodeSubProc{WorkflowId: subWorkflowRow.Id, EntityTypeId: dataRow.EntityTypeId, EntityDataId: dataRow.EntityDataId})
+		}
+		if err = database.UpdateProcRunNodeSubProc(ctx, n.Id, subProcWorkflowList, dataBindings); err != nil {
+			err = fmt.Errorf("UpdateProcRunNodeSubProc fail,%s ", err.Error())
+			return
+		}
+		log.WorkflowLogger.Debug("start sub proc")
+		wg := sync.WaitGroup{}
+		for i, workObj := range subWorkflowList {
+			wg.Add(1)
+			go func(wo *Workflow, nl []*models.ProcRunNode) {
+				wo.Init(context.Background(), nl, wo.Links)
+				wo.Start(&models.ProcOperation{CreatedBy: operator})
+				wg.Done()
+				log.WorkflowLogger.Debug("sub proc done", log.String("subWorkflowId", wo.Id))
+			}(workObj, subWorkNodeList[i])
+		}
+		wg.Wait()
+		log.WorkflowLogger.Info("sub proc wait done")
 	}
-	if err = database.UpdateProcRunNodeSubProc(ctx, n.Id, subProcWorkflowList, dataBindings); err != nil {
-		err = fmt.Errorf("UpdateProcRunNodeSubProc fail,%s ", err.Error())
-		return
-	}
-	log.WorkflowLogger.Debug("start sub proc")
-	wg := sync.WaitGroup{}
-	for i, workObj := range subWorkflowList {
-		wg.Add(1)
-		go func(wo *Workflow, nl []*models.ProcRunNode) {
-			wo.Init(context.Background(), nl, wo.Links)
-			wo.Start(&models.ProcOperation{CreatedBy: operator})
-			wg.Done()
-			log.WorkflowLogger.Debug("sub proc done", log.String("subWorkflowId", wo.Id))
-		}(workObj, subWorkNodeList[i])
-	}
-	wg.Wait()
-	log.WorkflowLogger.Debug("sub proc wait done")
 	// 获取子编排的结果
 	subProcResultList, subProcQueryErr := database.GetSubProcResult(ctx, n.Id)
 	if subProcQueryErr != nil {
@@ -781,8 +810,8 @@ func updateNodeDB(n *models.ProcRunNode) {
 		}
 	}
 	if n.Status == models.JobStatusRunning {
-		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,start_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.StartTime, nowTime, n.Id}})
-		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, n.ProcInsNodeId}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,start_time=?,error_message=null,updated_time=? where id=?", Param: []interface{}{n.Status, n.StartTime, nowTime, n.Id}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,error_msg=null,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, n.ProcInsNodeId}})
 		if n.JobType == models.JobDecisionType {
 			actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set input=? where id=?", Param: []interface{}{n.Input, n.Id}})
 		}
@@ -795,6 +824,9 @@ func updateNodeDB(n *models.ProcRunNode) {
 	} else if n.Status == models.JobStatusTimeout {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,error_message=?,end_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, nowTime, nowTime, n.Id}})
 		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,error_msg=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, nowTime, n.ProcInsNodeId}})
+	} else if n.Status == models.JobStatusRisky {
+		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,error_message=?,end_time=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, nowTime, nowTime, n.Id}})
+		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,risk_check_result=?,error_msg=?,updated_time=? where id=?", Param: []interface{}{n.Status, n.ErrorMessage, n.ErrorMessage, nowTime, n.ProcInsNodeId}})
 	} else {
 		actions = append(actions, &db.ExecAction{Sql: "update proc_run_node set status=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, n.Id}})
 		actions = append(actions, &db.ExecAction{Sql: "update proc_ins_node set status=?,updated_time=? where id=?", Param: []interface{}{n.Status, nowTime, n.ProcInsNodeId}})

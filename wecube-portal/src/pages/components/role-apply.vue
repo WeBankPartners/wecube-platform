@@ -23,40 +23,48 @@
           </div>
         </div>
         <div>
-          <Form :label-width="100" inline>
-            <FormItem :label="$t('p_manageRole')" required>
-              <Select
-                v-model="selectedRole"
-                @on-open-change="getApplyRoles"
-                multiple
-                filterable
-                filter-by-label
-                :max-tag-count="3"
-                style="width: 300px; margin-right: 24px"
-                :placeholder="$t('be_apply_roles')"
-              >
-                <Option v-for="role in roleList" :value="role.id" :key="role.id" :label="role.displayName" />
-              </Select>
-            </FormItem>
-            <FormItem :label="$t('role_invalidDate')">
-              <DatePicker
-                type="datetime"
-                :value="expireTime"
-                @on-change="
-                  val => {
-                    expireTime = val
-                  }
-                "
-                :placeholder="$t('role_invalidDatePlaceholder')"
-                :options="{
-                  disabledDate(date) {
-                    return date && date.valueOf() < Date.now() - 86400000
-                  }
-                }"
-                style="width: 300px; margin-right: 24px"
-              ></DatePicker>
-              <Button type="primary" :disabled="selectedRole.length === 0" @click="apply">{{ $t('be_apply') }}</Button>
-            </FormItem>
+          <Form :label-width="100">
+            <Row>
+              <Col :span="10">
+                <FormItem :label="$t('be_apply_roles')" required>
+                  <Select
+                    v-model="selectedRole"
+                    @on-open-change="getApplyRoles"
+                    multiple
+                    filterable
+                    filter-by-label
+                    :max-tag-count="3"
+                    :placeholder="$t('be_apply_roles')"
+                    style="width: 300px"
+                  >
+                    <Option v-for="role in roleList" :value="role.id" :key="role.id" :label="role.displayName" />
+                  </Select>
+                </FormItem>
+              </Col>
+              <Col :span="14">
+                <FormItem :label="$t('role_invalidDate')">
+                  <DatePicker
+                    type="datetime"
+                    :value="expireTime"
+                    @on-change="
+                      val => {
+                        expireTime = val
+                      }
+                    "
+                    :placeholder="$t('role_invalidDatePlaceholder')"
+                    :options="{
+                      disabledDate(date) {
+                        return date && date.valueOf() < Date.now() - 86400000
+                      }
+                    }"
+                    style="margin-right: 10px; width: 300px"
+                  ></DatePicker>
+                  <Button type="primary" :disabled="selectedRole.length === 0" @click="apply">{{
+                    $t('be_apply')
+                  }}</Button>
+                </FormItem>
+              </Col>
+            </Row>
           </Form>
         </div>
         <div class="title" style="margin-top: 0px">
@@ -188,11 +196,9 @@ export default {
         if (this.activeTab !== 'pending') {
           if (status === 'preExpired') {
             color = '#ff9900'
-          }
-          else if (status === 'expire') {
+          } else if (status === 'expire') {
             color = '#ed4014'
-          }
-          else {
+          } else {
             color = '#19be6b'
           }
         }
@@ -208,21 +214,17 @@ export default {
         let text = ''
         if (this.activeTab === 'pending') {
           text = expireTime || this.$t('be_forever')
-        }
-        else {
+        } else {
           if (status === 'preExpired') {
             // 即将到期
             text = `${expireTime}${this.$t('be_willExpire')}`
-          }
-          else if (status === 'expire') {
+          } else if (status === 'expire') {
             // 已过期
             text = `${expireTime}${this.$t('be_hasExpired')}`
-          }
-          else if (expireTime) {
+          } else if (expireTime) {
             // 到期时间
             text = `${expireTime}${this.$t('be_expire')}`
-          }
-          else if (!expireTime) {
+          } else if (!expireTime) {
             // 永久有效
             text = `${this.$t('be_forever')}`
           }
@@ -268,17 +270,13 @@ export default {
       let statusArr = []
       if (this.activeTab === 'pending') {
         statusArr = ['init']
-      }
-      else if (this.activeTab === 'inEffect') {
+      } else if (this.activeTab === 'inEffect') {
         statusArr = ['inEffect']
-      }
-      else if (this.activeTab === 'expire') {
+      } else if (this.activeTab === 'expire') {
         statusArr = ['expire']
-      }
-      else if (this.activeTab === 'deny') {
+      } else if (this.activeTab === 'deny') {
         statusArr = ['deny']
-      }
-      else if (this.activeTab === 'deleted') {
+      } else if (this.activeTab === 'deleted') {
         statusArr = ['deleted']
       }
       const params = {

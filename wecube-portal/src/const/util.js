@@ -49,14 +49,30 @@ export const deepClone = obj => {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
         if (obj[key] && typeof obj[key] === 'object') {
           objClone[key] = deepClone(obj[key])
-        }
-        else {
+        } else {
           objClone[key] = obj[key]
         }
       }
     }
   }
   return objClone
+}
+
+// 扁平数组转树形数据
+export const groupArrayByKey = (array, key) => {
+  const grouped = array.reduce((acc, item) => {
+    // 找到对应的组
+    const group = acc.find(g => g[0][key] === item[key])
+    if (group) {
+      // 如果组存在，添加到组中
+      group.push(item)
+    } else {
+      // 如果组不存在，创建一个新组
+      acc.push([item])
+    }
+    return acc
+  }, [])
+  return grouped
 }
 
 // 获取全局menus
@@ -77,8 +93,7 @@ export const getGlobalMenus = () =>
                 ..._,
                 ...menuObj
               })
-            }
-            else {
+            } else {
               menus.push({
                 title: _.code,
                 id: _.id,
@@ -104,8 +119,7 @@ export const getGlobalMenus = () =>
                   })
                 }
               })
-            }
-            else {
+            } else {
               // Plugins Menus
               menus.forEach(h => {
                 if (_.category === '' + h.id) {
@@ -123,9 +137,14 @@ export const getGlobalMenus = () =>
 
         window.myMenus = menus
         resolve(menus)
-      }
-      else {
+      } else {
         resolve()
       }
     })
   })
+
+export const pluginNameMap = {
+  '/implementation': 'fd_platform',
+  '/collaboration': 'fd_platform',
+  '/admin': 'fd_platform'
+}

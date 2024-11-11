@@ -1,7 +1,7 @@
 <template>
   <div class="batch-execute-history">
     <div class="search">
-      <Search :options="searchOptions" v-model="form" @search="handleQuery"></Search>
+      <BaseSearch :options="searchOptions" v-model="form" @search="handleQuery"></BaseSearch>
     </div>
     <Row :gutter="20">
       <Col v-show="!expand" :span="8">
@@ -47,13 +47,11 @@
 </template>
 
 <script>
-import Search from '@/pages/components/base-search.vue'
 import ExecuteResult from '../components/execute-result.vue'
 import { getBatchExecuteList } from '@/api/server'
 import dayjs from 'dayjs'
 export default {
   components: {
-    Search,
     ExecuteResult
   },
   data() {
@@ -193,11 +191,34 @@ export default {
       expand: false
     }
   },
-  mounted() {
-    this.maxHeight = document.body.clientHeight - 150
-    this.getList()
+  beforeRouteEnter(to, from, next) {
+    next(vm => {
+      if (from.path === '/implementation/batch-execution/create-execution') {
+        // 读取列表搜索参数
+        const storage = window.sessionStorage.getItem('search_batchExecution') || ''
+        if (storage) {
+          const { searchParams, searchOptions } = JSON.parse(storage)
+          vm.form = searchParams
+          vm.searchOptions = searchOptions
+        }
+      }
+      // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+      vm.initData()
+    })
+  },
+  beforeDestroy() {
+    // 缓存列表搜索条件
+    const storage = {
+      searchParams: this.form,
+      searchOptions: this.searchOptions
+    }
+    window.sessionStorage.setItem('search_batchExecution', JSON.stringify(storage))
   },
   methods: {
+    initData() {
+      this.maxHeight = document.body.clientHeight - 150
+      this.getList()
+    },
     handleQuery() {
       this.pagination.currentPage = 1
       this.getList()
@@ -239,15 +260,13 @@ export default {
             operator: 'contains',
             value: this.form[key]
           })
-        }
-        else if (key === 'errorCode' && this.form[key]) {
+        } else if (key === 'errorCode' && this.form[key]) {
           params.filters.push({
             name: key,
             operator: 'eq',
             value: this.form[key]
           })
-        }
-        else if (key === 'createdTimeT' && this.form[key] && this.form[key].length > 0) {
+        } else if (key === 'createdTimeT' && this.form[key] && this.form[key].length > 0) {
           params.filters.push(
             ...[
               {
@@ -274,8 +293,7 @@ export default {
             this.rowId = data.contents[0].id
             this.$refs.executeResult.getList(data.contents[0].id)
             this.$refs.executeResult.reset()
-          }
-          else {
+          } else {
             this.$refs.executeResult.handleReset()
           }
         })

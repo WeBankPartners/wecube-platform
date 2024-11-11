@@ -2,7 +2,7 @@
 <template>
   <div class="batch-execution-template-list">
     <div class="search">
-      <Search :options="searchOptions" v-model="form" @search="handleSearch"></Search>
+      <BaseSearch :options="searchOptions" v-model="form" @search="handleSearch"></BaseSearch>
       <!--新建模板-->
       <Button type="success" class="create-template" @click="handleCreateTemplate">{{ $t('be_new_template') }}</Button>
     </div>
@@ -48,7 +48,6 @@
 </template>
 
 <script>
-import Search from '@/pages/components/base-search.vue'
 import AuthDialog from '@/pages/components/auth.vue'
 import {
   getBatchExecuteTemplateList,
@@ -60,7 +59,6 @@ import {
 import { debounce } from '@/const/util'
 export default {
   components: {
-    Search,
     AuthDialog
   },
   data() {
@@ -296,31 +294,54 @@ export default {
       }
     }
   },
-  mounted() {
-    // 模板管理页面
-    this.tableColumns = [
-      this.baseColumns.name,
-      this.baseColumns.id,
-      this.baseColumns.pluginService,
-      this.baseColumns.operateObject,
-      {
-        title: this.$t('use_role'),
-        key: 'useRole',
-        minWidth: 120,
-        render: (h, params) => (
-          <div>
-            {params.row.permissionToRole.USEDisplayName
-              && params.row.permissionToRole.USEDisplayName.map(item => <Tag color="default">{item}</Tag>)}
-          </div>
-        )
-      },
-      this.baseColumns.status,
-      this.baseColumns.createdTime,
-      this.baseColumns.action
-    ]
-    this.getTemplateList()
+  beforeRouteEnter(to, from, next) {
+    next(vm => {
+      if (from.path === '/implementation/batch-execution/template-create') {
+        // 读取列表搜索参数
+        const storage = window.sessionStorage.getItem('search_batchTemplate') || ''
+        if (storage) {
+          const { searchParams, searchOptions } = JSON.parse(storage)
+          vm.form = searchParams
+          vm.searchOptions = searchOptions
+        }
+      }
+      // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+      vm.initData()
+    })
+  },
+  beforeDestroy() {
+    // 缓存列表搜索条件
+    const storage = {
+      searchParams: this.form,
+      searchOptions: this.searchOptions
+    }
+    window.sessionStorage.setItem('search_batchTemplate', JSON.stringify(storage))
   },
   methods: {
+    initData() {
+      // 模板管理页面
+      this.tableColumns = [
+        this.baseColumns.name,
+        this.baseColumns.id,
+        this.baseColumns.pluginService,
+        this.baseColumns.operateObject,
+        {
+          title: this.$t('use_role'),
+          key: 'useRole',
+          minWidth: 120,
+          render: (h, params) => (
+            <div>
+              {params.row.permissionToRole.USEDisplayName
+                && params.row.permissionToRole.USEDisplayName.map(item => <Tag color="default">{item}</Tag>)}
+            </div>
+          )
+        },
+        this.baseColumns.status,
+        this.baseColumns.createdTime,
+        this.baseColumns.action
+      ]
+      this.getTemplateList()
+    },
     handleCreateTemplate() {
       this.$router.push({
         path: '/implementation/batch-execution/template-create'

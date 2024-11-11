@@ -82,8 +82,7 @@ export default {
             catGroupId: val.groupTypeId
           }
           this.categoryId = val.catId
-        }
-        else {
+        } else {
           this.form = {
             catName: '',
             catTypeId: '',
@@ -122,8 +121,7 @@ export default {
           this.$refs.enumModal.$refs.table.form.catId = this.categoryId
           this.$refs.enumModal.getGroupList(this.categoryId)
         }
-      }
-      else {
+      } else {
         // create
         const payload = {
           catName: this.form.catName,

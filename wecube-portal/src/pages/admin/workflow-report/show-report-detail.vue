@@ -117,8 +117,7 @@ export default {
       this.detailTableData = []
       if (filterCol.length === 1) {
         this.detailTableData = JSON.parse(JSON.stringify(this.oriDetailTableData))
-      }
-      else {
+      } else {
         this.oriDetailTableData.forEach(row => {
           const set = new Set()
           filterCol.forEach(col => {
@@ -215,8 +214,7 @@ export default {
             row['value' + index] = p.paramDataValue
             this.oriDetailTableData.push(row)
           })
-        }
-        else {
+        } else {
           d.execParams.forEach(p => {
             const find = this.oriDetailTableData.find(tp => tp.title === p.paramName && tp.type === p.paramType)
             find['value' + index] = p.paramDataValue

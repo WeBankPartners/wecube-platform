@@ -1,7 +1,7 @@
 <template>
   <div class="time-execution-history">
     <div class="search">
-      <Search :options="searchOptions" v-model="searchConfig.params" @search="handleQuery"></Search>
+      <BaseSearch :options="searchOptions" v-model="searchConfig.params" @search="handleQuery"></BaseSearch>
       <Button :disabled="selectData.length === 0" type="error" class="btn-right" @click="batchStopTask">
         {{ $t('fe_batchStop') }}
       </Button>
@@ -29,7 +29,6 @@
 </template>
 
 <script>
-import Search from '@/pages/components/base-search.vue'
 import {
   instancesWithPaging,
   getAllFlow,
@@ -39,9 +38,6 @@ import {
 } from '@/api/server'
 import dayjs from 'dayjs'
 export default {
-  components: {
-    Search
-  },
   data() {
     return {
       MODALHEIGHT: 0,
@@ -383,6 +379,8 @@ export default {
           vm.searchOptions = searchOptions
         }
       }
+      // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+      vm.initData()
     })
   },
   beforeDestroy() {
@@ -393,12 +391,12 @@ export default {
     }
     window.sessionStorage.setItem('search_timeExecution', JSON.stringify(storage))
   },
-  async mounted() {
-    this.MODALHEIGHT = document.body.scrollHeight - 220
-    this.getFlows()
-    this.getProcessInstances()
-  },
   methods: {
+    initData() {
+      this.MODALHEIGHT = document.body.scrollHeight - 220
+      this.getFlows()
+      this.getProcessInstances()
+    },
     handleQuery() {
       this.pageable.current = 1
       this.getProcessInstances()

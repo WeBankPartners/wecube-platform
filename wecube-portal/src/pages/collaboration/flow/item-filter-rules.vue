@@ -1,6 +1,6 @@
 <template>
   <div class="filter_rules_contain" :class="disabled ? 'disabled-filter' : ''" ref="filter_rules_contain">
-    <Poptip v-model="poptipVisable" placement="bottom">
+    <Poptip v-model="poptipVisable" :disabled="disabled" placement="bottom">
       <div ref="wecube_cmdb_attr" class="filter_rules_path_contains">
         <span
           class="path_exp"
@@ -48,12 +48,8 @@
           </ul>
           <hr style="margin-top: 5px" />
           <template v-if="(rootOnly && pathList.length === 0) || (!rootOnly && pathList.length > 0)">
-            <div style="max-height: 145px; overflow: auto; margin-top: 5px">
-              <ul
-                v-if="!needNativeAttr"
-                v-for="opt in filterCurrentLeafOptiongs"
-                :key="opt.pathExp + Math.random() * 1000"
-              >
+            <div v-if="!needNativeAttr" style="max-height: 145px; overflow: auto; margin-top: 5px">
+              <ul v-for="opt in filterCurrentLeafOptiongs" :key="opt.pathExp + Math.random() * 1000">
                 <li style="color: rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
               </ul>
               <ul v-for="opt in filterCurrentRefOptiongs" :key="opt.pathExp + Math.random() * 1000">
@@ -260,8 +256,7 @@ export default {
               pathExp: `~${_}`,
               nodeType: 'entity'
             }
-          }
-          else {
+          } else {
             path = {
               entity: ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1],
               pkg: _.match(/[^>]+(?=:)/)[0],
@@ -269,8 +264,7 @@ export default {
               nodeType: 'entity'
             }
           }
-        }
-        else {
+        } else {
           const previous = pathList[i - 1]
           const previousSplit = previous.split(':')
           const ruleIndex = previousSplit[1].indexOf('{')
@@ -336,11 +330,9 @@ export default {
           let str = ''
           if (isMultiple) {
             str = `{${rule.attr} ${rule.op} [${rule.value.map(v => `'${v}'`)}]}`
-          }
-          else if (rule.op === 'is' || rule.op === 'isnot') {
+          } else if (rule.op === 'is' || rule.op === 'isnot') {
             str = `{${rule.attr} ${rule.op} NULL}`
-          }
-          else {
+          } else {
             const noQuotation = rule.op === 'gt' || rule.op === 'lt'
             str = noQuotation ? `{${rule.attr} ${rule.op} ${rule.value}}` : `{${rule.attr} ${rule.op} '${rule.value}'}`
           }
@@ -356,6 +348,9 @@ export default {
       this.currentPathFilterRules = []
     },
     showPoptip(node, index) {
+      if (this.disabled) {
+        return
+      }
       this.currentNodeIndex = index
       this.currentNode = node
       this.formatNextCurrentOptions(node)
@@ -434,8 +429,7 @@ export default {
       this.pathList = []
       if (this.value && this.value.indexOf(':') > -1) {
         this.restorePathExp(this.value)
-      }
-      else {
+      } else {
         this.formatCurrentOptions()
       }
     },
@@ -451,8 +445,7 @@ export default {
         this.currentOptiongs = []
         this.currentRefOptiongs = []
         this.currentLeafOptiongs = []
-      }
-      else {
+      } else {
         const { status, data } = await getEntityRefsByPkgNameAndEntityName(opt.pkg, opt.entity)
         if (status === 'OK') {
           this.currentRefOptiongs = data.referenceByEntityList.map(e => ({
@@ -479,8 +472,7 @@ export default {
                 nodeType: 'attr'
               }))
             this.currentOptiongs = this.currentOptiongs.concat(attrOption)
-          }
-          else {
+          } else {
             const referenceToEntityList = []
             data.leafEntityList.referenceToEntityList.forEach(e => {
               const index = referenceToEntityList.indexOf(e.filterRule)

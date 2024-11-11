@@ -2,8 +2,7 @@ import { getGlobalMenus } from '@/const/util'
 export const getChildRouters = async routes => {
   if (!window.myMenus || window.myMenus.length === 0) {
     await getGlobalMenus()
-  }
-  else {
+  } else {
     const allLinks = [].concat(...window.myMenus.map(_ => _.submenus))
     allLinks.forEach(_ => {
       const found = routes.find(i => i.path === _.link || i.redirect === _.link)

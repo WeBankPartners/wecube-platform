@@ -81,20 +81,17 @@ export default (anchor, group, p) => {
         if (e.y >= dragLog[1]) {
           endPoint[0] -= 1
           endPoint[1] -= 1
-        }
-        else {
+        } else {
           // 右上
           endPoint[0] -= 1
           endPoint[1] -= 1
         }
-      }
-      else {
+      } else {
         // 左上
         if (e.y >= dragLog[1]) {
           endPoint[0] += 1
           endPoint[1] += 1
-        }
-        else {
+        } else {
           // 左下
           endPoint[0] += 1
           endPoint[1] += 1

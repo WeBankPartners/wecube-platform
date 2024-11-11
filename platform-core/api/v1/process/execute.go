@@ -24,6 +24,7 @@ func ProcDefList(c *gin.Context) {
 	tag := c.Query("tag")
 	plugin := c.Query("plugin")
 	subProc := c.Query("subProc")
+	rootEntity := c.Query("rootEntity")
 	if includeDraft == "" {
 		includeDraft = "0"
 	}
@@ -34,7 +35,7 @@ func ProcDefList(c *gin.Context) {
 		subProc = "all"
 	}
 	log.Logger.Debug("procDefList", log.String("includeDraft", includeDraft), log.String(permission, "permission"), log.String("tag", tag), log.StringList("roleList", middleware.GetRequestRoles(c)))
-	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, subProc, middleware.GetRequestUser(c), middleware.GetRequestRoles(c))
+	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, subProc, middleware.GetRequestUser(c), rootEntity, middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -48,6 +49,10 @@ func PublicProcDefList(c *gin.Context) {
 	plugin := c.Query("plugin")
 	withAll := c.Query("all")
 	subProc := c.Query("subProc")
+	rootEntity := c.Query("rootEntity")
+	rootEntityGuid := c.Query("rootEntityGuid")
+	var exprList []*models.ExpressionObj
+	var queryResult []map[string]interface{}
 	if permission == "" {
 		permission = "USE"
 	}
@@ -57,14 +62,22 @@ func PublicProcDefList(c *gin.Context) {
 	if subProc == "" {
 		subProc = "main"
 	}
+	// 如果插件属主不传则返回空
+	if plugin == "" {
+		middleware.ReturnData(c, []*models.PublicProcDefObj{})
+		return
+	}
+	if strings.TrimSpace(rootEntity) != "" {
+		rootEntity = strings.Split(rootEntity, "{")[0]
+	}
 	log.Logger.Debug("public procDefList", log.String(permission, "permission"), log.String("tag", tag))
-	procList, err := database.ProcDefList(c, "0", permission, tag, plugin, subProc, middleware.GetRequestUser(c), middleware.GetRequestRoles(c))
+	procList, err := database.ProcDefList(c, "0", permission, tag, plugin, subProc, middleware.GetRequestUser(c), rootEntity, middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
 	if withAll == "N" {
-		newProcList := []*models.ProcDefListObj{}
+		var newProcList []*models.ProcDefListObj
 		procKeyMap := make(map[string]int)
 		for _, row := range procList {
 			if _, ok := procKeyMap[row.ProcDefKey]; ok {
@@ -75,7 +88,7 @@ func PublicProcDefList(c *gin.Context) {
 		}
 		procList = newProcList
 	}
-	result := []*models.PublicProcDefObj{}
+	var result, newResult []*models.PublicProcDefObj
 	entityMap := make(map[string]*models.ProcEntity)
 	for _, row := range procList {
 		resultObj := models.PublicProcDefObj{
@@ -118,10 +131,28 @@ func PublicProcDefList(c *gin.Context) {
 		}
 		result = append(result, &resultObj)
 	}
+	if strings.TrimSpace(rootEntityGuid) != "" {
+		// 调用编排分析,获取操作对象列表
+		for _, procDef := range result {
+			if exprList, err = remote.AnalyzeExpression(procDef.RootEntityExpression); err != nil {
+				return
+			}
+			if queryResult, err = remote.QueryPluginData(c, exprList, []*models.QueryExpressionDataFilter{}, remote.GetToken()); err != nil {
+				return
+			}
+			for _, data := range queryResult {
+				if v, ok := data["id"]; ok && v == rootEntityGuid {
+					newResult = append(newResult, procDef)
+				}
+			}
+		}
+	} else {
+		newResult = result
+	}
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
-		middleware.ReturnData(c, result)
+		middleware.ReturnData(c, newResult)
 	}
 }
 
@@ -553,6 +584,18 @@ func ProcInsOperation(c *gin.Context) {
 		}
 		go workflow.HandleProOperation(&operationObj)
 		time.Sleep(2500 * time.Millisecond)
+	} else if param.Act == "retry" {
+		if procInsObj.Status != models.JobStatusRunning {
+			middleware.ReturnError(c, exterror.New().ProcStatusOperationError)
+			return
+		}
+		operationObj := models.ProcRunOperation{WorkflowId: workflowId, NodeId: nodeId, Operation: "confirm", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
+		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		go workflow.HandleProOperation(&operationObj)
 	}
 	middleware.ReturnSuccess(c)
 }
@@ -670,6 +713,10 @@ func QueryProcInsPageData(c *gin.Context) {
 	if err := c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
+	}
+	// 查询主编排下的子编排实例,不需要传递 subProc字段
+	if strings.TrimSpace(param.MainProcInsId) != "" {
+		param.SubProc = ""
 	}
 	result, err := database.QueryProcInsPage(c, &param, middleware.GetRequestRoles(c))
 	if err != nil {
@@ -847,7 +894,7 @@ func SubProcDefList(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	result, err := database.ProcDefList(c, "0", "USE", "", "", "sub", middleware.GetRequestUser(c), middleware.GetRequestRoles(c))
+	result, err := database.ProcDefList(c, "0", "USE", "", "", "sub", middleware.GetRequestUser(c), "", middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
