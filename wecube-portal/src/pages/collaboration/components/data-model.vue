@@ -51,7 +51,9 @@ export default {
     }
   },
   created() {
-    this.getData(false)
+    setTimeout(() => {
+      this.getData(false)
+    }, 300)
   },
   methods: {
     ResetModel() {
@@ -61,40 +63,45 @@ export default {
     },
     async getData() {
       this.isLoading = true
-      const { status, data } = this.dataModel.dynamic
-        ? await pullDynamicDataModel(this.pluginName)
-        : await getPluginPkgDataModel(this.pkgId)
-      this.isLoading = false
-      if (status === 'OK') {
+      const { status: originStatus, data: originData } = await getPluginPkgDataModel(this.pkgId)
+      if (originStatus === 'OK') {
+        this.dataModel = originData
         if (this.dataModel.dynamic) {
-          this.isApplyBtnDisabled = false
+          await pullDynamicDataModel(this.pluginName)
         }
-        this.dataModel = data
-        this.data = data.entities
-          .sort(function (a, b) {
-            const nameA = a.name.toUpperCase()
-            const nameB = b.name.toUpperCase()
-            if (nameA < nameB) {
-              return -1
-            }
-            if (nameA > nameB) {
-              return 1
-            }
-            return 0
-          })
-          .map(_ => ({
-            ..._,
-            id: '[' + _.packageName + ']' + _.name,
-            tos: _.referenceToEntityList.map(to => ({
-              ...to,
-              id: '[' + to.packageName + ']' + to.name
-            })),
-            bys: _.referenceByEntityList.map(by => ({
-              ...by,
-              id: '[' + by.packageName + ']' + by.name
+        const { status, data } = await getPluginPkgDataModel(this.pkgId)
+        this.isLoading = false
+        if (status === 'OK') {
+          this.dataModel = data
+          if (this.dataModel.dynamic) {
+            this.isApplyBtnDisabled = false
+          }
+          this.data = data.entities
+            .sort(function (a, b) {
+              const nameA = a.name.toUpperCase()
+              const nameB = b.name.toUpperCase()
+              if (nameA < nameB) {
+                return -1
+              }
+              if (nameA > nameB) {
+                return 1
+              }
+              return 0
+            })
+            .map(_ => ({
+              ..._,
+              id: '[' + _.packageName + ']' + _.name,
+              tos: _.referenceToEntityList.map(to => ({
+                ...to,
+                id: '[' + to.packageName + ']' + to.name
+              })),
+              bys: _.referenceByEntityList.map(by => ({
+                ...by,
+                id: '[' + by.packageName + ']' + by.name
+              }))
             }))
-          }))
-        this.initGraph()
+          this.initGraph()
+        }
       }
     },
     genDOT() {
