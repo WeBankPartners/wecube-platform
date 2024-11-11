@@ -981,10 +981,11 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 				}
 			}
 			detail.CmdbCI = append(detail.CmdbCI, &models.CommonNameCount{
-				Name:  transExportAnalyze.DataTypeName,
-				Count: transExportAnalyze.DataLen,
-				Group: ciGroup[transExportAnalyze.DataType],
-				Data:  dataObj,
+				Name:     transExportAnalyze.DataTypeName,
+				Count:    transExportAnalyze.DataLen,
+				Group:    ciGroup[transExportAnalyze.DataType],
+				DataType: transExportAnalyze.DataType,
+				Data:     dataObj,
 			})
 		case models.TransExportAnalyzeSourceWeCmdbReport:
 			var tempArr []map[string]interface{}
