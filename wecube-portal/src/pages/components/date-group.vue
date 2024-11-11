@@ -63,8 +63,7 @@ export default {
       this.dateTime = []
       if (this.dateType === 4) {
         this.dateTime = ['', '']
-      }
-      else {
+      } else {
         const { type, value } = this.typeList.find(i => i.dateType === this.dateType)
         const cur = dayjs().format('YYYY-MM-DD')
         const pre = dayjs().subtract(value, type)
@@ -76,8 +75,7 @@ export default {
     handleDateRange(dateArr) {
       if (dateArr && dateArr[0] && dateArr[1]) {
         this.dateTime = [...dateArr]
-      }
-      else {
+      } else {
         this.dateTime = ['', '']
       }
       this.$emit('change', this.dateTime)

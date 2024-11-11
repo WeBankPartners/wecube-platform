@@ -176,8 +176,7 @@ export default {
     sortHandler(data) {
       if (data.order === 'normal') {
         delete this.payload.sorting
-      }
-      else {
+      } else {
         this.payload.sorting = {
           asc: data.order === 'asc',
           field: data.key
@@ -222,8 +221,7 @@ export default {
         this.outerActions.forEach(_ => {
           _.props.disabled = _.actionType === 'add'
         })
-      }
-      else {
+      } else {
         this.outerActions.forEach(_ => {
           _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
         })

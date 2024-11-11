@@ -162,8 +162,7 @@ export default {
                 entity: current[1],
                 pkg: current[0].split(')')[1]
               }
-            }
-            else {
+            } else {
               path = {
                 entity: current[1],
                 pkg: current[0]
@@ -172,8 +171,7 @@ export default {
           }
           this.entityPath.push(path)
         })
-      }
-      else {
+      } else {
         this.inputVal = `${this.currentPkg}:${this.currentEntity || ''}`
         this.entityPath.push({
           entity: this.currentEntity,
@@ -210,15 +208,13 @@ export default {
           this.inputVal = valList.join(' ')
           this.entityPath.splice(-1, 1)
           this.$emit('input', this.inputVal.replace(/\s/g, ''))
-        }
-        else if (valList.length < 2) {
+        } else if (valList.length < 2) {
           this.inputVal = valList[0]
           this.$emit('input', this.inputVal.replace(/\s/g, ''))
         }
         this.$refs.textarea.value = this.inputVal
         this.isLastNode = false
-      }
-      else {
+      } else {
         if (!(v.data === '.' || v.data === '~')) {
           this.$Message.error({
             content: this.$t('input_correct_operator')
