@@ -772,7 +772,7 @@ export default {
         flex: 1;
         .single-tab-content {
           height: 100%;
-          max-height: 530px;
+          max-height: calc(100vh - 280px);
           overflow-y: auto;
         }
         .right-title {
