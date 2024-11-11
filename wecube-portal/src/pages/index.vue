@@ -27,7 +27,7 @@ export default {
     return {
       isShowBreadcrum: true,
       allMenusAry: [],
-      parentBreadcrumb: '',
+      parentBreadcrumb: '-',
       childBreadcrumb: '',
       expandSideMenu: false
     }
@@ -74,8 +74,7 @@ export default {
           })
         })
         this.childBreadcrumb = menuObj.title
-      }
-      else {
+      } else {
         this.parentBreadcrumb = '-'
         const path = this.$route.path.substr(1)
         if (!window.implicitRoutes) {
@@ -84,6 +83,12 @@ export default {
         const implicitRoute = window.implicitRoutes[path]
         this.parentBreadcrumb = implicitRoute ? implicitRoute['parentBreadcrumb'][currentLangKey] : '-'
         this.childBreadcrumb = implicitRoute ? implicitRoute['childBreadcrumb'][currentLangKey] : '-'
+      }
+      // web title显示面包屑
+      if (this.parentBreadcrumb !== '-' && this.childBreadcrumb !== '-') {
+        document.title = `${this.parentBreadcrumb}/${this.childBreadcrumb}`
+      } else {
+        document.title = 'Wecube'
       }
     },
     homePageClickHandler() {

@@ -8,7 +8,7 @@
     </Row>
     <Form :disabled="type === 'view'" label-position="right" :label-width="125">
       <!--执行模板信息-->
-      <HeaderTitle :title="$t('be_execute_templateinfo')">
+      <BaseHeaderTitle :title="$t('be_execute_templateinfo')">
         <!--模板名称-->
         <FormItem v-if="from === 'template' && type !== 'view'" :label="$t('be_template_name')" required>
           <Input
@@ -21,7 +21,9 @@
         </FormItem>
         <template v-else>
           <!--预执行记录-->
-          <div v-if="!data.templateData.id" style="padding: 0 20px">{{ $t('be_pre_execute_record') }}</div>
+          <div v-if="!data.templateData || !data.templateData.id" style="padding: 0 20px">
+            {{ $t('be_pre_execute_record') }}
+          </div>
           <!--执行记录-->
           <div v-else class="template-info">
             <div class="item">
@@ -58,9 +60,9 @@
             </div>
           </div>
         </template>
-      </HeaderTitle>
+      </BaseHeaderTitle>
       <!--第1步 设置操作对象及查询条件-->
-      <HeaderTitle :title="$t('be_step1_title')">
+      <BaseHeaderTitle :title="$t('be_step1_title')">
         <!--批量名称-->
         <FormItem v-if="from === 'execute'" :label="$t('be_batch_name')" required>
           <Input
@@ -162,9 +164,9 @@
           :data="searchParamsTree"
           @submit="handleSearchParamsChange"
         ></ConditionTree>
-      </HeaderTitle>
+      </BaseHeaderTitle>
       <!--第2步 勾选执行实例-->
-      <HeaderTitle :title="$t('be_step2_title')">
+      <BaseHeaderTitle :title="$t('be_step2_title')">
         <!--勾选操作实例-->
         <FormItem :label="$t('be_choose_instance')" required>
           <EntityTable
@@ -178,9 +180,9 @@
             "
           ></EntityTable>
         </FormItem>
-      </HeaderTitle>
+      </BaseHeaderTitle>
       <!--第3步 设置插件服务及参数-->
-      <HeaderTitle :title="$t('be_step3_title')">
+      <BaseHeaderTitle :title="$t('be_step3_title')">
         <!--插件服务-->
         <FormItem :label="$t('pluginService')" required>
           <Select
@@ -224,19 +226,18 @@
             <span slot="close">{{ $t('be_turn_off') }}</span>
           </i-switch>
         </FormItem>
-      </HeaderTitle>
+      </BaseHeaderTitle>
     </Form>
     <!--执行结果-->
-    <HeaderTitle v-if="showResult || (from === 'execute' && type === 'view')" :title="$t('bc_execution_result')">
+    <BaseHeaderTitle v-if="showResult || (from === 'execute' && type === 'view')" :title="$t('bc_execution_result')">
       <div style="padding: 0 20px">
         <ExecuteResult ref="executeResult" from="create" :id="showResult ? '' : data.id"></ExecuteResult>
       </div>
-    </HeaderTitle>
+    </BaseHeaderTitle>
   </div>
 </template>
 
 <script>
-import HeaderTitle from './components/header-title.vue'
 import FilterRules from '../../components/filter-rules.vue'
 import ConditionTree from './components/condition-tree.vue' // 过滤条件
 import EntityTable from './components/entity-table.vue' // 选择实例表格
@@ -250,7 +251,6 @@ import {
 } from '@/api/server.js'
 export default {
   components: {
-    HeaderTitle,
     FilterRules,
     ConditionTree,
     EntityTable,
@@ -466,8 +466,7 @@ export default {
       if (isBy > 0) {
         entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
         pkg = current[0].split(')')[1]
-      }
-      else {
+      } else {
         entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
         pkg = last.match(/[^>]+(?=:)/)[0]
       }
@@ -518,8 +517,7 @@ export default {
               </Tooltip>
             )
           }))
-        }
-        else {
+        } else {
           this.tableColumns = data.map(_ => ({
             title: _.name,
             key: _.name,
@@ -559,8 +557,7 @@ export default {
               operator: operator || 'contains'
             })
           }
-        }
-        else {
+        } else {
           keySet.push(sParameter.key)
           const {
             index, packageName, entityName, name, value, operator

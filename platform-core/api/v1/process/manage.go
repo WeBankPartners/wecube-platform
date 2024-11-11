@@ -32,6 +32,8 @@ const (
 	ContextNameRootEntityId   string = "rootEntityId"
 	ContextNameProcInstId     string = "procInstId"
 	ContextNameProcInstKey    string = "procInstKey"
+	ContextNameProcStartTime  string = "procStartTime"
+	ContextNameProcExecutor   string = "procExecutor"
 	PluginDataTypeString      string = "string"
 	PluginParamTypeInput      string = "INPUT"
 	PluginParamTypeOutput     string = "OUTPUT"
@@ -165,7 +167,7 @@ func GetProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("proc-def-id is empty")))
 		return
 	}
-	procDefDto, err := getProcDefDetailByProcDefId(c, procDefId)
+	procDefDto, err := database.GetProcDefDetailByProcDefId(c, procDefId)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -241,8 +243,27 @@ func QueryProcessDefinitionList(c *gin.Context) {
 	if param.PermissionType == "" {
 		param.PermissionType = "MGMT"
 	}
+	// 授权插件 传空返回空,查询所有 Plugins =platform
+	if len(param.Plugins) == 0 {
+		middleware.ReturnData(c, list)
+		return
+	}
+	// 包含 platform 表示查看所有插件,清空插件过滤.这样做法是防止其他服务绕过插件过滤逻辑
+	if strings.Contains(strings.Join(param.Plugins, ","), "platform") {
+		param.Plugins = []string{}
+	}
 	list, err = database.QueryProcessDefinitionList(c, param, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"), middleware.GetRequestUser(c))
 	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnData(c, list)
+}
+
+func QueryAllProcessDefinitionList(c *gin.Context) {
+	var list []*models.ProcDefDto
+	var err error
+	if list, err = database.GetProcessDefinitionAll(c, c.GetHeader("Authorization"), c.GetHeader("Accept-Language")); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
@@ -436,7 +457,7 @@ func ExportProcessDefinition(c *gin.Context) {
 			log.Logger.Info("procDef is draft", log.String("procDefId", procDef.Id))
 			continue
 		}
-		procDefDto, err2 := getProcDefDetailByProcDefId(c, procDef.Id)
+		procDefDto, err2 := database.GetProcDefDetailByProcDefId(c, procDef.Id)
 		if err2 != nil {
 			middleware.ReturnError(c, err2)
 			return
@@ -485,7 +506,14 @@ func ImportProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("import data is empty"))
 		return
 	}
-	importResult, err = processDefinitionImport(c, paramList, middleware.GetRequestUser(c), c.GetHeader(models.AuthorizationHeader), c.GetHeader(middleware.AcceptLanguageHeader))
+	param := models.ProcDefImportDto{
+		Ctx:       c,
+		InputList: paramList,
+		Operator:  middleware.GetRequestUser(c),
+		UserToken: c.GetHeader(models.AuthorizationHeader),
+		Language:  c.GetHeader(middleware.AcceptLanguageHeader),
+	}
+	importResult, err = ProcDefImport(param)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	}
@@ -508,6 +536,11 @@ func DeployProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	// 草稿态才能发布
+	if procDef.Status != string(models.Draft) {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("this procDef status is not draft")))
+		return
+	}
 	if err = CheckPermission(procDef, middleware.GetRequestUser(c)); err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -516,30 +549,30 @@ func DeployProcessDefinition(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ProcDefRootEntityEmptyError, nil))
 		return
 	}
-	// 草稿态才能发布
-	if procDef.Status != string(models.Draft) {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("this procDef status is not draft")))
-		return
-	}
-	// 检查节点的合法性
-	if err = checkDeployedProcDef(c, procDefId, procDef); err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	procDef.Status = string(models.Deployed)
-	procDef.UpdatedBy = middleware.GetRequestUser(c)
-	procDef.UpdatedTime = time.Now()
-	// 发布编排
-	if err = database.UpdateProcDefStatusAndVersion(c, procDef); err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	// 发布节点
-	if err = database.UpdateProcDefNodeStatusByProcDefId(c, procDefId, string(models.Deployed), middleware.GetRequestUser(c)); err != nil {
+	if err = ExecDeployedProcDef(c, procDef, middleware.GetRequestUser(c)); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
 	middleware.ReturnSuccess(c)
+}
+
+func ExecDeployedProcDef(ctx context.Context, procDef *models.ProcDef, operator string) (err error) {
+	// 检查节点的合法性
+	if err = checkDeployedProcDef(ctx, procDef); err != nil {
+		return
+	}
+	procDef.Status = string(models.Deployed)
+	procDef.UpdatedBy = operator
+	procDef.UpdatedTime = time.Now()
+	// 发布编排
+	if err = database.UpdateProcDefStatusAndVersion(ctx, procDef); err != nil {
+		return
+	}
+	// 发布节点
+	if err = database.UpdateProcDefNodeStatusByProcDefId(ctx, procDef.Id, string(models.Deployed), operator); err != nil {
+		return
+	}
+	return
 }
 
 // GetProcDefRootTaskNode  获取编排根任务节点
@@ -1167,6 +1200,18 @@ func prepareNodeParameters() []*models.InterfaceParameterDto {
 		DataType: PluginDataTypeString,
 	})
 
+	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
+		Type:     PluginParamTypeInput,
+		Name:     ContextNameProcStartTime,
+		DataType: PluginDataTypeString,
+	})
+
+	predefineParams = append(predefineParams, &models.InterfaceParameterDto{
+		Type:     PluginParamTypeInput,
+		Name:     ContextNameProcExecutor,
+		DataType: PluginDataTypeString,
+	})
+
 	return predefineParams
 }
 
@@ -1248,64 +1293,6 @@ func enrichPluginConfigInterfaces(ctx context.Context, configInterface *models.P
 	return configInterface
 }
 
-func getProcDefDetailByProcDefId(ctx context.Context, procDefId string) (procDefDto *models.ProcessDefinitionDto, err error) {
-	procDefDto = &models.ProcessDefinitionDto{}
-	// 节点
-	var nodes []*models.ProcDefNodeResultDto
-
-	var nodeList []*models.ProcDefNode
-	// 线
-	var edges []*models.ProcDefNodeLinkDto
-
-	procDef, err := database.GetProcessDefinition(ctx, procDefId)
-	if err != nil {
-		return
-	}
-	if procDef == nil {
-		err = fmt.Errorf("procDefId is invalid")
-		return
-	}
-	procDefDto.ProcDef = models.ConvertProcDef2Dto(procDef)
-	historyList, err := database.GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Key: procDef.Key, Name: procDef.Name})
-	if err != nil {
-		return
-	}
-	if len(historyList) <= 1 {
-		procDefDto.ProcDef.EnableModifyName = true
-	}
-	list, err := database.GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDefId})
-	if err != nil {
-		return
-	}
-	if len(list) > 0 {
-		for _, procDefPermission := range list {
-			if procDefPermission.Permission == string(models.MGMT) {
-				procDefDto.PermissionToRole.MGMT = append(procDefDto.PermissionToRole.MGMT, procDefPermission.RoleName)
-			} else if procDefPermission.Permission == string(models.USE) {
-				procDefDto.PermissionToRole.USE = append(procDefDto.PermissionToRole.USE, procDefPermission.RoleName)
-			}
-		}
-	}
-	nodeList, nodes, err = database.GetProcDefNodeByProcDefId(ctx, procDefId)
-	if err != nil {
-		return
-	}
-	linkList, err := database.GetProcDefNodeLinkListByProcDefId(ctx, procDefId)
-	if err != nil {
-		return
-	}
-	if len(linkList) > 0 {
-		for _, link := range linkList {
-			edges = append(edges, models.ConvertProcDefNodeLink2Dto(link, nodeList))
-		}
-	}
-	procDefDto.ProcDefNodeExtend = &models.ProcDefNodeExtendDto{
-		Nodes: nodes,
-		Edges: edges,
-	}
-	return
-}
-
 func convertProcDefNodeSimpleMap2Dto(hashMap map[string]*models.ProcDefNodeSimpleDto) []*models.ProcDefNodeSimpleDto {
 	var list = make([]*models.ProcDefNodeSimpleDto, 0)
 	if len(hashMap) > 0 {
@@ -1323,78 +1310,118 @@ func getMapRandomKey(hashMap map[string]bool) string {
 	return ""
 }
 
-func processDefinitionImport(ctx context.Context, inputList []*models.ProcessDefinitionDto, operator, userToken, language string) (importResult *models.ImportResultDto, err error) {
+func ProcDefImport(param models.ProcDefImportDto) (importResult *models.ImportResultDto, err error) {
 	var draftList, repeatNameList []*models.ProcDef
-	var newProcDefId string
 	var versionExist bool
 	importResult = &models.ImportResultDto{
 		ResultList: make([]*models.ImportResultItemDto, 0),
 	}
-	for _, procDefDto := range inputList {
+	for _, procDefDto := range param.InputList {
 		versionExist = false
 		if procDefDto.ProcDef == nil {
 			continue
 		}
-		draftList, err = database.GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Key: procDefDto.ProcDef.Key, Status: string(models.Draft)})
-		if err != nil {
-			return
-		}
-		// 已有草稿版本
-		if len(draftList) > 0 {
-			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
-				ProcDefName:    procDefDto.ProcDef.Name,
-				ProcDefVersion: procDefDto.ProcDef.Version,
-				Code:           1,
-				Message:        "Import Failed: already a draft with the same name in [Unpublished], please delete that draft and try importing again.",
-			})
-			continue
-		}
-		// 判断名称和版本是否重复
-		repeatNameList, err = database.GetProcessDefinitionByCondition(ctx, models.ProcDefCondition{Name: procDefDto.ProcDef.Name})
-		if err != nil {
-			return
-		}
-		// 重复的名称,将重复名称Key 给导入值
-		if len(repeatNameList) > 0 {
-			procDefDto.ProcDef.Key = repeatNameList[0].Key
-			for _, repeatProcDef := range repeatNameList {
-				if repeatProcDef.Version == procDefDto.ProcDef.Version {
-					versionExist = true
-					importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
-						ProcDefName:    procDefDto.ProcDef.Name,
-						ProcDefVersion: procDefDto.ProcDef.Version,
-						Code:           2,
-						Message:        "Import Failed: The imported process version is lower than the current environment, only supports importing higher versions.",
-					})
-					break
+		if param.IsTransImport {
+			// 判断名称和版本是否重复
+			repeatNameList, err = database.GetProcessDefinitionByCondition(param.Ctx, models.ProcDefCondition{Name: procDefDto.ProcDef.Name})
+			if err != nil {
+				return
+			}
+			// 重复的名称,将重复名称Key 给导入值
+			if len(repeatNameList) > 0 {
+				for _, pdef := range repeatNameList {
+					if pdef.Key != procDefDto.ProcDef.Key {
+						importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
+							ProcDefName:    procDefDto.ProcDef.Name,
+							ProcDefVersion: procDefDto.ProcDef.Version,
+							Code:           1,
+							Message:        fmt.Sprintf("Import Failed: workflow: %s already exists", procDefDto.ProcDef.Name),
+						})
+						versionExist = true
+						break
+					} else if pdef.Version == procDefDto.ProcDef.Version {
+						importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
+							ProcDefName:    procDefDto.ProcDef.Name,
+							ProcDefVersion: procDefDto.ProcDef.Version,
+							Code:           1,
+							Message:        fmt.Sprintf("Import Failed: workflow: %s version:%s already exists", procDefDto.ProcDef.Name, procDefDto.ProcDef.Version),
+						})
+						versionExist = true
+						break
+					}
+				}
+				if versionExist {
+					continue
 				}
 			}
+		} else {
+			// 非底座迁移校验,底座迁移导入完直接发布
+			draftList, err = database.GetProcessDefinitionByCondition(param.Ctx, models.ProcDefCondition{Key: procDefDto.ProcDef.Key, Status: string(models.Draft)})
+			if err != nil {
+				return
+			}
+			// 已有草稿版本
+			if len(draftList) > 0 {
+				importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
+					ProcDefName:    procDefDto.ProcDef.Name,
+					ProcDefVersion: procDefDto.ProcDef.Version,
+					Code:           1,
+					Message:        "Import Failed: already a draft with the same name in [Unpublished], please delete that draft and try importing again.",
+				})
+				continue
+			}
+			// 判断名称和版本是否重复
+			repeatNameList, err = database.GetProcessDefinitionByCondition(param.Ctx, models.ProcDefCondition{Name: procDefDto.ProcDef.Name})
+			if err != nil {
+				return
+			}
+			// 重复的名称,将重复名称Key 给导入值
+			if len(repeatNameList) > 0 {
+				procDefDto.ProcDef.Key = repeatNameList[0].Key
+				for _, repeatProcDef := range repeatNameList {
+					if repeatProcDef.Version <= procDefDto.ProcDef.Version {
+						versionExist = true
+						importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
+							ProcDefName:    procDefDto.ProcDef.Name,
+							ProcDefVersion: procDefDto.ProcDef.Version,
+							Code:           2,
+							Message:        "Import Failed: The imported process version is lower than the current environment, only supports importing higher versions.",
+						})
+						break
+					}
+				}
+			}
+			if versionExist {
+				continue
+			}
 		}
-		if versionExist {
-			continue
+		// 非底座迁移导入,Id重新生成,底座迁移ID复用
+		if !param.IsTransImport || procDefDto.ProcDef.Id == "" {
+			procDefDto.ProcDef.Id = "pdef_" + guid.CreateGuid()
 		}
-		newProcDefId, err = database.CopyProcessDefinitionByDto(ctx, procDefDto, userToken, language, operator)
+		err = database.CopyProcessDefinitionByDto(param, procDefDto)
 		if err != nil {
 			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
-				ProcDefId:      newProcDefId,
+				ProcDefId:      procDefDto.ProcDef.Id,
 				ProcDefName:    procDefDto.ProcDef.Name,
 				ProcDefVersion: procDefDto.ProcDef.Version,
 				Code:           3,
 				Message:        "Import Failed: Please refresh the page and try again later.",
+				ErrMsg:         fmt.Sprintf("workflow %s import fail %s", procDefDto.ProcDef.Name, err.Error()),
 			})
 			log.Logger.Error("CopyProcessDefinitionByDto err", log.Error(err))
 			// 单个编排操作err,err置为空, code=3已经表示服务器错误
 			err = nil
 		} else {
 			importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
-				ProcDefId:      newProcDefId,
+				ProcDefId:      procDefDto.ProcDef.Id,
 				ProcDefName:    procDefDto.ProcDef.Name,
 				ProcDefVersion: procDefDto.ProcDef.Version,
 				Message:        "Import Success",
 			})
 		}
 	}
-	if strings.Contains(language, "zh-CN") {
+	if strings.Contains(param.Language, "zh-CN") {
 		for _, resultItem := range importResult.ResultList {
 			resultItem.Message = importFailMessageMap[resultItem.Code]
 		}
@@ -1415,7 +1442,7 @@ checkDeployedProcDefNode
 6. 开始结束节点都不超过一个
 7. 判断节点出的线,必须有名字并且同一个判断节点的所有线的名字不能相同
 */
-func checkDeployedProcDef(ctx context.Context, procDefId string, procDef *models.ProcDef) error {
+func checkDeployedProcDef(ctx context.Context, procDef *models.ProcDef) error {
 	var inCount, outCount int
 	var list []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
@@ -1426,7 +1453,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string, procDef *models
 	var sortLinks [][]string
 	var sortNodes models.ProcDefSortNodes
 	var withDecisionMerge, withMerge bool
-	list, err = database.GetProcDefNodeById(ctx, procDefId)
+	list, err = database.GetProcDefNodeById(ctx, procDef.Id)
 	if err != nil {
 		return err
 	}
@@ -1436,7 +1463,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string, procDef *models
 	if repeatName := checkProcDefNodeNameRepeat(list); repeatName != "" {
 		return exterror.New().ProcDefNodeNameRepeatError.WithParam(repeatName)
 	}
-	linkList, err = database.GetProcDefNodeLinkListByProcDefId(ctx, procDefId)
+	linkList, err = database.GetProcDefNodeLinkListByProcDefId(ctx, procDef.Id)
 	if err != nil {
 		return exterror.Catch(exterror.New().DatabaseQueryError, err)
 	}
@@ -1484,7 +1511,7 @@ func checkDeployedProcDef(ctx context.Context, procDefId string, procDef *models
 		case models.ProcDefNodeTypeDecision:
 			//  判断节点出的线,必须有名字并且同一个判断节点的所有线的名字不能相同
 			var tempLinkNameMap = make(map[string]bool)
-			nodeLinkList, err2 := database.GetProcDefNodeLinkByProcDefIdAndSource(ctx, procDefId, node.Id)
+			nodeLinkList, err2 := database.GetProcDefNodeLinkByProcDefIdAndSource(ctx, procDef.Id, node.Id)
 			if err2 != nil {
 				return exterror.Catch(exterror.New().DatabaseQueryError, err2)
 			}
@@ -1543,9 +1570,6 @@ func checkDeployedProcDef(ctx context.Context, procDefId string, procDef *models
 		sortLinks = append(sortLinks, []string{link.Source, link.Target})
 		if v, ok := nodeMap[link.Source]; ok && nodeMap[link.Target] != nil {
 			if v.NodeType == string(models.ProcDefNodeTypeMerge) || v.NodeType == string(models.ProcDefNodeTypeFork) {
-				//if v.NodeType == string(models.ProcDefNodeTypeMerge) && (nodeMap[link.Target] == v || nodeMap[link.Target].NodeType == string(models.ProcDefNodeTypeFork)) {
-				//	return exterror.New().ProcDefNode20000008Error.WithParam(nodeMap[link.Source].Name, nodeMap[link.Target].Name)
-				//}
 				if v.NodeType == string(models.ProcDefNodeTypeFork) && (nodeMap[link.Target] == v || nodeMap[link.Target].NodeType == string(models.ProcDefNodeTypeMerge)) {
 					return exterror.New().ProcDefNode20000008Error.WithParam(nodeMap[link.Source].Name, nodeMap[link.Target].Name)
 				}

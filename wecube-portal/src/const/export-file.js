@@ -9,8 +9,7 @@ export default function exportFile(res) {
   }
   if (filename === null || filename === undefined || filename === '') {
     filename = 'file'
-  }
-  else {
+  } else {
     filename = decodeURI(filename)
   }
 
@@ -18,8 +17,7 @@ export default function exportFile(res) {
   if ('msSaveOrOpenBlob' in navigator) {
     // Microsoft Edge and Microsoft Internet Explorer 10-11
     window.navigator.msSaveOrOpenBlob(blob, filename)
-  }
-  else {
+  } else {
     // 非IE下载
     const elink = document.createElement('a')
     elink.download = filename
