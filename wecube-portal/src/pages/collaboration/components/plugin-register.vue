@@ -2,7 +2,7 @@
   <div class="plugin-register-page">
     <Row>
       <Col span="7" style="border-right: 1px solid #e8eaec">
-        <div style="height: calc(100vh - 350px); overflow-y: auto">
+        <div style="height: calc(100vh - 270px); overflow-y: auto">
           <div v-if="plugins.length < 1">{{ $t('no_plugin') }}</div>
           <div style="">
             <Menu theme="light" :active-name="currentPlugin" @on-select="selectPlugin" style="width: 100%; z-index: 10">
@@ -59,7 +59,7 @@
           <Button type="info" long ghost @click="batchRegist">{{ $t('batch_regist') }}</Button>
         </div>
       </Col>
-      <Col span="17" offset="0" style="padding-left: 10px">
+      <Col span="17" offset="0" style="padding-left: 10px; height: calc(100vh - 270px); overflow-y: auto">
         <Spin size="large" fix style="margin-top: 200px" v-show="isLoading">
           <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
           <div>{{ $t('loading') }}</div>
@@ -74,7 +74,7 @@
             <Col span="15" v-if="hidePanal" offset="1">
               <FormItem :label="$t('target_type')">
                 <span @click="getAllDataModels">
-                  <div style="width: 200px; display: inline-block">
+                  <div style="width: 400px; display: inline-block">
                     <FilterRules
                       v-model="selectedEntityType"
                       :rootEntity="clearedEntityType"
@@ -87,7 +87,7 @@
               </FormItem>
             </Col>
           </Row>
-          <div style="height: calc(100vh - 500px); overflow: auto" id="paramsContainer">
+          <div style="height: calc(100vh - 440px); overflow: auto" id="paramsContainer">
             <div style="background: #f7f7f7">
               <div
                 v-for="(inter, index) in currentPluginObj.interfaces"
@@ -148,7 +148,7 @@
               </div>
             </div>
           </div>
-          <Row v-if="currentPluginObjKeysLength > 1" style="margin: 45px auto; margin-bottom: 0">
+          <Row v-if="currentPluginObjKeysLength > 1" style="margin: 20px auto; margin-bottom: 0">
             <Col span="9" offset="8">
               <Button type="primary" ghost v-if="currentPluginObj.status === 'DISABLED'" @click="pluginSave">{{
                 $t('save')
@@ -296,8 +296,7 @@
                         @on-open-change="retrieveSystemVariables"
                       >
                         <Option
-                          v-for="(item, index) in allSystemVariables"
-                          v-if="item.status === 'active'"
+                          v-for="(item, index) in allSystemVariables.filter(i => i.status === 'active')"
                           :value="item.name"
                           :key="index"
                         >{{ item.name }}</Option>
@@ -716,8 +715,7 @@ export default {
       handler(val) {
         if (val && val.length > 0) {
           this.clearedEntityType = val.split('{')[0]
-        }
-        else {
+        } else {
           this.clearedEntityType = ''
         }
       }
@@ -796,8 +794,7 @@ export default {
       // 以 '>' 分割
       if (lastIndexOfA >= lastIndexOfB) {
         this.objectRootEntity = expression.split('>').pop()
-      }
-      else {
+      } else {
         // 以 '~' 分割
         this.objectRootEntity = expression.split('~').pop()
           .split(')')
@@ -815,8 +812,7 @@ export default {
       const findIndex = val.indexOf('{')
       if (findIndex === -1) {
         this.currentPluginObj.filterRule = ''
-      }
-      else {
+      } else {
         const rule = val.substring(findIndex, val.length)
         this.currentPluginObj.filterRule = rule
       }
@@ -982,8 +978,7 @@ export default {
         this.$refs.useRoles.leftCheckedKeys = []
         this.currentPluginForPermission = config
         this.isAddOrCopy = 'new'
-      }
-      else {
+      } else {
         this.$Message.warning(this.$t('no_permission_to_mgmt'))
       }
     },
@@ -993,16 +988,13 @@ export default {
           // await this.updatePermission(this.newPluginConfig)
           await this.exectCopyPluginConfigDto()
           this.configRoleManageModal = false
-        }
-        else if (this.isAddOrCopy === 'add') {
+        } else if (this.isAddOrCopy === 'add') {
           this.exectAddPluginConfigDto()
           this.configRoleManageModal = false
-        }
-        else if (this.isAddOrCopy === 'new') {
+        } else if (this.isAddOrCopy === 'new') {
           await this.updatePermission(this.currentPluginForPermission.id)
         }
-      }
-      else {
+      } else {
         this.$Message.warning(this.$t('mgmt_role_warning'))
       }
     },

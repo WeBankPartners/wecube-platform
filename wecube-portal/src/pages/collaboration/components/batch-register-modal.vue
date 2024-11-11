@@ -59,14 +59,12 @@ export default {
           status: child.checked ? 'ENABLED' : 'DISABLED'
         }))
       }))
-      const { status } = await batchExportConfig(this.pluginId, payload)
-      if (status === 'OK') {
-        this.$Notice.success({
-          title: 'Success',
-          desc: 'Success'
-        })
-        this.closeModal()
-      }
+      await batchExportConfig(this.pluginId, payload)
+      this.$Notice.success({
+        title: 'Success',
+        desc: 'Success'
+      })
+      this.closeModal()
     },
     closeTreeModal() {
       this.closeModal()
