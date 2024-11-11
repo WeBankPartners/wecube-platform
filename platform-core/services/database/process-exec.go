@@ -16,7 +16,7 @@ import (
 
 // ProcDefList
 // subProc -> all(全部) | main(主编排) | sub(子编排)
-func ProcDefList(ctx context.Context, includeDraft, permission, tag, plugin, subProc, operator string, userRoles []string) (result []*models.ProcDefListObj, err error) {
+func ProcDefList(ctx context.Context, includeDraft, permission, tag, plugin, subProc, operator, rootEntity string, userRoles []string) (result []*models.ProcDefListObj, err error) {
 	var procDefRows []*models.ProcDef
 	baseSql := "select * from proc_def"
 	var filterSqlList []string
@@ -39,6 +39,11 @@ func ProcDefList(ctx context.Context, includeDraft, permission, tag, plugin, sub
 	if plugin != "" {
 		filterSqlList = append(filterSqlList, "for_plugin like ?")
 		filterParams = append(filterParams, fmt.Sprintf("%%%s%%", plugin))
+	}
+	if rootEntity != "" {
+		filterSqlList = append(filterSqlList, "(root_entity=? or root_entity like ?)")
+		filterParams = append(filterParams, rootEntity)
+		filterParams = append(filterParams, fmt.Sprintf("%s{%%", rootEntity))
 	}
 	if subProc == "main" {
 		filterSqlList = append(filterSqlList, "sub_proc=0")
@@ -151,6 +156,20 @@ func ProcDefOutline(ctx context.Context, procDefId string) (result *models.ProcD
 	}
 	orderIndex := 1
 	for _, node := range procDefNodes {
+		var nodeParamList []*models.ProcDefNodeParam
+		var contextParamNodes []string
+		if len(node.ContextParamNodes) > 0 {
+			contextParamNodes = strings.Split(node.ContextParamNodes, ",")
+		}
+		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_def_node_param where proc_def_node_id = ?", node.Id).Find(&nodeParamList)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		// 节点参数中,节点id设置为前端展示nodeId
+		for _, nodeParam := range nodeParamList {
+			nodeParam.ProcDefNodeId = node.NodeId
+		}
 		nodeObj := models.ProcDefFlowNode{
 			NodeId:            node.Id,
 			NodeDefId:         node.Id,
@@ -163,9 +182,22 @@ func ProcDefOutline(ctx context.Context, procDefId string) (result *models.ProcD
 			Status:            node.Status,
 			Description:       node.Description,
 			DynamicBind:       "N",
+			DynamicBindInt:    node.DynamicBind,
 			PreviousNodeIds:   []string{},
 			SucceedingNodeIds: []string{},
 			SubProcDefId:      node.SubProcDefId,
+			ServiceName:       node.ServiceName,
+			BindNodeId:        node.BindNodeId,
+			ContextParamNodes: contextParamNodes,
+			ParamInfos:        nodeParamList,
+			ProcDefNodeId:     node.NodeId,
+		}
+		if strings.TrimSpace(node.ServiceName) != "" {
+			if interfaceObj, err2 := GetSimpleLastPluginInterface(ctx, node.ServiceName); err2 != nil {
+				log.Logger.Error("GetSimpleLastPluginInterface err", log.Error(err2))
+			} else if interfaceObj != nil {
+				nodeObj.FilterRule = interfaceObj.FilterRule
+			}
 		}
 		if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) || node.NodeType == models.JobSubProcType {
 			nodeObj.OrderedNo = fmt.Sprintf("%d", orderIndex)
@@ -782,7 +814,8 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 	var actions []*db.ExecAction
 	nowTime := time.Now()
 	newOidMap := make(map[string]string)
-	var entityDataId, entityTypeId, entityDataName string
+	var entityDataId, entityTypeId, entityDataName, requestInfo string
+	var requestList []*models.SimpleRequestDto
 	for _, row := range startParam.Entities {
 		if row.EntityDataOp == "create" {
 			newOidMap[row.Oid] = models.NewOidDataPrefix + row.Oid
@@ -799,8 +832,14 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 		}
 	}
 	procSessionId := "public_session_" + guid.CreateGuid()
-	actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,created_by,created_time,updated_by,updated_time,proc_session_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-		procInsId, procDefObj.Id, procDefObj.Key, procDefObj.Name, models.JobStatusReady, entityDataId, entityTypeId, entityDataName, operator, nowTime, operator, nowTime, procSessionId,
+	if startParam.SimpleRequestDto != nil {
+		requestList = []*models.SimpleRequestDto{startParam.SimpleRequestDto}
+		byteArr, _ := json.Marshal(requestList)
+		requestInfo = string(byteArr)
+	}
+
+	actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins(id,proc_def_id,proc_def_key,proc_def_name,status,entity_data_id,entity_type_id,entity_data_name,created_by,created_time,updated_by,updated_time,proc_session_id,request_info) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		procInsId, procDefObj.Id, procDefObj.Key, procDefObj.Name, models.JobStatusReady, entityDataId, entityTypeId, entityDataName, operator, nowTime, operator, nowTime, procSessionId, requestInfo,
 	}})
 	workflowRow = &models.ProcRunWorkflow{Id: "wf_" + guid.CreateGuid(), ProcInsId: procInsId, Name: procDefObj.Name, Status: models.JobStatusReady, CreatedTime: nowTime}
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_workflow(id,proc_ins_id,name,status,created_time) values (?,?,?,?,?)", Param: []interface{}{
@@ -981,6 +1020,7 @@ func ListProcInstance(ctx context.Context, userRoles []string, withCronIns, with
 
 func GetProcInstance(ctx context.Context, procInsId string) (result *models.ProcInsDetail, err error) {
 	var procInsRows []*models.ProcIns
+	var requestInfoList []*models.SimpleRequestDto
 	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins where id=?", procInsId).Find(&procInsRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
@@ -991,6 +1031,9 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 		return
 	}
 	procInsObj := procInsRows[0]
+	if procInsObj.RequestInfo != "" {
+		json.Unmarshal([]byte(procInsObj.RequestInfo), &requestInfoList)
+	}
 	procDefObj, getProcDefErr := GetSimpleProcDefRow(ctx, procInsObj.ProcDefId)
 	if getProcDefErr != nil {
 		err = getProcDefErr
@@ -1010,10 +1053,8 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 		CreatedTime:       procInsObj.CreatedTime.Format(models.DateTimeFormat),
 		SubProc:           procDefObj.SubProc,
 		DisplayStatus:     procInsObj.Status,
+		Request:           requestInfoList,
 	}
-	//if transStatus, ok := models.ProcStatusTransMap[result.Status]; ok {
-	//	result.Status = transStatus
-	//}
 	if procInsObj.ParentInsNodeId != "" {
 		procInsParentMap := make(map[string]*models.ParentProcInsObj)
 		procInsParentMap, err = getProcInsParentMap(ctx, []string{procInsObj.Id})
@@ -1238,19 +1279,6 @@ func AddProcCacheData(ctx context.Context, procInsId string, dataBinding []*mode
 	return
 }
 
-func UpdateProcInsNodeData(ctx context.Context, procInsId, status, errorMsg, riskCheckResult string) (err error) {
-	if riskCheckResult != "" {
-		_, err = db.MysqlEngine.Context(ctx).Exec("update proc_ins_node set risk_check_result=? where id=?", riskCheckResult, procInsId)
-	}
-	if status != "" {
-		_, err = db.MysqlEngine.Context(ctx).Exec("update proc_ins_node set status=? where id=?", status, procInsId)
-	}
-	if errorMsg != "" {
-		_, err = db.MysqlEngine.Context(ctx).Exec("update proc_ins_node set error_msg=? where id=?", errorMsg, procInsId)
-	}
-	return
-}
-
 func GetSimpleLastPluginInterface(ctx context.Context, serviceName string) (interfaceObj *models.PluginInterfaceWithVer, err error) {
 	var interfaceRows []*models.PluginInterfaceWithVer
 	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t3.`version` from plugin_config_interfaces t1 left join plugin_configs t2 on t1.plugin_config_id=t2.id left join plugin_packages t3 on t2.plugin_package_id=t3.id where t1.service_name=? and t2.status='ENABLED'", serviceName).Find(&interfaceRows)
@@ -1313,6 +1341,16 @@ func GetLastEnablePluginInterface(ctx context.Context, serviceName string) (plug
 		} else {
 			pluginInterface.OutputParameters = append(pluginInterface.OutputParameters, row)
 		}
+
+		// handle object type
+		if row.DataType == models.PluginParamDataTypeObject {
+			coreObjMeta, tmpErr := QueryCoreObjectMetaV2(ctx, pluginInterface.PluginConfigId, row.RefObjectName)
+			if tmpErr != nil {
+				err = fmt.Errorf("query coreObjectMeta for interfaceParam:%s failed: %s", row.Id, tmpErr.Error())
+				return
+			}
+			row.RefObjectMeta = coreObjMeta
+		}
 	}
 	var pluginConfigRows []*models.PluginConfigs
 	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_configs where id=?", pluginInterface.PluginConfigId).Find(&pluginConfigRows)
@@ -1365,9 +1403,9 @@ func RecordProcCallReq(ctx context.Context, param *models.ProcInsNodeReq, inputF
 func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDefNodeId string) (result *models.ProcNodeContextReq, err error) {
 	var queryRows []*models.ProcNodeContextQueryObj
 	if procInsNodeId != "" {
-		err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.name,t1.proc_def_node_id,t1.error_msg,t2.routine_expression,t2.service_name,t2.node_type,t3.start_time,t3.end_time from proc_ins_node t1 left join proc_def_node t2 on t1.proc_def_node_id=t2.id left join proc_run_node t3 on t3.proc_ins_node_id=t1.id where t1.proc_ins_id=? and t1.id=?", procInsId, procInsNodeId).Find(&queryRows)
+		err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.name,t1.proc_def_node_id,t1.error_msg,t1.status,t1.risk_check_result,t2.routine_expression,t2.service_name,t2.node_type,t3.start_time,t3.end_time from proc_ins_node t1 left join proc_def_node t2 on t1.proc_def_node_id=t2.id left join proc_run_node t3 on t3.proc_ins_node_id=t1.id where t1.proc_ins_id=? and t1.id=?", procInsId, procInsNodeId).Find(&queryRows)
 	} else if procDefNodeId != "" {
-		err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.name,t1.proc_def_node_id,t1.error_msg,t2.routine_expression,t2.service_name,t2.node_type,t3.start_time,t3.end_time from proc_ins_node t1 left join proc_def_node t2 on t1.proc_def_node_id=t2.id left join proc_run_node t3 on t3.proc_ins_node_id=t1.id where t1.proc_ins_id=? and t1.proc_def_node_id=?", procInsId, procDefNodeId).Find(&queryRows)
+		err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.name,t1.proc_def_node_id,t1.error_msg,t1.status,t1.risk_check_result,t2.routine_expression,t2.service_name,t2.node_type,t3.start_time,t3.end_time from proc_ins_node t1 left join proc_def_node t2 on t1.proc_def_node_id=t2.id left join proc_run_node t3 on t3.proc_ins_node_id=t1.id where t1.proc_ins_id=? and t1.proc_def_node_id=?", procInsId, procDefNodeId).Find(&queryRows)
 	}
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
@@ -1390,6 +1428,16 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 	result.EndTime = queryObj.EndTime.Format(models.DateTimeFormat)
 	result.Operator = getProcNodeOperator(ctx, procInsNodeId)
 	result.RequestObjects = []models.ProcNodeContextReqObject{}
+	if queryObj.Status == models.JobStatusRisky {
+		result.ErrorCode = "CONFIRM"
+		result.ErrorMessage = queryObj.RiskCheckResult
+		if queryObj.RiskCheckResult != "" {
+			var riskResult models.ItsdangerousBatchCheckResultData
+			if tmpErr := json.Unmarshal([]byte(queryObj.RiskCheckResult), &riskResult); tmpErr == nil {
+				result.ErrorMessage = riskResult.Text
+			}
+		}
+	}
 	if queryObj.NodeType == models.JobSubProcType {
 		// 子编排的节点处理信息
 		var sucProcRows []*models.ProcContextSubProcRow
@@ -1515,6 +1563,10 @@ func getInterfaceDataByDataType(valueString, dataType, name string, multiple, is
 		} else {
 			output = valueString
 		}
+	} else if dataType == "object" {
+		output = valueString
+	} else if dataType == "int" {
+		output = valueString
 	}
 	if err != nil {
 		log.Logger.Error("getInterfaceDataByDataType error", log.String("value", valueString), log.String("dataType", dataType), log.String("name", name), log.Error(err))
@@ -1750,6 +1802,10 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 		filterSqlList = append(filterSqlList, "entity_data_name like ?")
 		filterParams = append(filterParams, "%"+param.EntityDisplayName+"%")
 	}
+	if param.RootEntityGuid != "" {
+		filterSqlList = append(filterSqlList, "entity_data_id=?")
+		filterParams = append(filterParams, param.RootEntityGuid)
+	}
 	if param.ProcInstName != "" {
 		filterSqlList = append(filterSqlList, "proc_def_name like ?")
 		filterParams = append(filterParams, "%"+param.ProcInstName+"%")
@@ -1799,6 +1855,11 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 	filterSqlList = append(filterSqlList, "proc_def_id in (select proc_def_id from proc_def_permission where permission=? and role_id in ('"+strings.Join(userRoles, "','")+"'))")
 	filterParams = append(filterParams, models.PermissionTypeUSE)
 
+	if param.MainProcInsId != "" {
+		filterSqlList = append(filterSqlList, "parent_ins_node_id in (select id from proc_ins_node where proc_ins_id=? and node_type='subProc')")
+		filterParams = append(filterParams, param.MainProcInsId)
+	}
+
 	if len(filterSqlList) > 0 {
 		baseSql += " where " + strings.Join(filterSqlList, " and ")
 	}
@@ -1828,7 +1889,7 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 		return
 	}
 	procInsParentMap := make(map[string]*models.ParentProcInsObj)
-	if param.SubProc == "sub" {
+	if param.SubProc == "sub" || strings.TrimSpace(param.MainProcInsId) != "" {
 		procInsParentMap, err = getProcInsParentMap(ctx, procInsIdList)
 		if err != nil {
 			return
@@ -1867,6 +1928,56 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 			}
 		}
 		result.Contents = append(result.Contents, &resultObj)
+	}
+	return
+}
+
+func QueryProcInstanceByIds(ctx context.Context, ids []string) (result []*models.ProcInsDetail, err error) {
+	var procInsRows []*models.ProcIns
+	result = make([]*models.ProcInsDetail, 0)
+	if len(ids) == 0 {
+		return
+	}
+	if err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins where id in (" + getInSQL(ids) + ")").Find(&procInsRows); err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+	}
+	var procDefList, procInsIdList, procInProgressIdList []string
+	for _, row := range procInsRows {
+		procDefList = append(procDefList, row.ProcDefId)
+		procInsIdList = append(procInsIdList, row.Id)
+		if row.Status == models.JobStatusRunning {
+			procInProgressIdList = append(procInProgressIdList, row.Id)
+		}
+	}
+	procDefVersionMap, getVersionErr := getProcInsVersionMap(ctx, procDefList)
+	if getVersionErr != nil {
+		err = getVersionErr
+		return
+	}
+	procInsParentMap := make(map[string]*models.ParentProcInsObj)
+	procInsNodeStatusMap := make(map[string]string)
+	procInsNodeStatusMap, err = getProcInsNodeStatus(ctx, procInProgressIdList)
+	for _, row := range procInsRows {
+		if nodeStatus, ok := procInsNodeStatusMap[row.Id]; ok {
+			row.Status = fmt.Sprintf("%s(%s)", row.Status, nodeStatus)
+		}
+		resultObj := models.ProcInsDetail{
+			Id:                row.Id,
+			EntityDataId:      row.EntityDataId,
+			EntityTypeId:      row.EntityTypeId,
+			EntityDisplayName: row.EntityDataName,
+			Operator:          row.CreatedBy,
+			ProcDefId:         row.ProcDefId,
+			ProcInstKey:       row.Id,
+			ProcInstName:      row.ProcDefName,
+			Status:            row.Status,
+			CreatedTime:       row.CreatedTime.Format(models.DateTimeFormat),
+			Version:           procDefVersionMap[row.ProcDefId],
+			ParentProcIns:     procInsParentMap[row.Id],
+			UpdatedBy:         row.UpdatedBy,
+			UpdatedTime:       row.UpdatedTime.Format(models.DateTimeFormat),
+		}
+		result = append(result, &resultObj)
 	}
 	return
 }
@@ -2189,6 +2300,19 @@ func UpdateProcCacheData(ctx context.Context, procInsId string, dataBinding []*m
 			log.Logger.Error("UpdateProcCacheData fail", log.Error(err))
 			err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		}
+	}
+	return
+}
+
+func UpdateProcInstanceRequestInfo(ctx context.Context, procInstanceId, requestInfo string) (err error) {
+	_, err = db.MysqlEngine.Context(ctx).Exec("update proc_ins set request_info = ? where id=?", requestInfo, procInstanceId)
+	return
+}
+
+func CheckProcSubRunning(ctx context.Context, procRunNodeId string) (runningRows []*models.ProcRunNodeSubProc, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.workflow_id from proc_run_node_sub_proc t1 left join proc_run_workflow t2 on t1.workflow_id=t2.id where t1.proc_run_node_id=? and t2.status=?", procRunNodeId, models.JobStatusRunning).Find(&runningRows)
+	if err != nil {
+		err = fmt.Errorf("query proc run node sub proc table fail,%s ", err.Error())
 	}
 	return
 }

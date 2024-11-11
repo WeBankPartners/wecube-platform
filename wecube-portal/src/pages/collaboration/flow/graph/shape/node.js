@@ -220,8 +220,7 @@ export default G6 => {
             ['L', -width / 2, 0], // 左侧顶点
             ['L', width / 2, 0] // 右侧顶点
           )
-        }
-        else {
+        } else {
           path.unshift(
             ['M', 0, height / 2],
             ['L', -width / 2, 0], // 左侧顶点

@@ -452,7 +452,6 @@ func retrieveMenusByRoleId(ctx context.Context, roleId, userToken, language stri
 			return
 		}
 		if menuItemsEntity != nil && menuItemsEntity.Id != "" {
-			log.Logger.Info(fmt.Sprintf("System menu was found.The menu code is:[%s]", menuCode))
 			menuItemDtoList = append(menuItemDtoList, buildMenuItemDto(menuItemsEntity))
 		} else {
 			pluginPackageMenusEntities, err = database.GetAllMenusByCodeAndPackageStatus(ctx, menuCode, []string{"REGISTERED", "RUNNING", "STOPPED"})
@@ -460,7 +459,6 @@ func retrieveMenusByRoleId(ctx context.Context, roleId, userToken, language stri
 				return
 			}
 			for _, pluginPackageMenusEntity := range pluginPackageMenusEntities {
-				log.Logger.Info(fmt.Sprintf("Plugin package menu was found.The menu code is:[%s]", menuCode))
 				dto := database.BuildPackageMenuItemDto(ctx, pluginPackageMenusEntity)
 				if dto != nil {
 					menuItemDtoList = append(menuItemDtoList, dto)
