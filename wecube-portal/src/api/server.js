@@ -24,8 +24,7 @@ export const getAllFlow = (isIncludeDraft = true) => {
     params = {
       permission: 'MGMT'
     }
-  }
-  else {
+  } else {
     params = {
       includeDraft: 0,
       permission: 'USE'
@@ -348,3 +347,37 @@ export const executeBranch = data => req.post('/platform/v1/process/instances/pr
 
 // 编排执行-暂停、继续
 export const pauseAndContinueFlow = data => req.post('/platform/v1/process/instances/proceed', data)
+
+// 底座迁移
+// 导出历史列表
+export const getBaseMigrationExportList = data => req.post('/platform/v1/data/transfer/export/list', data)
+// 导出列表查询条件
+export const getBaseMigrationExportQuery = () => req.get('/platform/v1/data/transfer/export/list/options')
+// 获取环境和产品
+export const getExportBusinessList = data => req.post('/platform/v1/data/transfer/business/list', data)
+// 保存环境和产品
+export const saveEnvBusiness = data => req.post('/platform/v1/data/transfer/export/create', data)
+// 更新环境和产品
+export const updateEnvBusiness = data => req.post('/platform/v1/data/transfer/export/update', data)
+// 查询所有编排设计
+export const getAllExportFlows = () => req.get('/platform/v1/process/definitions/all')
+// 查询所有批量执行
+export const getAllExportBatch = () => req.get('/platform/v1/batch-execution/templates/all')
+// 查询所有ITSM
+export const getAllExportItsm = () => req.get('/taskman/api/v1/request-template/all')
+// 执行导出
+export const exportBaseMigration = data => req.post('/platform/v1/data/transfer/export', data)
+// 导出详情
+export const getExportDetail = params => req.get('/platform/v1/data/transfer/export/detail', params)
+// 导入产品环境
+export const getImportBusinessList = params => req.get('/platform/v1/data/transfer/import/business', params)
+// 执行导入
+export const saveImportData = data => req.post('/platform/v1/data/transfer/import', data)
+// 导入详情
+export const getImportDetail = params => req.get('/platform/v1/data/transfer/import/detail', params)
+// 导入列表
+export const getBaseMigrationImportList = data => req.post('/platform/v1/data/transfer/import/list', data)
+// 导入列表查询条件
+export const getBaseMigrationImportQuery = () => req.get('/platform/v1/data/transfer/import/list/options')
+// 导入状态变更
+export const updateImportStatus = data => req.post('/platform/v1/data/transfer/import/status', data)

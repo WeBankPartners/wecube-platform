@@ -53,8 +53,7 @@ const events = {
 
     if (value) {
       group.showAnchor(group)
-    }
-    else {
+    } else {
       group.clearAnchor(group)
     }
   },
@@ -122,8 +121,7 @@ const events = {
           item.toFront()
         }
       })
-    }
-    else {
+    } else {
       // 移除
       group.clearAnchor(group)
     }
@@ -136,8 +134,7 @@ const events = {
     if (value === false) {
       // 清除所有状态
       events['nodeState:default'].call(this, true, group)
-    }
-    else {
+    } else {
       events[`nodeState:${value}`] && events[`nodeState:${value}`].call(this, value, group)
     }
   },
@@ -175,8 +172,7 @@ const events = {
       const textStyle = activeStyle.labelCfg && activeStyle.labelCfg.style ? activeStyle.labelCfg.style : {}
 
       setStyle(node, activeStyle, text, textStyle)
-    }
-    else {
+    } else {
       const textStyle = defaultStyle.labelCfg && defaultStyle.labelCfg.style ? defaultStyle.labelCfg.style : {}
 
       setStyle(node, defaultStyle, text, textStyle)
@@ -195,8 +191,7 @@ const events = {
     }
     if (value) {
       setStyle(node, activeStyle)
-    }
-    else {
+    } else {
       setStyle(node, defaultStyle)
     }
   },
@@ -208,8 +203,7 @@ const events = {
     if (value === false) {
       // 清除所有状态
       events['edgeState:default'].call(this, true, group)
-    }
-    else {
+    } else {
       events[`edgeState:${value}`] && events[`edgeState:${value}`].call(this, value, group)
     }
   },
@@ -271,11 +265,9 @@ const events = {
     if (value) {
       if (activeStyle.animate === true) {
         this.runAnimate(group, activeStyle.animationType || 'dash')
-      }
-      else if (typeof activeStyle.animate === 'function') {
+      } else if (typeof activeStyle.animate === 'function') {
         activeStyle.animate.call(this, group)
-      }
-      else {
+      } else {
         setStyle(path, activeStyle)
         if (endArrow) {
           path.attr(
@@ -300,16 +292,13 @@ const events = {
           )
         }
       }
-    }
-    else {
+    } else {
       if (activeStyle.animate === true) {
         // 停止动画
         this.stopAnimate(group, activeStyle.animationType || 'dash')
-      }
-      else if (typeof activeStyle.animate === 'function') {
+      } else if (typeof activeStyle.animate === 'function') {
         activeStyle.animate.call(this, group, 'stop')
-      }
-      else {
+      } else {
         setStyle(path, defaultStyle)
         if (endArrow) {
           path.attr(
@@ -351,12 +340,10 @@ const events = {
       if (activeStyle.animate === true) {
         // 执行内部动画
         this.runAnimate(group, activeStyle.animationType || 'dash')
-      }
-      else if (typeof activeStyle.animate === 'function') {
+      } else if (typeof activeStyle.animate === 'function') {
         // 执行外部动画
         activeStyle.animate.call(this, group)
-      }
-      else {
+      } else {
         setStyle(path, activeStyle)
         if (endArrow) {
           path.attr(
@@ -381,17 +368,14 @@ const events = {
           )
         }
       }
-    }
-    else {
+    } else {
       if (activeStyle.animate === true) {
         // 停止内部动画
         this.stopAnimate(group, activeStyle.animationType || 'dash')
-      }
-      else if (typeof activeStyle.animate === 'function') {
+      } else if (typeof activeStyle.animate === 'function') {
         // 停止外部动画
         activeStyle.animate.call(this, group, 'stop')
-      }
-      else {
+      } else {
         setStyle(path, defaultStyle)
         if (endArrow) {
           path.attr(

@@ -72,8 +72,7 @@ export default G6 => {
       if (e.target.get('isAnchor')) {
         // 拖拽锚点, 记录当前点击的锚点 index
         this.sourceAnchorIndex = e.target.get('index')
-      }
-      else if (group.getFirst().cfg.xShapeNode) {
+      } else if (group.getFirst().cfg.xShapeNode) {
         // 拖拽自定义节点
         e.item.toFront()
         this.dragTarget = 'node'
@@ -109,8 +108,7 @@ export default G6 => {
         nodes.forEach(node => {
           node.clearStates('anchorActived')
         })
-      }
-      else if (this.dragTarget === 'node' && group.getFirst().cfg.xShapeNode) {
+      } else if (this.dragTarget === 'node' && group.getFirst().cfg.xShapeNode) {
         this._nodeOnDragEnd(e, group)
       }
       this.graph.emit('on-node-dragend', e)
@@ -298,8 +296,7 @@ export default G6 => {
               path.unshift(
                 ['M', dx, dy - height] // 上顶点
               )
-            }
-            else {
+            } else {
               path.unshift(
                 ['M', dx, dy + height] // 下顶点
               )
@@ -310,8 +307,7 @@ export default G6 => {
         shadowNode.attr({
           path
         })
-      }
-      else {
+      } else {
         shadowNode.attr({
           x: e.x - centerX - this.distance[0],
           y: e.y - centerY - this.distance[1]

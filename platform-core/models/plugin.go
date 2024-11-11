@@ -41,6 +41,7 @@ const (
 	PluginInterfaceTypeExecution   = "EXECUTION"
 
 	PluginNameItsdangerous = "itsdangerous"
+	PluginNameArtifacts    = "artifacts"
 )
 
 type PluginPackages struct {
@@ -474,27 +475,29 @@ type CoreObjectMeta struct {
 }
 
 type CoreObjectPropertyMeta struct {
-	Id                      string          `json:"id" xorm:"id"`
-	Name                    string          `json:"name" xorm:"name"`
-	DataType                string          `json:"dataType" xorm:"data_type"`
-	Multiple                string          `json:"multiple" xorm:"multiple"`
-	RefObjectName           string          `json:"refObjectName" xorm:"ref_object_name"`
-	MappingType             string          `json:"mappingType" xorm:"map_type"`
-	MapExpr                 string          `json:"mapExpr" xorm:"map_expr"`
-	ObjectMetaId            string          `json:"objectMetaId" xorm:"object_meta_id"`
-	ObjectName              string          `json:"objectName" xorm:"object_name"`
-	PackageName             string          `json:"packageName" xorm:"package_name"`
-	Source                  string          `json:"source" xorm:"source"`
-	CreatedBy               string          `json:"createdBy" xorm:"created_by"`
-	CreatedTime             time.Time       `json:"createdTime" xorm:"created_time"`
-	UpdatedBy               string          `json:"updatedBy" xorm:"updated_by"`
-	UpdatedTime             time.Time       `json:"updatedTime" xorm:"updated_time"`
-	Sensitive               bool            `json:"sensitive" xorm:"is_sensitive"`
-	ConfigId                string          `json:"configId" xorm:"config_id"`
-	SensitiveData           string          `json:"sensitiveData" xorm:"-"`
-	MappingEntityExpression string          `json:"mappingEntityExpression" xorm:"-"`
-	ObjectMeta              *CoreObjectMeta `json:"objectMeta" xorm:"-"`
-	RefObjectMeta           *CoreObjectMeta `json:"refObjectMeta" xorm:"-"`
+	Id                        string          `json:"id" xorm:"id"`
+	Name                      string          `json:"name" xorm:"name"`
+	DataType                  string          `json:"dataType" xorm:"data_type"`
+	Multiple                  string          `json:"multiple" xorm:"multiple"`
+	RefObjectName             string          `json:"refObjectName" xorm:"ref_object_name"`
+	MappingType               string          `json:"mappingType" xorm:"map_type"`
+	MapExpr                   string          `json:"mapExpr" xorm:"map_expr"`
+	ObjectMetaId              string          `json:"objectMetaId" xorm:"object_meta_id"`
+	ObjectName                string          `json:"objectName" xorm:"object_name"`
+	PackageName               string          `json:"packageName" xorm:"package_name"`
+	Source                    string          `json:"source" xorm:"source"`
+	CreatedBy                 string          `json:"createdBy" xorm:"created_by"`
+	CreatedTime               time.Time       `json:"createdTime" xorm:"created_time"`
+	UpdatedBy                 string          `json:"updatedBy" xorm:"updated_by"`
+	UpdatedTime               time.Time       `json:"updatedTime" xorm:"updated_time"`
+	Sensitive                 bool            `json:"sensitive" xorm:"is_sensitive"`
+	ConfigId                  string          `json:"configId" xorm:"config_id"`
+	SensitiveData             string          `json:"sensitiveData" xorm:"-"`
+	MappingEntityExpression   string          `json:"mappingEntityExpression" xorm:"-"`
+	ObjectMeta                *CoreObjectMeta `json:"objectMeta" xorm:"-"`
+	RefObjectMeta             *CoreObjectMeta `json:"refObjectMeta" xorm:"-"`
+	MappingVal                string          `json:"mappingVal" xorm:"-"`
+	MappingSystemVariableName string          `json:"mappingSystemVariableName" xorm:"-"`
 }
 
 // TargetEntityFilterRuleDto 目标对象过滤
@@ -794,15 +797,35 @@ type RoleBindXML struct {
 	RoleName   string `xml:"roleName,attr" json:"roleName,omitempty"`
 }
 
+type ParamObjectXML struct {
+	Text         string         `xml:",chardata" json:"text,omitempty"`
+	Name         string         `xml:"name,attr" json:"name,omitempty"`
+	PackageName  string         `xml:"packageName,attr" json:"packagename,omitempty"`
+	Source       string         `xml:"source,attr" json:"source,omitempty"`
+	LatestSource string         `xml:"latestSource,attr" json:"latestsource,omitempty"`
+	Property     []*PropertyXML `xml:"property" json:"property,omitempty"`
+}
+
+type PropertyXML struct {
+	Text          string `xml:",chardata" json:"text,omitempty"`
+	Name          string `xml:"name,attr" json:"name,omitempty"`
+	DataType      string `xml:"dataType,attr" json:"datatype,omitempty"`
+	Multiple      string `xml:"multiple,attr" json:"multiple,omitempty"`
+	MapType       string `xml:"mapType,attr" json:"maptype,omitempty"`
+	SensitiveData string `xml:"sensitiveData,attr" json:"sensitivedata,omitempty"`
+	MapExpr       string `xml:"mapExpr,attr" json:"mapexpr,omitempty"`
+}
+
 type PluginXML struct {
-	Text                   string         `xml:",chardata" json:"text,omitempty"`
-	Name                   string         `xml:"name,attr" json:"name,omitempty"`
-	TargetPackage          string         `xml:"targetPackage,attr" json:"targetPackage,omitempty"`
-	TargetEntity           string         `xml:"targetEntity,attr" json:"targetEntity,omitempty"`
-	TargetEntityFilterRule string         `xml:"targetEntityFilterRule,attr" json:"targetEntityFilterRule,omitempty"`
-	RegisterName           string         `xml:"registerName,attr" json:"registerName,omitempty"`
-	Status                 string         `xml:"status,attr" json:"status,omitempty"`
-	Interface              []InterfaceXML `xml:"interface" json:"interface,omitempty"`
+	Text                   string            `xml:",chardata" json:"text,omitempty"`
+	Name                   string            `xml:"name,attr" json:"name,omitempty"`
+	TargetPackage          string            `xml:"targetPackage,attr" json:"targetPackage,omitempty"`
+	TargetEntity           string            `xml:"targetEntity,attr" json:"targetEntity,omitempty"`
+	TargetEntityFilterRule string            `xml:"targetEntityFilterRule,attr" json:"targetEntityFilterRule,omitempty"`
+	RegisterName           string            `xml:"registerName,attr" json:"registerName,omitempty"`
+	Status                 string            `xml:"status,attr" json:"status,omitempty"`
+	ParamObject            []*ParamObjectXML `xml:"paramObject" json:"paramobject,omitempty"`
+	Interface              []InterfaceXML    `xml:"interface" json:"interface,omitempty"`
 	RoleBinds              struct {
 		Text     string        `xml:",chardata" json:"text,omitempty"`
 		RoleBind []RoleBindXML `xml:"roleBind" json:"roleBind,omitempty"`
@@ -873,4 +896,35 @@ type PluginVersionListObj struct {
 type InheritPluginConfigParam struct {
 	PluginPackageId  string `json:"pluginPackageId" binding:"required"`
 	InheritPackageId string `json:"inheritPackageId" binding:"required"`
+}
+
+type PluginArtifactsPushResult struct {
+	Code    int                            `json:"code"`
+	Message string                         `json:"message"`
+	Status  string                         `json:"status"`
+	Data    *PushArtifactPluginPackageData `json:"data"`
+}
+
+type PushArtifactPluginPackageParam struct {
+	Path string `json:"path"`
+}
+
+type PushArtifactPluginPackageData struct {
+	Name        string `json:"name"`
+	DownloadUrl string `json:"downloadUrl"`
+}
+
+type QueryBusinessListParam struct {
+	PackageName      string
+	Entity           string
+	UserToken        string
+	Language         string
+	EntityQueryParam EntityQueryParam
+}
+
+type PluginArtifactsUploadResult struct {
+	Code    int                      `json:"code"`
+	Message string                   `json:"message"`
+	Status  string                   `json:"status"`
+	Data    []map[string]interface{} `json:"data"`
 }
