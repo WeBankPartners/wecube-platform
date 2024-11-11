@@ -24,16 +24,14 @@ req.interceptors.request.use(
       const lang = localStorage.getItem('lang') || 'zh-CN'
       if (lang === 'zh-CN') {
         config.headers['Accept-Language'] = 'zh-CN,zh;q=0.9,en;q=0.8'
-      }
-      else {
+      } else {
         config.headers['Accept-Language'] = 'en-US,en;q=0.9,zh;q=0.8'
       }
       const accessToken = getCookie('accessToken')
       if (accessToken && config.url !== '/auth/v1/api/login') {
         config.headers.Authorization = 'Bearer ' + accessToken
         resolve(config)
-      }
-      else {
+      } else {
         resolve(config)
       }
     }),

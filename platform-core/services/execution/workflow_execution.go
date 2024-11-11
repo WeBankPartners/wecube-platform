@@ -10,6 +10,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -31,7 +32,7 @@ import (
  * @return 调用结果, 高危结果, 错误
  */
 
-func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcCallPluginServiceFuncParam) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousWorkflowCheckResultData, pluginCallParam *models.BatchExecutionPluginExecParam, err error) {
+func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcCallPluginServiceFuncParam) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousBatchCheckResultData, pluginCallParam *models.BatchExecutionPluginExecParam, err error) {
 	procInsNodeReq := models.ProcInsNodeReq{
 		Id:            "proc_req_" + guid.CreateGuid(),
 		ProcInsNodeId: param.ProcInsNode.Id,
@@ -48,14 +49,18 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 	}
 	rootExpr := rootExprList[len(rootExprList)-1]
 	// 获取subsystem token
-	subsysToken := remote.GetToken()
+	//subsysToken := remote.GetToken()
 	// 构造输入参数
-	inputParamDatas, errHandle := handleInputData(ctx, subsysToken, param.ContinueToken, param.EntityInstances, param.PluginInterface.InputParameters, rootExpr, param.InputConstantMap, param.InputParamContext, &procInsNodeReq)
+	inputParamDatas, errHandle := handleInputData(ctx, remote.GetToken(), param.ContinueToken, param.EntityInstances, param.PluginInterface.InputParameters, rootExpr, param.InputConstantMap, param.InputParamContext, &procInsNodeReq)
 	if errHandle != nil {
 		err = errHandle
 		return
 	}
 	procInsNodeReq.ReqDataAmount = len(inputParamDatas)
+	// 纪录参数
+	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, true); err != nil {
+		return
+	}
 	// 调用高危插件
 	if param.RiskCheck {
 		itsdangerousCallParam := &models.BatchExecutionItsdangerousExecParam{
@@ -67,12 +72,12 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 			InputParams:     inputParamDatas,
 		}
 		// 需要有运行时的高危插件
-		dangerousResult, errDangerous := performWorkflowDangerousCheck(ctx, itsdangerousCallParam, param.ContinueToken, subsysToken)
+		dangerousResult, errDangerous := performWorkflowDangerousCheck(ctx, itsdangerousCallParam, param.ContinueToken, remote.GetToken())
 		if errDangerous != nil {
 			err = errDangerous
 			return
 		}
-		if dangerousResult != nil {
+		if dangerousResult != nil && len(dangerousResult.Data) > 0 {
 			dangerousCheckResult = dangerousResult
 			return
 		}
@@ -88,15 +93,11 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 		DueDate:         param.DueDate,
 		AllowedOptions:  param.AllowedOptions,
 	}
-	// 纪录参数
-	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, true); err != nil {
-		return
-	}
-	pluginCallResult, errCode, errCall := remote.PluginInterfaceApi(ctx, subsysToken, param.PluginInterface, pluginCallParam)
+	pluginCallResult, errCode, errCall := remote.PluginInterfaceApi(ctx, remote.GetToken(), param.PluginInterface, pluginCallParam)
 	if errCall != nil {
 		if errCode != "" && errCode != "0" {
 			if pluginCallResult != nil && len(pluginCallResult.Outputs) > 0 {
-				_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq)
+				_, errHandle = handleOutputData(ctx, remote.GetToken(), pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq, true)
 				if errHandle != nil {
 					log.Logger.Error("handle error output data fail", log.Error(errHandle))
 				}
@@ -108,11 +109,13 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 		return
 	}
 	// 处理output param(比如类型转换，数据模型写入), handleOutputData主要是用于格式化为output param定义的字段
-	_, errHandle = handleOutputData(ctx, subsysToken, pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq)
+	_, errHandle = handleOutputData(ctx, remote.GetToken(), pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq, false)
 	if errHandle != nil {
 		err = errHandle
 		return
 	}
+	// 记录调用 taskman 插件请求信息
+	RecordPluginRequestInfo(ctx, param.ProcIns, pluginCallResult.Outputs)
 	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, false); err != nil {
 		return
 	}
@@ -121,7 +124,48 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 	return
 }
 
-func performWorkflowDangerousCheck(ctx context.Context, pluginCallParam interface{}, continueToken string, authToken string) (result *models.ItsdangerousWorkflowCheckResultData, err error) {
+// RecordPluginRequestInfo 记录调用插件请求信息,taskman插件创建请求调用生成的请求和模版信息,需要在 proc_ins表中记录下来详情展示用(此处没有考虑并发创建taskman请求)
+func RecordPluginRequestInfo(ctx context.Context, procIns *models.ProcIns, outputs []map[string]interface{}) {
+	if len(outputs) > 0 && procIns != nil {
+		outputMap := outputs[0]
+		var requestId, requestName, requestTemplate string
+		var requestTemplateType int
+		var err error
+		if v, ok := outputMap["requestId"]; ok {
+			requestId = fmt.Sprintf("%v", v)
+		}
+		if v, ok := outputMap["requestName"]; ok {
+			requestName = fmt.Sprintf("%v", v)
+		}
+		if v, ok := outputMap["requestTemplate"]; ok {
+			requestTemplate = fmt.Sprintf("%v", v)
+		}
+		if v, ok := outputMap["requestTemplateType"]; ok {
+			requestTemplateType, _ = strconv.Atoi(fmt.Sprintf("%v", v))
+		}
+		if requestId != "" && requestTemplate != "" {
+			var requestList []*models.SimpleRequestDto
+			var newRequestInfo []byte
+			if procIns.RequestInfo != "" {
+				if err = json.Unmarshal([]byte(procIns.RequestInfo), &requestList); err != nil {
+					log.Logger.Error("json Unmarshal requestInfo err", log.Error(err))
+				}
+			}
+			requestList = append(requestList, &models.SimpleRequestDto{
+				Id:              requestId,
+				Name:            requestName,
+				RequestTemplate: requestTemplate,
+				Type:            requestTemplateType,
+			})
+			newRequestInfo, _ = json.Marshal(requestList)
+			if err = database.UpdateProcInstanceRequestInfo(ctx, procIns.Id, string(newRequestInfo)); err != nil {
+				log.Logger.Error("UpdateProcInstanceRequestInfo err", log.Error(err))
+			}
+		}
+	}
+}
+
+func performWorkflowDangerousCheck(ctx context.Context, pluginCallParam interface{}, continueToken string, authToken string) (result *models.ItsdangerousBatchCheckResultData, err error) {
 	if continueToken != "" {
 		return
 	}
@@ -133,11 +177,11 @@ func performWorkflowDangerousCheck(ctx context.Context, pluginCallParam interfac
 		return
 	}
 	// 调用检查
-	result, err = remote.DangerousWorkflowCheck(ctx, authToken, pluginCallParam)
+	result, err = remote.DangerousBatchCheck(ctx, authToken, pluginCallParam)
 	return
 }
 
-func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string, retryFlag bool) (err error) {
+func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string) (risky bool, err error) {
 	ctx = context.WithValue(ctx, models.TransactionIdHeader, procRunNodeId)
 	// 查proc def node定义和proc ins绑定数据
 	procInsNode, procDefNode, procDefNodeParams, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, procRunNodeId)
@@ -237,6 +281,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 		RiskCheck:         procDefNode.RiskCheck,
 		Operator:          "SYSTEM",
 		ProcInsNode:       procInsNode,
+		ProcIns:           procIns,
 	}
 	callOutput, dangerousCheckResult, pluginCallParam, callErr := WorkflowExecutionCallPluginService(ctx, &callPluginServiceParam)
 	if callErr != nil {
@@ -245,13 +290,21 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string,
 	}
 	if dangerousCheckResult != nil {
 		dangerousCheckResultBytes, _ := json.Marshal(dangerousCheckResult)
-		database.UpdateProcInsNodeData(ctx, procInsNode.Id, "", "", string(dangerousCheckResultBytes))
+		risky = true
+		err = fmt.Errorf(string(dangerousCheckResultBytes))
+		//err = database.UpdateProcInsNodeData(ctx, procInsNode.Id, models.JobStatusRisky, "", string(dangerousCheckResultBytes))
+		//if err != nil {
+		//	err = fmt.Errorf("update proc instance node status fail, %s ", err.Error())
+		//}else{
+		//	risky = true
+		//	err = fmt.Errorf(string(dangerousCheckResultBytes))
+		//}
 	}
 	log.Logger.Debug("WorkflowExecutionCallPluginService", log.JsonObj("output", callOutput), log.JsonObj("pluginCallParam", pluginCallParam))
 	return
 }
 
-func DoWorkflowDataJob(ctx context.Context, procRunNodeId string, retryFlag bool) (err error) {
+func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
 	ctx = context.WithValue(ctx, models.TransactionIdHeader, procRunNodeId)
 	// 查proc def node定义和proc ins绑定数据
 	procInsNode, procDefNode, _, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, procRunNodeId)
@@ -550,7 +603,7 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 	}
 	rootExpr := rootExprList[len(rootExprList)-1]
 	// 获取subsystem token
-	subsysToken := remote.GetToken()
+	//subsysToken := remote.GetToken()
 	// 构造输入参数
 	for _, paramObj := range param.PluginInterface.InputParameters {
 		if paramObj.Name == "taskFormInput" {
@@ -573,7 +626,7 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 	if err != nil {
 		return
 	}
-	inputParamDatas, errHandle := handleInputData(ctx, subsysToken, param.ContinueToken, param.EntityInstances, param.PluginInterface.InputParameters, rootExpr, param.InputConstantMap, param.InputParamContext, &procInsNodeReq)
+	inputParamDatas, errHandle := handleInputData(ctx, remote.GetToken(), param.ContinueToken, param.EntityInstances, param.PluginInterface.InputParameters, rootExpr, param.InputConstantMap, param.InputParamContext, &procInsNodeReq)
 	if errHandle != nil {
 		err = errHandle
 		return
@@ -594,7 +647,7 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 	if err = database.RecordProcCallReq(ctx, &procInsNodeReq, true); err != nil {
 		return
 	}
-	pluginCallResult, _, errCall := remote.PluginInterfaceApi(ctx, subsysToken, param.PluginInterface, pluginCallParam)
+	pluginCallResult, _, errCall := remote.PluginInterfaceApi(ctx, remote.GetToken(), param.PluginInterface, pluginCallParam)
 	log.Logger.Info("human job call plugin api response", log.JsonObj("result", pluginCallResult), log.String("error", fmt.Sprintf("%v", errCall)))
 	if errCall != nil {
 		err = errCall
@@ -726,7 +779,7 @@ func HandleCallbackHumanJob(ctx context.Context, procRunNodeId string, callbackD
 	}
 	procInsNodeReq := models.ProcInsNodeReq{Id: callbackData.Results.RequestId}
 	// 处理output param(比如类型转换，数据模型写入), handleOutputData主要是用于格式化为output param定义的字段
-	_, errHandle := handleOutputData(ctx, remote.GetToken(), pluginCallOutput, pluginInterface.OutputParameters, &procInsNodeReq)
+	_, errHandle := handleOutputData(ctx, remote.GetToken(), pluginCallOutput, pluginInterface.OutputParameters, &procInsNodeReq, false)
 	if errHandle != nil {
 		err = errHandle
 		return
@@ -762,6 +815,9 @@ func buildStartNodeContextMap(inputContextMap map[string]interface{}, procIns *m
 	inputContextMap["procInstName"] = procIns.ProcDefName
 	inputContextMap["rootEntityId"] = procIns.EntityDataId
 	inputContextMap["rootEntityName"] = procIns.EntityDataName
+	inputContextMap["procStartTime"] = procIns.CreatedTime
+	inputContextMap["procExecutor"] = procIns.CreatedBy
+
 	if procDefNodeParam.CtxBindName != procDefNodeParam.Name {
 		if v, ok := inputContextMap[procDefNodeParam.CtxBindName]; ok {
 			inputContextMap[procDefNodeParam.Name] = v
