@@ -539,12 +539,14 @@ func RegisterPackage(c *gin.Context) {
 			middleware.ReturnError(c, err)
 			return
 		}
+		defer bash.RemoveTmpFile(uiFileLocalPath)
 		log.Logger.Debug("register plugin,start decompress ui.zip", log.String("uiFileLocalPath", uiFileLocalPath))
 		// 本地解压ui.zip
 		if uiDir, err = bash.DecompressFile(uiFileLocalPath, ""); err != nil {
 			middleware.ReturnError(c, err)
 			return
 		}
+		defer bash.RemoveTmpFile(uiDir)
 		// 把ui.zip用ssh传到静态资源服务器上并解压，如果有两台服务器，则每台都要上传与解压
 		for _, staticResourceObj := range models.Config.StaticResources {
 			targetPath := fmt.Sprintf("%s/%s/%s/ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
@@ -649,33 +651,40 @@ func LaunchPlugin(c *gin.Context) {
 			return
 		}
 	}
-	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
-	if err := database.GetSimplePluginPackage(c, &pluginPackageObj, true); err != nil {
-		log.Logger.Error("GetSimplePluginPackage fail", log.Error(err))
+	err := LaunchPluginFunc(c, pluginPackageId, hostIp, middleware.GetRequestUser(c), port)
+	if err != nil {
 		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}
+
+func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator string, port int) (err error) {
+	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
+	if err = database.GetSimplePluginPackage(ctx, &pluginPackageObj, true); err != nil {
+		log.Logger.Error("GetSimplePluginPackage fail", log.Error(err))
 		return
 	}
-	existPluginInstance, getExistErr := database.GetPluginInstance("", pluginPackageObj.Name, hostIp, false)
+	existPluginInstance, getExistErr := database.GetPluginInstance("", pluginPackageObj.Name, hostIp, "", false)
 	if getExistErr != nil {
-		middleware.ReturnError(c, getExistErr)
+		err = getExistErr
 		return
 	}
 	if existPluginInstance.Id != "" {
-		middleware.ReturnError(c, fmt.Errorf("Host:%s already running plugin:%s ", hostIp, pluginPackageObj.Name))
+		err = fmt.Errorf("Host:%s already running plugin:%s ", hostIp, pluginPackageObj.Name)
 		return
 	}
 	log.Logger.Debug("pluginPackage", log.JsonObj("data", pluginPackageObj))
-	resources, getResourceErr := database.GetPluginRuntimeResources(c, pluginPackageId)
+	resources, getResourceErr := database.GetPluginRuntimeResources(ctx, pluginPackageId)
 	if getResourceErr != nil {
 		log.Logger.Error("GetPluginRuntimeResources fail", log.Error(getResourceErr))
-		middleware.ReturnError(c, getResourceErr)
+		err = getResourceErr
 		return
 	}
 	if len(resources.Docker) == 0 {
-		middleware.ReturnError(c, fmt.Errorf("plugin must contain docker resource"))
+		err = fmt.Errorf("plugin must contain docker resource")
 		return
 	}
-	operator := middleware.GetRequestUser(c)
 	var mysqlInstance *models.PluginMysqlInstances
 	var mysqlServer *models.ResourceServer
 	pluginInstance := models.PluginInstances{
@@ -691,14 +700,14 @@ func LaunchPlugin(c *gin.Context) {
 		pluginInstance.PluginMysqlInstanceResourceId = mysqlResource.Id
 		// 先检查数据库脚本执行纪录的版本，如果执行过了就跳过下面数据库相关操作
 		var resourceDbErr error
-		mysqlInstance, resourceDbErr = database.GetPluginMysqlInstance(c, pluginPackageObj.Name)
+		mysqlInstance, resourceDbErr = database.GetPluginMysqlInstance(ctx, pluginPackageObj.Name)
 		if resourceDbErr != nil {
-			middleware.ReturnError(c, resourceDbErr)
+			err = resourceDbErr
 			return
 		}
 
 		// 判断有没有以插件名为类型的资源
-		mysqlServer, _ = database.GetResourceServer(c, "mysql", "", pluginPackageObj.Name)
+		mysqlServer, _ = database.GetResourceServer(ctx, "mysql", "", pluginPackageObj.Name)
 		if mysqlServer != nil {
 			if mysqlInstance == nil {
 				log.Logger.Info("use plugin resource mysql server", log.String("resourceServerId", mysqlServer.Id))
@@ -710,21 +719,20 @@ func LaunchPlugin(c *gin.Context) {
 					SchemaName:      mysqlResource.SchemaName,
 					Username:        mysqlServer.LoginUsername,
 				}
-				if err := database.NewPluginMysqlInstance(c, mysqlServer, mysqlInstance, operator); err != nil {
-					middleware.ReturnError(c, err)
+				if err = database.NewPluginMysqlInstance(ctx, mysqlServer, mysqlInstance, operator); err != nil {
 					return
 				}
 			}
 		} else {
 			// 如果连纪录都没有，第一次要创建数据库
-			mysqlServer, resourceDbErr = database.GetResourceServer(c, "mysql", "", "")
+			mysqlServer, resourceDbErr = database.GetResourceServer(ctx, "mysql", "", "")
 			if resourceDbErr != nil {
-				middleware.ReturnError(c, resourceDbErr)
+				err = resourceDbErr
 				return
 			}
 			if mysqlInstance == nil {
-				if dbPass, err := bash.CreatePluginDatabase(c, pluginPackageObj.Name, mysqlResource, mysqlServer); err != nil {
-					middleware.ReturnError(c, err)
+				if dbPass, createDBErr := bash.CreatePluginDatabase(ctx, pluginPackageObj.Name, mysqlResource, mysqlServer); createDBErr != nil {
+					err = createDBErr
 					return
 				} else {
 					mysqlInstance = &models.PluginMysqlInstances{
@@ -736,8 +744,7 @@ func LaunchPlugin(c *gin.Context) {
 						Username:        pluginPackageObj.Name,
 					}
 					log.Logger.Debug("database pwd", log.String("pass", dbPass))
-					if err = database.NewPluginMysqlInstance(c, mysqlServer, mysqlInstance, operator); err != nil {
-						middleware.ReturnError(c, err)
+					if err = database.NewPluginMysqlInstance(ctx, mysqlServer, mysqlInstance, operator); err != nil {
 						return
 					}
 				}
@@ -749,9 +756,10 @@ func LaunchPlugin(c *gin.Context) {
 			if mysqlResource.InitFileName != "" {
 				tmpFile, downloadErr := bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/%s", pluginPackageObj.Name, pluginPackageObj.Version, mysqlResource.InitFileName))
 				if downloadErr != nil {
-					middleware.ReturnError(c, downloadErr)
+					err = downloadErr
 					return
 				}
+				defer bash.RemoveTmpFile(tmpFile)
 				intiSqlFile = tmpFile
 			}
 			if mysqlResource.UpgradeFileName != "" {
@@ -759,40 +767,39 @@ func LaunchPlugin(c *gin.Context) {
 				if downloadErr != nil {
 					log.Logger.Warn("plugin have no upgrade sql", log.String("plugin", pluginPackageObj.Name), log.String("version", pluginPackageObj.Version))
 				} else {
+					defer bash.RemoveTmpFile(tmpFile)
 					upgradeSqlFile = tmpFile
 				}
 			}
 			// 检查数据库脚本是否有更新
 			outputSqlFile, buildErr := bash.BuildPluginUpgradeSqlFile(intiSqlFile, upgradeSqlFile, mysqlInstance.PreVersion)
 			if buildErr != nil {
-				middleware.ReturnError(c, buildErr)
+				err = buildErr
 				return
 			}
 			// 执行数据库脚本并更新纪录
 			if outputSqlFile != "" {
-				if err := bash.ExecPluginUpgradeSql(c, mysqlInstance, mysqlServer, outputSqlFile); err != nil {
-					middleware.ReturnError(c, err)
+				if err = bash.ExecPluginUpgradeSql(ctx, mysqlInstance, mysqlServer, outputSqlFile); err != nil {
 					return
 				}
 			}
-			if err := database.UpdatePluginMysqlInstancePreVersion(c, mysqlInstance.Id, pluginPackageObj.Version); err != nil {
-				middleware.ReturnError(c, err)
+			if err = database.UpdatePluginMysqlInstancePreVersion(ctx, mysqlInstance.Id, pluginPackageObj.Version); err != nil {
 				return
 			}
 		}
 	}
 	dockerResource := resources.Docker[0]
 	pluginInstance.ContainerName = dockerResource.ContainerName
-	dockerServer, getDockerServerErr := database.GetResourceServer(c, "docker", hostIp, "")
+	dockerServer, getDockerServerErr := database.GetResourceServer(ctx, "docker", hostIp, "")
 	if getDockerServerErr != nil {
-		middleware.ReturnError(c, getDockerServerErr)
+		err = getDockerServerErr
 		return
 	}
 	envMap := make(map[string]string)
 	portBindList := getEnvMap(dockerResource.PortBindings, envMap)
 	volumeBindList := getEnvMap(dockerResource.VolumeBindings, envMap)
 	envBindList := getEnvMap(dockerResource.EnvVariables, envMap)
-	envMap["ALLOCATE_PORT"] = portValue
+	envMap["ALLOCATE_PORT"] = fmt.Sprintf("%d", port)
 	envMap["ALLOCATE_HOST"] = hostIp
 	envMap["BASE_MOUNT_PATH"] = models.Config.Plugin.BaseMountPath
 	envMap["MONITOR_PORT"] = fmt.Sprintf("%d", port+10000)
@@ -817,7 +824,7 @@ func LaunchPlugin(c *gin.Context) {
 	// 向auth server注册插件并返回插件认证的code和pubKey,插件会拿着这两个东西去获取插件专属的token来访问platform
 	subSystemCode, subSystemKey, subSystemPubKey, registerAuthErr := remote.RegisterSubSystem(&pluginPackageObj)
 	if registerAuthErr != nil {
-		middleware.ReturnError(c, registerAuthErr)
+		err = registerAuthErr
 		return
 	}
 	envMap["SUB_SYSTEM_CODE"] = subSystemCode
@@ -837,7 +844,7 @@ func LaunchPlugin(c *gin.Context) {
 	if pluginPackageObj.Edition == "enterprise" {
 		licCode, licPk, licData, licSign, getLicenceErr := database.GeneratePluginEnv(subSystemPubKey, subSystemKey, pluginPackageObj.Name)
 		if getLicenceErr != nil {
-			middleware.ReturnError(c, getLicenceErr)
+			err = getLicenceErr
 			return
 		}
 		envBindList = append(envBindList, "LICENSE_CODE="+licCode)
@@ -846,9 +853,9 @@ func LaunchPlugin(c *gin.Context) {
 		envBindList = append(envBindList, "LICENSE_SIGNATURE="+licSign)
 	}
 	// 替换容器参数差异化变量
-	replaceMap, err := database.BuildDockerEnvMap(c, envMap, pluginPackageObj.Name, pluginPackageObj.Version)
-	if err != nil {
-		middleware.ReturnError(c, err)
+	replaceMap, buildEnvErr := database.BuildDockerEnvMap(ctx, envMap, pluginPackageObj.Name, pluginPackageObj.Version)
+	if buildEnvErr != nil {
+		err = buildEnvErr
 		return
 	}
 	portBindList = replaceEnvMap(portBindList, replaceMap)
@@ -858,23 +865,22 @@ func LaunchPlugin(c *gin.Context) {
 	// 把s3上的image.tar下载来到本地？可否直接让目标机器下载image.tar
 	tmpImageFile, downloadImageErr := bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/image.tar", pluginPackageObj.Name, pluginPackageObj.Version))
 	if downloadImageErr != nil {
-		middleware.ReturnError(c, downloadImageErr)
+		err = downloadImageErr
 		return
 	}
+	defer bash.RemoveTmpFile(tmpImageFile)
 	// 把image.tar传到目标机器
 	targetImagePath := fmt.Sprintf("%s/%s_%s_image.tar", models.Config.Plugin.DeployPath, pluginPackageObj.Name, pluginPackageObj.Version)
 	if err = bash.RemoteSCP(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, tmpImageFile, targetImagePath); err != nil {
-		middleware.ReturnError(c, err)
 		return
 	}
 	log.Logger.Info("scp plugin image file", log.String("targetHost", dockerServer.Host), log.String("tmpFile", tmpImageFile), log.String("targetPath", targetImagePath))
 	if err = bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, fmt.Sprintf("docker load --input %s && rm -f %s", targetImagePath, targetImagePath)); err != nil {
-		middleware.ReturnError(c, err)
 		return
 	}
 	time.Sleep(1 * time.Second)
 	// 去目标机器上docker run起来，或使用docker-compose
-	dockerCmd := fmt.Sprintf("docker run -d --name %s ", dockerResource.ContainerName)
+	dockerCmd := fmt.Sprintf("docker run -d --name %s --restart=always ", dockerResource.ContainerName)
 	for _, v := range volumeBindList {
 		dockerCmd += fmt.Sprintf("--volume %s ", v)
 	}
@@ -897,7 +903,6 @@ func LaunchPlugin(c *gin.Context) {
 		if rmDockerErr := bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, fmt.Sprintf("docker rm -f %s", dockerResource.ContainerName)); rmDockerErr != nil {
 			log.Logger.Error("Try to remove failed docker container", log.String("containerName", dockerResource.ContainerName), log.Error(rmDockerErr))
 		}
-		middleware.ReturnError(c, err)
 		return
 	}
 	// 更新插件注册的菜单状态和更新插件实例数据
@@ -917,43 +922,49 @@ func LaunchPlugin(c *gin.Context) {
 		Name:                 dockerResource.ContainerName,
 	}
 	pluginInstance.DockerInstanceResourceId = resourceItem.Id
-	err = database.LaunchPlugin(c, &pluginInstance, &resourceItem, middleware.GetRequestUser(c))
+	err = database.LaunchPlugin(ctx, &pluginInstance, &resourceItem, operator)
 	if err != nil {
-		middleware.ReturnError(c, err)
 		return
 	}
 	// 向gateway注册插件路由
-	err = remote.RegisterPluginRoute(pluginPackageObj.Name, hostIp, portValue)
+	err = remote.RegisterPluginRoute(pluginPackageObj.Name, hostIp, fmt.Sprintf("%d", port))
 	if err != nil {
-		middleware.ReturnError(c, err)
 		return
 	}
-	middleware.ReturnSuccess(c)
+	return
 }
 
 // RemovePlugin 运行管理 - 插件实例销毁
 func RemovePlugin(c *gin.Context) {
 	pluginInstanceId := c.Param("pluginInstanceId")
-	pluginInstanceObj, err := database.GetPluginInstance(pluginInstanceId, "", "", true)
+	err := RemovePluginInstanceFunc(c, pluginInstanceId)
 	if err != nil {
 		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}
+
+func RemovePluginInstanceFunc(ctx context.Context, pluginInstanceId string) (err error) {
+	pluginInstanceObj, getPluginErr := database.GetPluginInstance(pluginInstanceId, "", "", "", true)
+	if getPluginErr != nil {
+		err = getPluginErr
 		return
 	}
 	pluginPackageObj := models.PluginPackages{Id: pluginInstanceObj.PackageId}
-	if err = database.GetSimplePluginPackage(c, &pluginPackageObj, true); err != nil {
-		middleware.ReturnError(c, err)
+	if err = database.GetSimplePluginPackage(ctx, &pluginPackageObj, true); err != nil {
 		return
 	}
 	// 查询容器资源信息
 	resourceServer, getServerErr := database.GetPluginDockerRunningResource(pluginInstanceObj.DockerInstanceResourceId)
 	if getServerErr != nil {
-		middleware.ReturnError(c, getServerErr)
+		err = getServerErr
 		return
 	}
 	// 查询容器运行信息
 	imageName, containerName, getErr := database.GetPluginDockerRuntimeMessage(pluginInstanceObj.PackageId)
 	if getErr != nil {
-		middleware.ReturnError(c, getErr)
+		err = getErr
 		return
 	}
 	// 销毁容器
@@ -962,16 +973,11 @@ func RemovePlugin(c *gin.Context) {
 	}
 	removeCmd := fmt.Sprintf("docker rm -f %s && docker rmi %s", containerName, imageName)
 	if err = bash.RemoteSSHCommand(resourceServer.Host, resourceServer.LoginUsername, resourceServer.LoginPassword, resourceServer.Port, removeCmd); err != nil {
-		middleware.ReturnError(c, err)
 		return
 	}
 	// 更新插件注册的菜单状态和更新插件实例数据
-	err = database.RemovePlugin(c, pluginPackageObj.Id, pluginInstanceId, pluginInstanceObj.DockerInstanceResourceId)
-	if err != nil {
-		middleware.ReturnError(c, err)
-	} else {
-		middleware.ReturnSuccess(c)
-	}
+	err = database.RemovePlugin(ctx, pluginPackageObj.Id, pluginInstanceId, pluginInstanceObj.DockerInstanceResourceId)
+	return
 }
 
 func getEnvMap(input string, envMap map[string]string) (inputList []string) {
@@ -1084,12 +1090,14 @@ func UIRegisterPackage(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	defer bash.RemoveTmpFile(uiFileLocalPath)
 	log.Logger.Debug("register plugin,start decompress ui.zip", log.String("uiFileLocalPath", uiFileLocalPath))
 	// 本地解压ui.zip
 	if uiDir, err = bash.DecompressFile(uiFileLocalPath, ""); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
+	defer bash.RemoveTmpFile(uiDir)
 	// 把ui.zip用ssh传到静态资源服务器上并解压，如果有两台服务器，则每台都要上传与解压
 	for _, staticResourceObj := range models.Config.StaticResources {
 		targetPath := fmt.Sprintf("%s/%s/%s/ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
@@ -1168,10 +1176,20 @@ func RegisterPackageDone(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("pluginPackage status:%s illegal", pluginPackageObj.Status))
 		return
 	}
-	err := database.SetPluginPackageRegisterDone(c, param.Id, middleware.GetRequestUser(c))
+	dynamicModel, err := database.SetPluginPackageRegisterDone(c, param.Id, middleware.GetRequestUser(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
+		if dynamicModel {
+			pluginModels, syncDynamicErr := remote.GetPluginDataModels(c, pluginPackageObj.Name, c.GetHeader(models.AuthorizationHeader))
+			if syncDynamicErr != nil {
+				log.Logger.Error("syncDynamic fail with get plugin data model", log.String("package", pluginPackageObj.Name), log.Error(syncDynamicErr))
+			} else {
+				if syncDynamicErr = database.SyncPluginDataModels(c, pluginPackageObj.Name, pluginModels); syncDynamicErr != nil {
+					log.Logger.Error("syncDynamic fail with update plugin data model", log.String("package", pluginPackageObj.Name), log.Error(syncDynamicErr))
+				}
+			}
+		}
 		middleware.ReturnSuccess(c)
 	}
 }

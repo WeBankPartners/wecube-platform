@@ -76,6 +76,7 @@ type ProcIns struct {
 	UpdatedBy       string    `json:"updatedBy" xorm:"updated_by"`               // 更新人
 	UpdatedTime     time.Time `json:"updatedTime" xorm:"updated_time"`           // 更新时间
 	ParentInsNodeId string    `json:"parentInsNodeId" xorm:"parent_ins_node_id"` // 父编排实例节点id
+	RequestInfo     string    `json:"requestInfo" xorm:"request_info"`           // 关联请求信息
 }
 
 type ProcInsNode struct {
