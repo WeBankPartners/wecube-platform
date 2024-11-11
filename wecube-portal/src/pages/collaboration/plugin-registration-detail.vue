@@ -23,7 +23,7 @@
           </div>
         </div>
 
-        <div class="right-content">
+        <div class="right-content" :style="{width: isJustShowRightContent ? '98vw' : '67vw'}">
           <div class="use-underline-title right-title">
             {{ stepTitleMap[currentStep] }}
             <span class="underline"></span>
@@ -769,7 +769,7 @@ export default {
         }
       }
       .right-content {
-        flex: 1;
+        // flex: 1;
         .single-tab-content {
           height: 100%;
           max-height: calc(100vh - 280px);
