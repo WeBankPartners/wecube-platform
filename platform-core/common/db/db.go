@@ -80,6 +80,26 @@ func InitWorkflowDatabase() error {
 	return err
 }
 
+func GetDatabaseEngine(inputConfig *models.DatabaseConfig) (engine *xorm.Engine, err error) {
+	connStr := fmt.Sprintf("%s:%s@%s(%s)/%s?collation=utf8mb4_unicode_ci&allowNativePasswords=true",
+		inputConfig.User, inputConfig.Password, "tcp", fmt.Sprintf("%s:%s", inputConfig.Server, inputConfig.Port), inputConfig.DataBase)
+	engine, err = xorm.NewEngine("mysql", connStr)
+	if err != nil {
+		return
+	}
+	engine.SetMaxIdleConns(models.Config.Database.MaxIdle)
+	engine.SetMaxOpenConns(models.Config.Database.MaxOpen)
+	engine.SetConnMaxLifetime(time.Duration(models.Config.Database.Timeout) * time.Second)
+	// 使用驼峰式映射
+	engine.SetMapper(core.SnakeMapper{})
+	_, err = engine.QueryString("select 1=1")
+	if err != nil {
+		engine.Close()
+		err = fmt.Errorf("check database base query fail,err:%+v", err.Error())
+	}
+	return
+}
+
 type dbContextLogger struct {
 	LogLevel xorm_log.LogLevel
 	ShowSql  bool
@@ -156,7 +176,7 @@ type ExecAction struct {
 func Transaction(actions []*ExecAction, ctx context.Context) error {
 	if len(actions) == 0 {
 		log.Logger.Warn("Transaction is empty,nothing to do")
-		return fmt.Errorf("SQL exec transaction is empty,nothing to do,please check server log ")
+		return nil
 	}
 	for i, action := range actions {
 		if action == nil {

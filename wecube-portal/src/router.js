@@ -157,6 +157,39 @@ const router = new Router({
             }
           ]
         },
+        // 底座迁移
+        {
+          path: '/admin/base-migration',
+          name: 'baseMigration',
+          redirect: '/admin/base-migration/export',
+          component: () => import('@/pages/admin/base-migration/index'),
+          children: [
+            // 一键导出-创建
+            {
+              path: '/admin/base-migration/export',
+              name: 'migrationExport',
+              component: () => import('@/pages/admin/base-migration/export/create.vue')
+            },
+            // 一键导出-历史
+            {
+              path: '/admin/base-migration/export-history',
+              name: 'migrationExportHistory',
+              component: () => import('@/pages/admin/base-migration/export/history.vue')
+            },
+            // 一键导入-创建
+            {
+              path: '/admin/base-migration/import',
+              name: 'migrationImport',
+              component: () => import('@/pages/admin/base-migration/import/create.vue')
+            },
+            // 一键导入-历史
+            {
+              path: '/admin/base-migration/import-history',
+              name: 'migrationImportHistory',
+              component: () => import('@/pages/admin/base-migration/import/history.vue')
+            }
+          ]
+        },
         {
           path: '/admin/system-data-model',
           name: 'systemDataModel',
