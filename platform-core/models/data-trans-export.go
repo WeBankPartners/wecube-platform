@@ -349,8 +349,9 @@ type PluginPackageCount struct {
 }
 
 type CommonNameCreator struct {
-	Name    string `json:"name"`
-	Creator string `json:"creator"`
+	Name     string `json:"name"`
+	Creator  string `json:"creator"`
+	DataType string `json:"dataType"`
 }
 
 type CommonNameUser struct {
