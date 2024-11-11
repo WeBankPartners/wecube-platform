@@ -200,8 +200,7 @@ export default {
     sortHandler(data) {
       if (data.order === 'normal') {
         delete this.payload.sorting
-      }
-      else {
+      } else {
         this.payload.sorting = {
           asc: data.order === 'asc',
           field: data.key

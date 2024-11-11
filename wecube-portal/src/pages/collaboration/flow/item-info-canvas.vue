@@ -188,8 +188,7 @@ export default {
             this.$emit('hideItemInfo')
           }
         })
-      }
-      else {
+      } else {
         this.$emit('hideItemInfo')
       }
     },
@@ -214,8 +213,7 @@ export default {
             this.itemCustomInfo.rootEntity = this.oriRootEntity
           }
         })
-      }
-      else {
+      } else {
         this.paramsChanged()
       }
     },

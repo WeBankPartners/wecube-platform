@@ -69,7 +69,7 @@
       </Button>
     </div>
     <div class="search">
-      <Search
+      <BaseSearch
         ref="search"
         :options="searchOptions"
         v-model="searchParams"
@@ -88,7 +88,7 @@
             <Radio label="sub">{{ $t('child_workflow') }}</Radio>
           </RadioGroup>
         </template>
-      </Search>
+      </BaseSearch>
     </div>
     <div>
       <Tabs :value="searchParams.status" @on-click="changeTab">
@@ -189,12 +189,10 @@ import {
   getParentFlowList
 } from '@/api/server.js'
 import FlowAuth from '@/pages/components/auth.vue'
-import Search from '@/pages/components/base-search.vue'
 import dayjs from 'dayjs'
 export default {
   components: {
-    FlowAuth,
-    Search
+    FlowAuth
   },
   data() {
     return {
@@ -203,7 +201,7 @@ export default {
       searchParams: {
         procDefId: '',
         procDefName: '',
-        plugins: [],
+        plugins: ['platform'],
         createdTime: [],
         createdTimeStart: '',
         createdTimeEnd: '',
@@ -258,6 +256,7 @@ export default {
         {
           key: 'plugins',
           placeholder: this.$t('authPlugin'),
+          initValue: ['platform'],
           component: 'select',
           multiple: true,
           list: []
@@ -278,25 +277,6 @@ export default {
           component: 'input'
         }
       ],
-      dateType: 1, // 控制时间显示
-      dateTypeList: [
-        {
-          label: this.$t('be_recent_three_month'),
-          value: 1
-        },
-        {
-          label: this.$t('be_recent_half_year'),
-          value: 2
-        },
-        {
-          label: this.$t('be_recent_one_year'),
-          value: 3
-        },
-        {
-          label: this.$t('be_auto'),
-          value: 4
-        }
-      ],
       hideRoles: [], // 在此出现的角色index将被隐藏
       authPluginList: [], // 待授权插件列表
       data: [],
@@ -309,6 +289,7 @@ export default {
         {
           title: this.$t('flow_name'),
           key: 'name',
+          minWidth: 100,
           render: (h, params) => (
             <div>
               <span>
@@ -328,7 +309,7 @@ export default {
         },
         {
           title: 'ID',
-          width: 100,
+          minWidth: 60,
           ellipsis: true,
           key: 'id',
           render: (h, params) => (
@@ -342,6 +323,7 @@ export default {
         {
           title: this.$t('authPlugin'),
           key: 'authPlugins',
+          minWidth: 60,
           render: (h, params) => {
             if (params.row.authPlugins.length > 0) {
               return params.row.authPlugins && params.row.authPlugins.map(i => <Tag>{i}</Tag>)
@@ -352,6 +334,7 @@ export default {
         {
           title: this.$t('instance_type'),
           key: 'rootEntity',
+          minWidth: 60,
           render: (h, params) => {
             if (params.row.rootEntity !== '') {
               return <div>{params.row.rootEntity}</div>
@@ -362,9 +345,10 @@ export default {
         {
           title: this.$t('use_role'),
           key: 'userRoles',
+          minWidth: 60,
           render: (h, params) => {
             if (params.row.userRolesDisplay.length > 0) {
-              return params.row.userRolesDisplay && params.row.userRolesDisplay.map(i => <Tag>{i}</Tag>)
+              return <BaseScrollTag list={params.row.userRolesDisplay} />
             }
             return <span>-</span>
           }
@@ -372,7 +356,7 @@ export default {
         {
           title: this.$t('conflict_test'),
           key: 'conflictCheck',
-          width: 90,
+          minWidth: 60,
           render: (h, params) => {
             const res = params.row.conflictCheck ? this.$t('yes') : this.$t('no')
             return <span>{res}</span>
@@ -381,7 +365,7 @@ export default {
         {
           title: this.$t('group'),
           key: 'scene',
-          width: 90,
+          minWidth: 60,
           render: (h, params) => {
             if (params.row.scene !== '') {
               return <div>{params.row.scene}</div>
@@ -392,22 +376,22 @@ export default {
         {
           title: this.$t('createdBy'),
           key: 'createdBy',
-          width: 90
+          minWidth: 60
         },
         {
           title: this.$t('table_created_date'),
           key: 'createdTime',
-          width: 130
+          minWidth: 60
         },
         {
           title: this.$t('updatedBy'),
           key: 'updatedBy',
-          width: 90
+          minWidth: 60
         },
         {
           title: this.$t('table_updated_date'),
           key: 'updatedTime',
-          width: 130
+          minWidth: 60
         },
         {
           title: this.$t('table_action'),
@@ -581,7 +565,7 @@ export default {
           // 添加主编排列
           this.tableColumn.splice(3, 0, {
             title: this.$t('main_workflow'),
-            width: 100,
+            minWidth: 60,
             ellipsis: true,
             key: 'mainFlow',
             render: (h, params) => (
@@ -596,8 +580,7 @@ export default {
               </Button>
             )
           })
-        }
-        else if (val === 'main') {
+        } else if (val === 'main') {
           this.tableColumn = this.tableColumn.filter(i => i.key !== 'mainFlow')
         }
       },
@@ -615,7 +598,7 @@ export default {
   },
   beforeRouteEnter(to, from, next) {
     next(vm => {
-      if (from.path === '/collaboration/workflow-mgmt' && from.query.editFlow === 'false') {
+      if (from.path === '/collaboration/workflow-mgmt') {
         // 读取列表搜索参数
         const storage = window.sessionStorage.getItem('search_workflow') || ''
         if (storage) {
@@ -624,6 +607,8 @@ export default {
           vm.searchOptions = searchOptions
         }
       }
+      // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+      vm.initData()
     })
   },
   beforeDestroy() {
@@ -634,18 +619,18 @@ export default {
     }
     window.sessionStorage.setItem('search_workflow', JSON.stringify(storage))
   },
-  mounted() {
-    if (this.$route.query.flowListTab) {
-      this.searchParams.status = this.$route.query.flowListTab
-    }
-    if (this.$route.query.subProc === 'true') {
-      this.searchParams.subProc = 'sub'
-    }
-    this.setHeaders()
-    this.getFlowList()
-    this.pluginList()
-  },
   methods: {
+    initData() {
+      if (this.$route.query.flowListTab) {
+        this.searchParams.status = this.$route.query.flowListTab
+      }
+      if (this.$route.query.subProc) {
+        this.searchParams.subProc = this.$route.query.subProc
+      }
+      this.setHeaders()
+      this.getFlowList()
+      this.pluginList()
+    },
     setHeaders() {
       const lang = localStorage.getItem('lang') || 'zh-CN'
       const accessToken = getCookie('accessToken')
@@ -711,13 +696,17 @@ export default {
     async pluginList() {
       const { data, status } = await getPluginList()
       if (status === 'OK') {
-        this.authPluginList = data
+        this.authPluginList = data || []
         this.searchOptions.forEach(i => {
           if (i.key === 'plugins') {
             i.list = this.authPluginList.map(i => ({
               label: i,
               value: i
             }))
+            i.list.unshift({
+              label: this.$t('fd_platform'),
+              value: 'platform'
+            })
           }
         })
       }
@@ -751,8 +740,7 @@ export default {
       this.authTo = 'batchAuth'
       if (this.selectedParams.length === 1) {
         this.$refs.flowAuthRef.startAuth(this.selectedParams[0].mgmtRole, this.selectedParams[0].useRole)
-      }
-      else {
+      } else {
         this.$refs.flowAuthRef.startAuth([], [])
       }
     },
@@ -781,8 +769,7 @@ export default {
           },
           onCancel: () => {}
         })
-      }
-      else if (this.authTo === 'createFlow') {
+      } else if (this.authTo === 'createFlow') {
         const params = {
           id: '',
           name: `${this.$t('workflow_report_aspect')}_${dayjs().format('YYMMDDHHmmss')}`,
@@ -790,7 +777,7 @@ export default {
           scene: '',
           authPlugins: [],
           tags: '',
-          conflictCheck: false,
+          conflictCheck: true,
           rootEntity: '',
           permissionToRole: {
             MGMT: mgmt,
@@ -852,8 +839,7 @@ export default {
             this.$nextTick(() => {
               if (state === 'disabled') {
                 this.searchParams.status = 'disabled'
-              }
-              else if (state === 'enabled') {
+              } else if (state === 'enabled') {
                 this.searchParams.status = 'deployed'
               }
               this.getFlowList()
@@ -959,8 +945,7 @@ export default {
     changeRoleTableStatus(index, type) {
       if (type === 'in') {
         this.hideRoles.push(index)
-      }
-      else if (type === 'out') {
+      } else if (type === 'out') {
         const findIndex = this.hideRoles.findIndex(rIndex => rIndex === index)
         this.hideRoles.splice(findIndex, 1)
       }
@@ -1025,8 +1010,7 @@ export default {
             const blob = new Blob([response.data])
             if ('msSaveOrOpenBlob' in navigator) {
               window.navigator.msSaveOrOpenBlob(blob, fileName)
-            }
-            else {
+            } else {
               if ('download' in document.createElement('a')) {
                 // 非IE下载
                 const elink = document.createElement('a')
@@ -1037,8 +1021,7 @@ export default {
                 elink.click()
                 URL.revokeObjectURL(elink.href) // 释放URL 对象
                 document.body.removeChild(elink)
-              }
-              else {
+              } else {
                 // IE10+下载
                 navigator.msSaveOrOpenBlob(blob, fileName)
               }
