@@ -49,8 +49,9 @@ CREATE TABLE `trans_export_detail`
     CONSTRAINT `trans_export_detail_force_trans_export` FOREIGN KEY (`trans_export`) REFERENCES `trans_export` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '数据迁移导出记录表';
 
-INSERT INTO menu_items (id, parent_code, code, source, description, local_display_name)
-VALUES ('ADMIN__ADMIN_BASE_MIGRATION', 'ADMIN', 'ADMIN_BASE_MIGRATION', 'SYSTEM', '', '底座迁移');
+INSERT INTO menu_items (id, parent_code, code, source, description, local_display_name) VALUES ('ADMIN__ADMIN_BASE_MIGRATION', 'ADMIN', 'ADMIN_BASE_MIGRATION', 'SYSTEM', '', '底座迁移');
+INSERT INTO role_menu (id,role_name,menu_code) VALUES ('624a9aab7a10c45fcba4b','SUPER_ADMIN','ADMIN_BASE_MIGRATION');
+
 
 INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status)
 VALUES ('system__global__PLATFORM_EXPORT_CI_BUSINESS', '', 'PLATFORM_EXPORT_CI_BUSINESS', '', 'business_product',
