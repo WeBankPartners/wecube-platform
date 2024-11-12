@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2024-10-16 15:32:21
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2024-11-12 11:41:26
+ * @LastEditTime: 2024-11-12 15:51:06
 -->
 <template>
   <div class="base-migration-import-three">
@@ -70,13 +70,9 @@ export default {
         dataCenterAZ1AssetId: '',
         dataCenterAZ2AssetId: '',
         networkZoneAssetId: '',
-        networkSubZoneAssetId: '',
         networkSubZone1AssetId: '',
         networkSubZone2AssetId: '',
         routeTableAssetId: '',
-        basicSecurityGroupAssetId: '',
-        wecubeHostAssetId: '',
-        wecubeHostPassword: '',
         wecubeHost1AssetId: '',
         wecubeHost1Password: '',
         wecubeHost2AssetId: '',
@@ -100,10 +96,6 @@ export default {
           key: 'networkZoneAssetId'
         },
         {
-          label: '网络子区域 MGMT_APP-资产ID',
-          key: 'networkSubZoneAssetId'
-        },
-        {
           label: '网络子区域1 MGMT_APP-资产ID',
           key: 'networkSubZone1AssetId'
         },
@@ -114,18 +106,6 @@ export default {
         {
           label: '路由表 默认路由表-资产ID',
           key: 'routeTableAssetId'
-        },
-        {
-          label: '基础安全组 MGMT-APP-资产ID',
-          key: 'basicSecurityGroupAssetId'
-        },
-        {
-          label: '主机资源 wecube主机-资产ID',
-          key: 'wecubeHostAssetId'
-        },
-        {
-          label: '主机资源 wecube主机-管理员密码',
-          key: 'wecubeHostPassword'
         },
         {
           label: '主机资源 wecube主机1-资产ID',
