@@ -552,10 +552,15 @@ func modifyNewEnvData(ctx context.Context, transImportParam *models.TransImportJ
 		log.Logger.Error("ImportCustomFormData err", log.Error(err))
 		return
 	}
-	transImportParam.ImportCustomFormData.WecubeHostPwd = transImportParam.ImportCustomFormData.WecubeHostPassword
+	transImportParam.ImportCustomFormData.WecubeHost1Pwd = transImportParam.ImportCustomFormData.WecubeHost1Password
+	transImportParam.ImportCustomFormData.WecubeHost2Pwd = transImportParam.ImportCustomFormData.WecubeHost2Password
 	// 密码加密
-	if !strings.HasPrefix(transImportParam.ImportCustomFormData.WecubeHostPassword, models.AESPrefix) {
-		transImportParam.ImportCustomFormData.WecubeHostPassword = models.AESPrefix + encrypt.EncryptWithAesECB(transImportParam.ImportCustomFormData.WecubeHostPassword,
+	if !strings.HasPrefix(transImportParam.ImportCustomFormData.WecubeHost1Password, models.AESPrefix) {
+		transImportParam.ImportCustomFormData.WecubeHost1Password = models.AESPrefix + encrypt.EncryptWithAesECB(transImportParam.ImportCustomFormData.WecubeHost1Password,
+			models.Config.Plugin.ResourcePasswordSeed, models.Config.Plugin.ResourcePasswordSeed)
+	}
+	if transImportParam.ImportCustomFormData.WecubeHost2Password != "" && !strings.HasPrefix(transImportParam.ImportCustomFormData.WecubeHost2Password, models.AESPrefix) {
+		transImportParam.ImportCustomFormData.WecubeHost2Password = models.AESPrefix + encrypt.EncryptWithAesECB(transImportParam.ImportCustomFormData.WecubeHost2Password,
 			models.Config.Plugin.ResourcePasswordSeed, models.Config.Plugin.ResourcePasswordSeed)
 	}
 	byteArr, _ := json.Marshal(transImportParam.ImportCustomFormData)
