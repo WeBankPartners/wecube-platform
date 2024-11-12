@@ -570,10 +570,12 @@ export default {
       const finallArray = await Promise.all(promiseArray)
       this.allowCreationIpPort = []
       for (const key in ipMap) {
-        this.allowCreationIpPort.push({
-          ip: key,
-          port: finallArray[ipMap[key]].data
-        })
+        if (finallArray[ipMap[key]].data) {
+          this.allowCreationIpPort.push({
+            ip: key,
+            port: finallArray[ipMap[key]].data
+          })
+        }
       }
     },
     async createInstanceByIpPort(ip, port) {
