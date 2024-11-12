@@ -213,6 +213,8 @@ type ConfirmCMDBViewResp struct {
 type ImportCustomFormData struct {
 	NetworkZoneAssetId        string `json:"networkZoneAssetId"`        //网络区域-资产ID
 	NetworkSubZoneAssetId     string `json:"networkSubZoneAssetId"`     //网络子区域 MGMT_APP -资产ID
+	NetworkSubZone1AssetId    string `json:"networkSubZone1AssetId"`    //网络子区域1 MGMT_APP -资产ID
+	NetworkSubZone2AssetId    string `json:"networkSubZone2AssetId"`    //网络子区域2 MGMT_APP -资产ID
 	RouteTableAssetId         string `json:"routeTableAssetId"`         //路由表 默认路由表-资产ID
 	BasicSecurityGroupAssetId string `json:"basicSecurityGroupAssetId"` //基础安全组 MGMT-APP -资产ID
 	DataCenterRegionAssetId   string `json:"dataCenterRegionAssetId"`   //地域数据中心资产ID
@@ -220,6 +222,10 @@ type ImportCustomFormData struct {
 	DataCenterAZ2AssetId      string `json:"dataCenterAZ2AssetId"`      //地域数据中心可用区2资产ID
 	WecubeHostAssetId         string `json:"wecubeHostAssetId"`         //wecube主机的资产ID
 	WecubeHostPassword        string `json:"wecubeHostPassword"`        //wecube主机的管理员密码
+	WecubeHost1AssetId        string `json:"wecubeHost1AssetId"`        //wecube主机1的资产ID
+	WecubeHost1Password       string `json:"wecubeHost1Password"`       //wecube主机1的管理员密码
+	WecubeHost2AssetId        string `json:"wecubeHost2AssetId"`        //wecube主机2的资产ID
+	WecubeHost2Password       string `json:"wecubeHost2Password"`       //wecube主机2的管理员密码
 	WecubeHostPwd             string `json:"-"`
 }
 
