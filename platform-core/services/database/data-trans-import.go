@@ -1002,12 +1002,12 @@ func execTransImportCMDBData(session *xorm.Session, transImportParam *models.Tra
 		}
 		if len(queryRows) > 0 {
 			rowGuid := queryRows[0]["guid"]
-			encryptPwd, encryptErr := cipher.AesEnPasswordByGuid(rowGuid, encryptSeed, transImportParam.ImportCustomFormData.WecubeHostPwd, "")
+			encryptPwd, encryptErr := cipher.AesEnPasswordByGuid(rowGuid, encryptSeed, transImportParam.ImportCustomFormData.WecubeHost1Pwd, "")
 			if encryptErr != nil {
 				err = fmt.Errorf("encrypt password fail,%s ", encryptErr.Error())
 				return
 			}
-			if _, err = session.Exec("update host_resource set asset_id=?,root_user_password=? where guid=?", transImportParam.ImportCustomFormData.WecubeHostAssetId, encryptPwd, rowGuid); err != nil {
+			if _, err = session.Exec("update host_resource set asset_id=?,root_user_password=? where guid=?", transImportParam.ImportCustomFormData.WecubeHost1AssetId, encryptPwd, rowGuid); err != nil {
 				return
 			}
 		}
@@ -1015,13 +1015,10 @@ func execTransImportCMDBData(session *xorm.Session, transImportParam *models.Tra
 	if _, err = session.Exec("update network_zone set asset_id=? where cidr=?", transImportParam.ImportCustomFormData.NetworkZoneAssetId, transImportConfig.NetworkZoneCIDR); err != nil {
 		return
 	}
-	if _, err = session.Exec("update network_subzone set asset_id=? where cidr=?", transImportParam.ImportCustomFormData.NetworkSubZoneAssetId, transImportConfig.NetworkSubZoneCIDR); err != nil {
+	if _, err = session.Exec("update network_subzone set asset_id=? where cidr=?", transImportParam.ImportCustomFormData.NetworkSubZone1AssetId, transImportConfig.NetworkSubZoneCIDR); err != nil {
 		return
 	}
 	if _, err = session.Exec("update route_table set asset_id=? where code=?", transImportParam.ImportCustomFormData.RouteTableAssetId, transImportConfig.RouteTableCode); err != nil {
-		return
-	}
-	if _, err = session.Exec("update basic_security_group set asset_id=? where key_name=?", transImportParam.ImportCustomFormData.BasicSecurityGroupAssetId, transImportConfig.BasicSecurityGroupKeyName); err != nil {
 		return
 	}
 	if _, err = session.Exec("update data_center set asset_id=? where key_name=?", transImportParam.ImportCustomFormData.DataCenterRegionAssetId, transImportConfig.DataCenterRegionKeyName); err != nil {
