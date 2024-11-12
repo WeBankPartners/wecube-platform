@@ -252,7 +252,7 @@ export default {
               <span
                 style="cursor:pointer;color:#5cadff;"
                 onClick={() => {
-                  this.jumpToHistory(params.row)
+                  this.handleStaticTableLink(params.row, 'monitor')
                 }}
               >
                 {params.row.mapName || '-'}
@@ -313,11 +313,11 @@ export default {
       if (type === 'cmdb-ci-level') {
         path = `${window.location.origin}/#/wecmdb/data-mgmt-ci`
       } else if (type === 'cmdb-ci-name') {
-        path = `${window.location.origin}/#/wecmdb/data-mgmt-ci?ciTypeId=${'application_domain'}&name=${'作用域'}`
+        path = `${window.location.origin}/#/wecmdb/data-mgmt-ci?ciTypeId=${row.dataType}&name=${row.name}`
       } else if (type === 'cmdb-view') {
-        path = `${window.location.origin}/#/wecmdb/data-mgmt-view`
+        path = `${window.location.origin}/#/wecmdb/data-mgmt-view?viewId=${row.dataType}`
       } else if (type === 'cmdb-report') {
-        path = `${window.location.origin}/#/wecmdb/report-query`
+        path = `${window.location.origin}/#/wecmdb/report-query?reportId=${row.dataType}`
       } else if (type === 'artifacts') {
         path = `${window.location.origin}/#/artifacts/implementation/artifact-management`
       } else if (row.name === 'monitor_type' && type === 'monitor') {
