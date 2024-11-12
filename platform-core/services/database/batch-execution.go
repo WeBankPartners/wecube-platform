@@ -1305,7 +1305,10 @@ func ImportTemplate(c context.Context, operator string, batchExecTemplateData []
 		}
 
 		if !exists {
-			templateInfo.Id = guid.CreateGuid()
+			// 复用 批量执行主键ID
+			if strings.TrimSpace(templateInfo.Id) == "" {
+				templateInfo.Id = guid.CreateGuid()
+			}
 			// insert
 			templateData := &models.BatchExecutionTemplate{
 				Id:               templateInfo.Id,
