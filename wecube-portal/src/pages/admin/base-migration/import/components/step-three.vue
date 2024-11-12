@@ -44,12 +44,7 @@
           placeholder="请输入"
           style="width: 500px"
         />
-        <Upload
-          v-if="idx === 0"
-          action="#"
-          :before-upload="uploadJsonFile"
-          style="display:inline-block"
-        >
+        <Upload v-if="idx === 0" action="#" :before-upload="uploadJsonFile" style="display: inline-block">
           <Button type="primary">{{ $t('pe_one_import') }}</Button>
         </Upload>
       </FormItem>
@@ -175,7 +170,7 @@ export default {
       }
       const reader = new FileReader()
       reader.readAsText(file)
-      reader.onload = (e) => {
+      reader.onload = e => {
         try {
           const jsonData = JSON.parse(e.target.result)
           const keys = Object.keys(this.importCustomFormData)
