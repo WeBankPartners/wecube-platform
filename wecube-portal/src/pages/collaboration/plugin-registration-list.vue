@@ -560,17 +560,21 @@ export default {
         this.reloadPage()
       }
     },
-    getPortByHostIp() {
-      this.allowCreationIpPort = []
+    async getPortByHostIp() {
+      const ipMap = {}
+      const promiseArray = []
       this.selectedIp.forEach(async ip => {
-        const { data, status } = await getAvailablePortByHostIp(ip)
-        if (status === 'OK') {
-          this.allowCreationIpPort.push({
-            ip,
-            port: data
-          })
-        }
+        promiseArray.push(getAvailablePortByHostIp(ip))
+        ipMap[ip] = promiseArray.length - 1
       })
+      const finallArray = await Promise.all(promiseArray)
+      this.allowCreationIpPort = []
+      for (const key in ipMap) {
+        this.allowCreationIpPort.push({
+          ip: key,
+          port: finallArray[ipMap[key]].data
+        })
+      }
     },
     async createInstanceByIpPort(ip, port) {
       this.isSpinShow = true
