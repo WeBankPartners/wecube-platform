@@ -331,8 +331,13 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 		}})
 	}
 	if registerConfig.ResourceDependencies.S3.BucketName != "" {
-		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_runtime_resources_s3 (id,plugin_package_id,bucket_name,additional_properties) values  (?,?,?,NULL)", Param: []interface{}{
-			"p_res_s3_" + guid.CreateGuid(), pluginPackageId, registerConfig.ResourceDependencies.S3.BucketName,
+		fileAdditionList := []*models.PluginS3ResourceFileObj{}
+		for _, fileSetObj := range registerConfig.ResourceDependencies.S3.FileSet.File {
+			fileAdditionList = append(fileAdditionList, &models.PluginS3ResourceFileObj{Source: fileSetObj.Source, Target: fileSetObj.ToFile})
+		}
+		fileAdditionBytes, _ := json.Marshal(fileAdditionList)
+		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_runtime_resources_s3 (id,plugin_package_id,bucket_name,additional_properties) values  (?,?,?,?)", Param: []interface{}{
+			"p_res_s3_" + guid.CreateGuid(), pluginPackageId, registerConfig.ResourceDependencies.S3.BucketName, string(fileAdditionBytes),
 		}})
 	}
 	if registerConfig.Authorities.Authority.SystemRoleName != "" && len(registerConfig.Authorities.Authority.Menu) > 0 {
