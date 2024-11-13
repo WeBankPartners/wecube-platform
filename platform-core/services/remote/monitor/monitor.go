@@ -34,7 +34,7 @@ const (
 	importMonitorTypeUrl   = "/monitor/api/v2/config/type-batch"
 	importEndpointGroupUrl = "/monitor/api/v2/alarm/endpoint_group/import"
 	importMetricUrl        = "/monitor/api/v2/monitor/metric/import?serviceGroup=%s&monitorType=%s&endpointGroup=%s&comparison=%s"
-	importStrategyUrl      = "/monitor/api/v2/alarm/strategy/import/%s/%s"
+	importStrategyUrl      = "/monitor/api/v2/alarm/strategy/import/%s/%s?importRule=%s"
 	importLogMetricUrl     = "/monitor/api/v2/service/log_metric/log_monitor_template/import"
 	importLogMonitorUrl    = "/monitor/api/v2/service/log_metric/import?serviceGroup=%s"
 	importDashboardUrl     = "/monitor/api/v2/dashboard/custom/trans_import"
@@ -381,7 +381,7 @@ func ImportMetric(param ImportMetricParam) (err error) {
 func ImportStrategy(param ImportStrategyParam) (err error) {
 	var byteArr []byte
 	var response models.ResponseJson
-	uri := models.Config.Gateway.Url + fmt.Sprintf(importStrategyUrl, param.StrategyType, param.Value)
+	uri := models.Config.Gateway.Url + fmt.Sprintf(importStrategyUrl, param.StrategyType, param.Value, "cover")
 	if models.Config.HttpsEnable == "true" {
 		uri = "https://" + uri
 	} else {
