@@ -492,6 +492,9 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 	}
 	result.BatchExecId = batchExecId
 
+	log.Logger.Debug("call execution.BatchExecutionCallPluginService parameters", log.String("pluginInterfaceId", pluginInterfaceId),
+		log.String("entityType", entityType), log.JsonObj("entityInstances", entityInstances), log.JsonObj("inputParamConstants", inputParamConstants))
+
 	execTime := time.Now()
 	errCode := models.BatchExecErrorCodeSucceed
 	errMsg := ""
