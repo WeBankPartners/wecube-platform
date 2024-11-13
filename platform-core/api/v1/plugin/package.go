@@ -138,7 +138,7 @@ func UploadPackage(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	if samePackageNameNum > 3 {
+	if samePackageNameNum >= 3 {
 		middleware.ReturnError(c, fmt.Errorf("Package num limit 3 "))
 		return
 	}
@@ -167,15 +167,21 @@ func UploadPackage(c *gin.Context) {
 	if upgradeSql != "" {
 		s3FileMap[fmt.Sprintf("%s/%s", tmpFileDir, upgradeSql)] = s3Prefix + upgradeSql
 	}
-	if err = bash.UploadPluginPackage(models.Config.S3.PluginPackageBucket, s3FileMap); err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
 	if registerConfig.ResourceDependencies.S3.BucketName != "" {
+		// 尝试创建定义的bucket
 		if err = bash.MakeBucket(registerConfig.ResourceDependencies.S3.BucketName); err != nil {
 			middleware.ReturnError(c, err)
 			return
 		}
+		if len(registerConfig.ResourceDependencies.S3.FileSet.File) > 0 {
+			for _, fileSetObj := range registerConfig.ResourceDependencies.S3.FileSet.File {
+				s3FileMap[fmt.Sprintf("%s/%s", tmpFileDir, fileSetObj.Source)] = s3Prefix + fileSetObj.Source
+			}
+		}
+	}
+	if err = bash.UploadPluginPackage(models.Config.S3.ServerAddress, models.Config.S3.AccessKey, models.Config.S3.SecretKey, models.Config.S3.PluginPackageBucket, s3FileMap); err != nil {
+		middleware.ReturnError(c, err)
+		return
 	}
 	// 写数据库
 	enterprise := false
@@ -408,7 +414,7 @@ func doUploadPackage(c context.Context, archiveFilePath, operator string) (plugi
 	if upgradeSql != "" {
 		s3FileMap[fmt.Sprintf("%s/%s", tmpFileDir, upgradeSql)] = s3Prefix + upgradeSql
 	}
-	if err = bash.UploadPluginPackage(models.Config.S3.PluginPackageBucket, s3FileMap); err != nil {
+	if err = bash.UploadPluginPackage(models.Config.S3.ServerAddress, models.Config.S3.AccessKey, models.Config.S3.SecretKey, models.Config.S3.PluginPackageBucket, s3FileMap); err != nil {
 		return
 	}
 	if registerConfig.ResourceDependencies.S3.BucketName != "" {
@@ -684,6 +690,38 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 	if len(resources.Docker) == 0 {
 		err = fmt.Errorf("plugin must contain docker resource")
 		return
+	}
+	if len(resources.S3) > 0 {
+		s3Resource := resources.S3[0]
+		if s3Resource.AdditionalProperties != "" && s3Resource.AdditionalProperties != "[]" {
+			var fileAdditionList []*models.PluginS3ResourceFileObj
+			if tmpErr := json.Unmarshal([]byte(s3Resource.AdditionalProperties), &fileAdditionList); tmpErr == nil {
+				if len(fileAdditionList) > 0 {
+					s3ResourceServer, getS3ResourceErr := database.GetResourceServer(ctx, "s3", "", "")
+					if getS3ResourceErr != nil {
+						err = getS3ResourceErr
+						return
+					}
+					for _, fileSetObj := range fileAdditionList {
+						tmpS3UploadFile, downloadS3UploadFileErr := bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/%s", pluginPackageObj.Name, pluginPackageObj.Version, fileSetObj.Source))
+						if downloadS3UploadFileErr != nil {
+							err = downloadS3UploadFileErr
+							break
+						}
+						tmpUploadFileMap := make(map[string]string)
+						tmpUploadFileMap[tmpS3UploadFile] = fileSetObj.Target
+						if err = bash.UploadPluginPackage(fmt.Sprintf("%s:%s", s3ResourceServer.Host, s3ResourceServer.Port), s3ResourceServer.LoginUsername, s3ResourceServer.LoginPassword, s3Resource.BucketName, tmpUploadFileMap); err != nil {
+							break
+						}
+					}
+				}
+			} else {
+				log.Logger.Warn("Try to json unmarshal s3 resource addition fail", log.String("additionalProperties", s3Resource.AdditionalProperties), log.Error(tmpErr))
+			}
+			if err != nil {
+				return
+			}
+		}
 	}
 	var mysqlInstance *models.PluginMysqlInstances
 	var mysqlServer *models.ResourceServer
