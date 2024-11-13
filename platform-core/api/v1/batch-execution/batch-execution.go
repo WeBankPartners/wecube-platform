@@ -404,6 +404,8 @@ func RunJob(c *gin.Context) {
 }
 
 func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.BatchExecRunResp, err error) {
+	log.Logger.Debug("doRunJob reqParam", log.JsonObj("reqParam", reqParam))
+
 	result = &models.BatchExecRunResp{}
 	operator := middleware.GetRequestUser(c)
 	authToken := c.GetHeader(models.AuthorizationHeader)
@@ -491,6 +493,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		}
 	}
 	result.BatchExecId = batchExecId
+	log.Logger.Debug("call execution.BatchExecutionCallPluginService parameters", log.String("operator", operator), log.String("continueToken", continueToken))
 
 	log.Logger.Debug("call execution.BatchExecutionCallPluginService parameters", log.String("pluginInterfaceId", pluginInterfaceId),
 		log.String("entityType", entityType), log.JsonObj("entityInstances", entityInstances), log.JsonObj("inputParamConstants", inputParamConstants))
