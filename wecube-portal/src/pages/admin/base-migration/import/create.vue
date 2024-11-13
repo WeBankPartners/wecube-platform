@@ -139,7 +139,7 @@ export default {
     }
     // 新建操作
     if (!this.id) {
-      this.activeStep = 2
+      this.activeStep = 0
     }
   },
   beforeDestroy() {
