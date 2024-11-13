@@ -981,10 +981,11 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 				}
 			}
 			detail.CmdbCI = append(detail.CmdbCI, &models.CommonNameCount{
-				Name:  transExportAnalyze.DataTypeName,
-				Count: transExportAnalyze.DataLen,
-				Group: ciGroup[transExportAnalyze.DataType],
-				Data:  dataObj,
+				Name:     transExportAnalyze.DataTypeName,
+				Count:    transExportAnalyze.DataLen,
+				Group:    ciGroup[transExportAnalyze.DataType],
+				DataType: transExportAnalyze.DataType,
+				Data:     dataObj,
 			})
 		case models.TransExportAnalyzeSourceWeCmdbReport:
 			var tempArr []map[string]interface{}
@@ -993,8 +994,9 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 				if len(tempArr) > 0 {
 					for _, dataMap := range tempArr {
 						detail.CmdbReportForm = append(detail.CmdbReportForm, &models.CommonNameCreator{
-							Name:    fmt.Sprintf("%v", dataMap["name"]),
-							Creator: fmt.Sprintf("%v", dataMap["createUser"]),
+							Name:     fmt.Sprintf("%v", dataMap["name"]),
+							Creator:  fmt.Sprintf("%v", dataMap["createUser"]),
+							DataType: transExportAnalyze.DataType,
 						})
 					}
 				}
@@ -1007,8 +1009,9 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 				if len(tempArr) > 0 {
 					for _, dataMap := range tempArr {
 						detail.CmdbView = append(detail.CmdbView, &models.CommonNameCreator{
-							Name:    fmt.Sprintf("%v", dataMap["name"]),
-							Creator: fmt.Sprintf("%v", dataMap["createUser"]),
+							Name:     fmt.Sprintf("%v", dataMap["name"]),
+							Creator:  fmt.Sprintf("%v", dataMap["createUser"]),
+							DataType: transExportAnalyze.DataType,
 						})
 					}
 				}
