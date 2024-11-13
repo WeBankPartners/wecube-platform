@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2024-10-16 15:32:21
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2024-11-13 11:44:43
+ * @LastEditTime: 2024-11-13 13:27:58
 -->
 <template>
   <div class="base-migration-import-three">
@@ -133,7 +133,7 @@ export default {
   },
   mounted() {
     if (this.detailData && this.detailData.modifyNewEnvDataRes) {
-      this.importCustomFormData = this.detailData.modifyNewEnvDataRes.data
+      this.importCustomFormData = Object.assign({}, this.importCustomFormData, this.detailData.modifyNewEnvDataRes.data)
     }
   },
   methods: {
@@ -151,7 +151,6 @@ export default {
       const reader = new FileReader()
       reader.readAsText(file)
       reader.onload = e => {
-        console.log('111111111111111111111111', e.target.result)
         try {
           const jsonData = JSON.parse(e.target.result)
           const keys = Object.keys(this.importCustomFormData)
