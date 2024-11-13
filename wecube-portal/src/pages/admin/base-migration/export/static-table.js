@@ -512,7 +512,7 @@ export default {
             this.detailTableData = row.data && row.data.map(i => ({ name: i }))
             this.detailColumns = [
               {
-                title: '对象名',
+                title: '名称',
                 key: 'name'
               }
             ]

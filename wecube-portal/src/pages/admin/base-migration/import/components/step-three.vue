@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2024-10-16 15:32:21
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2024-11-13 13:27:58
+ * @LastEditTime: 2024-11-13 21:15:41
 -->
 <template>
   <div class="base-migration-import-three">
@@ -45,7 +45,7 @@
           style="width: 500px"
         />
         <Upload v-if="idx === 0" action="#" :before-upload="uploadJsonFile" style="display: inline-block">
-          <Button type="primary">{{ $t('pe_one_import') }}</Button>
+          <Button type="primary" :disabled="this.detailData.step > 3 || this.detailData.status === 'success'">{{ $t('pe_one_import') }}</Button>
         </Upload>
       </FormItem>
     </Form>
