@@ -12,8 +12,9 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
-func UploadPluginPackage(bucket string, fileMap map[string]string) (err error) {
-	minioClient, newErr := minio.New(models.Config.S3.ServerAddress, &minio.Options{Creds: credentials.NewStaticV4(models.Config.S3.AccessKey, models.Config.S3.SecretKey, "")})
+// fileMap -> k = localFilePath, v = targetS3Path
+func UploadPluginPackage(address, accessKey, secretKey, bucket string, fileMap map[string]string) (err error) {
+	minioClient, newErr := minio.New(address, &minio.Options{Creds: credentials.NewStaticV4(accessKey, secretKey, "")})
 	if newErr != nil {
 		return fmt.Errorf("minio new client fail,%s ", newErr.Error())
 	}
