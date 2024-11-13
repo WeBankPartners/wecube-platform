@@ -261,6 +261,14 @@ type RegisterXML struct {
 		S3 struct {
 			Text       string `xml:",chardata"`
 			BucketName string `xml:"bucketName,attr"`
+			FileSet    struct {
+				Text string `xml:",chardata"`
+				File []struct {
+					Text   string `xml:",chardata"`
+					Source string `xml:"source,attr"`
+					ToFile string `xml:"toFile,attr"`
+				} `xml:"file"`
+			} `xml:"fileSet"`
 		} `xml:"s3"`
 	} `xml:"resourceDependencies"`
 	Plugins struct {
@@ -927,4 +935,9 @@ type PluginArtifactsUploadResult struct {
 	Message string                   `json:"message"`
 	Status  string                   `json:"status"`
 	Data    []map[string]interface{} `json:"data"`
+}
+
+type PluginS3ResourceFileObj struct {
+	Source string `json:"source"`
+	Target string `json:"target"`
 }
