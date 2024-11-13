@@ -996,7 +996,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 						detail.CmdbReportForm = append(detail.CmdbReportForm, &models.CommonNameCreator{
 							Name:     fmt.Sprintf("%v", dataMap["name"]),
 							Creator:  fmt.Sprintf("%v", dataMap["createUser"]),
-							DataType: transExportAnalyze.DataType,
+							DataType: fmt.Sprintf("%v", dataMap["id"]),
 						})
 					}
 				}
@@ -1011,7 +1011,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 						detail.CmdbView = append(detail.CmdbView, &models.CommonNameCreator{
 							Name:     fmt.Sprintf("%v", dataMap["name"]),
 							Creator:  fmt.Sprintf("%v", dataMap["createUser"]),
-							DataType: transExportAnalyze.DataType,
+							DataType: fmt.Sprintf("%v", dataMap["viewId"]),
 						})
 					}
 				}
