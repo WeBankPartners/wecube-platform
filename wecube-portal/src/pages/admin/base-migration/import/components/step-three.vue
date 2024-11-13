@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2024-10-16 15:32:21
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2024-10-28 10:17:24
+ * @LastEditTime: 2024-11-12 15:51:06
 -->
 <template>
   <div class="base-migration-import-three">
@@ -20,7 +20,7 @@
           trigger: 'blur'
         }"
       >
-        <template v-if="i.key === 'wecubeHostPassword'">
+        <template v-if="['wecubeHostPassword', 'wecubeHost1Password', 'wecubeHost2Password'].includes(i.key)">
           <input type="text" style="display: none" />
           <input type="password" autocomplete="new-password" style="display: none" />
           <Input
@@ -44,6 +44,9 @@
           placeholder="请输入"
           style="width: 500px"
         />
+        <Upload v-if="idx === 0" action="#" :before-upload="uploadJsonFile" style="display: inline-block">
+          <Button type="primary">{{ $t('pe_one_import') }}</Button>
+        </Upload>
       </FormItem>
     </Form>
     <div class="footer">
@@ -63,15 +66,17 @@ export default {
   data() {
     return {
       importCustomFormData: {
-        networkZoneAssetId: '',
-        networkSubZoneAssetId: '',
-        routeTableAssetId: '',
-        basicSecurityGroupAssetId: '',
         dataCenterRegionAssetId: '',
         dataCenterAZ1AssetId: '',
         dataCenterAZ2AssetId: '',
-        wecubeHostAssetId: '',
-        wecubeHostPassword: ''
+        networkZoneAssetId: '',
+        networkSubZone1AssetId: '',
+        networkSubZone2AssetId: '',
+        routeTableAssetId: '',
+        wecubeHost1AssetId: '',
+        wecubeHost1Password: '',
+        wecubeHost2AssetId: '',
+        wecubeHost2Password: ''
       },
       options: [
         {
@@ -91,24 +96,32 @@ export default {
           key: 'networkZoneAssetId'
         },
         {
-          label: '网络子区域 MGMT_APP-资产ID',
-          key: 'networkSubZoneAssetId'
+          label: '网络子区域1 MGMT_APP-资产ID',
+          key: 'networkSubZone1AssetId'
+        },
+        {
+          label: '网络子区域2 MGMT_APP-资产ID',
+          key: 'networkSubZone2AssetId'
         },
         {
           label: '路由表 默认路由表-资产ID',
           key: 'routeTableAssetId'
         },
         {
-          label: '基础安全组 MGMT-APP-资产ID',
-          key: 'basicSecurityGroupAssetId'
+          label: '主机资源 wecube主机1-资产ID',
+          key: 'wecubeHost1AssetId'
         },
         {
-          label: '主机资源 wecube主机的-资产ID',
-          key: 'wecubeHostAssetId'
+          label: '主机资源 wecube主机1-管理员密码',
+          key: 'wecubeHost1Password'
         },
         {
-          label: '主机资源 wecube主机的-管理员密码',
-          key: 'wecubeHostPassword'
+          label: '主机资源 wecube主机2-资产ID',
+          key: 'wecubeHost2AssetId'
+        },
+        {
+          label: '主机资源 wecube主机2-管理员密码',
+          key: 'wecubeHost2Password'
         }
       ]
     }
@@ -124,6 +137,33 @@ export default {
     }
   },
   methods: {
+    /**
+     * 在文件上传前进行校验
+     * @param file 上传的文件对象
+     * @returns 如果文件类型为 JSON，则返回 true；否则返回 false，并显示错误信息
+     */
+    uploadJsonFile(file) {
+      const isJSON = file.type === 'application/json'
+      if (!isJSON) {
+        this.$Message.error('只能上传 JSON 文件!')
+        return
+      }
+      const reader = new FileReader()
+      reader.readAsText(file)
+      reader.onload = e => {
+        try {
+          const jsonData = JSON.parse(e.target.result)
+          const keys = Object.keys(this.importCustomFormData)
+          for (const key of keys) {
+            if (jsonData[key]) {
+              this.importCustomFormData[key] = jsonData[key]
+            }
+          }
+        } catch (error) {
+          console.error('json error', error)
+        }
+      }
+    },
     handleNext: debounce(async function () {
       if (this.detailData.step > 3 || this.detailData.status === 'success') {
         this.$emit('nextStep')
