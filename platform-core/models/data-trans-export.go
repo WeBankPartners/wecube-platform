@@ -335,10 +335,11 @@ type TransExportDetail struct {
 }
 
 type CommonNameCount struct {
-	Name  string      `json:"name"`
-	Count int         `json:"count"`
-	Group string      `json:"group"`
-	Data  interface{} `json:"data"`
+	Name     string      `json:"name"`
+	Count    int         `json:"count"`
+	Group    string      `json:"group"`
+	DataType string      `json:"dataType"`
+	Data     interface{} `json:"data"`
 }
 
 type PluginPackageCount struct {
@@ -348,8 +349,9 @@ type PluginPackageCount struct {
 }
 
 type CommonNameCreator struct {
-	Name    string `json:"name"`
-	Creator string `json:"creator"`
+	Name     string `json:"name"`
+	Creator  string `json:"creator"`
+	DataType string `json:"dataType"`
 }
 
 type CommonNameUser struct {
