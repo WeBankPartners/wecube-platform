@@ -336,14 +336,16 @@ export default {
 
         this.searchParamsTree = []
         data.forEach((single, index) => {
-          const childNode = single.attributes && single.attributes.map(attr => {
-            attr.key = single.packageName + single.entityName + index
-            attr.index = index
-            attr.title = attr.name
-            attr.entityName = single.entityName
-            attr.packageName = single.packageName
-            return attr
-          }) || []
+          const childNode = (single.attributes
+              && single.attributes.map(attr => {
+                attr.key = single.packageName + single.entityName + index
+                attr.index = index
+                attr.title = attr.name
+                attr.entityName = single.entityName
+                attr.packageName = single.packageName
+                return attr
+              }))
+            || []
           this.searchParamsTree.push({
             title: `${single.packageName}-${single.entityName}`,
             children: childNode
