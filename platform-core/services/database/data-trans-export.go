@@ -1109,7 +1109,7 @@ func GetTransExportAnalyzeDataBySourceOne(ctx context.Context, transExportId, so
 }
 
 func GetTransExportAnalyzeDataBySource(ctx context.Context, transExportId, source string) (result []*models.TransExportAnalyzeDataTable, err error) {
-	_, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_analyze_data where trans_export=? and source=?", transExportId, source).Get(&result)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_analyze_data where trans_export=? and source=?", transExportId, source).Find(&result)
 	return
 }
 
