@@ -314,7 +314,7 @@ export default {
         // 定时查询导出状态
         this.interval = setInterval(() => {
           this.getDetailData()
-        }, 30 * 1000)
+        }, 5 * 1000)
       }
     }, 500),
     // 跳转到历史列表
