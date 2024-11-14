@@ -844,6 +844,9 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 	var systemAnalyzeDataMap, productAnalyzeDataMap map[string]map[string]string
 	var transExportAnalyzeDataList []*models.TransExportAnalyzeDataTable
 	var monitorList []*models.CommonNameCount
+	var displayServiceGroupMap = make(map[string]*monitor.ServiceGroupTable)
+	var serviceGroupIds []string
+	var transExportAnalyzeList []*models.TransExportAnalyzeDataTable
 	var ciGroup = make(map[string]string)
 	if _, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export where id=?", transExportId).Get(&transExport); err != nil {
 		return
@@ -896,6 +899,27 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			}
 		}
 	}
+	if transExportAnalyzeList, err = GetTransExportAnalyzeDataBySource(ctx, transExportId, string(models.TransExportAnalyzeSourceMonitor)); err != nil {
+		return
+	}
+	for _, transExport := range transExportAnalyzeList {
+		if strings.HasSuffix(transExport.DataType, "service_group") {
+			var tempData []string
+			if err = json.Unmarshal([]byte(transExport.Data), &tempData); err != nil {
+				log.Logger.Error("json Unmarshal trans_export data err", log.Error(err))
+			}
+			serviceGroupIds = append(serviceGroupIds, tempData...)
+		}
+	}
+	if len(serviceGroupIds) > 0 {
+		var list []*monitor.ServiceGroupTable
+		if list, err = monitor.QueryServiceGroupBatch(serviceGroupIds, remote.GetToken()); err != nil {
+			log.Logger.Error("QueryServiceGroupNameBatch err", log.Error(err))
+		}
+		for _, serviceGroupTable := range list {
+			displayServiceGroupMap[serviceGroupTable.Guid] = serviceGroupTable
+		}
+	}
 	detail = &models.TransExportDetail{
 		TransExport:    &transExport,
 		CmdbCI:         make([]*models.CommonNameCount, 0),
@@ -905,12 +929,13 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 		Plugins:        &models.CommonOutput{},
 	}
 	// 查询CMDB CI group
-	if ciGroupAnalyzeData, err = GetTransExportAnalyzeDataBySource(ctx, transExportId, string(models.TransExportAnalyzeSourceWeCmdbGroup)); err != nil {
+	if ciGroupAnalyzeData, err = GetTransExportAnalyzeDataBySourceOne(ctx, transExportId, string(models.TransExportAnalyzeSourceWeCmdbGroup)); err != nil {
 		return
 	}
 	if ciGroupAnalyzeData.Data != "" {
 		json.Unmarshal([]byte(ciGroupAnalyzeData.Data), &ciGroup)
 	}
+
 	for _, transExportDetail := range transExportDetailList {
 		var tempArr []string
 		var data interface{}
@@ -996,7 +1021,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 						detail.CmdbReportForm = append(detail.CmdbReportForm, &models.CommonNameCreator{
 							Name:     fmt.Sprintf("%v", dataMap["name"]),
 							Creator:  fmt.Sprintf("%v", dataMap["createUser"]),
-							DataType: transExportAnalyze.DataType,
+							DataType: fmt.Sprintf("%v", dataMap["id"]),
 						})
 					}
 				}
@@ -1011,7 +1036,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 						detail.CmdbView = append(detail.CmdbView, &models.CommonNameCreator{
 							Name:     fmt.Sprintf("%v", dataMap["name"]),
 							Creator:  fmt.Sprintf("%v", dataMap["createUser"]),
-							DataType: transExportAnalyze.DataType,
+							DataType: fmt.Sprintf("%v", dataMap["viewId"]),
 						})
 					}
 				}
@@ -1022,8 +1047,8 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			var dataInterface interface{}
 			if strings.TrimSpace(transExportAnalyze.Data) != "" {
 				json.Unmarshal([]byte(transExportAnalyze.Data), &strData)
-				// 监控层级对象、业务配置模版、自定义看板存储的ID需要转化成名称
-				dataInterface = GetMonitorNameById(transExportAnalyze.DataTypeName, strData)
+				// 业务配置模版、自定义看板存储的ID需要转化成名称
+				dataInterface = GetMonitorNameById(transExportAnalyze.DataTypeName, strData, displayServiceGroupMap)
 			}
 			monitorData := &models.CommonNameCount{
 				Name:  transExportAnalyze.DataTypeName,
@@ -1078,8 +1103,13 @@ func GetTransExportAnalyzeDataByCond(ctx context.Context, transExportId, dataTyp
 	return
 }
 
-func GetTransExportAnalyzeDataBySource(ctx context.Context, transExportId, source string) (analyzeData models.TransExportAnalyzeDataTable, err error) {
+func GetTransExportAnalyzeDataBySourceOne(ctx context.Context, transExportId, source string) (analyzeData models.TransExportAnalyzeDataTable, err error) {
 	_, err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_analyze_data where trans_export=? and source=? limit 1", transExportId, source).Get(&analyzeData)
+	return
+}
+
+func GetTransExportAnalyzeDataBySource(ctx context.Context, transExportId, source string) (result []*models.TransExportAnalyzeDataTable, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_analyze_data where trans_export=? and source=?", transExportId, source).Find(&result)
 	return
 }
 
@@ -1088,7 +1118,7 @@ func QuerySimpleTransExportAnalyzeDataByTransExport(ctx context.Context, transEx
 	return
 }
 
-func GetMonitorNameById(dataTypeName string, ids []string) interface{} {
+func GetMonitorNameById(dataTypeName string, ids []string, displayServiceGroupMap map[string]*monitor.ServiceGroupTable) interface{} {
 	// 监控业务配置模版存储是ID需要转换成名称
 	var result interface{}
 	var err error
@@ -1105,18 +1135,22 @@ func GetMonitorNameById(dataTypeName string, ids []string) interface{} {
 		}
 		return result
 	}
-	// service_group存储是Id,需要转化成名称
-	if dataTypeName == string(models.TransExportAnalyzeMonitorDataTypeServiceGroup) {
-		if result, err = monitor.QueryServiceGroupBatch(ids, remote.GetToken()); err != nil {
-			log.Logger.Error("QueryServiceGroupNameBatch err", log.Error(err))
-		}
-		return result
-	}
 	// 基础类型,需要添加数据展示
 	if dataTypeName == string(models.TransExportAnalyzeMonitorDataTypeMonitorType) {
 		if result, err = monitor.QueryBasicTypeConfigBatch(ids, remote.GetToken()); err != nil {
 			log.Logger.Error("QueryBasicTypeConfigBatch err", log.Error(err))
 		}
+		return result
+	}
+	// dataTypeName(dataType) 后缀包含 service_group,则需要将guid替换成名称
+	if strings.HasSuffix(dataTypeName, "service_group") {
+		var displayNameArr []string
+		for _, id := range ids {
+			if v, ok := displayServiceGroupMap[id]; ok {
+				displayNameArr = append(displayNameArr, v.DisplayName)
+			}
+		}
+		result = displayNameArr
 		return result
 	}
 	return ids
