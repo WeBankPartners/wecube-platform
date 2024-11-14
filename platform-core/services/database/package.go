@@ -1042,9 +1042,10 @@ func SetPluginPackageRegisterDone(ctx context.Context, pluginPackageId, operator
 	if affectNum, _ := execResult.RowsAffected(); affectNum <= 0 {
 		err = fmt.Errorf("can not find plugin packages with id=%s ", pluginPackageId)
 	} else {
-		queryRows, _ := db.MysqlEngine.Context(ctx).QueryString("select id,`version`,package_name,is_dynamic from plugin_package_data_model where package_name='wecmdb' order by update_time desc limit 1")
-		if len(queryRows) > 0 {
-			if queryRows[0]["is_dynamic"] == "1" {
+		var dataModelRows []*models.PluginPackageDataModel
+		db.MysqlEngine.Context(ctx).SQL("select id,`version`,package_name,is_dynamic from plugin_package_data_model where package_name='wecmdb' order by update_time desc limit 1").Find(&dataModelRows)
+		if len(dataModelRows) > 0 {
+			if dataModelRows[0].IsDynamic {
 				dynamicModel = true
 			}
 		}
