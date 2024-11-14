@@ -87,6 +87,7 @@ export default {
     async getExecuteDetail() {
       const { status, data } = await batchExecuteHistory(this.id)
       if (status === 'OK') {
+        // 有模板ID，获取模板详情数据，拼接到执行历史数据里面
         if (data.batchExecutionTemplateId) {
           const { data: templateData } = await getBatchExecuteTemplateDetail(data.batchExecutionTemplateId)
           this.detailData = {
@@ -95,7 +96,6 @@ export default {
             templateData
           }
         } else {
-          // 预执行数据(无模板ID)
           this.detailData = {
             ...data,
             isDangerousBlock: data.configData.isDangerousBlock,
@@ -165,7 +165,7 @@ export default {
         resultTableParams
       }
       // 查询结果主键
-      const currentEntity = primatKeyAttrList.find(item => item.name === primatKeyAttr)
+      const currentEntity = primatKeyAttrList && primatKeyAttrList.find(item => item.name === primatKeyAttr) || {}
       const resourceDatas = seletedRows.map(item => ({
         id: item.id,
         businessKeyValue: item[primatKeyAttr]
@@ -175,6 +175,8 @@ export default {
       // 插件入参
       const inputParameterDefinitions = pluginInputParams.map(p => {
         const inputParameterValue = p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
+        // 解决插件入参pluginConfigInterfaceId和插件ID不同的问题
+        p.pluginConfigInterfaceId = plugin.id
         return {
           inputParameter: p,
           inputParameterValue
