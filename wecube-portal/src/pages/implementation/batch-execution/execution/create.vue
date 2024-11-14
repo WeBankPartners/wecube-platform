@@ -165,7 +165,7 @@ export default {
         resultTableParams
       }
       // 查询结果主键
-      const currentEntity = primatKeyAttrList && primatKeyAttrList.find(item => item.name === primatKeyAttr) || {}
+      const currentEntity = (primatKeyAttrList && primatKeyAttrList.find(item => item.name === primatKeyAttr)) || {}
       const resourceDatas = seletedRows.map(item => ({
         id: item.id,
         businessKeyValue: item[primatKeyAttr]
