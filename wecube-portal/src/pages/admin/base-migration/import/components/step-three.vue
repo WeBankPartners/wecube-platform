@@ -45,9 +45,7 @@
           style="width: 500px"
         />
         <Upload v-if="idx === 0" action="#" :before-upload="uploadJsonFile" style="display: inline-block">
-          <Button type="primary" :disabled="getDisabled">{{
-            $t('pe_one_import')
-          }}</Button>
+          <Button type="primary" :disabled="getDisabled">{{ $t('pe_one_import') }}</Button>
         </Upload>
       </FormItem>
     </Form>
