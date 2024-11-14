@@ -1036,5 +1036,6 @@
   "pi_image": "镜像",
   "pi_package_type": "部署包类型",
   "pi_baseline": "基线版本",
-  "pi_enter_to_filter": "请输入后过滤"
+  "pi_enter_to_filter": "请输入后过滤",
+  "pi_enter_flow_notstarted": "编排还未执行"
 }
