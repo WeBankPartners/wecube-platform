@@ -398,8 +398,15 @@ func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, operato
 				node.BindNodeId = v
 			}
 			// node 绑定 ContextParamNodes 替换
-			if v, ok := nodeIdMap[node.ContextParamNodes]; ok {
-				node.ContextParamNodes = v
+			if len(node.ContextParamNodes) > 0 {
+				var newContextParamsNodes []string
+				arr := strings.Split(node.ContextParamNodes, ",")
+				for _, str := range arr {
+					if v, ok := nodeIdMap[str]; ok {
+						newContextParamsNodes = append(newContextParamsNodes, v)
+					}
+				}
+				node.ContextParamNodes = strings.Join(newContextParamsNodes, ",")
 			}
 			// 替换node的 UiStyle中 nodeId,web显示用
 			for key, value := range nodeIdMap {
@@ -417,6 +424,12 @@ func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, operato
 				}
 				allNodeParamList = append(allNodeParamList, nodeParamList...)
 			}
+		}
+	}
+	for _, link := range linkList {
+		// 替换link 的 UiStyle中 nodeId,web显示用
+		for key, value := range nodeIdMap {
+			link.UiStyle = strings.ReplaceAll(link.UiStyle, key, value)
 		}
 	}
 	newProcDefId = "pdef_" + guid.CreateGuid()
