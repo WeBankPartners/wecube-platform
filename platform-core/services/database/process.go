@@ -397,6 +397,14 @@ func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, operato
 			if v, ok := nodeIdMap[node.BindNodeId]; ok {
 				node.BindNodeId = v
 			}
+			// node 绑定 ContextParamNodes 替换
+			if v, ok := nodeIdMap[node.ContextParamNodes]; ok {
+				node.ContextParamNodes = v
+			}
+			// 替换node的 UiStyle中 nodeId,web显示用
+			for key, value := range nodeIdMap {
+				node.UiStyle = strings.ReplaceAll(node.UiStyle, key, value)
+			}
 			nodeParamList, _ := GetProcDefNodeParamByNodeId(ctx, node.Id)
 			// nodeParamList 中 存储nodeId,为node.NodeId,而非 node.id
 			if len(nodeParamList) > 0 {
