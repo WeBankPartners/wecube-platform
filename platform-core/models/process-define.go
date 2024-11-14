@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/guid"
-	"math/rand"
 	"reflect"
 	"strconv"
 	"strings"
@@ -809,20 +808,6 @@ func GenNodeId(nodeType string) string {
 		nodeTypeShort = nodeTypeShort[:4]
 	}
 	return fmt.Sprintf("pdn_%s_%s", nodeTypeShort, guid.CreateGuid())
-}
-
-// GenWebNodeId 生成web的nodeId
-func GenWebNodeId() string {
-	// 获取当前时间的纳秒级时间戳作为种子
-	seed := time.Now().UnixNano()
-	// 使用当前时间的纳秒级时间戳创建一个新的随机数生成器
-	randGen := rand.New(rand.NewSource(seed))
-	chars := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-	var b strings.Builder
-	for i := 0; i < 16; i++ {
-		b.WriteRune(chars[randGen.Intn(len(chars))])
-	}
-	return b.String()
 }
 
 type ProcDefParentPageResult struct {

@@ -369,7 +369,6 @@ func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, operato
 	var nodeList []*models.ProcDefNode
 	var linkList []*models.ProcDefNodeLink
 	var allNodeParamList []*models.ProcDefNodeParam
-	var nodeIdMap = make(map[string]string)
 	// 查询权限
 	permissionList, err = GetProcDefPermissionByCondition(ctx, models.ProcDefPermission{ProcDefId: procDef.Id})
 	if err != nil {
@@ -386,50 +385,15 @@ func CopyProcessDefinition(ctx context.Context, procDef *models.ProcDef, operato
 		return
 	}
 	if len(nodeList) > 0 {
-		// node 的nodeId重新创建
 		for _, node := range nodeList {
-			newNodeId := "pdef_node_" + models.GenWebNodeId()
-			nodeIdMap[node.NodeId] = newNodeId
-			node.NodeId = newNodeId
-		}
-		for _, node := range nodeList {
-			// node绑定NodeId替换
-			if v, ok := nodeIdMap[node.BindNodeId]; ok {
-				node.BindNodeId = v
-			}
-			// node 绑定 ContextParamNodes 替换
-			if len(node.ContextParamNodes) > 0 {
-				var newContextParamsNodes []string
-				arr := strings.Split(node.ContextParamNodes, ",")
-				for _, str := range arr {
-					if v, ok := nodeIdMap[str]; ok {
-						newContextParamsNodes = append(newContextParamsNodes, v)
-					}
-				}
-				node.ContextParamNodes = strings.Join(newContextParamsNodes, ",")
-			}
-			// 替换node的 UiStyle中 nodeId,web显示用
-			for key, value := range nodeIdMap {
-				node.UiStyle = strings.ReplaceAll(node.UiStyle, key, value)
-			}
 			nodeParamList, _ := GetProcDefNodeParamByNodeId(ctx, node.Id)
 			// nodeParamList 中 存储nodeId,为node.NodeId,而非 node.id
 			if len(nodeParamList) > 0 {
 				for _, param := range nodeParamList {
 					param.ProcDefNodeId = node.NodeId
-					// 上下文绑定nodeId替换
-					if v, ok := nodeIdMap[param.CtxBindNode]; ok {
-						param.CtxBindNode = v
-					}
 				}
 				allNodeParamList = append(allNodeParamList, nodeParamList...)
 			}
-		}
-	}
-	for _, link := range linkList {
-		// 替换link 的 UiStyle中 nodeId,web显示用
-		for key, value := range nodeIdMap {
-			link.UiStyle = strings.ReplaceAll(link.UiStyle, key, value)
 		}
 	}
 	newProcDefId = "pdef_" + guid.CreateGuid()
