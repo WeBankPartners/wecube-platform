@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import { instancesWithPaging, saveImportData } from '@/api/server'
+import { saveImportData } from '@/api/server'
 import { debounce } from '@/const/util'
 export default {
   props: {
@@ -155,27 +155,17 @@ export default {
   methods: {
     // 查看编排详情
     async jumpToHistory(row) {
-      const params = {
-        id: row.id,
-        pageable: {
-          startIndex: 0,
-          pageSize: 5000
-        }
+      // 编排启动，跳转，否则给出提示
+      if (row.status !== 'NotStarted') {
+        window.sessionStorage.currentPath = ''
+        const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${row.id}&from=normal`
+        window.open(path, '_blank')
+      } else {
+        this.$Notice.warning({
+          title: '',
+          desc: this.$t('pi_enter_flow_notstarted')
+        })
       }
-      const { status, data } = await instancesWithPaging(params)
-      if (status === 'OK') {
-        const detail = Array.isArray(data.contents) && data.contents[0]
-        // 能获取到历史记录，跳转，否则给出提示
-        if (detail && detail.id) {
-          window.sessionStorage.currentPath = ''
-          const path = `${window.location.origin}/#/implementation/workflow-execution/view-execution?id=${row.id}&from=normal`
-          window.open(path, '_blank')
-        }
-      }
-      this.$Notice.warning({
-        title: '',
-        desc: this.$t('no_detail_warning')
-      })
     },
     handleNext: debounce(async function () {
       if (this.detailData.step > 4 || this.detailData.status === 'success') {
