@@ -326,9 +326,7 @@ export default {
         path = `${window.location.origin}/#/monitorConfigIndex/groupManagement`
       } else if (
         (row.name === 'metric_list'
-          || ['custom_metric_service_group', 'custom_metric_monitor_type'].includes(
-            row.name
-          ))
+          || ['custom_metric_service_group', 'custom_metric_monitor_type'].includes(row.name))
         && type === 'monitor'
       ) {
         path = `${window.location.origin}/#/monitorConfigIndex/metricConfig`
