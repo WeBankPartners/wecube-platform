@@ -935,7 +935,7 @@
   "p_logKeyword_service_group_des": "Pull the keyword alert configuration of the related level object",
   "p_dashboard_des": "Pull the custom dashboard of the related level object, object",
   "p_custom_metric_monitor_type_des": "Pull the metrics of the related basic type",
-  "p_custom_metric_endpoint_group_des": "Pull the metric list configuration of the related level object",
+  "p_custom_metric_endpoint_group_des": "Pull the metric list configuration of the endpoint group",
   "p_custom_metric_service_group_des": "Pull the metric list configuration of the related object group",
   "p_strategy_service_group_des": "Pull the metric alert configuration of the related level object",
   "p_strategy_endpoint_group_des": "Pull the metrics of the related object group",
