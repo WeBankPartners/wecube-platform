@@ -1142,6 +1142,17 @@ func GetMonitorNameById(dataTypeName string, ids []string, displayServiceGroupMa
 		}
 		return result
 	}
+	// 层级对象(仅分析需要展示层级对象完整信息)
+	if dataTypeName == string(models.TransExportAnalyzeMonitorDataTypeServiceGroup) {
+		var serviceGroupList []*monitor.ServiceGroupTable
+		for _, id := range ids {
+			if v, ok := displayServiceGroupMap[id]; ok {
+				serviceGroupList = append(serviceGroupList, v)
+			}
+		}
+		result = serviceGroupList
+		return result
+	}
 	// dataTypeName(dataType) 后缀包含 service_group,则需要将guid替换成名称
 	if strings.HasSuffix(dataTypeName, "service_group") {
 		var displayNameArr []string
