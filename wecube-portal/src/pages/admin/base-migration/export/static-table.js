@@ -326,12 +326,14 @@ export default {
         path = `${window.location.origin}/#/monitorConfigIndex/groupManagement`
       } else if (
         (row.name === 'metric_list'
-          || ['custom_metric_service_group', 'custom_metric_endpoint_group', 'custom_metric_monitor_type'].includes(
+          || ['custom_metric_service_group', 'custom_metric_monitor_type'].includes(
             row.name
           ))
         && type === 'monitor'
       ) {
         path = `${window.location.origin}/#/monitorConfigIndex/metricConfig`
+      } else if (row.name === 'custom_metric_endpoint_group' && type === 'monitor') {
+        path = `${window.location.origin}/#/monitorConfigIndex/metricConfig?type=2`
       } else if (row.name === 'log_monitor_service_group' && type === 'monitor') {
         path = `${window.location.origin}/#/monitorConfigIndex/businessMonitor`
       } else if (row.name === 'log_monitor_template' && type === 'monitor') {
