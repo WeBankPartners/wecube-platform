@@ -1086,10 +1086,8 @@ func transProcDefNodeUpdateConditionToSQL(procDefNode *models.ProcDefNode) (sql 
 		sql = sql + ",routine_expression=?"
 		params = append(params, procDefNode.RoutineExpression)
 	}
-	if procDefNode.ContextParamNodes != "" {
-		sql = sql + ",context_param_nodes=?"
-		params = append(params, procDefNode.ContextParamNodes)
-	}
+	sql = sql + ",context_param_nodes=?"
+	params = append(params, procDefNode.ContextParamNodes)
 	if procDefNode.Timeout != 0 {
 		sql = sql + ",timeout=?"
 		params = append(params, procDefNode.Timeout)

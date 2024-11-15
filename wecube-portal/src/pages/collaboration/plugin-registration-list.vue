@@ -503,6 +503,7 @@ export default {
         title: 'Error',
         desc: file.message || ''
       })
+      this.showSuccess = false
     },
     async onDeleteCardConfirm(item) {
       const { status } = await deletePluginPkg(item.id)
