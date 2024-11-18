@@ -589,7 +589,15 @@ func ProcInsOperation(c *gin.Context) {
 			middleware.ReturnError(c, exterror.New().ProcStatusOperationError)
 			return
 		}
-		operationObj := models.ProcRunOperation{WorkflowId: workflowId, NodeId: nodeId, Operation: "confirm", Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
+		operation := "retry"
+		if nodeObj.Status == models.JobStatusRisky {
+			operation = "confirm"
+		} else {
+			if nodeObj.NodeType == models.JobSubProcType {
+				killSubProc(c, procInsObj.Id, nodeObj.ProcInsId, middleware.GetRequestUser(c))
+			}
+		}
+		operationObj := models.ProcRunOperation{WorkflowId: workflowId, NodeId: nodeId, Operation: operation, Status: "wait", CreatedBy: middleware.GetRequestUser(c)}
 		operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
 		if err != nil {
 			middleware.ReturnError(c, err)
@@ -611,7 +619,7 @@ func GetProcInsTaskNodeBindings(c *gin.Context) {
 	}
 }
 
-func ProcInsNodeRetry(c *gin.Context) {
+func UpdateProcInsTaskNodeBindings(c *gin.Context) {
 	var param []*models.TaskNodeBindingObj
 	if err := c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
@@ -632,7 +640,7 @@ func ProcInsNodeRetry(c *gin.Context) {
 		return
 	}
 	procInsNodeId := c.Param("procInsNodeId")
-	procInsNodeObj, getProcInsNodeErr := database.GetSimpleProcInsNode(c, procInsNodeId, "")
+	_, getProcInsNodeErr := database.GetSimpleProcInsNode(c, procInsNodeId, "")
 	if getProcInsNodeErr != nil {
 		middleware.ReturnError(c, getProcInsNodeErr)
 		return
@@ -643,25 +651,25 @@ func ProcInsNodeRetry(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	if procInsNodeObj.Status == models.JobStatusReady {
-		middleware.ReturnSuccess(c)
-		return
-	}
-	if procInsNodeObj.NodeType == models.JobSubProcType {
-		killSubProc(c, procInsId, procInsNodeId, operator)
-	}
-	workflowId, nodeId, err := database.GetProcWorkByInsId(c, procInsId, procInsNodeId)
-	if err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	operationObj := models.ProcRunOperation{WorkflowId: workflowId, NodeId: nodeId, Operation: "retry", Status: "wait", CreatedBy: operator}
-	operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
-	if err != nil {
-		middleware.ReturnError(c, err)
-		return
-	}
-	go workflow.HandleProOperation(&operationObj)
+	//if procInsNodeObj.Status == models.JobStatusReady {
+	//	middleware.ReturnSuccess(c)
+	//	return
+	//}
+	//if procInsNodeObj.NodeType == models.JobSubProcType {
+	//	killSubProc(c, procInsId, procInsNodeId, operator)
+	//}
+	//workflowId, nodeId, err := database.GetProcWorkByInsId(c, procInsId, procInsNodeId)
+	//if err != nil {
+	//	middleware.ReturnError(c, err)
+	//	return
+	//}
+	//operationObj := models.ProcRunOperation{WorkflowId: workflowId, NodeId: nodeId, Operation: "retry", Status: "wait", CreatedBy: operator}
+	//operationObj.Id, err = database.AddWorkflowOperation(c, &operationObj)
+	//if err != nil {
+	//	middleware.ReturnError(c, err)
+	//	return
+	//}
+	//go workflow.HandleProOperation(&operationObj)
 	middleware.ReturnSuccess(c)
 }
 
