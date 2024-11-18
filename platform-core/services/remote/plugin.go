@@ -938,6 +938,12 @@ func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId st
 			err = fmt.Errorf("io copy multipart file fail,%s ", err.Error())
 			return
 		}
+		packageTypeWriter, _ := bodyWriter.CreateFormField("package_type")
+		_, writeErr := packageTypeWriter.Write([]byte("APP&DB"))
+		if writeErr != nil {
+			err = fmt.Errorf("create form field package type value fail,%s ", writeErr.Error())
+			return
+		}
 	}
 	bodyWriter.Close()
 	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), buf)
