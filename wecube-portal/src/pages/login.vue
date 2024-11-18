@@ -58,7 +58,7 @@ export default {
   data() {
     return {
       username: '',
-      ***REMOVED***
+      password: '',
       encryptKey: '',
       loading: false,
       showRoleApply: false,
