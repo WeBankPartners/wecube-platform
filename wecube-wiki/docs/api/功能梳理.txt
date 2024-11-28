@@ -18,7 +18,7 @@
 8、插件配置 - 注册插件包 POST  /platform/v1/packages/register/sFiv110x2Bjc 
 9、运行管理 - 当前运行实例列表 GET  /platform/v1/packages/sFiv110x2Bjc/instances
 10、运行管理 - 可用容器主机查询 GET  /platform/v1/available-container-hosts
-11、运行管理 - 主机可用端口查询 GET  /platform/v1/hosts/***REMOVED***/next-available-port
+11、运行管理 - 主机可用端口查询 GET  /platform/v1/hosts/127.0.0.1/next-available-port
 12、运行管理 - 插件实例创建 POST  /packages/{package-id}/hosts/{host-ip}/ports/{port}/instance/launch
 13、服务注册 - 当前插件服务配置查询 GET  /platform/v1/packages/sFiv110x2Bjc/plugin-configs
 14、服务注册 - 所有插件模型查询 GET  /platform/v1/models
