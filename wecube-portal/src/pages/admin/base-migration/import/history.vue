@@ -254,7 +254,7 @@ export default {
   },
   beforeRouteEnter(to, from, next) {
     next(vm => {
-      if (from.path === '/admin/base-migration/import') {
+      if (from.path === '/admin/base-migration/import' && Object.keys(from.query).length > 0) {
         // 读取列表搜索参数
         const storage = window.sessionStorage.getItem('import_baseMigration') || ''
         if (storage) {

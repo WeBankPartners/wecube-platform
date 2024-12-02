@@ -56,6 +56,16 @@ type QueryUserResponse struct {
 	Data []*SimpleLocalUserDto `json:"data"`
 }
 
+type QueryUserPageResponse struct {
+	HttpResponseMeta
+	Data *UserPageData `json:"data"`
+}
+
+type UserPageData struct {
+	PageInfo PageInfo              `json:"pageInfo"`
+	Contents []*SimpleLocalUserDto `json:"contents"`
+}
+
 type QueryRolesResponse struct {
 	HttpResponseMeta
 	Data []*SimpleLocalRoleDto `json:"data"`

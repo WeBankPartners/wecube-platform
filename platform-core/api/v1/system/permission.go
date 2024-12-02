@@ -112,6 +112,20 @@ func GetAllUser(c *gin.Context) {
 	middleware.ReturnData(c, list)
 }
 
+// QueryUser 查询用户
+func QueryUser(c *gin.Context) {
+	var param models.QueryUserParam
+	var err error
+	var pageInfo models.PageInfo
+	var data []*models.SimpleLocalUserDto
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	pageInfo, data, err = remote.QueryUser(param, c.GetHeader("Authorization"), c.GetHeader("Accept-Language"))
+	middleware.ReturnPageData(c, pageInfo, data)
+}
+
 // QueryRoles 查询角色
 func QueryRoles(c *gin.Context) {
 	requiredAll := c.Query("all")
