@@ -258,7 +258,7 @@ export default {
   },
   beforeRouteEnter(to, from, next) {
     next(vm => {
-      if (from.path === '/admin/base-migration/export') {
+      if (from.path === '/admin/base-migration/export' && Object.keys(from.query).length > 0) {
         // 读取列表搜索参数
         const storage = window.sessionStorage.getItem('export_baseMigration') || ''
         if (storage) {
