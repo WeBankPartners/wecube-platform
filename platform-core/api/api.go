@@ -60,6 +60,9 @@ func init() {
 		&handlerFuncObj{Url: "/resource/servers/update", Method: "POST", HandlerFunc: system.UpdateResourceServer, ApiCode: "update-resource-server"},
 		&handlerFuncObj{Url: "/resource/servers/delete", Method: "POST", HandlerFunc: system.DeleteResourceServer, ApiCode: "delete-resource-server"},
 		&handlerFuncObj{Url: "/resource/servers/:resourceServerId/product-serial", Method: "GET", HandlerFunc: system.GetResourceServerSerialNum, ApiCode: "get-serial-num"},
+		&handlerFuncObj{Url: "/resource/items/create", Method: "POST", HandlerFunc: system.CreateResourceItem, ApiCode: "create-resource-item"},
+		&handlerFuncObj{Url: "/resource/items/update", Method: "POST", HandlerFunc: system.UpdateResourceItem, ApiCode: "update-resource-item"},
+		&handlerFuncObj{Url: "/resource/items/delete", Method: "POST", HandlerFunc: system.DeleteResourceItem, ApiCode: "delete-resource-item"},
 		// plugin
 		&handlerFuncObj{Url: "/packages", Method: "GET", HandlerFunc: plugin.GetPackages, ApiCode: "get-packages"},
 		&handlerFuncObj{Url: "/packages", Method: "POST", HandlerFunc: plugin.UploadPackage, ApiCode: "upload-packages"},
