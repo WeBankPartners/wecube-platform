@@ -16,6 +16,8 @@ const (
 	pathRegisterLocalUser = "/auth/v1/users"
 	// pathRetrieveAllUserAccounts 查询所有用户
 	pathRetrieveAllUserAccounts = "/auth/v1/users"
+	// pathQueryUser 查询用户
+	pathQueryUser = "/auth/v1/users/query"
 	// pathRetrieveAllRoles  查询所有角色
 	pathRetrieveAllRoles = "/auth/v1/roles?all=%s&roleAdmin=%s"
 	// pathRetrieveGrantedRolesByUsername 根据用户名查询角色
@@ -114,6 +116,26 @@ func RetrieveAllUsers(userToken, language string) (response models.QueryUserResp
 		err = fmt.Errorf("try to json unmarshal response body fail,%s ", err.Error())
 		return
 	}
+	return
+}
+
+func QueryUser(param models.QueryUserParam, userToken, language string) (pageInfo models.PageInfo, data []*models.SimpleLocalUserDto, err error) {
+	var response models.QueryUserPageResponse
+	postBytes, _ := json.Marshal(param)
+	byteArr, err := network.HttpPost(models.Config.Auth.Url+pathQueryUser, userToken, language, postBytes)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(byteArr, &response)
+	if err != nil {
+		err = fmt.Errorf("try to json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+	if response.Data == nil {
+		return
+	}
+	pageInfo = response.Data.PageInfo
+	data = response.Data.Contents
 	return
 }
 
