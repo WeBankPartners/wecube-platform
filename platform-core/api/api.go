@@ -120,6 +120,7 @@ func init() {
 		&handlerFuncObj{Url: "/user/:username/get", Method: "GET", HandlerFunc: system.GetUserByUsername, ApiCode: "get-user"},
 		&handlerFuncObj{Url: "/user/:username/update", Method: "POST", HandlerFunc: system.UpdateUser, ApiCode: "update-user"},
 		&handlerFuncObj{Url: "/users/retrieve", Method: "GET", HandlerFunc: system.GetAllUser, ApiCode: "get-all-user"},
+		&handlerFuncObj{Url: "/users/query", Method: "POST", HandlerFunc: system.QueryUser, ApiCode: "query-user"},
 		&handlerFuncObj{Url: "/roles/create", Method: "POST", HandlerFunc: system.CreateRole, ApiCode: "create-roles"},
 		&handlerFuncObj{Url: "/roles/retrieve", Method: "GET", HandlerFunc: system.QueryRoles, ApiCode: "query-roles"},
 		&handlerFuncObj{Url: "/roles/:role-id/menus", Method: "GET", HandlerFunc: system.GetMenusByRoleId, ApiCode: "get-role-menu"},
@@ -164,6 +165,7 @@ func init() {
 		&handlerFuncObj{Url: "/process/definitions/collect/add", Method: "POST", HandlerFunc: process.AddProcDefCollect, ApiCode: "add-proc-collect"},
 		&handlerFuncObj{Url: "/process/definitions/collect/del", Method: "POST", HandlerFunc: process.DelProcDefCollect, ApiCode: "del-proc-collect"},
 		&handlerFuncObj{Url: "/process/definitions/sub/list", Method: "POST", HandlerFunc: process.SubProcDefList, ApiCode: "sub-proc-list"},
+		&handlerFuncObj{Url: "/process/definitions/nodes/empty-query", Method: "GET", HandlerFunc: process.QueryEmptyNodes, ApiCode: "query-empty-node"},
 		// process runtime
 		&handlerFuncObj{Url: "/process/definitions", Method: "GET", HandlerFunc: process.ProcDefList, ApiCode: "list-process-def"},
 
