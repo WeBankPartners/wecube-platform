@@ -1,35 +1,37 @@
 <template>
   <Modal
     v-model="flowRoleManageModal"
-    width="720"
+    width="800"
     :title="$t('role_drawer_title')"
     :mask-closable="false"
     class="platform-base-role-transfer"
   >
-    <div class="content">
-      <div>
-        <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
-        <Transfer
-          :titles="transferTitles"
-          :list-style="transferStyle"
-          :data="currentUserRoles"
-          :target-keys="mgmtRolesKeyToFlow"
-          :render-format="renderRoleNameForTransfer"
-          @on-change="handleMgmtRoleTransferChange"
-          filterable
-        ></Transfer>
-      </div>
-      <div style="margin-top: 30px">
-        <div class="role-transfer-title">{{ $t('use_role') }}</div>
-        <Transfer
-          :titles="transferTitles"
-          :list-style="transferStyle"
-          :data="allRoles"
-          :target-keys="useRolesKeyToFlow"
-          :render-format="renderRoleNameForTransfer"
-          @on-change="handleUseRoleTransferChange"
-          filterable
-        ></Transfer>
+    <div style="width: 100%; overflow-x: auto">
+      <div style="min-width: 760px" class="content">
+        <div>
+          <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
+          <Transfer
+            :titles="transferTitles"
+            :list-style="transferStyle"
+            :data="currentUserRoles"
+            :target-keys="mgmtRolesKeyToFlow"
+            :render-format="renderRoleNameForTransfer"
+            @on-change="handleMgmtRoleTransferChange"
+            filterable
+          ></Transfer>
+        </div>
+        <div style="margin-top: 30px">
+          <div class="role-transfer-title">{{ $t('use_role') }}</div>
+          <Transfer
+            :titles="transferTitles"
+            :list-style="transferStyle"
+            :data="allRoles"
+            :target-keys="useRolesKeyToFlow"
+            :render-format="renderRoleNameForTransfer"
+            @on-change="handleUseRoleTransferChange"
+            filterable
+          ></Transfer>
+        </div>
       </div>
     </div>
     <div slot="footer">

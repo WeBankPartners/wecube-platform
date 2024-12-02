@@ -513,39 +513,43 @@
     </Modal>
     <Modal
       v-model="configRoleManageModal"
-      width="700"
+      width="800"
       :title="$t('edit_config_role')"
       :mask-closable="false"
       footer-hide
     >
-      <div>
-        <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
-        <Transfer
-          :titles="transferTitles"
-          :list-style="transferStyle"
-          :data="allRolesBackUp"
-          :target-keys="mgmtRolesKey"
-          :render-format="renderRoleNameForTransfer"
-          @on-change="handleMgmtRoleTransferChange"
-          ref="mgmtRoles"
-          filterable
-        ></Transfer>
-      </div>
-      <div style="margin-top: 30px">
-        <div class="role-transfer-title">{{ $t('use_role') }}</div>
-        <Transfer
-          :titles="transferTitles"
-          :list-style="transferStyle"
-          :data="allRolesBackUp"
-          :target-keys="useRolesKey"
-          :render-format="renderRoleNameForTransfer"
-          @on-change="handleUseRoleTransferChange"
-          ref="useRoles"
-          filterable
-        ></Transfer>
-      </div>
-      <div style="margin-top: 20px; text-align: right">
-        <Button type="primary" @click="confirmRole">{{ $t('bc_confirm') }}</Button>
+      <div style="width: 100%; overflow-x: auto">
+        <div style="min-width: 760px">
+          <div>
+            <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
+            <Transfer
+              :titles="transferTitles"
+              :list-style="transferStyle"
+              :data="allRolesBackUp"
+              :target-keys="mgmtRolesKey"
+              :render-format="renderRoleNameForTransfer"
+              @on-change="handleMgmtRoleTransferChange"
+              ref="mgmtRoles"
+              filterable
+            ></Transfer>
+          </div>
+          <div style="margin-top: 30px">
+            <div class="role-transfer-title">{{ $t('use_role') }}</div>
+            <Transfer
+              :titles="transferTitles"
+              :list-style="transferStyle"
+              :data="allRolesBackUp"
+              :target-keys="useRolesKey"
+              :render-format="renderRoleNameForTransfer"
+              @on-change="handleUseRoleTransferChange"
+              ref="useRoles"
+              filterable
+            ></Transfer>
+          </div>
+          <div style="margin-top: 20px; text-align: right">
+            <Button type="primary" @click="confirmRole">{{ $t('bc_confirm') }}</Button>
+          </div>
+        </div>
       </div>
     </Modal>
     <!-- @on-ok="ok"
