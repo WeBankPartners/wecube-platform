@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"strings"
 
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
@@ -218,6 +219,23 @@ func (UserRepository) FindAllActiveUsers() ([]*model.SysUserEntity, error) {
 	return users, nil
 }
 
+func (UserRepository) QueryUsers(param model.QueryUserParam) (int, []*model.SysUserEntity, error) {
+	var users []*model.SysUserEntity
+	var err error
+	var count int
+	if strings.TrimSpace(param.UserName) != "" {
+		err = Engine.Where("is_deleted = ?", false).And("is_active = ?", true).And("is_blocked = ?", false).And("username like ?", "%"+param.UserName+"%").Limit(param.PageSize, param.StartIndex).Find(&users)
+		Engine.SQL("select count(1) from auth_sys_user where is_deleted = false and is_active = true and is_blocked = false and username like ?", "%"+param.UserName+"%").Get(&count)
+	} else {
+		err = Engine.Where("is_deleted = ?", false).And("is_active = ?", true).And("is_blocked = ?", false).Limit(param.PageSize, param.StartIndex).Find(&users)
+		Engine.SQL("select count(1) from auth_sys_user where is_deleted = false and is_active = true and is_blocked = false").Get(&count)
+	}
+	if err != nil {
+		return count, nil, err
+	}
+	return count, users, nil
+}
+
 var UserRoleRsRepositoryInstance UserRoleRsRepository
 
 type UserRoleRsRepository struct {
@@ -228,6 +246,26 @@ func (UserRoleRsRepository) FindAllByRoleId(roleId string) ([]*model.UserRoleRsE
 	err := Engine.Where("role_id = ?", roleId).And("is_deleted = ?", false).Find(&userRoleRsList)
 	if err != nil {
 		return nil, err
+	}
+	return userRoleRsList, nil
+}
+
+func (UserRoleRsRepository) FindAllUserRole() ([]*model.UserRoleRsEntity, error) {
+	var userRoleRsList []*model.UserRoleRsEntity
+	// 分页查询
+	pageSize := 1000
+	var offset int
+	for {
+		var subUserRoles []*model.UserRoleRsEntity
+		err := Engine.Where("is_deleted = ?", false).Limit(pageSize, offset).Find(&subUserRoles)
+		if err != nil {
+			return nil, err
+		}
+		if len(subUserRoles) == 0 {
+			break
+		}
+		userRoleRsList = append(userRoleRsList, subUserRoles...)
+		offset += pageSize
 	}
 	return userRoleRsList, nil
 }
