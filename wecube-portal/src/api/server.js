@@ -145,6 +145,7 @@ export const removeUser = roleId => req.delete(`/platform/v1/users/${roleId}/del
 export const editUser = data => req.post(`/platform/v1/user/${data.username}/update`, data)
 export const changePassword = data => req.post('/platform/v1/users/change-password', data)
 export const getUserList = () => req.get('/platform/v1/users/retrieve')
+export const getAllUserList = data => req.post('/platform/v1/users/query', data) // 实现用户模糊检索
 export const deleteUser = id => req.delete(`/platform/v1/users/${id}/delete`)
 export const roleCreate = data => req.post('/platform/v1/roles/create', data)
 export const getRoleList = params => req.get('/platform/v1/roles/retrieve', { params })

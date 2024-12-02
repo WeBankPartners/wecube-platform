@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"strings"
+	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
@@ -23,6 +24,7 @@ type RequestHandlerFunc func(request *http.Request, c *gin.Context) error
 type ResponseHandlerFunc func(body *[]byte, c *gin.Context) error
 
 func (invoke RedirectInvoke) Do(c *gin.Context) error {
+
 	log.Logger.Info(fmt.Sprintf("Redirecting request to downstream system: [Method: %s] [URL: %s] [ContentLength: %d]", c.Request.Method, invoke.TargetUrl, c.Request.ContentLength))
 	cloneRequest := c.Request.Clone(c.Request.Context()) // deep copy original request
 
@@ -44,7 +46,14 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 	newRequest.URL.RawQuery = cloneRequest.URL.RawQuery
 	//auth.SetRequestSourceAuth(newRequest, config.Config.Auth.Source.AppId, config.Config.Auth.Source.PrivateKeyBytes)
 
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: 30 * time.Minute,
+	}
+
+	if model.Config.ProxyConfig.Timeout > 0 {
+		client.Timeout = time.Duration(model.Config.ProxyConfig.Timeout) * time.Minute
+	}
+
 	if strings.EqualFold(model.Config.Log.Level, "debug") {
 		requestDump, _ := httputil.DumpRequest(newRequest, true)
 		log.Logger.Debug("Request to downstream system: " + string(requestDump))

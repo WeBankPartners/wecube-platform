@@ -90,6 +90,22 @@ func RetrieveAllUsers(c *gin.Context) {
 	}
 }
 
+func QueryUser(c *gin.Context) {
+	var param model.QueryUserParam
+	var err error
+	var page model.PageInfo
+	var data []*model.SimpleLocalUserDto
+	if err = c.ShouldBindJSON(&param); err != nil {
+		support.ReturnError(c, err)
+		return
+	}
+	if page, data, err = service.UserManagementServiceInstance.QueryUserPage(param); err != nil {
+		support.ReturnError(c, err)
+		return
+	}
+	support.ReturnPageData(c, page, data)
+}
+
 func RetrieveUserByUserId(c *gin.Context) {
 	userId := c.Param("user-id")
 	result, err := service.UserManagementServiceInstance.RetireveLocalUserByUserid(userId)

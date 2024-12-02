@@ -180,6 +180,7 @@ export default {
           inputParameterValue
         }
       })
+      // 插件出参
       const outputParameterDefinitions = pluginOutputParams.filter(i => {
         let flag = false
         resultTableParams.forEach(j => {
@@ -291,13 +292,12 @@ export default {
       // 插件入参
       const inputParameterDefinitions = pluginInputParams.map(p => {
         const inputParameterValue = p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
-        // 解决插件入参pluginConfigInterfaceId和插件ID不同的问题
-        p.pluginConfigInterfaceId = plugin.id
         return {
           inputParameter: p,
           inputParameterValue
         }
       })
+      // 插件出参
       const outputParameterDefinitions = pluginOutputParams.filter(i => {
         let flag = false
         resultTableParams.forEach(j => {

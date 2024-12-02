@@ -926,7 +926,7 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 		if !strings.Contains(v, ":") {
 			continue
 		}
-		dockerCmd += fmt.Sprintf("-p %s ", v)
+		dockerCmd += fmt.Sprintf("-p %s:%s ", dockerServer.Host, v)
 	}
 	for _, v := range envBindList {
 		tmpV := v
