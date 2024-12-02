@@ -128,13 +128,13 @@ export default {
         pluginId,
         pluginOptions,
         pluginInputParams,
+        pluginOutputParams,
         resultTableParams,
         primatKeyAttrList,
         primatKeyAttr,
         seletedRows,
         searchParameters,
-        userTableColumns,
-        pluginOutputParams
+        userTableColumns
       } = this.$refs.form
       // 插件入参为敏感字段，需要加密
       const encryptFlag = pluginInputParams.some(i => i.sensitiveData === 'Y')
@@ -156,12 +156,26 @@ export default {
           }
         })
       }
+      // 当前插件数据
+      const storageData = JSON.parse(this.detailData.sourceData)
+      let plugin = null
+      // 有缓存读取缓存数据，无缓存手动更改插件ID，手动方式为兜底方案，建议重新配置模板(解决插件服务重新发起执行时，ID会变化的问题)
+      if (storageData.pluginObj) {
+        plugin = storageData.pluginObj
+      } else {
+        plugin = pluginOptions.find(item => item.serviceName === pluginId)
+        const realId = (pluginInputParams && pluginInputParams[0] && pluginInputParams[0].pluginConfigInterfaceId) || ''
+        plugin.id = realId
+        plugin.inputParameters.forEach(i => (i.pluginConfigInterfaceId = realId))
+        plugin.outputParameters.forEach(i => (i.pluginConfigInterfaceId = realId))
+      }
       // 缓存前端数据，页面回显使用
       const frontData = {
         userTableColumns,
         seletedRows,
         pluginInputParams,
         pluginOutputParams,
+        pluginObj: plugin,
         resultTableParams
       }
       // 查询结果主键
@@ -170,8 +184,6 @@ export default {
         id: item.id,
         businessKeyValue: item[primatKeyAttr]
       }))
-      // 当前插件
-      const plugin = pluginOptions.find(item => item.serviceName === pluginId)
       // 插件入参
       const inputParameterDefinitions = pluginInputParams.map(p => {
         const inputParameterValue = p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
