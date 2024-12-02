@@ -19,6 +19,12 @@ type QueryRequestParam struct {
 	ResultColumns []string                 `json:"resultColumns"` // 返回列,默认为空全返回
 }
 
+type QueryUserParam struct {
+	UserName   string `json:"userName"`
+	StartIndex int    `json:"startIndex"`
+	PageSize   int    `json:"pageSize"`
+}
+
 type TransFiltersParam struct {
 	IsStruct   bool
 	StructObj  interface{}

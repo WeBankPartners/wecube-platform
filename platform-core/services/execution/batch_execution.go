@@ -63,7 +63,7 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 	entityInstances []*models.BatchExecutionPluginExecEntityInstances,
 	inputParamConstants []*models.BatchExecutionPluginDefInputParams,
 	continueToken string) (result *models.PluginInterfaceApiResultData, dangerousCheckResult *models.ItsdangerousBatchCheckResultData, pluginCallParam *models.BatchExecutionPluginExecParam, err error) {
-	pluginInterface, errGet := database.GetPluginConfigInterfaceById(pluginInterfaceId, true)
+	pluginInterface, errGet := database.GetPluginConfigInterfaceById(pluginInterfaceId, false)
 	if errGet != nil {
 		err = errGet
 		return
