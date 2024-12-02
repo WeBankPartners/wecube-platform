@@ -697,7 +697,7 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 			var fileAdditionList []*models.PluginS3ResourceFileObj
 			if tmpErr := json.Unmarshal([]byte(s3Resource.AdditionalProperties), &fileAdditionList); tmpErr == nil {
 				if len(fileAdditionList) > 0 {
-					s3ResourceServer, getS3ResourceErr := database.GetResourceServer(ctx, "s3", "", "")
+					s3ResourceServer, getS3ResourceErr := database.GetResourceServer(ctx, "s3", "", "", "")
 					if getS3ResourceErr != nil {
 						err = getS3ResourceErr
 						return
@@ -745,25 +745,31 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 		}
 
 		// 判断有没有以插件名为类型的资源
-		mysqlServer, _ = database.GetResourceServer(ctx, "mysql", "", pluginPackageObj.Name)
-		if mysqlServer != nil {
-			if mysqlInstance == nil {
-				log.Logger.Info("use plugin resource mysql server", log.String("resourceServerId", mysqlServer.Id))
-				mysqlInstance = &models.PluginMysqlInstances{
-					Id:              "p_mysql_" + guid.CreateGuid(),
-					Password:        mysqlServer.LoginPassword,
-					PluginPackageId: pluginPackageId,
-					ResourceItemId:  mysqlResource.Id,
-					SchemaName:      mysqlResource.SchemaName,
-					Username:        mysqlServer.LoginUsername,
-				}
-				if err = database.NewPluginMysqlInstance(ctx, mysqlServer, mysqlInstance, operator); err != nil {
-					return
-				}
+		//mysqlServer, _ = database.GetResourceServer(ctx, "mysql", "", pluginPackageObj.Name)
+		//if mysqlServer != nil {
+		//	if mysqlInstance == nil {
+		//		log.Logger.Info("use plugin resource mysql server", log.String("resourceServerId", mysqlServer.Id))
+		//		mysqlInstance = &models.PluginMysqlInstances{
+		//			Id:              "p_mysql_" + guid.CreateGuid(),
+		//			Password:        mysqlServer.LoginPassword,
+		//			PluginPackageId: pluginPackageId,
+		//			ResourceItemId:  mysqlResource.Id,
+		//			SchemaName:      mysqlResource.SchemaName,
+		//			Username:        mysqlServer.LoginUsername,
+		//		}
+		//		if err = database.NewPluginMysqlInstance(ctx, mysqlServer, mysqlInstance, operator); err != nil {
+		//			return
+		//		}
+		//	}
+		if mysqlInstance != nil {
+			mysqlServer, resourceDbErr = database.GetResourceServer(ctx, "", "", "", mysqlInstance.ResourceItemId)
+			if resourceDbErr != nil {
+				err = resourceDbErr
+				return
 			}
 		} else {
 			// 如果连纪录都没有，第一次要创建数据库
-			mysqlServer, resourceDbErr = database.GetResourceServer(ctx, "mysql", "", "")
+			mysqlServer, resourceDbErr = database.GetResourceServer(ctx, "mysql", "", "", "")
 			if resourceDbErr != nil {
 				err = resourceDbErr
 				return
@@ -828,7 +834,7 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 	}
 	dockerResource := resources.Docker[0]
 	pluginInstance.ContainerName = dockerResource.ContainerName
-	dockerServer, getDockerServerErr := database.GetResourceServer(ctx, "docker", hostIp, "")
+	dockerServer, getDockerServerErr := database.GetResourceServer(ctx, "docker", hostIp, "", "")
 	if getDockerServerErr != nil {
 		err = getDockerServerErr
 		return
