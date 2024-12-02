@@ -131,3 +131,13 @@ func RSADecrypt(inputString, rsaPemContent string) (string, error) {
 	result = string(decodeBytes)
 	return result, nil
 }
+
+func Contains(ids []string, id string) bool {
+	var exist = false
+	for _, item := range ids {
+		if item == id {
+			exist = true
+		}
+	}
+	return exist
+}
