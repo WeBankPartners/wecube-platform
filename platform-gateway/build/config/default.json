@@ -25,5 +25,8 @@
       "context": "auth",
       "target_path": "http://[#AUTH_SERVER_ADDRESS]"
     }
-  ]
+  ],
+  "proxy_config": {
+    "timeout":[#HTTP_TIMEOUT_MINUTE]
+  }
 }
