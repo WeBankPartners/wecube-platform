@@ -266,6 +266,11 @@ func CreateProcPreview(ctx context.Context, previewRows []*models.ProcDataPrevie
 	return
 }
 
+func GetProcDefNodeIdsBySessionId(ctx context.Context, sessionId string) (result []string, err error) {
+	err = db.MysqlEngine.Context(ctx).SQL("select proc_def_node_id from proc_data_preview where proc_session_id=?", sessionId).Find(&result)
+	return
+}
+
 func ProcInsTaskNodeBindings(ctx context.Context, sessionId, taskNodeId string) (result []*models.TaskNodeBindingObj, err error) {
 	var previewRows []*models.ProcDataPreview
 	nodeBindDataMap := make(map[string][]*models.ProcDataBinding)
