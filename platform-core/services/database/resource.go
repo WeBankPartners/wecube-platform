@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
@@ -186,6 +187,115 @@ func decodeUIAesPassword(seed, password string) (decodePwd string, err error) {
 	}
 	if err != nil {
 		err = fmt.Errorf("aes decode with iv fail,%s ", err.Error())
+	}
+	return
+}
+
+func CreateResourceItem(ctx context.Context, params []*models.ResourceItem, operator string) (err error) {
+	var actions []*db.ExecAction
+	nowTime := time.Now()
+	for _, v := range params {
+		if v.Type != "mysql_database" {
+			err = fmt.Errorf("item type %s illegal", v.Type)
+			return
+		}
+		if v.ResourceServerId == "" {
+			err = fmt.Errorf("resource server can not empty")
+			return
+		}
+		v.Id = "rs_item_" + guid.CreateGuid()
+		if decodePwd, tmpErr := DecodeUIPassword(ctx, v.Password); tmpErr != nil {
+			err = fmt.Errorf("try to decode ui password fail,%s ", tmpErr.Error())
+			return
+		} else {
+			v.Password = decodePwd
+		}
+		if !strings.HasPrefix(v.Password, models.AESPrefix) {
+			enPwd := encrypt.EncryptWithAesECB(v.Password, models.Config.Plugin.ResourcePasswordSeed, v.Name)
+			v.Password = models.AESPrefix + enPwd
+		}
+		properties := models.MysqlResourceItemProperties{Username: v.Username, Password: v.Password}
+		propertiesBytes, _ := json.Marshal(&properties)
+		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO resource_item (id,additional_properties,created_by,created_date,is_allocated,name,purpose,resource_server_id,status,`type`,`username`,`password`,updated_by,updated_date) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			v.Id, string(propertiesBytes), operator, nowTime, 1, v.Name, v.Purpose, v.ResourceServerId, "created", "mysql_database", v.Username, v.Password, operator, nowTime,
+		}})
+	}
+	err = db.Transaction(actions, ctx)
+	return
+}
+
+func UpdateResourceItem(ctx context.Context, params []*models.ResourceItem, operator string) (err error) {
+	var actions []*db.ExecAction
+	nowTime := time.Now()
+	for _, v := range params {
+		if v.Type != "mysql_database" {
+			err = fmt.Errorf("item type %s illegal", v.Type)
+			return
+		}
+		if decodePwd, tmpErr := DecodeUIPassword(ctx, v.Password); tmpErr != nil {
+			err = fmt.Errorf("try to decode ui password fail,%s ", tmpErr.Error())
+			return
+		} else {
+			v.Password = decodePwd
+		}
+		if !strings.HasPrefix(v.Password, models.AESPrefix) {
+			enPwd := encrypt.EncryptWithAesECB(v.Password, models.Config.Plugin.ResourcePasswordSeed, v.Name)
+			v.Password = models.AESPrefix + enPwd
+		}
+		properties := models.MysqlResourceItemProperties{Username: v.Username, Password: v.Password}
+		propertiesBytes, _ := json.Marshal(&properties)
+		actions = append(actions, &db.ExecAction{Sql: "update resource_item set additional_properties=?,`username`=?,`password`=?,is_allocated=?,purpose=?,updated_by=?,updated_date=? where id=?", Param: []interface{}{
+			string(propertiesBytes), v.Username, v.Password, v.IsAllocated, v.Purpose, operator, nowTime, v.Id,
+		}})
+		pluginMysqlInstanceRow, getMysqlInstanceErr := getPluginMysqlInstanceByItem(ctx, v.Id)
+		if getMysqlInstanceErr != nil {
+			err = getMysqlInstanceErr
+			return
+		}
+		if pluginMysqlInstanceRow != nil {
+			actions = append(actions, &db.ExecAction{Sql: "update plugin_mysql_instances set password=?,updated_time=? where id=?", Param: []interface{}{v.Password, nowTime, pluginMysqlInstanceRow.Id}})
+		}
+	}
+	err = db.Transaction(actions, ctx)
+	return
+}
+
+func DeleteResourceItem(ctx context.Context, params []*models.ResourceItem) (err error) {
+	var actions []*db.ExecAction
+	for _, v := range params {
+		tmpQueryRows, tmpQueryErr := db.MysqlEngine.Context(ctx).QueryString("select id from resource_item where id=? and `type`='mysql_database'", v.Id)
+		if tmpQueryErr != nil {
+			err = fmt.Errorf("query resourct item table fail,%s ", tmpQueryErr.Error())
+			return
+		}
+		if len(tmpQueryRows) == 0 {
+			err = fmt.Errorf("id %s is not mysql type item", v.Id)
+			return
+		}
+		pluginMysqlInstanceRow, getMysqlInstanceErr := getPluginMysqlInstanceByItem(ctx, v.Id)
+		if getMysqlInstanceErr != nil {
+			err = getMysqlInstanceErr
+			return
+		}
+		if pluginMysqlInstanceRow != nil {
+			err = fmt.Errorf("item:%s already used by pluginMysqlInstance:%s ", v.Id, pluginMysqlInstanceRow.Id)
+			return
+		}
+		actions = append(actions, &db.ExecAction{Sql: "delete from resource_item where id=?", Param: []interface{}{v.Id}})
+	}
+	err = db.Transaction(actions, ctx)
+	return
+}
+
+func getPluginMysqlInstanceByItem(ctx context.Context, resourceItemId string) (pluginMysqlInstanceRow *models.PluginMysqlInstances, err error) {
+	var pluginMysqlInstanceRows []*models.PluginMysqlInstances
+	err = db.MysqlEngine.Context(ctx).SQL("select id from plugin_mysql_instances where resource_item_id=?", resourceItemId).Find(&pluginMysqlInstanceRows)
+	if err != nil {
+		err = fmt.Errorf("query plugin mysql instance by resource item fail,%s ", err.Error())
+		return
+	}
+	if len(pluginMysqlInstanceRows) > 0 {
+		pluginMysqlInstanceRow = pluginMysqlInstanceRows[0]
 	}
 	return
 }
