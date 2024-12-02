@@ -162,6 +162,7 @@ export default {
         seletedRows,
         pluginInputParams,
         pluginOutputParams,
+        pluginObj: pluginOptions.find(i => i.serviceName === pluginId), // 缓存插件服务勾选项
         resultTableParams
       }
       // 查询结果主键
@@ -279,6 +280,7 @@ export default {
         seletedRows,
         pluginInputParams,
         pluginOutputParams,
+        pluginObj: pluginOptions.find(i => i.serviceName === pluginId), // 缓存插件服务勾选项
         resultTableParams
       }
       // 查询结果主键
