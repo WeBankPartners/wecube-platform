@@ -349,6 +349,9 @@ export const executeBranch = data => req.post('/platform/v1/process/instances/pr
 // 编排执行-暂停、继续
 export const pauseAndContinueFlow = data => req.post('/platform/v1/process/instances/proceed', data)
 
+// 编排执行试算接口
+export const previewFlowExecute = params => req.get('/platform/v1/process/definitions/nodes/empty-query', params)
+
 // 底座迁移
 // 导出历史列表
 export const getBaseMigrationExportList = data => req.post('/platform/v1/data/transfer/export/list', data)
