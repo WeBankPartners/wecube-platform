@@ -43,7 +43,7 @@ func QueryResourceServer(ctx context.Context, param *models.QueryRequestParam) (
 }
 
 func QueryResourceItem(ctx context.Context, param *models.QueryRequestParam) (result *models.ResourceItemListPageData, err error) {
-	result = &models.ResourceItemListPageData{PageInfo: &models.PageInfo{}, Contents: []*models.ResourceItem{}}
+	result = &models.ResourceItemListPageData{PageInfo: &models.PageInfo{}, Contents: []*models.ResourceItemQueryRow{}}
 	filterSql, _, queryParam := transFiltersToSQL(param, &models.TransFiltersParam{IsStruct: true, StructObj: models.ResourceItem{}})
 	baseSql := db.CombineDBSql("SELECT * FROM resource_item WHERE 1=1 ", filterSql)
 	if param.Paging {
@@ -52,9 +52,25 @@ func QueryResourceItem(ctx context.Context, param *models.QueryRequestParam) (re
 		baseSql = db.CombineDBSql(baseSql, pageSql)
 		queryParam = append(queryParam, pageParam...)
 	}
-	err = db.MysqlEngine.Context(ctx).SQL(baseSql, queryParam...).Find(&result.Contents)
+	var queryRows []*models.ResourceItem
+	err = db.MysqlEngine.Context(ctx).SQL(baseSql, queryParam...).Find(&queryRows)
 	if err != nil {
 		return result, exterror.Catch(exterror.New().DatabaseQueryError, err)
+	}
+	resourceList, resourceErr := QueryResourceServer(ctx, &models.QueryRequestParam{Filters: []*models.QueryRequestFilterObj{}, Paging: false, Pageable: &models.PageInfo{}})
+	if resourceErr != nil {
+		err = resourceErr
+		return
+	}
+	for _, row := range queryRows {
+		tmpRow := models.ResourceItemQueryRow{ResourceItem: *row}
+		for _, resourceRow := range resourceList.Contents {
+			if resourceRow.Id == row.ResourceServerId {
+				tmpRow.ResourceServer = resourceRow.Host
+				tmpRow.Port = resourceRow.Port
+			}
+		}
+		result.Contents = append(result.Contents, &tmpRow)
 	}
 	return
 }
