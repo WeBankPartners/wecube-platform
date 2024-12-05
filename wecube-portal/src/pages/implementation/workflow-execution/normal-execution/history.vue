@@ -558,11 +558,12 @@ export default {
     next(vm => {
       if (from.path === '/implementation/workflow-execution/view-execution') {
         // 读取列表搜索参数
-        const storage = window.sessionStorage.getItem('search_normalExecution') || ''
+        const storage = window.sessionStorage.getItem('platform_search_normalExecution') || ''
         if (storage) {
-          const { searchParams, searchOptions } = JSON.parse(storage)
+          const { searchParams, searchOptions, pageable } = JSON.parse(storage)
           vm.searchConfig = searchParams
           vm.searchOptions = searchOptions
+          vm.pageable = pageable
         }
       }
       // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
@@ -573,9 +574,10 @@ export default {
     // 缓存列表搜索条件
     const storage = {
       searchParams: this.searchConfig,
-      searchOptions: this.searchOptions
+      searchOptions: this.searchOptions,
+      pageable: this.pageable
     }
-    window.sessionStorage.setItem('search_normalExecution', JSON.stringify(storage))
+    window.sessionStorage.setItem('platform_search_normalExecution', JSON.stringify(storage))
   },
   mounted() {
     this.searchConfig.params.entityDisplayName = this.$route.query.entityDisplayName || ''

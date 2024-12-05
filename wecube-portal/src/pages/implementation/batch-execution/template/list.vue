@@ -298,7 +298,7 @@ export default {
     next(vm => {
       if (from.path === '/implementation/batch-execution/template-create') {
         // 读取列表搜索参数
-        const storage = window.sessionStorage.getItem('search_batchTemplate') || ''
+        const storage = window.sessionStorage.getItem('platform_search_batchTemplate') || ''
         if (storage) {
           const { searchParams, searchOptions } = JSON.parse(storage)
           vm.form = searchParams
@@ -315,7 +315,7 @@ export default {
       searchParams: this.form,
       searchOptions: this.searchOptions
     }
-    window.sessionStorage.setItem('search_batchTemplate', JSON.stringify(storage))
+    window.sessionStorage.setItem('platform_search_batchTemplate', JSON.stringify(storage))
   },
   methods: {
     initData() {
