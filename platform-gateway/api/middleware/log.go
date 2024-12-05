@@ -30,20 +30,24 @@ func HttpLogHandle() gin.HandlerFunc {
 		c.Next()
 		costTime := time.Now().Sub(start).Seconds() * 1000
 		errCode := c.Writer.Header().Get("Error-Code")
+		apiCode := c.Writer.Header().Get("Api-Code")
+		var subCode string
+		if strings.HasPrefix(c.Request.RequestURI, "/platform") {
+			subCode = model.Config.SubSystemCode.Core
+			apiCode = fmt.Sprintf("platform_%s", apiCode)
+		} else if strings.HasPrefix(c.Request.RequestURI, "/auth") {
+			subCode = model.Config.SubSystemCode.Auth
+			apiCode = fmt.Sprintf("auth_%s", apiCode)
+		} else {
+			subCode = model.Config.SubSystemCode.Plugin
+			apiCode = fmt.Sprintf("plugin_%s", apiCode)
+		}
 		if c.Writer.Status() == 200 {
 			// 状态码 200 需要区分是否为业务错误
 			if strings.TrimSpace(errCode) == "" {
 				// errCode 为空,表示请求正常,对应errCode=0
 				errCode = "0"
 			} else {
-				var subCode string
-				if strings.HasPrefix(c.Request.RequestURI, "/platform") {
-					subCode = model.Config.SubSystemCode.Core
-				} else if strings.HasPrefix(c.Request.RequestURI, "/auth") {
-					subCode = model.Config.SubSystemCode.Auth
-				} else {
-					subCode = model.Config.SubSystemCode.Plugin
-				}
 				// 业务错误码 以1开头表示技术类错误,其他则是业务类错误
 				if strings.HasPrefix(errCode, "1") {
 					// 业务错误
@@ -57,7 +61,7 @@ func HttpLogHandle() gin.HandlerFunc {
 			// 状态码 不为200 都是技术错误,T表示技术类错误
 			errCode = model.Config.SubSystemCode.Core + fmt.Sprintf("T00000%d", c.Writer.Status())
 		}
-		log.AccessLogger.Info(fmt.Sprintf("Got request -"), log.String("apiCode", c.Writer.Header().Get("Api-Code")), log.String("method", c.Request.Method),
+		log.AccessLogger.Info(fmt.Sprintf("Got request -"), log.String("apiCode", apiCode), log.String("method", c.Request.Method),
 			log.Int("code", c.Writer.Status()), log.String("errCode", errCode), log.String("operator", c.GetString("user")), log.String("ip", getRemoteIp(c)), log.Float64("cost_ms", costTime),
 			log.String("body", c.GetString("responseBody")))
 
