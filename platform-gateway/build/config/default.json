@@ -28,5 +28,10 @@
   ],
   "proxy_config": {
     "timeout":[#HTTP_TIMEOUT_MINUTE]
+  },
+  "sub_system_code": {
+    "auth":"[#WECUBE_SUB_SYSTEM_AUTH_CODE]",
+    "core":"[#WECUBE_SUB_SYSTEM_CORE_CODE]",
+    "plugin":"[#WECUBE_SUB_SYSTEM_PLUGIN_CODE]"
   }
 }
