@@ -256,11 +256,12 @@ export default {
     next(vm => {
       if (from.path === '/admin/base-migration/import' && Object.keys(from.query).length > 0) {
         // 读取列表搜索参数
-        const storage = window.sessionStorage.getItem('import_baseMigration') || ''
+        const storage = window.sessionStorage.getItem('platform_import_baseMigration') || ''
         if (storage) {
-          const { searchParams, searchOptions } = JSON.parse(storage)
+          const { searchParams, searchOptions, pageable } = JSON.parse(storage)
           vm.searchParams = searchParams
           vm.searchOptions = searchOptions
+          vm.pageable = pageable
         }
       }
       // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
@@ -271,9 +272,10 @@ export default {
     // 缓存列表搜索条件
     const storage = {
       searchParams: this.searchParams,
-      searchOptions: this.searchOptions
+      searchOptions: this.searchOptions,
+      pageable: this.pageable
     }
-    window.sessionStorage.setItem('import_baseMigration', JSON.stringify(storage))
+    window.sessionStorage.setItem('platform_import_baseMigration', JSON.stringify(storage))
   },
   methods: {
     initData() {
