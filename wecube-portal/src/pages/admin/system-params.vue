@@ -189,6 +189,7 @@ export default {
       this.queryData()
     },
     pageSizeChange(size) {
+      this.pagination.currentPage = 1
       this.pagination.pageSize = size
       this.queryData()
     },
