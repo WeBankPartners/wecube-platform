@@ -321,6 +321,7 @@ func httpLogHandle() gin.HandlerFunc {
 			c.Set(models.ContextRequestBody, string(bodyBytes))
 		}
 		apiCode := apiCodeMap[c.Request.Method+"_"+c.FullPath()]
+		c.Writer.Header().Add("Api-Code", apiCode)
 		log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] ->", requestId, transactionId), log.String("uri", c.Request.RequestURI), log.String("serviceCode", apiCode), log.String("method", c.Request.Method), log.String("sourceIp", getRemoteIp(c)), log.String(models.ContextOperator, c.GetString(models.ContextOperator)), log.String(models.ContextRequestBody, c.GetString(models.ContextRequestBody)))
 		c.Next()
 		costTime := time.Since(start).Seconds() * 1000
@@ -358,4 +359,34 @@ func healthCheck(c *gin.Context) {
 	} else {
 		middleware.ReturnSuccess(c)
 	}
+}
+
+// 自定义响应写入器
+type customResponseWriter struct {
+	gin.ResponseWriter
+	headers http.Header
+	written bool
+}
+
+func (w *customResponseWriter) WriteHeader(code int) {
+	w.ResponseWriter.WriteHeader(code)
+	w.written = true
+}
+
+func (w *customResponseWriter) Header() http.Header {
+	if w.headers == nil {
+		w.headers = make(http.Header)
+		for k, v := range w.ResponseWriter.Header() {
+			w.headers[k] = v
+		}
+	}
+	return w.headers
+}
+
+func (w *customResponseWriter) Write(b []byte) (int, error) {
+	if !w.written {
+		w.ResponseWriter.WriteHeader(http.StatusOK)
+		w.written = true
+	}
+	return w.ResponseWriter.Write(b)
 }
