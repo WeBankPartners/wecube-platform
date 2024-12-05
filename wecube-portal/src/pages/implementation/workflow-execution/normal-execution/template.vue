@@ -273,7 +273,7 @@ export default {
     next(vm => {
       if (from.path === '/implementation/workflow-execution/normal-create') {
         // 读取列表搜索参数
-        const storage = window.sessionStorage.getItem('search_normalExecutionAdd') || ''
+        const storage = window.sessionStorage.getItem('platform_search_normalExecutionAdd') || ''
         if (storage) {
           const { searchParams, searchOptions } = JSON.parse(storage)
           vm.searchParams = searchParams
@@ -290,7 +290,7 @@ export default {
       searchParams: this.searchParams,
       searchOptions: this.searchOptions
     }
-    window.sessionStorage.setItem('search_normalExecutionAdd', JSON.stringify(storage))
+    window.sessionStorage.setItem('platform_search_normalExecutionAdd', JSON.stringify(storage))
   },
   methods: {
     // 选择模板新建执行

@@ -195,11 +195,12 @@ export default {
     next(vm => {
       if (from.path === '/implementation/batch-execution/create-execution') {
         // 读取列表搜索参数
-        const storage = window.sessionStorage.getItem('search_batchExecution') || ''
+        const storage = window.sessionStorage.getItem('platform_search_batchExecution') || ''
         if (storage) {
-          const { searchParams, searchOptions } = JSON.parse(storage)
+          const { searchParams, searchOptions, pageable } = JSON.parse(storage)
           vm.form = searchParams
           vm.searchOptions = searchOptions
+          vm.pagination = pageable
         }
       }
       // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
@@ -210,9 +211,10 @@ export default {
     // 缓存列表搜索条件
     const storage = {
       searchParams: this.form,
-      searchOptions: this.searchOptions
+      searchOptions: this.searchOptions,
+      pageable: this.pagination
     }
-    window.sessionStorage.setItem('search_batchExecution', JSON.stringify(storage))
+    window.sessionStorage.setItem('platform_search_batchExecution', JSON.stringify(storage))
   },
   methods: {
     initData() {
