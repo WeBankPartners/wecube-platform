@@ -1,6 +1,14 @@
 <template>
   <div>
-    <Select v-if="!isGroup" :value="value" :multiple="isMultiple" filterable clearable :placeholder="title" @on-change="changeValue">
+    <Select
+      v-if="!isGroup"
+      :value="value"
+      :multiple="isMultiple"
+      filterable
+      clearable
+      :placeholder="title"
+      @on-change="changeValue"
+    >
       <Option v-for="item in opts" :value="item.value" :key="item.value">{{ item.label }}</Option>
     </Select>
     <Select
