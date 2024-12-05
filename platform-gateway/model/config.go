@@ -43,6 +43,12 @@ type RedirectRoute struct {
 	TargetPath string `json:"target_path"`
 }
 
+type SubSystemCode struct {
+	Auth   string `json:"auth"`
+	Core   string `json:"core"`
+	Plugin string `json:"plugin"`
+}
+
 type GlobalConfig struct {
 	ServerAddress  string              `json:"server_address"`
 	ServerPort     string              `json:"server_port"`
@@ -51,6 +57,7 @@ type GlobalConfig struct {
 	Remote         RemoteServiceConfig `json:"remote_service"`
 	ProxyConfig    ProxyConfig         `json:"proxy_config"`
 	RedirectRoutes []RedirectRoute     `json:"redirect_routes"`
+	SubSystemCode  SubSystemCode       `json:"sub_system_code"`
 }
 
 var (
