@@ -24,14 +24,8 @@
         <Form :label-width="100" :model="form" :rules="rules" ref="form">
           <!--资源-->
           <FormItem label="资源" prop="resourceServerId">
-            <Select
-              v-model="form.resourceServerId"
-              @on-change="handleSelectResource"
-              clearable
-            >
-              <Option v-for="item in resourceOptions" :key="item.id" :value="item.id">{{
-                item.name
-              }}</Option>
+            <Select v-model="form.resourceServerId" @on-change="handleSelectResource" clearable>
+              <Option v-for="item in resourceOptions" :key="item.id" :value="item.id">{{ item.name }}</Option>
             </Select>
           </FormItem>
           <!--类型-->
@@ -42,7 +36,7 @@
               }}</Option>
             </Select>
           </FormItem>
-           <!--名称-->
+          <!--名称-->
           <FormItem label="名称" prop="name">
             <Input v-model.trim="form.name" :maxlength="100" show-word-limit clearable></Input>
           </FormItem>
@@ -50,31 +44,15 @@
             <Input type="textarea" v-model.trim="form.purpose" :maxlength="255" show-word-limit clearable></Input>
           </FormItem>
           <FormItem label="是否分配" prop="isAllocated">
-            <i-switch
-              v-model="form.isAllocated"
-              :true-value="true"
-              :false-value="false"
-              size="default"
-            />
+            <i-switch v-model="form.isAllocated" :true-value="true" :false-value="false" size="default" />
           </FormItem>
           <FormItem label="账号" prop="username">
-            <Input
-              v-model.trim="form.username"
-              autocomplete="off"
-              :maxlength="100"
-              clearable
-            />
+            <Input v-model.trim="form.username" autocomplete="off" :maxlength="100" clearable />
           </FormItem>
           <FormItem label="密码" prop="password">
             <input type="text" style="display: none" />
             <input type="password" autocomplete="new-password" style="display: none" />
-            <Input
-              v-model.trim="form.password"
-              type="password"
-              autocomplete="off"
-              password
-              :maxlength="100"
-            />
+            <Input v-model.trim="form.password" type="password" autocomplete="off" password :maxlength="100" />
           </FormItem>
         </Form>
       </template>
@@ -87,7 +65,7 @@
 </template>
 
 <script>
-import { 
+import {
   getResourceItemStatus,
   getResourceItemType,
   retrieveItems,
@@ -254,24 +232,36 @@ export default {
         }
       ],
       rules: {
-        resourceServerId: [
-          { required: true, message: "请输入资源", trigger: 'blur' }
-        ],
-        type: [
-          { required: true, message: "请选择类型", trigger: 'blur' }
-        ],
-        name: [
-          { required: true, message: "请输入名称", trigger: 'blur' }
-        ],
-        purpose: [
-          { required: true, message: this.$t('please_input') + this.$t('table_purpose'), trigger: 'blur' }
-        ],
-        username: [
-          { required: true, message: "请输入账号", trigger: 'blur' }
-        ],
-        password: [
-          { required: true, message: "请输入密码", trigger: 'blur' }
-        ]
+        resourceServerId: [{
+          required: true,
+          message: '请输入资源',
+          trigger: 'blur'
+        }],
+        type: [{
+          required: true,
+          message: '请选择类型',
+          trigger: 'blur'
+        }],
+        name: [{
+          required: true,
+          message: '请输入名称',
+          trigger: 'blur'
+        }],
+        purpose: [{
+          required: true,
+          message: this.$t('please_input') + this.$t('table_purpose'),
+          trigger: 'blur'
+        }],
+        username: [{
+          required: true,
+          message: '请输入账号',
+          trigger: 'blur'
+        }],
+        password: [{
+          required: true,
+          message: '请输入密码',
+          trigger: 'blur'
+        }]
       }
     }
   },
@@ -323,9 +313,9 @@ export default {
         paging: true
       }
       payload.filters.push({
-        name: "type",
-        operator: "eq",
-        value: "mysql"
+        name: 'type',
+        operator: 'eq',
+        value: 'mysql'
       })
       const { status, data } = await retrieveServers(payload)
       if (status === 'OK') {
@@ -415,8 +405,8 @@ export default {
           this.form.password = CryptoJS.AES.encrypt(this.form.password, key, config).toString()
           const params = JSON.parse(JSON.stringify([this.form]))
           const method = this.operator === 'add' ? addResourceInstance : updateResourceInstance
-          const { status} = await method(params)
-          if (status === 'OK') {      
+          const { status } = await method(params)
+          if (status === 'OK') {
             this.visible = false
             this.$Message.success(this.$t('Create Success'))
             this.queryData()
@@ -427,9 +417,20 @@ export default {
     editHandler(row) {
       this.visible = true
       this.operator = 'edit'
-      let { id, resourceServerId, type, name, purpose, isAllocated, username, password } = row[0]
+      let {
+        id, resourceServerId, type, name, purpose, isAllocated, username, password
+      } = row[0]
       isAllocated = isAllocated === 'true' ? true : false
-      this.form =Object.assign({}, this.form, { id, resourceServerId, type, name, purpose, isAllocated, username, password})
+      this.form = Object.assign({}, this.form, {
+        id,
+        resourceServerId,
+        type,
+        name,
+        purpose,
+        isAllocated,
+        username,
+        password
+      })
     },
     deleteHandler(deleteData) {
       this.$Modal.confirm({
