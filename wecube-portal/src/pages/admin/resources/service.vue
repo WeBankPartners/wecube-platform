@@ -232,36 +232,48 @@ export default {
         }
       ],
       rules: {
-        resourceServerId: [{
-          required: true,
-          message: '请输入资源',
-          trigger: 'blur'
-        }],
-        type: [{
-          required: true,
-          message: '请选择类型',
-          trigger: 'blur'
-        }],
-        name: [{
-          required: true,
-          message: '请输入名称',
-          trigger: 'blur'
-        }],
-        purpose: [{
-          required: true,
-          message: this.$t('please_input') + this.$t('table_purpose'),
-          trigger: 'blur'
-        }],
-        username: [{
-          required: true,
-          message: '请输入账号',
-          trigger: 'blur'
-        }],
-        password: [{
-          required: true,
-          message: '请输入密码',
-          trigger: 'blur'
-        }]
+        resourceServerId: [
+          {
+            required: true,
+            message: '请输入资源',
+            trigger: 'blur'
+          }
+        ],
+        type: [
+          {
+            required: true,
+            message: '请选择类型',
+            trigger: 'blur'
+          }
+        ],
+        name: [
+          {
+            required: true,
+            message: '请输入名称',
+            trigger: 'blur'
+          }
+        ],
+        purpose: [
+          {
+            required: true,
+            message: this.$t('please_input') + this.$t('table_purpose'),
+            trigger: 'blur'
+          }
+        ],
+        username: [
+          {
+            required: true,
+            message: '请输入账号',
+            trigger: 'blur'
+          }
+        ],
+        password: [
+          {
+            required: true,
+            message: '请输入密码',
+            trigger: 'blur'
+          }
+        ]
       }
     }
   },
