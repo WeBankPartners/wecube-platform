@@ -360,33 +360,3 @@ func healthCheck(c *gin.Context) {
 		middleware.ReturnSuccess(c)
 	}
 }
-
-// 自定义响应写入器
-type customResponseWriter struct {
-	gin.ResponseWriter
-	headers http.Header
-	written bool
-}
-
-func (w *customResponseWriter) WriteHeader(code int) {
-	w.ResponseWriter.WriteHeader(code)
-	w.written = true
-}
-
-func (w *customResponseWriter) Header() http.Header {
-	if w.headers == nil {
-		w.headers = make(http.Header)
-		for k, v := range w.ResponseWriter.Header() {
-			w.headers[k] = v
-		}
-	}
-	return w.headers
-}
-
-func (w *customResponseWriter) Write(b []byte) (int, error) {
-	if !w.written {
-		w.ResponseWriter.WriteHeader(http.StatusOK)
-		w.written = true
-	}
-	return w.ResponseWriter.Write(b)
-}
