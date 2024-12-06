@@ -214,8 +214,3 @@ func buildErrMessage(templateMessage string, params []interface{}) (message stri
 func IsBusinessErrorCode(errorCode int) bool {
 	return strings.HasPrefix(fmt.Sprintf("%d", errorCode), "2")
 }
-
-func IsCustomError(err error) bool {
-	_, ok := err.(CustomError)
-	return ok
-}
