@@ -1837,7 +1837,11 @@ export default {
         this.selectedFlow = found.procDefId
         this.selectedTarget = found.entityDataId
         // Check: 按需启动轮询
-        if (['InProgress'].includes(this.currentInstanceStatusForNodeOperation)) {
+        if (
+          ['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)'].includes(
+            this.currentInstanceStatusForNodeOperation
+          )
+        ) {
           this.processInstance()
         }
         this.getNodeBindings(found.id)
