@@ -336,6 +336,12 @@ func GetResourceItem(ctx context.Context, resourceType, name string, isAllocated
 	err = db.MysqlEngine.Context(ctx).SQL(baseSql+strings.Join(filterSql, " and "), filterParams...).Find(&resourceItemRows)
 	if err != nil {
 		err = fmt.Errorf("query resource item fail,%s ", err.Error())
+	} else {
+		for _, row := range resourceItemRows {
+			if strings.HasPrefix(row.Password, models.AESPrefix) {
+				row.Password = encrypt.DecryptWithAesECB(row.Password[5:], models.Config.Plugin.ResourcePasswordSeed, row.Name)
+			}
+		}
 	}
 	return
 }
