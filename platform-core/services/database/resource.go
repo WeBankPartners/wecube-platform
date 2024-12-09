@@ -315,3 +315,27 @@ func getPluginMysqlInstanceByItem(ctx context.Context, resourceItemId string) (p
 	}
 	return
 }
+
+func GetResourceItem(ctx context.Context, resourceType, name string, isAllocated bool) (resourceItemRows []*models.ResourceItem, err error) {
+	baseSql := "select * from resource_item where "
+	var filterSql []string
+	var filterParams []interface{}
+	if resourceType != "" {
+		filterSql = append(filterSql, "`type`=?")
+		filterParams = append(filterParams, resourceType)
+	}
+	if name != "" {
+		filterSql = append(filterSql, "`name`=?")
+		filterParams = append(filterParams, name)
+	}
+	if isAllocated {
+		filterSql = append(filterSql, "`is_allocated`=1")
+	} else {
+		filterSql = append(filterSql, "`is_allocated`=0")
+	}
+	err = db.MysqlEngine.Context(ctx).SQL(baseSql+strings.Join(filterSql, " and "), filterParams...).Find(&resourceItemRows)
+	if err != nil {
+		err = fmt.Errorf("query resource item fail,%s ", err.Error())
+	}
+	return
+}
