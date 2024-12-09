@@ -1836,7 +1836,10 @@ export default {
         this.currentInstanceStatusForNodeOperation = found.status
         this.selectedFlow = found.procDefId
         this.selectedTarget = found.entityDataId
-        this.processInstance()
+        // Check: 按需启动轮询
+        if (['InProgress'].includes(this.currentInstanceStatusForNodeOperation)) {
+          this.processInstance()
+        }
         this.getNodeBindings(found.id)
         const { status, data } = await getProcessInstance(found.id)
         if (status === 'OK') {
@@ -2423,7 +2426,8 @@ export default {
           this.stopSuccess = true
           this.stop()
           this.fetchCurrentInstanceStatus()
-          this.refreshModelData()
+          // Check: 判断外总会执行该逻辑，此处清理
+          // this.refreshModelData()
         }
         this.refreshModelData()
       }
@@ -2435,11 +2439,12 @@ export default {
         this.renderModelGraph()
         return
       }
-      if (this.processSessionId) {
-        const binds = await getAllBindingsProcessSessionId(this.processSessionId)
-        this.allBindingsList = binds.data
-        this.renderModelGraph()
-      }
+      // Check: getModelData中会执行该逻辑，此处清理
+      // if (this.processSessionId) {
+      //   const binds = await getAllBindingsProcessSessionId(this.processSessionId)
+      //   this.allBindingsList = binds.data
+      //   this.renderModelGraph()
+      // }
     },
     comparativeData(old, newData) {
       let isNew = false
