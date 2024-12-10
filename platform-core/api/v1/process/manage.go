@@ -1753,10 +1753,16 @@ func QueryEmptyNodes(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+	sort.Sort(models.ProcDefSortNodes(procDefNodes))
+	orderIndex := 1
 	for _, node := range procDefNodes {
+		if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) || node.NodeType == models.JobSubProcType {
+			node.OrderedNo = orderIndex
+			orderIndex += 1
+		}
 		if node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeSubProcess) || node.NodeType == string(models.ProcDefNodeTypeData) {
 			if !tools.Contains(nodeIds, node.Id) {
-				result = append(result, node.Name)
+				result = append(result, fmt.Sprintf("%d %s", node.OrderedNo, node.Name))
 			}
 		}
 	}
