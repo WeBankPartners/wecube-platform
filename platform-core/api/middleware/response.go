@@ -7,6 +7,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 const AcceptLanguageHeader = "Accept-Language"
@@ -84,6 +85,7 @@ func ReturnError(c *gin.Context, err error) {
 	c.Set(models.ContextErrorKey, errorKey)
 	c.Set(models.ContextErrorCode, errorCode)
 	c.Set(models.ContextErrorMessage, errorMessage)
+	c.Writer.Header().Add("Error-Code", strconv.Itoa(errorCode))
 	c.JSON(http.StatusOK, returnObj)
 }
 
