@@ -635,6 +635,7 @@ import {
   getFlowOutlineByID,
   // getTargetOptions,
   getTreePreviewData,
+  previewFlowExecute,
   createFlowInstance,
   getProcessInstances,
   getProcessInstance,
@@ -2318,18 +2319,46 @@ export default {
         setTimeout(() => {
           this.btnLoading = false
         }, 5000)
-        const { status, data } = await createFlowInstance(payload)
-        this.btnLoading = false
-        this.isExecuteActive = false
-        if (status === 'OK') {
-          this.$router.push({
-            path: '/implementation/workflow-execution/view-execution',
-            query: {
-              id: data.id,
-              from: 'create',
-              subProc: this.subProc
+        // 编排执行前，调用试算接口，给出空数据提示
+        const previewParams = {
+          params: {
+            processSessionId: this.processSessionId,
+            procDefId: this.flowData.procDefId
+          }
+        }
+        const previewRes = await previewFlowExecute(previewParams)
+        const saveFlowInstance = async () => {
+          const { status, data } = await createFlowInstance(payload)
+          this.btnLoading = false
+          this.isExecuteActive = false
+          if (status === 'OK') {
+            this.$router.push({
+              path: '/implementation/workflow-execution/view-execution',
+              query: {
+                id: data.id,
+                from: 'create',
+                subProc: this.subProc
+              }
+            })
+          }
+        }
+        if (previewRes.data && previewRes.data.length > 0) {
+          this.$Modal.confirm({
+            title: '执行数据为空',
+            content: `【${previewRes.data.join('，')}】数据为空，是否继续执行？`,
+            'z-index': 1000000,
+            loading: true,
+            onOk: async () => {
+              this.$Modal.remove()
+              saveFlowInstance()
+            },
+            onCancel: () => {
+              this.btnLoading = false
+              this.isExecuteActive = false
             }
           })
+        } else {
+          saveFlowInstance()
         }
       }
     },
