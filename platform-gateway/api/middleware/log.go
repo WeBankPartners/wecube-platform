@@ -16,7 +16,7 @@ import (
 func HttpLogHandle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
-		if c.Request.RequestURI != "/platform/v1/packages" && !strings.HasSuffix(c.Request.RequestURI, "/packages/upload") {
+		if strings.EqualFold(model.Config.Log.Level, "debug") && c.Request.RequestURI != "/platform/v1/packages" && !strings.HasSuffix(c.Request.RequestURI, "/packages/upload") {
 			bodyBytes, _ := ioutil.ReadAll(c.Request.Body)
 			c.Request.Body.Close()
 			c.Request.Body = ioutil.NopCloser(bytes.NewReader(bodyBytes))
