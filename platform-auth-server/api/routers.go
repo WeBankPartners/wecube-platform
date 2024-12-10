@@ -1,13 +1,18 @@
 package api
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
+	"strings"
+	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -35,9 +40,9 @@ func NewRouter() *gin.Engine {
 	router := gin.Default()
 
 	if model.Config.Log.AccessLogEnable {
-		router.Use(middleware.HttpLogHandle())
+		router.Use(HttpLogHandle())
 	}
-	router.Use(gin.CustomRecovery(middleware.RecoverHandle))
+	router.Use(gin.CustomRecovery(RecoverHandle))
 
 	authMap := buildAuthMap()
 	authoritiesFetcher := func(path string, method string) []string {
@@ -61,9 +66,8 @@ func NewRouter() *gin.Engine {
 		case http.MethodDelete:
 			group.DELETE(funcObj.Url, funcObj.HandlerFunc)
 		}
-		apiCodeMap[fmt.Sprintf("%s_%s", funcObj.Url, funcObj.Method)] = funcObj.ApiCode
+		apiCodeMap[fmt.Sprintf("%s_%s%s", funcObj.Method, constant.UrlPrefix, funcObj.Url)] = funcObj.ApiCode
 	}
-
 	return router
 }
 
@@ -74,6 +78,43 @@ func buildAuthMap() map[string][]string {
 		authMap[requestKey] = handlerFunc.Authorities
 	}
 	return authMap
+}
+
+func HttpLogHandle() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		start := time.Now()
+		bodyBytes, _ := ioutil.ReadAll(c.Request.Body)
+		c.Request.Body.Close()
+		c.Request.Body = ioutil.NopCloser(bytes.NewReader(bodyBytes))
+		c.Set("requestBody", string(bodyBytes))
+		log.Logger.Info("Received request ", log.String("url", c.Request.RequestURI), log.String("method", c.Request.Method), log.String("body", c.GetString("requestBody")))
+		if strings.EqualFold(model.Config.Log.Level, "debug") {
+			requestDump, _ := httputil.DumpRequest(c.Request, true)
+			log.Logger.Debug("Received request: " + string(requestDump))
+		}
+		apiCode := apiCodeMap[c.Request.Method+"_"+c.FullPath()]
+		c.Writer.Header().Add("Api-Code", apiCode)
+		c.Next()
+		costTime := time.Since(start).Seconds() * 1000
+		log.AccessLogger.Info("Got request -", log.String("url", c.Request.RequestURI), log.String("method", c.Request.Method), log.Int("code", c.Writer.Status()), log.String("operator", c.GetString("user")), log.String("ip", getRemoteIp(c)), log.Float64("cost_ms", costTime), log.String("body", c.GetString("responseBody")))
+	}
+}
+
+func getRemoteIp(c *gin.Context) string {
+	netIp := c.RemoteIP()
+	if len(netIp) > 0 {
+		return netIp
+	}
+	return c.ClientIP()
+}
+
+func RecoverHandle(c *gin.Context, err interface{}) {
+	var errorMessage string
+	if err != nil {
+		errorMessage = err.(error).Error()
+	}
+	log.Logger.Error("Handle error", log.Int("errorCode", 1), log.String("message", errorMessage))
+	c.JSON(http.StatusInternalServerError, model.ResponseWrap{ErrorCode: 1, Status: model.ResponseStatusError})
 }
 
 func init() {
