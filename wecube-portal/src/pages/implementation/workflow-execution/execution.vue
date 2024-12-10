@@ -2799,8 +2799,8 @@ export default {
               if (j.bound === 'Y') {
                 this.$set(j, '_checked', true)
                 objData[i]._isChecked = true
+                this.catchNodeTableList.push(objData[i])
               }
-              this.catchNodeTableList.push(objData[i])
             }
           })
         })
