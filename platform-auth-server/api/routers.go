@@ -135,6 +135,8 @@ func init() {
 			ApiCode: "ModifyLocalUserInfomation"},
 		&handlerFuncObj{Url: "/v1/users", Method: http.MethodGet, HandlerFunc: RetrieveAllUsers,
 			ApiCode: "RetrieveAllUsers"},
+		&handlerFuncObj{Url: "/v1/users/query", Method: http.MethodPost, HandlerFunc: QueryUser,
+			ApiCode: "QueryUser"},
 		&handlerFuncObj{Url: "/v1/users/:user-id", Method: http.MethodGet, HandlerFunc: RetrieveUserByUserId,
 			ApiCode: "RetrieveUserByUserId"},
 		&handlerFuncObj{Url: "/v1/user-message/:username", Method: http.MethodGet, HandlerFunc: RetrieveUserByUsername,
