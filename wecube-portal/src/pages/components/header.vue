@@ -403,16 +403,16 @@ export default {
     // #endregion
   },
   async created() {
+    if (window.needReLoad) {
+      this.getAllPluginPackageResourceFiles()
+      window.needReLoad = false
+    }
     this.getLocalLang()
     this.getApplicationVersion()
     this.getMyMenus()
     this.username = window.localStorage.getItem('username')
   },
   mounted() {
-    if (window.needReLoad) {
-      this.getAllPluginPackageResourceFiles()
-      window.needReLoad = false
-    }
     this.$eventBusP.$on('updateMenus', () => {
       this.getMyMenus()
     })
