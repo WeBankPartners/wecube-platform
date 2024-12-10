@@ -1,7 +1,7 @@
 <template>
   <div>
     <Row>
-      <Col span="7">
+      <Col span="8">
         <Card>
           <p slot="title">
             {{ $t('user') }}
@@ -10,7 +10,7 @@
             }}</Button>
           </p>
           <Input v-model="userFilter" clearable :placeholder="$t('pi_enter_to_filter')" style="margin-bottom: 12px" />
-          <div class="tagContainers">
+          <div class="user-tag-containers">
             <div class="user-item" v-for="item in userFilterRes" :key="item.id">
               <Tag
                 :name="item.username"
@@ -50,6 +50,20 @@
               </Tooltip>
             </div>
           </div>
+          <Page
+            :styles="{marginBottom: '-10px'}"
+            :total="pagination.total"
+            @on-change="
+              e => {
+                pagination.page = e
+                this.getAllUsers()
+              }
+            "
+            :current="pagination.page"
+            :page-size="pagination.size"
+            size="small"
+            show-total
+          />
         </Card>
       </Col>
       <Col span="7" offset="1">
@@ -115,7 +129,7 @@
         :label-width="100"
       >
         <FormItem :label="$t('username')" prop="username">
-          <Input v-model="addedUser.username" />
+          <Input v-model.trim="addedUser.username" />
         </FormItem>
         <FormItem :label="$t('auth_type')" prop="authtype">
           <RadioGroup v-model="addedUser.authType">
@@ -124,10 +138,10 @@
           </RadioGroup>
         </FormItem>
         <FormItem v-if="addedUser.authType === 'LOCAL'" :label="$t('password')" prop="password">
-          <Input type="password" v-model="addedUser.password" />
+          <Input type="password" v-model.trim="addedUser.password" />
         </FormItem>
         <FormItem :label="$t('email')">
-          <Input v-model="addedUser.email" />
+          <Input v-model.trim="addedUser.email" />
         </FormItem>
       </Form>
       <div slot="footer">
@@ -142,29 +156,31 @@
             <span style="color: red">*</span>
             {{ $t('role') }}
           </label>
-          <Input v-model="addedRole.params.name" :placeholder="$t('please_input')" />
+          <Input v-model.trim="addedRole.params.name" :placeholder="$t('please_input')" />
         </FormItem>
         <FormItem>
           <label slot="label">
             <span style="color: red">*</span>
             {{ $t('display_name') }}
           </label>
-          <Input v-model="addedRole.params.displayName" :placeholder="$t('please_input')" />
+          <Input v-model.trim="addedRole.params.displayName" clearable :placeholder="$t('please_input')" />
         </FormItem>
         <FormItem>
           <label slot="label">
             <span style="color: red">*</span>
             {{ $t('email') }}
           </label>
-          <Input v-model="addedRole.params.email" :placeholder="$t('please_input')" />
+          <Input v-model.trim="addedRole.params.email" clearable :placeholder="$t('please_input')" />
         </FormItem>
         <FormItem>
           <label slot="label">
             <span style="color: red">*</span>
             {{ $t('role_admin') }}
           </label>
-          <Select v-model="addedRole.params.administrator" filterable>
-            <Option v-for="item in users" :value="item.id" :key="item.id">{{ item.username }}</Option>
+          <Select v-model="addedRole.params.administrator" filterable clearable>
+            <Option v-for="item in initAllUserInfo" :value="item.id" :key="item.id" :label="item.username">{{
+              item.username
+            }}</Option>
           </Select>
         </FormItem>
         <FormItem :label="$t('status')" v-if="!addedRole.isAdd">
@@ -183,26 +199,31 @@
             <span style="color: red">*</span>
             {{ $t('email') }}
           </label>
-          <Input v-model="editUser.params.email" :placeholder="$t('please_input')" />
+          <Input v-model.trim="editUser.params.emailAddr" :placeholder="$t('please_input')" />
         </FormItem>
       </Form>
       <div slot="footer">
         <Button @click="editUser.isShow = false">{{ $t('cancel') }}</Button>
-        <Button type="primary" :disabled="editUser.params.email === ''" @click="confirmEditUserEmail">{{
+        <Button type="primary" :disabled="editUser.params.emailAddr === ''" @click="confirmEditUserEmail">{{
           $t('save')
         }}</Button>
       </div>
     </Modal>
-    <Modal v-model="userManageModal" width="700" :title="$t('edit_user')">
-      <Transfer
-        :titles="transferTitles"
-        :list-style="transferStyle"
-        :data="allUsersForTransfer"
-        :target-keys="usersKeyBySelectedRole"
-        :render-format="renderUserNameForTransfer"
-        @on-change="handleUserTransferChange"
-        filterable
-      ></Transfer>
+    <Modal v-model="userManageModal" width="800" :title="$t('edit_user')">
+      <div style="width: 100%; overflow-x: auto">
+        <div style="min-width: 760px; display: flex; justify-content: center">
+          <Transfer
+            v-if="userManageModal"
+            :titles="transferTitles"
+            :list-style="transferStyle"
+            :data="allUsersForTransfer"
+            :target-keys="usersKeyBySelectedRole"
+            :render-format="renderUserNameForTransfer"
+            @on-change="handleUserTransferChange"
+            filterable
+          ></Transfer>
+        </div>
+      </div>
       <div slot="footer">
         <Button type="primary" @click="confirmUser">{{ $t('close') }}</Button>
       </div>
@@ -210,17 +231,12 @@
     <Modal v-model="showNewPassword" :title="$t('new_password')">
       <Form class="validation-form" label-position="left" :label-width="100">
         <FormItem :label="$t('new_password')">
-          <Input v-model="newPassword" :placeholder="$t('please_input')" style="width: 300px" />
+          <Input v-model.trim="newPassword" :placeholder="$t('please_input')" style="width: 300px" />
           <Icon @click="copyPassword" class="icon-copy" type="md-copy" />
         </FormItem>
       </Form>
     </Modal>
-    <Modal
-      v-model="addRoleToUser.isShow"
-      :title="$t('add_role')"
-      @on-ok="confirmAddRoleToUser"
-      @on-cancel="addRoleToUser.isShow = false"
-    >
+    <Modal v-model="addRoleToUser.isShow" :title="$t('add_role')">
       <Form class="validation-form" label-position="left" :label-width="100">
         <FormItem :label="$t('role')">
           <Select v-model="addRoleToUser.params.roles" multiple filterable>
@@ -230,6 +246,12 @@
           </Select>
         </FormItem>
       </Form>
+      <div slot="footer">
+        <Button @click="addRoleToUser.isShow = false">{{ $t('cancel') }}</Button>
+        <Button :disabled="addRoleToUser.params.roles.length === 0" type="primary" @click="confirmAddRoleToUser">{{
+          $t('save')
+        }}</Button>
+      </div>
     </Modal>
   </div>
 </template>
@@ -238,6 +260,7 @@ import {
   userCreate,
   removeUser,
   getUserList,
+  getAllUserList,
   roleCreate,
   getRoleList,
   updateRole,
@@ -299,7 +322,7 @@ export default {
       editUser: {
         isShow: false,
         params: {
-          email: ''
+          emailAddr: ''
         }
       },
       addedRoleValue: '',
@@ -314,18 +337,20 @@ export default {
       userManageModal: false,
       originMenus: [],
       menus: [],
-      menuTreeLoading: false
+      menuTreeLoading: false,
+      pagination: {
+        total: 50,
+        page: 1,
+        size: 20
+      },
+      initAllUserInfo: []
     }
   },
   watch: {
     userFilter: {
-      handler: debounce(function (newValue) {
-        const filter = newValue.trim()
-        if (filter === '') {
-          this.userFilterRes = this.users
-        } else {
-          this.userFilterRes = this.users.filter(u => u.username.includes(filter))
-        }
+      handler: debounce(function () {
+        this.pagination.page = 1
+        this.getAllUsers()
       }, 300), // 300ms防抖时间
       immediate: true
     },
@@ -366,15 +391,19 @@ export default {
           desc: ''
         })
         this.handleUserClick(true, this.addRoleToUser.params.username)
+        this.addRoleToUser.isShow = false
       }
     },
     async addRoleToUsers(item) {
       this.addRoleToUser.params = { ...item }
-      const { status, data } = await getRolesByUserName(item.username)
+      const allPromiseArr = []
+      allPromiseArr.push(getRolesByUserName(item.username), getRoleList())
+      const finallArr = await Promise.all(allPromiseArr)
+      const { status, data } = finallArr[0]
       if (status === 'OK') {
         this.addRoleToUser.params.roles = data.map(d => d.id)
       }
-      const res = await getRoleList()
+      const res = finallArr[1]
       if (res.status === 'OK') {
         this.addRoleToUser.allRoles = res.data
         this.addRoleToUser.isShow = true
@@ -508,9 +537,16 @@ export default {
       return item.label
     },
     async getAllUsers() {
-      const { status, data } = await getUserList()
+      const params = {
+        username: this.userFilter.trim(),
+        pageSize: this.pagination.size,
+        startIndex: (this.pagination.page - 1) * this.pagination.size
+      }
+      const { status, data } = await getAllUserList(params)
       if (status === 'OK') {
-        this.users = data.map(_ => ({
+        const tempUsers = data.contents || []
+        this.pagination.total = data.pageInfo.totalRows
+        this.users = tempUsers.map(_ => ({
           ..._,
           checked: false,
           color: '#5cadff'
@@ -518,6 +554,7 @@ export default {
         this.userFilterRes = this.users
       }
       this.getAllRoles()
+      this.getInitAllUserInfo()
     },
     async getAllRoles() {
       const params = { all: 'Y' }
@@ -542,21 +579,23 @@ export default {
         }
       })
       if (checked) {
-        const permissions = await getMenusByUserName(name)
-        if (permissions.status === 'OK') {
-          const userMenus = [].concat(...(permissions.data || []).map(_ => _.menuList))
-          this.menusPermissionSelected(this.menus, userMenus, true)
-        }
-        const { status, data } = await getRolesByUserName(name)
-        if (status === 'OK') {
-          this.roles.forEach(_ => {
-            _.checked = false
-            const found = data.find(item => item.id === _.id)
-            if (found) {
-              _.checked = checked
-            }
-          })
-        }
+        getMenusByUserName(name).then(permissions => {
+          if (permissions.status === 'OK') {
+            const userMenus = [].concat(...(permissions.data || []).map(_ => _.menuList))
+            this.menusPermissionSelected(this.menus, userMenus, true)
+          }
+        })
+        getRolesByUserName(name).then(res => {
+          if (res.status === 'OK') {
+            this.roles.forEach(_ => {
+              _.checked = false
+              const found = res.data.find(item => item.id === _.id)
+              if (found) {
+                _.checked = checked
+              }
+            })
+          }
+        })
       } else {
         this.roles.forEach(_ => {
           _.checked = false
@@ -578,20 +617,22 @@ export default {
       })
       this.menus = this.menusResponseHandeler(this.originMenus, !checked)
       if (checked) {
-        const permissions = await getMenusByRoleId(id)
-        if (permissions.status === 'OK') {
-          this.menusPermissionSelected(this.menus, permissions.data.menuList, false)
-        }
-        const { status, data } = await getUsersByRoleId(id)
-        if (status === 'OK') {
-          this.users.forEach(_ => {
-            _.checked = false
-            const found = data.find(item => item.username === _.username)
-            if (found) {
-              _.checked = checked
-            }
-          })
-        }
+        getMenusByRoleId(id).then(permissions => {
+          if (permissions.status === 'OK') {
+            this.menusPermissionSelected(this.menus, permissions.data.menuList, false)
+          }
+        })
+        getUsersByRoleId(id).then(res => {
+          if (res.status === 'OK') {
+            this.users.forEach(_ => {
+              _.checked = false
+              const found = res.data.find(item => item.username === _.username)
+              if (found) {
+                _.checked = checked
+              }
+            })
+          }
+        })
       } else {
         this.users.forEach(_ => {
           _.checked = false
@@ -634,7 +675,7 @@ export default {
       if (status === 'OK') {
         this.usersKeyBySelectedRole = data.map(_ => _.id)
       }
-      this.allUsersForTransfer = this.users.map(_ => ({
+      this.allUsersForTransfer = this.initAllUserInfo.map(_ => ({
         key: _.id,
         username: _.username,
         label: _.username || ''
@@ -646,6 +687,15 @@ export default {
       this.editUser.isShow = true
     },
     async confirmEditUserEmail() {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!this.editUser.params.emailAddr) {
+        this.$Message.warning(`${this.$t('email')}${this.$t('cannotBeEmpty')}`)
+        return
+      } else if (!emailRegex.test(this.editUser.params.emailAddr)) {
+        this.$Message.warning(`${this.$t('email')}${this.$t('invalidFormat')}`)
+        return
+      }
+      this.editUser.params.email = this.editUser.params.emailAddr
       const { status, message } = await editUser(this.editUser.params)
       if (status === 'OK') {
         this.$Notice.success({
@@ -697,6 +747,7 @@ export default {
           authType: 'LOCAL'
         }
         this.addUserModalVisible = false
+        this.pagination.page = 1
         this.getAllUsers()
       }
     },
@@ -762,6 +813,12 @@ export default {
     },
     cancel() {
       this.addedRole.isShow = false
+    },
+    async getInitAllUserInfo() {
+      const { status, data } = await getUserList()
+      if (status === 'OK') {
+        this.initAllUserInfo = data
+      }
     }
   },
   created() {
@@ -789,6 +846,10 @@ export default {
   button {
     margin-left: 10px;
   }
+}
+.user-tag-containers {
+  overflow: auto;
+  height: calc(100vh - 265px);
 }
 .tagContainers {
   overflow: auto;

@@ -33,6 +33,8 @@ type ResourceItem struct {
 	Type                 string    `json:"type" xorm:"type"`                                  // 类型
 	UpdatedBy            string    `json:"updatedBy" xorm:"updated_by"`                       // 更新人
 	UpdatedDate          time.Time `json:"updatedDate" xorm:"updated_date"`                   // 更新时间
+	Username             string    `json:"username" xorm:"username"`                          // 连接用户名
+	Password             string    `json:"password" xorm:"password"`                          // 连接用户密码
 }
 
 type ResourceServerListPageData struct {

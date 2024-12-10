@@ -771,26 +771,85 @@ func (UserManagementService) RetrieveAllActiveUsers() ([]*model.SimpleLocalUserD
 		return result, nil
 	}
 
+	var allUserRoles []*model.UserRoleRsEntity
+	if allUserRoles, err = db.UserRoleRsRepositoryInstance.FindAllUserRole(); err != nil {
+		log.Logger.Error("failed to find all user roles", log.Error(err))
+		return nil, err
+	}
+	var userRolesMap = make(map[string][]*model.UserRoleRsEntity)
+	for _, userRole := range allUserRoles {
+		if arr, ok := userRolesMap[userRole.UserId]; ok {
+			arr = append(arr, userRole)
+		} else {
+			userRolesMap[userRole.UserId] = []*model.UserRoleRsEntity{userRole}
+		}
+	}
+	// 增加map,减少db查询次数
+	var existRoleIdMap = make(map[string]bool)
+	var found bool
 	for _, user := range userEntities {
 		userDto := convertToSimpleLocalUserDto(user, "")
+		userRoles := userRolesMap[user.Id]
+		if len(userRoles) > 0 {
+			for _, userRole := range userRoles {
+				found = false
+				role := &model.SysRoleEntity{}
+				if found = existRoleIdMap[userRole.RoleId]; !found {
+					found, err = db.Engine.ID(userRole.RoleId).Get(role)
+					if err != nil {
+						log.Logger.Error("failed to get role", log.String("roleId", userRole.RoleId), log.Error(err))
+						return nil, err
+					}
+				}
+				if found {
+					existRoleIdMap[userRole.RoleId] = true
+					roleDto := &model.SimpleLocalRoleDto{
+						ID:          role.Id,
+						DisplayName: role.DisplayName,
+						Name:        role.Name,
+						Email:       role.EmailAddress,
+						Status:      role.GetRoleDeletedStatus(),
+					}
+					userDto.AddRoles([]*model.SimpleLocalRoleDto{roleDto})
+				}
+			}
+		}
+		result = append(result, userDto)
+	}
+	return result, nil
+}
 
-		userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByUserId(user.Id)
-		if err != nil {
-			log.Logger.Error("failed to find all UserRoleRs", log.String("userId", user.Id),
-				log.Error(err))
-			return nil, err
+func (UserManagementService) QueryUserPage(param model.QueryUserParam) (page model.PageInfo, data []*model.SimpleLocalUserDto, err error) {
+	page = model.PageInfo{
+		StartIndex: param.StartIndex,
+		PageSize:   param.PageSize,
+	}
+	var count int
+	var userEntities []*model.SysUserEntity
+	if count, userEntities, err = db.UserRepositoryInstance.QueryUsers(param); err != nil {
+		log.Logger.Error("failed to find all active users", log.Error(err))
+		return
+	}
+	page.TotalRows = count
+	result := make([]*model.SimpleLocalUserDto, 0)
+	if len(userEntities) == 0 {
+		return
+	}
+	for _, user := range userEntities {
+		userDto := convertToSimpleLocalUserDto(user, "")
+		var userRoles []*model.UserRoleRsEntity
+		if userRoles, err = db.UserRoleRsRepositoryInstance.FindAllByUserId(user.Id); err != nil {
+			log.Logger.Error("failed to find all UserRoleRs", log.String("userId", user.Id), log.Error(err))
+			return
 		}
 		if len(userRoles) > 0 {
 			for _, userRole := range userRoles {
-
+				var found bool
 				role := &model.SysRoleEntity{}
-				found, err := db.Engine.ID(userRole.RoleId).Get(role)
-				if err != nil {
-					log.Logger.Error("failed to get role", log.String("roleId", userRole.RoleId),
-						log.Error(err))
-					return nil, err
+				if found, err = db.Engine.ID(userRole.RoleId).Get(role); err != nil {
+					log.Logger.Error("failed to get role", log.String("roleId", userRole.RoleId), log.Error(err))
+					return
 				}
-
 				if found {
 					roleDto := &model.SimpleLocalRoleDto{
 						ID:          role.Id,
@@ -799,14 +858,14 @@ func (UserManagementService) RetrieveAllActiveUsers() ([]*model.SimpleLocalUserD
 						Email:       role.EmailAddress,
 						Status:      role.GetRoleDeletedStatus(),
 					}
-
 					userDto.AddRoles([]*model.SimpleLocalRoleDto{roleDto})
 				}
 			}
 		}
 		result = append(result, userDto)
 	}
-	return result, nil
+	data = result
+	return
 }
 
 // @Transactional

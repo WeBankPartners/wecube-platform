@@ -10,6 +10,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func ReturnPageData(c *gin.Context, pageInfo model.PageInfo, contents interface{}) {
+	if contents == nil {
+		contents = []string{}
+	}
+	obj := model.ResponseWrap{Status: model.ResponseStatusOk, Message: model.ResponseMessageOk, Data: model.ResponsePageData{PageInfo: pageInfo, Contents: contents}}
+	bodyBytes, _ := json.Marshal(obj)
+	c.Set("responseBody", string(bodyBytes))
+	c.JSON(http.StatusOK, obj)
+}
+
 func ReturnData(c *gin.Context, data interface{}) {
 	obj := model.ResponseWrap{Status: model.ResponseStatusOk, Message: model.ResponseMessageOk, Data: data}
 	bodyBytes, _ := json.Marshal(obj)
