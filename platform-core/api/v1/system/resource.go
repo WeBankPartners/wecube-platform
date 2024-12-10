@@ -117,3 +117,45 @@ func GetResourceServerSerialNum(c *gin.Context) {
 	data["productSerial"] = string(stdoutData)
 	middleware.ReturnData(c, data)
 }
+
+func CreateResourceItem(c *gin.Context) {
+	var params []*models.ResourceItem
+	if err := c.ShouldBindJSON(&params); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	err := database.CreateResourceItem(c, params, middleware.GetRequestUser(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, params)
+	}
+}
+
+func UpdateResourceItem(c *gin.Context) {
+	var params []*models.ResourceItem
+	if err := c.ShouldBindJSON(&params); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	err := database.UpdateResourceItem(c, params, middleware.GetRequestUser(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, params)
+	}
+}
+
+func DeleteResourceItem(c *gin.Context) {
+	var params []*models.ResourceItem
+	if err := c.ShouldBindJSON(&params); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	err := database.DeleteResourceItem(c, params)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}

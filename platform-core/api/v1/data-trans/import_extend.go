@@ -496,7 +496,9 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 func importTaskManComponentLibrary(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	// 判断是否要导入组件库
 	var input string
+	var pathExist bool
 	log.Logger.Info("8. importTaskManComponentLibrary start!!!")
+	componentLibraryPath := fmt.Sprintf("%s/component_library.json", transImportParam.DirPath)
 	if transImportParam.CurrentDetail == nil {
 		err = fmt.Errorf("importTaskManTemplate CurrentDetail is empty")
 		log.Logger.Error("err:", log.Error(err))
@@ -506,8 +508,14 @@ func importTaskManComponentLibrary(ctx context.Context, transImportParam *models
 		return
 	}
 	if input == "true" {
+		// 导入时候先检查 组件库路径是否存在,不存在直接跳过,不报错
+		if pathExist, err = tools.PathExist(componentLibraryPath); err != nil || !pathExist {
+			log.Logger.Info("pathExist", log.Error(err), log.String("path", componentLibraryPath), log.Bool("pathExist", pathExist))
+			err = nil
+			return
+		}
 		// 导入组件库
-		err = remote.ImportComponentLibrary(fmt.Sprintf("%s/component_library.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
+		err = remote.ImportComponentLibrary(componentLibraryPath, transImportParam.Token, transImportParam.Language)
 		if err != nil {
 			log.Logger.Error("importTaskManComponentLibrary", log.Error(err))
 			return

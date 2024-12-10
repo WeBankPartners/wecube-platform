@@ -1734,3 +1734,37 @@ func DelProcDefCollect(c *gin.Context) {
 		middleware.ReturnSuccess(c)
 	}
 }
+
+func QueryEmptyNodes(c *gin.Context) {
+	var nodeIds, result []string
+	var err error
+	var procDefNodes []*models.ProcDefNode
+	processSessionId := c.Query("processSessionId")
+	procDefId := c.Query("procDefId")
+	if strings.TrimSpace(processSessionId) == "" || strings.TrimSpace(procDefId) == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("processSessionId or procDefId empty")))
+		return
+	}
+	if procDefNodes, err = database.GetProcDefNodeById(c, procDefId); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if nodeIds, err = database.GetProcDefNodeIdsBySessionId(c, processSessionId); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	sort.Sort(models.ProcDefSortNodes(procDefNodes))
+	orderIndex := 1
+	for _, node := range procDefNodes {
+		if node.NodeType == string(models.ProcDefNodeTypeHuman) || node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeTypeData) || node.NodeType == models.JobSubProcType {
+			node.OrderedNo = orderIndex
+			orderIndex += 1
+		}
+		if node.NodeType == string(models.ProcDefNodeTypeAutomatic) || node.NodeType == string(models.ProcDefNodeSubProcess) || node.NodeType == string(models.ProcDefNodeTypeData) {
+			if !tools.Contains(nodeIds, node.Id) {
+				result = append(result, fmt.Sprintf("%d %s", node.OrderedNo, node.Name))
+			}
+		}
+	}
+	middleware.ReturnData(c, result)
+}
