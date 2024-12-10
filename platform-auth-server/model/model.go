@@ -106,3 +106,9 @@ type PlatSystemVariablesListPageData struct {
 	PageInfo *PageInfo              `json:"pageInfo"` // 分页信息
 	Contents []*PlatSystemVariables `json:"contents"` // 列表内容
 }
+
+type QueryUserParam struct {
+	UserName   string `json:"userName"`
+	StartIndex int    `json:"startIndex"`
+	PageSize   int    `json:"pageSize"`
+}

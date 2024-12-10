@@ -50,6 +50,11 @@ type PageInfo struct {
 	TotalRows  int `json:"totalRows"`  // 总量,查询时不用传
 }
 
+type ResponsePageData struct {
+	PageInfo PageInfo    `json:"pageInfo"`
+	Contents interface{} `json:"contents"`
+}
+
 type QueryRequestParam struct {
 	Filters       []*QueryRequestFilterObj `json:"filters"`       // 过滤条件,默认为空
 	Paging        bool                     `json:"paging"`        // 是否分页,默认为false
