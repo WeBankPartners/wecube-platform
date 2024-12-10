@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/api/support"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/log"
-	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/network"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
 	"github.com/gin-gonic/gin"
 	"math/rand"
@@ -78,27 +77,6 @@ func Redirect() gin.HandlerFunc {
 						break
 					}
 				}
-				//validIdx := -1
-				//for i := range rules {
-				//	targetUrl := rules[i].TargetPath + uri
-				//	invoke := support.RedirectInvoke{
-				//		TargetUrl: targetUrl,
-				//	}
-				//	err := invoke.Do(c)
-				//	if err != nil {
-				//		log.Logger.Warn("failed to request", log.String("targetUrl", targetUrl), log.Error(err))
-				//	} else {
-				//		validIdx = i
-				//		break
-				//	}
-				//}
-				//
-				//if validIdx > 0 {
-				//	tmp := rules[validIdx]
-				//	rules[validIdx] = rules[0]
-				//	rules[0] = tmp
-				//	redirectRuleMap.Store(requestKey, rules)
-				//}
 
 				if len(rules) > 0 {
 				} else {
@@ -109,16 +87,6 @@ func Redirect() gin.HandlerFunc {
 
 		c.Next()
 	}
-}
-
-func isRemoteRejected(err error) bool {
-	if network.IsNetworkTimeout(err) {
-		return true
-	}
-	if network.IsConnReset(err) {
-		return true
-	}
-	return false
 }
 
 func AddRedirectRule(context string, rules []RedirectRule) {
