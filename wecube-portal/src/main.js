@@ -76,18 +76,6 @@ WatchRouter.on('change', oldPath => {
   window.location.href = window.location.origin + '/#' + path
 })
 
-const rewriteDocumentTitle = path => {
-  document.title = ''
-  Object.keys(pluginNameMap).forEach(key => {
-    if (path.startsWith(key) || path.startsWith('/' + key)) {
-      document.title = i18n.t(pluginNameMap[key])
-    }
-    if (!document.title) {
-      document.title = i18n.t('fd_platform')
-    }
-  })
-}
-
 const getDocumentTitleMap = (routeArr, name) => {
   if (routeArr.length > 0) {
     routeArr.forEach(item => {
@@ -199,7 +187,6 @@ router.beforeEach(async (to, from, next) => {
           'currentPath',
           to.path === '/404' || to.path === '/login' ? '/homepage' : to.fullPath
         )
-        rewriteDocumentTitle(to.path)
         next()
       } else {
         /* has no permission */
