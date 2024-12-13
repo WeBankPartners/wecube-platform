@@ -265,11 +265,18 @@ export default {
           const { searchParams, searchOptions, pageable } = JSON.parse(storage)
           vm.searchParams = searchParams
           vm.searchOptions = searchOptions
-          vm.pageable = pageable
+          // 多选下拉框有默认值自动触发onSearch事件，导致页数被重置，采用延时方法解决这个问题
+          setTimeout(() => {
+            vm.pageable = pageable
+            vm.initData()
+          }, 500)
+        } else {
+          vm.initData()
         }
+      } else {
+        // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+        vm.initData()
       }
-      // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
-      vm.initData()
     })
   },
   beforeDestroy() {
