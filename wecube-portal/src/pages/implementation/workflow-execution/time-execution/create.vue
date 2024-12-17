@@ -5,7 +5,7 @@
         <Icon type="md-add" :size="18" />
         {{ $t('full_word_add') }}
       </Button>
-      <Button type="info" @click="exportData" style="margin-left: 5px">
+      <Button type="info" @click="exportData">
         <img src="../../../../assets/icon/export.png" class="btn-img" alt="" />
         {{ $t('export_flow') }}
       </Button>
@@ -1192,6 +1192,13 @@ export default {
   .item {
     width: 21%;
     margin: 8px;
+  }
+  .btn-right {
+    margin-right: 10px;
+  }
+  .btn-img {
+    width: 16px;
+    vertical-align: middle;
   }
 }
 </style>
