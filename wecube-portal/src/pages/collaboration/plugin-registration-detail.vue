@@ -103,7 +103,7 @@
                           <div v-if="allInstances.length === 0">{{ $t('no_avaliable_instances') }}</div>
                           <div v-else style="display: flex; flex-direction: column">
                             <div v-for="item in allInstances" :key="item.id" class="mt-2">
-                              <div class="instance-item">
+                              <div class="instance-item" style="border-bottom: 0px">
                                 <span>{{ item.displayLabel }}</span>
                                 <Poptip
                                   confirm
