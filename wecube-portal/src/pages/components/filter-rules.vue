@@ -49,10 +49,7 @@
           <hr style="margin-top: 5px" />
           <div style="max-height: 145px; overflow: auto; margin-top: 5px">
             <template v-if="!needNativeAttr">
-              <ul
-                v-for="opt in filterCurrentLeafOptiongs"
-                :key="opt.pathExp + Math.random() * 1000"
-              >
+              <ul v-for="opt in filterCurrentLeafOptiongs" :key="opt.pathExp + Math.random() * 1000">
                 <li style="color: rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
               </ul>
             </template>
