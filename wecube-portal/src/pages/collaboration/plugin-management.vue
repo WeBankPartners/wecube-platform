@@ -310,6 +310,7 @@
   </Row>
 </template>
 <script>
+// 该文件在并未使用，是之前的老文件
 import {
   getAllPluginPkgs,
   createPluginInstanceByPackageIdAndHostIp,
