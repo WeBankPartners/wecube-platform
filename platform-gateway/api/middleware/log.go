@@ -30,28 +30,29 @@ func HttpLogHandle() gin.HandlerFunc {
 			log.Logger.Debug("Received request: " + string(requestDump))
 		}
 		c.Next()
-		costTime := time.Now().Sub(start).Seconds() * 1000
+		costTime := int64(time.Now().Sub(start).Seconds() * 1000)
 		apiCode := c.Writer.Header().Get("Api-Code")
 		// 业务错误码
 		var subCode, subErrorCode string
 		errCode = c.Writer.Header().Get("Error-Code")
-		prefix := strings.Split(c.Request.RequestURI, "/")[0]
-		switch constant.ServiceName(prefix) {
-		case constant.PlatformCore:
-			subCode = model.Config.SubSystemCode.Core
-		case constant.PlatformAuthServer:
-			subCode = model.Config.SubSystemCode.Auth
-		default:
-			subCode = model.Config.SubSystemCode.Plugin
-		}
-		apiCode = fmt.Sprintf("%s_%s", prefix, apiCode)
-		// 错误码,以1开头表示技术类错误,其他则是业务类错误,本身就是8位,不需要扩展
-		if strings.HasPrefix(errCode, "1") {
-			// 技术错误
-			subErrorCode = subCode + fmt.Sprintf("T%s", errCode)
-		} else {
-			// 业务错误
-			subErrorCode = subCode + fmt.Sprintf("B%s", errCode)
+		if prefixArr := strings.Split(c.Request.RequestURI, "/"); len(prefixArr) > 1 {
+			switch constant.ServiceName(prefixArr[1]) {
+			case constant.PlatformCore:
+				subCode = model.Config.SubSystemCode.Core
+			case constant.PlatformAuthServer:
+				subCode = model.Config.SubSystemCode.Auth
+			default:
+				subCode = model.Config.SubSystemCode.Plugin
+			}
+			apiCode = fmt.Sprintf("%s_%s", prefixArr[1], apiCode)
+			// 错误码,以1开头表示技术类错误,其他则是业务类错误,本身就是8位,不需要扩展
+			if strings.HasPrefix(errCode, "1") {
+				// 技术错误
+				subErrorCode = subCode + fmt.Sprintf("T%s", errCode)
+			} else {
+				// 业务错误
+				subErrorCode = subCode + fmt.Sprintf("B%s", errCode)
+			}
 		}
 		if c.Writer.Status() == 200 {
 			// 状态码 200 需要区分是否为业务错误
@@ -66,7 +67,7 @@ func HttpLogHandle() gin.HandlerFunc {
 			errCode = model.Config.SubSystemCode.Core + fmt.Sprintf("T00000%d", c.Writer.Status())
 		}
 		log.AccessLogger.Info(fmt.Sprintf("Got request -"), log.String("url", c.Request.RequestURI), log.String("apiCode", apiCode), log.String("method", c.Request.Method),
-			log.Int("code", c.Writer.Status()), log.String("errCode", errCode), log.String("operator", c.GetString("user")), log.String("ip", getRemoteIp(c)), log.Float64("cost_ms", costTime),
+			log.Int("code", c.Writer.Status()), log.String("errCode", errCode), log.String("operator", c.GetString("user")), log.String("ip", getRemoteIp(c)), log.Int64("cost_ms", costTime),
 			log.String("body", c.GetString("responseBody")))
 	}
 }
