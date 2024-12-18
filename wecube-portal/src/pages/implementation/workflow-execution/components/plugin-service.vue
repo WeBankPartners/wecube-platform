@@ -164,11 +164,7 @@
                   </Col>
                   <Col span="1" offset="1">
                     <FormItem :label-width="0">
-                      <Select
-                        v-model="param.sensitiveData"
-                        filterable
-                        style="width: 70px"
-                      >
+                      <Select v-model="param.sensitiveData" filterable style="width: 70px">
                         <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
                           item.label
                         }}</Option>
@@ -177,11 +173,7 @@
                   </Col>
                   <Col span="3" offset="1">
                     <FormItem :label-width="0">
-                      <Select
-                        filterable
-                        v-model="param.mappingType"
-                        @on-change="mappingTypeChange($event, param)"
-                      >
+                      <Select filterable v-model="param.mappingType" @on-change="mappingTypeChange($event, param)">
                         <Option v-for="item in mappingTypeOptions" :value="item.value" :key="item.key">{{
                           item.value
                         }}</Option>
@@ -204,10 +196,7 @@
                       </Select>
                       <span v-if="param.mappingType === 'context'">N/A</span>
                       <span v-if="param.mappingType === 'constant'">
-                        <Input
-                          v-model="param.mappingValue"
-                          placeholder=""
-                        />
+                        <Input v-model="param.mappingValue" placeholder="" />
                       </span>
                       <span v-if="param.mappingType === 'entity'">
                         <div style="width: 100%; display: inline-block; vertical-align: top">
@@ -277,11 +266,7 @@
                     </Col>
                     <Col span="1" offset="1">
                       <FormItem :label-width="0">
-                        <Select
-                          filterable
-                          v-model="outPut.sensitiveData"
-                          style="width: 70px"
-                        >
+                        <Select filterable v-model="outPut.sensitiveData" style="width: 70px">
                           <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
                             item.label
                           }}</Option>
@@ -316,11 +301,7 @@
                     <Col span="3">
                       <FormItem :label-width="0">
                         <span v-if="outPut.required === 'Y'" style="color: red; vertical-align: text-bottom">*</span>
-                        <Input
-                          v-model="outPut.name"
-                          placeholder="key"
-                          style="width: 80%"
-                        />
+                        <Input v-model="outPut.name" placeholder="key" style="width: 80%" />
                       </FormItem>
                     </Col>
                     <Col span="2" offset="0">
@@ -349,10 +330,7 @@
                     <Col span="3" offset="1">
                       <FormItem :label-width="0">
                         <span v-if="outPut.required === 'Y'" style="color: red; vertical-align: text-bottom">*</span>
-                        <Input
-                          v-model="outPut.mappingValue"
-                          placeholder="value"
-                        />
+                        <Input v-model="outPut.mappingValue" placeholder="value" />
                       </FormItem>
                     </Col>
                     <Col span="11" offset="1">
@@ -381,7 +359,13 @@
 </template>
 
 <script>
-import { getSourceNode, getNodeParams, getPluginFunByRule, retrieveSystemVariables, getAllDataModels } from '@/api/server'
+import {
+  getSourceNode,
+  getNodeParams,
+  getPluginFunByRule,
+  retrieveSystemVariables,
+  getAllDataModels
+} from '@/api/server'
 import FilterRulesRef from '@/pages/components/filter-rules-ref.vue'
 export default {
   components: { FilterRulesRef },
@@ -498,7 +482,7 @@ export default {
     },
     // 根据定位规则获取插件列表
     async getFilteredPluginInterfaceList() {
-      let path = this.nodeObj.routineExpression
+      const path = this.nodeObj.routineExpression
       let pkg = ''
       let entity = ''
       let payload = {}
@@ -532,7 +516,7 @@ export default {
       payload.nodeType = this.nodeObj.nodeType
       const { status, data } = await getPluginFunByRule(payload)
       if (status === 'OK') {
-        this.currentInter = data && data.find(item => item.serviceName === this.nodeObj.serviceName) || {}
+        this.currentInter = (data && data.find(item => item.serviceName === this.nodeObj.serviceName)) || {}
         this.currentInter.inputParameters.push(...this.currentInter.inputParameters)
         this.clearedEntityType = this.nodeObj.routineExpression.split('{')[0]
       }
@@ -577,7 +561,7 @@ export default {
 }
 </style>
 <style lang="scss">
-.vertical-center-modal .ivu-modal{
+.vertical-center-modal .ivu-modal {
   top: 40px;
 }
 </style>
