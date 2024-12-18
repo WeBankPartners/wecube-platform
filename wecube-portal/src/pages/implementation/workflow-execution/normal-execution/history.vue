@@ -228,7 +228,8 @@ export default {
           key: 'operator',
           placeholder: this.$t('executor'),
           component: 'select',
-          list: []
+          list: [],
+          initValue: window.localStorage.getItem('username')
         }
       ],
       searchConfig: {
@@ -241,7 +242,7 @@ export default {
           endTime: '',
           procDefId: '',
           entityDisplayName: '',
-          operator: '',
+          operator: window.localStorage.getItem('username'),
           status: '',
           rootEntityGuid: '',
           mainProcInsId: ''
