@@ -1405,8 +1405,9 @@ func RecordProcCallReq(ctx context.Context, param *models.ProcInsNodeReq, inputF
 	return
 }
 
-func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDefNodeId string) (result *models.ProcNodeContextReq, err error) {
+func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDefNodeId string) (result []*models.ProcNodeContextReq, err error) {
 	var queryRows []*models.ProcNodeContextQueryObj
+	var SubProcRequestObjects []models.ProcNodeContextReqObject
 	if procInsNodeId != "" {
 		err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.name,t1.proc_def_node_id,t1.error_msg,t1.status,t1.risk_check_result,t2.routine_expression,t2.service_name,t2.node_type,t3.start_time,t3.end_time from proc_ins_node t1 left join proc_def_node t2 on t1.proc_def_node_id=t2.id left join proc_run_node t3 on t3.proc_ins_node_id=t1.id where t1.proc_ins_id=? and t1.id=?", procInsId, procInsNodeId).Find(&queryRows)
 	} else if procDefNodeId != "" {
@@ -1416,33 +1417,11 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
-	result = &models.ProcNodeContextReq{}
+	result = []*models.ProcNodeContextReq{}
 	if len(queryRows) == 0 {
 		return
 	}
 	queryObj := queryRows[0]
-	result.NodeId = queryObj.ProcDefNodeId
-	result.NodeInstId = queryObj.Id
-	result.NodeName = queryObj.Name
-	result.NodeType = queryObj.NodeType
-	result.NodeDefId = queryObj.ProcDefNodeId
-	result.NodeExpression = queryObj.RoutineExpression
-	result.PluginInfo = queryObj.ServiceName
-	result.ErrorMessage = queryObj.ErrorMsg
-	result.BeginTime = queryObj.StartTime.Format(models.DateTimeFormat)
-	result.EndTime = queryObj.EndTime.Format(models.DateTimeFormat)
-	result.Operator = getProcNodeOperator(ctx, procInsNodeId)
-	result.RequestObjects = []models.ProcNodeContextReqObject{}
-	if queryObj.Status == models.JobStatusRisky {
-		result.ErrorCode = "CONFIRM"
-		result.ErrorMessage = queryObj.RiskCheckResult
-		if queryObj.RiskCheckResult != "" {
-			var riskResult models.ItsdangerousBatchCheckResultData
-			if tmpErr := json.Unmarshal([]byte(queryObj.RiskCheckResult), &riskResult); tmpErr == nil {
-				result.ErrorMessage = riskResult.Text
-			}
-		}
-	}
 	if queryObj.NodeType == models.JobSubProcType {
 		// 子编排的节点处理信息
 		var sucProcRows []*models.ProcContextSubProcRow
@@ -1480,54 +1459,83 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 			outputMap["createdTime"] = row.CreatedTime.Format(models.DateTimeFormat)
 			tmpReqObject.Inputs = append(tmpReqObject.Inputs, inputMap)
 			tmpReqObject.Outputs = append(tmpReqObject.Outputs, outputMap)
-			result.RequestObjects = append(result.RequestObjects, tmpReqObject)
+			SubProcRequestObjects = append(SubProcRequestObjects, tmpReqObject)
 		}
 	}
 	var reqRows []*models.ProcInsNodeReq
-	err = db.MysqlEngine.Context(ctx).SQL("select id from proc_ins_node_req where proc_ins_node_id=? order by created_time", queryObj.Id).Find(&reqRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select id,created_time,updated_time from proc_ins_node_req where proc_ins_node_id=? order by created_time desc", queryObj.Id).Find(&reqRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
-	for _, v := range reqRows {
-		queryObj.ReqId = v.Id
-	}
-	if queryObj.ReqId == "" {
-		return
-	}
-	result.RequestId = queryObj.ReqId
-	var procReqParams []*models.ProcInsNodeReqParam
-	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins_node_req_param where req_id=? order by data_index,id", queryObj.ReqId).Find(&procReqParams)
-	if err != nil {
-		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
-		return
-	}
-	if len(procReqParams) == 0 {
-		return
-	}
-	curDataIndex := 0
-	curReqObj := models.ProcNodeContextReqObject{CallbackParameter: procReqParams[0].CallbackId}
-	tmpInputMap := make(map[string]interface{})
-	tmpOutputMap := make(map[string]interface{})
-	for _, row := range procReqParams {
-		if row.DataIndex != curDataIndex {
-			curDataIndex = row.DataIndex
-			curReqObj.Inputs = []map[string]interface{}{tmpInputMap}
-			curReqObj.Outputs = []map[string]interface{}{tmpOutputMap}
-			result.RequestObjects = append(result.RequestObjects, curReqObj)
-			curReqObj = models.ProcNodeContextReqObject{CallbackParameter: row.CallbackId}
-			tmpInputMap = make(map[string]interface{})
-			tmpOutputMap = make(map[string]interface{})
+	for index, v := range reqRows {
+		var tempProcNodeContext = &models.ProcNodeContextReq{
+			RequestObjects: []models.ProcNodeContextReqObject{},
 		}
-		if row.FromType == "input" {
-			tmpInputMap[row.Name] = getInterfaceDataByDataType(row.DataValue, row.DataType, row.Name, row.Multiple, row.IsSensitive)
+		tempProcNodeContext.NodeId = queryObj.ProcDefNodeId
+		tempProcNodeContext.NodeInstId = queryObj.Id
+		tempProcNodeContext.NodeName = queryObj.Name
+		tempProcNodeContext.NodeType = queryObj.NodeType
+		tempProcNodeContext.NodeDefId = queryObj.ProcDefNodeId
+		tempProcNodeContext.NodeExpression = queryObj.RoutineExpression
+		tempProcNodeContext.PluginInfo = queryObj.ServiceName
+		tempProcNodeContext.ErrorMessage = queryObj.ErrorMsg
+		if index == 0 {
+			// 最新执行,从 proc_run_node 表中取startTime
+			tempProcNodeContext.BeginTime = queryObj.StartTime.Format(models.DateTimeFormat)
+			tempProcNodeContext.EndTime = queryObj.EndTime.Format(models.DateTimeFormat)
+			tempProcNodeContext.RequestObjects = append(tempProcNodeContext.RequestObjects, SubProcRequestObjects...)
 		} else {
-			tmpOutputMap[row.Name] = getInterfaceDataByDataType(row.DataValue, row.DataType, row.Name, row.Multiple, row.IsSensitive)
+			// 历史执行,从 proc_ins_node_req 取
+			tempProcNodeContext.BeginTime = v.CreatedTime.Format(models.DateTimeFormat)
+			tempProcNodeContext.EndTime = v.UpdatedTime.Format(models.DateTimeFormat)
 		}
+		tempProcNodeContext.Operator = getProcNodeOperator(ctx, procInsNodeId)
+		tempProcNodeContext.RequestObjects = []models.ProcNodeContextReqObject{}
+		if queryObj.Status == models.JobStatusRisky {
+			tempProcNodeContext.ErrorCode = "CONFIRM"
+			tempProcNodeContext.ErrorMessage = queryObj.RiskCheckResult
+			if queryObj.RiskCheckResult != "" {
+				var riskResult models.ItsdangerousBatchCheckResultData
+				if tmpErr := json.Unmarshal([]byte(queryObj.RiskCheckResult), &riskResult); tmpErr == nil {
+					tempProcNodeContext.ErrorMessage = riskResult.Text
+				}
+			}
+		}
+		var procReqParams []*models.ProcInsNodeReqParam
+		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins_node_req_param where req_id=? order by data_index,id", v.Id).Find(&procReqParams)
+		if err != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		if len(procReqParams) == 0 {
+			return
+		}
+		curDataIndex := 0
+		curReqObj := models.ProcNodeContextReqObject{CallbackParameter: procReqParams[0].CallbackId}
+		tmpInputMap := make(map[string]interface{})
+		tmpOutputMap := make(map[string]interface{})
+		for _, row := range procReqParams {
+			if row.DataIndex != curDataIndex {
+				curDataIndex = row.DataIndex
+				curReqObj.Inputs = []map[string]interface{}{tmpInputMap}
+				curReqObj.Outputs = []map[string]interface{}{tmpOutputMap}
+				tempProcNodeContext.RequestObjects = append(tempProcNodeContext.RequestObjects, curReqObj)
+				curReqObj = models.ProcNodeContextReqObject{CallbackParameter: row.CallbackId}
+				tmpInputMap = make(map[string]interface{})
+				tmpOutputMap = make(map[string]interface{})
+			}
+			if row.FromType == "input" {
+				tmpInputMap[row.Name] = getInterfaceDataByDataType(row.DataValue, row.DataType, row.Name, row.Multiple, row.IsSensitive)
+			} else {
+				tmpOutputMap[row.Name] = getInterfaceDataByDataType(row.DataValue, row.DataType, row.Name, row.Multiple, row.IsSensitive)
+			}
+		}
+		curReqObj.Inputs = []map[string]interface{}{tmpInputMap}
+		curReqObj.Outputs = []map[string]interface{}{tmpOutputMap}
+		tempProcNodeContext.RequestObjects = append(tempProcNodeContext.RequestObjects, curReqObj)
+		result = append(result, tempProcNodeContext)
 	}
-	curReqObj.Inputs = []map[string]interface{}{tmpInputMap}
-	curReqObj.Outputs = []map[string]interface{}{tmpOutputMap}
-	result.RequestObjects = append(result.RequestObjects, curReqObj)
 	return
 }
 
