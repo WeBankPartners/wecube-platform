@@ -1490,7 +1490,7 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 			tempProcNodeContext.BeginTime = v.CreatedTime.Format(models.DateTimeFormat)
 			tempProcNodeContext.EndTime = v.UpdatedTime.Format(models.DateTimeFormat)
 		}
-		tempProcNodeContext.Operator = getProcNodeOperator(ctx, procInsNodeId)
+		tempProcNodeContext.Operator = getProcNodeOperator(ctx, procInsNodeId, index)
 		tempProcNodeContext.RequestObjects = []models.ProcNodeContextReqObject{}
 		if queryObj.Status == models.JobStatusRisky {
 			tempProcNodeContext.ErrorCode = "CONFIRM"
@@ -1539,15 +1539,21 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 	return
 }
 
-func getProcNodeOperator(ctx context.Context, procInsNodeId string) (operator string) {
+func getProcNodeOperator(ctx context.Context, procInsNodeId string, index int) (operator string) {
 	var operationRows []*models.ProcRunOperation
-	err := db.MysqlEngine.Context(ctx).SQL("select * from proc_run_operation where node_id in (select id from proc_run_node where proc_ins_node_id=?)", procInsNodeId).Find(&operationRows)
+	err := db.MysqlEngine.Context(ctx).SQL("select * from proc_run_operation where node_id in (select id from proc_run_node where proc_ins_node_id=?) order by created_time desc", procInsNodeId).Find(&operationRows)
 	if err != nil {
 		log.Logger.Error("getProcNodeOperator query row fail", log.String("procInsNodeId", procInsNodeId), log.Error(err))
 		return
 	}
-	for _, row := range operationRows {
-		operator = row.CreatedBy
+	for j, row := range operationRows {
+		if j == index {
+			operator = row.CreatedBy
+			break
+		}
+	}
+	if operator == "" && len(operationRows) > 0 {
+		operator = operationRows[0].CreatedBy
 	}
 	return
 }
