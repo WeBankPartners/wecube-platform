@@ -1407,7 +1407,14 @@ func RecordProcCallReq(ctx context.Context, param *models.ProcInsNodeReq, inputF
 
 func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDefNodeId string) (result []*models.ProcNodeContextReq, err error) {
 	var queryRows []*models.ProcNodeContextQueryObj
-	var SubProcRequestObjects []models.ProcNodeContextReqObject
+	var defaultRes = &models.ProcNodeContextReq{
+		RequestObjects: []models.ProcNodeContextReqObject{},
+	}
+	defer func() {
+		if len(result) == 0 && err == nil {
+			result = append(result, defaultRes)
+		}
+	}()
 	if procInsNodeId != "" {
 		err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.name,t1.proc_def_node_id,t1.error_msg,t1.status,t1.risk_check_result,t2.routine_expression,t2.service_name,t2.node_type,t3.start_time,t3.end_time from proc_ins_node t1 left join proc_def_node t2 on t1.proc_def_node_id=t2.id left join proc_run_node t3 on t3.proc_ins_node_id=t1.id where t1.proc_ins_id=? and t1.id=?", procInsId, procInsNodeId).Find(&queryRows)
 	} else if procDefNodeId != "" {
@@ -1422,6 +1429,27 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 		return
 	}
 	queryObj := queryRows[0]
+	defaultRes.NodeId = queryObj.ProcDefNodeId
+	defaultRes.NodeInstId = queryObj.Id
+	defaultRes.NodeName = queryObj.Name
+	defaultRes.NodeType = queryObj.NodeType
+	defaultRes.NodeDefId = queryObj.ProcDefNodeId
+	defaultRes.NodeExpression = queryObj.RoutineExpression
+	defaultRes.PluginInfo = queryObj.ServiceName
+	defaultRes.ErrorMessage = queryObj.ErrorMsg
+	defaultRes.BeginTime = queryObj.StartTime.Format(models.DateTimeFormat)
+	defaultRes.EndTime = queryObj.EndTime.Format(models.DateTimeFormat)
+	defaultRes.Operator = getProcNodeOperator(ctx, procInsNodeId, 0)
+	if queryObj.Status == models.JobStatusRisky {
+		defaultRes.ErrorCode = "CONFIRM"
+		defaultRes.ErrorMessage = queryObj.RiskCheckResult
+		if queryObj.RiskCheckResult != "" {
+			var riskResult models.ItsdangerousBatchCheckResultData
+			if tmpErr := json.Unmarshal([]byte(queryObj.RiskCheckResult), &riskResult); tmpErr == nil {
+				defaultRes.ErrorMessage = riskResult.Text
+			}
+		}
+	}
 	if queryObj.NodeType == models.JobSubProcType {
 		// 子编排的节点处理信息
 		var sucProcRows []*models.ProcContextSubProcRow
@@ -1459,7 +1487,7 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 			outputMap["createdTime"] = row.CreatedTime.Format(models.DateTimeFormat)
 			tmpReqObject.Inputs = append(tmpReqObject.Inputs, inputMap)
 			tmpReqObject.Outputs = append(tmpReqObject.Outputs, outputMap)
-			SubProcRequestObjects = append(SubProcRequestObjects, tmpReqObject)
+			defaultRes.RequestObjects = append(defaultRes.RequestObjects, tmpReqObject)
 		}
 	}
 	var reqRows []*models.ProcInsNodeReq
@@ -1469,39 +1497,13 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 		return
 	}
 	for index, v := range reqRows {
-		var tempProcNodeContext = &models.ProcNodeContextReq{
-			RequestObjects: []models.ProcNodeContextReqObject{},
-		}
-		tempProcNodeContext.NodeId = queryObj.ProcDefNodeId
-		tempProcNodeContext.NodeInstId = queryObj.Id
-		tempProcNodeContext.NodeName = queryObj.Name
-		tempProcNodeContext.NodeType = queryObj.NodeType
-		tempProcNodeContext.NodeDefId = queryObj.ProcDefNodeId
-		tempProcNodeContext.NodeExpression = queryObj.RoutineExpression
-		tempProcNodeContext.PluginInfo = queryObj.ServiceName
-		tempProcNodeContext.ErrorMessage = queryObj.ErrorMsg
-		if index == 0 {
-			// 最新执行,从 proc_run_node 表中取startTime
-			tempProcNodeContext.BeginTime = queryObj.StartTime.Format(models.DateTimeFormat)
-			tempProcNodeContext.EndTime = queryObj.EndTime.Format(models.DateTimeFormat)
-			tempProcNodeContext.RequestObjects = append(tempProcNodeContext.RequestObjects, SubProcRequestObjects...)
-		} else {
-			// 历史执行,从 proc_ins_node_req 取
+		tempProcNodeContext := defaultRes
+		if index > 0 {
+			// 节点历史执行,从 proc_ins_node_req 取
 			tempProcNodeContext.BeginTime = v.CreatedTime.Format(models.DateTimeFormat)
 			tempProcNodeContext.EndTime = v.UpdatedTime.Format(models.DateTimeFormat)
 		}
 		tempProcNodeContext.Operator = getProcNodeOperator(ctx, procInsNodeId, index)
-		tempProcNodeContext.RequestObjects = []models.ProcNodeContextReqObject{}
-		if queryObj.Status == models.JobStatusRisky {
-			tempProcNodeContext.ErrorCode = "CONFIRM"
-			tempProcNodeContext.ErrorMessage = queryObj.RiskCheckResult
-			if queryObj.RiskCheckResult != "" {
-				var riskResult models.ItsdangerousBatchCheckResultData
-				if tmpErr := json.Unmarshal([]byte(queryObj.RiskCheckResult), &riskResult); tmpErr == nil {
-					tempProcNodeContext.ErrorMessage = riskResult.Text
-				}
-			}
-		}
 		var procReqParams []*models.ProcInsNodeReqParam
 		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins_node_req_param where req_id=? order by data_index,id", v.Id).Find(&procReqParams)
 		if err != nil {
