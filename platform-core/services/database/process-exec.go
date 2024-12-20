@@ -1557,6 +1557,15 @@ func getProcNodeOperator(ctx context.Context, procInsNodeId string, index int) (
 	if operator == "" && len(operationRows) > 0 {
 		operator = operationRows[0].CreatedBy
 	}
+	// 最终数据兜底
+	if operator == "" {
+		err := db.MysqlEngine.Context(ctx).SQL("select * from proc_run_operation where workflow_id in (select workflow_id from proc_run_node where proc_ins_node_id=?) order by created_time desc", procInsNodeId).Find(&operationRows)
+		if err != nil {
+			log.Logger.Error("getProcNodeOperator query row fail", log.String("procInsNodeId", procInsNodeId), log.Error(err))
+			return
+		}
+		operator = operationRows[0].CreatedBy
+	}
 	return
 }
 
