@@ -41,6 +41,9 @@ export default {
     }
   },
   mounted() {
+    document.querySelectorAll('.maskDiv').forEach(element => {
+      element.remove()
+    })
     watermark({
       watermark_txt: 'WeCube: ' + localStorage.getItem('username') + ' ' + dayjs().format('YYYY-MM-DD HH:mm:ss'),
       watermark_fontsize: '16px',
