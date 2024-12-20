@@ -1499,11 +1499,14 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 	for index, v := range reqRows {
 		tempProcNodeContext := defaultRes
 		if index > 0 {
+			tempProcNodeContext.RequestObjects = []models.ProcNodeContextReqObject{}
 			// 节点历史执行,从 proc_ins_node_req 取
 			tempProcNodeContext.BeginTime = v.CreatedTime.Format(models.DateTimeFormat)
 			tempProcNodeContext.EndTime = v.UpdatedTime.Format(models.DateTimeFormat)
+			tempProcNodeContext.Operator = getProcNodeOperator(ctx, procInsNodeId, index)
+			tempProcNodeContext.ErrorCode = v.ErrorCode
+			tempProcNodeContext.ErrorMessage = v.ErrorMsg
 		}
-		tempProcNodeContext.Operator = getProcNodeOperator(ctx, procInsNodeId, index)
 		var procReqParams []*models.ProcInsNodeReqParam
 		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins_node_req_param where req_id=? order by data_index,id", v.Id).Find(&procReqParams)
 		if err != nil {
@@ -1566,6 +1569,13 @@ func getProcNodeOperator(ctx context.Context, procInsNodeId string, index int) (
 		}
 		if len(operationRows) > 0 {
 			operator = operationRows[0].CreatedBy
+		}
+		// 用 proc_ins_node创建人兜底
+		if operator == "" {
+			if _, err = db.MysqlEngine.Context(ctx).SQL("select created_by from proc_ins_node  where id=?", procInsNodeId).Get(&operator); err != nil {
+				log.Logger.Error("getProcNodeOperator get proc_ins_node fail", log.String("procInsNodeId", procInsNodeId), log.Error(err))
+				return
+			}
 		}
 	}
 	return
