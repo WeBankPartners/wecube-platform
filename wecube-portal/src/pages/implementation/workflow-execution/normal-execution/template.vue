@@ -4,7 +4,7 @@
     <div class="search">
       <BaseSearch :options="searchOptions" v-model="searchParams" @search="handleSearch"></BaseSearch>
     </div>
-    <div class="template-card">
+    <div ref="maxHeight" :style="{maxHeight: maxHeight + 'px', overflowY: 'auto'}" class="template-card">
       <Card :bordered="false" dis-hover :padding="0">
         <template v-if="cardList.length">
           <Card v-for="(i, index) in cardList" :key="index" style="width: 100%; margin-bottom: 20px">
@@ -63,6 +63,7 @@ export default {
       },
       cardList: [], // 模板数据
       spinShow: false,
+      maxHeight: 500,
       searchOptions: [
         {
           key: 'onlyCollect',
@@ -291,6 +292,9 @@ export default {
       searchOptions: this.searchOptions
     }
     window.sessionStorage.setItem('search_normalExecutionAdd', JSON.stringify(storage))
+  },
+  mounted() {
+    this.maxHeight = document.documentElement.clientHeight - this.$refs.maxHeight.getBoundingClientRect().top - 10
   },
   methods: {
     // 选择模板新建执行
