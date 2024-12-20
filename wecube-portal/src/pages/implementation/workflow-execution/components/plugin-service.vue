@@ -96,8 +96,6 @@
       class-name="vertical-center-modal"
       :title="$t('pi_plugin_params')"
       :mask-closable="false"
-      @on-ok="paraterVisible = false"
-      @on-cancel="paraterVisible = false"
     >
       <div class="workflow-modal-paramsContainer">
         <Row style="border-bottom: 1px solid #e5dfdf; margin-bottom: 5px">
@@ -353,7 +351,9 @@
             </Row>
           </Form>
         </div>
+        <Spin fix v-if="spinShow"></Spin>
       </div>
+      <div slot="footer"></div>
     </Modal>
   </div>
 </template>
@@ -424,7 +424,8 @@ export default {
           label: 'constant',
           value: 'constant'
         }
-      ]
+      ],
+      spinShow: false
     }
   },
   watch: {
@@ -514,7 +515,9 @@ export default {
       }
 
       payload.nodeType = this.nodeObj.nodeType
+      this.spinShow = true
       const { status, data } = await getPluginFunByRule(payload)
+      this.spinShow = false
       if (status === 'OK') {
         this.currentInter = (data && data.find(item => item.serviceName === this.nodeObj.serviceName)) || {}
         this.currentInter.inputParameters.push(...this.currentInter.inputParameters)
