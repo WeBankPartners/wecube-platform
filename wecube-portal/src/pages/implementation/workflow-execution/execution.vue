@@ -246,15 +246,14 @@
         </Table>
       </template>
     </BaseDrawer>
-    <!--节点操作弹窗(查看)-->
+    <!--编排执行弹窗(查看)-->
     <BaseDrawer
       :title="$t('select_an_operation')"
       :visible.sync="workflowActionModalVisible"
       v-if="workflowActionModalVisible"
-      :realWidth="1100"
+      :realWidth="1200"
       :scrollable="true"
       :maskClosable="false"
-      class="json-viewer"
     >
       <template slot="content">
         <!--节点操作-->
@@ -370,16 +369,22 @@
             :subProcItem="subProcItem"
           />
         </BaseHeaderTitle>
-        <!--节点信息-->
-        <BaseHeaderTitle :title="$t('fe_nodeInfo')">
-          <template v-if="nodeDetailResponseHeader && Object.keys(nodeDetailResponseHeader).length > 0">
-            <json-viewer :value="nodeDetailResponseHeader" :expand-depth="5"></json-viewer>
-          </template>
-          <div v-else class="no-data">{{ $t('noData') }}</div>
-        </BaseHeaderTitle>
-        <!--API调用-->
-        <BaseHeaderTitle :title="$t('fe_apiInfo')">
-          <Table :columns="nodeDetailColumns" tooltip="true" :data="nodeDetailIO"> </Table>
+        <!--执行记录-->
+        <BaseHeaderTitle :title="$t('execution_history')">
+          <div class="execution-history">
+            <Tabs v-model="currentExeHistoryNodeId" type="card">
+              <TabPane v-for="i in executeHistory" :key="i.id" :label="`${i.beginTime} / ${i.operator || '-'}`" :name="i.id">
+                <!--节点信息-->
+                <div class="header-title">{{ $t('fe_nodeInfo') }}</div>
+                <div v-if="i.nodeDetailResponseHeader && Object.keys(i.nodeDetailResponseHeader).length > 0">
+                  <json-viewer :value="i.nodeDetailResponseHeader" :expand-depth="5"></json-viewer>
+                </div>
+                <!--API调用-->
+                <div class="header-title" style="padding-top:20px;">{{ $t('fe_apiInfo') }}</div>
+                <Table :columns="nodeDetailColumns" tooltip="true" :data="i.nodeDetailIO"></Table>
+              </TabPane>
+            </Tabs>
+          </div>
         </BaseHeaderTitle>
       </template>
     </BaseDrawer>
@@ -423,12 +428,12 @@
         >{{ $t('submit') }}</Button>
       </div>
     </Modal>
-    <!--左侧编排节点弹窗(新建)-->
+    <!--编排执行详情弹窗(新建)-->
     <BaseDrawer
       :title="currentNodeTitle"
       :visible.sync="targetModalVisible"
       v-if="targetModalVisible"
-      :realWidth="1100"
+      :realWidth="1200"
       :scrollable="true"
       :maskClosable="false"
     >
@@ -955,7 +960,6 @@ export default {
           }
         }
       ],
-      nodeDetailIO: [],
       nodeDetailResponseHeader: null,
       currentFailedNodeID: '',
       timer: null,
@@ -1071,7 +1075,9 @@ export default {
       subProcBindParentFlag: true, // 子编排是否绑定主编排标识
       from: this.$route.query.from, // 查看页面来源(create新增页 sub子编排预览 main主编排预览 normal普通执行列表查看 time定时执行列表查看)
       subProc: this.$route.query.subProc, // 是否子编排标识
-      subProcItem: {} // 子编排实例
+      subProcItem: {}, // 子编排实例
+      executeHistory: [], // 编排执行记录(节点重试可能执行多次)
+      currentExeHistoryNodeId: ''
     }
   },
   computed: {
@@ -1226,7 +1232,8 @@ export default {
       if (val === true) {
         this.pluginInfo = ''
         this.nodeDetailResponseHeader = null
-        this.nodeDetailIO = []
+        this.executeHistory = []
+        this.currentExeHistoryNodeId = ''
         this.flowGraphMouseenterHandler(this.currentFailedNodeID)
         this.noActionFlag = false
         this.$nextTick(() => {
@@ -2612,7 +2619,7 @@ export default {
       this.confirmModal.check = false
       const { status, data } = await getNodeContext(nodeInfo.procInstId, nodeInfo.id)
       if (status === 'OK') {
-        this.confirmModal.message = data.errorMessage
+        this.confirmModal.message = data && data[0] && data[0].errorMessage
         this.confirmModal.check = false
         this.confirmModal.isShowConfirmModal = true
         this.confirmModal.requestBody = nodeInfo
@@ -2667,7 +2674,7 @@ export default {
       const found = this.flowData.flowNodes.find(_ => _.nodeId === id)
       const { status, data } = await getNodeContext(found.procInstId, found.id)
       if (status === 'OK') {
-        const errorInfo = data.requestObjects.map(item => ({
+        const errorInfo = data && data[0] && data[0].requestObjects.map(item => ({
           id: item.callbackParameter,
           errorMessage: (item.outputs[0] && item.outputs[0].errorMessage) || '',
           errorCode: (item.outputs[0] && item.outputs[0].errorCode) || ''
@@ -2689,7 +2696,7 @@ export default {
         removeEvent('.flow', 'click', this.flowNodesClickHandler)
       }
     },
-    // 查看日志
+    // 获取执行记录节点信息和API调用
     flowGraphMouseenterHandler(id) {
       clearTimeout(this.flowDetailTimer)
       this.flowDetailTimer = setTimeout(async () => {
@@ -2697,14 +2704,22 @@ export default {
         this.nodeTitle = (found.orderedNo ? found.orderedNo + '、' : '') + found.nodeName
         const { status, data } = await getNodeContext(found.procInstId, found.id)
         if (status === 'OK') {
-          this.nodeDetailResponseHeader = JSON.parse(JSON.stringify(data))
-          this.pluginInfo = this.nodeDetailResponseHeader.pluginInfo
-          delete this.nodeDetailResponseHeader.requestObjects
-          this.nodeDetailIO = data.requestObjects.map(ro => {
-            ro['inputs'] = this.replaceParams(ro['inputs'])
-            ro['outputs'] = this.replaceParams(ro['outputs'])
-            return ro
+          this.executeHistory = deepClone(data || []) // 编排执行记录(节点重试可能有多条记录)
+          this.executeHistory = data && data.map((item, index) => {
+            item.id = (new Date().getTime() + index).toString()
+            item.nodeDetailResponseHeader = deepClone(item)
+            delete item.nodeDetailResponseHeader.requestObjects
+            item.nodeDetailIO = item.requestObjects && item.requestObjects.map(ro => {
+              ro['inputs'] = this.replaceParams(ro['inputs'])
+              ro['outputs'] = this.replaceParams(ro['outputs'])
+              return ro
+            }) || []
+            return item
           })
+          this.nodeDetailResponseHeader = deepClone(this.executeHistory[0] || {})
+          this.pluginInfo = this.nodeDetailResponseHeader.pluginInfo
+          this.currentExeHistoryNodeId = this.nodeDetailResponseHeader.id || ''
+          delete this.nodeDetailResponseHeader.requestObjects
           // 日志input output表格添加子编排查看按钮
           if (this.nodeDetailResponseHeader && this.nodeDetailResponseHeader.nodeType === 'subProc') {
             const hasFlag = this.nodeDetailColumns.some(i => i.key === 'procDefId')
@@ -2949,13 +2964,16 @@ export default {
 .common-base-drawer {
   .jv-container .jv-code {
     overflow: hidden;
-    padding: 0px 15px !important;
+    padding: 0px 10px !important;
   }
   .ivu-form-item {
     margin-bottom: 8px;
   }
   .common-ui-header-title {
     padding-bottom: 3px;
+  }
+  .ivu-drawer-body {
+    padding: 16px 8px;
   }
 }
 </style>
@@ -3043,5 +3061,14 @@ body {
   right: 10px;
   top: 5px;
   font-size: 12px;
+}
+.execution-history {
+  padding: 0 15px;
+  margin-top: -10px;
+  .header-title {
+    font-size: 15px;
+    font-weight: bold;
+    padding-bottom: 10px;
+  }
 }
 </style>
