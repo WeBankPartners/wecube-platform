@@ -373,14 +373,19 @@
         <BaseHeaderTitle :title="$t('execution_history')">
           <div class="execution-history">
             <Tabs v-model="currentExeHistoryNodeId" type="card">
-              <TabPane v-for="i in executeHistory" :key="i.id" :label="`${i.beginTime} / ${i.operator || '-'}`" :name="i.id">
+              <TabPane
+                v-for="i in executeHistory"
+                :key="i.id"
+                :label="`${i.beginTime} / ${i.operator || '-'}`"
+                :name="i.id"
+              >
                 <!--节点信息-->
                 <div class="header-title">{{ $t('fe_nodeInfo') }}</div>
                 <div v-if="i.nodeDetailResponseHeader && Object.keys(i.nodeDetailResponseHeader).length > 0">
                   <json-viewer :value="i.nodeDetailResponseHeader" :expand-depth="5"></json-viewer>
                 </div>
                 <!--API调用-->
-                <div class="header-title" style="padding-top:20px;">{{ $t('fe_apiInfo') }}</div>
+                <div class="header-title" style="padding-top: 20px">{{ $t('fe_apiInfo') }}</div>
                 <Table :columns="nodeDetailColumns" tooltip="true" :data="i.nodeDetailIO"></Table>
               </TabPane>
             </Tabs>
@@ -2674,11 +2679,13 @@ export default {
       const found = this.flowData.flowNodes.find(_ => _.nodeId === id)
       const { status, data } = await getNodeContext(found.procInstId, found.id)
       if (status === 'OK') {
-        const errorInfo = data && data[0] && data[0].requestObjects.map(item => ({
-          id: item.callbackParameter,
-          errorMessage: (item.outputs[0] && item.outputs[0].errorMessage) || '',
-          errorCode: (item.outputs[0] && item.outputs[0].errorCode) || ''
-        }))
+        const errorInfo = data
+          && data[0]
+          && data[0].requestObjects.map(item => ({
+            id: item.callbackParameter,
+            errorMessage: (item.outputs[0] && item.outputs[0].errorMessage) || '',
+            errorCode: (item.outputs[0] && item.outputs[0].errorCode) || ''
+          }))
         return errorInfo
       }
     },
@@ -2705,17 +2712,20 @@ export default {
         const { status, data } = await getNodeContext(found.procInstId, found.id)
         if (status === 'OK') {
           this.executeHistory = deepClone(data || []) // 编排执行记录(节点重试可能有多条记录)
-          this.executeHistory = data && data.map((item, index) => {
-            item.id = (new Date().getTime() + index).toString()
-            item.nodeDetailResponseHeader = deepClone(item)
-            delete item.nodeDetailResponseHeader.requestObjects
-            item.nodeDetailIO = item.requestObjects && item.requestObjects.map(ro => {
-              ro['inputs'] = this.replaceParams(ro['inputs'])
-              ro['outputs'] = this.replaceParams(ro['outputs'])
-              return ro
-            }) || []
-            return item
-          })
+          this.executeHistory = data
+            && data.map((item, index) => {
+              item.id = (new Date().getTime() + index).toString()
+              item.nodeDetailResponseHeader = deepClone(item)
+              delete item.nodeDetailResponseHeader.requestObjects
+              item.nodeDetailIO = (item.requestObjects
+                  && item.requestObjects.map(ro => {
+                    ro['inputs'] = this.replaceParams(ro['inputs'])
+                    ro['outputs'] = this.replaceParams(ro['outputs'])
+                    return ro
+                  }))
+                || []
+              return item
+            })
           this.nodeDetailResponseHeader = deepClone(this.executeHistory[0] || {})
           this.pluginInfo = this.nodeDetailResponseHeader.pluginInfo
           this.currentExeHistoryNodeId = this.nodeDetailResponseHeader.id || ''
