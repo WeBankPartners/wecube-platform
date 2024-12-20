@@ -1564,7 +1564,9 @@ func getProcNodeOperator(ctx context.Context, procInsNodeId string, index int) (
 			log.Logger.Error("getProcNodeOperator query row fail", log.String("procInsNodeId", procInsNodeId), log.Error(err))
 			return
 		}
-		operator = operationRows[0].CreatedBy
+		if len(operationRows) > 0 {
+			operator = operationRows[0].CreatedBy
+		}
 	}
 	return
 }
