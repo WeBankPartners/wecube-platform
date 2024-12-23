@@ -1507,10 +1507,6 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 			tempProcNodeContext.ErrorCode = v.ErrorCode
 			tempProcNodeContext.ErrorMessage = v.ErrorMsg
 		}
-		// 跳过子编排结点,index=0时候已经
-		if index == 0 && queryObj.NodeType == models.JobSubProcType {
-			continue
-		}
 		var procReqParams []*models.ProcInsNodeReqParam
 		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins_node_req_param where req_id=? order by data_index,id", v.Id).Find(&procReqParams)
 		if err != nil {
