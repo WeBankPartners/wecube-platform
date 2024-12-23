@@ -1516,19 +1516,17 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 		if len(procReqParams) == 0 {
 			return
 		}
-		curDataIndex := 0
-		curReqObj := models.ProcNodeContextReqObject{CallbackParameter: procReqParams[0].CallbackId}
-		tmpInputMap := make(map[string]interface{})
-		tmpOutputMap := make(map[string]interface{})
-		for _, row := range procReqParams {
-			// 子编排结点处理
-			if row.FromType == models.JobSubProcType {
+		// 子编排结点处理
+		if queryObj.NodeType == models.JobSubProcType {
+			for _, row := range procReqParams {
 				var sucProcRows []*models.ProcContextSubProcRow
+				tmpInputMap := make(map[string]interface{})
+				tmpOutputMap := make(map[string]interface{})
 				db.MysqlEngine.Context(ctx).SQL("select t2.entity_type_id,t2.entity_data_id,t2.id as proc_ins_id,t3.id as proc_def_id,t3.name as proc_def_name,t1.status,t1.error_message from proc_run_workflow t1  join proc_ins t2 on t1.proc_ins_id = t2.id join proc_def t3 on t2.proc_def_id = t3.id where t1.proc_ins_id=?", row.DataValue).Get(&sucProcRows)
 				if len(sucProcRows) == 0 {
 					continue
 				}
-				curReqObj = models.ProcNodeContextReqObject{CallbackParameter: fmt.Sprintf("%s:%s", row.EntityTypeId, row.EntityDataId)}
+				curReqObj := models.ProcNodeContextReqObject{CallbackParameter: fmt.Sprintf("%s:%s", row.EntityTypeId, row.EntityDataId)}
 				tmpInputMap["entityTypeId"] = row.EntityTypeId
 				tmpInputMap["entityDataId"] = row.EntityDataId
 				tmpOutputMap["procDefId"] = sucProcRows[0].ProcDefId
@@ -1538,7 +1536,16 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 				tmpOutputMap["status"] = sucProcRows[0].Status
 				tmpOutputMap["errorMessage"] = sucProcRows[0].ErrorMessage
 				tmpOutputMap["createdTime"] = row.CreatedTime.Format(models.DateTimeFormat)
-			} else {
+				curReqObj.Inputs = append(curReqObj.Inputs, tmpInputMap)
+				curReqObj.Outputs = append(curReqObj.Outputs, tmpOutputMap)
+				tempProcNodeContext.RequestObjects = append(tempProcNodeContext.RequestObjects, curReqObj)
+			}
+		} else {
+			curDataIndex := 0
+			curReqObj := models.ProcNodeContextReqObject{CallbackParameter: procReqParams[0].CallbackId}
+			tmpInputMap := make(map[string]interface{})
+			tmpOutputMap := make(map[string]interface{})
+			for _, row := range procReqParams {
 				if row.DataIndex != curDataIndex {
 					curDataIndex = row.DataIndex
 					curReqObj.Inputs = []map[string]interface{}{tmpInputMap}
@@ -1554,10 +1561,10 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 					tmpOutputMap[row.Name] = getInterfaceDataByDataType(row.DataValue, row.DataType, row.Name, row.Multiple, row.IsSensitive)
 				}
 			}
+			curReqObj.Inputs = []map[string]interface{}{tmpInputMap}
+			curReqObj.Outputs = []map[string]interface{}{tmpOutputMap}
+			tempProcNodeContext.RequestObjects = append(tempProcNodeContext.RequestObjects, curReqObj)
 		}
-		curReqObj.Inputs = []map[string]interface{}{tmpInputMap}
-		curReqObj.Outputs = []map[string]interface{}{tmpOutputMap}
-		tempProcNodeContext.RequestObjects = append(tempProcNodeContext.RequestObjects, curReqObj)
 		result = append(result, tempProcNodeContext)
 	}
 	return
