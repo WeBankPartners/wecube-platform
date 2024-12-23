@@ -1507,6 +1507,10 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 			tempProcNodeContext.ErrorCode = v.ErrorCode
 			tempProcNodeContext.ErrorMessage = v.ErrorMsg
 		}
+		// 跳过子编排结点,index=0时候已经
+		if index == 0 && queryObj.NodeType == models.JobSubProcType {
+			continue
+		}
 		var procReqParams []*models.ProcInsNodeReqParam
 		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins_node_req_param where req_id=? order by data_index,id", v.Id).Find(&procReqParams)
 		if err != nil {
@@ -1521,19 +1525,38 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 		tmpInputMap := make(map[string]interface{})
 		tmpOutputMap := make(map[string]interface{})
 		for _, row := range procReqParams {
-			if row.DataIndex != curDataIndex {
-				curDataIndex = row.DataIndex
-				curReqObj.Inputs = []map[string]interface{}{tmpInputMap}
-				curReqObj.Outputs = []map[string]interface{}{tmpOutputMap}
-				tempProcNodeContext.RequestObjects = append(tempProcNodeContext.RequestObjects, curReqObj)
-				curReqObj = models.ProcNodeContextReqObject{CallbackParameter: row.CallbackId}
-				tmpInputMap = make(map[string]interface{})
-				tmpOutputMap = make(map[string]interface{})
-			}
-			if row.FromType == "input" {
-				tmpInputMap[row.Name] = getInterfaceDataByDataType(row.DataValue, row.DataType, row.Name, row.Multiple, row.IsSensitive)
+			// 子编排结点处理
+			if row.FromType == models.JobSubProcType {
+				var sucProcRows []*models.ProcContextSubProcRow
+				db.MysqlEngine.Context(ctx).SQL("select t2.entity_type_id,t2.entity_data_id,t2.id as proc_ins_id,t3.id as proc_def_id,t3.name as proc_def_name,t1.status,t1.error_message from proc_run_workflow t1  join proc_ins t2 on t1.proc_ins_id = t2.id join proc_def t3 on t2.proc_def_id = t3.id where t1.proc_ins_id=?", row.DataValue).Get(&sucProcRows)
+				if len(sucProcRows) == 0 {
+					continue
+				}
+				curReqObj = models.ProcNodeContextReqObject{CallbackParameter: fmt.Sprintf("%s:%s", row.EntityTypeId, row.EntityDataId)}
+				tmpInputMap["entityTypeId"] = row.EntityTypeId
+				tmpInputMap["entityDataId"] = row.EntityDataId
+				tmpOutputMap["procDefId"] = sucProcRows[0].ProcDefId
+				tmpOutputMap["procDefName"] = sucProcRows[0].ProcDefName
+				tmpOutputMap["procInsId"] = row.DataValue
+				tmpOutputMap["version"] = sucProcRows[0].Version
+				tmpOutputMap["status"] = sucProcRows[0].Status
+				tmpOutputMap["errorMessage"] = sucProcRows[0].ErrorMessage
+				tmpOutputMap["createdTime"] = row.CreatedTime.Format(models.DateTimeFormat)
 			} else {
-				tmpOutputMap[row.Name] = getInterfaceDataByDataType(row.DataValue, row.DataType, row.Name, row.Multiple, row.IsSensitive)
+				if row.DataIndex != curDataIndex {
+					curDataIndex = row.DataIndex
+					curReqObj.Inputs = []map[string]interface{}{tmpInputMap}
+					curReqObj.Outputs = []map[string]interface{}{tmpOutputMap}
+					tempProcNodeContext.RequestObjects = append(tempProcNodeContext.RequestObjects, curReqObj)
+					curReqObj = models.ProcNodeContextReqObject{CallbackParameter: row.CallbackId}
+					tmpInputMap = make(map[string]interface{})
+					tmpOutputMap = make(map[string]interface{})
+				}
+				if row.FromType == "input" {
+					tmpInputMap[row.Name] = getInterfaceDataByDataType(row.DataValue, row.DataType, row.Name, row.Multiple, row.IsSensitive)
+				} else {
+					tmpOutputMap[row.Name] = getInterfaceDataByDataType(row.DataValue, row.DataType, row.Name, row.Multiple, row.IsSensitive)
+				}
 			}
 		}
 		curReqObj.Inputs = []map[string]interface{}{tmpInputMap}
@@ -1580,25 +1603,11 @@ func getProcNodeOperator(ctx context.Context, procInsNodeId string, index int) (
 			break
 		}
 	}
-	if operator == "" && len(operationRows) > 0 {
-		operator = operationRows[0].CreatedBy
-	}
-	// 最终数据兜底
+	// 用 proc_ins_node创建人兜底
 	if operator == "" {
-		err := db.MysqlEngine.Context(ctx).SQL("select * from proc_run_operation where workflow_id in (select workflow_id from proc_run_node where proc_ins_node_id=?) order by created_time desc", procInsNodeId).Find(&operationRows)
-		if err != nil {
-			log.Logger.Error("getProcNodeOperator query row fail", log.String("procInsNodeId", procInsNodeId), log.Error(err))
+		if _, err = db.MysqlEngine.Context(ctx).SQL("select created_by from proc_ins_node  where id=?", procInsNodeId).Get(&operator); err != nil {
+			log.Logger.Error("getProcNodeOperator get proc_ins_node fail", log.String("procInsNodeId", procInsNodeId), log.Error(err))
 			return
-		}
-		if len(operationRows) > 0 {
-			operator = operationRows[0].CreatedBy
-		}
-		// 用 proc_ins_node创建人兜底
-		if operator == "" {
-			if _, err = db.MysqlEngine.Context(ctx).SQL("select created_by from proc_ins_node  where id=?", procInsNodeId).Get(&operator); err != nil {
-				log.Logger.Error("getProcNodeOperator get proc_ins_node fail", log.String("procInsNodeId", procInsNodeId), log.Error(err))
-				return
-			}
 		}
 	}
 	return
