@@ -29,7 +29,7 @@ func QuerySystemVariables(c *gin.Context) {
 func validateSystemVariablePermission(userRoles []string) (legalFlag bool) {
 	legalFlag = false
 	for _, v := range userRoles {
-		if v == "ADMIN_SYSTEM_PARAMS" {
+		if v == "ADMIN_SYSTEM_PARAMS" || v == "SUB_SYSTEM" {
 			legalFlag = true
 			break
 		}
