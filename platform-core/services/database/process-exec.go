@@ -1517,12 +1517,17 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 			return
 		}
 		// 子编排结点处理
-		if queryObj.NodeType == models.JobSubProcType && index > 0 {
+		if queryObj.NodeType == models.JobSubProcType {
+			// index= 0 已经处理
+			if index == 0 {
+				result = append(result, tempProcNodeContext)
+				continue
+			}
 			for _, row := range procReqParams {
 				var sucProcRows []*models.ProcContextSubProcRow
 				tmpInputMap := make(map[string]interface{})
 				tmpOutputMap := make(map[string]interface{})
-				db.MysqlEngine.Context(ctx).SQL("select t2.entity_type_id,t2.entity_data_id,t2.id as proc_ins_id,t3.id as proc_def_id,t3.name as proc_def_name,t1.status,t1.error_message from proc_run_workflow t1  join proc_ins t2 on t1.proc_ins_id = t2.id join proc_def t3 on t2.proc_def_id = t3.id where t1.proc_ins_id=?", row.DataValue).Find(&sucProcRows)
+				db.MysqlEngine.Context(ctx).SQL("select t2.entity_type_id,t2.entity_data_id,t2.id as proc_ins_id,t3.id as proc_def_id,t3.name as proc_def_name,t1.status,t1.error_message,t3.version from proc_run_workflow t1  join proc_ins t2 on t1.proc_ins_id = t2.id join proc_def t3 on t2.proc_def_id = t3.id where t1.proc_ins_id=?", row.DataValue).Find(&sucProcRows)
 				if len(sucProcRows) == 0 {
 					continue
 				}
