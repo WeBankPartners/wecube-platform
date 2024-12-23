@@ -1497,7 +1497,7 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 		return
 	}
 	for index, v := range reqRows {
-		tempProcNodeContext := defaultRes
+		tempProcNodeContext := deepCopyProcNodeContext(defaultRes)
 		if index > 0 {
 			tempProcNodeContext.RequestObjects = []models.ProcNodeContextReqObject{}
 			// 节点历史执行,从 proc_ins_node_req 取
@@ -1542,6 +1542,29 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 		result = append(result, tempProcNodeContext)
 	}
 	return
+}
+
+func deepCopyProcNodeContext(src *models.ProcNodeContextReq) *models.ProcNodeContextReq {
+	dest := &models.ProcNodeContextReq{
+		BeginTime:      src.BeginTime,
+		EndTime:        src.EndTime,
+		NodeDefId:      src.NodeDefId,
+		NodeExpression: src.NodeExpression,
+		NodeId:         src.NodeId,
+		NodeInstId:     src.NodeInstId,
+		NodeName:       src.NodeName,
+		NodeType:       src.NodeType,
+		PluginInfo:     src.PluginInfo,
+		RequestId:      src.RequestId,
+		ErrorCode:      src.ErrorCode,
+		ErrorMessage:   src.ErrorMessage,
+		Operator:       src.Operator,
+		RequestObjects: make([]models.ProcNodeContextReqObject, len(src.RequestObjects)),
+	}
+	for i, obj := range src.RequestObjects {
+		dest.RequestObjects[i] = obj // 如果 ProcNodeContextReqObject 本身没有引用类型字段，这样就足够了
+	}
+	return dest
 }
 
 func getProcNodeOperator(ctx context.Context, procInsNodeId string, index int) (operator string) {
