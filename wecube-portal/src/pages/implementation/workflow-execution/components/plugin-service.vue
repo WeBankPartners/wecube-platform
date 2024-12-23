@@ -5,7 +5,7 @@
         <Form inline :label-width="90">
           <FormItem :label="$t('pluginService')">
             <Input :value="nodeObj.serviceName" style="width: 700px" disabled></Input>
-            <Button type="primary" @click="handleViewParaters">{{ $t('pi_view_params') }}</Button>
+            <Button type="info" @click="handleViewParaters">{{ $t('pi_view_params') }}</Button>
           </FormItem>
         </Form>
         <Form inline :label-width="90">
