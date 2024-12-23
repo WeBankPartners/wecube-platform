@@ -1038,5 +1038,7 @@
   "pi_package_type": "Package Type",
   "pi_baseline": "BaseLine",
   "pi_enter_to_filter": "Please enter to filter",
-  "pi_enter_flow_notstarted": "The flow has not yet been executed."
+  "pi_enter_flow_notstarted": "The flow has not yet been executed.",
+  "pi_view_params": "View Parameters",
+  "pi_plugin_params": "Plugin Parameters"
 }

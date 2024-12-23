@@ -130,6 +130,7 @@ type ProcRunNodeSubProc struct {
 	EntityTypeId  string    `json:"entityTypeId" xorm:"entity_type_id"`    // 绑定数据entity
 	EntityDataId  string    `json:"entityDataId" xorm:"entity_data_id"`    // 绑定数据id
 	CreatedTime   time.Time `json:"createdTime" xorm:"created_time"`       // 创建时间
+	ProcInsId     string    `json:"-" xorm:"-"`
 }
 
 type ProcSubProcQueryRow struct {
