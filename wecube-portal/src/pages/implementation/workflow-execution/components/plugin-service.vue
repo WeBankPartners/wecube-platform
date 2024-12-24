@@ -520,7 +520,6 @@ export default {
       this.spinShow = false
       if (status === 'OK') {
         this.currentInter = (data && data.find(item => item.serviceName === this.nodeObj.serviceName)) || {}
-        this.currentInter.inputParameters.push(...this.currentInter.inputParameters)
         this.clearedEntityType = this.nodeObj.routineExpression.split('{')[0]
       }
     },
