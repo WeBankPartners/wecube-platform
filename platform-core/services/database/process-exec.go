@@ -1452,7 +1452,7 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 		}
 	}
 	// 查询数据最后一次是否为重试空跑,空跑一定成功
-	var bindFlagList []bool
+	var bindFlagList []uint8
 	err = db.MysqlEngine.Context(ctx).SQL("select bind_flag from proc_data_binding where proc_ins_id=? and proc_ins_node_id=?", procInsId, procInsNodeId).Find(&bindFlagList)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
@@ -1460,7 +1460,7 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 	}
 	if len(bindFlagList) > 0 {
 		for _, bindFlag := range bindFlagList {
-			if !bindFlag {
+			if bindFlag == 0 {
 				// 重试空跑,bindFlag=0,空跑没有API调用
 				emptyRun = true
 				result = append(result, defaultRes)
