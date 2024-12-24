@@ -1407,6 +1407,7 @@ func RecordProcCallReq(ctx context.Context, param *models.ProcInsNodeReq, inputF
 
 func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDefNodeId string) (result []*models.ProcNodeContextReq, err error) {
 	var queryRows []*models.ProcNodeContextQueryObj
+	var emptyRun bool
 	var defaultRes = &models.ProcNodeContextReq{
 		RequestObjects: []models.ProcNodeContextReqObject{},
 	}
@@ -1450,7 +1451,24 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 			}
 		}
 	}
-	if queryObj.NodeType == models.JobSubProcType {
+	// 查询数据最后一次是否为重试空跑,空跑一定成功
+	var procDataBindingList []*models.ProcDataBinding
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_id=? and proc_ins_node_id=?", procInsId, procInsNodeId).Find(&procDataBindingList)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(procDataBindingList) > 0 {
+		for _, procDataBind := range procDataBindingList {
+			if !procDataBind.BindFlag {
+				// 重试空跑,bindFlag=0,空跑没有API调用
+				emptyRun = true
+				result = append(result, defaultRes)
+				break
+			}
+		}
+	}
+	if queryObj.NodeType == models.JobSubProcType && !emptyRun {
 		// 子编排的节点处理信息
 		var sucProcRows []*models.ProcContextSubProcRow
 		err = db.MysqlEngine.Context(ctx).SQL("select t1.entity_type_id,t1.entity_data_id,t3.proc_ins_id,t3.created_time,t4.proc_def_id,t4.proc_def_name,t4.status,t3.error_message,t5.`version` from proc_run_node_sub_proc t1 left join proc_run_node t2 on t1.proc_run_node_id=t2.id left join proc_run_workflow t3 on t1.workflow_id=t3.id left join proc_ins t4 on t3.proc_ins_id=t4.id left join proc_def t5 on t4.proc_def_id=t5.id where t2.proc_ins_node_id=?", queryObj.Id).Find(&sucProcRows)
@@ -1496,7 +1514,11 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
+
 	for index, v := range reqRows {
+		if emptyRun {
+			index += 1
+		}
 		tempProcNodeContext := deepCopyProcNodeContext(defaultRes)
 		if index > 0 {
 			tempProcNodeContext.RequestObjects = []models.ProcNodeContextReqObject{}
