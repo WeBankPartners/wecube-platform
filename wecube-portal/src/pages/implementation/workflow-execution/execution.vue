@@ -371,7 +371,10 @@
         </BaseHeaderTitle>
         <!--执行记录-->
         <BaseHeaderTitle :title="$t('execution_history')">
-          <div v-if="['human', 'automatic', 'data', 'subProc'].includes(nodeInstance.nodeType)" class="execution-history">
+          <div
+            v-if="['human', 'automatic', 'data', 'subProc'].includes(nodeInstance.nodeType)"
+            class="execution-history"
+          >
             <Tabs v-model="currentExeHistoryNodeId" type="card">
               <TabPane
                 v-for="i in executeHistory"
@@ -391,10 +394,17 @@
           <div v-else class="execution-history">
             <!--节点信息-->
             <div class="header-title">{{ $t('fe_nodeInfo') }}</div>
-            <json-viewer :value="executeHistory[0] && executeHistory[0].nodeDetailResponseHeader || {}" :expand-depth="5"></json-viewer>
+            <json-viewer
+              :value="(executeHistory[0] && executeHistory[0].nodeDetailResponseHeader) || {}"
+              :expand-depth="5"
+            ></json-viewer>
             <!--API调用-->
             <div class="header-title" style="padding-top: 20px">{{ $t('fe_apiInfo') }}</div>
-            <Table :columns="nodeDetailColumns" tooltip="true" :data="executeHistory[0] && executeHistory[0].nodeDetailIO || []"></Table>
+            <Table
+              :columns="nodeDetailColumns"
+              tooltip="true"
+              :data="(executeHistory[0] && executeHistory[0].nodeDetailIO) || []"
+            ></Table>
           </div>
         </BaseHeaderTitle>
       </template>
