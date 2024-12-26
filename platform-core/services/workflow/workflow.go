@@ -794,7 +794,7 @@ func (n *WorkNode) Callback(message string) {
 func updateWorkflowDB(w *models.ProcRunWorkflow, op *models.ProcOperation) {
 	if op == nil {
 		op = &models.ProcOperation{
-			CreatedBy: "sys",
+			CreatedBy: "system",
 		}
 	}
 	if op.Ctx == nil {
