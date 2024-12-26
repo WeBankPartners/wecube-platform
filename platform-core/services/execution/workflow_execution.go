@@ -957,6 +957,7 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 		CreatedTime:    nowTime,
 	}
 	previewRows = append(previewRows, &rootPreviewRow)
+	nodeBindDataMap := make(map[string][]*models.ProcPreviewEntityNode)
 	for _, node := range procOutlineData.FlowNodes {
 		if node.OrderedNo == "" || node.RoutineExpression == "" {
 			continue
@@ -992,6 +993,7 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 			}
 		}
 		nodeDataList := []*models.ProcPreviewEntityNode{}
+		nodeBindDataMap[node.ProcDefNodeId] = []*models.ProcPreviewEntityNode{}
 		for _, nodeExpression := range nodeExpressionList {
 			if nodeExpression == procOutlineData.RootEntity && len(interfaceFilters) == 0 {
 				nodeDataList = append(nodeDataList, &rootEntityNode)
@@ -1010,7 +1012,28 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 		}
 		log.Logger.Debug("nodeData", log.String("node", node.NodeId), log.JsonObj("data", nodeDataList))
 		for _, nodeDataObj := range nodeDataList {
+			addPreviewFlag := false
 			if nodeDataObj.LastFlag {
+				addPreviewFlag = true
+				if node.DynamicBindInt == 2 {
+					addPreviewFlag = false
+				} else {
+					if node.BindNodeId != "" {
+						log.Logger.Debug("bindNode match", log.String("currentNode", node.NodeId), log.String("bindNodeId", node.BindNodeId), log.JsonObj("bindMapData", nodeBindDataMap[node.BindNodeId]))
+						bindMatchFlag := false
+						for _, bindData := range nodeBindDataMap[node.BindNodeId] {
+							if nodeDataObj.DataId == bindData.DataId {
+								bindMatchFlag = true
+								break
+							}
+						}
+						if !bindMatchFlag {
+							addPreviewFlag = false
+						}
+					}
+				}
+			}
+			if addPreviewFlag {
 				tmpPreviewRow := models.ProcDataPreview{
 					EntityDataId:   nodeDataObj.DataId,
 					EntityTypeId:   fmt.Sprintf("%s:%s", nodeDataObj.PackageName, nodeDataObj.EntityName),
@@ -1035,6 +1058,7 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 					tmpPreviewRow.SubSessionId = subPreviewResult.ProcessSessionId
 				}
 				previewRows = append(previewRows, &tmpPreviewRow)
+				nodeBindDataMap[node.ProcDefNodeId] = append(nodeBindDataMap[node.ProcDefNodeId], nodeDataObj)
 			}
 			if existEntityNodeObj, ok := entityNodeMap[nodeDataObj.Id]; !ok {
 				entityNodeMap[nodeDataObj.Id] = nodeDataObj
