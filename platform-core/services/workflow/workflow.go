@@ -681,69 +681,93 @@ func (n *WorkNode) doSubProcessJob(recoverFlag bool) (output string, err error) 
 			// 无数据，空跑
 			return
 		}
-		operator := procInsNode.CreatedBy
-		if procInsNode.UpdatedBy != "" {
-			operator = procInsNode.UpdatedBy
-		}
-		var subWorkflowList []*Workflow
-		var subWorkNodeList [][]*models.ProcRunNode
-		var subProcWorkflowList []*models.ProcRunNodeSubProc
-		for _, dataRow := range dataBindings {
-			if dataRow.SubSessionId == "" {
-				subPreviewResult, subPreviewErr := execution.BuildProcPreviewData(ctx, procDefNode.SubProcDefId, dataRow.EntityDataId, operator)
-				if subPreviewErr != nil {
-					err = fmt.Errorf("try to build sub proc preview data fail,%s ", subPreviewErr.Error())
-					return
-				}
-				dataRow.SubSessionId = subPreviewResult.ProcessSessionId
-			}
-		}
-		for i, dataRow := range dataBindings {
-			if dataRow.SubSessionId == "" {
-				continue
-			}
-			tmpCreateInsParam := models.ProcInsStartParam{
-				ProcessSessionId:  dataRow.SubSessionId,
-				EntityDataId:      dataRow.EntityDataId,
-				EntityDisplayName: dataRow.EntityDataName,
-				EntityTypeId:      dataRow.EntityTypeId,
-				ProcDefId:         procDefNode.SubProcDefId,
-				ParentInsNodeId:   procInsNode.Id,
-				ParentRunNodeId:   n.Id,
-			}
-			log.WorkflowLogger.Debug("doSubProcessJob", log.Int("i", i), log.JsonObj("tmpCreateInsParam", tmpCreateInsParam))
-			// 新增 proc_ins,proc_ins_node,proc_data_binding 纪录
-			subProcInsId, subWorkflowRow, subWorkNodes, subWorkLinks, tmpCreateInsErr := database.CreateProcInstance(context.WithValue(n.Ctx, models.TransactionIdHeader, fmt.Sprintf("%s_%d", n.Id, i)), &tmpCreateInsParam, operator)
-			if tmpCreateInsErr != nil {
-				err = tmpCreateInsErr
-				return
-			}
-			// 初始化workflow并开始
-			workObj := Workflow{ProcRunWorkflow: *subWorkflowRow}
-			workObj.ProcInsId = subProcInsId
-			dataRow.SubProcInsId = subProcInsId
-			workObj.Links = subWorkLinks
-			subWorkflowList = append(subWorkflowList, &workObj)
-			subWorkNodeList = append(subWorkNodeList, subWorkNodes)
-			subProcWorkflowList = append(subProcWorkflowList, &models.ProcRunNodeSubProc{WorkflowId: subWorkflowRow.Id, EntityTypeId: dataRow.EntityTypeId, EntityDataId: dataRow.EntityDataId})
-		}
-		if err = database.UpdateProcRunNodeSubProc(ctx, n.Id, subProcWorkflowList, dataBindings); err != nil {
-			err = fmt.Errorf("UpdateProcRunNodeSubProc fail,%s ", err.Error())
+		// 先查询一下当前节点有无正在跑的子编排，要过滤掉这些，不能重复创建
+		existSubProcResultList, subProcQueryErr := database.GetSubProcResult(ctx, n.Id)
+		if subProcQueryErr != nil {
+			err = fmt.Errorf("Query exists sub process running result fail,%s ", subProcQueryErr)
 			return
 		}
-		log.WorkflowLogger.Debug("start sub proc")
-		wg := sync.WaitGroup{}
-		for i, workObj := range subWorkflowList {
-			wg.Add(1)
-			go func(wo *Workflow, nl []*models.ProcRunNode) {
-				wo.Init(context.Background(), nl, wo.Links)
-				wo.Start(&models.ProcOperation{CreatedBy: operator})
-				wg.Done()
-				log.WorkflowLogger.Debug("sub proc done", log.String("subWorkflowId", wo.Id))
-			}(workObj, subWorkNodeList[i])
+		if len(existSubProcResultList) > 0 {
+			newDataBinding := []*models.ProcDataBinding{}
+			for _, dataRow := range dataBindings {
+				existFlag := false
+				for _, row := range existSubProcResultList {
+					if row.EntityDataId == dataRow.EntityDataId {
+						existFlag = true
+						break
+					}
+				}
+				if !existFlag {
+					newDataBinding = append(newDataBinding, dataRow)
+				}
+			}
+			dataBindings = newDataBinding
 		}
-		wg.Wait()
-		log.WorkflowLogger.Info("sub proc wait done")
+		if len(dataBindings) > 0 {
+			operator := procInsNode.CreatedBy
+			if procInsNode.UpdatedBy != "" {
+				operator = procInsNode.UpdatedBy
+			}
+			var subWorkflowList []*Workflow
+			var subWorkNodeList [][]*models.ProcRunNode
+			var subProcWorkflowList []*models.ProcRunNodeSubProc
+			for _, dataRow := range dataBindings {
+				if dataRow.SubSessionId == "" {
+					subPreviewResult, subPreviewErr := execution.BuildProcPreviewData(ctx, procDefNode.SubProcDefId, dataRow.EntityDataId, operator)
+					if subPreviewErr != nil {
+						err = fmt.Errorf("try to build sub proc preview data fail,%s ", subPreviewErr.Error())
+						return
+					}
+					dataRow.SubSessionId = subPreviewResult.ProcessSessionId
+				}
+			}
+			for i, dataRow := range dataBindings {
+				if dataRow.SubSessionId == "" {
+					continue
+				}
+				tmpCreateInsParam := models.ProcInsStartParam{
+					ProcessSessionId:  dataRow.SubSessionId,
+					EntityDataId:      dataRow.EntityDataId,
+					EntityDisplayName: dataRow.EntityDataName,
+					EntityTypeId:      dataRow.EntityTypeId,
+					ProcDefId:         procDefNode.SubProcDefId,
+					ParentInsNodeId:   procInsNode.Id,
+					ParentRunNodeId:   n.Id,
+				}
+				log.WorkflowLogger.Debug("doSubProcessJob", log.Int("i", i), log.JsonObj("tmpCreateInsParam", tmpCreateInsParam))
+				// 新增 proc_ins,proc_ins_node,proc_data_binding 纪录
+				subProcInsId, subWorkflowRow, subWorkNodes, subWorkLinks, tmpCreateInsErr := database.CreateProcInstance(context.WithValue(n.Ctx, models.TransactionIdHeader, fmt.Sprintf("%s_%d", n.Id, i)), &tmpCreateInsParam, operator)
+				if tmpCreateInsErr != nil {
+					err = tmpCreateInsErr
+					return
+				}
+				// 初始化workflow并开始
+				workObj := Workflow{ProcRunWorkflow: *subWorkflowRow}
+				workObj.ProcInsId = subProcInsId
+				dataRow.SubProcInsId = subProcInsId
+				workObj.Links = subWorkLinks
+				subWorkflowList = append(subWorkflowList, &workObj)
+				subWorkNodeList = append(subWorkNodeList, subWorkNodes)
+				subProcWorkflowList = append(subProcWorkflowList, &models.ProcRunNodeSubProc{WorkflowId: subWorkflowRow.Id, EntityTypeId: dataRow.EntityTypeId, EntityDataId: dataRow.EntityDataId})
+			}
+			if err = database.UpdateProcRunNodeSubProc(ctx, n.Id, subProcWorkflowList, dataBindings); err != nil {
+				err = fmt.Errorf("UpdateProcRunNodeSubProc fail,%s ", err.Error())
+				return
+			}
+			log.WorkflowLogger.Debug("start sub proc")
+			wg := sync.WaitGroup{}
+			for i, workObj := range subWorkflowList {
+				wg.Add(1)
+				go func(wo *Workflow, nl []*models.ProcRunNode) {
+					wo.Init(context.Background(), nl, wo.Links)
+					wo.Start(&models.ProcOperation{CreatedBy: operator})
+					wg.Done()
+					log.WorkflowLogger.Debug("sub proc done", log.String("subWorkflowId", wo.Id))
+				}(workObj, subWorkNodeList[i])
+			}
+			wg.Wait()
+			log.WorkflowLogger.Info("sub proc wait done")
+		}
 	}
 	// 获取子编排的结果
 	subProcResultList, subProcQueryErr := database.GetSubProcResult(ctx, n.Id)
