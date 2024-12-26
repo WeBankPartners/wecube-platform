@@ -863,11 +863,15 @@ func buildAutoNodeContextMap(ctx context.Context,
 	if len(entityDataMap) == 0 {
 		return
 	}
-	sourceReq, getSourceReqErr := database.GetProcInsNodeContext(ctx, procIns.Id, "", bindNodeDef.Id)
+	sourceReqArr, getSourceReqErr := database.GetProcInsNodeContext(ctx, procIns.Id, "", bindNodeDef.Id)
 	if getSourceReqErr != nil {
 		err = getSourceReqErr
 		return
 	}
+	if len(sourceReqArr) == 0 {
+		return
+	}
+	sourceReq := sourceReqArr[0]
 	for _, entityInstance := range entityInstances {
 		if sourceBindList, ok := entityDataMap[entityInstance.Id]; ok {
 			var sourceBindValues []interface{}
