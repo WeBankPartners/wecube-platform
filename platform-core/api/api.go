@@ -321,6 +321,7 @@ func httpLogHandle() gin.HandlerFunc {
 			c.Set(models.ContextRequestBody, string(bodyBytes))
 		}
 		apiCode := apiCodeMap[c.Request.Method+"_"+c.FullPath()]
+		c.Writer.Header().Add("Api-Code", apiCode)
 		log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] ->", requestId, transactionId), log.String("uri", c.Request.RequestURI), log.String("serviceCode", apiCode), log.String("method", c.Request.Method), log.String("sourceIp", getRemoteIp(c)), log.String(models.ContextOperator, c.GetString(models.ContextOperator)), log.String(models.ContextRequestBody, c.GetString(models.ContextRequestBody)))
 		c.Next()
 		costTime := time.Since(start).Seconds() * 1000
