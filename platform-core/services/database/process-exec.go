@@ -2209,12 +2209,8 @@ func CheckProcInsUserPermission(ctx context.Context, userRoleList []string, proc
 func UpdateProcRunNodeSubProc(ctx context.Context, procRunNodeId string, subProcWorkflowList []*models.ProcRunNodeSubProc, dataBinding []*models.ProcDataBinding, parentInsNodeId string) (err error) {
 	var actions []*db.ExecAction
 	nowTime := time.Now()
-	reqId := "proc_req_" + guid.CreateGuid()
-	actions = append(actions, &db.ExecAction{Sql: "delete from proc_run_node_sub_proc where proc_run_node_id=?", Param: []interface{}{procRunNodeId}})
-	actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins_node_req(id,proc_ins_node_id,req_url,req_data_amount,is_completed,created_time,updated_time) values (?,?,?,?,?,?,?)", Param: []interface{}{
-		reqId, parentInsNodeId, "", len(subProcWorkflowList), 1, nowTime, nowTime,
-	}})
-	for i, row := range subProcWorkflowList {
+	//actions = append(actions, &db.ExecAction{Sql: "delete from proc_run_node_sub_proc where proc_run_node_id=?", Param: []interface{}{procRunNodeId}})
+	for _, row := range subProcWorkflowList {
 		actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_node_sub_proc(proc_run_node_id,workflow_id,entity_type_id,entity_data_id,created_time) values (?,?,?,?,?)", Param: []interface{}{
 			procRunNodeId, row.WorkflowId, row.EntityTypeId, row.EntityDataId, nowTime,
 		}})
