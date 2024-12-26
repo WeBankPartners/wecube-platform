@@ -27,15 +27,6 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 
 	log.Logger.Info(fmt.Sprintf("Redirecting request to downstream system: [Method: %s] [URL: %s] [ContentLength: %d]", c.Request.Method, invoke.TargetUrl, c.Request.ContentLength))
 	cloneRequest := c.Request.Clone(c.Request.Context()) // deep copy original request
-
-	/*	if invoke.RequestHandler != nil {
-			log.Logger.Info(fmt.Sprintf("Start to handle request [%s]-[%s]", c.GetHeader(constant.TransactionId), c.GetHeader(constant.RequestId)))
-			if err := invoke.RequestHandler(cloneRequest, c); err != nil {
-				ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, fmt.Errorf("failed handle request: %s", err.Error())))
-				return
-			}
-		}
-	*/
 	newRequest, _ := http.NewRequest(cloneRequest.Method, invoke.TargetUrl, cloneRequest.Body)
 	newRequest.Header = cloneRequest.Header
 	// pass through content length
@@ -44,7 +35,6 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 		newRequest.Header.Set("X-Forwarded-For", clientIp)
 	}
 	newRequest.URL.RawQuery = cloneRequest.URL.RawQuery
-	//auth.SetRequestSourceAuth(newRequest, config.Config.Auth.Source.AppId, config.Config.Auth.Source.PrivateKeyBytes)
 
 	client := &http.Client{
 		Timeout: 30 * time.Minute,
@@ -70,15 +60,12 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 			responseDump, _ := httputil.DumpResponse(response, true)
 			log.Logger.Debug(fmt.Sprintf("Response from downstream system: %s  [body size]: %d", string(responseDump), len(respBody)))
 		}
-
-		/*		if response.StatusCode >= 400 {
-				ReturnError(c, fmt.Errorf("error from downstream system: %s", response.Status))
-				return
-			}*/
-
 		respHeader := c.Writer.Header()
 		for k, v := range response.Header {
 			respHeader[k] = v
+			if (k == "Api-Code" || k == "Error-Code") && len(v) > 0 {
+				c.Writer.Header().Add(k, v[0])
+			}
 		}
 		c.Data(response.StatusCode, response.Header.Get("Content-Type"), respBody)
 
