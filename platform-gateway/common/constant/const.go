@@ -6,3 +6,10 @@ const (
 )
 
 var HttpMethods = [8]string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "TRACE"}
+
+type ServiceName string
+
+const (
+	PlatformCore       ServiceName = "platform"
+	PlatformAuthServer ServiceName = "auth"
+)
