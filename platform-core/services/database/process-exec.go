@@ -957,10 +957,12 @@ func getReplaceOidMap(inputList []string, oidMap map[string]string) (outputList 
 	return
 }
 
-func ListProcInstance(ctx context.Context, userRoles []string, withCronIns, withSubProc, mgmtRole, search, status string) (result []*models.ProcInsDetail, err error) {
+func ListProcInstance(ctx context.Context, userRoles []string, withCronIns, withSubProc, mgmtRole, search, status, createdBy string) (result []*models.ProcInsDetail, err error) {
 	var procInsRows []*models.ProcInsWithVersion
 	var filterSql string
-	filterParam := []interface{}{}
+	threeMonthsTime := time.Now().AddDate(0, -3, 0)
+	var filterParam []interface{}
+	filterParam = append(filterParam, threeMonthsTime.Format(models.DateTimeFormat))
 	if withCronIns == "yes" {
 		filterSql += " and t1.created_by='systemCron' "
 	} else if withCronIns == "no" {
@@ -977,11 +979,15 @@ func ListProcInstance(ctx context.Context, userRoles []string, withCronIns, with
 		filterSql += " and (t1.id like ? or t1.proc_def_name like ? or t1.entity_data_name like ?) "
 		filterParam = append(filterParam, fmt.Sprintf("%%%s%%", search), fmt.Sprintf("%%%s%%", search), fmt.Sprintf("%%%s%%", search))
 	}
+	if strings.TrimSpace(createdBy) != "" {
+		filterSql += " and t1.created_by=? "
+		filterParam = append(filterParam, strings.TrimSpace(createdBy))
+	}
 	if mgmtRole != "" {
 		userRoles = []string{mgmtRole}
 	}
-	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t2.`version`,t2.sub_proc from proc_ins t1 join proc_def t2 on t1.proc_def_id=t2.id and t1.proc_def_id"+
-		" in (select proc_def_id from proc_def_permission where permission='"+string(models.USE)+"' and role_id in ('"+strings.Join(userRoles, "','")+"')) "+filterSql+" order by t1.created_time desc limit 20", filterParam...).Find(&procInsRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select t1.*,t2.`version`,t2.sub_proc from (select * from proc_ins t  where t.created_time >= ?) t1 join proc_def t2 on t1.proc_def_id=t2.id"+
+		" and t2.id in (select proc_def_id from proc_def_permission where permission='"+string(models.USE)+"' and role_id in ('"+strings.Join(userRoles, "','")+"')) "+filterSql+" order by t1.created_time desc limit 20", filterParam...).Find(&procInsRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
