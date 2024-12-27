@@ -329,11 +329,15 @@ func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
 		return
 	}
 	var createEntityIdList, updateEntityIdList []string
+	procInsNodeReq := models.ProcInsNodeReq{
+		Id:            "proc_req_" + guid.CreateGuid(),
+		ProcInsNodeId: procInsNode.Id,
+	}
 	for _, exprObj := range exprObjList {
 		exprAnalyzeList, analyzeErr := remote.AnalyzeExpression(exprObj.Expression)
 		if analyzeErr != nil {
 			err = analyzeErr
-			return
+			break
 		}
 		lastExprEntity := exprAnalyzeList[len(exprAnalyzeList)-1]
 		lastEntityType := fmt.Sprintf("%s:%s", lastExprEntity.Package, lastExprEntity.Entity)
@@ -358,7 +362,7 @@ func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
 				createDataResult, createDataErr := remote.CreatePluginModelData(ctx, lastExprEntity.Package, lastExprEntity.Entity, remote.GetToken(), exprObj.Operation, []map[string]interface{}{createDataObj})
 				if createDataErr != nil {
 					err = fmt.Errorf("try to create plugin model data %s:%s %s fail,%s", lastExprEntity.Package, lastExprEntity.Entity, tmpDataOid, createDataErr.Error())
-					return
+					break
 				}
 				if len(createDataResult) > 0 {
 					rewriteObj := models.RewriteEntityDataObj{Oid: tmpDataOid, Nid: fmt.Sprintf("%s", createDataResult[0]["id"]), DisplayName: fmt.Sprintf("%s", createDataResult[0]["displayName"])}
@@ -370,20 +374,26 @@ func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
 					}
 					if err = database.RewriteProcInsEntityDataNew(ctx, procInsNode.ProcInsId, &rewriteObj); err != nil {
 						err = fmt.Errorf("try to rewrite new entity data %s to procIns:%s fail,%s ", rewriteObj.Oid, procInsNode.ProcInsId, err.Error())
-						return
+						break
 					}
 				}
 			}
 			if err != nil {
-				return
+				break
 			}
 		}
 		if len(updateEntityIdList) > 0 {
 			_, err = remote.UpdatePluginModelData(ctx, lastExprEntity.Package, lastExprEntity.Entity, remote.GetToken(), exprObj.Operation, buildDataWriteObj(cacheDataList, updateEntityIdList))
 			if err != nil {
 				err = fmt.Errorf("try to update plugin model data %s:%s fail,%s", lastExprEntity.Package, lastExprEntity.Entity, err.Error())
-				return
+				break
 			}
+		}
+	}
+	// 纪录参数
+	if len(procInsNodeReq.Params) > 0 {
+		if recordErr := database.RecordProcCallReq(ctx, &procInsNodeReq, true); recordErr != nil {
+			log.Logger.Error("Try to record DataJob req param fail", log.Error(recordErr))
 		}
 	}
 	return
