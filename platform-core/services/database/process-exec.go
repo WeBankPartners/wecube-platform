@@ -1388,8 +1388,8 @@ func RecordProcCallReq(ctx context.Context, param *models.ProcInsNodeReq, inputF
 		for _, v := range param.Params {
 			if v.FromType == "output" {
 				tmpDataValue := strings.TrimSpace(fmt.Sprintf("%s", v.DataValue))
-				if len(tmpDataValue) > 1000 {
-					tmpDataValue = fmt.Sprintf("%s", tmpDataValue[:1000])
+				if len(tmpDataValue) > 4096 {
+					tmpDataValue = fmt.Sprintf("%s", tmpDataValue[:4096])
 				}
 				actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins_node_req_param(req_id,data_index,from_type,name,data_type,data_value,entity_data_id,entity_type_id,is_sensitive,full_data_id,multiple,param_def_id,mapping_type,callback_id,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 					v.ReqId, v.DataIndex, v.FromType, v.Name, v.DataType, tmpDataValue, v.EntityDataId, v.EntityTypeId, v.IsSensitive, v.FullDataId, v.Multiple, v.ParamDefId, v.MappingType, v.CallbackId, nowTime,
@@ -2209,12 +2209,8 @@ func CheckProcInsUserPermission(ctx context.Context, userRoleList []string, proc
 func UpdateProcRunNodeSubProc(ctx context.Context, procRunNodeId string, subProcWorkflowList []*models.ProcRunNodeSubProc, dataBinding []*models.ProcDataBinding, parentInsNodeId string) (err error) {
 	var actions []*db.ExecAction
 	nowTime := time.Now()
-	reqId := "proc_req_" + guid.CreateGuid()
-	actions = append(actions, &db.ExecAction{Sql: "delete from proc_run_node_sub_proc where proc_run_node_id=?", Param: []interface{}{procRunNodeId}})
-	actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins_node_req(id,proc_ins_node_id,req_url,req_data_amount,is_completed,created_time,updated_time) values (?,?,?,?,?,?,?)", Param: []interface{}{
-		reqId, parentInsNodeId, "", len(subProcWorkflowList), 1, nowTime, nowTime,
-	}})
-	for i, row := range subProcWorkflowList {
+	//actions = append(actions, &db.ExecAction{Sql: "delete from proc_run_node_sub_proc where proc_run_node_id=?", Param: []interface{}{procRunNodeId}})
+	for _, row := range subProcWorkflowList {
 		actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_node_sub_proc(proc_run_node_id,workflow_id,entity_type_id,entity_data_id,created_time) values (?,?,?,?,?)", Param: []interface{}{
 			procRunNodeId, row.WorkflowId, row.EntityTypeId, row.EntityDataId, nowTime,
 		}})
