@@ -426,7 +426,11 @@ func ProcInsList(c *gin.Context) {
 	mgmtRole := c.Query("mgmtRole")
 	search := c.Query("search")
 	status := c.Query("status")
-	result, err := database.ListProcInstance(c, middleware.GetRequestRoles(c), withCronIns, withSubProc, mgmtRole, search, status)
+	createdBy := c.Query("createdBy")
+	if strings.TrimSpace(createdBy) != "" {
+		createdBy = middleware.GetRequestUser(c)
+	}
+	result, err := database.ListProcInstance(c, middleware.GetRequestRoles(c), withCronIns, withSubProc, mgmtRole, search, status, createdBy)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
