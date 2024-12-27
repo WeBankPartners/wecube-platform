@@ -748,9 +748,9 @@ func (n *WorkNode) doSubProcessJob(recoverFlag bool) (output string, err error) 
 				workObj.Links = subWorkLinks
 				subWorkflowList = append(subWorkflowList, &workObj)
 				subWorkNodeList = append(subWorkNodeList, subWorkNodes)
-				subProcWorkflowList = append(subProcWorkflowList, &models.ProcRunNodeSubProc{WorkflowId: subWorkflowRow.Id, EntityTypeId: dataRow.EntityTypeId, EntityDataId: dataRow.EntityDataId})
+				subProcWorkflowList = append(subProcWorkflowList, &models.ProcRunNodeSubProc{WorkflowId: subWorkflowRow.Id, EntityTypeId: dataRow.EntityTypeId, EntityDataId: dataRow.EntityDataId, ProcInsId: subProcInsId})
 			}
-			if err = database.UpdateProcRunNodeSubProc(ctx, n.Id, subProcWorkflowList, dataBindings); err != nil {
+			if err = database.UpdateProcRunNodeSubProc(ctx, n.Id, subProcWorkflowList, dataBindings, procInsNode.Id); err != nil {
 				err = fmt.Errorf("UpdateProcRunNodeSubProc fail,%s ", err.Error())
 				return
 			}
