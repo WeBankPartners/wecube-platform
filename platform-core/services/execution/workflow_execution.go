@@ -333,6 +333,7 @@ func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
 		Id:            "proc_req_" + guid.CreateGuid(),
 		ProcInsNodeId: procInsNode.Id,
 	}
+	procInsReqIndex := 0
 	for _, exprObj := range exprObjList {
 		exprAnalyzeList, analyzeErr := remote.AnalyzeExpression(exprObj.Expression)
 		if analyzeErr != nil {
@@ -359,11 +360,20 @@ func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
 					break
 				}
 				createEntityIdList = newIdList
+				procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "input", Name: "entityType", DataType: "string", DataValue: lastEntityType})
+				procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "input", Name: "action", DataType: "string", DataValue: "create"})
+				procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "input", Name: "data", DataType: "string", DataValue: strings.Join(newIdList, ",")})
 				createDataResult, createDataErr := remote.CreatePluginModelData(ctx, lastExprEntity.Package, lastExprEntity.Entity, remote.GetToken(), exprObj.Operation, []map[string]interface{}{createDataObj})
 				if createDataErr != nil {
 					err = fmt.Errorf("try to create plugin model data %s:%s %s fail,%s", lastExprEntity.Package, lastExprEntity.Entity, tmpDataOid, createDataErr.Error())
+					procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "output", Name: "errorCode", DataType: "string", DataValue: "1"})
+					procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "output", Name: "errorMessage", DataType: "string", DataValue: err.Error()})
+					procInsReqIndex = procInsReqIndex + 1
 					break
 				}
+				procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "output", Name: "errorCode", DataType: "string", DataValue: "0"})
+				procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "output", Name: "errorMessage", DataType: "string", DataValue: ""})
+				procInsReqIndex = procInsReqIndex + 1
 				if len(createDataResult) > 0 {
 					rewriteObj := models.RewriteEntityDataObj{Oid: tmpDataOid, Nid: fmt.Sprintf("%s", createDataResult[0]["id"]), DisplayName: fmt.Sprintf("%s", createDataResult[0]["displayName"])}
 					for _, tmpCacheData := range cacheDataList {
@@ -383,16 +393,28 @@ func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
 			}
 		}
 		if len(updateEntityIdList) > 0 {
+			procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "input", Name: "entityType", DataType: "string", DataValue: lastEntityType})
+			procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "input", Name: "action", DataType: "string", DataValue: "update"})
+			procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "input", Name: "data", DataType: "string", DataValue: strings.Join(updateEntityIdList, ",")})
 			_, err = remote.UpdatePluginModelData(ctx, lastExprEntity.Package, lastExprEntity.Entity, remote.GetToken(), exprObj.Operation, buildDataWriteObj(cacheDataList, updateEntityIdList))
 			if err != nil {
 				err = fmt.Errorf("try to update plugin model data %s:%s fail,%s", lastExprEntity.Package, lastExprEntity.Entity, err.Error())
+				procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "output", Name: "errorCode", DataType: "string", DataValue: "1"})
+				procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "output", Name: "errorMessage", DataType: "string", DataValue: err.Error()})
+				procInsReqIndex = procInsReqIndex + 1
 				break
 			}
+			procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "output", Name: "errorCode", DataType: "string", DataValue: "0"})
+			procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "output", Name: "errorMessage", DataType: "string", DataValue: ""})
+			procInsReqIndex = procInsReqIndex + 1
 		}
+	}
+	if err != nil {
+		procInsNodeReq.ErrorMsg = err.Error()
 	}
 	// 纪录参数
 	if len(procInsNodeReq.Params) > 0 {
-		if recordErr := database.RecordProcCallReq(ctx, &procInsNodeReq, true); recordErr != nil {
+		if recordErr := database.RecordCustomReq(ctx, &procInsNodeReq); recordErr != nil {
 			log.Logger.Error("Try to record DataJob req param fail", log.Error(recordErr))
 		}
 	}
