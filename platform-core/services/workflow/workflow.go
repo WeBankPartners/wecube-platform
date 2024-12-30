@@ -623,25 +623,29 @@ func (n *WorkNode) doDateJob(recoverFlag bool) (output string, err error) {
 	return
 }
 
+func waitSubProc(ctx context.Context, workNodeId string) {
+	t := time.NewTicker(5 * time.Second).C
+	for {
+		<-t
+		runningRows, tmpErr := database.CheckProcSubRunning(ctx, workNodeId)
+		if tmpErr != nil {
+			log.WorkflowLogger.Error("doSubProcessJob recover check fail", log.String("procRunNodeId", workNodeId), log.Error(tmpErr))
+			continue
+		}
+		if len(runningRows) > 0 {
+			log.WorkflowLogger.Debug("doSubProcessJob recover check continue", log.String("procRunNodeId", workNodeId), log.Int("runningSubProcessNum", len(runningRows)))
+			continue
+		}
+		break
+	}
+	log.WorkflowLogger.Info("doSubProcessJob recover done", log.String("procRunNodeId", workNodeId))
+}
+
 func (n *WorkNode) doSubProcessJob(recoverFlag bool) (output string, err error) {
 	log.WorkflowLogger.Info("do sub process job", log.String("nodeId", n.Id), log.String("input", n.Input))
 	ctx := context.WithValue(n.Ctx, models.TransactionIdHeader, n.Id)
 	if recoverFlag {
-		t := time.NewTicker(5 * time.Second).C
-		for {
-			<-t
-			runningRows, tmpErr := database.CheckProcSubRunning(ctx, n.Id)
-			if tmpErr != nil {
-				log.WorkflowLogger.Error("doSubProcessJob recover check fail", log.String("procRunNodeId", n.Id), log.Error(tmpErr))
-				continue
-			}
-			if len(runningRows) > 0 {
-				log.WorkflowLogger.Debug("doSubProcessJob recover check continue", log.String("procRunNodeId", n.Id), log.Int("runningSubProcessNum", len(runningRows)))
-				continue
-			}
-			break
-		}
-		log.WorkflowLogger.Info("doSubProcessJob recover done", log.String("procRunNodeId", n.Id))
+		waitSubProc(ctx, n.Id)
 	} else {
 		// 查proc def node定义和proc ins绑定数据
 		procInsNode, procDefNode, _, dataBindings, getNodeDataErr := database.GetProcExecNodeData(ctx, n.Id)
@@ -755,17 +759,25 @@ func (n *WorkNode) doSubProcessJob(recoverFlag bool) (output string, err error) 
 				return
 			}
 			log.WorkflowLogger.Debug("start sub proc")
-			wg := sync.WaitGroup{}
+			//wg := sync.WaitGroup{}
+			//for i, workObj := range subWorkflowList {
+			//	wg.Add(1)
+			//	go func(wo *Workflow, nl []*models.ProcRunNode) {
+			//		wo.Init(context.Background(), nl, wo.Links)
+			//		wo.Start(&models.ProcOperation{CreatedBy: operator})
+			//		wg.Done()
+			//		log.WorkflowLogger.Debug("sub proc done", log.String("subWorkflowId", wo.Id))
+			//	}(workObj, subWorkNodeList[i])
+			//}
+			//wg.Wait()
 			for i, workObj := range subWorkflowList {
-				wg.Add(1)
 				go func(wo *Workflow, nl []*models.ProcRunNode) {
 					wo.Init(context.Background(), nl, wo.Links)
 					wo.Start(&models.ProcOperation{CreatedBy: operator})
-					wg.Done()
 					log.WorkflowLogger.Debug("sub proc done", log.String("subWorkflowId", wo.Id))
 				}(workObj, subWorkNodeList[i])
 			}
-			wg.Wait()
+			waitSubProc(ctx, n.Id)
 			log.WorkflowLogger.Info("sub proc wait done")
 		}
 	}
