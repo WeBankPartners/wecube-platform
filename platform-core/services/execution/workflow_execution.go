@@ -329,11 +329,16 @@ func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
 		return
 	}
 	var createEntityIdList, updateEntityIdList []string
+	procInsNodeReq := models.ProcInsNodeReq{
+		Id:            "proc_req_" + guid.CreateGuid(),
+		ProcInsNodeId: procInsNode.Id,
+	}
+	procInsReqIndex := 0
 	for _, exprObj := range exprObjList {
 		exprAnalyzeList, analyzeErr := remote.AnalyzeExpression(exprObj.Expression)
 		if analyzeErr != nil {
 			err = analyzeErr
-			return
+			break
 		}
 		lastExprEntity := exprAnalyzeList[len(exprAnalyzeList)-1]
 		lastEntityType := fmt.Sprintf("%s:%s", lastExprEntity.Package, lastExprEntity.Entity)
@@ -355,11 +360,20 @@ func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
 					break
 				}
 				createEntityIdList = newIdList
+				procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "input", Name: "entityType", DataType: "string", DataValue: lastEntityType})
+				procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "input", Name: "action", DataType: "string", DataValue: "create"})
+				procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "input", Name: "data", DataType: "string", DataValue: strings.Join(newIdList, ",")})
 				createDataResult, createDataErr := remote.CreatePluginModelData(ctx, lastExprEntity.Package, lastExprEntity.Entity, remote.GetToken(), exprObj.Operation, []map[string]interface{}{createDataObj})
 				if createDataErr != nil {
 					err = fmt.Errorf("try to create plugin model data %s:%s %s fail,%s", lastExprEntity.Package, lastExprEntity.Entity, tmpDataOid, createDataErr.Error())
-					return
+					procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "output", Name: "errorCode", DataType: "string", DataValue: "1"})
+					procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "output", Name: "errorMessage", DataType: "string", DataValue: err.Error()})
+					procInsReqIndex = procInsReqIndex + 1
+					break
 				}
+				procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "output", Name: "errorCode", DataType: "string", DataValue: "0"})
+				procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "output", Name: "errorMessage", DataType: "string", DataValue: ""})
+				procInsReqIndex = procInsReqIndex + 1
 				if len(createDataResult) > 0 {
 					rewriteObj := models.RewriteEntityDataObj{Oid: tmpDataOid, Nid: fmt.Sprintf("%s", createDataResult[0]["id"]), DisplayName: fmt.Sprintf("%s", createDataResult[0]["displayName"])}
 					for _, tmpCacheData := range cacheDataList {
@@ -370,20 +384,38 @@ func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
 					}
 					if err = database.RewriteProcInsEntityDataNew(ctx, procInsNode.ProcInsId, &rewriteObj); err != nil {
 						err = fmt.Errorf("try to rewrite new entity data %s to procIns:%s fail,%s ", rewriteObj.Oid, procInsNode.ProcInsId, err.Error())
-						return
+						break
 					}
 				}
 			}
 			if err != nil {
-				return
+				break
 			}
 		}
 		if len(updateEntityIdList) > 0 {
+			procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "input", Name: "entityType", DataType: "string", DataValue: lastEntityType})
+			procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "input", Name: "action", DataType: "string", DataValue: "update"})
+			procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "input", Name: "data", DataType: "string", DataValue: strings.Join(updateEntityIdList, ",")})
 			_, err = remote.UpdatePluginModelData(ctx, lastExprEntity.Package, lastExprEntity.Entity, remote.GetToken(), exprObj.Operation, buildDataWriteObj(cacheDataList, updateEntityIdList))
 			if err != nil {
 				err = fmt.Errorf("try to update plugin model data %s:%s fail,%s", lastExprEntity.Package, lastExprEntity.Entity, err.Error())
-				return
+				procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "output", Name: "errorCode", DataType: "string", DataValue: "1"})
+				procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "output", Name: "errorMessage", DataType: "string", DataValue: err.Error()})
+				procInsReqIndex = procInsReqIndex + 1
+				break
 			}
+			procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "output", Name: "errorCode", DataType: "string", DataValue: "0"})
+			procInsNodeReq.Params = append(procInsNodeReq.Params, &models.ProcInsNodeReqParam{ReqId: procInsNodeReq.Id, DataIndex: procInsReqIndex, CallbackId: fmt.Sprintf("%d", procInsReqIndex), FromType: "output", Name: "errorMessage", DataType: "string", DataValue: ""})
+			procInsReqIndex = procInsReqIndex + 1
+		}
+	}
+	if err != nil {
+		procInsNodeReq.ErrorMsg = err.Error()
+	}
+	// 纪录参数
+	if len(procInsNodeReq.Params) > 0 {
+		if recordErr := database.RecordCustomReq(ctx, &procInsNodeReq); recordErr != nil {
+			log.Logger.Error("Try to record DataJob req param fail", log.Error(recordErr))
 		}
 	}
 	return
@@ -957,6 +989,7 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 		CreatedTime:    nowTime,
 	}
 	previewRows = append(previewRows, &rootPreviewRow)
+	nodeBindDataMap := make(map[string][]*models.ProcPreviewEntityNode)
 	for _, node := range procOutlineData.FlowNodes {
 		if node.OrderedNo == "" || node.RoutineExpression == "" {
 			continue
@@ -992,6 +1025,7 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 			}
 		}
 		nodeDataList := []*models.ProcPreviewEntityNode{}
+		nodeBindDataMap[node.ProcDefNodeId] = []*models.ProcPreviewEntityNode{}
 		for _, nodeExpression := range nodeExpressionList {
 			if nodeExpression == procOutlineData.RootEntity && len(interfaceFilters) == 0 {
 				nodeDataList = append(nodeDataList, &rootEntityNode)
@@ -1010,7 +1044,28 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 		}
 		log.Logger.Debug("nodeData", log.String("node", node.NodeId), log.JsonObj("data", nodeDataList))
 		for _, nodeDataObj := range nodeDataList {
+			addPreviewFlag := false
 			if nodeDataObj.LastFlag {
+				addPreviewFlag = true
+				if node.DynamicBindInt == 2 {
+					addPreviewFlag = false
+				} else {
+					if node.BindNodeId != "" {
+						log.Logger.Debug("bindNode match", log.String("currentNode", node.NodeId), log.String("bindNodeId", node.BindNodeId), log.JsonObj("bindMapData", nodeBindDataMap[node.BindNodeId]))
+						bindMatchFlag := false
+						for _, bindData := range nodeBindDataMap[node.BindNodeId] {
+							if nodeDataObj.DataId == bindData.DataId {
+								bindMatchFlag = true
+								break
+							}
+						}
+						if !bindMatchFlag {
+							addPreviewFlag = false
+						}
+					}
+				}
+			}
+			if addPreviewFlag {
 				tmpPreviewRow := models.ProcDataPreview{
 					EntityDataId:   nodeDataObj.DataId,
 					EntityTypeId:   fmt.Sprintf("%s:%s", nodeDataObj.PackageName, nodeDataObj.EntityName),
@@ -1035,6 +1090,7 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 					tmpPreviewRow.SubSessionId = subPreviewResult.ProcessSessionId
 				}
 				previewRows = append(previewRows, &tmpPreviewRow)
+				nodeBindDataMap[node.ProcDefNodeId] = append(nodeBindDataMap[node.ProcDefNodeId], nodeDataObj)
 			}
 			if existEntityNodeObj, ok := entityNodeMap[nodeDataObj.Id]; !ok {
 				entityNodeMap[nodeDataObj.Id] = nodeDataObj
