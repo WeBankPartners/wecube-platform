@@ -9,7 +9,7 @@
         <div class="form">
           <Form label-position="left">
             <FormItem v-if="isEnqueryPage" :label-width="100" :label="$t('orchs')">
-              <div style="display:flex;">
+              <div style="display: flex">
                 <CustomFlowSelect
                   v-model="selectedFlowInstance"
                   style="width: 60%"
@@ -24,7 +24,7 @@
                 <Button
                   type="warning"
                   @click="flowControlHandler('stop')"
-                  style="background-color: #826bea; border-color: #826bea; margin-left: 10px;"
+                  style="background-color: #826bea; border-color: #826bea; margin-left: 10px"
                   v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
                   icon="md-pause"
                 >{{ $t('be_pause') }}</Button>
@@ -32,16 +32,18 @@
                 <Button
                   type="success"
                   @click="flowControlHandler('recover')"
-                  style="margin-left: 10px;"
+                  style="margin-left: 10px"
                   v-if="currentInstanceStatusForNodeOperation === 'Stop'"
                   icon="md-play"
                 >{{ $t('be_continue') }}</Button>
                 <!--终止执行-->
                 <Button
-                  v-if="['InProgress', 'Stop'].includes(currentInstanceStatusForNodeOperation) && !subProcBindParentFlag"
+                  v-if="
+                    ['InProgress', 'Stop'].includes(currentInstanceStatusForNodeOperation) && !subProcBindParentFlag
+                  "
                   type="warning"
                   @click="stopHandler"
-                  style="margin-left: 10px;"
+                  style="margin-left: 10px"
                   icon="md-square"
                 >{{ $t('stop_orch') }}</Button>
                 <!--编排关联的ITSM工单-->
@@ -50,7 +52,7 @@
                   placement="bottom"
                   trigger="hover"
                   width="500"
-                  style="margin-left: 10px;"
+                  style="margin-left: 10px"
                 >
                   <Button icon="md-person">ITSM工单</Button>
                   <div slot="content" style="padding: 3px 0px">
