@@ -172,7 +172,10 @@ router.beforeEach(async (to, from, next) => {
   const found = findPath(router.options.routes, to.path)
   if (!found) {
     window.sessionStorage.setItem('currentPath', to.fullPath)
-    next('/homepage')
+    next({
+      path: '/homepage',
+      query: { type: 'isInitStatus' }
+    })
   } else {
     if (window.myMenus || ((await getGlobalMenus()) && window.myMenus)) {
       const isHasPermission = []
