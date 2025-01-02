@@ -99,7 +99,7 @@
             v-model="primatKeyAttr"
             class="form-item"
             :disabled="from === 'execute'"
-            @on-change="handleRefreshSearch"
+            @on-change="fetchTableColumns"
           >
             <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
               entityAttr.name
@@ -120,7 +120,7 @@
             v-model="userTableColumns"
             class="form-item"
             :disabled="from === 'execute'"
-            @on-change="handleRefreshSearch"
+            @on-change="fetchTableColumns"
           >
             <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
               entityAttr.name
@@ -333,7 +333,7 @@ export default {
         this.currentEntityName = data.slice(-1)[0].entityName
         this.currentPackageName = data.slice(-1)[0].packageName
         this.primatKeyAttrList = data.slice(-1)[0].attributes
-
+        this.fetchTableData()
         this.searchParamsTree = []
         data.forEach((single, index) => {
           const childNode = (single.attributes
@@ -375,7 +375,8 @@ export default {
             this.resultTableParams = frontData.resultTableParams
             this.userTableColumns = frontData.userTableColumns
           }
-          this.excuteSearch()
+          this.fetchTableColumns()
+          this.fetchTableData()
         }
       },
       deep: true
@@ -429,7 +430,7 @@ export default {
     },
     clearSearchParameters() {
       this.searchParameters = []
-      this.excuteSearch()
+      this.fetchTableData()
     },
     // 设置过滤条件
     handleSearchParamsChange(val) {
@@ -437,14 +438,7 @@ export default {
         return
       }
       this.searchParameters = val
-      this.excuteSearch()
-    },
-    // 更新执行实例表格
-    handleRefreshSearch(val) {
-      if (!val || (val && val.length === 0)) {
-        return
-      }
-      this.excuteSearch()
+      this.fetchTableData()
     },
     clearPlugin() {
       this.showResult = false
@@ -496,7 +490,8 @@ export default {
       }
     },
     // 根据过滤条件获取执行实例表格列
-    async excuteSearch() {
+    async fetchTableColumns() {
+      if (!this.currentPackageName || !this.currentEntityName) return
       const { status, data } = await entityView(this.currentPackageName, this.currentEntityName)
       if (status === 'OK') {
         if (this.userTableColumns.length || this.primatKeyAttr) {
@@ -539,10 +534,9 @@ export default {
           fixed: 'left',
           align: 'center'
         })
-        this.entityData()
       }
     },
-    async entityData() {
+    async fetchTableData() {
       const requestParameter = {
         dataModelExpression: this.dataModelExpression,
         filters: []
