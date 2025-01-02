@@ -257,7 +257,9 @@ export default {
     }, 500),
     // 选择下拉项回调
     handleSelectItem(item) {
-      if (this.disabled) {return}
+      if (this.disabled) {
+        return
+      }
       this.optionsData.forEach(i => {
         if (i.id !== item.id) {
           i.checked = false
