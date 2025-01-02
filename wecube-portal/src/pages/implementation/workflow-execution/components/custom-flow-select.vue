@@ -24,7 +24,7 @@
           :disabled="disabled"
           :readonly="selected ? true : false"
           :icon="form.search ? 'ios-close-circle' : ''"
-          style="width:100%;"
+          style="width: 100%"
         >
         </Input>
       </div>
@@ -32,23 +32,23 @@
       <div
         slot="content"
         class="flow-custom-select-content"
-        :style="{ minWidth: width + 'px', width: 'fit-content', maxWidth: '1500px' }"
+        :style="{minWidth: width + 'px', width: 'fit-content', maxWidth: '1500px'}"
       >
         <div v-if="filterOptions.length > 0" class="flow-custom-select-content-wrap">
           <div v-if="!selected" class="switch-group">
             <i-switch v-model="form.onlyShowMyFlow" @on-change="handleSearch" size="default" />
             <span class="title">{{ $t('pi_only_showMyself_records') }}</span>
-            <span class="tips">{{ $t('pi_only_three_month_records')}}</span>
+            <span class="tips">{{ $t('pi_only_three_month_records') }}</span>
           </div>
           <div class="dropdown-wrap">
             <div
               v-for="item in filterOptions"
               :key="item.id"
-              :class="{ 'dropdown-wrap-item': true, 'dropdown-wrap-item-active': item.checked }"
+              :class="{'dropdown-wrap-item': true, 'dropdown-wrap-item-active': item.checked}"
               @click="handleSelectItem(item)"
             >
-              <div style="display:flex;justify-content:space-between;width:100%;">
-                <div style="display:flex;align-items:center;">
+              <div style="display: flex; justify-content: space-between; width: 100%">
+                <div style="display: flex; align-items: center">
                   <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
                   <span style="color: #2b85e4">{{ '[' + item.version + '] ' }}</span>
                   <div
@@ -105,7 +105,7 @@ export default {
       default: false
     }
   },
-  data () {
+  data() {
     return {
       form: {
         search: '',
@@ -221,13 +221,14 @@ export default {
       deep: true
     }
   },
-  mounted () {
+  mounted() {
     this.width = this.$refs.input.clientWidth - 32
   },
   methods: {
     getDisplayName() {
       const obj = this.optionsData.find(i => i.id === this.selected)
-      return obj.procInstName
+      return (
+        obj.procInstName
         + '  '
         + '['
         + obj.version
@@ -239,6 +240,7 @@ export default {
         + (obj.createdTime || '0000-00-00 00:00:00')
         + '  '
         + this.getStatusStyleAndName(obj.displayStatus, 'label')
+      )
     },
     initData() {
       if (this.optionsData.length > 0) {
@@ -255,7 +257,7 @@ export default {
     }, 500),
     // 选择下拉项回调
     handleSelectItem(item) {
-      if (this.disabled) return
+      if (this.disabled) {return}
       this.optionsData.forEach(i => {
         if (i.id !== item.id) {
           i.checked = false
