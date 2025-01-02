@@ -491,7 +491,7 @@ export default {
     },
     // 根据过滤条件获取执行实例表格列
     async fetchTableColumns() {
-      if (!this.currentPackageName || !this.currentEntityName) return
+      if (!this.currentPackageName || !this.currentEntityName) {return}
       const { status, data } = await entityView(this.currentPackageName, this.currentEntityName)
       if (status === 'OK') {
         if (this.userTableColumns.length || this.primatKeyAttr) {
