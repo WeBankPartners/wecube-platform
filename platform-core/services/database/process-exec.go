@@ -1411,6 +1411,25 @@ func RecordProcCallReq(ctx context.Context, param *models.ProcInsNodeReq, inputF
 	return
 }
 
+func RecordCustomReq(ctx context.Context, param *models.ProcInsNodeReq) (err error) {
+	nowTime := time.Now()
+	var actions []*db.ExecAction
+	actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins_node_req(id,proc_ins_node_id,req_url,req_data_amount,created_time,is_completed,error_msg,updated_time) values (?,?,?,?,?,1,?,?)", Param: []interface{}{
+		param.Id, param.ProcInsNodeId, param.ReqUrl, param.ReqDataAmount, nowTime, param.ErrorMsg, nowTime,
+	}})
+	for _, v := range param.Params {
+		actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins_node_req_param(req_id,data_index,from_type,name,data_type,data_value,entity_data_id,entity_type_id,is_sensitive,full_data_id,multiple,param_def_id,mapping_type,callback_id,created_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			v.ReqId, v.DataIndex, v.FromType, v.Name, v.DataType, v.DataValue, v.EntityDataId, v.EntityTypeId, v.IsSensitive, v.FullDataId, v.Multiple, v.ParamDefId, v.MappingType, v.CallbackId, nowTime,
+		}})
+	}
+	err = db.Transaction(actions, ctx)
+	if err != nil {
+		log.Logger.Error("RecordProcCallReq fail", log.Error(err))
+		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
+	}
+	return
+}
+
 func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDefNodeId string) (result []*models.ProcNodeContextReq, err error) {
 	var queryRows []*models.ProcNodeContextQueryObj
 	var emptyRun bool
@@ -1465,13 +1484,16 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 		return
 	}
 	if len(procDataBindingList) > 0 {
+		emptyRun = true
 		for _, procDataBind := range procDataBindingList {
-			if !procDataBind.BindFlag {
-				// 重试空跑,bindFlag=0,空跑没有API调用
-				emptyRun = true
-				result = append(result, defaultRes)
+			if procDataBind.BindFlag {
+				emptyRun = false
 				break
 			}
+		}
+		if emptyRun {
+			// 重试空跑,给它默认加组空
+			result = append(result, defaultRes)
 		}
 	}
 	if queryObj.NodeType == models.JobSubProcType && !emptyRun {
@@ -1515,7 +1537,7 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 		}
 	}
 	var reqRows []*models.ProcInsNodeReq
-	err = db.MysqlEngine.Context(ctx).SQL("select id,created_time,updated_time from proc_ins_node_req where proc_ins_node_id=? order by created_time desc", queryObj.Id).Find(&reqRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from proc_ins_node_req where proc_ins_node_id=? order by created_time desc", queryObj.Id).Find(&reqRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -1526,6 +1548,7 @@ func GetProcInsNodeContext(ctx context.Context, procInsId, procInsNodeId, procDe
 			index += 1
 		}
 		tempProcNodeContext := deepCopyProcNodeContext(defaultRes)
+		tempProcNodeContext.RequestId = v.Id
 		if index > 0 {
 			tempProcNodeContext.RequestObjects = []models.ProcNodeContextReqObject{}
 			// 节点历史执行,从 proc_ins_node_req 取
@@ -2216,7 +2239,6 @@ func UpdateProcRunNodeSubProc(ctx context.Context, procRunNodeId string, subProc
 	var actions []*db.ExecAction
 	nowTime := time.Now()
 	reqId := "proc_req_" + guid.CreateGuid()
-	actions = append(actions, &db.ExecAction{Sql: "delete from proc_run_node_sub_proc where proc_run_node_id=?", Param: []interface{}{procRunNodeId}})
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_ins_node_req(id,proc_ins_node_id,req_url,req_data_amount,is_completed,created_time,updated_time) values (?,?,?,?,?,?,?)", Param: []interface{}{
 		reqId, parentInsNodeId, "", len(subProcWorkflowList), 1, nowTime, nowTime,
 	}})
