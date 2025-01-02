@@ -32,13 +32,14 @@ export default {
       this.comps = window.homepageComponent.data
     }
   },
+  // this.$route.query.type === 'isInitStatus'代表此时处于js加载过程中的刷新阶段，此阶段只出现默认组件defaultComp
   render() {
     // const comps = window.homepageComponent || []
     const len = this.comps.length
     return (
       <div class="platform-homepage">
-        {len === 0 && <defaultComp />}
-        {len > 0 && (
+        {(len === 0 || this.$route.query.type === 'isInitStatus') && <defaultComp />}
+        {len > 0 && this.$route.query.type !== 'isInitStatus' && (
           <Tabs name="home">
             {this.comps.map(c => (
               <TabPane label={c.name()} tab="home">
