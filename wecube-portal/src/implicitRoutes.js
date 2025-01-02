@@ -176,7 +176,7 @@ export default {
       'zh-CN': '数据管理(导入)'
     },
     parentBreadcrumb: {
-      'en-US': 'Cube Back',
+      'en-US': 'Design',
       'zh-CN': '设计'
     }
   }
