@@ -1,8 +1,6 @@
 /* eslint-disable */
 const CompressionPlugin = require('compression-webpack-plugin')
 
-const baseURL = 'http://127.0.0.1:18080/'
-
 /* eslint-disable */
 module.exports = {
   devServer: {
@@ -10,7 +8,7 @@ module.exports = {
     port: 3000,
     proxy: {
       '/': {
-        target: baseURL
+        target: process.env.BASE_URL
       }
     }
   },
