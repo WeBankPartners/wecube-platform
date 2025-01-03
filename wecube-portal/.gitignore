@@ -16,3 +16,8 @@ yarn-error.log*
 *.sln
 *dist
 *dist.zip
+
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
