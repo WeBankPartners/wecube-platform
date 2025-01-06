@@ -1,6 +1,14 @@
 <template>
   <div>
-    <Select v-if="!isGroup" :value="value" :multiple="isMultiple" filterable clearable @on-change="changeValue">
+    <Select
+      v-if="!isGroup"
+      :value="value"
+      :multiple="isMultiple"
+      filterable
+      clearable
+      :placeholder="title"
+      @on-change="changeValue"
+    >
       <Option v-for="item in opts" :value="item.value" :key="item.value">{{ item.label }}</Option>
     </Select>
     <Select
@@ -9,6 +17,7 @@
       :multiple="isMultiple"
       filterable
       clearable
+      :placeholder="title"
       @on-change="changeValue"
       :max-tag-count="maxTags"
     >
@@ -22,13 +31,13 @@
 const DEFAULT_TAG_NUMBER = 2
 export default {
   name: 'WeSelect',
-
   props: {
     value: {},
     isMultiple: { default: () => false },
     isGroup: { default: () => false },
     options: { default: () => [] },
     maxTags: { default: () => DEFAULT_TAG_NUMBER },
+    title: { default: () => '' },
     filterParams: {}
   },
   data() {
