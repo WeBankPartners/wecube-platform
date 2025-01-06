@@ -877,7 +877,7 @@ export default {
             .card-menu-content {
               max-height: 21px;
               overflow: hidden;
-              max-width: calc(30vw - 150px);
+              max-width: calc(30vw - 200px);
               white-space: nowrap;
               text-overflow: ellipsis;
             }
