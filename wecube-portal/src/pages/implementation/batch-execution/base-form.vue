@@ -305,7 +305,7 @@ export default {
       pagination: {
         total: 0,
         currentPage: 1,
-        pageSize: 50,
+        pageSize: 50
       }
     }
   },
