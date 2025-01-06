@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2024-10-14 15:05:46
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-01-02 20:02:21
+ * @LastEditTime: 2025-01-06 14:28:58
 -->
 <template>
   <div>
@@ -34,13 +34,14 @@
         class="flow-custom-select-content"
         :style="{minWidth: width + 'px', width: 'fit-content', maxWidth: '1500px'}"
       >
-        <div v-if="filterOptions.length > 0" class="flow-custom-select-content-wrap">
+        <div class="flow-custom-select-content-wrap">
           <div v-if="!selected" class="switch-group">
             <i-switch v-model="form.onlyShowMyFlow" @on-change="handleSearch" size="default" />
             <span class="title">{{ $t('pi_only_showMyself_records') }}</span>
-            <span class="tips">{{ $t('pi_only_three_month_records') }}</span>
+            <span v-if="from === 'detail'" class="tips">{{ $t('pi_only_three_month_records') }}</span>
+            <span v-else class="tips">{{ $t('pi_only_three_month_records1') }}</span>
           </div>
-          <div class="dropdown-wrap">
+          <div v-if="filterOptions.length > 0" class="dropdown-wrap">
             <div
               v-for="item in filterOptions"
               :key="item.id"
@@ -52,6 +53,7 @@
                   <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
                   <span style="color: #2b85e4">{{ '[' + item.version + '] ' }}</span>
                   <div
+                    v-if="item.entityDisplayName"
                     :style="{
                       backgroundColor: '#c5c8ce',
                       padding: '4px 15px',
@@ -78,8 +80,8 @@
               <!-- <Icon v-if="item.checked" type="ios-checkmark" size="24" color="#2d8cf0e6" /> -->
             </div>
           </div>
+          <div v-else class="no-data">{{ $t('noData') }}</div>
         </div>
-        <div v-else class="no-data">{{ $t('noData') }}</div>
       </div>
     </Poptip>
   </div>
@@ -103,6 +105,10 @@ export default {
     loading: {
       type: Boolean,
       default: false
+    },
+    from: {
+      type: String,
+      default: ''
     }
   },
   data() {
@@ -253,6 +259,7 @@ export default {
     },
     // 刷新下拉列表数据
     handleSearch: debounce(function () {
+      this.visible = true
       this.$emit('search', this.form)
     }, 500),
     // 选择下拉项回调
