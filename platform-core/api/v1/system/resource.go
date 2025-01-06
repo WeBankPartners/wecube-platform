@@ -24,7 +24,10 @@ func QueryResourceServer(c *gin.Context) {
 }
 
 func GetResourceItemTypes(c *gin.Context) {
-	data := []string{"s3_bucket", "mysql_database", "docker_container", "docker_image"}
+	var data []*models.ResourceItemTypeObj
+	data = append(data, &models.ResourceItemTypeObj{ItemType: "s3_bucket", ResourceType: "s3"})
+	data = append(data, &models.ResourceItemTypeObj{ItemType: "mysql_database", ResourceType: "mysql"})
+	data = append(data, &models.ResourceItemTypeObj{ItemType: "docker_container", ResourceType: "docker"})
 	middleware.ReturnData(c, data)
 }
 
