@@ -1041,5 +1041,6 @@
   "pi_view_params": "查看参数",
   "pi_plugin_params": "插件参数",
   "pi_only_showMyself_records": "仅展示本人执行记录",
-  "pi_only_three_month_records": "当前搜索只支持3个月内记录，完整记录请返回列表查询"
+  "pi_only_three_month_records": "当前搜索只支持3个月内记录，完整记录请返回列表查询",
+  "pi_only_three_month_records1": "当前搜索只支持3个月内记录"
 }
