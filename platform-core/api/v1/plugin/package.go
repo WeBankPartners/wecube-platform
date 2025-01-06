@@ -743,24 +743,6 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 			err = resourceDbErr
 			return
 		}
-
-		// 判断有没有以插件名为类型的资源
-		//mysqlServer, _ = database.GetResourceServer(ctx, "mysql", "", pluginPackageObj.Name)
-		//if mysqlServer != nil {
-		//	if mysqlInstance == nil {
-		//		log.Logger.Info("use plugin resource mysql server", log.String("resourceServerId", mysqlServer.Id))
-		//		mysqlInstance = &models.PluginMysqlInstances{
-		//			Id:              "p_mysql_" + guid.CreateGuid(),
-		//			Password:        mysqlServer.LoginPassword,
-		//			PluginPackageId: pluginPackageId,
-		//			ResourceItemId:  mysqlResource.Id,
-		//			SchemaName:      mysqlResource.SchemaName,
-		//			Username:        mysqlServer.LoginUsername,
-		//		}
-		//		if err = database.NewPluginMysqlInstance(ctx, mysqlServer, mysqlInstance, operator); err != nil {
-		//			return
-		//		}
-		//	}
 		if mysqlInstance != nil {
 			mysqlServer, resourceDbErr = database.GetResourceServer(ctx, "", "", "", mysqlInstance.ResourceItemId)
 			if resourceDbErr != nil {
@@ -768,28 +750,53 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 				return
 			}
 		} else {
-			// 如果连纪录都没有，第一次要创建数据库
-			mysqlServer, resourceDbErr = database.GetResourceServer(ctx, "mysql", "", "", "")
-			if resourceDbErr != nil {
-				err = resourceDbErr
+			// 判断有没有以以插件名为类型的资源实例
+			resourceItemList, getItemErr := database.GetResourceItem(ctx, "mysql_database", mysqlResource.SchemaName, true)
+			if getItemErr != nil {
+				err = getItemErr
 				return
 			}
-			if mysqlInstance == nil {
-				if dbPass, createDBErr := bash.CreatePluginDatabase(ctx, pluginPackageObj.Name, mysqlResource, mysqlServer); createDBErr != nil {
-					err = createDBErr
+			if len(resourceItemList) > 0 {
+				mysqlServer, resourceDbErr = database.GetResourceServer(ctx, "", "", "", resourceItemList[0].Id)
+				if resourceDbErr != nil {
+					err = resourceDbErr
 					return
-				} else {
-					mysqlInstance = &models.PluginMysqlInstances{
-						Id:              "p_mysql_" + guid.CreateGuid(),
-						Password:        dbPass,
-						PluginPackageId: pluginPackageId,
-						ResourceItemId:  mysqlResource.Id,
-						SchemaName:      mysqlResource.SchemaName,
-						Username:        pluginPackageObj.Name,
-					}
-					log.Logger.Debug("database pwd", log.String("pass", dbPass))
-					if err = database.NewPluginMysqlInstance(ctx, mysqlServer, mysqlInstance, operator); err != nil {
+				}
+				mysqlInstance = &models.PluginMysqlInstances{
+					Id:              "p_mysql_" + guid.CreateGuid(),
+					Password:        resourceItemList[0].Password,
+					PluginPackageId: pluginPackageId,
+					ResourceItemId:  mysqlResource.Id,
+					SchemaName:      mysqlResource.SchemaName,
+					Username:        resourceItemList[0].Username,
+				}
+				if err = database.NewPluginMysqlInstance(ctx, mysqlServer, mysqlInstance, operator); err != nil {
+					return
+				}
+			} else {
+				// 如果连纪录都没有，第一次要创建数据库
+				mysqlServer, resourceDbErr = database.GetResourceServer(ctx, "mysql", "", "", "")
+				if resourceDbErr != nil {
+					err = resourceDbErr
+					return
+				}
+				if mysqlInstance == nil {
+					if dbPass, createDBErr := bash.CreatePluginDatabase(ctx, pluginPackageObj.Name, mysqlResource, mysqlServer); createDBErr != nil {
+						err = createDBErr
 						return
+					} else {
+						mysqlInstance = &models.PluginMysqlInstances{
+							Id:              "p_mysql_" + guid.CreateGuid(),
+							Password:        dbPass,
+							PluginPackageId: pluginPackageId,
+							ResourceItemId:  mysqlResource.Id,
+							SchemaName:      mysqlResource.SchemaName,
+							Username:        pluginPackageObj.Name,
+						}
+						log.Logger.Debug("database pwd", log.String("pass", dbPass))
+						if err = database.NewPluginMysqlInstance(ctx, mysqlServer, mysqlInstance, operator); err != nil {
+							return
+						}
 					}
 				}
 			}
