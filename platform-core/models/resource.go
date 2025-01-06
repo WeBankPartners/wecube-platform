@@ -37,17 +37,28 @@ type ResourceItem struct {
 	Password             string    `json:"password" xorm:"password"`                          // 连接用户密码
 }
 
+type ResourceItemQueryRow struct {
+	ResourceItem
+	ResourceServer string `json:"resourceServer"`
+	Port           string `json:"port"`
+}
+
 type ResourceServerListPageData struct {
 	PageInfo *PageInfo         `json:"pageInfo"` // 分页信息
 	Contents []*ResourceServer `json:"contents"` // 列表内容
 }
 
 type ResourceItemListPageData struct {
-	PageInfo *PageInfo       `json:"pageInfo"` // 分页信息
-	Contents []*ResourceItem `json:"contents"` // 列表内容
+	PageInfo *PageInfo               `json:"pageInfo"` // 分页信息
+	Contents []*ResourceItemQueryRow `json:"contents"` // 列表内容
 }
 
 type MysqlResourceItemProperties struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+type ResourceItemTypeObj struct {
+	ItemType     string `json:"itemType"`
+	ResourceType string `json:"resourceType"`
 }
