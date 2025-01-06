@@ -367,7 +367,7 @@ export default {
             index < DEFAULT_FILTER_NUMBER ? '' : this.isShowHiddenFilters ? 'hidden-filters-show' : 'hidden-filters'
           }
         >
-          <FormItem label={item.title} prop={item.inputKey} key={item.inputKey}>
+          <FormItem prop={item.inputKey} key={item.inputKey}>
             {renders(item)}
           </FormItem>
         </Col>
@@ -384,7 +384,7 @@ export default {
         return 0
       }
       return (
-        <Form ref="form" label-position="top" inline>
+        <Form ref="form" inline>
           <Row>
             {this.tableColumns
               .filter(_ => !!_.children || !!_.searchSeqNo)
@@ -412,9 +412,9 @@ export default {
                 {this.tableColumns.filter(_ => !!_.searchSeqNo).sort(compare).length > DEFAULT_FILTER_NUMBER
                   && (!this.isShowHiddenFilters ? (
                     <FormItem>
-                      <div slot="label" style="visibility: hidden;">
+                      {/* <div slot="label" style="visibility: hidden;">
                         <span>Placeholder</span>
-                      </div>
+                      </div> */}
                       <Button
                         type="info"
                         ghost
@@ -429,9 +429,9 @@ export default {
                     </FormItem>
                   ) : (
                     <FormItem>
-                      <div slot="label" style="visibility: hidden;">
+                      {/* <div slot="label" style="visibility: hidden;">
                         <span>Placeholder</span>
-                      </div>
+                      </div> */}
                       <Button
                         type="info"
                         ghost
@@ -447,17 +447,17 @@ export default {
                   ))}
 
                 <FormItem>
-                  <div slot="label" style="visibility: hidden;">
+                  {/* <div slot="label" style="visibility: hidden;">
                     <span>Placeholder</span>
-                  </div>
+                  </div> */}
                   <Button type="primary" icon="ios-search" onClick={() => this.handleSubmit('form')}>
                     {this.$t('search')}
                   </Button>
                 </FormItem>
                 <FormItem>
-                  <div slot="label" style="visibility: hidden;">
+                  {/* <div slot="label" style="visibility: hidden;">
                     <span>Placeholder</span>
-                  </div>
+                  </div> */}
                   <Button icon="md-refresh" onClick={() => this.reset('form')}>
                     {this.$t('reset')}
                   </Button>
