@@ -39,7 +39,7 @@
         @on-page-size-change="changePageSize"
         show-total
         size="small"
-        style="margin-top:10px;margin-left:-100px;"
+        style="margin-top: 10px; margin-left: -100px"
       />
     </template>
     <div v-else class="no-data">{{ $t('noData') }}</div>
@@ -64,13 +64,11 @@ export default {
     },
     pagination: {
       type: Object,
-      default: () => {
-        return {
-          total: 0,
-          currentPage: 1,
-          pageSize: 50
-        }
-      }
+      default: () => ({
+        total: 0,
+        currentPage: 1,
+        pageSize: 50
+      })
     }
   },
   data() {
