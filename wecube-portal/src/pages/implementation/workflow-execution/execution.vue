@@ -19,6 +19,7 @@
                   @change="queryHandler"
                   :disabled="['main', 'sub'].includes(from)"
                   :loading="allFlowInstancesLoading"
+                  from="detail"
                 />
                 <!--暂停执行-->
                 <Button
