@@ -23,13 +23,13 @@
       <template slot="content">
         <Form :label-width="100" :model="form" :rules="rules" ref="form">
           <!--资源-->
-          <FormItem label="资源" prop="resourceServerId">
+          <FormItem :label="$t('resource')" prop="resourceServerId">
             <Select v-model="form.resourceServerId" @on-change="handleSelectResource" clearable>
               <Option v-for="item in resourceOptions" :key="item.id" :value="item.id">{{ item.name }}</Option>
             </Select>
           </FormItem>
           <!--类型-->
-          <FormItem label="类型" prop="type">
+          <FormItem :label="$t('table_type')" prop="type">
             <Select v-model="form.type" disabled clearable>
               <Option v-for="(item, index) in typeOptions" :key="index" :value="item.itemType">{{
                 item.itemType
@@ -37,19 +37,23 @@
             </Select>
           </FormItem>
           <!--名称-->
-          <FormItem label="名称" prop="name">
+          <FormItem :label="$t('name')" prop="name">
             <Input v-model.trim="form.name" :maxlength="100" show-word-limit clearable></Input>
           </FormItem>
+          <!--描述-->
           <FormItem :label="$t('table_purpose')" prop="purpose">
             <Input type="textarea" v-model.trim="form.purpose" :maxlength="255" show-word-limit clearable></Input>
           </FormItem>
-          <FormItem label="是否分配" prop="isAllocated">
+          <!--是否分配-->
+          <FormItem :label="$t('table_is_allocated')" prop="isAllocated">
             <i-switch v-model="form.isAllocated" :true-value="true" :false-value="false" size="default" />
           </FormItem>
-          <FormItem label="账号" prop="username">
+          <!--账号-->
+          <FormItem :label="$t('be_account')" prop="username">
             <Input v-model.trim="form.username" autocomplete="off" :maxlength="100" clearable />
           </FormItem>
-          <FormItem label="密码" prop="password">
+          <!--密码-->
+          <FormItem :label="$t('password')" prop="password">
             <input type="text" style="display: none" />
             <input type="password" autocomplete="new-password" style="display: none" />
             <Input v-model.trim="form.password" type="password" autocomplete="off" password :maxlength="100" />
@@ -94,7 +98,10 @@ const booleanOptions = [
 
 export default {
   props: {
-    servers: {}
+    servers: {
+      type: Array,
+      default: () => []
+    }
   },
   data() {
     return {
@@ -235,21 +242,21 @@ export default {
         resourceServerId: [
           {
             required: true,
-            message: '请输入资源',
+            message: this.$t('please_input') + this.$t('resource'),
             trigger: 'blur'
           }
         ],
         type: [
           {
             required: true,
-            message: '请选择类型',
+            message: this.$t('please_choose') + this.$t('table_type'),
             trigger: 'blur'
           }
         ],
         name: [
           {
             required: true,
-            message: '请输入名称',
+            message: this.$t('please_input') + this.$t('name'),
             trigger: 'blur'
           }
         ],
@@ -263,14 +270,14 @@ export default {
         username: [
           {
             required: true,
-            message: '请输入账号',
+            message: this.$t('please_input') + this.$t('be_account'),
             trigger: 'blur'
           }
         ],
         password: [
           {
             required: true,
-            message: '请输入密码',
+            message: this.$t('please_input') + this.$t('password'),
             trigger: 'blur'
           }
         ]
@@ -279,14 +286,18 @@ export default {
   },
   watch: {
     // 资源服务器赋值
-    servers(val) {
-      let statusIndex
-      this.tableColumns.find((_, i) => {
-        if (_.key === 'resourceServer') {
-          statusIndex = i
-        }
-      })
-      val && this.$set(this.tableColumns[statusIndex], 'options', val)
+    servers: {
+      handler(val) {
+        let statusIndex
+        this.tableColumns.find((_, i) => {
+          if (_.key === 'resourceServer') {
+            statusIndex = i
+          }
+        })
+        val && this.$set(this.tableColumns[statusIndex], 'options', val)
+      },
+      immediate: true,
+      deep: true
     }
   },
   mounted() {
