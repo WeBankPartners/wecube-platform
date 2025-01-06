@@ -246,6 +246,7 @@ export default {
     },
     handleSubmit(data) {
       this.payload.filters = data
+      this.pagination.currentPage = 1
       this.queryData()
     },
     sortHandler(data) {
@@ -264,6 +265,7 @@ export default {
       this.queryData()
     },
     pageSizeChange(size) {
+      this.pagination.currentPage = 1
       this.pagination.pageSize = size
       this.queryData()
     },
