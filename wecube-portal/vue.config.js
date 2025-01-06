@@ -22,9 +22,9 @@ module.exports = {
     const img = config.module.rule('images')
     img.uses.clear()
     // add the new one
-    img.use('file-loader').loader('file-loader').options({
-      outputPath: 'img'
-    })
+    // img.use('file-loader').loader('file-loader').options({
+    //   outputPath: 'img'
+    // })
   },
   configureWebpack: config => {
     // config.optimization = {
