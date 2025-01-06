@@ -260,24 +260,33 @@ export default {
     next(vm => {
       if (from.path === '/admin/base-migration/export' && Object.keys(from.query).length > 0) {
         // 读取列表搜索参数
-        const storage = window.sessionStorage.getItem('export_baseMigration') || ''
+        const storage = window.sessionStorage.getItem('platform_export_baseMigration') || ''
         if (storage) {
-          const { searchParams, searchOptions } = JSON.parse(storage)
+          const { searchParams, searchOptions, pageable } = JSON.parse(storage)
           vm.searchParams = searchParams
           vm.searchOptions = searchOptions
+          // 多选下拉框有默认值自动触发onSearch事件，导致页数被重置，采用延时方法解决这个问题
+          setTimeout(() => {
+            vm.pageable = pageable
+            vm.initData()
+          }, 500)
+        } else {
+          vm.initData()
         }
+      } else {
+        // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+        vm.initData()
       }
-      // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
-      vm.initData()
     })
   },
   beforeDestroy() {
     // 缓存列表搜索条件
     const storage = {
       searchParams: this.searchParams,
-      searchOptions: this.searchOptions
+      searchOptions: this.searchOptions,
+      pageable: this.pageable
     }
-    window.sessionStorage.setItem('export_baseMigration', JSON.stringify(storage))
+    window.sessionStorage.setItem('platform_export_baseMigration', JSON.stringify(storage))
   },
   methods: {
     initData() {
