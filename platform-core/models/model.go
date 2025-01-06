@@ -82,6 +82,8 @@ type SyncDataModelCiAttr struct {
 type QueryExpressionDataParam struct {
 	DataModelExpression string                       `json:"dataModelExpression"`
 	Filters             []*QueryExpressionDataFilter `json:"filters"`
+	StartIndex          int                          `json:"startIndex"`
+	PageSize            int                          `json:"pageSize"`
 }
 
 type QueryExpressionDataFilter struct {
