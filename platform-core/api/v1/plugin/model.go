@@ -154,9 +154,24 @@ func QueryExpressionData(c *gin.Context) {
 	result, queryErr := remote.QueryPluginData(c, exprList, param.Filters, c.GetHeader(models.AuthorizationHeader))
 	if queryErr != nil {
 		middleware.ReturnError(c, queryErr)
-	} else {
-		middleware.ReturnData(c, result)
+		return
 	}
+	// 数据分页
+	if param.PageSize > 0 {
+		pageInfo := models.PageInfo{
+			StartIndex: param.StartIndex,
+			PageSize:   param.PageSize,
+			TotalRows:  len(result),
+		}
+		endIndex := param.StartIndex + param.PageSize
+		if len(result) < endIndex {
+			endIndex = len(result)
+		}
+		result = result[param.StartIndex:endIndex]
+		middleware.ReturnPageData(c, pageInfo, result)
+		return
+	}
+	middleware.ReturnData(c, result)
 }
 
 // QueryExpressionDataForPlugin 给插件提供的表达式数据查询
