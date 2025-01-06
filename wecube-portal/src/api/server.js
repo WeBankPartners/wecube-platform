@@ -385,3 +385,11 @@ export const getBaseMigrationImportList = data => req.post('/platform/v1/data/tr
 export const getBaseMigrationImportQuery = () => req.get('/platform/v1/data/transfer/import/list/options')
 // 导入状态变更
 export const updateImportStatus = data => req.post('/platform/v1/data/transfer/import/status', data)
+
+// 资源管理-资源实例重构
+// 新增资源实例
+export const addResourceInstance = data => req.post('/platform/resource/items/create', data)
+// 删除资源实例
+export const deleteResourceInstance = data => req.post('/platform/resource/items/delete', data)
+// 更新资源实例
+export const updateResourceInstance = data => req.post('/platform/resource/items/update', data)
