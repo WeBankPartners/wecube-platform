@@ -180,6 +180,7 @@
             "
             @changePage="handlePageChange"
             @changePageSize="handlePageSizeChange"
+            @search="handleSearch"
             :pagination="pagination"
           ></EntityTable>
         </FormItem>
@@ -546,10 +547,11 @@ export default {
         })
       }
     },
-    async fetchTableData() {
+    async fetchTableData(query = '') {
       const requestParameter = {
         dataModelExpression: this.dataModelExpression,
         filters: [],
+        query,
         startIndex: (this.pagination.currentPage - 1) * this.pagination.pageSize,
         pageSize: 50
       }
@@ -599,6 +601,10 @@ export default {
           }
         })
       }
+    },
+    handleSearch(val) {
+      this.pagination.currentPage = 1
+      this.fetchTableData(val)
     },
     handlePageChange(val) {
       this.pagination.currentPage = val
