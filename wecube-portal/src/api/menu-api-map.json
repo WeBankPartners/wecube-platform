@@ -1,0 +1,461 @@
+[
+  {
+    "menu": "COLLABORATION_PLUGIN_MANAGEMENT",
+    "urls": [
+      {
+        "url": "/platform/v1/available-container-hosts",
+        "method": "GET"
+      },
+      {
+        "url": "/platform/v1/hosts/${ip}/next-available-port",
+        "method": "GET"
+      },
+      {
+        "url": "/platform/v1/packages/${packageId}/hosts/${ip}/ports/${port}/instance/launch",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/instances/${instanceId}/remove",
+        "method": "delete"
+      },
+      {
+        "url": "/platform/v1/plugin-artifacts",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugin-artifacts/pull-requests",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/plugin-artifacts/pull-requests/${id}",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/decommission/${id}",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/${packageId}/instances",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/users/retrieve",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/ui/register",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/plugin-config-outlines",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugins/packages/export-choose/${id}",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/available-container-hosts",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/hosts/${ip}/next-available-port",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${packageId}/hosts/${ip}/ports/${port}/instance/launch",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/instances/${instanceId}/remove",
+        "method": "delete"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/resources/mysql/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/resources/s3/files",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/register/${id}",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/${packageId}/instances",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${packageId}/plugin-configs",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugins/packages/version/get",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugins/packages/version/inherit",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/register-done",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/dependencies",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/models",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/models/package/${name}",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/system-parameters",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/authorities",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/runtime-resources",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/plugins",
+        "method": "get"
+      },
+      {
+        "url": "platform/v1/models",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugins/enable/${id}",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugins/disable/${id}",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/plugins/configs/${id}",
+        "method": "delete"
+      },
+      {
+        "url": "/platform/v1/plugins",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/system-variables/retrieve",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/${packageId}/plugin-configs",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugins/interfaces/${configId}",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/roles/retrieve",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugins/roles/configs/${id}",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/users/roles",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/plugin-config-outlines",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/plugin-configs/enable-in-batch",
+        "method": "post"
+      },
+      {
+        "url": "platform/v1/plugins/objectmetas/id/${objectMetaId}",
+        "method": "get"
+      },
+      {
+        "url": "/${pkgName}/entities/${entityName}/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/models/package/${pkgName}/entity/${entityName}",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "ADMIN_SYSTEM_PARAMS",
+    "urls": [
+      {
+        "url": "/platform/v1/system-variables/retrieve",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/system-variables/create",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/system-variables/update",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/system-variables/delete",
+        "method": "post"
+      },
+      {
+        "url": "/platform/resource/constants/resource-server-status",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages?all=${isRetrieveAllPluginPackages}",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/system-variables/constant/system-variable-scope",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "ADMIN_RESOURCES_MANAGEMENT",
+    "urls": [
+      {
+        "url": "/platform/resource/servers/retrieve",
+        "method": "post"
+      },
+      {
+        "url": "/platform/resource/constants/resource-server-status",
+        "method": "get"
+      },
+      {
+        "url": "/platform/resource/constants/resource-server-types",
+        "method": "get"
+      },
+      {
+        "url": "/platform/resource/servers/create",
+        "method": "post"
+      },
+      {
+        "url": "/platform/resource/servers/update",
+        "method": "post"
+      },
+      {
+        "url": "/platform/resource/servers/${id}/product-serial",
+        "method": "get"
+      },
+      {
+        "url": "/platform/resource/servers/delete",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/batch-execution/seed",
+        "method": "get"
+      },
+      {
+        "url": "/platform/resource/constants/resource-item-status",
+        "method": "get"
+      },
+      {
+        "url": "/platform/resource/constants/resource-item-types",
+        "method": "get"
+      },
+      {
+        "url": "/platform/resource/items/retrieve",
+        "method": "post"
+      },
+      {
+        "url": "/platform/resource/items/create",
+        "method": "post"
+      },
+      {
+        "url": "/platform/resource/items/update",
+        "method": "post"
+      },
+      {
+        "url": "/platform/resource/items/delete",
+        "method": "delete"
+      }
+    ]
+  },
+  {
+    "menu": "ADMIN_CERTIFICATION",
+    "urls": [
+      {
+        "url": "/platform/v1/plugin-certifications",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugin-certifications/${id}",
+        "method": "delete"
+      },
+      {
+        "url": "/platform/v1/plugin-certifications/${row.id}/export",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugin-certifications/import",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "ADMIN_USER_ROLE_MANAGEMENT",
+    "urls": [
+      {
+        "url": "/platform/v1/users/create",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/users/${roleId}/delete",
+        "method": "delete"
+      },
+      {
+        "url": "/platform/v1/users/retrieve",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/users/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/roles/create",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/roles/retrieve",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/roles/${id}/update",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/users/${userName}/roles",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/roles/${roleId}/users",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/roles/${roleId}/users/grant",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/roles/${roleId}/users/revoke",
+        "method": "delete"
+      },
+      {
+        "url": "/platform/v1/all-menus",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/users/${id}/roles/grant",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/users/${name}/menus",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/roles/${id}/menus",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/roles/${roleId}/menus",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/users/reset-password",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/user/${data.username}/update",
+        "method": "post"
+      }
+    ]
+  },
+  {
+    "menu": "ADMIN_SYSTEM_DATA_MODEL",
+    "urls": [
+      {
+        "url": "/platform/v1/models",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "ADMIN_SYSTEM_WORKFLOW_REPORT",
+    "urls": [
+      {
+        "url": "/platform/v1/statistics/process/definitions/tasknodes/service-ids",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions/service-ids/tasknode-bindings/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions/executions/plugin/reports/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions/executions/plugin/report-details/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions/tasknodes/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions/tasknodes/tasknode-bindings/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions/executions/tasknodes/reports/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions/executions/tasknodes/report-details/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions/executions/overviews/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/models",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/models",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/models",
+        "method": "get"
+      }
+    ]
+  }
+]
