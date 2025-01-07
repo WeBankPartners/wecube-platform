@@ -3,21 +3,16 @@ module.exports = {
   env: {
     browser: true,
     node: true,
-    es2021: true,
+    es2021: true
   },
   parser: 'vue-eslint-parser',
   parserOptions: {
     parser: '@babel/eslint-parser',
     ecmaVersion: 2020,
     sourceType: 'module',
-    requireConfigFile: false, // Babel 配置文件可选
+    requireConfigFile: false // Babel 配置文件可选
   },
-  extends: [
-    'eslint:recommended',
-    'plugin:vue/recommended',
-    'plugin:import/recommended',
-    'plugin:promise/recommended',
-  ],
+  extends: ['eslint:recommended', 'plugin:vue/recommended', 'plugin:import/recommended', 'plugin:promise/recommended'],
   rules: {
     // 根据项目需求调整规则
     'vue/max-attributes-per-line': 'off',
@@ -28,6 +23,6 @@ module.exports = {
     'vue/no-mutating-props': 'off',
     'vue/no-use-v-if-with-v-for': 'off',
     'promise/catch-or-return': 'off',
-    'vue/no-arrow-functions-in-watch': 'off',
-  },
-};
+    'vue/no-arrow-functions-in-watch': 'off'
+  }
+}
