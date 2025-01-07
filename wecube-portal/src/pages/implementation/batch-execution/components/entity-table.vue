@@ -13,7 +13,6 @@
         :placeholder="$t('be_all_placeholder')"
         class="input"
       />
-      <!-- <Button type="primary" @click="handleSearch" style="margin-left: 20px">搜索</Button> -->
     </div>
     <template v-if="columns.length > 0">
       <Table
@@ -97,19 +96,20 @@ export default {
       this.$emit('select', selection)
     },
     handleSearch: debounce(function () {
-      const filtersKeys = this.columns.map(item => item.key)
-      this.filterIdList = []
-      if (this.keyword) {
-        this.data.forEach(item => {
-          let tmp = []
-          filtersKeys.forEach(key => {
-            tmp += item[key] + '@#$'
-          })
-          if (tmp.includes(this.keyword)) {
-            this.filterIdList.push(item.id)
-          }
-        })
-      }
+      // const filtersKeys = this.columns.map(item => item.key)
+      // this.filterIdList = []
+      // if (this.keyword) {
+      //   this.data.forEach(item => {
+      //     let tmp = []
+      //     filtersKeys.forEach(key => {
+      //       tmp += item[key] + '@#$'
+      //     })
+      //     if (tmp.includes(this.keyword)) {
+      //       this.filterIdList.push(item.id)
+      //     }
+      //   })
+      // }
+      this.$emit('search', this.keyword)
     }, 300),
     changPage(val) {
       this.$emit('changePage', val)
