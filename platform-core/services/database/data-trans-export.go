@@ -664,6 +664,7 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 	transExportId = fmt.Sprintf("tp_%s", guid.CreateGuid())
 	transExport := models.TransExportTable{
 		Id:              transExportId,
+		CustomerId:      param.CustomerId,
 		CustomerName:    param.CustomerName,
 		Environment:     param.Env,
 		EnvironmentName: param.EnvName,
