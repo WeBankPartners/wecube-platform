@@ -37,7 +37,7 @@ func CreateExport(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	if len(param.PIds) == 0 || strings.TrimSpace(param.Env) == "" || len(param.PNames) == 0 || strings.TrimSpace(param.CustomerName) == "" || strings.TrimSpace(param.CustomerId) == "" {
+	if len(param.PIds) == 0 || strings.TrimSpace(param.Env) == "" || len(param.PNames) == 0 || strings.TrimSpace(param.CustomerId) == "" {
 		middleware.ReturnError(c, exterror.New().RequestParamValidateError)
 		return
 	}
