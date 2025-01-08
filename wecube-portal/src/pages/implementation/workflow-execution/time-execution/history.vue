@@ -152,8 +152,7 @@ export default {
         params: {
           name: '',
           id: '',
-          time: [dayjs().subtract(3, 'day')
-            .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+          time: [dayjs().subtract(3, 'day').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
           startTime: '',
           endTime: '',
           procDefId: '',
@@ -372,11 +371,12 @@ export default {
     next(vm => {
       if (from.path === '/implementation/workflow-execution/view-execution') {
         // 读取列表搜索参数
-        const storage = window.sessionStorage.getItem('search_timeExecution') || ''
+        const storage = window.sessionStorage.getItem('platform_search_timeExecution') || ''
         if (storage) {
-          const { searchParams, searchOptions } = JSON.parse(storage)
+          const { searchParams, searchOptions, pageable } = JSON.parse(storage)
           vm.searchConfig = searchParams
           vm.searchOptions = searchOptions
+          vm.pageable = pageable
         }
       }
       // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
@@ -387,9 +387,10 @@ export default {
     // 缓存列表搜索条件
     const storage = {
       searchParams: this.searchConfig,
-      searchOptions: this.searchOptions
+      searchOptions: this.searchOptions,
+      pageable: this.pageable
     }
-    window.sessionStorage.setItem('search_timeExecution', JSON.stringify(storage))
+    window.sessionStorage.setItem('platform_search_timeExecution', JSON.stringify(storage))
   },
   methods: {
     initData() {
@@ -414,8 +415,8 @@ export default {
         content:
           localStorage.getItem('username') !== row.operator
             ? `${this.$t('be_workflow_non_owner_list_tip1')}[${row.operator}]${this.$t(
-              'be_workflow_non_owner_list_tip2'
-            )}`
+                'be_workflow_non_owner_list_tip2'
+              )}`
             : '',
         'z-index': 1000000,
         onOk: async () => {
@@ -447,8 +448,8 @@ export default {
         content:
           localStorage.getItem('username') !== row.operator
             ? `${this.$t('be_workflow_non_owner_list_tip1')}[${row.operator}]${this.$t(
-              'be_workflow_non_owner_list_tip2'
-            )}`
+                'be_workflow_non_owner_list_tip2'
+              )}`
             : '',
         'z-index': 1000000,
         onOk: async () => {
@@ -560,8 +561,8 @@ export default {
           // 禁用不能终止的表格复选框
           if (
             !(
-              ['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(i.status)
-              && !(i.parentProcIns && i.parentProcIns.procInsId)
+              ['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(i.status) &&
+              !(i.parentProcIns && i.parentProcIns.procInsId)
             )
           ) {
             i._disabled = true

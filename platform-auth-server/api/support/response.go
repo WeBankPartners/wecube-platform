@@ -6,6 +6,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -44,6 +45,7 @@ func ReturnErrorWithHttpCode(c *gin.Context, err error, httpCode int) {
 	}
 	bodyBytes, _ := json.Marshal(errorResponse)
 	c.Set("responseBody", string(bodyBytes))
+	c.Writer.Header().Add("Error-Code", strconv.Itoa(errorResponse.ErrorCode))
 	c.JSON(httpCode, errorResponse)
 }
 

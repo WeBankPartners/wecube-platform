@@ -246,6 +246,7 @@ export default {
     },
     handleSubmit(data) {
       this.payload.filters = data
+      this.pagination.currentPage = 1
       this.queryData()
     },
     sortHandler(data) {
@@ -264,6 +265,7 @@ export default {
       this.queryData()
     },
     pageSizeChange(size) {
+      this.pagination.currentPage = 1
       this.pagination.pageSize = size
       this.queryData()
     },
@@ -458,8 +460,8 @@ export default {
       }
       this.$refs.table.setAllRowsUneditable()
       this.$refs.table.setCheckoutStatus()
-      this.outerActions
-        && this.outerActions.forEach(_ => {
+      this.outerActions &&
+        this.outerActions.forEach(_ => {
           _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
         })
     },

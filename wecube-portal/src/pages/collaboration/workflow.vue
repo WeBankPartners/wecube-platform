@@ -731,6 +731,7 @@ export default {
       const { data, status } = await flowList(params)
       this.spinShow = false
       if (status === 'OK') {
+        this.selectedParams = []
         this.data = data || []
       }
     },

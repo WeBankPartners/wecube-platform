@@ -32,11 +32,14 @@ export default {
     async queryServers() {
       const { status, data } = await retrieveServers({})
       if (status === 'OK') {
-        this.servers = data.contents.map(_ => ({
-          label: _.name,
-          value: _.id,
-          key: _.id
-        }))
+        this.servers =
+          (data.contents &&
+            data.contents.map(_ => ({
+              label: _.name,
+              value: _.id,
+              key: _.id
+            }))) ||
+          []
       }
     }
   },

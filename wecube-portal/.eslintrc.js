@@ -23,6 +23,7 @@ module.exports = {
     'vue/no-mutating-props': 'off',
     'vue/no-use-v-if-with-v-for': 'off',
     'promise/catch-or-return': 'off',
-    'vue/no-arrow-functions-in-watch': 'off'
+    'vue/no-arrow-functions-in-watch': 'off',
+    'no-useless-escape': 'off'
   }
 }

@@ -12,7 +12,8 @@
                   <Tooltip content="">
                     <span
                       style="display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
-                    >{{ objItem.name }}</span>
+                      >{{ objItem.name }}</span
+                    >
                     <div slot="content" style="white-space: normal">
                       <span>{{ objItem.description }}</span>
                     </div>
@@ -82,11 +83,11 @@
                     @on-open-change="retrieveSystemVariables"
                   >
                     <Option
-                      v-for="(item, index) in allSystemVariables"
-                      v-if="item.status === 'active'"
+                      v-for="(item, index) in allSystemVariables.filter(item => item.status === 'active')"
                       :value="item.name"
                       :key="index"
-                    >{{ item.name }}</Option>
+                      >{{ item.name }}</Option
+                    >
                   </Select>
                   <span v-if="objItem.mappingType === 'context' || objItem.mappingType === 'constant'">N/A</span>
 

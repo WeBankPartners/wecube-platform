@@ -36,7 +36,8 @@
                       font-size: 15px;
                       font-weight: 400;
                     "
-                  >{{ dto.registerName }}</span>
+                    >{{ dto.registerName }}</span
+                  >
                   <div style="vertical-align: top; display: inline-block; float: right">
                     <Tooltip :content="$t('copy')" :delay="500">
                       <Icon
@@ -175,7 +176,7 @@
       @on-ok="confirmParamsHandler"
       @on-cancel="closeParamsModal"
     >
-      <div v-if="paramsModalVisible" class="modal-paramsContainer">
+      <div v-if="paramsModalVisible" class="register-params-container">
         <Row style="border-bottom: 1px solid #e5dfdf; margin-bottom: 5px">
           <Col span="2" offset="0">
             <strong style="font-size: 15px">{{ $t('params_type') }}</strong>
@@ -201,7 +202,7 @@
             <strong style="font-size: 15px">{{ $t('attribute') }}</strong>
           </Col>
         </Row>
-        <div class="modal-interfaceContainers">
+        <div class="interface-containers">
           <Form>
             <Row>
               <Col span="2">
@@ -217,7 +218,8 @@
                       <Tooltip content="">
                         <span
                           style="display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
-                        >{{ param.name }}</span>
+                          >{{ param.name }}</span
+                        >
                         <div slot="content" style="white-space: normal">
                           <span>{{ param.description }}</span>
                         </div>
@@ -299,7 +301,8 @@
                           v-for="(item, index) in allSystemVariables.filter(i => i.status === 'active')"
                           :value="item.name"
                           :key="index"
-                        >{{ item.name }}</Option>
+                          >{{ item.name }}</Option
+                        >
                       </Select>
                       <span v-if="param.mappingType === 'context'">N/A</span>
                       <span v-if="param.mappingType === 'constant'">
@@ -326,7 +329,8 @@
                           type="primary"
                           size="small"
                           @click="showObjectConfig(param)"
-                        >{{ $t('configuration') }}</Button>
+                          >{{ $t('configuration') }}</Button
+                        >
                       </span>
                     </FormItem>
                   </Col>
@@ -354,7 +358,8 @@
                               overflow: hidden;
                               text-overflow: ellipsis;
                             "
-                          >{{ outPut.name }}</span>
+                            >{{ outPut.name }}</span
+                          >
                           <div slot="content" style="white-space: normal">
                             <span>{{ outPut.description }}</span>
                           </div>
@@ -800,9 +805,7 @@ export default {
         this.objectRootEntity = expression.split('>').pop()
       } else {
         // 以 '~' 分割
-        this.objectRootEntity = expression.split('~').pop()
-          .split(')')
-          .pop()
+        this.objectRootEntity = expression.split('~').pop().split(')').pop()
       }
     },
     managementExpression(mappingEntityExpression, rootEntity) {
@@ -1314,7 +1317,8 @@ export default {
                 return 1
               }
             })
-          }))
+          })
+        )
       }
     },
     startRegister() {
@@ -1331,9 +1335,9 @@ export default {
 }
 </script>
 <style lang="scss">
-.modal-paramsContainer {
+.register-params-container {
   height: calc(100vh - 300px);
-  .modal-interfaceContainers {
+  .interface-containers {
     overflow: auto;
     height: calc(100vh - 320px);
   }

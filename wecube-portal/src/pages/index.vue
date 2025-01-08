@@ -5,7 +5,9 @@
     </div>
     <div class="content-container">
       <Breadcrumb :style="setBreadcrumbStyle" v-if="isShowBreadcrum">
-        <BreadcrumbItem><a @click="homePageClickHandler">{{ $t('home') }}</a></BreadcrumbItem>
+        <BreadcrumbItem
+          ><a @click="homePageClickHandler">{{ $t('home') }}</a></BreadcrumbItem
+        >
         <BreadcrumbItem>{{ parentBreadcrumb }}</BreadcrumbItem>
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
       </Breadcrumb>
@@ -41,6 +43,9 @@ export default {
     }
   },
   mounted() {
+    document.querySelectorAll('.maskDiv').forEach(element => {
+      element.remove()
+    })
     watermark({
       watermark_txt: 'WeCube: ' + localStorage.getItem('username') + ' ' + dayjs().format('YYYY-MM-DD HH:mm:ss'),
       watermark_fontsize: '16px',

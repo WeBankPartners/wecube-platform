@@ -1038,5 +1038,10 @@
   "pi_package_type": "Package Type",
   "pi_baseline": "BaseLine",
   "pi_enter_to_filter": "Please enter to filter",
-  "pi_enter_flow_notstarted": "The flow has not yet been executed."
+  "pi_enter_flow_notstarted": "The flow has not yet been executed.",
+  "pi_view_params": "View Parameters",
+  "pi_plugin_params": "Plugin Parameters",
+  "pi_only_showMyself_records": "Show only my execution records",
+  "pi_only_three_month_records": "The current search only supports records within 3 months, please return to the list query for complete records",
+  "pi_only_three_month_records1": "The current search only supports records within 3 months"
 }

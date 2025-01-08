@@ -5,7 +5,7 @@
     </div>
     <Row :gutter="20">
       <Col v-show="!expand" :span="8">
-        <Card :style="{minHeight: maxHeight + 'px', maxHeight: maxHeight + 'px'}">
+        <Card :style="{ minHeight: maxHeight + 'px', maxHeight: maxHeight + 'px' }">
           <!--执行记录列表-->
           <div class="title" slot="title">{{ $t('be_execute_record') }}</div>
           <Table
@@ -113,8 +113,7 @@ export default {
         name: '',
         id: '',
         errorCode: '',
-        createdTimeT: [dayjs().subtract(3, 'day')
-          .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')]
+        createdTimeT: [dayjs().subtract(3, 'day').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')]
       },
       tableData: [],
       tableColumns: [
@@ -195,11 +194,12 @@ export default {
     next(vm => {
       if (from.path === '/implementation/batch-execution/create-execution') {
         // 读取列表搜索参数
-        const storage = window.sessionStorage.getItem('search_batchExecution') || ''
+        const storage = window.sessionStorage.getItem('platform_search_batchExecution') || ''
         if (storage) {
-          const { searchParams, searchOptions } = JSON.parse(storage)
+          const { searchParams, searchOptions, pageable } = JSON.parse(storage)
           vm.form = searchParams
           vm.searchOptions = searchOptions
+          vm.pagination = pageable
         }
       }
       // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
@@ -210,9 +210,10 @@ export default {
     // 缓存列表搜索条件
     const storage = {
       searchParams: this.form,
-      searchOptions: this.searchOptions
+      searchOptions: this.searchOptions,
+      pageable: this.pagination
     }
-    window.sessionStorage.setItem('search_batchExecution', JSON.stringify(storage))
+    window.sessionStorage.setItem('platform_search_batchExecution', JSON.stringify(storage))
   },
   methods: {
     initData() {

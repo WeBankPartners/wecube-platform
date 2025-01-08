@@ -23,7 +23,7 @@
           </div>
         </div>
 
-        <div class="right-content" :style="{width: isJustShowRightContent ? '98vw' : '67vw'}">
+        <div class="right-content" :style="{ width: isJustShowRightContent ? '98vw' : '67vw' }">
           <div class="use-underline-title right-title">
             {{ stepTitleMap[currentStep] }}
             <span class="underline"></span>
@@ -79,69 +79,62 @@
                     <span style="font-size: 14px; font-weight: 600">{{ $t('runtime_container') }}</span>
                     <p slot="content">
                       <Card dis-hover>
-                        <Row>
+                        <div>
                           <Select v-model="selectedIp" multiple style="width: 40%" :max-tag-count="4">
                             <Option v-for="item in availableHostList" :value="item" :key="item">{{ item }}</Option>
                           </Select>
                           <Button size="small" type="success" @click="getPortByHostIp">
                             {{ $t('port_preview') }}
                           </Button>
-                          <div v-if="allowCreationIpPort.length > 0">
-                            <p style="margin-top: 20px">{{ $t('avaliable_port') }}:</p>
-                            <div v-for="item in allowCreationIpPort" :key="item.ip + item.port">
-                              <div class="instance-item-container">
-                                <div class="instance-item">
-                                  <Col span="4">{{ item.ip + ':' + item.port }}</Col>
-                                  <Button
-                                    size="small"
-                                    type="success"
-                                    @click="createInstanceByIpPort(item.ip, item.port)"
-                                  >{{ $t('create') }}</Button>
-                                </div>
-                              </div>
+                        </div>
+                        <div v-if="allowCreationIpPort.length > 0">
+                          <p style="margin-top: 20px">{{ $t('avaliable_port') }}:</p>
+                          <div v-for="item in allowCreationIpPort" :key="item.ip + item.port">
+                            <div class="instance-item">
+                              <span>{{ item.ip + ':' + item.port }}</span>
+                              <Button size="small" type="success" @click="createInstanceByIpPort(item.ip, item.port)">{{
+                                $t('create')
+                              }}</Button>
                             </div>
                           </div>
-                        </Row>
-                        <Row>
+                        </div>
+                        <div>
                           <p style="margin-top: 20px">{{ $t('running_node') }}:</p>
                           <div v-if="allInstances.length === 0">{{ $t('no_avaliable_instances') }}</div>
                           <div v-else style="display: flex; flex-direction: column">
                             <div v-for="item in allInstances" :key="item.id" class="mt-2">
-                              <div>
-                                <Col span="4">
-                                  <div class="instance-item">{{ item.displayLabel }}</div>
-                                </Col>
-                                <Col span="5" offset="0">
-                                  <Poptip
-                                    confirm
-                                    :title="$t('p_destroy_tips')"
-                                    placement="left-end"
-                                    @on-ok="removePlugin(item.id)"
-                                  >
-                                    <Button size="small" type="error" class="destroy-instance-button">{{
-                                      $t('ternmiante')
-                                    }}</Button>
-                                  </Poptip>
-                                </Col>
+                              <div class="instance-item" style="border-bottom: 0px">
+                                <span>{{ item.displayLabel }}</span>
+                                <Poptip
+                                  confirm
+                                  :title="$t('p_destroy_tips')"
+                                  placement="left-end"
+                                  @on-ok="removePlugin(item.id)"
+                                >
+                                  <Button size="small" type="error" class="destroy-instance-button">{{
+                                    $t('ternmiante')
+                                  }}</Button>
+                                </Poptip>
                               </div>
                             </div>
                           </div>
-                        </Row>
+                        </div>
                       </Card>
                     </p>
                   </Panel>
                   <Panel name="2">
                     <span style="font-size: 14px; font-weight: 600">{{ $t('database') }}</span>
-                    <Row slot="content">
-                      <Row>
-                        <Col span="16">
-                          <Input v-model="dbQueryCommandString" type="textarea" :placeholder="$t('only_select')" />
-                        </Col>
-                        <Col span="4" offset="1">
-                          <Button @click="getDBTableData">{{ $t('execute') }}</Button>
-                        </Col>
-                      </Row>
-                      <Row style="margin-top: 20px">
+                    <div slot="content">
+                      <div style="display: flex; align-items: center">
+                        <Input
+                          style="width: 70%; margin-right: 20px"
+                          v-model="dbQueryCommandString"
+                          type="textarea"
+                          :placeholder="$t('only_select')"
+                        />
+                        <Button @click="getDBTableData">{{ $t('execute') }}</Button>
+                      </div>
+                      <div style="margin-top: 20px">
                         {{ $t('search_result') + ':' }}
                         <div style="width: 100%; overflow: auto">
                           <Table :columns="dbQueryColumns" :data="dbQueryData"></Table>
@@ -157,14 +150,14 @@
                           show-total
                           style="float: right; margin: 10px 0"
                         />
-                      </Row>
-                    </Row>
+                      </div>
+                    </div>
                   </Panel>
                   <Panel name="3">
                     <span style="font-size: 14px; font-weight: 600">{{ $t('storage_service') }}</span>
-                    <Row slot="content">
+                    <div slot="content">
                       <Table :columns="storageServiceColumns" :data="storageServiceData"></Table>
-                    </Row>
+                    </div>
                   </Panel>
                 </Collapse>
               </div>
@@ -252,7 +245,7 @@
               :disabled="typeof item.disabled === 'function' ? item.disabled() : item.disabled"
               class="mr-3"
               @click="onFooterButtonClick(item.key)"
-            >{{ item.label }}
+              >{{ item.label }}
             </Button>
           </div>
         </div>
@@ -792,9 +785,13 @@ export default {
           margin: 5px 0px;
           width: 470px;
         }
-        .instance-item-container {
+        .instance-item {
           border-bottom: 1px solid gray;
           padding: 10px 0;
+        }
+        .instance-item > span {
+          display: inline-block;
+          min-width: 220px;
         }
       }
     }

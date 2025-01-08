@@ -154,9 +154,9 @@ export default {
       this.data.forEach(_ => {
         for (const i in _['weTableForm']) {
           if (
-            typeof _['weTableForm'][i] === 'object'
-            && _['weTableForm'][i] !== null
-            && !Array.isArray(_['weTableForm'][i])
+            typeof _['weTableForm'][i] === 'object' &&
+            _['weTableForm'][i] !== null &&
+            !Array.isArray(_['weTableForm'][i])
           ) {
             _[i] = _['weTableForm'][i].codeId || _['weTableForm'][i].guid
             _['weTableForm'][i] = _['weTableForm'][i].value || _['weTableForm'][i].key_name || _['weTableForm'][i].name
@@ -367,7 +367,7 @@ export default {
             index < DEFAULT_FILTER_NUMBER ? '' : this.isShowHiddenFilters ? 'hidden-filters-show' : 'hidden-filters'
           }
         >
-          <FormItem label={item.title} prop={item.inputKey} key={item.inputKey}>
+          <FormItem prop={item.inputKey} key={item.inputKey}>
             {renders(item)}
           </FormItem>
         </Col>
@@ -384,7 +384,7 @@ export default {
         return 0
       }
       return (
-        <Form ref="form" label-position="top" inline>
+        <Form ref="form" inline>
           <Row>
             {this.tableColumns
               .filter(_ => !!_.children || !!_.searchSeqNo)
@@ -409,12 +409,12 @@ export default {
               })}
             <Col span={6}>
               <div style="display: flex;">
-                {this.tableColumns.filter(_ => !!_.searchSeqNo).sort(compare).length > DEFAULT_FILTER_NUMBER
-                  && (!this.isShowHiddenFilters ? (
+                {this.tableColumns.filter(_ => !!_.searchSeqNo).sort(compare).length > DEFAULT_FILTER_NUMBER &&
+                  (!this.isShowHiddenFilters ? (
                     <FormItem>
-                      <div slot="label" style="visibility: hidden;">
+                      {/* <div slot="label" style="visibility: hidden;">
                         <span>Placeholder</span>
-                      </div>
+                      </div> */}
                       <Button
                         type="info"
                         ghost
@@ -429,9 +429,9 @@ export default {
                     </FormItem>
                   ) : (
                     <FormItem>
-                      <div slot="label" style="visibility: hidden;">
+                      {/* <div slot="label" style="visibility: hidden;">
                         <span>Placeholder</span>
-                      </div>
+                      </div> */}
                       <Button
                         type="info"
                         ghost
@@ -447,17 +447,17 @@ export default {
                   ))}
 
                 <FormItem>
-                  <div slot="label" style="visibility: hidden;">
+                  {/* <div slot="label" style="visibility: hidden;">
                     <span>Placeholder</span>
-                  </div>
+                  </div> */}
                   <Button type="primary" icon="ios-search" onClick={() => this.handleSubmit('form')}>
                     {this.$t('search')}
                   </Button>
                 </FormItem>
                 <FormItem>
-                  <div slot="label" style="visibility: hidden;">
+                  {/* <div slot="label" style="visibility: hidden;">
                     <span>Placeholder</span>
-                  </div>
+                  </div> */}
                   <Button icon="md-refresh" onClick={() => this.reset('form')}>
                     {this.$t('reset')}
                   </Button>
@@ -532,8 +532,8 @@ export default {
           fixed: 'left'
         })
       }
-      this.tableInnerActions
-        && this.columns.push({
+      this.tableInnerActions &&
+        this.columns.push({
           title: this.$t('actions'),
           fixed: 'right',
           key: 'actions',
@@ -545,8 +545,8 @@ export default {
                 if (
                   _.visible
                     ? _.visible.key === 'nextOperations'
-                      ? !!params.row[_.visible.key].find(op => op === _.actionType)
-                        && _.visible.value === !params.row['isRowEditable']
+                      ? !!params.row[_.visible.key].find(op => op === _.actionType) &&
+                        _.visible.value === !params.row['isRowEditable']
                       : _.visible.value === !!params.row[_.visible.key]
                     : true
                 ) {
@@ -570,9 +570,9 @@ export default {
       if (this.isColumnsFilterOn) {
         this.columns = this.columns.filter(
           column =>
-            column.type === 'selection'
-            || column.key === 'actions'
-            || !!this.showedColumns.find(_ => _ === column.title)
+            column.type === 'selection' ||
+            column.key === 'actions' ||
+            !!this.showedColumns.find(_ => _ === column.title)
         )
       }
     },
@@ -595,64 +595,66 @@ export default {
         sortable: this.isSortable ? 'custom' : false,
         render: (h, params) => {
           if (
-            params.row.isRowEditable
-            && (!params.column.disEditor || params.row.isNewAddedRow)
-            && !params.column.disAdded
+            params.row.isRowEditable &&
+            (!params.column.disEditor || params.row.isNewAddedRow) &&
+            !params.column.disAdded
           ) {
             const _this = this
 
-            const props = params.column.component === 'WeSelect'
-              ? {
-                value: params.column.isRefreshable
-                  ? params.column.inputType === 'multiSelect'
-                    ? []
-                    : ''
-                  : params.column.inputType === 'multiSelect'
-                    ? Array.isArray(params.row[col.inputKey])
-                      ? params.row[col.inputKey]
-                      : ''
-                    : params.row[col.inputKey],
-                filterParams: params.column.filterRule
-                  ? {
-                    attrId: params.column.ciTypeAttrId,
-                    params: params.row
+            const props =
+              params.column.component === 'WeSelect'
+                ? {
+                    value: params.column.isRefreshable
+                      ? params.column.inputType === 'multiSelect'
+                        ? []
+                        : ''
+                      : params.column.inputType === 'multiSelect'
+                      ? Array.isArray(params.row[col.inputKey])
+                        ? params.row[col.inputKey]
+                        : ''
+                      : params.row[col.inputKey],
+                    filterParams: params.column.filterRule
+                      ? {
+                          attrId: params.column.ciTypeAttrId,
+                          params: params.row
+                        }
+                      : null,
+                    isMultiple: params.column.isMultiple,
+                    options: params.column.optionKey
+                      ? _this.ascOptions[params.row[col.optionKey]]
+                      : params.column.options
                   }
-                  : null,
-                isMultiple: params.column.isMultiple,
-                options: params.column.optionKey
-                  ? _this.ascOptions[params.row[col.optionKey]]
-                  : params.column.options
-              }
-              : {
-                value: params.column.isRefreshable
-                  ? ''
-                  : params.column.inputType === 'multiRef'
-                    ? Array.isArray(params.row[col.inputKey])
-                      ? params.row[col.inputKey]
-                      : ''
-                    : params.row[col.inputKey] || '',
-                filterParams: params.column.filterRule
-                  ? {
-                    attrId: params.column.ciTypeAttrId,
-                    params: params.row
+                : {
+                    value: params.column.isRefreshable
+                      ? ''
+                      : params.column.inputType === 'multiRef'
+                      ? Array.isArray(params.row[col.inputKey])
+                        ? params.row[col.inputKey]
+                        : ''
+                      : params.row[col.inputKey] || '',
+                    filterParams: params.column.filterRule
+                      ? {
+                          attrId: params.column.ciTypeAttrId,
+                          params: params.row
+                        }
+                      : null,
+                    ciType: params.column.component === 'refSelect' ? params.column.ciType : null,
+                    ...params.column,
+                    type: params.column.component === 'DatePicker' ? 'date' : params.column.type,
+                    guid: params.row.guid ? params.row.guid : '123'
                   }
-                  : null,
-                ciType: params.column.component === 'refSelect' ? params.column.ciType : null,
-                ...params.column,
-                type: params.column.component === 'DatePicker' ? 'date' : params.column.type,
-                guid: params.row.guid ? params.row.guid : '123'
-              }
-            const fun = params.column.component === 'DatePicker'
-              ? {
-                'on-change': v => {
-                  setValueHandler(_this, v, col, params)
-                }
-              }
-              : {
-                input: v => {
-                  setValueHandler(_this, v, col, params)
-                }
-              }
+            const fun =
+              params.column.component === 'DatePicker'
+                ? {
+                    'on-change': v => {
+                      setValueHandler(_this, v, col, params)
+                    }
+                  }
+                : {
+                    input: v => {
+                      setValueHandler(_this, v, col, params)
+                    }
+                  }
             const data = {
               props,
               on: fun
@@ -715,9 +717,7 @@ export default {
     }
   },
   render() {
-    const {
-      data, columns, pagination, highlightRow, filtersHidden
-    } = this
+    const { data, columns, pagination, highlightRow, filtersHidden } = this
     return (
       <div>
         {!filtersHidden && <div>{this.getFormFilters()}</div>}

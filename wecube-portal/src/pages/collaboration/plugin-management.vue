@@ -199,7 +199,8 @@
                                 size="small"
                                 type="success"
                                 @click="createPluginInstanceByPackageIdAndHostIp(item.ip, item.port)"
-                              >{{ $t('create') }}</Button>
+                                >{{ $t('create') }}</Button
+                              >
                             </div>
                           </div>
                         </div>
@@ -310,6 +311,7 @@
   </Row>
 </template>
 <script>
+// 该文件在并未使用，是之前的老文件
 import {
   getAllPluginPkgs,
   createPluginInstanceByPackageIdAndHostIp,

@@ -46,16 +46,16 @@
               <span>{{ $t('mgmt_role') }}：</span>
               <span>{{
                 data.templateData.permissionToRole &&
-                  data.templateData.permissionToRole.MGMTDisplayName &&
-                  data.templateData.permissionToRole.MGMTDisplayName.join('，')
+                data.templateData.permissionToRole.MGMTDisplayName &&
+                data.templateData.permissionToRole.MGMTDisplayName.join('，')
               }}</span>
             </div>
             <div class="item">
               <span>{{ $t('use_role') }}：</span>
               <span>{{
                 data.templateData.permissionToRole &&
-                  data.templateData.permissionToRole.USEDisplayName &&
-                  data.templateData.permissionToRole.USEDisplayName.join('，')
+                data.templateData.permissionToRole.USEDisplayName &&
+                data.templateData.permissionToRole.USEDisplayName.join('，')
               }}</span>
             </div>
           </div>
@@ -99,7 +99,7 @@
             v-model="primatKeyAttr"
             class="form-item"
             :disabled="from === 'execute'"
-            @on-change="handleRefreshSearch"
+            @on-change="fetchTableColumns"
           >
             <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
               entityAttr.name
@@ -120,7 +120,7 @@
             v-model="userTableColumns"
             class="form-item"
             :disabled="from === 'execute'"
-            @on-change="handleRefreshSearch"
+            @on-change="fetchTableColumns"
           >
             <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
               entityAttr.name
@@ -178,6 +178,10 @@
                 seletedRows = val
               }
             "
+            @changePage="handlePageChange"
+            @changePageSize="handlePageSizeChange"
+            @search="handleSearch"
+            :pagination="pagination"
           ></EntityTable>
         </FormItem>
       </BaseHeaderTitle>
@@ -204,9 +208,10 @@
           <Row v-if="pluginInputParams && pluginInputParams.length > 0" class="border-box form-item">
             <Col v-for="(item, index) in pluginInputParams" :key="index" :span="24" style="margin-bottom: 12px">
               <span
-                :class="{required: item.required === 'Y' && item.mappingType === 'constant'}"
+                :class="{ required: item.required === 'Y' && item.mappingType === 'constant' }"
                 style="display: inline-block; width: 100px"
-              >{{ item.name }}</span>
+                >{{ item.name }}</span
+              >
               <Input v-if="item.mappingType === 'constant'" style="width: 600px" v-model="item.bindValue" />
               <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
             </Col>
@@ -298,7 +303,12 @@ export default {
       pluginInputParams: [], // 插件入参
       pluginOutputParams: [], // 插件出参
       resultTableParams: [], // 选择结果表出参
-      isDangerousBlock: true // 是否开启高危检测
+      isDangerousBlock: true, // 是否开启高危检测
+      pagination: {
+        total: 0,
+        currentPage: 1,
+        pageSize: 50
+      }
     }
   },
   watch: {
@@ -333,19 +343,20 @@ export default {
         this.currentEntityName = data.slice(-1)[0].entityName
         this.currentPackageName = data.slice(-1)[0].packageName
         this.primatKeyAttrList = data.slice(-1)[0].attributes
-
+        this.fetchTableData()
         this.searchParamsTree = []
         data.forEach((single, index) => {
-          const childNode = (single.attributes
-              && single.attributes.map(attr => {
+          const childNode =
+            (single.attributes &&
+              single.attributes.map(attr => {
                 attr.key = single.packageName + single.entityName + index
                 attr.index = index
                 attr.title = attr.name
                 attr.entityName = single.entityName
                 attr.packageName = single.packageName
                 return attr
-              }))
-            || []
+              })) ||
+            []
           this.searchParamsTree.push({
             title: `${single.packageName}-${single.entityName}`,
             children: childNode
@@ -356,9 +367,7 @@ export default {
     data: {
       handler(val) {
         if (val && val.id) {
-          const {
-            name, isDangerousBlock, configData, sourceData
-          } = val
+          const { name, isDangerousBlock, configData, sourceData } = val
           this.name = name
           this.dataModelExpression = configData.dataModelExpression
           this.currentPackageName = configData.packageName
@@ -375,7 +384,8 @@ export default {
             this.resultTableParams = frontData.resultTableParams
             this.userTableColumns = frontData.userTableColumns
           }
-          this.excuteSearch()
+          this.fetchTableColumns()
+          this.fetchTableData()
         }
       },
       deep: true
@@ -429,7 +439,7 @@ export default {
     },
     clearSearchParameters() {
       this.searchParameters = []
-      this.excuteSearch()
+      this.fetchTableData()
     },
     // 设置过滤条件
     handleSearchParamsChange(val) {
@@ -437,14 +447,7 @@ export default {
         return
       }
       this.searchParameters = val
-      this.excuteSearch()
-    },
-    // 更新执行实例表格
-    handleRefreshSearch(val) {
-      if (!val || (val && val.length === 0)) {
-        return
-      }
-      this.excuteSearch()
+      this.fetchTableData()
     },
     clearPlugin() {
       this.showResult = false
@@ -496,7 +499,10 @@ export default {
       }
     },
     // 根据过滤条件获取执行实例表格列
-    async excuteSearch() {
+    async fetchTableColumns() {
+      if (!this.currentPackageName || !this.currentEntityName) {
+        return
+      }
       const { status, data } = await entityView(this.currentPackageName, this.currentEntityName)
       if (status === 'OK') {
         if (this.userTableColumns.length || this.primatKeyAttr) {
@@ -539,13 +545,15 @@ export default {
           fixed: 'left',
           align: 'center'
         })
-        this.entityData()
       }
     },
-    async entityData() {
+    async fetchTableData(query = '') {
       const requestParameter = {
         dataModelExpression: this.dataModelExpression,
-        filters: []
+        filters: [],
+        query,
+        startIndex: (this.pagination.currentPage - 1) * this.pagination.pageSize,
+        pageSize: 50
       }
       const keySet = []
       this.searchParameters.forEach(sParameter => {
@@ -561,9 +569,7 @@ export default {
           }
         } else {
           keySet.push(sParameter.key)
-          const {
-            index, packageName, entityName, name, value, operator
-          } = sParameter
+          const { index, packageName, entityName, name, value, operator } = sParameter
           if (value) {
             requestParameter.filters.push({
               index,
@@ -584,14 +590,28 @@ export default {
       const { status, data } = await dmeIntegratedQuery(requestParameter)
       this.loading = false
       if (status === 'OK') {
-        this.tableData = data
+        this.tableData = data.contents || []
         const selectTag = this.seletedRows.map(item => item.id)
+        this.pagination.total = data.pageInfo.totalRows
         this.tableData.forEach(item => {
           if (selectTag.includes(item.id)) {
             item._checked = true
           }
         })
       }
+    },
+    handleSearch(val) {
+      this.pagination.currentPage = 1
+      this.fetchTableData(val)
+    },
+    handlePageChange(val) {
+      this.pagination.currentPage = val
+      this.fetchTableData()
+    },
+    handlePageSizeChange(val) {
+      this.pagination.pageSize = val
+      this.pagination.currentPage = 1
+      this.fetchTableData()
     }
   }
 }

@@ -8,7 +8,8 @@
           v-for="(path, index) in pathList"
           :key="path.pathExp"
           @click="showPoptip(path, index)"
-        >{{ path.pathExp.replace(/@@[0-9A-Za-z_]*@@/g, '') }}</span>
+          >{{ path.pathExp.replace(/@@[0-9A-Za-z_]*@@/g, '') }}</span
+        >
         <Button
           :class="disabled ? 'disabled-filter' : ''"
           v-if="pathList.length > 0"
@@ -16,7 +17,8 @@
           icon="md-copy"
           @click.stop.prevent="copyPathExp"
           size="small"
-        >{{ $t('copy') }}</Button>
+          >{{ $t('copy') }}</Button
+        >
         <Button v-if="pathList.length === 0" class="arrow-icon" icon="ios-arrow-down" long size="small"></Button>
       </div>
       <div slot="content">
@@ -48,13 +50,11 @@
           </ul>
           <hr style="margin-top: 5px" />
           <div style="max-height: 145px; overflow: auto; margin-top: 5px">
-            <ul
-              v-if="!needNativeAttr"
-              v-for="opt in filterCurrentLeafOptiongs"
-              :key="opt.pathExp + Math.random() * 1000"
-            >
-              <li style="color: rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
-            </ul>
+            <template v-if="!needNativeAttr">
+              <ul v-for="opt in filterCurrentLeafOptiongs" :key="opt.pathExp + Math.random() * 1000">
+                <li style="color: rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
+              </ul>
+            </template>
             <ul v-for="opt in filterCurrentRefOptiongs" :key="opt.pathExp + Math.random() * 1000">
               <li style="color: rgb(64, 141, 218)" @click="optClickHandler(opt, 'up')">{{ opt.pathExp }}</li>
             </ul>
@@ -67,7 +67,9 @@
     </Poptip>
     <Modal v-model="modelVisable" :title="$t('filter_rule')" @on-ok="okHandler" @on-cancel="cancelHandler">
       <Row style="margin-bottom: 10px" v-for="(rule, index) in currentPathFilterRules" :key="index">
-        <Col span="1" style="margin-top: 4px"><Button type="error" icon="ios-trash-outline" @click="deleteFilterRule(index)" size="small"></Button></Col>
+        <Col span="1" style="margin-top: 4px"
+          ><Button type="error" icon="ios-trash-outline" @click="deleteFilterRule(index)" size="small"></Button
+        ></Col>
         <Col span="8" offset="1">
           <Select filterable v-model="rule.attr" @on-change="attrChangeHandler($event, rule)">
             <Option v-for="(attr, index) in currentNodeEntityAttrs" :key="index" :value="attr.name">{{
@@ -188,16 +190,16 @@ export default {
               attributes: noneFound
                 ? i.attributes
                 : i.attributes.concat({
-                  dataType: 'str',
-                  description: 'NONE',
-                  entityName: i.name,
-                  id: i.id + '__NONE',
-                  name: 'NONE',
-                  packageName: _.packageName,
-                  refAttributeName: null,
-                  refEntityName: null,
-                  refPackageName: null
-                })
+                    dataType: 'str',
+                    description: 'NONE',
+                    entityName: i.name,
+                    id: i.id + '__NONE',
+                    name: 'NONE',
+                    packageName: _.packageName,
+                    refAttributeName: null,
+                    refEntityName: null,
+                    refPackageName: null
+                  })
             }
           })
         }
@@ -376,12 +378,13 @@ export default {
               isRef = true
             }
           }
-          value = value.indexOf('[') > -1 && found.dataType === 'ref'
-            ? value
-              .slice(1, -1)
-              .split(',')
-              .map(v => v.slice(1, -1))
-            : value.indexOf('\'') > -1
+          value =
+            value.indexOf('[') > -1 && found.dataType === 'ref'
+              ? value
+                  .slice(1, -1)
+                  .split(',')
+                  .map(v => v.slice(1, -1))
+              : value.indexOf("'") > -1
               ? value.slice(1, -1)
               : value
           this.currentPathFilterRules.push({
