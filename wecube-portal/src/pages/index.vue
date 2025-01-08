@@ -5,7 +5,9 @@
     </div>
     <div class="content-container">
       <Breadcrumb :style="setBreadcrumbStyle" v-if="isShowBreadcrum">
-        <BreadcrumbItem><a @click="homePageClickHandler">{{ $t('home') }}</a></BreadcrumbItem>
+        <BreadcrumbItem
+          ><a @click="homePageClickHandler">{{ $t('home') }}</a></BreadcrumbItem
+        >
         <BreadcrumbItem>{{ parentBreadcrumb }}</BreadcrumbItem>
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
       </Breadcrumb>

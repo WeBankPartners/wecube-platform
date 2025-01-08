@@ -13,7 +13,7 @@
         <!--我的草稿-->
         <TabPane :label="$t('draft')" name="draft"></TabPane>
       </Tabs>
-      <div ref="maxHeight" :style="{maxHeight: maxHeight + 'px', overflowY: 'auto'}">
+      <div ref="maxHeight" :style="{ maxHeight: maxHeight + 'px', overflowY: 'auto' }">
         <Card :bordered="false" dis-hover :padding="0">
           <template v-if="cardList.length">
             <Card v-for="(i, index) in cardList" :key="index" style="width: 100%; margin-bottom: 20px">
@@ -337,8 +337,8 @@ export default {
           minWidth: 120,
           render: (h, params) => (
             <div>
-              {params.row.permissionToRole.USEDisplayName
-                && params.row.permissionToRole.USEDisplayName.map(item => <Tag color="default">{item}</Tag>)}
+              {params.row.permissionToRole.USEDisplayName &&
+                params.row.permissionToRole.USEDisplayName.map(item => <Tag color="default">{item}</Tag>)}
             </div>
           )
         },

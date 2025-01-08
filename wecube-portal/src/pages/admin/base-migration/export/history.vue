@@ -116,8 +116,7 @@ export default {
       ],
       searchParams: {
         id: '',
-        time: [dayjs(new Date()).subtract(3, 'month')
-          .format('YYYY-MM-DD'), dayjs(new Date()).format('YYYY-MM-DD')],
+        time: [dayjs(new Date()).subtract(3, 'month').format('YYYY-MM-DD'), dayjs(new Date()).format('YYYY-MM-DD')],
         execTimeStart: '',
         execTimeEnd: '',
         status: [],
@@ -303,20 +302,22 @@ export default {
       if (status === 'OK') {
         this.searchOptions.forEach(item => {
           if (item.key === 'business') {
-            item.list = (data.businessList
-                && data.businessList.map(item => ({
+            item.list =
+              (data.businessList &&
+                data.businessList.map(item => ({
                   label: item.businessName,
                   value: item.businessId
-                })))
-              || []
+                }))) ||
+              []
           }
           if (item.key === 'operators') {
-            item.list = (data.operators
-                && data.operators.map(item => ({
+            item.list =
+              (data.operators &&
+                data.operators.map(item => ({
                   label: item,
                   value: item
-                })))
-              || []
+                }))) ||
+              []
           }
         })
       }

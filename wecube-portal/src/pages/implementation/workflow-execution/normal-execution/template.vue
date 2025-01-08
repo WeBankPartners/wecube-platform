@@ -4,7 +4,7 @@
     <div class="search">
       <BaseSearch :options="searchOptions" v-model="searchParams" @search="handleSearch"></BaseSearch>
     </div>
-    <div ref="maxHeight" :style="{maxHeight: maxHeight + 'px', overflowY: 'auto'}" class="template-card">
+    <div ref="maxHeight" :style="{ maxHeight: maxHeight + 'px', overflowY: 'auto' }" class="template-card">
       <Card :bordered="false" dis-hover :padding="0">
         <template v-if="cardList.length">
           <Card v-for="(i, index) in cardList" :key="index" style="width: 100%; margin-bottom: 20px">
@@ -326,12 +326,13 @@ export default {
       const { data, status } = await flowList(params)
       this.spinShow = false
       if (status === 'OK') {
-        this.cardList = (data
-            && data.map(item => ({
+        this.cardList =
+          (data &&
+            data.map(item => ({
               ...item,
               expand: true
-            })))
-          || []
+            }))) ||
+          []
       }
     },
     // 展开收缩卡片

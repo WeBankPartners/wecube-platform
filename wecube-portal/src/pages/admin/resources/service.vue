@@ -440,9 +440,7 @@ export default {
     editHandler(row) {
       this.visible = true
       this.operator = 'edit'
-      let {
-        id, resourceServerId, type, name, purpose, isAllocated, username, password
-      } = row[0]
+      let { id, resourceServerId, type, name, purpose, isAllocated, username, password } = row[0]
       isAllocated = isAllocated === 'true' ? true : false
       this.form = Object.assign({}, this.form, {
         id,
@@ -481,8 +479,8 @@ export default {
     cancelHandler() {
       this.$refs.serviceTable.setAllRowsUneditable()
       this.$refs.serviceTable.setCheckoutStatus()
-      this.outerActions
-        && this.outerActions.forEach(_ => {
+      this.outerActions &&
+        this.outerActions.forEach(_ => {
           _.props.disabled = !(_.actionType === 'add' || _.actionType === 'cancel')
         })
     },

@@ -36,7 +36,8 @@
                       font-size: 15px;
                       font-weight: 400;
                     "
-                  >{{ dto.registerName }}</span>
+                    >{{ dto.registerName }}</span
+                  >
                   <div style="vertical-align: top; display: inline-block; float: right">
                     <Tooltip :content="$t('copy')" :delay="500">
                       <Icon
@@ -217,7 +218,8 @@
                       <Tooltip content="">
                         <span
                           style="display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
-                        >{{ param.name }}</span>
+                          >{{ param.name }}</span
+                        >
                         <div slot="content" style="white-space: normal">
                           <span>{{ param.description }}</span>
                         </div>
@@ -299,7 +301,8 @@
                           v-for="(item, index) in allSystemVariables.filter(i => i.status === 'active')"
                           :value="item.name"
                           :key="index"
-                        >{{ item.name }}</Option>
+                          >{{ item.name }}</Option
+                        >
                       </Select>
                       <span v-if="param.mappingType === 'context'">N/A</span>
                       <span v-if="param.mappingType === 'constant'">
@@ -326,7 +329,8 @@
                           type="primary"
                           size="small"
                           @click="showObjectConfig(param)"
-                        >{{ $t('configuration') }}</Button>
+                          >{{ $t('configuration') }}</Button
+                        >
                       </span>
                     </FormItem>
                   </Col>
@@ -354,7 +358,8 @@
                               overflow: hidden;
                               text-overflow: ellipsis;
                             "
-                          >{{ outPut.name }}</span>
+                            >{{ outPut.name }}</span
+                          >
                           <div slot="content" style="white-space: normal">
                             <span>{{ outPut.description }}</span>
                           </div>
@@ -800,9 +805,7 @@ export default {
         this.objectRootEntity = expression.split('>').pop()
       } else {
         // 以 '~' 分割
-        this.objectRootEntity = expression.split('~').pop()
-          .split(')')
-          .pop()
+        this.objectRootEntity = expression.split('~').pop().split(')').pop()
       }
     },
     managementExpression(mappingEntityExpression, rootEntity) {
@@ -1314,7 +1317,8 @@ export default {
                 return 1
               }
             })
-          }))
+          })
+        )
       }
     },
     startRegister() {

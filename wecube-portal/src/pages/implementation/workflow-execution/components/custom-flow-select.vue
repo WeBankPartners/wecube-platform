@@ -32,7 +32,7 @@
       <div
         slot="content"
         class="flow-custom-select-content"
-        :style="{minWidth: width + 'px', width: 'fit-content', maxWidth: '1500px'}"
+        :style="{ minWidth: width + 'px', width: 'fit-content', maxWidth: '1500px' }"
       >
         <div class="flow-custom-select-content-wrap">
           <div v-if="!selected" class="switch-group">
@@ -45,7 +45,7 @@
             <div
               v-for="item in filterOptions"
               :key="item.id"
-              :class="{'dropdown-wrap-item': true, 'dropdown-wrap-item-active': item.checked}"
+              :class="{ 'dropdown-wrap-item': true, 'dropdown-wrap-item-active': item.checked }"
               @click="handleSelectItem(item)"
             >
               <div style="display: flex; justify-content: space-between; width: 100%">
@@ -234,18 +234,18 @@ export default {
     getDisplayName() {
       const obj = this.optionsData.find(i => i.id === this.selected)
       return (
-        obj.procInstName
-        + '  '
-        + '['
-        + obj.version
-        + ']  '
-        + obj.entityDisplayName
-        + '  '
-        + (obj.operator || 'operator')
-        + '  '
-        + (obj.createdTime || '0000-00-00 00:00:00')
-        + '  '
-        + this.getStatusStyleAndName(obj.displayStatus, 'label')
+        obj.procInstName +
+        '  ' +
+        '[' +
+        obj.version +
+        ']  ' +
+        obj.entityDisplayName +
+        '  ' +
+        (obj.operator || 'operator') +
+        '  ' +
+        (obj.createdTime || '0000-00-00 00:00:00') +
+        '  ' +
+        this.getStatusStyleAndName(obj.displayStatus, 'label')
       )
     },
     initData() {

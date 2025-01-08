@@ -23,7 +23,7 @@
           </div>
         </div>
 
-        <div class="right-content" :style="{width: isJustShowRightContent ? '98vw' : '67vw'}">
+        <div class="right-content" :style="{ width: isJustShowRightContent ? '98vw' : '67vw' }">
           <div class="use-underline-title right-title">
             {{ stepTitleMap[currentStep] }}
             <span class="underline"></span>
@@ -245,7 +245,7 @@
               :disabled="typeof item.disabled === 'function' ? item.disabled() : item.disabled"
               class="mr-3"
               @click="onFooterButtonClick(item.key)"
-            >{{ item.label }}
+              >{{ item.label }}
             </Button>
           </div>
         </div>

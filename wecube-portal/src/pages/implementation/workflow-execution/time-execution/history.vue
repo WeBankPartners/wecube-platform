@@ -152,8 +152,7 @@ export default {
         params: {
           name: '',
           id: '',
-          time: [dayjs().subtract(3, 'day')
-            .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+          time: [dayjs().subtract(3, 'day').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
           startTime: '',
           endTime: '',
           procDefId: '',
@@ -416,8 +415,8 @@ export default {
         content:
           localStorage.getItem('username') !== row.operator
             ? `${this.$t('be_workflow_non_owner_list_tip1')}[${row.operator}]${this.$t(
-              'be_workflow_non_owner_list_tip2'
-            )}`
+                'be_workflow_non_owner_list_tip2'
+              )}`
             : '',
         'z-index': 1000000,
         onOk: async () => {
@@ -449,8 +448,8 @@ export default {
         content:
           localStorage.getItem('username') !== row.operator
             ? `${this.$t('be_workflow_non_owner_list_tip1')}[${row.operator}]${this.$t(
-              'be_workflow_non_owner_list_tip2'
-            )}`
+                'be_workflow_non_owner_list_tip2'
+              )}`
             : '',
         'z-index': 1000000,
         onOk: async () => {
@@ -562,8 +561,8 @@ export default {
           // 禁用不能终止的表格复选框
           if (
             !(
-              ['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(i.status)
-              && !(i.parentProcIns && i.parentProcIns.procInsId)
+              ['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(i.status) &&
+              !(i.parentProcIns && i.parentProcIns.procInsId)
             )
           ) {
             i._disabled = true

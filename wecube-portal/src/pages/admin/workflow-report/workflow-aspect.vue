@@ -56,8 +56,7 @@ export default {
       loading: false,
       searchConfig: {
         params: {
-          time: [dayjs().subtract(3, 'day')
-            .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+          time: [dayjs().subtract(3, 'day').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
           startDate: '',
           endDate: '',
           procDefIds: [],

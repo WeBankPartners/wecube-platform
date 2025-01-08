@@ -23,7 +23,7 @@
     ></Table>
     <!--查看详情-->
     <BaseDrawer :title="$t('be_details')" :visible.sync="showModal" realWidth="70%" :maskClosable="false">
-      <template slot-scope="{maxHeight}" slot="content">
+      <template slot-scope="{ maxHeight }" slot="content">
         <Table :columns="detailTableColums" size="small" :max-height="maxHeight" :data="detailTableData"></Table>
       </template>
     </BaseDrawer>
@@ -127,7 +127,8 @@
                 v-for="item in timeConfig.modeToValue[timeConfig.params.scheduleMode]"
                 :key="item.value"
                 :value="item.value"
-              >{{ item.label }}</Option>
+                >{{ item.label }}</Option
+              >
             </Select>
           </FormItem>
           <FormItem :label="$t('execute_date')" required>
@@ -1006,8 +1007,8 @@ export default {
       }
       if (!this.timeConfig.params.cycle && ['Monthly', 'Weekly'].includes(this.timeConfig.params.scheduleMode)) {
         this.$Message.warning(
-          (this.timeConfig.params.scheduleMode === 'Monthly' ? this.$t('day') : this.$t('week'))
-            + this.$t('fe_can_not_be_empty')
+          (this.timeConfig.params.scheduleMode === 'Monthly' ? this.$t('day') : this.$t('week')) +
+            this.$t('fe_can_not_be_empty')
         )
         return
       }
@@ -1140,9 +1141,7 @@ export default {
     },
     async getUserScheduledTasks() {
       await this.getCurrentUserRoles()
-      const {
-        name, procDefId, jobCreatedTime, time, owner, scheduleMode
-      } = this.searchConfig.params
+      const { name, procDefId, jobCreatedTime, time, owner, scheduleMode } = this.searchConfig.params
       const params = {
         name,
         procDefId,

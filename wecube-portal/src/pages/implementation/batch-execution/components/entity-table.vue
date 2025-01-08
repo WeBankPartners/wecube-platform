@@ -3,7 +3,9 @@
     <div class="search">
       <RadioGroup v-model="activeTab">
         <Radio label="entity" border>
-          <span>{{ $t('be_choose_pre') }}<span class="count">{{ selectData.length }}</span></span>
+          <span
+            >{{ $t('be_choose_pre') }}<span class="count">{{ selectData.length }}</span></span
+          >
         </Radio>
       </RadioGroup>
       <Input

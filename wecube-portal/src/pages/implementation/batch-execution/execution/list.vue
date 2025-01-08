@@ -5,7 +5,7 @@
     </div>
     <Row :gutter="20">
       <Col v-show="!expand" :span="8">
-        <Card :style="{minHeight: maxHeight + 'px', maxHeight: maxHeight + 'px'}">
+        <Card :style="{ minHeight: maxHeight + 'px', maxHeight: maxHeight + 'px' }">
           <!--执行记录列表-->
           <div class="title" slot="title">{{ $t('be_execute_record') }}</div>
           <Table
@@ -113,8 +113,7 @@ export default {
         name: '',
         id: '',
         errorCode: '',
-        createdTimeT: [dayjs().subtract(3, 'day')
-          .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')]
+        createdTimeT: [dayjs().subtract(3, 'day').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')]
       },
       tableData: [],
       tableColumns: [

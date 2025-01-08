@@ -1,5 +1,7 @@
 /* eslint-disable */
 const CompressionPlugin = require('compression-webpack-plugin')
+const dotenv = require('dotenv')
+dotenv.config()
 
 /* eslint-disable */
 module.exports = {
@@ -20,9 +22,9 @@ module.exports = {
     const img = config.module.rule('images')
     img.uses.clear()
     // add the new one
-    img.use('file-loader').loader('file-loader').options({
-      outputPath: 'img'
-    })
+    // img.use('file-loader').loader('file-loader').options({
+    //   outputPath: 'img'
+    // })
   },
   configureWebpack: config => {
     // config.optimization = {

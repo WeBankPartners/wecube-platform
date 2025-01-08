@@ -199,7 +199,8 @@
                                 size="small"
                                 type="success"
                                 @click="createPluginInstanceByPackageIdAndHostIp(item.ip, item.port)"
-                              >{{ $t('create') }}</Button>
+                                >{{ $t('create') }}</Button
+                              >
                             </div>
                           </div>
                         </div>

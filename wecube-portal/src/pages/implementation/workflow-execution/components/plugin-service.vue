@@ -63,7 +63,9 @@
                     </template>
                   </div>
                 </template>
-                <template v-else><div style="padding: 0px 10px">{{ $t('noData') }}</div></template>
+                <template v-else
+                  ><div style="padding: 0px 10px">{{ $t('noData') }}</div></template
+                >
               </TabPane>
               <TabPane :label="$t('constant_parameters')">
                 <template v-if="paramInfos && paramInfos.filter(p => p.bindType === 'constant').length > 0">
@@ -83,7 +85,9 @@
                     </template>
                   </div>
                 </template>
-                <template v-else><div style="padding: 0px 10px">{{ $t('noData') }}</div></template>
+                <template v-else
+                  ><div style="padding: 0px 10px">{{ $t('noData') }}</div></template
+                >
               </TabPane>
             </Tabs>
           </FormItem>
@@ -139,7 +143,8 @@
                       <Tooltip content="">
                         <span
                           style="display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
-                        >{{ param.name }}</span>
+                          >{{ param.name }}</span
+                        >
                         <div slot="content" style="white-space: normal">
                           <span>{{ param.description }}</span>
                         </div>
@@ -190,7 +195,8 @@
                           v-for="(item, index) in allSystemVariables.filter(i => i.status === 'active')"
                           :value="item.name"
                           :key="index"
-                        >{{ item.name }}</Option>
+                          >{{ item.name }}</Option
+                        >
                       </Select>
                       <span v-if="param.mappingType === 'context'">N/A</span>
                       <span v-if="param.mappingType === 'constant'">
@@ -213,7 +219,8 @@
                           type="primary"
                           size="small"
                           @click="showObjectConfig(param)"
-                        >{{ $t('configuration') }}</Button>
+                          >{{ $t('configuration') }}</Button
+                        >
                       </span>
                     </FormItem>
                   </Col>
@@ -241,7 +248,8 @@
                               overflow: hidden;
                               text-overflow: ellipsis;
                             "
-                          >{{ outPut.name }}</span>
+                            >{{ outPut.name }}</span
+                          >
                           <div slot="content" style="white-space: normal">
                             <span>{{ outPut.description }}</span>
                           </div>
@@ -456,8 +464,8 @@ export default {
       return this.nodeList.filter(n => (this.contextParamNodes || []).includes(n.nodeId)) || []
     },
     mgmtParamInfos() {
-      this.paramInfos
-        && this.paramInfos.forEach((p, index) => {
+      this.paramInfos &&
+        this.paramInfos.forEach((p, index) => {
           if (p.bindType === 'context') {
             this.getParamsOptionsByNode(index)
           }
@@ -549,7 +557,8 @@ export default {
                 return 1
               }
             })
-          }))
+          })
+        )
       }
     }
   }

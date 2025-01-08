@@ -182,8 +182,8 @@ router.beforeEach(async (to, from, next) => {
         .concat(...window.myMenus.map(_ => _.submenus), window.childRouters)
         .find(_ => to.path.startsWith(_.link) && _.active)
       if (
-        (isHasPermission && isHasPermission.active)
-        || ['/collaboration/workflow-mgmt', '/collaboration/registrationDetail'].includes(to.path)
+        (isHasPermission && isHasPermission.active) ||
+        ['/collaboration/workflow-mgmt', '/collaboration/registrationDetail'].includes(to.path)
       ) {
         /* has permission */
         window.sessionStorage.setItem(

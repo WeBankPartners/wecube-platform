@@ -46,16 +46,16 @@
               <span>{{ $t('mgmt_role') }}：</span>
               <span>{{
                 data.templateData.permissionToRole &&
-                  data.templateData.permissionToRole.MGMTDisplayName &&
-                  data.templateData.permissionToRole.MGMTDisplayName.join('，')
+                data.templateData.permissionToRole.MGMTDisplayName &&
+                data.templateData.permissionToRole.MGMTDisplayName.join('，')
               }}</span>
             </div>
             <div class="item">
               <span>{{ $t('use_role') }}：</span>
               <span>{{
                 data.templateData.permissionToRole &&
-                  data.templateData.permissionToRole.USEDisplayName &&
-                  data.templateData.permissionToRole.USEDisplayName.join('，')
+                data.templateData.permissionToRole.USEDisplayName &&
+                data.templateData.permissionToRole.USEDisplayName.join('，')
               }}</span>
             </div>
           </div>
@@ -208,9 +208,10 @@
           <Row v-if="pluginInputParams && pluginInputParams.length > 0" class="border-box form-item">
             <Col v-for="(item, index) in pluginInputParams" :key="index" :span="24" style="margin-bottom: 12px">
               <span
-                :class="{required: item.required === 'Y' && item.mappingType === 'constant'}"
+                :class="{ required: item.required === 'Y' && item.mappingType === 'constant' }"
                 style="display: inline-block; width: 100px"
-              >{{ item.name }}</span>
+                >{{ item.name }}</span
+              >
               <Input v-if="item.mappingType === 'constant'" style="width: 600px" v-model="item.bindValue" />
               <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
             </Col>
@@ -345,16 +346,17 @@ export default {
         this.fetchTableData()
         this.searchParamsTree = []
         data.forEach((single, index) => {
-          const childNode = (single.attributes
-              && single.attributes.map(attr => {
+          const childNode =
+            (single.attributes &&
+              single.attributes.map(attr => {
                 attr.key = single.packageName + single.entityName + index
                 attr.index = index
                 attr.title = attr.name
                 attr.entityName = single.entityName
                 attr.packageName = single.packageName
                 return attr
-              }))
-            || []
+              })) ||
+            []
           this.searchParamsTree.push({
             title: `${single.packageName}-${single.entityName}`,
             children: childNode
@@ -365,9 +367,7 @@ export default {
     data: {
       handler(val) {
         if (val && val.id) {
-          const {
-            name, isDangerousBlock, configData, sourceData
-          } = val
+          const { name, isDangerousBlock, configData, sourceData } = val
           this.name = name
           this.dataModelExpression = configData.dataModelExpression
           this.currentPackageName = configData.packageName
@@ -569,9 +569,7 @@ export default {
           }
         } else {
           keySet.push(sParameter.key)
-          const {
-            index, packageName, entityName, name, value, operator
-          } = sParameter
+          const { index, packageName, entityName, name, value, operator } = sParameter
           if (value) {
             requestParameter.filters.push({
               index,

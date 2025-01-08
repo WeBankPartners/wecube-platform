@@ -185,8 +185,7 @@ export default {
         params: {
           subProc: this.$route.query.subProc || 'main',
           id: '',
-          time: [dayjs().subtract(3, 'day')
-            .format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
+          time: [dayjs().subtract(3, 'day').format('YYYY-MM-DD'), dayjs().format('YYYY-MM-DD')],
           startTime: '',
           endTime: '',
           procDefId: '',
@@ -367,21 +366,21 @@ export default {
                   </Button>
                 </Tooltip>
               )}
-              {['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(params.row.status)
-                && !(params.row.parentProcIns && params.row.parentProcIns.procInsId) && (
-                <Tooltip content={this.$t('stop_orch')} placement="top">
-                  <Button
-                    size="small"
-                    type="error"
-                    onClick={() => {
-                      this.stopTask(params.row) // 终止
-                    }}
-                    style="margin-right:5px;"
-                  >
-                    <Icon type="md-power" size="16"></Icon>
-                  </Button>
-                </Tooltip>
-              )}
+              {['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(params.row.status) &&
+                !(params.row.parentProcIns && params.row.parentProcIns.procInsId) && (
+                  <Tooltip content={this.$t('stop_orch')} placement="top">
+                    <Button
+                      size="small"
+                      type="error"
+                      onClick={() => {
+                        this.stopTask(params.row) // 终止
+                      }}
+                      style="margin-right:5px;"
+                    >
+                      <Icon type="md-power" size="16"></Icon>
+                    </Button>
+                  </Tooltip>
+                )}
             </div>
           )
         }
@@ -564,8 +563,8 @@ export default {
         content:
           localStorage.getItem('username') !== row.operator
             ? `${this.$t('be_workflow_non_owner_list_tip1')}[${row.operator}]${this.$t(
-              'be_workflow_non_owner_list_tip2'
-            )}`
+                'be_workflow_non_owner_list_tip2'
+              )}`
             : '',
         'z-index': 1000000,
         onOk: async () => {
@@ -597,8 +596,8 @@ export default {
         content:
           localStorage.getItem('username') !== row.operator
             ? `${this.$t('be_workflow_non_owner_list_tip1')}[${row.operator}]${this.$t(
-              'be_workflow_non_owner_list_tip2'
-            )}`
+                'be_workflow_non_owner_list_tip2'
+              )}`
             : '',
         'z-index': 1000000,
         onOk: async () => {
@@ -730,8 +729,8 @@ export default {
           // 禁用不能终止的表格复选框
           if (
             !(
-              ['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(i.status)
-              && !(i.parentProcIns && i.parentProcIns.procInsId)
+              ['InProgress', 'InProgress(Faulted)', 'InProgress(Timeouted)', 'Stop'].includes(i.status) &&
+              !(i.parentProcIns && i.parentProcIns.procInsId)
             )
           ) {
             i._disabled = true
