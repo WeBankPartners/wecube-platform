@@ -36,6 +36,10 @@
     "code": 10000031,
     "message": "系统报错 [服务请求处理失败]"
   },
+  "api_permission_error": {
+    "code": 10000032,
+    "message": "系统报错 [没有API权限]"
+  },
   "plugin_dependency_illegal": {
     "code": 20000001,
     "message": "安装失败：插件版本依赖校验失败"
