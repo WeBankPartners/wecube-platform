@@ -205,6 +205,7 @@ func CreateOrUpdateExportCustomer(c *gin.Context) {
 			NexusAddr:    param.NexusAddr,
 			NexusAccount: param.NexusAccount,
 			NexusPwd:     param.NexusPwd,
+			NexusRepo:    param.NexusRepo,
 			CreatedUser:  middleware.GetRequestUser(c),
 		}
 		if err = database.AddTransExportCustomer(c, exportCustomer); err != nil {
