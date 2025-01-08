@@ -515,15 +515,39 @@ func GetBatchPluginConfigs(c *gin.Context, pluginPackageId string) (result []*mo
 			result = append(result, pluginCfgData)
 		}
 	}
-
 	for _, pluginCfgData := range pluginConfigsList {
-		if _, isExisted := pluginCfgIdMap[pluginCfgData.Id]; !isExisted {
-			if pluginCfgOutlines, isOk := pluginConfigsOutlinesMap[pluginCfgData.Name]; isOk {
-				pluginCfgOutlines.PluginConfigsOutlines = append(pluginCfgOutlines.PluginConfigsOutlines, pluginCfgData)
-			}
+		if _, match := pluginConfigsOutlinesMap[pluginCfgData.Name]; !match {
+			pluginCfgData.PluginConfigsOutlines = []*models.PluginConfigsOutlines{}
+			pluginConfigsOutlinesMap[pluginCfgData.Name] = pluginCfgData
+			pluginCfgIdMap[pluginCfgData.Id] = struct{}{}
+			result = append(result, pluginCfgData)
 		}
 	}
-
+	for _, pluginCfgData := range pluginConfigsList {
+		if pluginCfgData.TargetPackage == "" && pluginCfgData.TargetEntity == "" && pluginCfgData.TargetEntityFilterRule == "" && pluginCfgData.RegisterName == "" {
+			continue
+		}
+		if pluginCfgOutlines, isOk := pluginConfigsOutlinesMap[pluginCfgData.Name]; isOk {
+			newPluginCfgData := models.PluginConfigsOutlines{
+				Id:                         pluginCfgData.Id,
+				PluginPackageId:            pluginCfgData.PluginPackageId,
+				Name:                       pluginCfgData.Name,
+				TargetPackage:              pluginCfgData.TargetPackage,
+				TargetEntity:               pluginCfgData.TargetEntity,
+				TargetEntityFilterRule:     pluginCfgData.TargetEntityFilterRule,
+				RegisterName:               pluginCfgData.RegisterName,
+				Status:                     pluginCfgData.Status,
+				TargetEntityWithFilterRule: pluginCfgData.TargetEntityWithFilterRule,
+				HasMgmtPermission:          pluginCfgData.HasMgmtPermission,
+			}
+			pluginCfgOutlines.PluginConfigsOutlines = append(pluginCfgOutlines.PluginConfigsOutlines, &newPluginCfgData)
+		}
+		//if _, isExisted := pluginCfgIdMap[pluginCfgData.Id]; !isExisted {
+		//	if pluginCfgOutlines, isOk := pluginConfigsOutlinesMap[pluginCfgData.Name]; isOk {
+		//		pluginCfgOutlines.PluginConfigsOutlines = append(pluginCfgOutlines.PluginConfigsOutlines, pluginCfgData)
+		//	}
+		//}
+	}
 	return
 }
 
