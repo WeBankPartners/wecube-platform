@@ -13,24 +13,34 @@
         :placeholder="$t('be_all_placeholder')"
         class="input"
       />
-      <!-- <Button type="primary" @click="handleSearch" style="margin-left: 20px">搜索</Button> -->
     </div>
-    <Table
-      v-if="columns.length > 0"
-      size="small"
-      type="selection"
-      :width="200 * columns.length - 122"
-      :columns="columns"
-      :data="tableData"
-      :loading="loading"
-      @on-selection-change="handleChooseData"
-      :row-class-name="
-        row => {
-          return filterIdList.includes(row.id) ? 'ivu-table-row-hover' : ''
-        }
-      "
-      style="margin-left: -100px; max-width: 100%"
-    ></Table>
+    <template v-if="columns.length > 0">
+      <Table
+        size="small"
+        type="selection"
+        :width="200 * columns.length - 122"
+        :columns="columns"
+        :data="tableData"
+        :loading="loading"
+        @on-selection-change="handleChooseData"
+        :row-class-name="
+          row => {
+            return filterIdList.includes(row.id) ? 'ivu-table-row-hover' : ''
+          }
+        "
+        style="margin-left: -100px; max-width: 100%"
+      ></Table>
+      <Page
+        :total="pagination.total"
+        @on-change="changPage"
+        :current="pagination.currentPage"
+        :page-size="pagination.pageSize"
+        @on-page-size-change="changePageSize"
+        show-total
+        size="small"
+        style="margin-top: 10px; margin-left: -100px"
+      />
+    </template>
     <div v-else class="no-data">{{ $t('noData') }}</div>
   </div>
 </template>
@@ -50,6 +60,14 @@ export default {
     loading: {
       type: Boolean,
       default: false
+    },
+    pagination: {
+      type: Object,
+      default: () => ({
+        total: 0,
+        currentPage: 1,
+        pageSize: 50
+      })
     }
   },
   data() {
@@ -78,20 +96,27 @@ export default {
       this.$emit('select', selection)
     },
     handleSearch: debounce(function () {
-      const filtersKeys = this.columns.map(item => item.key)
-      this.filterIdList = []
-      if (this.keyword) {
-        this.data.forEach(item => {
-          let tmp = []
-          filtersKeys.forEach(key => {
-            tmp += item[key] + '@#$'
-          })
-          if (tmp.includes(this.keyword)) {
-            this.filterIdList.push(item.id)
-          }
-        })
-      }
-    }, 300)
+      // const filtersKeys = this.columns.map(item => item.key)
+      // this.filterIdList = []
+      // if (this.keyword) {
+      //   this.data.forEach(item => {
+      //     let tmp = []
+      //     filtersKeys.forEach(key => {
+      //       tmp += item[key] + '@#$'
+      //     })
+      //     if (tmp.includes(this.keyword)) {
+      //       this.filterIdList.push(item.id)
+      //     }
+      //   })
+      // }
+      this.$emit('search', this.keyword)
+    }, 300),
+    changPage(val) {
+      this.$emit('changePage', val)
+    },
+    changePageSize(val) {
+      this.$emit('changePageSize', val)
+    }
   }
 }
 </script>
