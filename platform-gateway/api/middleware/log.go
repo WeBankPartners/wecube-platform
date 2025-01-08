@@ -14,6 +14,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var serviceMap = map[constant.ServiceName]bool{
+	constant.PlatformCore:       true,
+	constant.PlatformAuthServer: true,
+	constant.TaskManPlugin:      true,
+	constant.MonitorPlugin:      true,
+	constant.CmdbPlugin:         true,
+	constant.ArtifactsPlugin:    true,
+	constant.AdaptorPlugin:      true,
+	constant.ItsdangerousPlugin: true,
+	constant.SaltstackPlugin:    true,
+	constant.TerminalPlugin:     true,
+}
+
 func HttpLogHandle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
@@ -35,7 +48,7 @@ func HttpLogHandle() gin.HandlerFunc {
 		// 业务错误码
 		var subCode, subErrorCode string
 		errCode = c.Writer.Header().Get("Error-Code")
-		if prefixArr := strings.Split(c.Request.RequestURI, "/"); len(prefixArr) > 1 {
+		if prefixArr := strings.Split(c.Request.RequestURI, "/"); len(prefixArr) > 1 && serviceMap[constant.ServiceName(prefixArr[1])] {
 			switch constant.ServiceName(prefixArr[1]) {
 			case constant.PlatformCore:
 				subCode = model.Config.SubSystemCode.Core
@@ -53,6 +66,12 @@ func HttpLogHandle() gin.HandlerFunc {
 				// 业务错误
 				subErrorCode = subCode + fmt.Sprintf("B%s", errCode)
 			}
+		} else {
+			if strings.Contains(c.Request.RequestURI, "login") || strings.Contains(c.Request.RequestURI, ".css") {
+				requestDump, _ := httputil.DumpRequest(c.Request, true)
+				log.Logger.Info("Received request: " + string(requestDump))
+			}
+			return
 		}
 		if c.Writer.Status() == 200 {
 			// 状态码 200 需要区分是否为业务错误
