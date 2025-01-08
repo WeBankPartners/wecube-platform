@@ -8,6 +8,7 @@ CREATE TABLE `trans_export_customer`
     `nexus_repo`    varchar(50) COLLATE utf8_bin  NOT NULL COMMENT 'nexus仓库名',
     `created_user`  varchar(45) COLLATE utf8_bin DEFAULT NULL COMMENT '创建人',
     `created_time`  datetime                      NOT NULL,
+    `updated_time`  datetime                      NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '导出目标客户信息表';
 

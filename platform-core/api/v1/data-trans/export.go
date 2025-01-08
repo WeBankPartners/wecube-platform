@@ -157,7 +157,7 @@ func ExportList(c *gin.Context) {
 	middleware.ReturnPageData(c, pageInfo, list)
 }
 
-func CreateExportCustomer(c *gin.Context) {
+func CreateOrUpdateExportCustomer(c *gin.Context) {
 	var param models.DataTransExportCustomerParam
 	var customers []*models.DataTransExportCustomerTable
 	var err error
@@ -173,21 +173,43 @@ func CreateExportCustomer(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	if len(customers) > 0 {
-		middleware.ReturnError(c, exterror.New().ExportCustomerAddNameExistError)
-		return
-	}
-	exportCustomer := &models.DataTransExportCustomerTable{
-		Id:           guid.CreateGuid(),
-		Name:         param.Name,
-		NexusAddr:    param.NexusAddr,
-		NexusAccount: param.NexusAccount,
-		NexusPwd:     param.NexusPwd,
-		CreatedUser:  middleware.GetRequestUser(c),
-	}
-	if err = database.AddTransExportCustomer(c, exportCustomer); err != nil {
-		middleware.ReturnError(c, err)
-		return
+	if param.Id != "" {
+		// 编辑
+		for _, customer := range customers {
+			if customer.Id != param.Id {
+				middleware.ReturnError(c, exterror.New().ExportCustomerAddNameExistError)
+				return
+			}
+		}
+		exportCustomer := &models.DataTransExportCustomerTable{
+			Id:           param.Id,
+			Name:         param.Name,
+			NexusAddr:    param.NexusAddr,
+			NexusAccount: param.NexusAccount,
+			NexusPwd:     param.NexusPwd,
+		}
+		if err = database.UpdateTransExportCustomer(c, exportCustomer); err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+	} else {
+		// 新增
+		if len(customers) > 0 {
+			middleware.ReturnError(c, exterror.New().ExportCustomerAddNameExistError)
+			return
+		}
+		exportCustomer := &models.DataTransExportCustomerTable{
+			Id:           guid.CreateGuid(),
+			Name:         param.Name,
+			NexusAddr:    param.NexusAddr,
+			NexusAccount: param.NexusAccount,
+			NexusPwd:     param.NexusPwd,
+			CreatedUser:  middleware.GetRequestUser(c),
+		}
+		if err = database.AddTransExportCustomer(c, exportCustomer); err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
 	}
 	middleware.ReturnSuccess(c)
 }
