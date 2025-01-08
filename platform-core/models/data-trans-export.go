@@ -432,7 +432,7 @@ type SysViewTable struct {
 }
 
 type DataTransExportCustomerTable struct {
-	Id           string `json:"viewId" xorm:"id"`
+	Id           string `json:"id" xorm:"id"`
 	Name         string `json:"name" xorm:"name"`
 	NexusAddr    string `json:"nexusAddr" xorm:"nexus_addr"`
 	NexusAccount string `json:"nexusAccount" xorm:"nexus_account"`
