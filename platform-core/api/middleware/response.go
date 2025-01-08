@@ -89,6 +89,10 @@ func ReturnError(c *gin.Context, err error) {
 	c.JSON(http.StatusOK, returnObj)
 }
 
+func ReturnApiPermissionError(c *gin.Context) {
+	ReturnError(c, exterror.New().ApiPermissionDeniedError)
+}
+
 func ReturnAuthError(c *gin.Context, err exterror.CustomError, token string) {
 	errorCode, errorKey, errorMessage := exterror.GetErrorResult(c.GetHeader("Accept-Language"), err, -1)
 	log.Logger.Error("tokenValidateError", log.Int("errorCode", errorCode), log.String("errorKey", errorKey), log.String("message", errorMessage), log.Error(err), log.String("token", token))
