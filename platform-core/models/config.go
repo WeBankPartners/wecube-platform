@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -79,6 +80,10 @@ type GatewayConfig struct {
 type CronConfig struct {
 	KeepBatchExecDays int64 `json:"keep_batch_exec_days"`
 }
+type MenuApiMapConfig struct {
+	Enable bool   `json:"enable"`
+	File   string `json:"file"`
+}
 
 type GlobalConfig struct {
 	Version                string                  `json:"version"`
@@ -96,10 +101,22 @@ type GlobalConfig struct {
 	Plugin                 *PluginJsonConfig       `json:"plugin"`
 	Gateway                *GatewayConfig          `json:"gateway"`
 	Cron                   *CronConfig             `json:"cron"`
+	MenuApiMap             MenuApiMapConfig        `json:"menu_api_map"`
+}
+
+type MenuApiMapObj struct {
+	Menu string           `json:"menu"`
+	Urls []*MenuApiUrlObj `json:"urls"`
+}
+
+type MenuApiUrlObj struct {
+	Url    string `json:"url"`
+	Method string `json:"method"`
 }
 
 var (
-	Config *GlobalConfig
+	Config            *GlobalConfig
+	MenuApiGlobalList []*MenuApiMapObj
 )
 
 func InitConfig(configFile string) (errMessage string) {
@@ -201,5 +218,17 @@ func InitConfig(configFile string) (errMessage string) {
 		c.Auth.SubSystemPrivateKey = "MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAwnTN7JDXFcSoikXuNOQDtAjic1Wu6oAtCQJquCJmXrBTqB7hwS2mK6TuT8P7Jx60BQcaRL12hPLi6cOiCawuVwIDAQABAkB9NORazDARjhzPW5OzbpWL2KSmiqcjywA0at/4S/4KPPM8vwRjzEMs7pV9nSJ2M+/YOqPMBDl8iBUSLpfKf/uxAiEA52UroIvo2URlmAycaJm7+e4QqqfhEnM9wlGCJwL2jTsCIQDXIh2zwN7KQEIypmOL+uXvlZUjmx0Tj29mWOwP/fBBlQIhAI9+VLSlror1eE73GxNeqoxNznYVz2RCpLzZEO4iT0S7AiARg0Z1tpKsVjTNWLwrzf3f1gZxApSIXhnMdBqrZpmjTQIhAJhgYctlaydmggTPCqWLGub9WqEyH2HrrcabRvpWdEcV"
 	}
 	Config = &c
+	if Config.MenuApiMap.Enable {
+		maBytes, err := ioutil.ReadFile(Config.MenuApiMap.File)
+		if err != nil {
+			errMessage = "read menu api map file fail," + err.Error()
+			return
+		}
+		err = json.Unmarshal(maBytes, &MenuApiGlobalList)
+		if err != nil {
+			errMessage = "json unmarshal menu api map content fail," + err.Error()
+			return
+		}
+	}
 	return
 }
