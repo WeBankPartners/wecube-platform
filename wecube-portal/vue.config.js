@@ -6,11 +6,12 @@ dotenv.config()
 /* eslint-disable */
 module.exports = {
   devServer: {
-    open: true,
     port: 3000,
     proxy: {
       '/': {
-        target: process.env.BASE_URL
+        target: process.env.BASE_URL,
+        changeOrigin: true,
+        ws: false,
       }
     }
   },
@@ -18,13 +19,7 @@ module.exports = {
   publicPath: '/',
   productionSourceMap: false,
   chainWebpack: config => {
-    // remove the old loader
-    const img = config.module.rule('images')
-    img.uses.clear()
-    // add the new one
-    // img.use('file-loader').loader('file-loader').options({
-    //   outputPath: 'img'
-    // })
+
   },
   configureWebpack: config => {
     // config.optimization = {
