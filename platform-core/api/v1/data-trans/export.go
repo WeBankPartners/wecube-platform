@@ -2,6 +2,7 @@ package data_trans
 
 import (
 	"fmt"
+	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
@@ -30,16 +31,24 @@ func QueryBusinessList(c *gin.Context) {
 func CreateExport(c *gin.Context) {
 	var param models.CreateExportParam
 	var transExportId string
+	var exportCustomerList []*models.DataTransExportCustomerTable
 	var err error
 	if err = c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	if len(param.PIds) == 0 || strings.TrimSpace(param.Env) == "" || len(param.PNames) == 0 {
-		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+	if len(param.PIds) == 0 || strings.TrimSpace(param.Env) == "" || len(param.PNames) == 0 || strings.TrimSpace(param.CustomerName) == "" {
+		middleware.ReturnError(c, exterror.New().RequestParamValidateError)
 		return
 	}
-
+	if exportCustomerList, err = database.QueryTransExportCustomerByName(c, param.CustomerName); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if len(exportCustomerList) == 0 {
+		middleware.ReturnError(c, fmt.Errorf("param customerName is invalid"))
+		return
+	}
 	if transExportId, err = database.CreateExport(c, param, middleware.GetRequestUser(c)); err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -94,7 +103,7 @@ func ExecExport(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	// 3.开始导出,采用异步导出方式
+	// 2.开始导出,采用异步导出方式
 	callParam := &models.CallTransExportActionParam{
 		DataTransExportParam: param,
 		UserToken:            userToken,
@@ -146,4 +155,63 @@ func ExportList(c *gin.Context) {
 		return
 	}
 	middleware.ReturnPageData(c, pageInfo, list)
+}
+
+func CreateExportCustomer(c *gin.Context) {
+	var param models.DataTransExportCustomerParam
+	var customers []*models.DataTransExportCustomerTable
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	if strings.TrimSpace(param.Name) == "" || strings.TrimSpace(param.NexusAddr) == "" || strings.TrimSpace(param.NexusAccount) == "" || strings.TrimSpace(param.NexusPwd) == "" {
+		middleware.ReturnError(c, fmt.Errorf("param is valid"))
+		return
+	}
+	if customers, err = database.QueryTransExportCustomerByName(c, param.Name); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	if len(customers) > 0 {
+		middleware.ReturnError(c, exterror.New().ExportCustomerAddNameExistError)
+		return
+	}
+	exportCustomer := &models.DataTransExportCustomerTable{
+		Id:           guid.CreateGuid(),
+		Name:         param.Name,
+		NexusAddr:    param.NexusAddr,
+		NexusAccount: param.NexusAccount,
+		NexusPwd:     param.NexusPwd,
+		CreatedUser:  middleware.GetRequestUser(c),
+	}
+	if err = database.AddTransExportCustomer(c, exportCustomer); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnSuccess(c)
+}
+
+func QueryExportCustomerList(c *gin.Context) {
+	var result []*models.DataTransExportCustomerTable
+	var err error
+	if result, err = database.GetTransExportCustomerList(c); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnData(c, result)
+}
+
+func DeleteExportCustomer(c *gin.Context) {
+	id := c.Query("id")
+	var err error
+	if strings.TrimSpace(id) == "" {
+		middleware.ReturnError(c, fmt.Errorf("id is empty"))
+		return
+	}
+	if err = database.DeleteTransExportCustomer(c, id); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnSuccess(c)
 }
