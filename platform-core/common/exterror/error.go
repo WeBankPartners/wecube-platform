@@ -41,6 +41,7 @@ type ErrorTemplate struct {
 	RequestJsonUnmarshalError CustomError `json:"request_json_unmarshal_error"`
 	RequestTokenValidateError CustomError `json:"request_token_validate_error"`
 	RequestTokenExpireError   CustomError `json:"request_token_expire_error"`
+	ApiPermissionDeniedError  CustomError `json:"api_permission_error"`
 	// database error
 	DatabaseQueryError      CustomError `json:"database_query_error"`
 	DatabaseQueryEmptyError CustomError `json:"database_query_empty_error"`

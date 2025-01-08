@@ -36,6 +36,10 @@
     "code": 10000031,
     "message": "System error [Failed to handle request]"
   },
+  "api_permission_error": {
+    "code": 10000032,
+    "message": "System error [Permission denied]"
+  },
   "plugin_dependency_illegal": {
     "code": 20000001,
     "message": "Installation Failed: The plug-in version dependency verification failed"
