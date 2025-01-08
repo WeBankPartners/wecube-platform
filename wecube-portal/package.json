@@ -8,9 +8,7 @@
     "build": "vue-cli-service build"
   },
   "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
+    "hooks": {}
   },
   "lint-staged": {
     "*.{js,css,md,vue}": [
