@@ -175,5 +175,9 @@
   "schedule_operation_error": {
     "code": 20000039,
     "message": "新加一个系统报错：操作失败：当前任务状态已更新，请刷新重试"
+  },
+  "export_customer_add_name_exist_error": {
+    "code": 20000040,
+    "message": "保存失败：同名目标客户已存在,请修改名称后重试"
   }
 }
