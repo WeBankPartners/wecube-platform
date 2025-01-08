@@ -438,9 +438,11 @@ type DataTransExportCustomerTable struct {
 	NexusRepo    string `json:"nexusRepo" xorm:"nexus_repo"`
 	CreatedUser  string `json:"createdUser" xorm:"created_user"`
 	CreatedTime  string `json:"createdTime" xorm:"created_time"`
+	UpdateTime   string `json:"updateTime" xorm:"updated_time"`
 }
 
 type DataTransExportCustomerParam struct {
+	Id           string `json:"id"`
 	Name         string `json:"name"`
 	NexusAddr    string `json:"nexusAddr"`
 	NexusAccount string `json:"nexusAccount"`
