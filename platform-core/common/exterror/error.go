@@ -80,9 +80,10 @@ type ErrorTemplate struct {
 	BatchExecTmplHasBeenModifiedError CustomError `json:"batch_exec_tmpl_has_been_modified_error"`
 	BatchExecDuplicateNameError       CustomError `json:"batch_exec_duplicate_name_error"`
 	// 同时处理报错
-	DealWithAtTheSameTimeError CustomError `json:"deal_with_at_the_same_time_error"`
-	DataPermissionDeny         CustomError `json:"data_permission_deny"`
-	AddRoleExistError          CustomError `json:"add_role_exist_error"`
+	DealWithAtTheSameTimeError      CustomError `json:"deal_with_at_the_same_time_error"`
+	DataPermissionDeny              CustomError `json:"data_permission_deny"`
+	AddRoleExistError               CustomError `json:"add_role_exist_error"`
+	ExportCustomerAddNameExistError CustomError `json:"export_customer_add_name_exist_error"`
 }
 
 var (
