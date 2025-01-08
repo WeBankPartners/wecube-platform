@@ -29,7 +29,7 @@ func GetTransExportCustomer(ctx context.Context, id string) (result *models.Data
 func AddTransExportCustomer(ctx context.Context, exportCustomer *models.DataTransExportCustomerTable) (err error) {
 	now := time.Now().Format(models.DateTimeFormat)
 	_, err = db.MysqlEngine.Context(ctx).Exec("insert into trans_export_customer(id,name,nexus_addr,nexus_account,nexus_pwd,nexus_repo,"+
-		"created_user,created_time,updated_time) values(?,?,?,?,?,?,?,?)", exportCustomer.Id, exportCustomer.Name, exportCustomer.NexusAddr,
+		"created_user,created_time,updated_time) values(?,?,?,?,?,?,?,?,?)", exportCustomer.Id, exportCustomer.Name, exportCustomer.NexusAddr,
 		exportCustomer.NexusAccount, exportCustomer.NexusPwd, exportCustomer.NexusRepo, exportCustomer.CreatedUser, now, now)
 	return
 }
