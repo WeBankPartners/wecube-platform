@@ -1,5 +1,13 @@
 <template>
   <div class="export-step-enviroment">
+    <!--选择客户-->
+    <div class="inline-item">
+      <span class="title">{{ $t('pi_target_custom') }}</span>
+      <Select v-model="customerId" clearable style="width: 250px">
+        <Option v-for="i in customerList" :key="i.id" :label="i.name" :value="i.id"></Option>
+      </Select>
+      <Button type="primary" style="margin-left: 10px" @click="openCustomDialog">{{ $t('pi_custom_manage') }}</Button>
+    </div>
     <!--选择环境-->
     <div class="inline-item">
       <span class="title">{{ $t('pe_select_env') }}</span>
@@ -48,14 +56,17 @@
         </Table>
       </div>
     </div>
+    <CustomManagement v-if="customVisible" v-model="customVisible" />
   </div>
 </template>
 
 <script>
-import { getExportBusinessList } from '@/api/server'
+import CustomManagement from './custom-management.vue'
+import { getExportBusinessList, getCustomerList } from '@/api/server'
 import { deepClone } from '@/const/util'
 import dayjs from 'dayjs'
 export default {
+  components: { CustomManagement },
   props: {
     detailData: Object,
     from: String
@@ -127,7 +138,10 @@ export default {
       tableData: [],
       originTableData: [],
       selectionList: [],
-      loading: false
+      loading: false,
+      customerId: '', // 目标客户
+      customerList: [], // 客户列表
+      customVisible: false
     }
   },
   watch: {
@@ -142,6 +156,7 @@ export default {
     }
   },
   async mounted() {
+    this.getCustomerList()
     await this.getProductList()
     await this.getEnviromentList()
     if (this.detailData && this.detailData.environment) {
@@ -208,7 +223,18 @@ export default {
         this.originTableData = deepClone(this.tableData)
       }
     },
-    jumpToHistory() {}
+    jumpToHistory() {},
+    // 打开目标客户弹窗
+    openCustomDialog() {
+      this.customVisible = true
+    },
+    // 获取目标客户列表
+    async getCustomerList() {
+      const { status, data } = await getCustomerList()
+      if (status === 'OK') {
+        this.customerList = data || []
+      }
+    }
   }
 }
 </script>
