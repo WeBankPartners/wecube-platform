@@ -86,6 +86,7 @@ type SysCiTypeAttrTable struct {
 type TransExportTable struct {
 	Id                      string   `json:"id" xorm:"id"`
 	Business                string   `json:"business" xorm:"business"`
+	CustomerName            string   `json:"customerName" xorm:"customer_name"`
 	BusinessName            string   `json:"businessName" xorm:"business_name"`
 	Environment             string   `json:"environment" xorm:"environment"`
 	EnvironmentName         string   `json:"environmentName" xorm:"environment_name"`
@@ -186,10 +187,11 @@ type QueryBusinessParam struct {
 }
 
 type CreateExportParam struct {
-	PIds            []string `json:"pIds"`    // 产品ID
-	PNames          []string `json:"pNames"`  // 产品名称
-	Env             string   `json:"env"`     // 环境
-	EnvName         string   `json:"envName"` // 环境名称
+	PIds            []string `json:"pIds"`         // 产品ID
+	PNames          []string `json:"pNames"`       // 产品名称
+	Env             string   `json:"env"`          // 环境
+	EnvName         string   `json:"envName"`      // 环境名称
+	CustomerName    string   `json:"customerName"` // 客户名称
 	LastConfirmTime string   `json:"lastConfirmTime"`
 }
 
@@ -425,6 +427,25 @@ type SysViewTable struct {
 	UpdateUser    string    `json:"updateUser" xorm:"update_user"`
 	FilterAttr    string    `json:"filterAttr" xorm:"filter_attr"`
 	FilterValue   string    `json:"filterValue" xorm:"filter_value"`
+}
+
+type DataTransExportCustomerTable struct {
+	Id           string `json:"viewId" xorm:"id"`
+	Name         string `json:"name" xorm:"name"`
+	NexusAddr    string `json:"nexusAddr" xorm:"nexus_addr"`
+	NexusAccount string `json:"nexusAccount" xorm:"nexus_account"`
+	NexusPwd     string `json:"nexusPwd" xorm:"nexus_pwd"`
+	NexusRepo    string `json:"nexusRepo" xorm:"nexus_repo"`
+	CreatedUser  string `json:"createdUser" xorm:"created_user"`
+	CreatedTime  string `json:"createdTime" xorm:"created_time"`
+}
+
+type DataTransExportCustomerParam struct {
+	Name         string `json:"name"`
+	NexusAddr    string `json:"nexusAddr"`
+	NexusAccount string `json:"nexusAccount"`
+	NexusPwd     string `json:"nexusPwd"`
+	NexusRepo    string `json:"nexusRepo"`
 }
 
 type DataTransPluginExportData struct {
