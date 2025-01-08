@@ -61,6 +61,22 @@ func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActi
 	var queryRolesResponse models.QueryRolesResponse
 	var transDataVariableConfig *models.TransDataVariableConfig
 	var path, zipPath, monitorPath, exportDataPath string
+	var transExport *models.TransExportTable
+	var transExportCustomerList []*models.DataTransExportCustomerTable
+	if transExport, err = GetTransExport(ctx, callParam.TransExportId); err != nil {
+		return
+	}
+	if transExport == nil {
+		err = fmt.Errorf("transExportId is valid")
+		return
+	}
+	if transExportCustomerList, err = QueryTransExportCustomerByName(ctx, transExport.CustomerName); err != nil {
+		return
+	}
+	if len(transExportCustomerList) == 0 {
+		err = fmt.Errorf("transExportCustomer is valid")
+		return
+	}
 	if transExportDetails, err = getTransExportDetail(ctx, callParam.TransExportId); err != nil {
 		return
 	}
@@ -86,6 +102,12 @@ func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActi
 	if transDataVariableConfig, err = getDataTransVariableMap(ctx); err != nil {
 		return
 	}
+	// 重置客户的Nexus地址
+	transDataVariableConfig.NexusUrl = transExportCustomerList[0].NexusAddr
+	transDataVariableConfig.NexusUser = transExportCustomerList[0].NexusAccount
+	transDataVariableConfig.NexusPwd = transExportCustomerList[0].NexusPwd
+	transDataVariableConfig.NexusRepo = transExportCustomerList[0].NexusRepo
+
 	transExportJobParam := &models.TransExportJobParam{
 		DataTransExportParam:    &callParam.DataTransExportParam,
 		UserToken:               callParam.UserToken,
@@ -642,6 +664,8 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 	transExportId = fmt.Sprintf("tp_%s", guid.CreateGuid())
 	transExport := models.TransExportTable{
 		Id:              transExportId,
+		CustomerId:      param.CustomerId,
+		CustomerName:    param.CustomerName,
 		Environment:     param.Env,
 		EnvironmentName: param.EnvName,
 		Business:        strings.Join(param.PIds, ","),
@@ -1230,42 +1254,6 @@ func buildRoleResultData(roles []string, data []*models.SimpleLocalRoleDto) []*m
 		}
 	}
 	return result
-}
-
-// execStepExport 执行每步导出
-func execStepExport(param models.StepExportParam) (err error) {
-	if param.Data == nil {
-		return
-	}
-	var exportData = param.Data
-	transExportDetail := models.TransExportDetailTable{
-		TransExport: &param.TransExportId,
-		Step:        int(param.Step),
-		StartTime:   param.StartTime,
-		Status:      string(models.TransExportStatusSuccess),
-	}
-	if param.Input != nil {
-		inputByteArr, _ := json.Marshal(param.Input)
-		if string(inputByteArr) != "null" {
-			transExportDetail.Input = string(inputByteArr)
-		}
-	}
-	if param.Data != nil {
-		outputByteArr, _ := json.Marshal(param.Data)
-		if string(outputByteArr) != "null" {
-			transExportDetail.Output = string(outputByteArr)
-		}
-	}
-	if param.ExportData != nil {
-		exportData = param.ExportData
-	}
-	if err = tools.WriteJsonData2File(getExportJsonFile(param.Path, transExportDetailMap[param.Step]), exportData); err != nil {
-		log.Logger.Error("WriteJsonData2File error", log.String("name", transExportDetailMap[param.Step]), log.Error(err))
-		return
-	}
-	transExportDetail.EndTime = time.Now().Format(models.DateTimeFormat)
-	updateTransExportDetail(param.Ctx, transExportDetail)
-	return
 }
 
 func exportMetricList(param models.ExportMetricListDto) (err error) {
