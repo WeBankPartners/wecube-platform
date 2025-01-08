@@ -31,24 +31,25 @@ func QueryBusinessList(c *gin.Context) {
 func CreateExport(c *gin.Context) {
 	var param models.CreateExportParam
 	var transExportId string
-	var exportCustomerList []*models.DataTransExportCustomerTable
+	var exportCustomer *models.DataTransExportCustomerTable
 	var err error
 	if err = c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	if len(param.PIds) == 0 || strings.TrimSpace(param.Env) == "" || len(param.PNames) == 0 || strings.TrimSpace(param.CustomerName) == "" {
+	if len(param.PIds) == 0 || strings.TrimSpace(param.Env) == "" || len(param.PNames) == 0 || strings.TrimSpace(param.CustomerName) == "" || strings.TrimSpace(param.CustomerId) == "" {
 		middleware.ReturnError(c, exterror.New().RequestParamValidateError)
 		return
 	}
-	if exportCustomerList, err = database.QueryTransExportCustomerByName(c, param.CustomerName); err != nil {
+	if exportCustomer, err = database.GetTransExportCustomer(c, param.CustomerId); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
-	if len(exportCustomerList) == 0 {
-		middleware.ReturnError(c, fmt.Errorf("param customerName is invalid"))
+	if exportCustomer == nil {
+		middleware.ReturnError(c, exterror.New().RequestParamValidateError)
 		return
 	}
+	param.CustomerName = exportCustomer.Name
 	if transExportId, err = database.CreateExport(c, param, middleware.GetRequestUser(c)); err != nil {
 		middleware.ReturnError(c, err)
 		return

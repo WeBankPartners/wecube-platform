@@ -86,6 +86,7 @@ type SysCiTypeAttrTable struct {
 type TransExportTable struct {
 	Id                      string   `json:"id" xorm:"id"`
 	Business                string   `json:"business" xorm:"business"`
+	CustomerId              string   `json:"customerId" xorm:"customer_id"`
 	CustomerName            string   `json:"customerName" xorm:"customer_name"`
 	BusinessName            string   `json:"businessName" xorm:"business_name"`
 	Environment             string   `json:"environment" xorm:"environment"`
@@ -187,11 +188,12 @@ type QueryBusinessParam struct {
 }
 
 type CreateExportParam struct {
-	PIds            []string `json:"pIds"`         // 产品ID
-	PNames          []string `json:"pNames"`       // 产品名称
-	Env             string   `json:"env"`          // 环境
-	EnvName         string   `json:"envName"`      // 环境名称
-	CustomerName    string   `json:"customerName"` // 客户名称
+	PIds            []string `json:"pIds"`       // 产品ID
+	PNames          []string `json:"pNames"`     // 产品名称
+	Env             string   `json:"env"`        // 环境
+	EnvName         string   `json:"envName"`    // 环境名称
+	CustomerId      string   `json:"customerId"` // 客户id
+	CustomerName    string   `json:"-"`          // 客户名称
 	LastConfirmTime string   `json:"lastConfirmTime"`
 }
 
