@@ -1042,5 +1042,14 @@
   "pi_plugin_params": "插件参数",
   "pi_only_showMyself_records": "仅展示本人执行记录",
   "pi_only_three_month_records": "当前搜索只支持3个月内记录，完整记录请返回列表查询",
-  "pi_only_three_month_records1": "当前搜索只支持3个月内记录"
+  "pi_only_three_month_records1": "当前搜索只支持3个月内记录",
+  "pi_custom_title": "目标客户列表",
+  "pi_custom_list": "客户列表",
+  "pi_custom_info": "客户信息",
+  "pi_add_custom": "新增客户",
+  "pi_target_custom": "目标客户",
+  "pi_custom_manage": "管理客户",
+  "pi_nexus_address": "nexus地址",
+  "pi_nexus_account": "nexus账号",
+  "pi_nexus_password": "nexus密码"
 }
