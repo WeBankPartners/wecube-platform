@@ -178,6 +178,10 @@
                 seletedRows = val
               }
             "
+            @changePage="handlePageChange"
+            @changePageSize="handlePageSizeChange"
+            @search="handleSearch"
+            :pagination="pagination"
           ></EntityTable>
         </FormItem>
       </BaseHeaderTitle>
@@ -298,7 +302,12 @@ export default {
       pluginInputParams: [], // 插件入参
       pluginOutputParams: [], // 插件出参
       resultTableParams: [], // 选择结果表出参
-      isDangerousBlock: true // 是否开启高危检测
+      isDangerousBlock: true, // 是否开启高危检测
+      pagination: {
+        total: 0,
+        currentPage: 1,
+        pageSize: 50
+      }
     }
   },
   watch: {
@@ -538,10 +547,13 @@ export default {
         })
       }
     },
-    async fetchTableData() {
+    async fetchTableData(query = '') {
       const requestParameter = {
         dataModelExpression: this.dataModelExpression,
-        filters: []
+        filters: [],
+        query,
+        startIndex: (this.pagination.currentPage - 1) * this.pagination.pageSize,
+        pageSize: 50
       }
       const keySet = []
       this.searchParameters.forEach(sParameter => {
@@ -580,14 +592,28 @@ export default {
       const { status, data } = await dmeIntegratedQuery(requestParameter)
       this.loading = false
       if (status === 'OK') {
-        this.tableData = data
+        this.tableData = data.contents || []
         const selectTag = this.seletedRows.map(item => item.id)
+        this.pagination.total = data.pageInfo.totalRows
         this.tableData.forEach(item => {
           if (selectTag.includes(item.id)) {
             item._checked = true
           }
         })
       }
+    },
+    handleSearch(val) {
+      this.pagination.currentPage = 1
+      this.fetchTableData(val)
+    },
+    handlePageChange(val) {
+      this.pagination.currentPage = val
+      this.fetchTableData()
+    },
+    handlePageSizeChange(val) {
+      this.pagination.pageSize = val
+      this.pagination.currentPage = 1
+      this.fetchTableData()
     }
   }
 }
