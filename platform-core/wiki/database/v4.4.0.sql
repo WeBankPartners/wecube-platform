@@ -12,5 +12,6 @@ CREATE TABLE `trans_export_customer`
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '导出目标客户信息表';
 
-alter table trans_export
-    add column customer_name varchar(200) default null comment '客户名称';
+alter table trans_export add column customer_id varchar(64) default null comment '客户Id';
+alter table trans_export add column customer_name varchar(64) default null comment '客户名称';
+

@@ -17,6 +17,15 @@ func QueryTransExportCustomerByName(ctx context.Context, name string) (result []
 	return
 }
 
+func GetTransExportCustomer(ctx context.Context, id string) (result *models.DataTransExportCustomerTable, err error) {
+	var list []*models.DataTransExportCustomerTable
+	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_customer where id=?", id).Find(&list)
+	if len(list) > 0 {
+		result = list[0]
+	}
+	return
+}
+
 func AddTransExportCustomer(ctx context.Context, exportCustomer *models.DataTransExportCustomerTable) (err error) {
 	now := time.Now().Format(models.DateTimeFormat)
 	_, err = db.MysqlEngine.Context(ctx).Exec("insert into trans_export_customer(id,name,nexus_addr,nexus_account,nexus_pwd,nexus_repo,"+
