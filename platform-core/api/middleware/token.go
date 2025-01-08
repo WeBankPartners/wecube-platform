@@ -7,6 +7,8 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/gin-gonic/gin"
 	"io"
+	"regexp"
+	"strings"
 )
 
 func GetRequestUser(c *gin.Context) string {
@@ -23,7 +25,17 @@ func AuthToken(c *gin.Context) {
 		ReturnAuthError(c, exterror.Catch(exterror.New().RequestTokenValidateError, err), c.GetHeader(models.AuthorizationHeader))
 		c.Abort()
 	} else {
-		c.Next()
+		if models.Config.MenuApiMap.Enable {
+			legal := validateMenuApi(GetRequestRoles(c), c.Request.RequestURI, c.Request.Method)
+			if legal {
+				c.Next()
+			} else {
+				ReturnApiPermissionError(c)
+				c.Abort()
+			}
+		} else {
+			c.Next()
+		}
 	}
 }
 
@@ -62,4 +74,28 @@ func ReadFormFile(c *gin.Context, fileKey string) (fileName string, fileBytes []
 	fileBytes, err = io.ReadAll(fileHandler)
 	fileHandler.Close()
 	return
+}
+
+func validateMenuApi(roles []string, path, method string) (legal bool) {
+	for _, menuApi := range models.MenuApiGlobalList {
+		for _, role := range roles {
+			if strings.ToLower(menuApi.Menu) == strings.ToLower(role) {
+				for _, item := range menuApi.Urls {
+					if strings.ToLower(item.Method) == strings.ToLower(method) {
+						re := regexp.MustCompile(buildRegexPattern(item.Url))
+						if re.MatchString(path) {
+							legal = true
+							return
+						}
+					}
+				}
+			}
+		}
+	}
+	return
+}
+
+func buildRegexPattern(template string) string {
+	// 将 ${variable} 替换为 (\w+)
+	return regexp.MustCompile(`\$\{\w+\}`).ReplaceAllString(template, `(\w+)`)
 }
