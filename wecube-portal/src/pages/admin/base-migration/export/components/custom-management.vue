@@ -13,16 +13,24 @@
     :maskClosable="false"
     class="platform-customer-list-drawer"
   >
-    <div slot-scope="{maxHeight}" slot="content" style="display:flex;">
+    <div slot-scope="{maxHeight}" slot="content" style="display: flex">
       <!--客户列表-->
       <BaseHeaderTitle
         :title="$t('pi_custom_list')"
         :fontSize="15"
         :showExpand="false"
-        :style="{maxHeight: maxHeight + 'px', width: '250px', borderRight: '1px solid #e8eaec', marginRight: '20px', position: 'relative'}"
+        :style="{
+          maxHeight: maxHeight + 'px',
+          width: '250px',
+          borderRight: '1px solid #e8eaec',
+          marginRight: '20px',
+          position: 'relative'
+        }"
         class="left-area"
       >
-        <Button type="success" size="small" class="custom-create" @click="handleCreate">{{ $t('pi_add_custom') }}</Button>
+        <Button type="success" size="small" class="custom-create" @click="handleCreate">{{
+          $t('pi_add_custom')
+        }}</Button>
         <div v-if="customerList.length > 0" class="custom-list-wrap" :style="{maxHeight: maxHeight + 'px'}">
           <div
             v-for="i in customerList"
@@ -38,29 +46,54 @@
         <div v-else class="no-data">{{ $t('noData') }}</div>
       </BaseHeaderTitle>
       <!--客户信息-->
-      <BaseHeaderTitle :title="$t('pi_custom_info')" :fontSize="15" :showExpand="false" style="width:calc(100% - 300px);">
+      <BaseHeaderTitle
+        :title="$t('pi_custom_info')"
+        :fontSize="15"
+        :showExpand="false"
+        style="width: calc(100% - 300px)"
+      >
         <Form ref="form" :label-width="100" :model="form">
           <!--创建人-->
           <FormItem :label="$t('createdBy')">
             <Input :value="username" disabled />
           </FormItem>
           <!--目标客户-->
-          <FormItem :label="$t('pi_target_custom')" prop="name" :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}">
+          <FormItem
+            :label="$t('pi_target_custom')"
+            prop="name"
+            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}"
+          >
             <Input v-model.trim="form.name" :maxlength="200" />
           </FormItem>
           <!--nexus地址-->
-          <FormItem :label="$t('pi_nexus_address')" prop="nexusAddr" :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}">
+          <FormItem
+            :label="$t('pi_nexus_address')"
+            prop="nexusAddr"
+            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}"
+          >
             <Input v-model.trim="form.nexusAddr" :maxlength="100" />
           </FormItem>
           <!--nexus账号-->
-          <FormItem :label="$t('pi_nexus_account')" prop="nexusAccount" :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}">
+          <FormItem
+            :label="$t('pi_nexus_account')"
+            prop="nexusAccount"
+            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}"
+          >
             <Input v-model.trim="form.nexusAccount" :maxlength="50" />
           </FormItem>
           <!--nexus密码-->
-          <FormItem :label="$t('pi_nexus_password')" prop="nexusPwd" :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}">
+          <FormItem
+            :label="$t('pi_nexus_password')"
+            prop="nexusPwd"
+            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}"
+          >
             <Input v-model.trim="form.nexusPwd" :maxlength="20" />
           </FormItem>
-          <FormItem label="nexusrepo" prop="nexusRepo" :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}">
+          <FormItem
+            label="nexusrepo"
+            prop="nexusRepo"
+            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}"
+          >
             <Input v-model.trim="form.nexusRepo" :maxlength="50" />
           </FormItem>
         </Form>
@@ -68,7 +101,7 @@
     </div>
     <div slot="footer">
       <Button @click="handleCancel">{{ $t('cancel') }}</Button>
-      <Button type="primary" style="margin-left:10px;" @click="handleSave">{{ $t('save') }}</Button>
+      <Button type="primary" style="margin-left: 10px" @click="handleSave">{{ $t('save') }}</Button>
     </div>
   </BaseDrawer>
 </template>
