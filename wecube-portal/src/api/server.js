@@ -385,6 +385,12 @@ export const getBaseMigrationImportList = data => req.post('/platform/v1/data/tr
 export const getBaseMigrationImportQuery = () => req.get('/platform/v1/data/transfer/import/list/options')
 // 导入状态变更
 export const updateImportStatus = data => req.post('/platform/v1/data/transfer/import/status', data)
+// 目标客户列表
+export const getCustomerList = () => req.get('/platform/v1/data/transfer/export/customer')
+// 新增or编辑客户
+export const addCustomer = data => req.post('/platform/v1/data/transfer/export/customer', data)
+// 删除客户
+export const deleteCustomer = id => req.delete(`/platform/v1/data/transfer/export/customer?id=${id}`)
 
 // 资源管理-资源实例重构
 // 新增资源实例
