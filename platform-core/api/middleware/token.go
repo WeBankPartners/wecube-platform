@@ -26,7 +26,7 @@ func AuthToken(c *gin.Context) {
 		c.Abort()
 	} else {
 		if models.Config.MenuApiMap.Enable {
-			legal := validateMenuApi(GetRequestRoles(c), c.Request.RequestURI, c.Request.Method)
+			legal := validateMenuApi(GetRequestRoles(c), c.Request.URL.Path, c.Request.Method)
 			if legal {
 				c.Next()
 			} else {
