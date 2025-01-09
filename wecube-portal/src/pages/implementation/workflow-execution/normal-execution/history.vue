@@ -514,7 +514,9 @@ export default {
         // 读取列表搜索参数
         const storage = window.sessionStorage.getItem('platform_search_normalExecution') || ''
         if (storage) {
-          const { searchParams, searchOptions, allFlowInstances, pageable } = JSON.parse(storage)
+          const {
+            searchParams, searchOptions, allFlowInstances, pageable
+          } = JSON.parse(storage)
           vm.searchConfig = searchParams
           vm.searchOptions = searchOptions
           vm.allFlowInstances = allFlowInstances
