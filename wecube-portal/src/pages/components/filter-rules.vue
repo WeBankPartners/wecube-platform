@@ -22,7 +22,7 @@
       <div slot="content">
         <div v-show="!disabled" ref="filter_rules_path_options" class="filter_rules_path_options">
           <ul>
-            <li id="paste" style="margin-bottom: 5px" v-if="pathList.length === 0">
+            <li id="paste" style="margin-bottom: 5px" v-if="pathList.length === 0 && !hiddenFilterRule">
               <input
                 class="paste_input"
                 v-model="pasteValue"
@@ -37,7 +37,7 @@
             <li
               class
               style="color: #2d8cf0"
-              v-if="pathList.length > 0 && currentNode.nodeType === 'entity'"
+              v-if="pathList.length > 0 && currentNode.nodeType === 'entity' && !hiddenFilterRule"
               @click="addFilterRuleForCurrentNode"
             >
               {{ $t('add_filter_rule') }}
@@ -144,6 +144,11 @@ export default {
     allDataModelsWithAttrs: {},
     rootEntityFirst: {
       required: false,
+      default: false
+    },
+    // 是否隐藏过滤规则，默认为false不隐藏
+    hiddenFilterRule: {
+      type: Boolean,
       default: false
     }
   },
