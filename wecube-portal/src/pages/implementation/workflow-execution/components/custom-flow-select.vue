@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2024-10-14 15:05:46
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-01-06 14:28:58
+ * @LastEditTime: 2025-01-09 20:43:06
 -->
 <template>
   <div>
@@ -115,7 +115,7 @@ export default {
     return {
       form: {
         search: '',
-        onlyShowMyFlow: false
+        onlyShowMyFlow: true
       },
       selected: '',
       optionsData: [],
@@ -199,6 +199,7 @@ export default {
             this.$set(i, 'isShow', true)
           })
           this.initData()
+          this.form.search = this.getDisplayName()
         }
       },
       immediate: true,
@@ -231,23 +232,6 @@ export default {
     this.width = this.$refs.input.clientWidth - 32
   },
   methods: {
-    getDisplayName() {
-      const obj = this.optionsData.find(i => i.id === this.selected)
-      return (
-        obj.procInstName
-        + '  '
-        + '['
-        + obj.version
-        + ']  '
-        + obj.entityDisplayName
-        + '  '
-        + (obj.operator || 'operator')
-        + '  '
-        + (obj.createdTime || '0000-00-00 00:00:00')
-        + '  '
-        + this.getStatusStyleAndName(obj.displayStatus, 'label')
-      )
-    },
     initData() {
       if (this.optionsData.length > 0) {
         this.optionsData.forEach(i => {
@@ -255,6 +239,27 @@ export default {
             i.checked = true
           }
         })
+      }
+    },
+    getDisplayName() {
+      if (this.selected && Array.isArray(this.optionsData) && this.optionsData.length > 0) {
+        const obj = this.optionsData.find(i => i.id === this.selected)
+        return (
+          obj.procInstName
+          + '  '
+          + '['
+          + obj.version
+          + ']  '
+          + obj.entityDisplayName
+          + '  '
+          + (obj.operator || 'operator')
+          + '  '
+          + (obj.createdTime || '0000-00-00 00:00:00')
+          + '  '
+          + this.getStatusStyleAndName(obj.displayStatus, 'label')
+        )
+      } else {
+        return ''
       }
     },
     // 刷新下拉列表数据
