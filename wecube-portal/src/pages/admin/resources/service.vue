@@ -17,6 +17,7 @@
     <BaseDrawer
       :title="operator === 'add' ? $t('full_word_add') : $t('edit')"
       :visible.sync="visible"
+      v-if="visible"
       :realWidth="900"
       :maskClosable="false"
     >
@@ -45,7 +46,7 @@
             <Input type="textarea" v-model.trim="form.purpose" :maxlength="255" show-word-limit clearable></Input>
           </FormItem>
           <!--是否分配-->
-          <FormItem :label="$t('table_is_allocated')" prop="isAllocated">
+          <FormItem v-show="false" :label="$t('table_is_allocated')" prop="isAllocated">
             <i-switch v-model="form.isAllocated" :true-value="true" :false-value="false" size="default" />
           </FormItem>
           <!--账号-->
@@ -343,6 +344,8 @@ export default {
       const { status, data } = await retrieveServers(payload)
       if (status === 'OK') {
         this.resourceOptions = data.contents || []
+        this.resourceOptions = this.resourceOptions.filter(i => !i.isAllocated && i.status === 'active')
+
       }
     },
     // 新增数据时选择资源自动带出类型
