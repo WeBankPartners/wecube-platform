@@ -258,9 +258,9 @@ export default {
           + '  '
           + this.getStatusStyleAndName(obj.displayStatus, 'label')
         )
-      } else {
-        return ''
       }
+      return ''
+
     },
     // 刷新下拉列表数据
     handleSearch: debounce(function () {
