@@ -12,7 +12,7 @@
         v-model="searchConfig.params.mainProcInsId"
         style="width: 600px; margin-bottom: 10px"
         :options="allFlowInstances"
-        @search="getAllFlowInstances"
+        @search="handleFlowSelectSearch"
         @change="handleQuery"
         @clear="handleQuery"
       />
@@ -387,7 +387,11 @@ export default {
         }
       ],
       users: [],
-      allFlowInstances: []
+      allFlowInstances: [],
+      flowSelectForm: {
+        search: '',
+        onlyShowMyFlow: true
+      }
     }
   },
   computed: {
@@ -510,9 +514,10 @@ export default {
         // 读取列表搜索参数
         const storage = window.sessionStorage.getItem('platform_search_normalExecution') || ''
         if (storage) {
-          const { searchParams, searchOptions, pageable } = JSON.parse(storage)
+          const { searchParams, searchOptions, allFlowInstances, pageable } = JSON.parse(storage)
           vm.searchConfig = searchParams
           vm.searchOptions = searchOptions
+          vm.allFlowInstances = allFlowInstances
           vm.pageable = pageable
         }
       }
@@ -525,6 +530,7 @@ export default {
     const storage = {
       searchParams: this.searchConfig,
       searchOptions: this.searchOptions,
+      allFlowInstances: this.allFlowInstances,
       pageable: this.pageable
     }
     window.sessionStorage.setItem('platform_search_normalExecution', JSON.stringify(storage))
@@ -539,7 +545,9 @@ export default {
       this.getFlows()
       this.getProcessInstances()
       this.getAllUsers()
-      this.getAllFlowInstances()
+      if (Array.isArray(this.allFlowInstances) && this.allFlowInstances.length === 0) {
+        this.getAllFlowInstances()
+      }
     },
     // 查看主编排
     viewParentFlowGraph(row) {
@@ -770,15 +778,19 @@ export default {
         desc: this.$t('no_detail_warning')
       })
     },
+    handleFlowSelectSearch(val) {
+      this.flowSelectForm = val
+      this.getAllFlowInstances()
+    },
     // 获取父编排实例下拉列表
-    async getAllFlowInstances(form = {}) {
+    async getAllFlowInstances() {
       const params = {
         params: {
           withCronIns: 'no',
-          search: form.search || '',
+          search: this.flowSelectForm.search || '',
           withSubProc: '',
           mgmtRole: '',
-          createdBy: form.onlyShowMyFlow ? localStorage.getItem('username') : ''
+          createdBy: this.flowSelectForm.onlyShowMyFlow ? localStorage.getItem('username') : ''
         }
       }
       const { status, data } = await getProcessInstances(params)
