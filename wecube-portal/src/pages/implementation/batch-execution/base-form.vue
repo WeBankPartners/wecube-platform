@@ -79,6 +79,7 @@
             :allDataModelsWithAttrs="allEntityType"
             :needNativeAttr="false"
             :needAttr="true"
+            :hiddenFilterRule="true"
             :disabled="type === 'view' || from === 'execute'"
             v-model="dataModelExpression"
             class="form-item"
