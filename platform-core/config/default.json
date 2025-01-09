@@ -64,7 +64,7 @@
     "host_ports": "{{gateway_host_ports}}"
   },
   "menu_api_map": {
-    "enable": true,
+    "enable": false,
     "file": "config/menu-api-map.json"
   },
   "cron": {
