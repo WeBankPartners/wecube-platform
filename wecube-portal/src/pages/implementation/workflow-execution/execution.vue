@@ -1609,27 +1609,6 @@ export default {
       this.allBindingsList = filter.concat(payload)
       this.targetModalVisible = false
     },
-    // 执行记录下拉展开
-    // processInstancesOpenChange (flag) {
-    //   if (flag) {
-    //     this.allFlowInstances = []
-    //     this.remoteProcessInstances(this.selectedFlowInstance)
-    //   }
-    // },
-    // 远程搜索获取执行记录
-    // remoteProcessInstances: debounce(async function (query) {
-    //   function containsDateTime(str) {
-    //     const regex = /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/
-    //     return regex.test(str)
-    //   }
-    //   if (containsDateTime(query)) {
-    //     query = this.selectedFlowInstance
-    //   }
-    //   this.remoteLoading = true
-    //   await this.getProcessInstances(query)
-    //   this.remoteLoading = false
-    // }, 500),
-
     // 获取执行记录列表
     async getProcessInstances(form = {}) {
       const params = {
