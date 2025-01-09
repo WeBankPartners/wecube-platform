@@ -345,7 +345,6 @@ export default {
       if (status === 'OK') {
         this.resourceOptions = data.contents || []
         this.resourceOptions = this.resourceOptions.filter(i => !i.isAllocated && i.status === 'active')
-
       }
     },
     // 新增数据时选择资源自动带出类型
