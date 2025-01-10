@@ -345,3 +345,31 @@ func GetResourceItem(ctx context.Context, resourceType, name string, isAllocated
 	}
 	return
 }
+
+func ValidateResourceServer(ctx context.Context, resourceServer *models.ResourceServer) (err error) {
+	if resourceServer.Type == "docker" {
+		return
+	}
+	if resourceServer.Status == "active" && resourceServer.IsAllocated {
+		queryResult, queryErr := db.MysqlEngine.Context(ctx).QueryString("select id from resource_server where `type`=? and status='active' and is_allocated=1", resourceServer.Type)
+		if queryErr != nil {
+			err = fmt.Errorf("query resource server fail,%s ", queryErr.Error())
+			return
+		}
+		if len(queryResult) > 0 {
+			legalFlag := false
+			if resourceServer.Id != "" {
+				for _, v := range queryResult {
+					if v["id"] == resourceServer.Id {
+						legalFlag = true
+						break
+					}
+				}
+			}
+			if !legalFlag {
+				err = fmt.Errorf("resource server validate fail,already have an active&&allocated %s resource", resourceServer.Type)
+			}
+		}
+	}
+	return
+}
