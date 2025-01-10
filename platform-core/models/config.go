@@ -220,7 +220,6 @@ func InitConfig(configFile string) (errMessage string) {
 	}
 	Config = &c
 	if c.MenuApiMap.Enable == "true" || strings.TrimSpace(c.MenuApiMap.Enable) == "" || strings.ToUpper(c.MenuApiMap.Enable) == "Y" {
-		log.Println("enable menu api permission success")
 		maBytes, err := ioutil.ReadFile(Config.MenuApiMap.File)
 		if err != nil {
 			errMessage = "read menu api map file fail," + err.Error()
@@ -231,6 +230,7 @@ func InitConfig(configFile string) (errMessage string) {
 			errMessage = "json unmarshal menu api map content fail," + err.Error()
 			return
 		}
+		log.Println("enable menu api permission success")
 	} else {
 		log.Println("disable menu api permission success")
 	}
