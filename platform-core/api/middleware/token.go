@@ -102,5 +102,5 @@ func validateMenuApi(roles []string, path, method string) (legal bool) {
 
 func buildRegexPattern(template string) string {
 	// 将 ${variable} 替换为 (\w+)
-	return regexp.MustCompile(`\$\{\w+\}`).ReplaceAllString(template, `(\w+)`)
+	return regexp.MustCompile(`\$\{[\w.-]+\}`).ReplaceAllString(template, `(\w+)`)
 }
