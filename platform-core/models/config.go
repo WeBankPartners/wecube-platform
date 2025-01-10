@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 
@@ -81,7 +82,7 @@ type CronConfig struct {
 	KeepBatchExecDays int64 `json:"keep_batch_exec_days"`
 }
 type MenuApiMapConfig struct {
-	Enable bool   `json:"enable"`
+	Enable string `json:"enable"`
 	File   string `json:"file"`
 }
 
@@ -218,7 +219,7 @@ func InitConfig(configFile string) (errMessage string) {
 		c.Auth.SubSystemPrivateKey = "MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAwnTN7JDXFcSoikXuNOQDtAjic1Wu6oAtCQJquCJmXrBTqB7hwS2mK6TuT8P7Jx60BQcaRL12hPLi6cOiCawuVwIDAQABAkB9NORazDARjhzPW5OzbpWL2KSmiqcjywA0at/4S/4KPPM8vwRjzEMs7pV9nSJ2M+/YOqPMBDl8iBUSLpfKf/uxAiEA52UroIvo2URlmAycaJm7+e4QqqfhEnM9wlGCJwL2jTsCIQDXIh2zwN7KQEIypmOL+uXvlZUjmx0Tj29mWOwP/fBBlQIhAI9+VLSlror1eE73GxNeqoxNznYVz2RCpLzZEO4iT0S7AiARg0Z1tpKsVjTNWLwrzf3f1gZxApSIXhnMdBqrZpmjTQIhAJhgYctlaydmggTPCqWLGub9WqEyH2HrrcabRvpWdEcV"
 	}
 	Config = &c
-	if Config.MenuApiMap.Enable {
+	if c.MenuApiMap.Enable == "true" || strings.TrimSpace(c.MenuApiMap.Enable) == "" || strings.ToUpper(c.MenuApiMap.Enable) == "Y" {
 		maBytes, err := ioutil.ReadFile(Config.MenuApiMap.File)
 		if err != nil {
 			errMessage = "read menu api map file fail," + err.Error()
@@ -229,6 +230,8 @@ func InitConfig(configFile string) (errMessage string) {
 			errMessage = "json unmarshal menu api map content fail," + err.Error()
 			return
 		}
+	} else {
+		log.Println("disable menu api permission success")
 	}
 	return
 }
