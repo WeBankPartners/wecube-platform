@@ -25,7 +25,7 @@ func AuthToken(c *gin.Context) {
 		ReturnAuthError(c, exterror.Catch(exterror.New().RequestTokenValidateError, err), c.GetHeader(models.AuthorizationHeader))
 		c.Abort()
 	} else {
-		if models.Config.MenuApiMap.Enable {
+		if models.Config.MenuApiMap.Enable == "true" || strings.TrimSpace(models.Config.MenuApiMap.Enable) == "" || strings.ToUpper(models.Config.MenuApiMap.Enable) == "Y" {
 			legal := validateMenuApi(GetRequestRoles(c), c.Request.URL.Path, c.Request.Method)
 			if legal {
 				c.Next()
