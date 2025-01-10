@@ -25,6 +25,11 @@ func AuthToken(c *gin.Context) {
 		ReturnAuthError(c, exterror.Catch(exterror.New().RequestTokenValidateError, err), c.GetHeader(models.AuthorizationHeader))
 		c.Abort()
 	} else {
+		// 首页接口直接放行
+		if strings.HasSuffix(c.Request.URL.Path, "/resource-files") || strings.HasSuffix(c.Request.URL.Path, "/appinfo/version") || strings.HasSuffix(c.Request.URL.Path, "/my-menus") {
+			c.Next()
+			return
+		}
 		if models.Config.MenuApiMap.Enable == "true" || strings.TrimSpace(models.Config.MenuApiMap.Enable) == "" || strings.ToUpper(models.Config.MenuApiMap.Enable) == "Y" {
 			legal := validateMenuApi(GetRequestRoles(c), c.Request.URL.Path, c.Request.Method)
 			if legal {
