@@ -531,13 +531,14 @@ func GetResourceServer(ctx context.Context, serverType, serverIp, name, resource
 			//}
 			if serverType == "mysql" && name == "" {
 				for _, row := range resourceServerRows {
-					if row.Name == "plugin" {
+					if row.IsAllocated {
 						resourceServerObj = row
 						break
 					}
 				}
 				if resourceServerObj == nil {
-					resourceServerObj = resourceServerRows[0]
+					err = fmt.Errorf("can not find allocate mysql resource")
+					return
 				}
 			} else {
 				resourceServerObj = resourceServerRows[0]
