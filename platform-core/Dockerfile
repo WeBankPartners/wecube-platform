@@ -6,6 +6,7 @@ RUN mkdir -p $BASE_HOME $BASE_HOME/config $BASE_HOME/logs
 
 ADD build/start.sh $BASE_HOME/
 ADD config/default.json $BASE_HOME/config/
+ADD config/menu-api-map.json $BASE_HOME/config/
 ADD config/i18n $BASE_HOME/config/i18n/
 ADD platform-core $BASE_HOME/
 
