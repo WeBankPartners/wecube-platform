@@ -66,7 +66,17 @@ func CreateResourceServer(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	err := database.CreateResourceServer(c, params)
+	var err error
+	for _, v := range params {
+		if err = database.ValidateResourceServer(c, v); err != nil {
+			break
+		}
+	}
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	err = database.CreateResourceServer(c, params)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -80,7 +90,17 @@ func UpdateResourceServer(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	err := database.UpdateResourceServer(c, params)
+	var err error
+	for _, v := range params {
+		if err = database.ValidateResourceServer(c, v); err != nil {
+			break
+		}
+	}
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	err = database.UpdateResourceServer(c, params)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
