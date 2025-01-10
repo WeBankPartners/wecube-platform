@@ -28,7 +28,11 @@
             <Select
               v-model="form.resourceServerId"
               @on-change="handleSelectResource"
-              @on-open-change="(flag) => { if (flag) getResourceOptions() }"
+              @on-open-change="
+                flag => {
+                  if (flag) getResourceOptions()
+                }
+              "
               clearable
             >
               <Option v-for="item in resourceOptions" :key="item.id" :value="item.id">{{ item.name }}</Option>
