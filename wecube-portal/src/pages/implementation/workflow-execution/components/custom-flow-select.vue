@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2024-10-14 15:05:46
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-01-09 20:43:06
+ * @LastEditTime: 2025-01-10 15:20:21
 -->
 <template>
   <div>
@@ -199,7 +199,9 @@ export default {
             this.$set(i, 'isShow', true)
           })
           this.initData()
-          this.form.search = this.getDisplayName()
+          if (this.selected) {
+            this.form.search = this.getDisplayName()
+          }
         }
       },
       immediate: true,
@@ -209,7 +211,9 @@ export default {
       handler(val) {
         if (val) {
           this.selected = val
-          this.form.search = this.getDisplayName()
+          if (Array.isArray(this.optionsData) && this.optionsData.length > 0) {
+            this.form.search = this.getDisplayName()
+          }
         }
         this.initData()
       },
