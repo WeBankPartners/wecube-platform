@@ -90,13 +90,7 @@
           >
             <input type="text" style="display: none" />
             <input type="password" autocomplete="new-password" style="display: none" />
-            <Input
-              v-model.trim="form.nexusPwd"
-              type="password"
-              autocomplete="off"
-              password
-              :maxlength="20"
-            />
+            <Input v-model.trim="form.nexusPwd" type="password" autocomplete="off" password :maxlength="20" />
           </FormItem>
           <FormItem
             label="nexusrepo"
