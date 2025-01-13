@@ -251,6 +251,7 @@ func init() {
 		// 底座导入导出
 		&handlerFuncObj{Url: "/data/transfer/business/list", Method: "POST", HandlerFunc: data_trans.QueryBusinessList, ApiCode: "data-transfer-business-list"},
 		&handlerFuncObj{Url: "/data/transfer/export/customer", Method: "POST", HandlerFunc: data_trans.CreateOrUpdateExportCustomer, ApiCode: "data-transfer-export-customer-add"},
+		&handlerFuncObj{Url: "/data/transfer/export/nexus", Method: "GET", HandlerFunc: data_trans.GetExportNexusInfo, ApiCode: "data-transfer-export-nexus"},
 		&handlerFuncObj{Url: "/data/transfer/export/customer", Method: "GET", HandlerFunc: data_trans.QueryExportCustomerList, ApiCode: "data-transfer-export-customer-get"},
 		&handlerFuncObj{Url: "/data/transfer/export/customer", Method: "DELETE", HandlerFunc: data_trans.DeleteExportCustomer, ApiCode: "data-transfer-export-customer-delete"},
 		&handlerFuncObj{Url: "/data/transfer/export/create", Method: "POST", HandlerFunc: data_trans.CreateExport, ApiCode: "data-transfer-export-create"},
