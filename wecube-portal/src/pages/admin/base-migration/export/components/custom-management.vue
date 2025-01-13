@@ -150,7 +150,9 @@ export default {
     async handleInitCustomInfo() {
       const { status, data } = await getNexusConfig()
       if (status === 'OK') {
-        const { nexusUser, nexusPwd, nexusUrl, nexusRepo } = data || {}
+        const {
+          nexusUser, nexusPwd, nexusUrl, nexusRepo
+        } = data || {}
         this.form.nexusAddr = nexusUrl
         this.form.nexusAccount = nexusUser
         this.form.nexusPwd = nexusPwd
