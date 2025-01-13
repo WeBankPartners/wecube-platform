@@ -182,6 +182,6 @@
   },
   "api_permission_error": {
     "code": 20000041,
-    "message": "API权限不足"
+    "message": "无接口访问权限"
   }
 }
