@@ -240,3 +240,13 @@ func DeleteExportCustomer(c *gin.Context) {
 	}
 	middleware.ReturnSuccess(c)
 }
+
+func GetExportNexusInfo(c *gin.Context) {
+	var transDataVariableConfig *models.TransDataVariableConfig
+	var err error
+	if transDataVariableConfig, err = database.GetDataTransVariableMap(c); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnData(c, transDataVariableConfig)
+}
