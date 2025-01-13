@@ -2,18 +2,17 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2025-01-07 20:01:01
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-01-13 15:21:35
+ * @LastEditTime: 2025-01-13 17:41:29
 -->
 <template>
   <BaseDrawer
-    :title="$t('pi_custom_title')"
+    :title="form.id ? $t('pi_edit_custom') : $t('pi_add_custom')"
     :visible.sync="visible"
     :realWidth="1100"
     :scrollable="true"
     :maskClosable="false"
-    class="platform-customer-list-drawer"
   >
-    <div slot-scope="{maxHeight}" slot="content" style="display: flex">
+    <div slot-scope="{maxHeight}" slot="content" style="display: flex" class="platform-customer-content">
       <!--客户列表-->
       <BaseHeaderTitle
         :title="$t('pi_custom_list')"
@@ -39,7 +38,7 @@
             :style="{background: selected === i.id ? '#c6eafe' : '#fff'}"
             @click="handleEdit(i)"
           >
-            <span>{{ i.name }}</span>
+            <div class="tag">{{ i.name }}</div>
             <Button type="error" size="small" icon="md-trash" @click="handleDelete($event, i)"></Button>
           </div>
         </div>
@@ -50,7 +49,7 @@
         :title="$t('pi_custom_info')"
         :fontSize="15"
         :showExpand="false"
-        style="width: calc(100% - 300px); position: relative"
+        style="width: calc(100% - 280px); position: relative"
         class="right-area"
       >
         <Button type="primary" size="small" class="init-custom" @click="handleInitCustomInfo">填充默认配置</Button>
@@ -89,7 +88,15 @@
             prop="nexusPwd"
             :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}"
           >
-            <Input v-model.trim="form.nexusPwd" :maxlength="20" />
+            <input type="text" style="display: none" />
+            <input type="password" autocomplete="new-password" style="display: none" />
+            <Input
+              v-model.trim="form.nexusPwd"
+              type="password"
+              autocomplete="off"
+              password
+              :maxlength="20"
+            />
           </FormItem>
           <FormItem
             label="nexusrepo"
@@ -240,14 +247,20 @@ export default {
     overflow-y: auto;
     .custom-list {
       width: 220px;
-      padding: 5px 10px 5px 0px;
+      padding: 5px;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       cursor: pointer;
-      span {
-        font-size: 15px;
-        max-width: 160px;
+      .tag {
+        font-size: 14px;
+        max-width: 170px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        background: #f7f7f7;
+        overflow: hidden;
+        border-radius: 4px;
+        padding: 2px 8px;
       }
     }
   }
@@ -255,8 +268,13 @@ export default {
 .right-area {
   .init-custom {
     position: absolute;
-    right: 10px;
+    right: 0px;
     top: 0px;
   }
+}
+</style>
+<style lang="scss">
+.platform-customer-content .common-ui-header-title .w-content {
+  padding: 20px 0px;
 }
 </style>
