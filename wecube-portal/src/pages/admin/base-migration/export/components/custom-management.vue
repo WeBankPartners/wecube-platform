@@ -50,7 +50,7 @@
         :title="$t('pi_custom_info')"
         :fontSize="15"
         :showExpand="false"
-        style="width: calc(100% - 300px);position: relative;"
+        style="width: calc(100% - 300px); position: relative"
         class="right-area"
       >
         <Button type="primary" size="small" class="init-custom" @click="handleInitCustomInfo">填充默认配置</Button>
@@ -108,7 +108,9 @@
   </BaseDrawer>
 </template>
 <script>
-import { getCustomerList, addCustomer, deleteCustomer, getNexusConfig } from '@/api/server'
+import {
+  getCustomerList, addCustomer, deleteCustomer, getNexusConfig
+} from '@/api/server'
 import { debounce } from 'lodash'
 export default {
   props: {
