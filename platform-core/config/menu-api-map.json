@@ -593,312 +593,312 @@
     "urls": [
       {
         "key": "getAllFlow",
-        "path": "/platform/v1/process/definitions",
+        "url": "/platform/v1/process/definitions",
         "method": "get"
       },
       {
         "key": "getFlowOutlineByID",
-        "path": "/platform/v1/process/definitions/${id}/outline",
+        "url": "/platform/v1/process/definitions/${id}/outline",
         "method": "get"
       },
       {
         "key": "getTreePreviewData",
-        "path": "/platform/v1/process/definitions/${flowId}/preview/entities/${targetId}",
+        "url": "/platform/v1/process/definitions/${flowId}/preview/entities/${targetId}",
         "method": "get"
       },
       {
         "key": "previewFlowExecute",
-        "path": "/platform/v1/process/definitions/nodes/empty-query",
+        "url": "/platform/v1/process/definitions/nodes/empty-query",
         "method": "get"
       },
       {
         "key": "createFlowInstance",
-        "path": "/platform/v1/process/instances",
+        "url": "/platform/v1/process/instances",
         "method": "post"
       },
       {
         "key": "getProcessInstances",
-        "path": "/platform/v1/process/instances",
+        "url": "/platform/v1/process/instances",
         "method": "get"
       },
       {
         "key": "getProcessInstance",
-        "path": "/platform/v1/process/instances/${id}",
+        "url": "/platform/v1/process/instances/${id}",
         "method": "get"
       },
       {
         "key": "retryProcessInstance",
-        "path": "/platform/v1/process/instances/proceed",
+        "url": "/platform/v1/process/instances/proceed",
         "method": "post"
       },
       {
         "key": "getModelNodeDetail",
-        "path": "/platform/v1/packages/${packageName}/entities/${entityName}/query",
+        "url": "/platform/v1/packages/${packageName}/entities/${entityName}/query",
         "method": "post"
       },
       {
         "key": "getNodeBindings",
-        "path": "/platform/v1/process/instances/${id}/tasknode-bindings",
+        "url": "/platform/v1/process/instances/${id}/tasknode-bindings",
         "method": "get"
       },
       {
         "key": "getNodeContext",
-        "path": "/platform/v1/process/instances/${procId}/tasknodes/${nodeId}/context",
+        "url": "/platform/v1/process/instances/${procId}/tasknodes/${nodeId}/context",
         "method": "get"
       },
       {
         "key": "getDataByNodeDefIdAndProcessSessionId",
-        "path": "/platform/v1/process/instances/tasknodes/${nodeDefId}/session/${ProcessSessionId}/tasknode-bindings",
+        "url": "/platform/v1/process/instances/tasknodes/${nodeDefId}/session/${ProcessSessionId}/tasknode-bindings",
          "method": "get"
       },
       {
         "key": "setDataByNodeDefIdAndProcessSessionId",
-        "path": "/platform/v1/process/instances/tasknodes/${nodeDefId}/session/${ProcessSessionId}/tasknode-bindings",
+        "url": "/platform/v1/process/instances/tasknodes/${nodeDefId}/session/${ProcessSessionId}/tasknode-bindings",
         "method": "post"
       },
       {
         "key": "getAllBindingsProcessSessionId",
-        "path": "/platform/v1/process/instances/tasknodes/session/${ProcessSessionId}/tasknode-bindings",
+        "url": "/platform/v1/process/instances/tasknodes/session/${ProcessSessionId}/tasknode-bindings",
         "method": "get"
       },
       {
         "key": "getTargetModelByProcessDefId",
-        "path": "/platform/v1/process/definitions/${id}/root-entities",
+        "url": "/platform/v1/process/definitions/${id}/root-entities",
         "method": "get"
       },
       {
         "key": "getPreviewEntitiesByInstancesId",
-        "path": "/platform/v1/process/instances/${id}/preview/entities",
+        "url": "/platform/v1/process/instances/${id}/preview/entities",
         "method": "get"
       },
       {
         "key": "createWorkflowInstanceTerminationRequest",
-        "path": "/platform/v1/public/process/instances/${procInstId}/terminations",
+        "url": "/platform/v1/public/process/instances/${procInstId}/terminations",
         "method": "post"
       },
       {
         "key": "getTaskNodeInstanceExecBindings",
-        "path": "/platform/v1/process/instances/${procInstId}/tasknodes/${nodeInstId}/tasknode-bindings",
+        "url": "/platform/v1/process/instances/${procInstId}/tasknodes/${nodeInstId}/tasknode-bindings",
         "method": "get"
       },
       {
         "key": "updateTaskNodeInstanceExecBindings",
-        "path": "/platform/v1/process/instances/${procInstId}/tasknodes/${nodeInstId}/tasknode-bindings",
+        "url": "/platform/v1/process/instances/${procInstId}/tasknodes/${nodeInstId}/tasknode-bindings",
         "method": "post"
       },
       {
         "key": "setUserScheduledTasks",
-        "path": "/platform/v1/user-scheduled-tasks/create",
+        "url": "/platform/v1/user-scheduled-tasks/create",
         "method": "post"
       },
       {
         "key": "getMetaData",
-        "path": "/platform/v1/plugins/configs/interfaces/param/metadata/query",
+        "url": "/platform/v1/plugins/configs/interfaces/param/metadata/query",
         "method": "post"
       },
       {
         "key": "getExecutionTimeByNodeId",
-        "path": "/platform/v1/process/instances/node-message/${nodeId}/time",
+        "url": "/platform/v1/process/instances/node-message/${nodeId}/time",
         "method": "get"
       },
       {
         "key": "skipNode",
-        "path": "/platform/v1/process/instances/proceed",
+        "url": "/platform/v1/process/instances/proceed",
         "method": "post"
       },
       {
         "key": "getBranchByNodeId",
-        "path": "/platform/v1/process/instances/node-message/${nodeId}/choose",
+        "url": "/platform/v1/process/instances/node-message/${nodeId}/choose",
         "method": "get"
       },
       {
         "key": "executeBranch",
-        "path": "/platform/v1/process/instances/proceed",
+        "url": "/platform/v1/process/instances/proceed",
         "method": "post"
       },
       {
         "key": "pauseAndContinueFlow",
-        "path": "/platform/v1/process/instances/proceed",
+        "url": "/platform/v1/process/instances/proceed",
         "method": "post"
       },
       {
         "key": "collectFlow",
-        "path": "/platform/v1/process/definitions/collect/add",
+        "url": "/platform/v1/process/definitions/collect/add",
         "method": "post"
       },
       {
         "key": "unCollectFlow",
-        "path": "/platform/v1/process/definitions/collect/del",
+        "url": "/platform/v1/process/definitions/collect/del",
         "method": "post"
       },
       {
         "key": "getSourceNode",
-        "path": "/platform/v1/process/definitions/${flowId}/tasknodes/briefs",
+        "url": "/platform/v1/process/definitions/${flowId}/tasknodes/briefs",
         "method": "get"
       },
       {
         "key": "getNodeParams",
-        "path": "/platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}/parameters",
+        "url": "/platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}/parameters",
         "method": "get"
       },
       {
         "key": "getPluginFunByRule",
-        "path": "/platform/v1/plugins/query-by-target-entity",
+        "url": "/platform/v1/plugins/query-by-target-entity",
         "method": "post"
       },
       {
         "key": "retrieveSystemVariables",
-        "path": "/platform/v1/system-variables/retrieve",
+        "url": "/platform/v1/system-variables/retrieve",
         "method": "post"
       },
       {
         "key": "getAllDataModels",
-        "path": "/platform/v1/models",
+        "url": "/platform/v1/models",
         "method": "get"
       },
       {
         "key": "getAssociatedNodes",
-        "path": "/platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}/preorder",
+        "url": "/platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}/preorder",
         "method": "get"
       },
       {
         "key": "getAllDataModels",
-        "path": "/platform/v1/models",
+        "url": "/platform/v1/models",
         "method": "get"
       },
       {
         "key": "getTargetOptions",
-        "path": "/${pkgName}/entities/${entityName}/query",
+        "url": "/${pkgName}/entities/${entityName}/query",
         "method": "post"
       },
       {
         "key": "getEntityRefsByPkgNameAndEntityName",
-        "path": "/platform/v1/models/package/${pkgName}/entity/${entityName}",
+        "url": "/platform/v1/models/package/${pkgName}/entity/${entityName}",
         "method": "get"
       },
       {
         "key": "getChildFlowListNew",
-        "path": "/platform/v1/process/definitions/sub/list",
+        "url": "/platform/v1/process/definitions/sub/list",
         "method": "post"
       },
       {
         "key": "instancesWithPaging",
-        "path": "/platform/v1/process/instancesWithPaging",
+        "url": "/platform/v1/process/instancesWithPaging",
         "method": "post"
       },
       {
         "key": "getUserList",
-        "path": "/platform/v1/users/retrieve",
+        "url": "/platform/v1/users/retrieve",
         "method": "get"
       },
       {
         "key": "getAllFlow",
-        "path": "/platform/v1/process/definitions",
+        "url": "/platform/v1/process/definitions",
         "method": "get"
       },
       {
         "key": "createWorkflowInstanceTerminationRequest",
-        "path": "/platform/v1/public/process/instances/${procInstId}/terminations",
+        "url": "/platform/v1/public/process/instances/${procInstId}/terminations",
         "method": "post"
       },
       {
         "key": "batchWorkflowInstanceTermination",
-        "path": "/platform/v1/public/process/instances/batch-terminations",
+        "url": "/platform/v1/public/process/instances/batch-terminations",
         "method": "post"
       },
       {
         "key": "pauseAndContinueFlow",
-        "path": "/platform/v1/process/instances/proceed",
+        "url": "/platform/v1/process/instances/proceed",
         "method": "post"
       },
       {
         "key": "getProcessInstances",
-        "path": "/platform/v1/process/instances",
+        "url": "/platform/v1/process/instances",
         "method": "get"
       },
       {
         "key": "flowList",
-        "path": "/platform/v1/process/definitions/list",
+        "url": "/platform/v1/process/definitions/list",
         "method": "post"
       },
       {
         "key": "collectFlow",
-        "path": "/platform/v1/process/definitions/collect/add",
+        "url": "/platform/v1/process/definitions/collect/add",
         "method": "post"
       },
       {
         "key": "unCollectFlow",
-        "path": "/platform/v1/process/definitions/collect/del",
+        "url": "/platform/v1/process/definitions/collect/del",
         "method": "post"
       },
       {
         "key": "getUserScheduledTasks",
-        "path": "/platform/v1/user-scheduled-tasks/query",
+        "url": "/platform/v1/user-scheduled-tasks/query",
         "method": "post"
       },
       {
         "key": "deleteUserScheduledTasks",
-        "path": "/platform/v1/user-scheduled-tasks/delete",
+        "url": "/platform/v1/user-scheduled-tasks/delete",
         "method": "post"
       },
       {
         "key": "resumeUserScheduledTasks",
-        "path": "/platform/v1/user-scheduled-tasks/resume",
+        "url": "/platform/v1/user-scheduled-tasks/resume",
         "method法": "post"
       },
       {
         "key": "getScheduledTasksByStatus",
-        "path": "/platform/v1/user-scheduled-tasks/process-instances/query",
+        "url": "/platform/v1/user-scheduled-tasks/process-instances/query",
         "method": "post"
       },
       {
         "key": "getProcessInstances",
-        "path": "/platform/v1/process/instances",
+        "url": "/platform/v1/process/instances",
         "method": "get"
       },
       {
         "key": "setUserScheduledTasks",
-        "path": "/platform/v1/user-scheduled-tasks/create",
+        "url": "/platform/v1/user-scheduled-tasks/create",
         "method": "post"
       },
       {
         "key": "stopUserScheduledTasks",
-        "path": "/platform/v1/user-scheduled-tasks/stop",
+        "url": "/platform/v1/user-scheduled-tasks/stop",
         "method": "post"
       },
       {
         "key": "getCurrentUserRoles",
-        "path": "/platform/v1/users/roles",
+        "url": "/platform/v1/users/roles",
         "method": "get"
       },
       {
         "key": "getAllFlow",
-        "path": "/platform/v1/process/definitions",
+        "url": "/platform/v1/process/definitions",
         "method": "get"
       },
       {
         "key": "instancesWithPaging",
-        "path": "/platform/v1/process/instancesWithPaging",
+        "url": "/platform/v1/process/instancesWithPaging",
         "method": "post"
       },
       {
         "key": "getAllFlow",
-        "path": "/platform/v1/process/definitions",
+        "url": "/platform/v1/process/definitions",
         "method": "get"
       },
       {
         "key": "createWorkflowInstanceTerminationRequest",
-        "path": "/platform/v1/public/process/instances/${procInstId}/terminations",
+        "url": "/platform/v1/public/process/instances/${procInstId}/terminations",
         "method": "post"
       },
       {
         "key": "batchWorkflowInstanceTermination",
-        "path": "/platform/v1/public/process/instances/batch-terminations",
+        "url": "/platform/v1/public/process/instances/batch-terminations",
         "method": "post"
       },
       {
         "key": "pauseAndContinueFlow",
-        "path": "/platform/v1/process/instances/proceed",
+        "url": "/platform/v1/process/instances/proceed",
         "method": "post"
       }
     ]
@@ -909,82 +909,82 @@
     "urls": [
       {
         "key": "getAllDataModels",
-        "path": "/platform/v1/models",
+        "url": "/platform/v1/models",
         "method": "get"
       },
       {
         "key": "dmeAllEntities",
-        "path": "/platform/v1/data-model/dme/all-entities",
+        "url": "/platform/v1/data-model/dme/all-entities",
         "method": "post"
       },
       {
         "key": "getPluginsByTargetEntityFilterRule",
-        "path": "/platform/v1/plugins/query-by-target-entity",
+        "url": "/platform/v1/plugins/query-by-target-entity",
         "method": "post"
       },
       {
         "key": "entityView",
-        "path": "/platform/v1/models/package/${packageName}/entity/${entityName}/attributes",
+        "url": "/platform/v1/models/package/${packageName}/entity/${entityName}/attributes",
         "method": "get"
       },
       {
         "key": "dmeIntegratedQuery",
-        "path": "/platform/v1/data-model/dme/integrated-query",
+        "url": "/platform/v1/data-model/dme/integrated-query",
         "method": "post"
       },
       {
         "key": "batchExecuteHistory",
-        "path": "/platform/v1/batch-execution/${id}",
+        "url": "/platform/v1/batch-execution/${id}",
         "method": "get"
       },
       {
         "key": "getBatchExecuteTemplateList",
-        "path": "/platform/v1/batch-execution/templates/list",
+        "url": "/platform/v1/batch-execution/templates/list",
         "method": "post"
       },
       {
         "key": "updateExecuteTemplateRole",
-        "path": "/platform/v1/batch-execution/templates/permission/update",
+        "url": "/platform/v1/batch-execution/templates/permission/update",
         "method": "post"
       },
       {
         "key": "deleteExecuteTemplate",
-        "path": "/platform/v1/batch-execution/templates/${id}",
+        "url": "/platform/v1/batch-execution/templates/${id}",
         "method": "delete"
       },
       {
         "key": "collectBatchTemplate",
-        "path": "/platform/v1/batch-execution/templates/collect",
+        "url": "/platform/v1/batch-execution/templates/collect",
         "method": "post"
       },
       {
         "key": "uncollectBatchTemplate",
-        "path": "/platform/v1/batch-execution/templates/uncollect",
+        "url": "/platform/v1/batch-execution/templates/uncollect",
         "method": "post"
       },
       {
         "key": "saveBatchExecute",
-        "path": "/platform/v1/batch-execution/job/run",
+        "url": "/platform/v1/batch-execution/job/run",
         "method": "post"
       },
       {
         "key": "saveBatchExecuteTemplate",
-        "path": "/platform/v1/batch-execution/templates",
+        "url": "/platform/v1/batch-execution/templates",
         "method": "post"
       },
       {
         "key": "getBatchExecuteTemplateDetail",
-        "path": "/platform/v1/batch-execution/templates/${templateId}",
+        "url": "/platform/v1/batch-execution/templates/${templateId}",
         "method": "get"
       },
       {
         "key": "getInputParamsEncryptKey",
-        "path": "/platform/v1/batch-execution/seed",
+        "url": "/platform/v1/batch-execution/seed",
         "method": "get"
       },
       {
         "key": "getBatchExecuteList",
-        "path": "/platform/v1/batch-execution/list",
+        "url": "/platform/v1/batch-execution/list",
         "method": "post"
       }
     ]
@@ -995,103 +995,108 @@
     "urls": [
       {
         "key": "getBaseMigrationExportList",
-        "path": "/platform/v1/data/transfer/export/list",
+        "url": "/platform/v1/data/transfer/export/list",
         "method": "POST"
       },
       {
         "key": "getBaseMigrationExportQuery",
-        "path": "/platform/v1/data/transfer/export/list/options",
+        "url": "/platform/v1/data/transfer/export/list/options",
         "method": "GET"
       },
       {
         "key": "saveEnvBusiness",
-        "path": "/platform/v1/data/transfer/export/create",
+        "url": "/platform/v1/data/transfer/export/create",
         "method": "POST"
       },
       {
         "key": "updateEnvBusiness",
-        "path": "/platform/v1/data/transfer/export/update",
+        "url": "/platform/v1/data/transfer/export/update",
         "method": "POST"
       },
       {
         "key": "exportBaseMigration",
-        "path": "/platform/v1/data/transfer/export",
+        "url": "/platform/v1/data/transfer/export",
         "method": "POST"
       },
       {
         "key": "getExportDetail",
-        "path": "/platform/v1/data/transfer/export/detail",
+        "url": "/platform/v1/data/transfer/export/detail",
         "method": "GET"
       },
       {
         "key": "getExportBusinessList",
-        "path": "/platform/v1/data/transfer/business/list",
+        "url": "/platform/v1/data/transfer/business/list",
         "method": "POST"
       },
       {
         "key": "getCustomerList",
-        "path": "/platform/v1/data/transfer/export/customer",
+        "url": "/platform/v1/data/transfer/export/customer",
         "method": "GET"
       },
       {
         "key": "addCustomer",
-        "path": "/platform/v1/data/transfer/export/customer",
+        "url": "/platform/v1/data/transfer/export/customer",
         "method": "POST"
       },
       {
         "key": "deleteCustomer",
-        "path": "/platform/v1/data/transfer/export/customer",
+        "url": "/platform/v1/data/transfer/export/customer",
         "method": "DELETE"
       },
       {
         "key": "getRoleList",
-        "path": "/platform/v1/roles/retrieve",
+        "url": "/platform/v1/roles/retrieve",
         "method": "GET"
       },
       {
         "key": "getAllExportFlows",
-        "path": "/platform/v1/process/definitions/all",
+        "url": "/platform/v1/process/definitions/all",
         "method": "GET"
       },
       {
         "key": "getAllExportBatch",
-        "path": "/platform/v1/batch-execution/templates/all",
+        "url": "/platform/v1/batch-execution/templates/all",
         "method": "GET"
       },
       {
         "key": "getAllExportItsm",
-        "path": "/taskman/api/v1/request-template/all",
+        "url": "/taskman/api/v1/request-template/all",
         "method": "GET"
       },
       {
         "key": "getBaseMigrationImportList",
-        "path": "/platform/v1/data/transfer/import/list",
+        "url": "/platform/v1/data/transfer/import/list",
         "method": "POST"
       },
       {
         "key": "getBaseMigrationImportQuery",
-        "path": "/platform/v1/data/transfer/import/list/options",
+        "url": "/platform/v1/data/transfer/import/list/options",
         "method": "GET"
       },
       {
         "key": "updateImportStatus",
-        "path": "/platform/v1/data/transfer/import/status",
+        "url": "/platform/v1/data/transfer/import/status",
         "method": "POST"
       },
       {
         "key": "getImportDetail",
-        "path": "/platform/v1/data/transfer/import/detail",
+        "url": "/platform/v1/data/transfer/import/detail",
         "method": "GET"
       },
       {
         "key": "getImportBusinessList",
-        "path": "/platform/v1/data/transfer/import/business",
+        "url": "/platform/v1/data/transfer/import/business",
         "method": "GET"
       },
       {
         "key": "saveImportData",
-        "path": "/platform/v1/data/transfer/import",
+        "url": "/platform/v1/data/transfer/import",
         "method": "POST"
+      },
+      {
+        "key": "getNexusConfig",
+        "url": "/platform/v1/resource/items/nexus",
+        "method": "GET"
       }
     ]
   }
