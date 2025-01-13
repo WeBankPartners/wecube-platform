@@ -1393,7 +1393,7 @@
   },
   {
     "key": "getNexusConfig",
-    "path": "/platform/v1/resource/items/nexus",
+    "path": "/platform/v1/data/transfer/export/nexus",
     "method": "get",
     "description": "获取nexus配置"
   }
