@@ -90,6 +90,7 @@ func ReturnError(c *gin.Context, err error) {
 }
 
 func ReturnApiPermissionError(c *gin.Context) {
+	log.Logger.Warn("ReturnApiPermissionError", log.String("url", c.Request.URL.Path), log.String("method", c.Request.Method), log.String("sourceIp", c.ClientIP()), log.StringList("roles", GetRequestRoles(c)))
 	ReturnError(c, exterror.New().ApiPermissionDeniedError)
 }
 
