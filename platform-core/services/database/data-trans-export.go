@@ -99,7 +99,7 @@ func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActi
 		log.Logger.Error("getZipPath error", log.Error(err))
 		return
 	}
-	if transDataVariableConfig, err = getDataTransVariableMap(ctx); err != nil {
+	if transDataVariableConfig, err = GetDataTransVariableMap(ctx); err != nil {
 		return
 	}
 	// 重置客户的Nexus地址
@@ -878,7 +878,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 	if err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_detail where trans_export=?", transExportId).Find(&transExportDetailList); err != nil {
 		return
 	}
-	if dataTransVariableConfig, err = getDataTransVariableMap(ctx); err != nil {
+	if dataTransVariableConfig, err = GetDataTransVariableMap(ctx); err != nil {
 		return
 	}
 	if dataTransVariableConfig == nil {
