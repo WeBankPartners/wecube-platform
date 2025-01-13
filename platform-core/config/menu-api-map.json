@@ -136,7 +136,7 @@
         "method": "get"
       },
       {
-        "url": "platform/v1/models",
+        "url": "/platform/v1/models",
         "method": "get"
       },
       {
@@ -188,7 +188,7 @@
         "method": "post"
       },
       {
-        "url": "platform/v1/plugins/objectmetas/id/${objectMetaId}",
+        "url": "/platform/v1/plugins/objectmetas/id/${objectMetaId}",
         "method": "get"
       },
       {
@@ -226,7 +226,7 @@
         "method": "get"
       },
       {
-        "url": "/platform/v1/packages?all=${isRetrieveAllPluginPackages}",
+        "url": "/platform/v1/packages",
         "method": "get"
       },
       {
@@ -1095,7 +1095,7 @@
       },
       {
         "key": "getNexusConfig",
-        "url": "/platform/v1/resource/items/nexus",
+        "url": "/platform/v1/data/transfer/export/nexus",
         "method": "GET"
       }
     ]
