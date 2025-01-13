@@ -226,7 +226,7 @@
         "method": "get"
       },
       {
-        "url": "/platform/v1/packages?all=${isRetrieveAllPluginPackages}",
+        "url": "/platform/v1/packages",
         "method": "get"
       },
       {
