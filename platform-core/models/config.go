@@ -230,6 +230,14 @@ func InitConfig(configFile string) (errMessage string) {
 			errMessage = "json unmarshal menu api map content fail," + err.Error()
 			return
 		}
+		// 后台 url 兜底,必须以 /开头
+		for _, menuApi := range MenuApiGlobalList {
+			for _, item := range menuApi.Urls {
+				if !strings.HasPrefix(item.Url, "/") {
+					item.Url = "/" + item.Url
+				}
+			}
+		}
 		log.Println("enable menu api permission success")
 	} else {
 		log.Println("disable menu api permission success")
