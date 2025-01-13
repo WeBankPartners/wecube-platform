@@ -1052,5 +1052,6 @@
   "pi_custom_manage": "Manage Customer",
   "pi_nexus_address": "Nexus Address",
   "pi_nexus_account": "Nexus Account",
-  "pi_nexus_password": "Nexus Password"
+  "pi_nexus_password": "Nexus Password",
+  "pi_custom_default_config": "Fill Default Configuration"
 }
