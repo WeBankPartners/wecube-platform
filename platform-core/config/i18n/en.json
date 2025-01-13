@@ -36,10 +36,6 @@
     "code": 10000031,
     "message": "System error [Failed to handle request]"
   },
-  "api_permission_error": {
-    "code": 10000032,
-    "message": "System error [Permission denied]"
-  },
   "plugin_dependency_illegal": {
     "code": 20000001,
     "message": "Installation Failed: The plug-in version dependency verification failed"
@@ -183,5 +179,9 @@
   "export_customer_add_name_exist_error": {
     "code": 20000040,
     "message": "Save Failed: The target customer with the same name already exists. Please modify the name and try again"
+  },
+  "api_permission_error": {
+    "code": 20000041,
+    "message": "Api Permission Deny"
   }
 }
