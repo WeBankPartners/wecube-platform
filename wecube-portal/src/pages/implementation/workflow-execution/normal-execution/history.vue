@@ -783,7 +783,6 @@ export default {
           title: '',
           desc: this.$t('no_detail_warning')
         })
-
       }
     },
     handleFlowSelectSearch(val) {
