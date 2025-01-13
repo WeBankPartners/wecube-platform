@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2025-01-07 20:01:01
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-01-13 14:57:28
+ * @LastEditTime: 2025-01-13 15:21:35
 -->
 <template>
   <BaseDrawer
@@ -65,7 +65,7 @@
             prop="name"
             :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}"
           >
-            <Input v-model.trim="form.name" :maxlength="200" />
+            <Input v-model.trim="form.name" :maxlength="100" />
           </FormItem>
           <!--nexus地址-->
           <FormItem
@@ -73,7 +73,7 @@
             prop="nexusAddr"
             :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}"
           >
-            <Input v-model.trim="form.nexusAddr" :maxlength="100" />
+            <Input v-model.trim="form.nexusAddr" :maxlength="200" />
           </FormItem>
           <!--nexus账号-->
           <FormItem
@@ -150,7 +150,13 @@ export default {
     async handleInitCustomInfo() {
       const { status, data } = await getNexusConfig()
       if (status === 'OK') {
-        this.form = Object.assign({}, this.form, data)
+        const {
+          nexusUser, nexusPwd, nexusUrl, nexusRepo
+        } = data || {}
+        this.form.nexusAddr = nexusUrl
+        this.form.nexusAccount = nexusUser
+        this.form.nexusPwd = nexusPwd
+        this.form.nexusRepo = nexusRepo
       }
     },
     // 获取目标客户列表
