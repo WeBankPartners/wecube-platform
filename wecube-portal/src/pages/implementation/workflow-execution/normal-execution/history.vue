@@ -778,12 +778,12 @@ export default {
               from: 'normal'
             }
           })
-        } else {
-          this.$Notice.warning({
-            title: '',
-            desc: this.$t('no_detail_warning')
-          })
         }
+        this.$Notice.warning({
+          title: '',
+          desc: this.$t('no_detail_warning')
+        })
+
       }
     },
     handleFlowSelectSearch(val) {
