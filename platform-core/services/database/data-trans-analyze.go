@@ -71,7 +71,7 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 			ciTypeAttrMap[row.CiType] = []*models.SysCiTypeAttrTable{row}
 		}
 	}
-	transConfig, getConfigErr := getDataTransVariableMap(ctx)
+	transConfig, getConfigErr := GetDataTransVariableMap(ctx)
 	if getConfigErr != nil {
 		err = getConfigErr
 		return
@@ -455,7 +455,7 @@ func getCMDBPluginDBResource(ctx context.Context) (dbEngine *xorm.Engine, err er
 	return
 }
 
-func getDataTransVariableMap(ctx context.Context) (result *models.TransDataVariableConfig, err error) {
+func GetDataTransVariableMap(ctx context.Context) (result *models.TransDataVariableConfig, err error) {
 	result = &models.TransDataVariableConfig{}
 	var sysVarRows []*models.SystemVariables
 	err = db.MysqlEngine.Context(ctx).SQL("select name,value,default_value from system_variables where status='active' and name like 'PLATFORM_EXPORT_%'").Find(&sysVarRows)
@@ -660,7 +660,7 @@ func getUpdateTransExport(transExport models.TransExportTable) (actions []*db.Ex
 func QueryBusinessList(c context.Context, userToken, language string, param models.QueryBusinessParam) (result []map[string]interface{}, err error) {
 	var query models.QueryBusinessListParam
 	var dataTransVariableConfig *models.TransDataVariableConfig
-	if dataTransVariableConfig, err = getDataTransVariableMap(c); err != nil {
+	if dataTransVariableConfig, err = GetDataTransVariableMap(c); err != nil {
 		return
 	}
 	if dataTransVariableConfig == nil {
