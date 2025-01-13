@@ -198,6 +198,11 @@
       {
         "url": "/platform/v1/models/package/${pkgName}/entity/${entityName}",
         "method": "get"
+      },
+      {
+        "key": "getMenuInjection",
+        "url": "/platform/v1/packages/${id}/menus",
+        "method": "get"
       }
     ]
   },
