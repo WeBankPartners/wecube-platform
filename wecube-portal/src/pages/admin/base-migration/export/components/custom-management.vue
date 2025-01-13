@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2025-01-07 20:01:01
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-01-13 18:05:32
+ * @LastEditTime: 2025-01-13 19:51:12
 -->
 <template>
   <BaseDrawer
@@ -52,7 +52,7 @@
         style="width: calc(100% - 280px); position: relative"
         class="right-area"
       >
-        <Button type="primary" size="small" class="init-custom" @click="handleInitCustomInfo">填充默认配置</Button>
+        <Button type="primary" size="small" class="init-custom" @click="handleInitCustomInfo">{{ $t('pi_custom_default_config') }}</Button>
         <Form ref="form" :label-width="100" :model="form">
           <!--创建人-->
           <FormItem :label="$t('createdBy')">
@@ -268,7 +268,7 @@ export default {
 }
 </style>
 <style lang="scss">
-.platform-customer-content .common-ui-header-title .w-content {
+.platform-customer-content .common-ui-header-title .w-content, .content {
   padding: 20px 0px !important;
 }
 </style>
