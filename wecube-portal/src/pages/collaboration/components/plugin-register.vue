@@ -76,6 +76,7 @@
                 <span @click="getAllDataModels">
                   <div style="width: 400px; display: inline-block">
                     <FilterRules
+                      :rootOnly="true"
                       v-model="selectedEntityType"
                       :rootEntity="clearedEntityType"
                       :disabled="currentPluginObj.status === 'ENABLED'"
