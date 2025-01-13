@@ -1,7 +1,7 @@
 <template>
   <div class="filter_rules_contain" :class="disabled ? 'disabled-filter' : ''" ref="filter_rules_contain">
     <Poptip v-model="poptipVisable" placement="bottom">
-      <div ref="wecube_cmdb_attr" class="filter_rules_path_contains">
+      <div ref="wecube_cmdb_attr" class="filter_rules_path_contains" :style="disabled ? 'background:rgb(247, 247, 247)' : 'background:#fff'">
         <span
           class="path_exp"
           :class="index % 2 === 1 ? 'odd_span' : 'even_span'"
@@ -48,17 +48,19 @@
           </ul>
           <hr style="margin-top: 5px" />
           <div style="max-height: 145px; overflow: auto; margin-top: 5px">
-            <template v-if="!needNativeAttr">
-              <ul v-for="opt in filterCurrentLeafOptiongs" :key="opt.pathExp + Math.random() * 1000">
-                <li style="color: rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
-              </ul>
+            <template v-if="(rootOnly && pathList.length === 0) || (!rootOnly && pathList.length > 0)">
+              <div v-if="!needNativeAttr" style="max-height: 145px; overflow: auto; margin-top: 5px">
+                <ul v-for="opt in filterCurrentLeafOptiongs" :key="opt.pathExp + Math.random() * 1000">
+                  <li style="color: rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
+                </ul>
+                <ul v-for="opt in filterCurrentRefOptiongs" :key="opt.pathExp + Math.random() * 1000">
+                  <li style="color: rgb(64, 141, 218)" @click="optClickHandler(opt, 'up')">{{ opt.pathExp }}</li>
+                </ul>
+                <ul v-for="opt in filterCurrentOptiongs" :key="opt.pathExp + Math.random() * 1000">
+                  <li style="color: rgb(211, 82, 32)" @click="optClickHandler(opt, 'down')">{{ opt.pathExp }}</li>
+                </ul>
+              </div>
             </template>
-            <ul v-for="opt in filterCurrentRefOptiongs" :key="opt.pathExp + Math.random() * 1000">
-              <li style="color: rgb(64, 141, 218)" @click="optClickHandler(opt, 'up')">{{ opt.pathExp }}</li>
-            </ul>
-            <ul v-for="opt in filterCurrentOptiongs" :key="opt.pathExp + Math.random() * 1000">
-              <li style="color: rgb(211, 82, 32)" @click="optClickHandler(opt, 'down')">{{ opt.pathExp }}</li>
-            </ul>
           </div>
         </div>
       </div>
@@ -126,6 +128,12 @@ export default {
     }
   },
   props: {
+    rootOnly: {
+      // 是否只显示根节点
+      type: Boolean,
+      required: false,
+      default: false
+    },
     rootEntity: {
       required: false
     },
@@ -548,6 +556,7 @@ export default {
 }
 .disabled-filter {
   background-color: #f3f3f3 !important;
+  height: 32px;
   span {
     color: #cccccc !important;
   }
@@ -606,6 +615,8 @@ export default {
   .arrow-icon {
     position: absolute;
     right: 0;
+    width: 30px !important;
+    height: 30px !important;
   }
 }
 .filter_rules_path_options ul {
