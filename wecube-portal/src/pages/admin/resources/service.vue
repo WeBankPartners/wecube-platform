@@ -25,7 +25,16 @@
         <Form :label-width="100" :model="form" :rules="rules" ref="form">
           <!--资源-->
           <FormItem :label="$t('resource')" prop="resourceServerId">
-            <Select v-model="form.resourceServerId" @on-change="handleSelectResource" clearable>
+            <Select
+              v-model="form.resourceServerId"
+              @on-change="handleSelectResource"
+              @on-open-change="
+                flag => {
+                  if (flag) getResourceOptions()
+                }
+              "
+              clearable
+            >
               <Option v-for="item in resourceOptions" :key="item.id" :value="item.id">{{ item.name }}</Option>
             </Select>
           </FormItem>
@@ -42,7 +51,7 @@
             <Input v-model.trim="form.name" :maxlength="100" show-word-limit clearable></Input>
           </FormItem>
           <!--描述-->
-          <FormItem :label="$t('table_purpose')" prop="purpose">
+          <FormItem :label="$t('table_purpose')">
             <Input type="textarea" v-model.trim="form.purpose" :maxlength="255" show-word-limit clearable></Input>
           </FormItem>
           <!--是否分配-->
@@ -261,13 +270,6 @@ export default {
             trigger: 'blur'
           }
         ],
-        purpose: [
-          {
-            required: true,
-            message: this.$t('please_input') + this.$t('table_purpose'),
-            trigger: 'blur'
-          }
-        ],
         username: [
           {
             required: true,
@@ -305,7 +307,6 @@ export default {
     this.outerActions = this.outerActions.filter(i => ['add', 'edit', 'delete', 'cancel'].includes(i.actionType))
     this.getResourceItemStatus()
     this.getResourceItemType()
-    this.getResourceOptions()
     this.queryData()
   },
   methods: {
@@ -369,6 +370,7 @@ export default {
           _.isAllocated = _.isAllocated ? 'true' : 'false'
           _.createdDate = moment(_.createdDate).format('YYYY-MM-DD hh:mm:ss')
           _.updatedDate = moment(_.updatedDate).format('YYYY-MM-DD hh:mm:ss')
+          _._disabled = _.type === 'mysql_database' ? false : true
           return _
         })
         this.pagination.total = data.pageInfo.totalRows
@@ -456,6 +458,7 @@ export default {
         username,
         password
       })
+      this.getResourceOptions()
     },
     deleteHandler(deleteData) {
       this.$Modal.confirm({
