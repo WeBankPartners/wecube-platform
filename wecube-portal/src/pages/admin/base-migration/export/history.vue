@@ -138,9 +138,7 @@ export default {
           title: this.$t('pi_target_custom'),
           key: 'customerName',
           minWidth: 200,
-          render: (h, params) => {
-            return <span>{params.row.customerName || '-'}</span>
-          }
+          render: (h, params) => <span>{params.row.customerName || '-'}</span>
         },
         // 导出产品
         {
