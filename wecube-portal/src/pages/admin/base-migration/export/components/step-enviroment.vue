@@ -3,7 +3,7 @@
     <!--选择客户-->
     <div class="inline-item">
       <span class="title">{{ $t('pi_target_custom') }}</span>
-      <Select v-model="customerId" clearable style="width: 250px">
+      <Select v-model="customerId" @on-open-change="getCustomerList" clearable style="width: 250px">
         <Option v-for="i in customerList" :key="i.id" :label="i.name" :value="i.id"></Option>
       </Select>
       <Button type="primary" style="margin-left: 10px" @click="openCustomDialog">{{ $t('pi_custom_manage') }}</Button>
@@ -156,7 +156,6 @@ export default {
     }
   },
   async mounted() {
-    this.getCustomerList()
     await this.getProductList()
     await this.getEnviromentList()
     if (this.detailData && this.detailData.environment) {
@@ -169,7 +168,11 @@ export default {
       })
       this.selectionList = this.tableData.filter(i => i._checked)
       this.lastConfirmTime = this.detailData.lastConfirmTime
+      // 目标客户
       this.customerId = this.detailData.customerId
+      if (this.customerId) {
+        this.getCustomerList()
+      }
     }
   },
   methods: {

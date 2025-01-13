@@ -844,7 +844,7 @@
       {
         "key": "resumeUserScheduledTasks",
         "url": "/platform/v1/user-scheduled-tasks/resume",
-        "method法": "post"
+        "method": "post"
       },
       {
         "key": "getScheduledTasksByStatus",
