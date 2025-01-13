@@ -14,6 +14,18 @@ import (
 
 var (
 	ApiMenuMap = make(map[string][]string) // key -> apiCode  value -> menuList
+	// taskman需要调用编排,很多接口需要放行
+	whitePathMap = map[string]bool{
+		"/platform/v1/models":                                                true,
+		"/platform/v1/process/definitions/list":                              true,
+		"/platform/v1/process/definitions/list/${query}":                     true,
+		"/platform/v1/process/definitions/${query}/outline":                  true,
+		"/platform/v1/process/instances/${id}":                               true,
+		"/platform/v1/process/definitions/${id}/root-entities":               true,
+		"/platform/v1/process/instances/${id}/tasknodes/${tasknode}/context": true,
+		"/platform/v1/data-model/dme/all-entities":                           true,
+		"/platform/v1/models/package/${id}/entity/${query}":                  true,
+	}
 )
 
 func GetRequestUser(c *gin.Context) string {
@@ -37,8 +49,15 @@ func AuthToken(c *gin.Context) {
 			c.Next()
 			return
 		}
-
 		if models.Config.MenuApiMap.Enable == "true" || strings.TrimSpace(models.Config.MenuApiMap.Enable) == "" || strings.ToUpper(models.Config.MenuApiMap.Enable) == "Y" {
+			// 白名单URL直接放行
+			for path, _ := range whitePathMap {
+				re := regexp.MustCompile(buildRegexPattern(path))
+				if re.MatchString(c.Request.URL.Path) {
+					c.Next()
+					return
+				}
+			}
 			legal := false
 			if allowMenuList, ok := ApiMenuMap[c.GetString(models.ContextApiCode)]; ok {
 				legal = compareStringList(GetRequestRoles(c), allowMenuList)
