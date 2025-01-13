@@ -340,15 +340,15 @@ export default {
     .dropdown {
       min-width: 100%;
       &-selected {
-        &-title {
-          font-weight: bold;
-          margin-right: 5px;
-        }
         margin-bottom: 5px;
         width: 100;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
+        &-title {
+          font-weight: bold;
+          margin-right: 5px;
+        }
       }
       &-wrap {
         max-height: 400px;
