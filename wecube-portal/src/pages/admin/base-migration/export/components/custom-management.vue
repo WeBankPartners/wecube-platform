@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2025-01-07 20:01:01
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-01-13 17:41:29
+ * @LastEditTime: 2025-01-13 18:05:32
 -->
 <template>
   <BaseDrawer
@@ -269,6 +269,6 @@ export default {
 </style>
 <style lang="scss">
 .platform-customer-content .common-ui-header-title .w-content {
-  padding: 20px 0px;
+  padding: 20px 0px !important;
 }
 </style>
