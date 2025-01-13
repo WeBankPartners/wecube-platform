@@ -83,6 +83,7 @@ func ReadFormFile(c *gin.Context, fileKey string) (fileName string, fileBytes []
 }
 
 func validateMenuApi(roles []string, path, method string) (legal bool) {
+	path = strings.ReplaceAll(path, ".", "")
 	for _, menuApi := range models.MenuApiGlobalList {
 		for _, role := range roles {
 			if strings.ToLower(menuApi.Menu) == strings.ToLower(role) {
