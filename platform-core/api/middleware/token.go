@@ -85,6 +85,8 @@ func ReadFormFile(c *gin.Context, fileKey string) (fileName string, fileBytes []
 func validateMenuApi(roles []string, path, method string) (legal bool) {
 	// 防止ip 之类数据配置不上
 	path = strings.ReplaceAll(path, ".", "")
+	path = strings.ReplaceAll(path, "_", "")
+	path = strings.ReplaceAll(path, "-", "")
 	for _, menuApi := range models.MenuApiGlobalList {
 		for _, role := range roles {
 			if strings.ToLower(menuApi.Menu) == strings.ToLower(role) {
