@@ -444,17 +444,16 @@ export default {
     editHandler(row) {
       this.visible = true
       this.operator = 'edit'
-      let {
+      const {
         id, resourceServerId, type, name, purpose, isAllocated, username, password
       } = row[0]
-      isAllocated = isAllocated === 'true' ? true : false
       this.form = Object.assign({}, this.form, {
         id,
         resourceServerId,
         type,
         name,
         purpose,
-        isAllocated,
+        isAllocated: isAllocated === 'true' ? true : false,
         username,
         password
       })

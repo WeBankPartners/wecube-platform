@@ -62,11 +62,21 @@ export default {
           labelWidth: 110,
           component: 'custom-time'
         },
-        // 记录ID
+        // 目标客户
         {
-          key: 'id',
-          placeholder: this.$t('pe_record_id'),
-          component: 'input'
+          key: 'customerId',
+          placeholder: this.$t('pi_target_custom'),
+          multiple: true,
+          component: 'select',
+          list: []
+        },
+        // 导出产品
+        {
+          key: 'business',
+          placeholder: this.$t('pe_export_product'),
+          multiple: true,
+          component: 'select',
+          list: []
         },
         // 导出状态
         {
@@ -97,13 +107,11 @@ export default {
             }
           ]
         },
-        // 导出产品
+        // 记录ID
         {
-          key: 'business',
-          placeholder: this.$t('pe_export_product'),
-          multiple: true,
-          component: 'select',
-          list: []
+          key: 'id',
+          placeholder: this.$t('pe_record_id'),
+          component: 'input'
         },
         // 创建人
         {
@@ -120,6 +128,7 @@ export default {
           .format('YYYY-MM-DD'), dayjs(new Date()).format('YYYY-MM-DD')],
         execTimeStart: '',
         execTimeEnd: '',
+        customerId: [],
         status: [],
         business: [],
         operators: []
