@@ -690,6 +690,11 @@ export default {
           label: item.username,
           value: item.username
         }))
+        // 前端添加system用户
+        this.users.unshift({
+          label: 'system',
+          value: 'system'
+        })
         this.searchOptions.forEach(item => {
           if (item.key === 'operator') {
             item.list = this.users
@@ -774,11 +779,11 @@ export default {
             }
           })
         }
+        this.$Notice.warning({
+          title: '',
+          desc: this.$t('no_detail_warning')
+        })
       }
-      this.$Notice.warning({
-        title: '',
-        desc: this.$t('no_detail_warning')
-      })
     },
     handleFlowSelectSearch(val) {
       this.flowSelectForm = val
