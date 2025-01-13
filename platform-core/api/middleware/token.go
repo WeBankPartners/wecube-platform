@@ -14,7 +14,7 @@ import (
 
 var (
 	ApiMenuMap = make(map[string][]string) // key -> apiCode  value -> menuList
-	// taskman需要调用编排,很多接口需要放行
+	// taskman需要调用编排,CMDB需要调用entities,很多接口需要放行
 	whitePathMap = map[string]bool{
 		"/platform/v1/models":                                                true,
 		"/platform/v1/process/definitions/list":                              true,
@@ -25,6 +25,7 @@ var (
 		"/platform/v1/process/instances/${id}/tasknodes/${tasknode}/context": true,
 		"/platform/v1/data-model/dme/all-entities":                           true,
 		"/platform/v1/models/package/${id}/entity/${query}":                  true,
+		"/platform/${packageName}/entities/${entity}/query":                  true,
 	}
 )
 
