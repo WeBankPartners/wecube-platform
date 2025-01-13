@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2025-01-07 20:01:01
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-01-08 16:24:58
+ * @LastEditTime: 2025-01-13 14:57:28
 -->
 <template>
   <BaseDrawer
@@ -50,8 +50,10 @@
         :title="$t('pi_custom_info')"
         :fontSize="15"
         :showExpand="false"
-        style="width: calc(100% - 300px)"
+        style="width: calc(100% - 300px);position: relative;"
+        class="right-area"
       >
+        <Button type="primary" size="small" class="init-custom" @click="handleInitCustomInfo">填充默认配置</Button>
         <Form ref="form" :label-width="100" :model="form">
           <!--创建人-->
           <FormItem :label="$t('createdBy')">
@@ -106,7 +108,7 @@
   </BaseDrawer>
 </template>
 <script>
-import { getCustomerList, addCustomer, deleteCustomer } from '@/api/server'
+import { getCustomerList, addCustomer, deleteCustomer, getNexusConfig } from '@/api/server'
 import { debounce } from 'lodash'
 export default {
   props: {
@@ -143,6 +145,12 @@ export default {
     this.getCustomerList()
   },
   methods: {
+    async handleInitCustomInfo() {
+      const { status, data } = await getNexusConfig()
+      if (status === 'OK') {
+        this.form = Object.assign({}, this.form, data)
+      }
+    },
     // 获取目标客户列表
     async getCustomerList() {
       const { status, data } = await getCustomerList()
@@ -234,6 +242,13 @@ export default {
         max-width: 160px;
       }
     }
+  }
+}
+.right-area {
+  .init-custom {
+    position: absolute;
+    right: 10px;
+    top: 0px;
   }
 }
 </style>

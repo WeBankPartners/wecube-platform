@@ -133,6 +133,15 @@ export default {
       tableData: [],
       loading: false,
       tableColumns: [
+        // 目标客户
+        {
+          title: this.$t('pi_target_custom'),
+          key: 'customerName',
+          minWidth: 200,
+          render: (h, params) => {
+            return <span>{params.row.customerName || '-'}</span>
+          }
+        },
         // 导出产品
         {
           title: this.$t('pe_export_product'),
