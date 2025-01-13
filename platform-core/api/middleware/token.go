@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/token"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/gin-gonic/gin"
 	"io"
 	"regexp"
 	"strings"
+)
+
+var (
+	ApiMenuMap = make(map[string][]string) // key -> apiCode  value -> menuList
 )
 
 func GetRequestUser(c *gin.Context) string {
@@ -32,7 +37,12 @@ func AuthToken(c *gin.Context) {
 			return
 		}
 		if models.Config.MenuApiMap.Enable == "true" || strings.TrimSpace(models.Config.MenuApiMap.Enable) == "" || strings.ToUpper(models.Config.MenuApiMap.Enable) == "Y" {
-			legal := validateMenuApi(GetRequestRoles(c), c.Request.URL.Path, c.Request.Method)
+			legal := false
+			if allowMenuList, ok := ApiMenuMap[c.GetString(models.ContextApiCode)]; ok {
+				legal = compareStringList(GetRequestRoles(c), allowMenuList)
+			} else {
+				legal = validateMenuApi(GetRequestRoles(c), c.Request.URL.Path, c.Request.Method)
+			}
 			if legal {
 				c.Next()
 			} else {
@@ -110,5 +120,54 @@ func validateMenuApi(roles []string, path, method string) (legal bool) {
 
 func buildRegexPattern(template string) string {
 	// 将 ${variable} 替换为 (\w+) ,并且严格匹配
-	return "^" + regexp.MustCompile(`\$\{[\w.-]+\}`).ReplaceAllString(template, `(\w+)`) + "$"
+	return "^" + regexp.MustCompile(`\$\{[\w.-]+\}`).ReplaceAllString(template, `([\w.-]+)`) + "$"
+}
+
+func InitApiMenuMap(apiMenuCodeMap map[string]string) {
+	matchUrlMap := make(map[string]int)
+	for k, code := range apiMenuCodeMap {
+		re := regexp.MustCompile("^" + regexp.MustCompile(":[\\w\\-]+").ReplaceAllString(strings.ToLower(k), "([\\w\\.\\-\\$\\{\\}:]+)") + "$")
+		for _, menuApi := range models.MenuApiGlobalList {
+			for _, item := range menuApi.Urls {
+				key := strings.ToLower(item.Method + "_" + item.Url)
+				if re.MatchString(key) {
+					if existList, existFlag := ApiMenuMap[code]; existFlag {
+						ApiMenuMap[code] = append(existList, menuApi.Menu)
+					} else {
+						ApiMenuMap[code] = []string{menuApi.Menu}
+					}
+					matchUrlMap[item.Method+"_"+item.Url] = 1
+				}
+			}
+		}
+	}
+	for _, menuApi := range models.MenuApiGlobalList {
+		for _, item := range menuApi.Urls {
+			if _, ok := matchUrlMap[item.Method+"_"+item.Url]; !ok {
+				log.Logger.Info("InitApiMenuMap can not match menuUrl", log.String("menu", menuApi.Menu), log.String("method", item.Method), log.String("url", item.Url))
+			}
+		}
+	}
+	for k, v := range ApiMenuMap {
+		if len(v) > 1 {
+			ApiMenuMap[k] = models.DistinctStringList(v, []string{})
+		}
+	}
+	log.Logger.Debug("InitApiMenuMap done", log.JsonObj("ApiMenuMap", ApiMenuMap))
+}
+
+func compareStringList(from, target []string) bool {
+	match := false
+	for _, f := range from {
+		for _, t := range target {
+			if f == t {
+				match = true
+				break
+			}
+		}
+		if match {
+			break
+		}
+	}
+	return match
 }
