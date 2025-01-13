@@ -169,6 +169,7 @@ export default {
       })
       this.selectionList = this.tableData.filter(i => i._checked)
       this.lastConfirmTime = this.detailData.lastConfirmTime
+      this.customerId = this.detailData.customerId
     }
   },
   methods: {
