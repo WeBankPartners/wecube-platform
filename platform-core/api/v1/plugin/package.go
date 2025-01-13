@@ -766,11 +766,11 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 					Id:              "p_mysql_" + guid.CreateGuid(),
 					Password:        resourceItemList[0].Password,
 					PluginPackageId: pluginPackageId,
-					ResourceItemId:  mysqlResource.Id,
+					ResourceItemId:  resourceItemList[0].Id,
 					SchemaName:      mysqlResource.SchemaName,
 					Username:        resourceItemList[0].Username,
 				}
-				if err = database.NewPluginMysqlInstance(ctx, mysqlServer, mysqlInstance, operator); err != nil {
+				if err = database.NewPluginMysqlInstance(ctx, mysqlServer, mysqlInstance, operator, false); err != nil {
 					return
 				}
 			} else {
@@ -789,12 +789,12 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 							Id:              "p_mysql_" + guid.CreateGuid(),
 							Password:        dbPass,
 							PluginPackageId: pluginPackageId,
-							ResourceItemId:  mysqlResource.Id,
+							ResourceItemId:  "rs_item_" + guid.CreateGuid(),
 							SchemaName:      mysqlResource.SchemaName,
 							Username:        pluginPackageObj.Name,
 						}
 						log.Logger.Debug("database pwd", log.String("pass", dbPass))
-						if err = database.NewPluginMysqlInstance(ctx, mysqlServer, mysqlInstance, operator); err != nil {
+						if err = database.NewPluginMysqlInstance(ctx, mysqlServer, mysqlInstance, operator, true); err != nil {
 							return
 						}
 					}
