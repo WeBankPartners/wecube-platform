@@ -87,6 +87,9 @@ func validateMenuApi(roles []string, path, method string) (legal bool) {
 		for _, role := range roles {
 			if strings.ToLower(menuApi.Menu) == strings.ToLower(role) {
 				for _, item := range menuApi.Urls {
+					if strings.TrimSpace(item.Url) == "" {
+						continue
+					}
 					if strings.ToLower(item.Method) == strings.ToLower(method) {
 						re := regexp.MustCompile(buildRegexPattern(item.Url))
 						if re.MatchString(path) {
