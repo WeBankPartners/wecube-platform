@@ -30,12 +30,14 @@ func AuthToken(c *gin.Context) {
 		ReturnAuthError(c, exterror.Catch(exterror.New().RequestTokenValidateError, err), c.GetHeader(models.AuthorizationHeader))
 		c.Abort()
 	} else {
-		// 首页接口& 子系统直接放行
+		// 首页接口& 子系统直接放行, public资源直接放行
 		if strings.Contains(strings.Join(GetRequestRoles(c), ","), "SUB_SYSTEM") || strings.HasSuffix(c.Request.URL.Path, "/resource-files") ||
-			strings.HasSuffix(c.Request.URL.Path, "/appinfo/version") || strings.HasSuffix(c.Request.URL.Path, "/my-menus") {
+			strings.HasSuffix(c.Request.URL.Path, "/appinfo/version") || strings.HasSuffix(c.Request.URL.Path, "/my-menus") ||
+			strings.HasPrefix(c.Request.URL.Path, models.UrlPrefix+"/v1/public") || strings.HasPrefix(c.Request.URL.Path, models.UrlPrefix+"/v2/public") {
 			c.Next()
 			return
 		}
+
 		if models.Config.MenuApiMap.Enable == "true" || strings.TrimSpace(models.Config.MenuApiMap.Enable) == "" || strings.ToUpper(models.Config.MenuApiMap.Enable) == "Y" {
 			legal := false
 			if allowMenuList, ok := ApiMenuMap[c.GetString(models.ContextApiCode)]; ok {
