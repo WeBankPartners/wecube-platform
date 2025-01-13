@@ -1390,5 +1390,11 @@
     "path": "/platform/resource/items/update",
     "method": "post",
     "description": "更新资源实例"
+  },
+  {
+    "key": "getNexusConfig",
+    "path": "/platform/v1/resource/items/nexus",
+    "method": "get",
+    "description": "获取nexus配置"
   }
 ]
