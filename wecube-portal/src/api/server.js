@@ -392,7 +392,7 @@ export const addCustomer = data => req.post('/platform/v1/data/transfer/export/c
 // 删除客户
 export const deleteCustomer = id => req.delete(`/platform/v1/data/transfer/export/customer?id=${id}`)
 // 获取nexus配置详情
-export const getNexusConfig = () => req.get('/platform/v1/resource/items/nexus')
+export const getNexusConfig = () => req.get('/platform/v1/data/transfer/export/nexus')
 
 // 资源管理-资源实例重构
 // 新增资源实例
