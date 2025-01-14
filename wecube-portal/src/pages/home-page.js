@@ -6,7 +6,7 @@ export default {
   data() {
     return {
       comps: [],
-      runningPackages: [], // 当前运行中的插件列表
+      runningPackages: [] // 当前运行中的插件列表
     }
   },
   watch: {
@@ -22,15 +22,15 @@ export default {
               return false
             } else if (i.code === 'MONITORING' && !monitorFlag) {
               return false
-            } else {
-              return true
             }
+            return true
+
           })
         }
       },
       immediate: true,
       deep: true
-    },
+    }
   },
   created() {
     this.getRunningPackages()
@@ -63,15 +63,15 @@ export default {
             return false
           } else if (i.code === 'MONITORING' && !monitorFlag) {
             return false
-          } else {
-            return true
           }
+          return true
+
         })
       }
       this.comps = window.homepageComponent.data
     },
     async getRunningPackages() {
-      const api = `/platform/v1/packages?running=yes&withDelete=no`
+      const api = '/platform/v1/packages?running=yes&withDelete=no'
       const { status, data } = await req.get(api)
       if (status === 'OK') {
         this.runningPackages = data || []
