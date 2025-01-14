@@ -1,7 +1,11 @@
 <template>
   <div class="filter_rules_contain" :class="disabled ? 'disabled-filter' : ''" ref="filter_rules_contain">
     <Poptip v-model="poptipVisable" placement="bottom">
-      <div ref="wecube_cmdb_attr" class="filter_rules_path_contains" :style="disabled ? 'background:rgb(247, 247, 247)' : 'background:#fff'">
+      <div
+        ref="wecube_cmdb_attr"
+        class="filter_rules_path_contains"
+        :style="disabled ? 'background:rgb(247, 247, 247)' : 'background:#fff'"
+      >
         <span
           class="path_exp"
           :class="index % 2 === 1 ? 'odd_span' : 'even_span'"
