@@ -14,18 +14,21 @@ import (
 
 var (
 	ApiMenuMap = make(map[string][]string) // key -> apiCode  value -> menuList
-	// taskman需要调用编排,CMDB需要调用entities,很多接口需要放行
-	whitePathMap = map[string]bool{
-		"/platform/v1/models":                                                true,
-		"/platform/v1/process/definitions/list":                              true,
-		"/platform/v1/process/definitions/list/${query}":                     true,
-		"/platform/v1/process/definitions/${query}/outline":                  true,
-		"/platform/v1/process/instances/${id}":                               true,
-		"/platform/v1/process/definitions/${id}/root-entities":               true,
-		"/platform/v1/process/instances/${id}/tasknodes/${tasknode}/context": true,
-		"/platform/v1/data-model/dme/all-entities":                           true,
-		"/platform/v1/models/package/${id}/entity/${query}":                  true,
-		"/platform/${packageName}/entities/${entity}/query":                  true,
+	// CMDB需要调用entities,很多接口需要放行
+	whitePathMap = map[string]string{
+		"/platform/${packageName}/entities/${entity}/query": "POST",
+	}
+	// taskman需要调用编排,根据ApiCode放行
+	whiteCodeMap = map[string]bool{
+		"get-all-models":                 true,
+		"process-definition-list":        true,
+		"plugin-process-definition-list": true,
+		"process-def-outline":            true,
+		"process-ins-detail":             true,
+		"process-def-root-entity":        true,
+		"process-ins-node-context":       true,
+		"query-expr-entities":            true,
+		"get-entity-model":               true,
 	}
 )
 
@@ -55,6 +58,13 @@ func AuthToken(c *gin.Context) {
 			for path, _ := range whitePathMap {
 				re := regexp.MustCompile(buildRegexPattern(path))
 				if re.MatchString(c.Request.URL.Path) {
+					c.Next()
+					return
+				}
+			}
+			// 白名单URL code直接放行
+			for code, _ := range whiteCodeMap {
+				if code == c.GetString(models.ContextApiCode) {
 					c.Next()
 					return
 				}
