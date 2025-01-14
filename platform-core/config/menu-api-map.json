@@ -44,6 +44,10 @@
         "method": "get"
       },
       {
+        "url": "/platform/v1/packages",
+        "method": "post"
+      },
+      {
         "url": "/platform/v1/users/retrieve",
         "method": "get"
       },
