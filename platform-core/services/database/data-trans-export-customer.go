@@ -2,10 +2,8 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	"strings"
 	"time"
 )
 
@@ -16,14 +14,6 @@ func GetTransExportCustomerList(ctx context.Context) (result []*models.DataTrans
 
 func QueryTransExportCustomerByName(ctx context.Context, name string) (result []*models.DataTransExportCustomerTable, err error) {
 	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_customer where name=?", name).Find(&result)
-	return
-}
-
-func QueryTransExportCustomerByCondition(ctx context.Context, name string) (result []*models.DataTransExportCustomerTable, err error) {
-	if strings.TrimSpace(name) == "" {
-		return GetTransExportCustomerList(ctx)
-	}
-	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_export_customer where name like ?", fmt.Sprintf("%%%s%%", name)).Find(&result)
 	return
 }
 
