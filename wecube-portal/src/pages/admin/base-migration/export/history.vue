@@ -320,11 +320,11 @@ export default {
         this.searchOptions.forEach(item => {
           if (item.key === 'business') {
             item.list = (data.businessList
-              && data.businessList.map(item => ({
-                label: item.businessName,
-                value: item.businessId
-              })))
-            || []
+                && data.businessList.map(item => ({
+                  label: item.businessName,
+                  value: item.businessId
+                })))
+              || []
           } else if (item.key === 'operators') {
             item.list = (data.operators
                 && data.operators.map(item => ({
@@ -334,11 +334,11 @@ export default {
               || []
           } else if (item.key === 'customerIds') {
             item.list = (data.customers
-              && data.customers.map(item => ({
-                label: item.name,
-                value: item.id
-              })))
-            || []
+                && data.customers.map(item => ({
+                  label: item.name,
+                  value: item.id
+                })))
+              || []
           }
         })
       }
