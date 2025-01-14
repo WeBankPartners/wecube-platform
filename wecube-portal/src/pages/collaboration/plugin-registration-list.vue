@@ -444,6 +444,7 @@ export default {
           params = cloneDeep(this.deletedSearchForm)
         }
         req.get(api, { params }).then(res => {
+          this.searchNameOptionList = []
           this.processOptionList(res.data, this.searchNameOptionList, 'name')
           if (this.pluginListType === 'isDeleted') {
             this.deletedPluginList = res.data || []
