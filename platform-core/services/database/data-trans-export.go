@@ -748,9 +748,11 @@ func GetAllTransExportOptions(ctx context.Context) (options models.TransExportHi
 	var BusinessHashMap = make(map[string]string)
 	var operatorHashMap = make(map[string]bool)
 	var list []*models.TransExportTable
+	var customerList []*models.DataTransExportCustomerTable
 	options = models.TransExportHistoryOptions{
 		BusinessList: make([]*models.Business, 0),
 		Operators:    []string{},
+		CustomerList: make([]*models.ExportCustomerDto, 0),
 	}
 	if list, err = GetAllTransExport(ctx); err != nil {
 		return
@@ -772,6 +774,15 @@ func GetAllTransExportOptions(ctx context.Context) (options models.TransExportHi
 				BusinessName: value,
 			})
 		}
+	}
+	if customerList, err = GetTransExportCustomerList(ctx); err != nil {
+		return
+	}
+	for _, customer := range customerList {
+		options.CustomerList = append(options.CustomerList, &models.ExportCustomerDto{
+			Id:   customer.Id,
+			Name: customer.Name,
+		})
 	}
 	options.Operators = convertMap2Array(operatorHashMap)
 	return
@@ -795,6 +806,9 @@ func QueryTransExportByCondition(ctx context.Context, param models.TransExportHi
 	}
 	if len(param.Status) > 0 {
 		sql += " and status in (" + getSQL(param.Status) + ")"
+	}
+	if len(param.CustomerIds) > 0 {
+		sql += " and customer_id in (" + getSQL(param.CustomerIds) + ")"
 	}
 	if len(param.Business) > 0 {
 		sql += " and ("

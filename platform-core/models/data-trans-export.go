@@ -219,6 +219,7 @@ type DataTransExportParam struct {
 
 type TransExportHistoryParam struct {
 	Id            string   `json:"id"`
+	CustomerIds   []string `json:"customerIds"`
 	Status        []string `json:"status"`
 	Business      []string `json:"business"`  //产品
 	Operators     []string `json:"operators"` //操作人
@@ -229,8 +230,9 @@ type TransExportHistoryParam struct {
 }
 
 type TransExportHistoryOptions struct {
-	BusinessList []*Business `json:"businessList"` // 导出产品
-	Operators    []string    `json:"operators"`    //操作人
+	BusinessList []*Business          `json:"businessList"` // 导出产品
+	Operators    []string             `json:"operators"`    //操作人
+	CustomerList []*ExportCustomerDto `json:"customers"`    //操作人
 }
 
 type Business struct {
@@ -441,6 +443,11 @@ type DataTransExportCustomerTable struct {
 	CreatedUser  string `json:"createdUser" xorm:"created_user"`
 	CreatedTime  string `json:"createdTime" xorm:"created_time"`
 	UpdateTime   string `json:"updateTime" xorm:"updated_time"`
+}
+
+type ExportCustomerDto struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type DataTransExportCustomerParam struct {
