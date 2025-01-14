@@ -24,7 +24,6 @@ export default {
               return false
             }
             return true
-
           })
         }
       },
@@ -65,7 +64,6 @@ export default {
             return false
           }
           return true
-
         })
       }
       this.comps = window.homepageComponent.data
