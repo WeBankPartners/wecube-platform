@@ -218,10 +218,9 @@ func CreateOrUpdateExportCustomer(c *gin.Context) {
 }
 
 func QueryExportCustomerList(c *gin.Context) {
-	name := c.Query("name")
 	var result []*models.DataTransExportCustomerTable
 	var err error
-	if result, err = database.QueryTransExportCustomerByCondition(c, name); err != nil {
+	if result, err = database.GetTransExportCustomerList(c); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
