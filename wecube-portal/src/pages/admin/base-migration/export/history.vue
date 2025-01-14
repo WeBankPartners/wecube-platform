@@ -64,7 +64,7 @@ export default {
         },
         // 目标客户
         {
-          key: 'customerId',
+          key: 'customerIds',
           placeholder: this.$t('pi_target_custom'),
           multiple: true,
           component: 'select',
@@ -128,7 +128,7 @@ export default {
           .format('YYYY-MM-DD'), dayjs(new Date()).format('YYYY-MM-DD')],
         execTimeStart: '',
         execTimeEnd: '',
-        customerId: [],
+        customerIds: [],
         status: [],
         business: [],
         operators: []
@@ -320,19 +320,25 @@ export default {
         this.searchOptions.forEach(item => {
           if (item.key === 'business') {
             item.list = (data.businessList
-                && data.businessList.map(item => ({
-                  label: item.businessName,
-                  value: item.businessId
-                })))
-              || []
-          }
-          if (item.key === 'operators') {
+              && data.businessList.map(item => ({
+                label: item.businessName,
+                value: item.businessId
+              })))
+            || []
+          } else if (item.key === 'operators') {
             item.list = (data.operators
                 && data.operators.map(item => ({
                   label: item,
                   value: item
                 })))
               || []
+          } else if (item.key === 'customerIds') {
+            item.list = (data.customers
+              && data.customers.map(item => ({
+                label: item.name,
+                value: item.id
+              })))
+            || []
           }
         })
       }
@@ -343,6 +349,7 @@ export default {
         status: this.searchParams.status,
         business: this.searchParams.business,
         operators: this.searchParams.operators,
+        customerIds: this.searchParams.customerIds,
         startIndex: (this.pageable.current - 1) * this.pageable.pageSize,
         pageSize: this.pageable.pageSize,
         execTimeStart: this.searchParams.time[0] ? this.searchParams.time[0] + ' 00:00:00' : undefined,
