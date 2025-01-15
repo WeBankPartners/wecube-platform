@@ -338,7 +338,7 @@
       },
       {
         "url": "/platform/v1/plugin-certifications/import",
-        "method": "get"
+        "method": "post"
       }
     ]
   },
@@ -672,7 +672,7 @@
       {
         "key": "getDataByNodeDefIdAndProcessSessionId",
         "url": "/platform/v1/process/instances/tasknodes/${nodeDefId}/session/${ProcessSessionId}/tasknode-bindings",
-         "method": "get"
+        "method": "get"
       },
       {
         "key": "setDataByNodeDefIdAndProcessSessionId",
