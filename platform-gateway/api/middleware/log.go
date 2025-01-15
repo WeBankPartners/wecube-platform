@@ -34,7 +34,7 @@ func HttpLogHandle() gin.HandlerFunc {
 		c.Next()
 		costTime := int64(time.Now().Sub(start).Seconds() * 1000)
 		apiCode := c.Writer.Header().Get("Api-Code")
-		if apiCode == "" {
+		if strings.TrimSpace(apiCode) == "" {
 			log.Logger.Info("apiCode is empty", log.String("url", c.Request.RequestURI), log.String("method", c.Request.Method), log.Int("code", c.Writer.Status()), log.String("operator", c.GetString("user")), log.String("ip", getRemoteIp(c)), log.Int64("cost_ms", costTime))
 			return
 		}
@@ -44,7 +44,7 @@ func HttpLogHandle() gin.HandlerFunc {
 		if prefixArr := strings.Split(c.Request.RequestURI, "/"); len(prefixArr) > 1 {
 			// 过滤掉 web页面
 			for _, s := range invalidSuffixList {
-				if strings.HasSuffix(prefixArr[1], s) {
+				if strings.HasSuffix(c.Request.RequestURI, s) {
 					return
 				}
 			}
