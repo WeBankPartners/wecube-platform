@@ -1106,10 +1106,6 @@
         "key": "getNexusConfig",
         "url": "/platform/v1/data/transfer/export/nexus",
         "method": "GET"
-      },
-      {
-        "url": "/platform/v1/users/change-password",
-        "method": "post"
       }
     ]
   }
