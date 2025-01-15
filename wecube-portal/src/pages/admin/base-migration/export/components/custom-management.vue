@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2025-01-07 20:01:01
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-01-13 19:51:12
+ * @LastEditTime: 2025-01-15 16:51:19
 -->
 <template>
   <BaseDrawer
@@ -58,13 +58,13 @@
         <Form ref="form" :label-width="100" :model="form">
           <!--创建人-->
           <FormItem :label="$t('createdBy')">
-            <Input :value="username" disabled />
+            <Input :value="form.createdUser" disabled />
           </FormItem>
           <!--目标客户-->
           <FormItem
             :label="$t('pi_target_custom')"
             prop="name"
-            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}"
+            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur, change'}"
           >
             <Input v-model.trim="form.name" :maxlength="100" />
           </FormItem>
@@ -72,7 +72,7 @@
           <FormItem
             :label="$t('pi_nexus_address')"
             prop="nexusAddr"
-            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}"
+            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur, change'}"
           >
             <Input v-model.trim="form.nexusAddr" :maxlength="200" />
           </FormItem>
@@ -80,7 +80,7 @@
           <FormItem
             :label="$t('pi_nexus_account')"
             prop="nexusAccount"
-            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}"
+            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur, change'}"
           >
             <Input v-model.trim="form.nexusAccount" :maxlength="50" />
           </FormItem>
@@ -88,7 +88,7 @@
           <FormItem
             :label="$t('pi_nexus_password')"
             prop="nexusPwd"
-            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}"
+            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur, change'}"
           >
             <input type="text" style="display: none" />
             <input type="password" autocomplete="new-password" style="display: none" />
@@ -97,7 +97,7 @@
           <FormItem
             label="nexusrepo"
             prop="nexusRepo"
-            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur'}"
+            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur, change'}"
           >
             <Input v-model.trim="form.nexusRepo" :maxlength="50" />
           </FormItem>
@@ -125,13 +125,13 @@ export default {
   data() {
     return {
       form: {
+        createdUser: localStorage.getItem('username'),
         name: '',
         nexusAddr: '',
         nexusAccount: '',
         nexusPwd: '',
         nexusRepo: ''
       },
-      username: localStorage.getItem('username'),
       customerList: [],
       selected: ''
     }
@@ -172,6 +172,7 @@ export default {
     handleCreate() {
       this.selected = ''
       this.form = {
+        createdUser: localStorage.getItem('username'),
         name: '',
         nexusAddr: '',
         nexusAccount: '',
@@ -183,6 +184,7 @@ export default {
       this.selected = row.id
       this.form = Object.assign({}, this.form, {
         id: row.id,
+        createdUser: row.createdUser,
         name: row.name,
         nexusAddr: row.nexusAddr,
         nexusAccount: row.nexusAccount,
@@ -212,6 +214,7 @@ export default {
           if (status === 'OK') {
             if (!this.form.id) {
               this.form = {
+                createdUser: localStorage.getItem('username'),
                 name: '',
                 nexusAddr: '',
                 nexusAccount: '',
@@ -260,6 +263,19 @@ export default {
       }
     }
   }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #d4d4d4;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #d4d4d4;
+  }
 }
 .right-area {
   .init-custom {
@@ -270,8 +286,10 @@ export default {
 }
 </style>
 <style lang="scss">
-.platform-customer-content .common-ui-header-title .w-content,
-.content {
-  padding: 20px 0px !important;
+.platform-customer-content {
+  overflow-y: hidden;
+  .common-ui-header-title .w-content, .content {
+    padding: 20px 0px !important;
+  }
 }
 </style>
