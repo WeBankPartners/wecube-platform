@@ -390,24 +390,24 @@ func QueryPluginByTargetEntity(c *gin.Context) {
 	var err error
 	var dataModelEntity *models.PluginPackageDataModel
 	var roles = middleware.GetRequestRoles(c)
-	var procInstance *models.ProcInsDetail
+	var procDef *models.ProcDef
 	if err = c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	// 不为空,表示查询 插件参数,可能没权限,此处使用编排执行创建人的角色
-	if strings.TrimSpace(param.ProcInstanceId) != "" {
+	// 不为空,表示查询 插件参数,可能没权限,此处使用编排设计创建人的角色
+	if strings.TrimSpace(param.ProcDefId) != "" {
 		roles = []string{}
 		var response models.QueryRolesResponse
-		if procInstance, err = database.GetProcInstance(c, param.ProcInstanceId); err != nil {
+		if procDef, err = database.GetProcessDefinition(c, param.ProcDefId); err != nil {
 			middleware.ReturnError(c, err)
 			return
 		}
-		if procInstance == nil {
-			middleware.ReturnError(c, fmt.Errorf("proc instance %s not found", param.ProcInstanceId))
+		if procDef == nil {
+			middleware.ReturnError(c, fmt.Errorf("procDef %s not found", param.ProcDefId))
 			return
 		}
-		response, err = remote.GetRolesByUsername(procInstance.CreatedTime, c.GetHeader("Authorization"), c.GetHeader(middleware.AcceptLanguageHeader))
+		response, err = remote.GetRolesByUsername(procDef.CreatedBy, c.GetHeader("Authorization"), c.GetHeader(middleware.AcceptLanguageHeader))
 		if err != nil {
 			middleware.ReturnError(c, err)
 			return
