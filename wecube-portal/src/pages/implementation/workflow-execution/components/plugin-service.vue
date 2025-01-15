@@ -504,13 +504,15 @@ export default {
         payload = {
           pkgName: pkg,
           entityName: entity.split('#DMEOP#')[0],
-          targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : ''
+          targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : '',
+          procDefId: this.nodeObj.procDefId
         }
       } else {
         payload = {
           pkgName: '',
           entityName: '',
-          targetEntityFilterRule: ''
+          targetEntityFilterRule: '',
+          procDefId: this.nodeObj.procDefId
         }
       }
 
