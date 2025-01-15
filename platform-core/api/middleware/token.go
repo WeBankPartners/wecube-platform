@@ -32,6 +32,7 @@ var (
 		"export-batch-execution-template":        true,
 		"get-process-definition-node-link":       true,
 		"get-user":                               true,
+		"change-user-password":                   true,
 	}
 )
 
@@ -156,7 +157,7 @@ func InitApiMenuMap(apiMenuCodeMap map[string]string) {
 	matchUrlMap := make(map[string]int)
 	for k, code := range apiMenuCodeMap {
 		exist = false
-		re := regexp.MustCompile("^" + regexp.MustCompile(":[\\w\\-]+").ReplaceAllString(strings.ToLower(k), "([\\w\\.\\-\\$\\{\\}:]+)") + "$")
+		re := regexp.MustCompile("^" + regexp.MustCompile(":[\\w\\-]+").ReplaceAllString(strings.ToLower(k), "([\\w\\.\\-\\$\\{\\}:\\[\\]]+)") + "$")
 		for _, menuApi := range models.MenuApiGlobalList {
 			for _, item := range menuApi.Urls {
 				key := strings.ToLower(item.Method + "_" + item.Url)
