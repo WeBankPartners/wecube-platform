@@ -14,21 +14,24 @@ import (
 
 var (
 	ApiMenuMap = make(map[string][]string) // key -> apiCode  value -> menuList
-	// CMDB需要调用entities,很多接口需要放行
-	whitePathMap = map[string]string{
-		"/platform/${packageName}/entities/${entity}/query": "POST",
-	}
 	// taskman需要调用编排,根据ApiCode放行
 	whiteCodeMap = map[string]bool{
-		"get-all-models":                 true,
-		"process-definition-list":        true,
-		"plugin-process-definition-list": true,
-		"process-def-outline":            true,
-		"process-ins-detail":             true,
-		"process-def-root-entity":        true,
-		"process-ins-node-context":       true,
-		"query-expr-entities":            true,
-		"get-entity-model":               true,
+		"get-all-models":                         true,
+		"process-definition-list":                true,
+		"plugin-process-definition-list":         true,
+		"process-def-outline":                    true,
+		"process-ins-detail":                     true,
+		"process-def-root-entity":                true,
+		"process-ins-node-context":               true,
+		"query-expr-entities":                    true,
+		"get-entity-model":                       true,
+		"proc-ins-callback":                      true,
+		"check-collect-batch-execution-template": true,
+		"import-batch-execution-template":        true,
+		"proc-start-events":                      true,
+		"export-batch-execution-template":        true,
+		"get-process-definition-node-link":       true,
+		"get-user":                               true,
 	}
 )
 
@@ -49,19 +52,12 @@ func AuthToken(c *gin.Context) {
 		// 首页接口& 子系统直接放行, public资源直接放行
 		if strings.Contains(strings.Join(GetRequestRoles(c), ","), "SUB_SYSTEM") || strings.HasSuffix(c.Request.URL.Path, "/resource-files") ||
 			strings.HasSuffix(c.Request.URL.Path, "/appinfo/version") || strings.HasSuffix(c.Request.URL.Path, "/my-menus") ||
-			strings.HasPrefix(c.Request.URL.Path, models.UrlPrefix+"/v1/public") || strings.HasPrefix(c.Request.URL.Path, models.UrlPrefix+"/v2/public") {
+			strings.HasPrefix(c.Request.URL.Path, models.UrlPrefix+"/v1/public") || strings.HasPrefix(c.Request.URL.Path, models.UrlPrefix+"/v2/public") ||
+			strings.HasSuffix(c.Request.URL.Path, "/health-check") {
 			c.Next()
 			return
 		}
 		if models.Config.MenuApiMap.Enable == "true" || strings.TrimSpace(models.Config.MenuApiMap.Enable) == "" || strings.ToUpper(models.Config.MenuApiMap.Enable) == "Y" {
-			// 白名单URL直接放行
-			for path, _ := range whitePathMap {
-				re := regexp.MustCompile(buildRegexPattern(path))
-				if re.MatchString(c.Request.URL.Path) {
-					c.Next()
-					return
-				}
-			}
 			// 白名单URL code直接放行
 			for code, _ := range whiteCodeMap {
 				if code == c.GetString(models.ContextApiCode) {
@@ -156,13 +152,16 @@ func buildRegexPattern(template string) string {
 }
 
 func InitApiMenuMap(apiMenuCodeMap map[string]string) {
+	var exist bool
 	matchUrlMap := make(map[string]int)
 	for k, code := range apiMenuCodeMap {
+		exist = false
 		re := regexp.MustCompile("^" + regexp.MustCompile(":[\\w\\-]+").ReplaceAllString(strings.ToLower(k), "([\\w\\.\\-\\$\\{\\}:]+)") + "$")
 		for _, menuApi := range models.MenuApiGlobalList {
 			for _, item := range menuApi.Urls {
 				key := strings.ToLower(item.Method + "_" + item.Url)
 				if re.MatchString(key) {
+					exist = true
 					if existList, existFlag := ApiMenuMap[code]; existFlag {
 						ApiMenuMap[code] = append(existList, menuApi.Menu)
 					} else {
@@ -171,6 +170,9 @@ func InitApiMenuMap(apiMenuCodeMap map[string]string) {
 					matchUrlMap[item.Method+"_"+item.Url] = 1
 				}
 			}
+		}
+		if !exist {
+			log.Logger.Info("InitApiMenuMap menu-api-json lack url", log.String("path", k))
 		}
 	}
 	for _, menuApi := range models.MenuApiGlobalList {
