@@ -41,6 +41,7 @@ type ResourceItemQueryRow struct {
 	ResourceItem
 	ResourceServer string `json:"resourceServer"`
 	Port           string `json:"port"`
+	Used           bool   `json:"used"`
 }
 
 type ResourceServerListPageData struct {
