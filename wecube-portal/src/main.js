@@ -17,8 +17,7 @@ import indexCom from './pages/index'
 import req from './api/base'
 import implicitRoutes from './implicitRoutes.js'
 import { getChildRouters } from './pages/util/router.js'
-import { getGlobalMenus } from '@/const/util.js'
-import { pluginNameMap } from '@/const/util.js'
+import { pluginNameMap, getGlobalMenus } from '@/const/util.js'
 // 引用wecube公共组件
 import commonUI from 'wecube-common-ui'
 import 'wecube-common-ui/lib/wecube-common-ui.css'
@@ -65,16 +64,16 @@ class UserWatch {
   }
 }
 const WatchRouter = new UserWatch()
-WatchRouter.on('change', oldPath => {
-  let path = ''
-  if (window.needReLoad) {
-    return
-  }
-  if (oldPath === '/login' || oldPath === '/404') {
-    path = '/homepage'
-  }
-  window.location.href = window.location.origin + '/#' + path
-})
+// WatchRouter.on('change', oldPath => {
+//   let path = ''
+//   if (window.needReLoad) {
+//     return
+//   }
+//   if (oldPath === '/login' || oldPath === '/404') {
+//     path = '/homepage'
+//   }
+//   window.location.href = window.location.origin + '/#' + path
+// })
 
 const getDocumentTitleMap = (routeArr, name) => {
   if (routeArr.length > 0) {
