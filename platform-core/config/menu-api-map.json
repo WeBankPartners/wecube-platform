@@ -145,7 +145,7 @@
       },
       {
         "url": "/platform/v1/plugins/enable/${id}",
-        "method": "get"
+        "method": "post"
       },
       {
         "url": "/platform/v1/plugins/disable/${id}",
@@ -302,7 +302,21 @@
       },
       {
         "url": "/platform/resource/items/delete",
-        "method": "delete"
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/plugins/packages/import/${id}",
+        "method": "post"
+      },
+      {
+        "key": "updatePluginRegisterObjectType",
+        "path": "/platform/v1/plugins/configs/${pluginConfigId}/interfaces/objectmetas/${objectMetaId}",
+        "method": "post"
+      },
+      {
+        "key": "exportPluginXMLWithId",
+        "path": "/platform/v1/plugins/packages/export/${id}",
+        "method": "get"
       }
     ]
   },
