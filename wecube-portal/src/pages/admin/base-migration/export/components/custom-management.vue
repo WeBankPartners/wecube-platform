@@ -288,7 +288,8 @@ export default {
 <style lang="scss">
 .platform-customer-content {
   overflow-y: hidden;
-  .common-ui-header-title .w-content, .content {
+  .common-ui-header-title .w-content,
+  .content {
     padding: 20px 0px !important;
   }
 }
