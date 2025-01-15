@@ -48,7 +48,9 @@ export default {
           // taskman根据二级菜单判断首页权限
           const subPermission = menues.some(i => i.submenus.some(j => j.code === c.code))
           // monitor所有二级菜单禁用，才会禁用首页权限
-          const mainPermission = menues.some(i => i.code === c.code && Array.isArray(i.submenus) && i.submenus.length > 0)
+          const mainPermission = menues.some(
+            i => i.code === c.code && Array.isArray(i.submenus) && i.submenus.length > 0
+          )
           const hasPermission = subPermission || mainPermission
           if (!hasPermission) {
             c.deleteFalg = true
