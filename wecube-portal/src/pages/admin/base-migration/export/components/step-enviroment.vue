@@ -3,7 +3,7 @@
     <!--选择客户-->
     <div class="inline-item">
       <span class="title">{{ $t('pi_target_custom') }}</span>
-      <Select v-model="customerId" @on-open-change="getCustomerList" clearable style="width: 250px">
+      <Select v-model="customerId" @on-open-change="getCustomerList" clearable filterable style="width: 360px">
         <Option v-for="i in customerList" :key="i.id" :label="i.name" :value="i.id"></Option>
       </Select>
       <Button type="primary" style="margin-left: 10px" @click="openCustomDialog">{{ $t('pi_custom_manage') }}</Button>
