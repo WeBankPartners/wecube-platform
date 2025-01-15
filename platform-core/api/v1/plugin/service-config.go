@@ -3,6 +3,7 @@ package plugin
 import (
 	"encoding/xml"
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"net/http"
 	"sort"
 	"strings"
@@ -389,9 +390,34 @@ func QueryPluginByTargetEntity(c *gin.Context) {
 	var err error
 	var dataModelEntity *models.PluginPackageDataModel
 	var roles = middleware.GetRequestRoles(c)
+	var procInstance *models.ProcInsDetail
 	if err = c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
+	}
+	// 不为空,表示查询 插件参数,可能没权限,此处使用编排执行创建人的角色
+	if strings.TrimSpace(param.ProcInstanceId) != "" {
+		roles = []string{}
+		var response models.QueryRolesResponse
+		if procInstance, err = database.GetProcInstance(c, param.ProcInstanceId); err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		if procInstance == nil {
+			middleware.ReturnError(c, fmt.Errorf("proc instance %s not found", param.ProcInstanceId))
+			return
+		}
+		response, err = remote.GetRolesByUsername(procInstance.CreatedTime, c.GetHeader("Authorization"), c.GetHeader(middleware.AcceptLanguageHeader))
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		for _, roleItem := range response.Data {
+			if roleItem.Status == "Deleted" {
+				continue
+			}
+			roles = append(roles, roleItem.Name)
+		}
 	}
 	dataModelEntity, err = database.TryFetchLatestAvailableDataModelEntity(c, param.PkgName)
 	if err != nil {
