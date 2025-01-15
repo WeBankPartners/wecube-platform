@@ -62,12 +62,23 @@ func QueryResourceItem(ctx context.Context, param *models.QueryRequestParam) (re
 		err = resourceErr
 		return
 	}
+	var instanceRows []*models.PluginMysqlInstances
+	err = db.MysqlEngine.Context(ctx).SQL("select docker_instance_resource_id as 'resource_item_id' from plugin_instances union select resource_item_id from plugin_mysql_instances").Find(&instanceRows)
+	if err != nil {
+		return result, exterror.Catch(exterror.New().DatabaseQueryError, err)
+	}
 	for _, row := range queryRows {
 		tmpRow := models.ResourceItemQueryRow{ResourceItem: *row}
 		for _, resourceRow := range resourceList.Contents {
 			if resourceRow.Id == row.ResourceServerId {
 				tmpRow.ResourceServer = resourceRow.Host
 				tmpRow.Port = resourceRow.Port
+			}
+		}
+		for _, usedByInstance := range instanceRows {
+			if usedByInstance.ResourceItemId == row.Id {
+				tmpRow.Used = true
+				break
 			}
 		}
 		result.Contents = append(result.Contents, &tmpRow)
