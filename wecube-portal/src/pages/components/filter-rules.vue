@@ -1,7 +1,11 @@
 <template>
   <div class="filter_rules_contain" :class="disabled ? 'disabled-filter' : ''" ref="filter_rules_contain">
     <Poptip v-model="poptipVisable" placement="bottom">
-      <div ref="wecube_cmdb_attr" class="filter_rules_path_contains" :style="disabled ? 'background:rgb(247, 247, 247)' : 'background:#fff'">
+      <div
+        ref="wecube_cmdb_attr"
+        class="filter_rules_path_contains"
+        :style="disabled ? 'background:rgb(247, 247, 247)' : 'background:#fff'"
+      >
         <span
           class="path_exp"
           :class="index % 2 === 1 ? 'odd_span' : 'even_span'"
@@ -48,7 +52,7 @@
           </ul>
           <hr style="margin-top: 5px" />
           <div style="max-height: 145px; overflow: auto; margin-top: 5px">
-            <template v-if="(rootOnly && pathList.length === 0) || (!rootOnly && pathList.length > 0)">
+            <template v-if="!(rootOnly && pathList.length > 0)">
               <div v-if="!needNativeAttr" style="max-height: 145px; overflow: auto; margin-top: 5px">
                 <ul v-for="opt in filterCurrentLeafOptiongs" :key="opt.pathExp + Math.random() * 1000">
                   <li style="color: rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
