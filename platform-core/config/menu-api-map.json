@@ -145,7 +145,7 @@
       },
       {
         "url": "/platform/v1/plugins/enable/${id}",
-        "method": "get"
+        "method": "post"
       },
       {
         "url": "/platform/v1/plugins/disable/${id}",
@@ -302,7 +302,7 @@
       },
       {
         "url": "/platform/resource/items/delete",
-        "method": "delete"
+        "method": "post"
       }
     ]
   },
@@ -324,7 +324,7 @@
       },
       {
         "url": "/platform/v1/plugin-certifications/import",
-        "method": "get"
+        "method": "post"
       }
     ]
   },
@@ -658,7 +658,7 @@
       {
         "key": "getDataByNodeDefIdAndProcessSessionId",
         "url": "/platform/v1/process/instances/tasknodes/${nodeDefId}/session/${ProcessSessionId}/tasknode-bindings",
-         "method": "get"
+        "method": "get"
       },
       {
         "key": "setDataByNodeDefIdAndProcessSessionId",
@@ -1106,6 +1106,10 @@
         "key": "getNexusConfig",
         "url": "/platform/v1/data/transfer/export/nexus",
         "method": "GET"
+      },
+      {
+        "url": "/platform/v1/users/change-password",
+        "method": "post"
       }
     ]
   }
