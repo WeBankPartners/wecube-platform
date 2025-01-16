@@ -30,6 +30,7 @@ sed -i "s~{{sub_system_private_key}}~$sub_system_private_key~g" /app/platform-co
 sed -i "s~{{cron_keep_batch_exec_days}}~$cron_keep_batch_exec_days~g" /app/platform-core/config/default.json
 sed -i "s~{{host_ip}}~$host_ip~g" /app/platform-core/config/default.json
 sed -i "s~{{encrypt_seed}}~$encrypt_seed~g" /app/platform-core/config/default.json
+sed -i "s~{{menu_api_map_enable}}~$menu_api_map_enable~g" /app/platform-core/config/default.json
 
 exec ./platform-core
 

@@ -368,7 +368,7 @@ export const getAllExportFlows = () => req.get('/platform/v1/process/definitions
 // 查询所有批量执行
 export const getAllExportBatch = () => req.get('/platform/v1/batch-execution/templates/all')
 // 查询所有ITSM
-export const getAllExportItsm = () => req.get('/taskman/api/v1/request-template/all')
+export const getAllExportItsm = () => req.get('/taskman/api/v1/request-template/latest/all')
 // 执行导出
 export const exportBaseMigration = data => req.post('/platform/v1/data/transfer/export', data)
 // 导出详情
@@ -385,3 +385,19 @@ export const getBaseMigrationImportList = data => req.post('/platform/v1/data/tr
 export const getBaseMigrationImportQuery = () => req.get('/platform/v1/data/transfer/import/list/options')
 // 导入状态变更
 export const updateImportStatus = data => req.post('/platform/v1/data/transfer/import/status', data)
+// 目标客户列表
+export const getCustomerList = () => req.get('/platform/v1/data/transfer/export/customer')
+// 新增or编辑客户
+export const addCustomer = data => req.post('/platform/v1/data/transfer/export/customer', data)
+// 删除客户
+export const deleteCustomer = id => req.delete(`/platform/v1/data/transfer/export/customer?id=${id}`)
+// 获取nexus配置详情
+export const getNexusConfig = () => req.get('/platform/v1/data/transfer/export/nexus')
+
+// 资源管理-资源实例重构
+// 新增资源实例
+export const addResourceInstance = data => req.post('/platform/resource/items/create', data)
+// 删除资源实例
+export const deleteResourceInstance = data => req.post('/platform/resource/items/delete', data)
+// 更新资源实例
+export const updateResourceInstance = data => req.post('/platform/resource/items/update', data)
