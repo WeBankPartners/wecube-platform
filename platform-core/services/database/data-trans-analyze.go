@@ -71,7 +71,7 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 			ciTypeAttrMap[row.CiType] = []*models.SysCiTypeAttrTable{row}
 		}
 	}
-	transConfig, getConfigErr := getDataTransVariableMap(ctx)
+	transConfig, getConfigErr := GetDataTransVariableMap(ctx)
 	if getConfigErr != nil {
 		err = getConfigErr
 		return
@@ -455,7 +455,7 @@ func getCMDBPluginDBResource(ctx context.Context) (dbEngine *xorm.Engine, err er
 	return
 }
 
-func getDataTransVariableMap(ctx context.Context) (result *models.TransDataVariableConfig, err error) {
+func GetDataTransVariableMap(ctx context.Context) (result *models.TransDataVariableConfig, err error) {
 	result = &models.TransDataVariableConfig{}
 	var sysVarRows []*models.SystemVariables
 	err = db.MysqlEngine.Context(ctx).SQL("select name,value,default_value from system_variables where status='active' and name like 'PLATFORM_EXPORT_%'").Find(&sysVarRows)
@@ -643,8 +643,8 @@ func getInsertAnalyzeCMDBActions(transExportId string, ciTypeDataMap map[string]
 func getInsertTransExport(transExport models.TransExportTable) (actions []*db.ExecAction) {
 	nowTime := time.Now()
 	actions = []*db.ExecAction{}
-	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export(id,business,business_name,environment,environment_name,status,output_url,created_user,created_time,updated_user,updated_time,last_confirm_time) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-		transExport.Id, transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.Status, transExport.OutputUrl, transExport.CreatedUser, nowTime, transExport.UpdatedUser, nowTime, transExport.LastConfirmTime,
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export(id,customer_id,customer_name,business,business_name,environment,environment_name,status,output_url,created_user,created_time,updated_user,updated_time,last_confirm_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		transExport.Id, transExport.CustomerId, transExport.CustomerName, transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.Status, transExport.OutputUrl, transExport.CreatedUser, nowTime, transExport.UpdatedUser, nowTime, transExport.LastConfirmTime,
 	}})
 	return
 }
@@ -660,7 +660,7 @@ func getUpdateTransExport(transExport models.TransExportTable) (actions []*db.Ex
 func QueryBusinessList(c context.Context, userToken, language string, param models.QueryBusinessParam) (result []map[string]interface{}, err error) {
 	var query models.QueryBusinessListParam
 	var dataTransVariableConfig *models.TransDataVariableConfig
-	if dataTransVariableConfig, err = getDataTransVariableMap(c); err != nil {
+	if dataTransVariableConfig, err = GetDataTransVariableMap(c); err != nil {
 		return
 	}
 	if dataTransVariableConfig == nil {

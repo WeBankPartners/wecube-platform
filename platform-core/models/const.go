@@ -29,6 +29,7 @@ const (
 	ContextErrorKey     = "errorKey"
 	ContextErrorMessage = "errorMessage"
 	ContextUserId       = "userId"
+	ContextApiCode      = "apiCode"
 
 	JwtSignKey = "authJwtSecretKey"
 	AESPrefix  = "{AES}"

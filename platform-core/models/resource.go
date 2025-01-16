@@ -25,16 +25,25 @@ type ResourceItem struct {
 	ResourceServerId     string    `json:"resourceServerId" xorm:"resource_server_id"`        // 关联资源
 	AdditionalProperties string    `json:"additionalProperties" xorm:"additional_properties"` // 连接参数
 	CreatedBy            string    `json:"createdBy" xorm:"created_by"`                       // 创建人
-	CreatedDate          time.Time `json:"createdDate" xorm:"created_date"`                   // 创建时间
+	CreatedDate          time.Time `json:"-" xorm:"created_date"`                             // 创建时间
 	IsAllocated          bool      `json:"isAllocated" xorm:"is_allocated"`                   // 是否分配
 	Name                 string    `json:"name" xorm:"name"`                                  // 名称
 	Purpose              string    `json:"purpose" xorm:"purpose"`                            // 描述
 	Status               string    `json:"status" xorm:"status"`                              // 状态
 	Type                 string    `json:"type" xorm:"type"`                                  // 类型
 	UpdatedBy            string    `json:"updatedBy" xorm:"updated_by"`                       // 更新人
-	UpdatedDate          time.Time `json:"updatedDate" xorm:"updated_date"`                   // 更新时间
+	UpdatedDate          time.Time `json:"-" xorm:"updated_date"`                             // 更新时间
 	Username             string    `json:"username" xorm:"username"`                          // 连接用户名
 	Password             string    `json:"password" xorm:"password"`                          // 连接用户密码
+}
+
+type ResourceItemQueryRow struct {
+	ResourceItem
+	ResourceServer    string `json:"resourceServer"`
+	Port              string `json:"port"`
+	Used              bool   `json:"used"`
+	CreatedDateString string `json:"createdDate"` // 创建时间
+	UpdatedDateString string `json:"updatedDate"` // 更新时间
 }
 
 type ResourceServerListPageData struct {
@@ -43,11 +52,16 @@ type ResourceServerListPageData struct {
 }
 
 type ResourceItemListPageData struct {
-	PageInfo *PageInfo       `json:"pageInfo"` // 分页信息
-	Contents []*ResourceItem `json:"contents"` // 列表内容
+	PageInfo *PageInfo               `json:"pageInfo"` // 分页信息
+	Contents []*ResourceItemQueryRow `json:"contents"` // 列表内容
 }
 
 type MysqlResourceItemProperties struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+type ResourceItemTypeObj struct {
+	ItemType     string `json:"itemType"`
+	ResourceType string `json:"resourceType"`
 }

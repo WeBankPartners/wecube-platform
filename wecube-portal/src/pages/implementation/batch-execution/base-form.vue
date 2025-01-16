@@ -79,6 +79,7 @@
             :allDataModelsWithAttrs="allEntityType"
             :needNativeAttr="false"
             :needAttr="true"
+            :hiddenFilterRule="true"
             :disabled="type === 'view' || from === 'execute'"
             v-model="dataModelExpression"
             class="form-item"
@@ -99,7 +100,7 @@
             v-model="primatKeyAttr"
             class="form-item"
             :disabled="from === 'execute'"
-            @on-change="handleRefreshSearch"
+            @on-change="fetchTableColumns"
           >
             <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
               entityAttr.name
@@ -120,7 +121,7 @@
             v-model="userTableColumns"
             class="form-item"
             :disabled="from === 'execute'"
-            @on-change="handleRefreshSearch"
+            @on-change="fetchTableColumns"
           >
             <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
               entityAttr.name
@@ -171,6 +172,7 @@
         <FormItem :label="$t('be_choose_instance')" required>
           <EntityTable
             :data="tableData"
+            :initSelectedRows="initSelectedRows"
             :columns="tableColumns"
             :loading="loading"
             @select="
@@ -178,6 +180,10 @@
                 seletedRows = val
               }
             "
+            @changePage="handlePageChange"
+            @changePageSize="handlePageSizeChange"
+            @search="handleSearch"
+            :pagination="pagination"
           ></EntityTable>
         </FormItem>
       </BaseHeaderTitle>
@@ -242,6 +248,7 @@ import FilterRules from '../../components/filter-rules.vue'
 import ConditionTree from './components/condition-tree.vue' // 过滤条件
 import EntityTable from './components/entity-table.vue' // 选择实例表格
 import ExecuteResult from './components/execute-result.vue' // 执行结果
+import { deepClone } from '@/const/util.js'
 import {
   getAllDataModels,
   dmeAllEntities,
@@ -291,6 +298,7 @@ export default {
       tableColumns: [], // 执行实例表格列
       tableData: [], // 执行实例表格数据
       seletedRows: [], // 勾选的执行实例
+      initSelectedRows: [],
       loading: false,
       // 步骤三字段
       pluginId: '', // 表单-插件服务ID
@@ -298,7 +306,12 @@ export default {
       pluginInputParams: [], // 插件入参
       pluginOutputParams: [], // 插件出参
       resultTableParams: [], // 选择结果表出参
-      isDangerousBlock: true // 是否开启高危检测
+      isDangerousBlock: true, // 是否开启高危检测
+      pagination: {
+        total: 0,
+        currentPage: 1,
+        pageSize: 50
+      }
     }
   },
   watch: {
@@ -333,7 +346,7 @@ export default {
         this.currentEntityName = data.slice(-1)[0].entityName
         this.currentPackageName = data.slice(-1)[0].packageName
         this.primatKeyAttrList = data.slice(-1)[0].attributes
-
+        this.fetchTableData()
         this.searchParamsTree = []
         data.forEach((single, index) => {
           const childNode = (single.attributes
@@ -369,13 +382,15 @@ export default {
           this.isDangerousBlock = isDangerousBlock
           if (sourceData) {
             const frontData = JSON.parse(sourceData)
-            this.seletedRows = frontData.seletedRows
+            this.seletedRows = deepClone(frontData.seletedRows)
+            this.initSelectedRows = deepClone(frontData.seletedRows)
             this.pluginInputParams = frontData.pluginInputParams
             this.pluginOutputParams = frontData.pluginOutputParams
             this.resultTableParams = frontData.resultTableParams
             this.userTableColumns = frontData.userTableColumns
           }
-          this.excuteSearch()
+          this.fetchTableColumns()
+          this.fetchTableData()
         }
       },
       deep: true
@@ -429,7 +444,7 @@ export default {
     },
     clearSearchParameters() {
       this.searchParameters = []
-      this.excuteSearch()
+      this.fetchTableData()
     },
     // 设置过滤条件
     handleSearchParamsChange(val) {
@@ -437,14 +452,7 @@ export default {
         return
       }
       this.searchParameters = val
-      this.excuteSearch()
-    },
-    // 更新执行实例表格
-    handleRefreshSearch(val) {
-      if (!val || (val && val.length === 0)) {
-        return
-      }
-      this.excuteSearch()
+      this.fetchTableData()
     },
     clearPlugin() {
       this.showResult = false
@@ -496,7 +504,10 @@ export default {
       }
     },
     // 根据过滤条件获取执行实例表格列
-    async excuteSearch() {
+    async fetchTableColumns() {
+      if (!this.currentPackageName || !this.currentEntityName) {
+        return
+      }
       const { status, data } = await entityView(this.currentPackageName, this.currentEntityName)
       if (status === 'OK') {
         if (this.userTableColumns.length || this.primatKeyAttr) {
@@ -539,13 +550,15 @@ export default {
           fixed: 'left',
           align: 'center'
         })
-        this.entityData()
       }
     },
-    async entityData() {
+    async fetchTableData(query = '') {
       const requestParameter = {
         dataModelExpression: this.dataModelExpression,
-        filters: []
+        filters: [],
+        query,
+        startIndex: (this.pagination.currentPage - 1) * this.pagination.pageSize,
+        pageSize: 50
       }
       const keySet = []
       this.searchParameters.forEach(sParameter => {
@@ -584,14 +597,31 @@ export default {
       const { status, data } = await dmeIntegratedQuery(requestParameter)
       this.loading = false
       if (status === 'OK') {
-        this.tableData = data
+        this.tableData = data.contents || []
         const selectTag = this.seletedRows.map(item => item.id)
+        this.pagination.total = data.pageInfo.totalRows
         this.tableData.forEach(item => {
           if (selectTag.includes(item.id)) {
             item._checked = true
           }
         })
       }
+    },
+    handleSearch(val) {
+      if (this.dataModelExpression === ':' || !this.dataModelExpression) {
+        return
+      }
+      this.pagination.currentPage = 1
+      this.fetchTableData(val)
+    },
+    handlePageChange(val) {
+      this.pagination.currentPage = val
+      this.fetchTableData()
+    },
+    handlePageSizeChange(val) {
+      this.pagination.pageSize = val
+      this.pagination.currentPage = 1
+      this.fetchTableData()
     }
   }
 }

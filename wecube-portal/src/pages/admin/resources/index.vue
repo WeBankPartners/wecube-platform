@@ -1,10 +1,10 @@
 <template>
-  <Tabs type="card" :value="currentTab" @on-click="handleTabClick">
+  <Tabs type="card" v-model="currentTab">
     <TabPane :closable="false" name="resource" :label="$t('resource')">
-      <WeServer ref="resource" />
+      <WeServer v-if="currentTab === 'resource'" ref="resource" />
     </TabPane>
     <TabPane :closable="false" name="resource_instance" :label="$t('resource_instance')">
-      <WeService :servers="servers" ref="resource_instance" />
+      <WeService v-if="currentTab === 'resource_instance'" :servers="servers" ref="resource_instance" />
     </TabPane>
   </Tabs>
 </template>
@@ -26,17 +26,16 @@ export default {
     }
   },
   methods: {
-    handleTabClick(tab) {
-      this.$refs[tab].queryData()
-    },
     async queryServers() {
       const { status, data } = await retrieveServers({})
       if (status === 'OK') {
-        this.servers = data.contents.map(_ => ({
-          label: _.name,
-          value: _.id,
-          key: _.id
-        }))
+        this.servers = (data.contents
+            && data.contents.map(_ => ({
+              label: _.name,
+              value: _.id,
+              key: _.id
+            })))
+          || []
       }
     }
   },

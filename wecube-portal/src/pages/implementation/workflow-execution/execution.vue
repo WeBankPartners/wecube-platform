@@ -9,102 +9,61 @@
         <div class="form">
           <Form label-position="left">
             <FormItem v-if="isEnqueryPage" :label-width="100" :label="$t('orchs')">
-              <Select
-                v-model="selectedFlowInstance"
-                style="width: 60%"
-                filterable
-                clearable
-                :placeholder="$t('fe_flowname_placeholder')"
-                @on-clear="clearHistoryOrch"
-                @on-change="queryHandler"
-                :disabled="['main', 'sub'].includes(from)"
-              >
-                <Option
-                  v-for="item in allFlowInstances"
-                  :value="item.id"
-                  :key="item.id"
-                  :label="
-                    item.procInstName +
-                    '  ' +
-                    '[' +
-                    item.version +
-                    ']  ' +
-                    item.entityDisplayName +
-                    '  ' +
-                    (item.operator || 'operator') +
-                    '  ' +
-                    (item.createdTime || '0000-00-00 00:00:00') +
-                    '  ' +
-                    getStatusStyleAndName(item.displayStatus, 'label')
+              <div style="display: flex">
+                <CustomFlowSelect
+                  v-model="selectedFlowInstance"
+                  style="width: 60%"
+                  :options="allFlowInstances"
+                  @search="getProcessInstances"
+                  @clear="clearHistoryOrch"
+                  @change="queryHandler"
+                  :disabled="['main', 'sub'].includes(from)"
+                  :loading="allFlowInstancesLoading"
+                  from="detail"
+                />
+                <!--暂停执行-->
+                <Button
+                  type="warning"
+                  @click="flowControlHandler('stop')"
+                  style="background-color: #826bea; border-color: #826bea; margin-left: 10px"
+                  v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
+                  icon="md-pause"
+                >{{ $t('be_pause') }}</Button>
+                <!--继续执行-->
+                <Button
+                  type="success"
+                  @click="flowControlHandler('recover')"
+                  style="margin-left: 10px"
+                  v-if="currentInstanceStatusForNodeOperation === 'Stop'"
+                  icon="md-play"
+                >{{ $t('be_continue') }}</Button>
+                <!--终止执行-->
+                <Button
+                  v-if="
+                    ['InProgress', 'Stop'].includes(currentInstanceStatusForNodeOperation) && !subProcBindParentFlag
                   "
+                  type="warning"
+                  @click="stopHandler"
+                  style="margin-left: 10px"
+                  icon="md-square"
+                >{{ $t('stop_orch') }}</Button>
+                <!--编排关联的ITSM工单-->
+                <Poptip
+                  v-if="Array.isArray(flowData.request) && flowData.request.length > 0"
+                  placement="bottom"
+                  trigger="hover"
+                  width="500"
+                  style="margin-left: 10px"
                 >
-                  <div style="display: flex; justify-content: space-between">
-                    <div>
-                      <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
-                      <span style="color: #2b85e4">{{ '[' + item.version + '] ' }}</span>
-                      <div
-                        :style="{
-                          backgroundColor: '#c5c8ce',
-                          padding: '4px 15px',
-                          width: 'fit-content',
-                          color: '#fff',
-                          borderRadius: '4px',
-                          display: 'inline-block',
-                          marginLeft: '10px'
-                        }"
-                      >
-                        {{ item.entityDisplayName + ' ' }}
-                      </div>
-                    </div>
-                    <div style="display: flex; align-items: center">
-                      <span style="color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
-                      <span style="color: #ccc">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
-                      <div style="width: 100px">
-                        <span :style="getStatusStyleAndName(item.displayStatus, 'style')">{{
-                          getStatusStyleAndName(item.displayStatus, 'label')
-                        }}</span>
-                      </div>
+                  <Button icon="md-person">ITSM工单</Button>
+                  <div slot="content" style="padding: 3px 0px">
+                    <div v-for="i in flowData.request" :key="i.id" style="padding: 3px 0">
+                      <Icon type="md-person"></Icon>
+                      <span style="color: #2d8cf0; cursor: pointer" @click="handleLinkItsmDetail(i)">{{ i.name }}</span>
                     </div>
                   </div>
-                </Option>
-              </Select>
-              <!--暂停执行-->
-              <Button
-                type="warning"
-                @click="flowControlHandler('stop')"
-                style="background-color: #826bea; border-color: #826bea"
-                v-if="currentInstanceStatusForNodeOperation === 'InProgress'"
-                icon="md-pause"
-              >{{ $t('be_pause') }}</Button>
-              <!--继续执行-->
-              <Button
-                type="success"
-                @click="flowControlHandler('recover')"
-                v-if="currentInstanceStatusForNodeOperation === 'Stop'"
-                icon="md-play"
-              >{{ $t('be_continue') }}</Button>
-              <!--终止执行-->
-              <Button
-                v-if="['InProgress', 'Stop'].includes(currentInstanceStatusForNodeOperation) && !subProcBindParentFlag"
-                type="warning"
-                @click="stopHandler"
-                icon="md-square"
-              >{{ $t('stop_orch') }}</Button>
-              <!--编排关联的ITSM工单-->
-              <Poptip
-                v-if="Array.isArray(flowData.request) && flowData.request.length > 0"
-                placement="bottom"
-                trigger="hover"
-                width="500"
-              >
-                <Button icon="md-person">ITSM工单</Button>
-                <div slot="content" style="padding: 3px 0px">
-                  <div v-for="i in flowData.request" :key="i.id" style="padding: 3px 0">
-                    <Icon type="md-person"></Icon>
-                    <span style="color: #2d8cf0; cursor: pointer" @click="handleLinkItsmDetail(i)">{{ i.name }}</span>
-                  </div>
-                </div>
-              </Poptip>
+                </Poptip>
+              </div>
             </FormItem>
             <Col v-if="!isEnqueryPage" span="7">
               <FormItem :label-width="100" :label="$t('select_orch')">
@@ -246,15 +205,14 @@
         </Table>
       </template>
     </BaseDrawer>
-    <!--节点操作弹窗(查看)-->
+    <!--编排执行弹窗(查看)-->
     <BaseDrawer
       :title="$t('select_an_operation')"
       :visible.sync="workflowActionModalVisible"
       v-if="workflowActionModalVisible"
-      :realWidth="1100"
+      :realWidth="1200"
       :scrollable="true"
       :maskClosable="false"
-      class="json-viewer"
     >
       <template slot="content">
         <!--节点操作-->
@@ -370,16 +328,43 @@
             :subProcItem="subProcItem"
           />
         </BaseHeaderTitle>
-        <!--节点信息-->
-        <BaseHeaderTitle :title="$t('fe_nodeInfo')">
-          <template v-if="nodeDetailResponseHeader && Object.keys(nodeDetailResponseHeader).length > 0">
-            <json-viewer :value="nodeDetailResponseHeader" :expand-depth="5"></json-viewer>
-          </template>
-          <div v-else class="no-data">{{ $t('noData') }}</div>
-        </BaseHeaderTitle>
-        <!--API调用-->
-        <BaseHeaderTitle :title="$t('fe_apiInfo')">
-          <Table :columns="nodeDetailColumns" tooltip="true" :data="nodeDetailIO"> </Table>
+        <!--执行记录-->
+        <BaseHeaderTitle :title="$t('execution_history')">
+          <div
+            v-if="['human', 'automatic', 'data', 'subProc'].includes(nodeInstance.nodeType)"
+            class="execution-history"
+          >
+            <Tabs v-model="currentExeHistoryNodeId" type="card">
+              <TabPane
+                v-for="i in executeHistory"
+                :key="i.id"
+                :label="`${i.beginTime} / ${i.operator || '-'}`"
+                :name="i.id"
+              >
+                <!--节点信息-->
+                <div class="header-title">{{ $t('fe_nodeInfo') }}</div>
+                <json-viewer :value="i.nodeDetailResponseHeader || {}" :expand-depth="5"></json-viewer>
+                <!--API调用-->
+                <div class="header-title" style="padding-top: 20px">{{ $t('fe_apiInfo') }}</div>
+                <Table :columns="nodeDetailColumns" tooltip="true" :data="i.nodeDetailIO"></Table>
+              </TabPane>
+            </Tabs>
+          </div>
+          <div v-else class="execution-history">
+            <!--节点信息-->
+            <div class="header-title">{{ $t('fe_nodeInfo') }}</div>
+            <json-viewer
+              :value="(executeHistory[0] && executeHistory[0].nodeDetailResponseHeader) || {}"
+              :expand-depth="5"
+            ></json-viewer>
+            <!--API调用-->
+            <div class="header-title" style="padding-top: 20px">{{ $t('fe_apiInfo') }}</div>
+            <Table
+              :columns="nodeDetailColumns"
+              tooltip="true"
+              :data="(executeHistory[0] && executeHistory[0].nodeDetailIO) || []"
+            ></Table>
+          </div>
         </BaseHeaderTitle>
       </template>
     </BaseDrawer>
@@ -423,12 +408,12 @@
         >{{ $t('submit') }}</Button>
       </div>
     </Modal>
-    <!--左侧编排节点弹窗(新建)-->
+    <!--编排执行详情弹窗(新建)-->
     <BaseDrawer
       :title="currentNodeTitle"
       :visible.sync="targetModalVisible"
       v-if="targetModalVisible"
-      :realWidth="1100"
+      :realWidth="1200"
       :scrollable="true"
       :maskClosable="false"
     >
@@ -670,12 +655,14 @@ import { debounce, deepClone } from '@/const/util'
 import PluginService from './components/plugin-service.vue'
 import DataBind from './components/data-bind.vue'
 import ChildFlow from './components/child-flow.vue'
+import CustomFlowSelect from './components/custom-flow-select.vue'
 export default {
   components: {
     JsonViewer,
     PluginService,
     DataBind,
-    ChildFlow
+    ChildFlow,
+    CustomFlowSelect
   },
   data() {
     return {
@@ -715,6 +702,7 @@ export default {
       currentNodeTitle: null,
       rowContent: null,
       allFlowInstances: [],
+      allFlowInstancesLoading: false,
       allFlows: [],
       allTarget: [],
       currentFlowNodeId: '',
@@ -955,7 +943,6 @@ export default {
           }
         }
       ],
-      nodeDetailIO: [],
       nodeDetailResponseHeader: null,
       currentFailedNodeID: '',
       timer: null,
@@ -1071,17 +1058,13 @@ export default {
       subProcBindParentFlag: true, // 子编排是否绑定主编排标识
       from: this.$route.query.from, // 查看页面来源(create新增页 sub子编排预览 main主编排预览 normal普通执行列表查看 time定时执行列表查看)
       subProc: this.$route.query.subProc, // 是否子编排标识
-      subProcItem: {} // 子编排实例
+      subProcItem: {}, // 子编排实例
+      executeHistory: [], // 编排执行记录(节点重试可能执行多次)
+      currentExeHistoryNodeId: '', // 当前执行记录ID
+      onlyMyFlowFlag: false // 仅展示本人编排标识
     }
   },
   computed: {
-    canAbleToSetting() {
-      const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
-      if (found && found.status === 'Completed') {
-        return false
-      }
-      return true
-    },
     currentNodeItem() {
       if (!this.flowData.flowNodes) {
         return {}
@@ -1110,67 +1093,6 @@ export default {
       }
 
       return ''
-    },
-    getStatusStyleAndName() {
-      return function (status, type) {
-        const list = [
-          {
-            label: this.$t('fe_notStart'),
-            value: 'NotStarted',
-            color: '#808695'
-          },
-          {
-            label: this.$t('fe_stop'),
-            value: 'Stop',
-            color: '#ed4014'
-          },
-          {
-            label: this.$t('fe_inProgressFaulted'),
-            value: 'InProgress(Faulted)',
-            color: '#ed4014'
-          },
-          {
-            label: this.$t('fe_inProgressTimeouted'),
-            value: 'InProgress(Timeouted)',
-            color: '#ed4014'
-          },
-          {
-            label: this.$t('fe_inProgress'),
-            value: 'InProgress',
-            color: '#1990ff'
-          },
-          {
-            label: this.$t('fe_completed'),
-            value: 'Completed',
-            color: '#7ac756'
-          },
-          {
-            label: this.$t('fe_faulted'),
-            value: 'Faulted',
-            color: '#e29836'
-          },
-          {
-            label: this.$t('fe_internallyTerminated'),
-            value: 'InternallyTerminated',
-            color: '#e29836'
-          }
-        ]
-        const findObj = list.find(i => i.value === status) || {}
-        if (type === 'style') {
-          return {
-            display: 'inline-block',
-            backgroundColor: findObj.color,
-            padding: '4px 10px',
-            width: 'fit-content',
-            color: '#fff',
-            borderRadius: '4px',
-            float: 'right',
-            fontSize: '12px',
-            marginLeft: '5px'
-          }
-        }
-        return findObj.label
-      }
     }
   },
   watch: {
@@ -1226,7 +1148,8 @@ export default {
       if (val === true) {
         this.pluginInfo = ''
         this.nodeDetailResponseHeader = null
-        this.nodeDetailIO = []
+        this.executeHistory = []
+        this.currentExeHistoryNodeId = ''
         this.flowGraphMouseenterHandler(this.currentFailedNodeID)
         this.noActionFlag = false
         this.$nextTick(() => {
@@ -1686,44 +1609,26 @@ export default {
       this.allBindingsList = filter.concat(payload)
       this.targetModalVisible = false
     },
-    // 执行记录下拉展开
-    // processInstancesOpenChange (flag) {
-    //   if (flag) {
-    //     this.allFlowInstances = []
-    //     this.remoteProcessInstances(this.selectedFlowInstance)
-    //   }
-    // },
-    // 远程搜索获取执行记录
-    // remoteProcessInstances: debounce(async function (query) {
-    //   function containsDateTime(str) {
-    //     const regex = /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/
-    //     return regex.test(str)
-    //   }
-    //   if (containsDateTime(query)) {
-    //     query = this.selectedFlowInstance
-    //   }
-    //   this.remoteLoading = true
-    //   await this.getProcessInstances(query)
-    //   this.remoteLoading = false
-    // }, 500),
-
     // 获取执行记录列表
-    async getProcessInstances() {
+    async getProcessInstances(form = {}) {
       const params = {
         params: {
           withCronIns: this.from === 'normal' ? 'no' : this.from === 'time' ? 'yes' : '',
-          search: '',
+          search: form.search || '',
           withSubProc: '',
-          mgmtRole: ''
+          mgmtRole: '',
+          createdBy: form.onlyShowMyFlow ? localStorage.getItem('username') : ''
         }
       }
+      this.allFlowInstancesLoading = true
       const { status, data } = await getProcessInstances(params)
+      this.allFlowInstancesLoading = false
       if (status === 'OK') {
         this.allFlowInstances = data || []
         const id = this.$route.query.id
         const hasFlag = this.allFlowInstances.some(i => i.id === id)
         // 没有这条记录数据，则根据ID查询拼接起来
-        if (!hasFlag) {
+        if (!hasFlag && Object.keys(form).length === 0) {
           params.params.search = id
           const { status, data } = await getProcessInstances(params)
           if (status === 'OK' && data && data[0]) {
@@ -2345,7 +2250,7 @@ export default {
         if (previewRes.data && previewRes.data.length > 0) {
           this.$Modal.confirm({
             title: '执行数据为空',
-            content: `【${previewRes.data.join('，')}】数据为空，是否继续执行？`,
+            content: `编排节点:【${previewRes.data.join('，')}】数据为空，是否继续执行？`,
             'z-index': 1000000,
             loading: true,
             onOk: async () => {
@@ -2612,7 +2517,7 @@ export default {
       this.confirmModal.check = false
       const { status, data } = await getNodeContext(nodeInfo.procInstId, nodeInfo.id)
       if (status === 'OK') {
-        this.confirmModal.message = data.errorMessage
+        this.confirmModal.message = data && data[0] && data[0].errorMessage
         this.confirmModal.check = false
         this.confirmModal.isShowConfirmModal = true
         this.confirmModal.requestBody = nodeInfo
@@ -2667,11 +2572,13 @@ export default {
       const found = this.flowData.flowNodes.find(_ => _.nodeId === id)
       const { status, data } = await getNodeContext(found.procInstId, found.id)
       if (status === 'OK') {
-        const errorInfo = data.requestObjects.map(item => ({
-          id: item.callbackParameter,
-          errorMessage: (item.outputs[0] && item.outputs[0].errorMessage) || '',
-          errorCode: (item.outputs[0] && item.outputs[0].errorCode) || ''
-        }))
+        const errorInfo = data
+          && data[0]
+          && data[0].requestObjects.map(item => ({
+            id: item.callbackParameter,
+            errorMessage: (item.outputs[0] && item.outputs[0].errorMessage) || '',
+            errorCode: (item.outputs[0] && item.outputs[0].errorCode) || ''
+          }))
         return errorInfo
       }
     },
@@ -2689,7 +2596,7 @@ export default {
         removeEvent('.flow', 'click', this.flowNodesClickHandler)
       }
     },
-    // 查看日志
+    // 获取执行记录节点信息和API调用
     flowGraphMouseenterHandler(id) {
       clearTimeout(this.flowDetailTimer)
       this.flowDetailTimer = setTimeout(async () => {
@@ -2697,14 +2604,25 @@ export default {
         this.nodeTitle = (found.orderedNo ? found.orderedNo + '、' : '') + found.nodeName
         const { status, data } = await getNodeContext(found.procInstId, found.id)
         if (status === 'OK') {
-          this.nodeDetailResponseHeader = JSON.parse(JSON.stringify(data))
+          this.executeHistory = deepClone(data || []) // 编排执行记录(节点重试可能有多条记录)
+          this.executeHistory = data
+            && data.map((item, index) => {
+              item.id = (new Date().getTime() + index).toString()
+              item.nodeDetailResponseHeader = deepClone(item)
+              delete item.nodeDetailResponseHeader.requestObjects
+              item.nodeDetailIO = (item.requestObjects
+                  && item.requestObjects.map(ro => {
+                    ro['inputs'] = this.replaceParams(ro['inputs'])
+                    ro['outputs'] = this.replaceParams(ro['outputs'])
+                    return ro
+                  }))
+                || []
+              return item
+            })
+          this.nodeDetailResponseHeader = deepClone(this.executeHistory[0] || {})
           this.pluginInfo = this.nodeDetailResponseHeader.pluginInfo
+          this.currentExeHistoryNodeId = this.nodeDetailResponseHeader.id || ''
           delete this.nodeDetailResponseHeader.requestObjects
-          this.nodeDetailIO = data.requestObjects.map(ro => {
-            ro['inputs'] = this.replaceParams(ro['inputs'])
-            ro['outputs'] = this.replaceParams(ro['outputs'])
-            return ro
-          })
           // 日志input output表格添加子编排查看按钮
           if (this.nodeDetailResponseHeader && this.nodeDetailResponseHeader.nodeType === 'subProc') {
             const hasFlag = this.nodeDetailColumns.some(i => i.key === 'procDefId')
@@ -2799,8 +2717,8 @@ export default {
               if (j.bound === 'Y') {
                 this.$set(j, '_checked', true)
                 objData[i]._isChecked = true
+                this.catchNodeTableList.push(objData[i])
               }
-              this.catchNodeTableList.push(objData[i])
             }
           })
         })
@@ -2949,13 +2867,16 @@ export default {
 .common-base-drawer {
   .jv-container .jv-code {
     overflow: hidden;
-    padding: 0px 15px !important;
+    padding: 0px 10px !important;
   }
   .ivu-form-item {
     margin-bottom: 8px;
   }
   .common-ui-header-title {
     padding-bottom: 3px;
+  }
+  .ivu-drawer-body {
+    padding: 16px 8px;
   }
 }
 </style>
@@ -3043,5 +2964,14 @@ body {
   right: 10px;
   top: 5px;
   font-size: 12px;
+}
+.execution-history {
+  padding: 0 15px;
+  margin-top: -10px;
+  .header-title {
+    font-size: 15px;
+    font-weight: bold;
+    padding-bottom: 10px;
+  }
 }
 </style>
