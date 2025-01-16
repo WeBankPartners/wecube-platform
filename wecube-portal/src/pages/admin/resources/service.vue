@@ -27,6 +27,7 @@
           <FormItem :label="$t('resource')" prop="resourceServerId">
             <Select
               v-model="form.resourceServerId"
+              :disabled="editRow.used"
               @on-change="handleSelectResource"
               @on-open-change="
                 flag => {
@@ -48,7 +49,7 @@
           </FormItem>
           <!--名称-->
           <FormItem :label="$t('name')" prop="name">
-            <Input v-model.trim="form.name" :maxlength="100" show-word-limit clearable></Input>
+            <Input v-model.trim="form.name" :maxlength="100" :disabled="editRow.used" show-word-limit clearable></Input>
           </FormItem>
           <!--描述-->
           <FormItem :label="$t('table_purpose')">
@@ -141,6 +142,7 @@ export default {
       typeOptions: [], // 类型下拉列表
       visible: false,
       operator: 'add', // add新增，edit编辑
+      editRow: {},
       outerActions,
       tableData: [],
       tableColumns: [
@@ -419,6 +421,7 @@ export default {
       }
       this.visible = true
       this.operator = 'add'
+      this.editRow = {}
     },
     submitAddData() {
       this.$refs.form.validate(async valid => {
@@ -447,6 +450,7 @@ export default {
       const {
         id, resourceServerId, type, name, purpose, isAllocated, username, password
       } = row[0]
+      this.editRow = row[0]
       this.form = Object.assign({}, this.form, {
         id,
         resourceServerId,

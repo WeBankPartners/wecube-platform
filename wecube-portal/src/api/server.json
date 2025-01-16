@@ -1303,7 +1303,7 @@
   },
   {
     "key": "getAllExportItsm",
-    "path": "/taskman/api/v1/request-template/all",
+    "path": "/taskman/api/v1//request-template/latest/all",
     "method": "get",
     "description": "查询所有ITSM请求模板"
   },
