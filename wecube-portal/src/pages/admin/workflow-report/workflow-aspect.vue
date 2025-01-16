@@ -193,13 +193,9 @@ export default {
         }
       }
       this.loading = true
-      const { status, data, message } = await getFlowExecuteOverviews(params)
+      const { status, data } = await getFlowExecuteOverviews(params)
       this.loading = false
       if (status === 'OK') {
-        this.$Notice.success({
-          title: 'Success',
-          desc: message
-        })
         this.tableData = data
       }
     },

@@ -24,7 +24,10 @@ func QueryResourceServer(c *gin.Context) {
 }
 
 func GetResourceItemTypes(c *gin.Context) {
-	data := []string{"s3_bucket", "mysql_database", "docker_container", "docker_image"}
+	var data []*models.ResourceItemTypeObj
+	data = append(data, &models.ResourceItemTypeObj{ItemType: "s3_bucket", ResourceType: "s3"})
+	data = append(data, &models.ResourceItemTypeObj{ItemType: "mysql_database", ResourceType: "mysql"})
+	data = append(data, &models.ResourceItemTypeObj{ItemType: "docker_container", ResourceType: "docker"})
 	middleware.ReturnData(c, data)
 }
 
@@ -63,7 +66,17 @@ func CreateResourceServer(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	err := database.CreateResourceServer(c, params)
+	var err error
+	for _, v := range params {
+		if err = database.ValidateResourceServer(c, v); err != nil {
+			break
+		}
+	}
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	err = database.CreateResourceServer(c, params)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -77,7 +90,17 @@ func UpdateResourceServer(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
-	err := database.UpdateResourceServer(c, params)
+	var err error
+	for _, v := range params {
+		if err = database.ValidateResourceServer(c, v); err != nil {
+			break
+		}
+	}
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	err = database.UpdateResourceServer(c, params)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
