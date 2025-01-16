@@ -22,7 +22,10 @@
         :columns="columns"
         :data="tableData"
         :loading="loading"
-        @on-selection-change="handleChooseData"
+        @on-select="hanldeChooseOne"
+        @on-select-cancel="handleCancelOne"
+        @on-select-all="handleChooseAll"
+        @on-select-all-cancel="handleCancelAll"
         :row-class-name="
           row => {
             return filterIdList.includes(row.id) ? 'ivu-table-row-hover' : ''
@@ -68,6 +71,10 @@ export default {
         currentPage: 1,
         pageSize: 50
       })
+    },
+    initSelectedRows: {
+      type: Array,
+      default: () => []
     }
   },
   data() {
@@ -83,7 +90,15 @@ export default {
     data: {
       handler(val) {
         this.tableData = deepClone(val)
-        this.selectData = this.tableData.filter(item => item._checked)
+      },
+      immediate: true,
+      deep: true
+    },
+    initSelectedRows: {
+      handler(val) {
+        if (Array.isArray(val) && val.length > 0) {
+          this.selectData = val
+        }
       },
       immediate: true,
       deep: true
@@ -91,9 +106,29 @@ export default {
   },
   mounted() {},
   methods: {
-    handleChooseData(selection) {
-      this.selectData = selection
-      this.$emit('select', selection)
+    hanldeChooseOne(selection, row) {
+      this.selectData.push(row)
+      this.$emit('select', this.selectData)
+    },
+    handleCancelOne(selection, row) {
+      const index = this.selectData.findIndex(item => item.id === row.id)
+      this.selectData.splice(index, 1)
+      this.$emit('select', this.selectData)
+    },
+    handleChooseAll(selection) {
+      const ids = this.selectData.map(item => item.id)
+      const pushArr = selection.filter(item => !ids.includes(item.id))
+      this.selectData.push(...pushArr)
+      this.$emit('select', this.selectData)
+    },
+    handleCancelAll() {
+      this.tableData.forEach(i => {
+        const index = this.selectData.findIndex(j => i.id === j.id)
+        if (index > -1) {
+          this.selectData.splice(index, 1)
+        }
+      })
+      this.$emit('select', this.selectData)
     },
     handleSearch: debounce(function () {
       // const filtersKeys = this.columns.map(item => item.key)
