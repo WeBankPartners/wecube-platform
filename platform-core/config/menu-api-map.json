@@ -1083,7 +1083,7 @@
       },
       {
         "key": "getAllExportItsm",
-        "url": "/taskman/api/v1/request-template/all",
+        "url": "/taskman/api/v1//request-template/latest/all",
         "method": "GET"
       },
       {

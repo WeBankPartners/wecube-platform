@@ -368,7 +368,7 @@ export const getAllExportFlows = () => req.get('/platform/v1/process/definitions
 // 查询所有批量执行
 export const getAllExportBatch = () => req.get('/platform/v1/batch-execution/templates/all')
 // 查询所有ITSM
-export const getAllExportItsm = () => req.get('/taskman/api/v1/request-template/all')
+export const getAllExportItsm = () => req.get('/taskman/api/v1//request-template/latest/all')
 // 执行导出
 export const exportBaseMigration = data => req.post('/platform/v1/data/transfer/export', data)
 // 导出详情
