@@ -341,7 +341,7 @@
   "table_id": "ID",
   "table_name": "名称",
   "table_type": "类型",
-  "table_resource_server": "资源服务器",
+  "table_resource_server": "资源名称",
   "table_is_allocated": "是否分配",
   "table_purpose": "描述",
   "table_status": "状态",
