@@ -345,8 +345,14 @@ export default {
       })
       const { status, data } = await retrieveServers(payload)
       if (status === 'OK') {
-        this.resourceOptions = data.contents || []
-        this.resourceOptions = this.resourceOptions.filter(i => !i.isAllocated && i.status === 'active')
+        const options = data.contents || []
+        this.resourceOptions = options.filter(i => !i.isAllocated && i.status === 'active')
+        // 如果数据被过滤掉了，手动添加进去
+        if (this.form.resourceServerId && !this.resourceOptions.some(i => i.id === this.form.resourceServerId)) {
+          const item = options.find(i => i.id === this.form.resourceServerId) || {}
+          this.resourceOptions.push(item)
+
+        }
       }
     },
     // 新增数据时选择资源自动带出类型
