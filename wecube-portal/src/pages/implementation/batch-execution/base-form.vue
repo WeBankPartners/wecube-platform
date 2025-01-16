@@ -172,6 +172,7 @@
         <FormItem :label="$t('be_choose_instance')" required>
           <EntityTable
             :data="tableData"
+            :initSelectedRows="initSelectedRows"
             :columns="tableColumns"
             :loading="loading"
             @select="
@@ -247,6 +248,7 @@ import FilterRules from '../../components/filter-rules.vue'
 import ConditionTree from './components/condition-tree.vue' // 过滤条件
 import EntityTable from './components/entity-table.vue' // 选择实例表格
 import ExecuteResult from './components/execute-result.vue' // 执行结果
+import { deepClone } from '@/const/util.js'
 import {
   getAllDataModels,
   dmeAllEntities,
@@ -296,6 +298,7 @@ export default {
       tableColumns: [], // 执行实例表格列
       tableData: [], // 执行实例表格数据
       seletedRows: [], // 勾选的执行实例
+      initSelectedRows: [],
       loading: false,
       // 步骤三字段
       pluginId: '', // 表单-插件服务ID
@@ -379,7 +382,8 @@ export default {
           this.isDangerousBlock = isDangerousBlock
           if (sourceData) {
             const frontData = JSON.parse(sourceData)
-            this.seletedRows = frontData.seletedRows
+            this.seletedRows = deepClone(frontData.seletedRows)
+            this.initSelectedRows = deepClone(frontData.seletedRows)
             this.pluginInputParams = frontData.pluginInputParams
             this.pluginOutputParams = frontData.pluginOutputParams
             this.resultTableParams = frontData.resultTableParams
