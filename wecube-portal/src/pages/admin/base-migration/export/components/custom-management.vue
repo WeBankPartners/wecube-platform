@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2025-01-07 20:01:01
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-01-15 16:51:19
+ * @LastEditTime: 2025-01-15 19:50:00
 -->
 <template>
   <BaseDrawer
@@ -213,14 +213,7 @@ export default {
           const { status } = await addCustomer(this.form)
           if (status === 'OK') {
             if (!this.form.id) {
-              this.form = {
-                createdUser: localStorage.getItem('username'),
-                name: '',
-                nexusAddr: '',
-                nexusAccount: '',
-                nexusPwd: '',
-                nexusRepo: ''
-              }
+              this.$refs.form.resetFields()
             }
             this.$Message.success(this.$t('save_successfully'))
             this.getCustomerList()
