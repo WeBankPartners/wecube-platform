@@ -1052,5 +1052,6 @@
   "pi_nexus_address": "nexus地址",
   "pi_nexus_account": "nexus账号",
   "pi_nexus_password": "nexus密码",
-  "pi_custom_default_config": "填充默认配置"
+  "pi_custom_default_config": "填充默认配置",
+  "pi_reset_data": "清空选项"
 }
