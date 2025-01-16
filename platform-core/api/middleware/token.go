@@ -33,6 +33,7 @@ var (
 		"get-process-definition-node-link":       true,
 		"get-user":                               true,
 		"change-user-password":                   true,
+		"get-packages":                           true,
 	}
 )
 
