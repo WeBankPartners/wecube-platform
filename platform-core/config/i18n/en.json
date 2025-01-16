@@ -175,5 +175,13 @@
   "schedule_operation_error": {
     "code": 20000039,
     "message": "Operation Failed: The current task status has been updated, please refresh and try again"
+  },
+  "export_customer_add_name_exist_error": {
+    "code": 20000040,
+    "message": "Save Failed: The target customer with the same name already exists. Please modify the name and try again"
+  },
+  "api_permission_error": {
+    "code": 20000041,
+    "message": "Api Permission Deny"
   }
 }

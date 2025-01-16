@@ -1,7 +1,11 @@
 <template>
   <div class="filter_rules_contain" :class="disabled ? 'disabled-filter' : ''" ref="filter_rules_contain">
     <Poptip v-model="poptipVisable" placement="bottom">
-      <div ref="wecube_cmdb_attr" class="filter_rules_path_contains">
+      <div
+        ref="wecube_cmdb_attr"
+        class="filter_rules_path_contains"
+        :style="disabled ? 'background:rgb(247, 247, 247)' : 'background:#fff'"
+      >
         <span
           class="path_exp"
           :class="index % 2 === 1 ? 'odd_span' : 'even_span'"
@@ -22,7 +26,7 @@
       <div slot="content">
         <div v-show="!disabled" ref="filter_rules_path_options" class="filter_rules_path_options">
           <ul>
-            <li id="paste" style="margin-bottom: 5px" v-if="pathList.length === 0">
+            <li id="paste" style="margin-bottom: 5px" v-if="pathList.length === 0 && !hiddenFilterRule">
               <input
                 class="paste_input"
                 v-model="pasteValue"
@@ -37,7 +41,7 @@
             <li
               class
               style="color: #2d8cf0"
-              v-if="pathList.length > 0 && currentNode.nodeType === 'entity'"
+              v-if="pathList.length > 0 && currentNode.nodeType === 'entity' && !hiddenFilterRule"
               @click="addFilterRuleForCurrentNode"
             >
               {{ $t('add_filter_rule') }}
@@ -48,19 +52,19 @@
           </ul>
           <hr style="margin-top: 5px" />
           <div style="max-height: 145px; overflow: auto; margin-top: 5px">
-            <ul
-              v-if="!needNativeAttr"
-              v-for="opt in filterCurrentLeafOptiongs"
-              :key="opt.pathExp + Math.random() * 1000"
-            >
-              <li style="color: rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
-            </ul>
-            <ul v-for="opt in filterCurrentRefOptiongs" :key="opt.pathExp + Math.random() * 1000">
-              <li style="color: rgb(64, 141, 218)" @click="optClickHandler(opt, 'up')">{{ opt.pathExp }}</li>
-            </ul>
-            <ul v-for="opt in filterCurrentOptiongs" :key="opt.pathExp + Math.random() * 1000">
-              <li style="color: rgb(211, 82, 32)" @click="optClickHandler(opt, 'down')">{{ opt.pathExp }}</li>
-            </ul>
+            <template v-if="!(rootOnly && pathList.length > 0)">
+              <div v-if="!needNativeAttr" style="max-height: 145px; overflow: auto; margin-top: 5px">
+                <ul v-for="opt in filterCurrentLeafOptiongs" :key="opt.pathExp + Math.random() * 1000">
+                  <li style="color: rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
+                </ul>
+                <ul v-for="opt in filterCurrentRefOptiongs" :key="opt.pathExp + Math.random() * 1000">
+                  <li style="color: rgb(64, 141, 218)" @click="optClickHandler(opt, 'up')">{{ opt.pathExp }}</li>
+                </ul>
+                <ul v-for="opt in filterCurrentOptiongs" :key="opt.pathExp + Math.random() * 1000">
+                  <li style="color: rgb(211, 82, 32)" @click="optClickHandler(opt, 'down')">{{ opt.pathExp }}</li>
+                </ul>
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -128,6 +132,12 @@ export default {
     }
   },
   props: {
+    rootOnly: {
+      // 是否只显示根节点
+      type: Boolean,
+      required: false,
+      default: false
+    },
     rootEntity: {
       required: false
     },
@@ -146,6 +156,11 @@ export default {
     allDataModelsWithAttrs: {},
     rootEntityFirst: {
       required: false,
+      default: false
+    },
+    // 是否隐藏过滤规则，默认为false不隐藏
+    hiddenFilterRule: {
+      type: Boolean,
       default: false
     }
   },
@@ -545,6 +560,7 @@ export default {
 }
 .disabled-filter {
   background-color: #f3f3f3 !important;
+  height: 32px;
   span {
     color: #cccccc !important;
   }
@@ -603,6 +619,8 @@ export default {
   .arrow-icon {
     position: absolute;
     right: 0;
+    width: 30px !important;
+    height: 30px !important;
   }
 }
 .filter_rules_path_options ul {

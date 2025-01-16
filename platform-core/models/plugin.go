@@ -514,6 +514,7 @@ type TargetEntityFilterRuleDto struct {
 	EntityName             string `json:"entityName"`             // 实体名称
 	PkgName                string `json:"pkgName"`                // 包名称
 	NodeType               string `json:"nodeType"`               // 节点类型
+	ProcDefId              string `json:"procDefId"`              // 编排设计ID
 }
 
 // PluginConfigInterfaceDto 插件配置dto

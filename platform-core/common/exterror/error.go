@@ -41,6 +41,7 @@ type ErrorTemplate struct {
 	RequestJsonUnmarshalError CustomError `json:"request_json_unmarshal_error"`
 	RequestTokenValidateError CustomError `json:"request_token_validate_error"`
 	RequestTokenExpireError   CustomError `json:"request_token_expire_error"`
+	ApiPermissionDeniedError  CustomError `json:"api_permission_error"`
 	// database error
 	DatabaseQueryError      CustomError `json:"database_query_error"`
 	DatabaseQueryEmptyError CustomError `json:"database_query_empty_error"`
@@ -80,9 +81,10 @@ type ErrorTemplate struct {
 	BatchExecTmplHasBeenModifiedError CustomError `json:"batch_exec_tmpl_has_been_modified_error"`
 	BatchExecDuplicateNameError       CustomError `json:"batch_exec_duplicate_name_error"`
 	// 同时处理报错
-	DealWithAtTheSameTimeError CustomError `json:"deal_with_at_the_same_time_error"`
-	DataPermissionDeny         CustomError `json:"data_permission_deny"`
-	AddRoleExistError          CustomError `json:"add_role_exist_error"`
+	DealWithAtTheSameTimeError      CustomError `json:"deal_with_at_the_same_time_error"`
+	DataPermissionDeny              CustomError `json:"data_permission_deny"`
+	AddRoleExistError               CustomError `json:"add_role_exist_error"`
+	ExportCustomerAddNameExistError CustomError `json:"export_customer_add_name_exist_error"`
 }
 
 var (

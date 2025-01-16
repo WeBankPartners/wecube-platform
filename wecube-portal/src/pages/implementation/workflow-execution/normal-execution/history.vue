@@ -8,66 +8,14 @@
     </div>
     <!--子编排列表支持主编排搜索-->
     <div v-if="searchConfig.params.subProc === 'sub'" class="extra-search">
-      <Select
+      <CustomFlowSelect
         v-model="searchConfig.params.mainProcInsId"
         style="width: 600px; margin-bottom: 10px"
-        clearable
-        filterable
-        :placeholder="$t('main_workflow_example')"
-        :remote-method="() => {}"
-        @on-query-change="handleRemoteInstance"
-        @on-change="handleQuery"
-        @on-open-change="getAllFlowInstances()"
-      >
-        <Option
-          v-for="item in allFlowInstances"
-          :value="item.id"
-          :key="item.id"
-          :label="
-            item.procInstName +
-            '  ' +
-            '[' +
-            item.version +
-            ']  ' +
-            item.entityDisplayName +
-            '  ' +
-            (item.operator || 'operator') +
-            '  ' +
-            (item.createdTime || '0000-00-00 00:00:00') +
-            '  ' +
-            getStatusStyleAndName(item.displayStatus, 'label')
-          "
-        >
-          <div style="display: flex; justify-content: space-between">
-            <div>
-              <span style="color: #2b85e4">{{ item.procInstName + ' ' }}</span>
-              <span style="color: #2b85e4">{{ '[' + item.version + '] ' }}</span>
-              <div
-                :style="{
-                  backgroundColor: '#c5c8ce',
-                  padding: '4px 15px',
-                  width: 'fit-content',
-                  color: '#fff',
-                  borderRadius: '4px',
-                  display: 'inline-block',
-                  marginLeft: '10px'
-                }"
-              >
-                {{ item.entityDisplayName + ' ' }}
-              </div>
-            </div>
-            <div style="display: flex; align-items: center">
-              <span style="color: #515a6e; margin-right: 20px">{{ item.operator || 'operator' }}</span>
-              <span style="color: #ccc">{{ (item.createdTime || '0000-00-00 00:00:00') + ' ' }}</span>
-              <div style="width: 100px">
-                <span :style="getStatusStyleAndName(item.displayStatus, 'style')">{{
-                  getStatusStyleAndName(item.displayStatus, 'label')
-                }}</span>
-              </div>
-            </div>
-          </div>
-        </Option>
-      </Select>
+        :options="allFlowInstances"
+        @search="handleFlowSelectSearch"
+        @change="handleQuery"
+        @clear="handleQuery"
+      />
     </div>
     <Table
       size="small"
@@ -102,8 +50,9 @@ import {
   getProcessInstances
 } from '@/api/server'
 import dayjs from 'dayjs'
-import { debounce } from '@/const/util'
+import CustomFlowSelect from '../components/custom-flow-select.vue'
 export default {
+  components: { CustomFlowSelect },
   data() {
     return {
       MODALHEIGHT: 0,
@@ -228,7 +177,8 @@ export default {
           key: 'operator',
           placeholder: this.$t('executor'),
           component: 'select',
-          list: []
+          list: [],
+          initValue: window.localStorage.getItem('username')
         }
       ],
       searchConfig: {
@@ -241,7 +191,7 @@ export default {
           endTime: '',
           procDefId: '',
           entityDisplayName: '',
-          operator: '',
+          operator: window.localStorage.getItem('username'),
           status: '',
           rootEntityGuid: '',
           mainProcInsId: ''
@@ -437,7 +387,11 @@ export default {
         }
       ],
       users: [],
-      allFlowInstances: []
+      allFlowInstances: [],
+      flowSelectForm: {
+        search: '',
+        onlyShowMyFlow: true
+      }
     }
   },
   computed: {
@@ -558,11 +512,15 @@ export default {
     next(vm => {
       if (from.path === '/implementation/workflow-execution/view-execution') {
         // 读取列表搜索参数
-        const storage = window.sessionStorage.getItem('search_normalExecution') || ''
+        const storage = window.sessionStorage.getItem('platform_search_normalExecution') || ''
         if (storage) {
-          const { searchParams, searchOptions } = JSON.parse(storage)
+          const {
+            searchParams, searchOptions, allFlowInstances, pageable
+          } = JSON.parse(storage)
           vm.searchConfig = searchParams
           vm.searchOptions = searchOptions
+          vm.allFlowInstances = allFlowInstances
+          vm.pageable = pageable
         }
       }
       // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
@@ -573,9 +531,11 @@ export default {
     // 缓存列表搜索条件
     const storage = {
       searchParams: this.searchConfig,
-      searchOptions: this.searchOptions
+      searchOptions: this.searchOptions,
+      allFlowInstances: this.allFlowInstances,
+      pageable: this.pageable
     }
-    window.sessionStorage.setItem('search_normalExecution', JSON.stringify(storage))
+    window.sessionStorage.setItem('platform_search_normalExecution', JSON.stringify(storage))
   },
   mounted() {
     this.searchConfig.params.entityDisplayName = this.$route.query.entityDisplayName || ''
@@ -587,6 +547,9 @@ export default {
       this.getFlows()
       this.getProcessInstances()
       this.getAllUsers()
+      if (Array.isArray(this.allFlowInstances) && this.allFlowInstances.length === 0) {
+        this.getAllFlowInstances()
+      }
     },
     // 查看主编排
     viewParentFlowGraph(row) {
@@ -727,6 +690,11 @@ export default {
           label: item.username,
           value: item.username
         }))
+        // 前端添加system用户
+        this.users.unshift({
+          label: 'system',
+          value: 'system'
+        })
         this.searchOptions.forEach(item => {
           if (item.key === 'operator') {
             item.list = this.users
@@ -811,30 +779,32 @@ export default {
             }
           })
         }
+        this.$Notice.warning({
+          title: '',
+          desc: this.$t('no_detail_warning')
+        })
       }
-      this.$Notice.warning({
-        title: '',
-        desc: this.$t('no_detail_warning')
-      })
+    },
+    handleFlowSelectSearch(val) {
+      this.flowSelectForm = val
+      this.getAllFlowInstances()
     },
     // 获取父编排实例下拉列表
-    async getAllFlowInstances(query = '') {
+    async getAllFlowInstances() {
       const params = {
         params: {
           withCronIns: 'no',
-          search: query,
+          search: this.flowSelectForm.search || '',
           withSubProc: '',
-          mgmtRole: ''
+          mgmtRole: '',
+          createdBy: this.flowSelectForm.onlyShowMyFlow ? localStorage.getItem('username') : ''
         }
       }
       const { status, data } = await getProcessInstances(params)
       if (status === 'OK') {
         this.allFlowInstances = data || []
       }
-    },
-    handleRemoteInstance: debounce(async function (query) {
-      this.getAllFlowInstances(query)
-    }, 500)
+    }
   }
 }
 </script>
