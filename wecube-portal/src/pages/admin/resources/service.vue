@@ -351,7 +351,6 @@ export default {
         if (this.form.resourceServerId && !this.resourceOptions.some(i => i.id === this.form.resourceServerId)) {
           const item = options.find(i => i.id === this.form.resourceServerId) || {}
           this.resourceOptions.push(item)
-
         }
       }
     },
