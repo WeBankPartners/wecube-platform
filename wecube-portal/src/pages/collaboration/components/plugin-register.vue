@@ -76,6 +76,7 @@
                 <span @click="getAllDataModels">
                   <div style="width: 400px; display: inline-block">
                     <FilterRules
+                      :rootOnly="true"
                       v-model="selectedEntityType"
                       :rootEntity="clearedEntityType"
                       :disabled="currentPluginObj.status === 'ENABLED'"
@@ -175,7 +176,7 @@
       @on-ok="confirmParamsHandler"
       @on-cancel="closeParamsModal"
     >
-      <div v-if="paramsModalVisible" class="modal-paramsContainer">
+      <div v-if="paramsModalVisible" class="register-params-container">
         <Row style="border-bottom: 1px solid #e5dfdf; margin-bottom: 5px">
           <Col span="2" offset="0">
             <strong style="font-size: 15px">{{ $t('params_type') }}</strong>
@@ -201,7 +202,7 @@
             <strong style="font-size: 15px">{{ $t('attribute') }}</strong>
           </Col>
         </Row>
-        <div class="modal-interfaceContainers">
+        <div class="interface-containers">
           <Form>
             <Row>
               <Col span="2">
@@ -1331,9 +1332,9 @@ export default {
 }
 </script>
 <style lang="scss">
-.modal-paramsContainer {
+.register-params-container {
   height: calc(100vh - 300px);
-  .modal-interfaceContainers {
+  .interface-containers {
     overflow: auto;
     height: calc(100vh - 320px);
   }

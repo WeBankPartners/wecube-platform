@@ -444,6 +444,7 @@ export default {
           params = cloneDeep(this.deletedSearchForm)
         }
         req.get(api, { params }).then(res => {
+          this.searchNameOptionList = []
           this.processOptionList(res.data, this.searchNameOptionList, 'name')
           if (this.pluginListType === 'isDeleted') {
             this.deletedPluginList = res.data || []
@@ -877,7 +878,7 @@ export default {
             .card-menu-content {
               max-height: 21px;
               overflow: hidden;
-              max-width: calc(30vw - 150px);
+              max-width: calc(30vw - 200px);
               white-space: nowrap;
               text-overflow: ellipsis;
             }
