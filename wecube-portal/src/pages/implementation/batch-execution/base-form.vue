@@ -608,6 +608,9 @@ export default {
       }
     },
     handleSearch(val) {
+      if (this.dataModelExpression === ':' || !this.dataModelExpression) {
+        return
+      }
       this.pagination.currentPage = 1
       this.fetchTableData(val)
     },
