@@ -241,11 +241,14 @@ export default {
     // 保存or更新环境和产品
     handleSaveEnvBusiness: debounce(async function () {
       const {
-        env, lastConfirmTime, envList, selectionList
+        customerId, env, lastConfirmTime, envList, selectionList
       } = this.$refs.env
       const pIds = selectionList.map(item => item.id)
       const pNames = selectionList.map(item => item.displayName)
       const envName = envList.find(item => item.value === env).label
+      if (!customerId) {
+        return this.$Message.warning(this.$t('pi_target_custom') + this.$t('required'))
+      }
       if (!lastConfirmTime) {
         return this.$Message.warning(this.$t('pi_data_confirmTime') + this.$t('required'))
       }
@@ -257,7 +260,8 @@ export default {
         pNames,
         env,
         envName,
-        lastConfirmTime
+        lastConfirmTime,
+        customerId
       }
       this.loading = true
       const { status, data } = await (this.id && this.type !== 'republish'

@@ -1,22 +1,97 @@
 <template>
-  <WeTable
-    :tableData="tableData"
-    :tableOuterActions="null"
-    :tableInnerActions="null"
-    :tableColumns="tableColumns"
-    :showCheckbox="false"
-    :pagination="pagination"
-    ref="serviceTable"
-    @handleSubmit="handleSubmit"
-    @sortHandler="sortHandler"
-    @pageChange="pageChange"
-    @pageSizeChange="pageSizeChange"
-  />
+  <div class="platform-resources-service">
+    <WeTable
+      :tableData="tableData"
+      :tableOuterActions="outerActions"
+      :tableInnerActions="null"
+      :tableColumns="tableColumns"
+      :pagination="pagination"
+      ref="serviceTable"
+      @actionFun="actionFun"
+      @getSelectedRows="onSelectedRowsChange"
+      @handleSubmit="handleSubmit"
+      @sortHandler="sortHandler"
+      @pageChange="pageChange"
+      @pageSizeChange="pageSizeChange"
+    />
+    <BaseDrawer
+      :title="operator === 'add' ? $t('full_word_add') : $t('edit')"
+      :visible.sync="visible"
+      v-if="visible"
+      :realWidth="900"
+      :maskClosable="false"
+    >
+      <template slot="content">
+        <Form :label-width="100" :model="form" :rules="rules" ref="form">
+          <!--资源-->
+          <FormItem :label="$t('resource')" prop="resourceServerId">
+            <Select
+              v-model="form.resourceServerId"
+              :disabled="editRow.used"
+              @on-change="handleSelectResource"
+              @on-open-change="
+                flag => {
+                  if (flag) getResourceOptions()
+                }
+              "
+              clearable
+            >
+              <Option v-for="item in resourceOptions" :key="item.id" :value="item.id">{{ item.name }}</Option>
+            </Select>
+          </FormItem>
+          <!--类型-->
+          <FormItem :label="$t('table_type')" prop="type">
+            <Select v-model="form.type" disabled clearable>
+              <Option v-for="(item, index) in typeOptions" :key="index" :value="item.itemType">{{
+                item.itemType
+              }}</Option>
+            </Select>
+          </FormItem>
+          <!--名称-->
+          <FormItem :label="$t('name')" prop="name">
+            <Input v-model.trim="form.name" :maxlength="100" :disabled="editRow.used" show-word-limit clearable></Input>
+          </FormItem>
+          <!--描述-->
+          <FormItem :label="$t('table_purpose')">
+            <Input type="textarea" v-model.trim="form.purpose" :maxlength="255" show-word-limit clearable></Input>
+          </FormItem>
+          <!--是否分配-->
+          <FormItem v-show="false" :label="$t('table_is_allocated')" prop="isAllocated">
+            <i-switch v-model="form.isAllocated" :true-value="true" :false-value="false" size="default" />
+          </FormItem>
+          <!--账号-->
+          <FormItem :label="$t('be_account')" prop="username">
+            <Input v-model.trim="form.username" autocomplete="off" :maxlength="100" clearable />
+          </FormItem>
+          <!--密码-->
+          <FormItem :label="$t('password')" prop="password">
+            <input type="text" style="display: none" />
+            <input type="password" autocomplete="new-password" style="display: none" />
+            <Input v-model.trim="form.password" type="password" autocomplete="off" password :maxlength="100" />
+          </FormItem>
+        </Form>
+      </template>
+      <template slot="footer">
+        <Button type="default" @click="visible = false">{{ $t('bc_cancel') }}</Button>
+        <Button type="primary" @click="submitAddData">{{ $t('save') }}</Button>
+      </template>
+    </BaseDrawer>
+  </div>
 </template>
 
 <script>
-import { getResourceItemStatus, getResourceItemType, retrieveItems } from '@/api/server.js'
-import moment from 'moment'
+import {
+  getResourceItemStatus,
+  getResourceItemType,
+  retrieveItems,
+  getInputParamsEncryptKey,
+  retrieveServers,
+  addResourceInstance,
+  updateResourceInstance,
+  deleteResourceInstance
+} from '@/api/server.js'
+import { outerActions } from '@/const/actions.js'
+import CryptoJS from 'crypto-js'
 
 const booleanOptions = [
   {
@@ -33,7 +108,10 @@ const booleanOptions = [
 
 export default {
   props: {
-    servers: {}
+    servers: {
+      type: Array,
+      default: () => []
+    }
   },
   data() {
     return {
@@ -50,6 +128,21 @@ export default {
         currentPage: 1,
         total: 0
       },
+      form: {
+        resourceServerId: '',
+        type: '',
+        name: '',
+        purpose: '',
+        isAllocated: true,
+        username: '',
+        password: ''
+      },
+      resourceOptions: [], // 资源下拉列表
+      typeOptions: [], // 类型下拉列表
+      visible: false,
+      operator: 'add', // add新增，edit编辑
+      editRow: {},
+      outerActions,
       tableData: [],
       tableColumns: [
         {
@@ -127,7 +220,7 @@ export default {
           title: this.$t('table_created_date'),
           key: 'createdDate',
           inputKey: 'createdDate',
-          searchSeqNo: 8,
+          // searchSeqNo: 8,
           displaySeqNo: 8,
           component: 'DatePicker',
           type: 'datetimerange',
@@ -138,7 +231,7 @@ export default {
           title: this.$t('table_updated_date'),
           key: 'updatedDate',
           inputKey: 'updatedDate',
-          searchSeqNo: 9,
+          // searchSeqNo: 9,
           displaySeqNo: 9,
           component: 'DatePicker',
           type: 'datetimerange',
@@ -149,27 +242,131 @@ export default {
           title: this.$t('table_port'),
           key: 'port',
           inputKey: 'port',
-          searchSeqNo: 10,
+          // searchSeqNo: 10,
           displaySeqNo: 10,
           component: 'Input',
           inputType: 'text',
           placeholder: this.$t('table_port')
         }
-      ]
+      ],
+      rules: {
+        resourceServerId: [
+          {
+            required: true,
+            message: this.$t('please_input') + this.$t('resource'),
+            trigger: 'blur'
+          }
+        ],
+        type: [
+          {
+            required: true,
+            message: this.$t('please_choose') + this.$t('table_type'),
+            trigger: 'blur'
+          }
+        ],
+        name: [
+          {
+            required: true,
+            message: this.$t('please_input') + this.$t('name'),
+            trigger: 'blur'
+          }
+        ],
+        username: [
+          {
+            required: true,
+            message: this.$t('please_input') + this.$t('be_account'),
+            trigger: 'blur'
+          }
+        ],
+        password: [
+          {
+            required: true,
+            message: this.$t('please_input') + this.$t('password'),
+            trigger: 'blur'
+          }
+        ]
+      }
     }
   },
   watch: {
-    servers(val) {
-      let statusIndex
-      this.tableColumns.find((_, i) => {
-        if (_.key === 'resourceServer') {
-          statusIndex = i
-        }
-      })
-      val && this.$set(this.tableColumns[statusIndex], 'options', val)
+    // 资源服务器赋值
+    servers: {
+      handler(val) {
+        let statusIndex
+        this.tableColumns.find((_, i) => {
+          if (_.key === 'resourceServer') {
+            statusIndex = i
+          }
+        })
+        val && this.$set(this.tableColumns[statusIndex], 'options', val)
+      },
+      immediate: true,
+      deep: true
     }
   },
+  mounted() {
+    this.outerActions = this.outerActions.filter(i => ['add', 'edit', 'delete', 'cancel'].includes(i.actionType))
+    this.getResourceItemStatus()
+    this.getResourceItemType()
+    this.queryData()
+  },
   methods: {
+    onSelectedRowsChange(rows) {
+      if (rows.length > 0) {
+        this.outerActions.forEach(_ => {
+          _.props.disabled = _.actionType === 'add'
+        })
+        if (rows.length > 1) {
+          this.outerActions.forEach(_ => {
+            _.props.disabled = _.actionType === 'edit' || _.actionType === 'add'
+          })
+        }
+      } else {
+        this.outerActions.forEach(_ => {
+          _.props.disabled = !(_.actionType === 'add' || _.actionType === 'cancel')
+        })
+      }
+      this.seletedRows = rows
+    },
+    // 获取资源下拉列表
+    async getResourceOptions() {
+      const payload = {
+        filters: [],
+        pageable: {
+          pageSize: 1000,
+          startIndex: 0
+        },
+        paging: true
+      }
+      payload.filters.push({
+        name: 'type',
+        operator: 'eq',
+        value: 'mysql'
+      })
+      const { status, data } = await retrieveServers(payload)
+      if (status === 'OK') {
+        const options = data.contents || []
+        this.resourceOptions = options.filter(i => !i.isAllocated && i.status === 'active')
+        // 如果数据被过滤掉了，手动添加进去
+        if (this.form.resourceServerId && !this.resourceOptions.some(i => i.id === this.form.resourceServerId)) {
+          const item = options.find(i => i.id === this.form.resourceServerId) || {}
+          this.resourceOptions.push(item)
+        }
+      }
+    },
+    // 新增数据时选择资源自动带出类型
+    handleSelectResource(val) {
+      if (val) {
+        const item = this.resourceOptions.find(_ => _.id === val)
+        this.typeOptions.forEach(_ => {
+          if (_.resourceType === item.type) {
+            this.form.type = _.itemType
+          }
+        })
+      } else {
+        this.form.type = ''
+      }
+    },
     async queryData() {
       this.payload.pageable.pageSize = this.pagination.pageSize
       this.payload.pageable.startIndex = (this.pagination.currentPage - 1) * this.pagination.pageSize
@@ -177,9 +374,7 @@ export default {
       if (status === 'OK') {
         this.tableData = data.contents.map(_ => {
           _.isAllocated = _.isAllocated ? 'true' : 'false'
-          _.createdDate = moment(_.createdDate).format('YYYY-MM-DD hh:mm:ss')
-          _.updatedDate = moment(_.updatedDate).format('YYYY-MM-DD hh:mm:ss')
-          _.port = _.additionalPropertiesMap && _.additionalPropertiesMap.portBindings
+          _._disabled = _.type === 'mysql_database' ? false : true
           return _
         })
         this.pagination.total = data.pageInfo.totalRows
@@ -195,7 +390,111 @@ export default {
         }
         return _
       })
+      this.pagination.currentPage = 1
       this.queryData()
+    },
+    actionFun(type, data) {
+      switch (type) {
+        case 'add':
+          this.addHandler()
+          break
+        case 'edit':
+          this.editHandler(data)
+          break
+        case 'delete':
+          this.deleteHandler(data)
+          break
+        case 'cancel':
+          this.cancelHandler()
+          break
+        default:
+          break
+      }
+    },
+    addHandler() {
+      this.form = {
+        resourceServerId: '',
+        type: '',
+        name: '',
+        purpose: '',
+        isAllocated: true,
+        username: '',
+        password: ''
+      }
+      this.visible = true
+      this.operator = 'add'
+      this.editRow = {}
+    },
+    submitAddData() {
+      this.$refs.form.validate(async valid => {
+        if (valid) {
+          const { data } = await getInputParamsEncryptKey()
+          const key = CryptoJS.enc.Utf8.parse(data)
+          const config = {
+            iv: CryptoJS.enc.Utf8.parse(Math.trunc(new Date() / 100000) * 100000000),
+            mode: CryptoJS.mode.CBC
+          }
+          this.form.password = CryptoJS.AES.encrypt(this.form.password, key, config).toString()
+          const params = JSON.parse(JSON.stringify([this.form]))
+          const method = this.operator === 'add' ? addResourceInstance : updateResourceInstance
+          const { status } = await method(params)
+          if (status === 'OK') {
+            this.visible = false
+            this.$Message.success(this.$t('Create Success'))
+            this.queryData()
+          }
+        }
+      })
+    },
+    editHandler(row) {
+      this.visible = true
+      this.operator = 'edit'
+      const {
+        id, resourceServerId, type, name, purpose, isAllocated, username, password
+      } = row[0]
+      this.editRow = row[0]
+      this.form = Object.assign({}, this.form, {
+        id,
+        resourceServerId,
+        type,
+        name,
+        purpose,
+        isAllocated: isAllocated === 'true' ? true : false,
+        username,
+        password
+      })
+      this.getResourceOptions()
+    },
+    deleteHandler(deleteData) {
+      this.$Modal.confirm({
+        title: this.$t('confirm_to_delete'),
+        'z-index': 1000000,
+        onOk: async () => {
+          const payload = deleteData.map(_ => ({
+            id: _.id
+          }))
+          const { status, message } = await deleteResourceInstance(payload)
+          if (status === 'OK') {
+            this.$Notice.success({
+              title: 'Delete Success',
+              desc: message
+            })
+            this.outerActions.forEach(_ => {
+              _.props.disabled = _.actionType === 'edit' || _.actionType === 'delete'
+            })
+            this.queryData()
+          }
+        },
+        onCancel: () => {}
+      })
+    },
+    cancelHandler() {
+      this.$refs.serviceTable.setAllRowsUneditable()
+      this.$refs.serviceTable.setCheckoutStatus()
+      this.outerActions
+        && this.outerActions.forEach(_ => {
+          _.props.disabled = !(_.actionType === 'add' || _.actionType === 'cancel')
+        })
     },
     sortHandler(data) {
       if (data.order === 'normal') {
@@ -213,6 +512,7 @@ export default {
       this.queryData()
     },
     pageSizeChange(size) {
+      this.pagination.currentPage = 1
       this.pagination.pageSize = size
       this.queryData()
     },
@@ -225,7 +525,9 @@ export default {
     async getResourceItemType() {
       const { status, data } = await getResourceItemType({})
       if (status === 'OK') {
-        this.setOptions(data, 'type')
+        const options = data && data.map(item => item.itemType)
+        this.setOptions(options, 'type')
+        this.typeOptions = data || []
       }
     },
     setOptions(data, column) {
@@ -242,11 +544,6 @@ export default {
       }))
       this.$set(this.tableColumns[statusIndex], 'options', options)
     }
-  },
-  mounted() {
-    this.getResourceItemStatus()
-    this.getResourceItemType()
-    this.queryData()
   }
 }
 </script>

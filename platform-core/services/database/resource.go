@@ -43,7 +43,7 @@ func QueryResourceServer(ctx context.Context, param *models.QueryRequestParam) (
 }
 
 func QueryResourceItem(ctx context.Context, param *models.QueryRequestParam) (result *models.ResourceItemListPageData, err error) {
-	result = &models.ResourceItemListPageData{PageInfo: &models.PageInfo{}, Contents: []*models.ResourceItem{}}
+	result = &models.ResourceItemListPageData{PageInfo: &models.PageInfo{}, Contents: []*models.ResourceItemQueryRow{}}
 	filterSql, _, queryParam := transFiltersToSQL(param, &models.TransFiltersParam{IsStruct: true, StructObj: models.ResourceItem{}})
 	baseSql := db.CombineDBSql("SELECT * FROM resource_item WHERE 1=1 ", filterSql)
 	if param.Paging {
@@ -52,9 +52,38 @@ func QueryResourceItem(ctx context.Context, param *models.QueryRequestParam) (re
 		baseSql = db.CombineDBSql(baseSql, pageSql)
 		queryParam = append(queryParam, pageParam...)
 	}
-	err = db.MysqlEngine.Context(ctx).SQL(baseSql, queryParam...).Find(&result.Contents)
+	var queryRows []*models.ResourceItem
+	err = db.MysqlEngine.Context(ctx).SQL(baseSql, queryParam...).Find(&queryRows)
 	if err != nil {
 		return result, exterror.Catch(exterror.New().DatabaseQueryError, err)
+	}
+	resourceList, resourceErr := QueryResourceServer(ctx, &models.QueryRequestParam{Filters: []*models.QueryRequestFilterObj{}, Paging: false, Pageable: &models.PageInfo{}})
+	if resourceErr != nil {
+		err = resourceErr
+		return
+	}
+	var instanceRows []*models.PluginMysqlInstances
+	err = db.MysqlEngine.Context(ctx).SQL("select docker_instance_resource_id as 'resource_item_id' from plugin_instances union select resource_item_id from plugin_mysql_instances").Find(&instanceRows)
+	if err != nil {
+		return result, exterror.Catch(exterror.New().DatabaseQueryError, err)
+	}
+	for _, row := range queryRows {
+		tmpRow := models.ResourceItemQueryRow{ResourceItem: *row}
+		tmpRow.CreatedDateString = tmpRow.CreatedDate.Format(models.DateTimeFormat)
+		tmpRow.UpdatedDateString = tmpRow.UpdatedDate.Format(models.DateTimeFormat)
+		for _, resourceRow := range resourceList.Contents {
+			if resourceRow.Id == row.ResourceServerId {
+				tmpRow.ResourceServer = resourceRow.Host
+				tmpRow.Port = resourceRow.Port
+			}
+		}
+		for _, usedByInstance := range instanceRows {
+			if usedByInstance.ResourceItemId == row.Id {
+				tmpRow.Used = true
+				break
+			}
+		}
+		result.Contents = append(result.Contents, &tmpRow)
 	}
 	return
 }
@@ -194,6 +223,12 @@ func decodeUIAesPassword(seed, password string) (decodePwd string, err error) {
 func CreateResourceItem(ctx context.Context, params []*models.ResourceItem, operator string) (err error) {
 	var actions []*db.ExecAction
 	nowTime := time.Now()
+	var existResourceItemRows []*models.ResourceItem
+	err = db.MysqlEngine.Context(ctx).SQL("select id,name,`type` from resource_item").Find(&existResourceItemRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
 	for _, v := range params {
 		if v.Type != "mysql_database" {
 			err = fmt.Errorf("item type %s illegal", v.Type)
@@ -202,6 +237,12 @@ func CreateResourceItem(ctx context.Context, params []*models.ResourceItem, oper
 		if v.ResourceServerId == "" {
 			err = fmt.Errorf("resource server can not empty")
 			return
+		}
+		for _, existRow := range existResourceItemRows {
+			if existRow.Type == v.Type && existRow.Name == v.Name {
+				err = fmt.Errorf("resourceItem type:%s name:%s already exists", v.Type, v.Name)
+				return
+			}
 		}
 		v.Id = "rs_item_" + guid.CreateGuid()
 		if decodePwd, tmpErr := DecodeUIPassword(ctx, v.Password); tmpErr != nil {
@@ -244,8 +285,8 @@ func UpdateResourceItem(ctx context.Context, params []*models.ResourceItem, oper
 		}
 		properties := models.MysqlResourceItemProperties{Username: v.Username, Password: v.Password}
 		propertiesBytes, _ := json.Marshal(&properties)
-		actions = append(actions, &db.ExecAction{Sql: "update resource_item set additional_properties=?,`username`=?,`password`=?,is_allocated=?,purpose=?,updated_by=?,updated_date=? where id=?", Param: []interface{}{
-			string(propertiesBytes), v.Username, v.Password, v.IsAllocated, v.Purpose, operator, nowTime, v.Id,
+		actions = append(actions, &db.ExecAction{Sql: "update resource_item set resource_server_id=?,name=?,additional_properties=?,`username`=?,`password`=?,is_allocated=?,purpose=?,updated_by=?,updated_date=? where id=?", Param: []interface{}{
+			v.ResourceServerId, v.Name, string(propertiesBytes), v.Username, v.Password, v.IsAllocated, v.Purpose, operator, nowTime, v.Id,
 		}})
 		pluginMysqlInstanceRow, getMysqlInstanceErr := getPluginMysqlInstanceByItem(ctx, v.Id)
 		if getMysqlInstanceErr != nil {
@@ -296,6 +337,63 @@ func getPluginMysqlInstanceByItem(ctx context.Context, resourceItemId string) (p
 	}
 	if len(pluginMysqlInstanceRows) > 0 {
 		pluginMysqlInstanceRow = pluginMysqlInstanceRows[0]
+	}
+	return
+}
+
+func GetResourceItem(ctx context.Context, resourceType, name string, isAllocated bool) (resourceItemRows []*models.ResourceItem, err error) {
+	baseSql := "select * from resource_item where "
+	var filterSql []string
+	var filterParams []interface{}
+	if resourceType != "" {
+		filterSql = append(filterSql, "`type`=?")
+		filterParams = append(filterParams, resourceType)
+	}
+	if name != "" {
+		filterSql = append(filterSql, "`name`=?")
+		filterParams = append(filterParams, name)
+	}
+	if isAllocated {
+		filterSql = append(filterSql, "`is_allocated`=1")
+	} else {
+		filterSql = append(filterSql, "`is_allocated`=0")
+	}
+	err = db.MysqlEngine.Context(ctx).SQL(baseSql+strings.Join(filterSql, " and "), filterParams...).Find(&resourceItemRows)
+	if err != nil {
+		err = fmt.Errorf("query resource item fail,%s ", err.Error())
+	} else {
+		for _, row := range resourceItemRows {
+			if strings.HasPrefix(row.Password, models.AESPrefix) {
+				row.Password = encrypt.DecryptWithAesECB(row.Password[5:], models.Config.Plugin.ResourcePasswordSeed, row.Name)
+			}
+		}
+	}
+	return
+}
+
+func ValidateResourceServer(ctx context.Context, resourceServer *models.ResourceServer) (err error) {
+	if resourceServer.Type == "docker" {
+		return
+	}
+	if resourceServer.Status == "active" && resourceServer.IsAllocated {
+		queryResult, queryErr := db.MysqlEngine.Context(ctx).QueryString("select id from resource_server where `type`=? and status='active' and is_allocated=1", resourceServer.Type)
+		if queryErr != nil {
+			err = fmt.Errorf("query resource server fail,%s ", queryErr.Error())
+			return
+		}
+		if len(queryResult) > 0 {
+			legalFlag := false
+			if resourceServer.Id != "" {
+				if len(queryResult) == 1 {
+					if queryResult[0]["id"] == resourceServer.Id {
+						legalFlag = true
+					}
+				}
+			}
+			if !legalFlag {
+				err = fmt.Errorf("resource server validate fail,already have an active&&allocated %s resource", resourceServer.Type)
+			}
+		}
 	}
 	return
 }

@@ -3,6 +3,7 @@
     <div class="item">
       <BaseHeaderTitle :title="$t('pe_env_product_sysytem')" :fontSize="15">
         <div slot="sub-title" class="item-header">
+          <span class="item-header-title">{{ $t('pi_target_custom') }}<span class="number">{{ detailData.customerName || '-' }}</span></span>
           <span class="item-header-title">{{ $t('pe_env') }}<span class="number">{{ detailData.environmentName || '-' }}</span></span>
           <span class="item-header-title">{{ $t('pe_product') }}<span class="number">{{ detailData.businessNameList.length }}</span></span>
           <span class="item-header-title">{{ $t('pe_system') }}<span class="number">{{ detailData.associationSystems.length }}</span></span>
@@ -388,13 +389,23 @@ export default {
     margin-bottom: 30px;
     position: relative;
     width: 100%;
+    &-header {
+      display: flex;
+      flex-direction: row;
+    }
     &-header-title {
       margin-left: 16px;
+      display: flex;
+      align-items: center;
       .number {
         font-size: 16px;
         font-weight: bold;
         color: #2d8cf0;
         margin-left: 6px;
+        max-width: 200px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
       }
     }
     .title {

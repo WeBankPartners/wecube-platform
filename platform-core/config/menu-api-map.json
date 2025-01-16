@@ -1,0 +1,1126 @@
+[
+  {
+    "menu": "COLLABORATION_PLUGIN_MANAGEMENT",
+    "content": "插件注册",
+    "urls": [
+      {
+        "url": "/platform/v1/available-container-hosts",
+        "method": "GET"
+      },
+      {
+        "url": "/platform/v1/hosts/${ip}/next-available-port",
+        "method": "GET"
+      },
+      {
+        "url": "/platform/v1/packages/${packageId}/hosts/${ip}/ports/${port}/instance/launch",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/instances/${instanceId}/remove",
+        "method": "delete"
+      },
+      {
+        "url": "/platform/v1/plugin-artifacts",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugin-artifacts/pull-requests",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/plugin-artifacts/pull-requests/${id}",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/decommission/${id}",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/${packageId}/instances",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/users/retrieve",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/ui/register",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/plugin-config-outlines",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugins/packages/export-choose/${id}",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/available-container-hosts",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/hosts/${ip}/next-available-port",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${packageId}/hosts/${ip}/ports/${port}/instance/launch",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/instances/${instanceId}/remove",
+        "method": "delete"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/resources/mysql/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/resources/s3/files",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/register/${id}",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/${packageId}/instances",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${packageId}/plugin-configs",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugins/packages/version/get",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugins/packages/version/inherit",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/register-done",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/dependencies",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/models",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/models/package/${name}",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/system-parameters",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/authorities",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/runtime-resources",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/plugins",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/models",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugins/enable/${id}",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/plugins/disable/${id}",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/plugins/configs/${id}",
+        "method": "delete"
+      },
+      {
+        "url": "/platform/v1/plugins",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/system-variables/retrieve",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/${packageId}/plugin-configs",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugins/interfaces/${configId}",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/roles/retrieve",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugins/roles/configs/${id}",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/users/roles",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/plugin-config-outlines",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages/${id}/plugin-configs/enable-in-batch",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/plugins/objectmetas/id/${objectMetaId}",
+        "method": "get"
+      },
+      {
+        "url": "/${pkgName}/entities/${entityName}/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/models/package/${pkgName}/entity/${entityName}",
+        "method": "get"
+      },
+      {
+        "key": "getMenuInjection",
+        "url": "/platform/v1/packages/${id}/menus",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "ADMIN_SYSTEM_PARAMS",
+    "content": "系统参数",
+    "urls": [
+      {
+        "url": "/platform/v1/system-variables/retrieve",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/system-variables/create",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/system-variables/update",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/system-variables/delete",
+        "method": "post"
+      },
+      {
+        "url": "/platform/resource/constants/resource-server-status",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/system-variables/constant/system-variable-scope",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "ADMIN_RESOURCES_MANAGEMENT",
+    "content": "资源管理",
+    "urls": [
+      {
+        "url": "/platform/resource/servers/retrieve",
+        "method": "post"
+      },
+      {
+        "url": "/platform/resource/constants/resource-server-status",
+        "method": "get"
+      },
+      {
+        "url": "/platform/resource/constants/resource-server-types",
+        "method": "get"
+      },
+      {
+        "url": "/platform/resource/servers/create",
+        "method": "post"
+      },
+      {
+        "url": "/platform/resource/servers/update",
+        "method": "post"
+      },
+      {
+        "url": "/platform/resource/servers/${id}/product-serial",
+        "method": "get"
+      },
+      {
+        "url": "/platform/resource/servers/delete",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/batch-execution/seed",
+        "method": "get"
+      },
+      {
+        "url": "/platform/resource/constants/resource-item-status",
+        "method": "get"
+      },
+      {
+        "url": "/platform/resource/constants/resource-item-types",
+        "method": "get"
+      },
+      {
+        "url": "/platform/resource/items/retrieve",
+        "method": "post"
+      },
+      {
+        "url": "/platform/resource/items/create",
+        "method": "post"
+      },
+      {
+        "url": "/platform/resource/items/update",
+        "method": "post"
+      },
+      {
+        "url": "/platform/resource/items/delete",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/plugins/packages/import/${id}",
+        "method": "post"
+      },
+      {
+        "key": "updatePluginRegisterObjectType",
+        "path": "/platform/v1/plugins/configs/${pluginConfigId}/interfaces/objectmetas/${objectMetaId}",
+        "method": "post"
+      },
+      {
+        "key": "exportPluginXMLWithId",
+        "path": "/platform/v1/plugins/packages/export/${id}",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "ADMIN_CERTIFICATION",
+    "content": "授权管理",
+    "urls": [
+      {
+        "url": "/platform/v1/plugin-certifications",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugin-certifications/${id}",
+        "method": "delete"
+      },
+      {
+        "url": "/platform/v1/plugin-certifications/${row.id}/export",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugin-certifications/import",
+        "method": "post"
+      }
+    ]
+  },
+  {
+    "menu": "ADMIN_USER_ROLE_MANAGEMENT",
+    "content": "权限管理",
+    "urls": [
+      {
+        "url": "/platform/v1/users/create",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/users/${roleId}/delete",
+        "method": "delete"
+      },
+      {
+        "url": "/platform/v1/users/retrieve",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/users/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/roles/create",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/roles/retrieve",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/roles/${id}/update",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/users/${userName}/roles",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/roles/${roleId}/users",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/roles/${roleId}/users/grant",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/roles/${roleId}/users/revoke",
+        "method": "delete"
+      },
+      {
+        "url": "/platform/v1/all-menus",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/users/${id}/roles/grant",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/users/${name}/menus",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/roles/${id}/menus",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/roles/${roleId}/menus",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/users/reset-password",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/user/${data.username}/update",
+        "method": "post"
+      }
+    ]
+  },
+  {
+    "menu": "ADMIN_SYSTEM_DATA_MODEL",
+    "content": "系统模型",
+    "urls": [
+      {
+        "url": "/platform/v1/models",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "ADMIN_SYSTEM_WORKFLOW_REPORT",
+    "content": "编排报表",
+    "urls": [
+      {
+        "url": "/platform/v1/statistics/process/definitions/tasknodes/service-ids",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions/service-ids/tasknode-bindings/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions/executions/plugin/reports/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions/executions/plugin/report-details/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions/tasknodes/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions/tasknodes/tasknode-bindings/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions/executions/tasknodes/reports/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions/executions/tasknodes/report-details/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions/executions/overviews/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/statistics/process/definitions",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/models",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "COLLABORATION_WORKFLOW_ORCHESTRATION",
+    "content": "编排设计",
+    "urls": [
+      {
+        "url": "/platform/v1/process/definitions/import",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/process/definitions/export",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/process/definitions",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/name/list",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/process/definitions/list",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/process/definitions/permission",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/process/definitions/status",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/process/definitions/${flowId}/copy/${association}",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/process/definitions/handler/update",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/process/definitions/${id}/parent/get",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/roles/retrieve",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/users/roles",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/process/definitions/${id}",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/process/definitions",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/process/definitions/tasknodes",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/process/definitions/link",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}",
+        "method": "delete"
+      },
+      {
+        "url": "/platform/v1/process/definitions/${flowId}/link/${edgeId}",
+        "method": "delete"
+      },
+      {
+        "url": "/platform/v1/process/definitions/deploy/${flowId}",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/packages/name/list",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/models",
+        "method": "get"
+      },
+      {
+        "url": "/${pkgName}/entities/${entityName}/query",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/models/package/${pkgName}/entity/${entityName}",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}/preorder",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugins/query-by-target-entity",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}/parameters",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/process/definitions/${flowId}/tasknodes/briefs",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/roles/retrieve",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/process/definitions/sub/list",
+        "method": "post"
+      },
+      {
+        "url": "/platform/v1/models",
+        "method": "get"
+      }
+    ]
+  },
+  {
+    "menu": "IMPLEMENTATION_WORKFLOW_EXECUTION",
+    "content": "编排执行",
+    "urls": [
+      {
+        "key": "getAllFlow",
+        "url": "/platform/v1/process/definitions",
+        "method": "get"
+      },
+      {
+        "key": "getFlowOutlineByID",
+        "url": "/platform/v1/process/definitions/${id}/outline",
+        "method": "get"
+      },
+      {
+        "key": "getTreePreviewData",
+        "url": "/platform/v1/process/definitions/${flowId}/preview/entities/${targetId}",
+        "method": "get"
+      },
+      {
+        "key": "previewFlowExecute",
+        "url": "/platform/v1/process/definitions/nodes/empty-query",
+        "method": "get"
+      },
+      {
+        "key": "createFlowInstance",
+        "url": "/platform/v1/process/instances",
+        "method": "post"
+      },
+      {
+        "key": "getProcessInstances",
+        "url": "/platform/v1/process/instances",
+        "method": "get"
+      },
+      {
+        "key": "getProcessInstance",
+        "url": "/platform/v1/process/instances/${id}",
+        "method": "get"
+      },
+      {
+        "key": "retryProcessInstance",
+        "url": "/platform/v1/process/instances/proceed",
+        "method": "post"
+      },
+      {
+        "key": "getModelNodeDetail",
+        "url": "/platform/v1/packages/${packageName}/entities/${entityName}/query",
+        "method": "post"
+      },
+      {
+        "key": "getNodeBindings",
+        "url": "/platform/v1/process/instances/${id}/tasknode-bindings",
+        "method": "get"
+      },
+      {
+        "key": "getNodeContext",
+        "url": "/platform/v1/process/instances/${procId}/tasknodes/${nodeId}/context",
+        "method": "get"
+      },
+      {
+        "key": "getDataByNodeDefIdAndProcessSessionId",
+        "url": "/platform/v1/process/instances/tasknodes/${nodeDefId}/session/${ProcessSessionId}/tasknode-bindings",
+        "method": "get"
+      },
+      {
+        "key": "setDataByNodeDefIdAndProcessSessionId",
+        "url": "/platform/v1/process/instances/tasknodes/${nodeDefId}/session/${ProcessSessionId}/tasknode-bindings",
+        "method": "post"
+      },
+      {
+        "key": "getAllBindingsProcessSessionId",
+        "url": "/platform/v1/process/instances/tasknodes/session/${ProcessSessionId}/tasknode-bindings",
+        "method": "get"
+      },
+      {
+        "key": "getTargetModelByProcessDefId",
+        "url": "/platform/v1/process/definitions/${id}/root-entities",
+        "method": "get"
+      },
+      {
+        "key": "getPreviewEntitiesByInstancesId",
+        "url": "/platform/v1/process/instances/${id}/preview/entities",
+        "method": "get"
+      },
+      {
+        "key": "createWorkflowInstanceTerminationRequest",
+        "url": "/platform/v1/public/process/instances/${procInstId}/terminations",
+        "method": "post"
+      },
+      {
+        "key": "getTaskNodeInstanceExecBindings",
+        "url": "/platform/v1/process/instances/${procInstId}/tasknodes/${nodeInstId}/tasknode-bindings",
+        "method": "get"
+      },
+      {
+        "key": "updateTaskNodeInstanceExecBindings",
+        "url": "/platform/v1/process/instances/${procInstId}/tasknodes/${nodeInstId}/tasknode-bindings",
+        "method": "post"
+      },
+      {
+        "key": "setUserScheduledTasks",
+        "url": "/platform/v1/user-scheduled-tasks/create",
+        "method": "post"
+      },
+      {
+        "key": "getMetaData",
+        "url": "/platform/v1/plugins/configs/interfaces/param/metadata/query",
+        "method": "post"
+      },
+      {
+        "key": "getExecutionTimeByNodeId",
+        "url": "/platform/v1/process/instances/node-message/${nodeId}/time",
+        "method": "get"
+      },
+      {
+        "key": "skipNode",
+        "url": "/platform/v1/process/instances/proceed",
+        "method": "post"
+      },
+      {
+        "key": "getBranchByNodeId",
+        "url": "/platform/v1/process/instances/node-message/${nodeId}/choose",
+        "method": "get"
+      },
+      {
+        "key": "executeBranch",
+        "url": "/platform/v1/process/instances/proceed",
+        "method": "post"
+      },
+      {
+        "key": "pauseAndContinueFlow",
+        "url": "/platform/v1/process/instances/proceed",
+        "method": "post"
+      },
+      {
+        "key": "collectFlow",
+        "url": "/platform/v1/process/definitions/collect/add",
+        "method": "post"
+      },
+      {
+        "key": "unCollectFlow",
+        "url": "/platform/v1/process/definitions/collect/del",
+        "method": "post"
+      },
+      {
+        "key": "getSourceNode",
+        "url": "/platform/v1/process/definitions/${flowId}/tasknodes/briefs",
+        "method": "get"
+      },
+      {
+        "key": "getNodeParams",
+        "url": "/platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}/parameters",
+        "method": "get"
+      },
+      {
+        "key": "getPluginFunByRule",
+        "url": "/platform/v1/plugins/query-by-target-entity",
+        "method": "post"
+      },
+      {
+        "key": "retrieveSystemVariables",
+        "url": "/platform/v1/system-variables/retrieve",
+        "method": "post"
+      },
+      {
+        "key": "getAllDataModels",
+        "url": "/platform/v1/models",
+        "method": "get"
+      },
+      {
+        "key": "getAssociatedNodes",
+        "url": "/platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}/preorder",
+        "method": "get"
+      },
+      {
+        "key": "getAllDataModels",
+        "url": "/platform/v1/models",
+        "method": "get"
+      },
+      {
+        "key": "getTargetOptions",
+        "url": "/${pkgName}/entities/${entityName}/query",
+        "method": "post"
+      },
+      {
+        "key": "getEntityRefsByPkgNameAndEntityName",
+        "url": "/platform/v1/models/package/${pkgName}/entity/${entityName}",
+        "method": "get"
+      },
+      {
+        "key": "getChildFlowListNew",
+        "url": "/platform/v1/process/definitions/sub/list",
+        "method": "post"
+      },
+      {
+        "key": "instancesWithPaging",
+        "url": "/platform/v1/process/instancesWithPaging",
+        "method": "post"
+      },
+      {
+        "key": "getUserList",
+        "url": "/platform/v1/users/retrieve",
+        "method": "get"
+      },
+      {
+        "key": "getAllFlow",
+        "url": "/platform/v1/process/definitions",
+        "method": "get"
+      },
+      {
+        "key": "createWorkflowInstanceTerminationRequest",
+        "url": "/platform/v1/public/process/instances/${procInstId}/terminations",
+        "method": "post"
+      },
+      {
+        "key": "batchWorkflowInstanceTermination",
+        "url": "/platform/v1/public/process/instances/batch-terminations",
+        "method": "post"
+      },
+      {
+        "key": "pauseAndContinueFlow",
+        "url": "/platform/v1/process/instances/proceed",
+        "method": "post"
+      },
+      {
+        "key": "getProcessInstances",
+        "url": "/platform/v1/process/instances",
+        "method": "get"
+      },
+      {
+        "key": "flowList",
+        "url": "/platform/v1/process/definitions/list",
+        "method": "post"
+      },
+      {
+        "key": "collectFlow",
+        "url": "/platform/v1/process/definitions/collect/add",
+        "method": "post"
+      },
+      {
+        "key": "unCollectFlow",
+        "url": "/platform/v1/process/definitions/collect/del",
+        "method": "post"
+      },
+      {
+        "key": "getUserScheduledTasks",
+        "url": "/platform/v1/user-scheduled-tasks/query",
+        "method": "post"
+      },
+      {
+        "key": "deleteUserScheduledTasks",
+        "url": "/platform/v1/user-scheduled-tasks/delete",
+        "method": "post"
+      },
+      {
+        "key": "resumeUserScheduledTasks",
+        "url": "/platform/v1/user-scheduled-tasks/resume",
+        "method": "post"
+      },
+      {
+        "key": "getScheduledTasksByStatus",
+        "url": "/platform/v1/user-scheduled-tasks/process-instances/query",
+        "method": "post"
+      },
+      {
+        "key": "getProcessInstances",
+        "url": "/platform/v1/process/instances",
+        "method": "get"
+      },
+      {
+        "key": "setUserScheduledTasks",
+        "url": "/platform/v1/user-scheduled-tasks/create",
+        "method": "post"
+      },
+      {
+        "key": "stopUserScheduledTasks",
+        "url": "/platform/v1/user-scheduled-tasks/stop",
+        "method": "post"
+      },
+      {
+        "key": "getCurrentUserRoles",
+        "url": "/platform/v1/users/roles",
+        "method": "get"
+      },
+      {
+        "key": "getAllFlow",
+        "url": "/platform/v1/process/definitions",
+        "method": "get"
+      },
+      {
+        "key": "instancesWithPaging",
+        "url": "/platform/v1/process/instancesWithPaging",
+        "method": "post"
+      },
+      {
+        "key": "getAllFlow",
+        "url": "/platform/v1/process/definitions",
+        "method": "get"
+      },
+      {
+        "key": "createWorkflowInstanceTerminationRequest",
+        "url": "/platform/v1/public/process/instances/${procInstId}/terminations",
+        "method": "post"
+      },
+      {
+        "key": "batchWorkflowInstanceTermination",
+        "url": "/platform/v1/public/process/instances/batch-terminations",
+        "method": "post"
+      },
+      {
+        "key": "pauseAndContinueFlow",
+        "url": "/platform/v1/process/instances/proceed",
+        "method": "post"
+      }
+    ]
+  },
+  {
+    "menu": "IMPLEMENTATION_BATCH_EXECUTION",
+    "content": "批量执行",
+    "urls": [
+      {
+        "key": "getAllDataModels",
+        "url": "/platform/v1/models",
+        "method": "get"
+      },
+      {
+        "key": "dmeAllEntities",
+        "url": "/platform/v1/data-model/dme/all-entities",
+        "method": "post"
+      },
+      {
+        "key": "getPluginsByTargetEntityFilterRule",
+        "url": "/platform/v1/plugins/query-by-target-entity",
+        "method": "post"
+      },
+      {
+        "key": "entityView",
+        "url": "/platform/v1/models/package/${packageName}/entity/${entityName}/attributes",
+        "method": "get"
+      },
+      {
+        "key": "dmeIntegratedQuery",
+        "url": "/platform/v1/data-model/dme/integrated-query",
+        "method": "post"
+      },
+      {
+        "key": "batchExecuteHistory",
+        "url": "/platform/v1/batch-execution/${id}",
+        "method": "get"
+      },
+      {
+        "key": "getBatchExecuteTemplateList",
+        "url": "/platform/v1/batch-execution/templates/list",
+        "method": "post"
+      },
+      {
+        "key": "updateExecuteTemplateRole",
+        "url": "/platform/v1/batch-execution/templates/permission/update",
+        "method": "post"
+      },
+      {
+        "key": "deleteExecuteTemplate",
+        "url": "/platform/v1/batch-execution/templates/${id}",
+        "method": "delete"
+      },
+      {
+        "key": "collectBatchTemplate",
+        "url": "/platform/v1/batch-execution/templates/collect",
+        "method": "post"
+      },
+      {
+        "key": "uncollectBatchTemplate",
+        "url": "/platform/v1/batch-execution/templates/uncollect",
+        "method": "post"
+      },
+      {
+        "key": "saveBatchExecute",
+        "url": "/platform/v1/batch-execution/job/run",
+        "method": "post"
+      },
+      {
+        "key": "saveBatchExecuteTemplate",
+        "url": "/platform/v1/batch-execution/templates",
+        "method": "post"
+      },
+      {
+        "key": "getBatchExecuteTemplateDetail",
+        "url": "/platform/v1/batch-execution/templates/${templateId}",
+        "method": "get"
+      },
+      {
+        "key": "getInputParamsEncryptKey",
+        "url": "/platform/v1/batch-execution/seed",
+        "method": "get"
+      },
+      {
+        "key": "getBatchExecuteList",
+        "url": "/platform/v1/batch-execution/list",
+        "method": "post"
+      }
+    ]
+  },
+  {
+    "menu": "ADMIN_BASE_MIGRATION",
+    "content": "一键迁移",
+    "urls": [
+      {
+        "key": "getBaseMigrationExportList",
+        "url": "/platform/v1/data/transfer/export/list",
+        "method": "POST"
+      },
+      {
+        "key": "getBaseMigrationExportQuery",
+        "url": "/platform/v1/data/transfer/export/list/options",
+        "method": "GET"
+      },
+      {
+        "key": "saveEnvBusiness",
+        "url": "/platform/v1/data/transfer/export/create",
+        "method": "POST"
+      },
+      {
+        "key": "updateEnvBusiness",
+        "url": "/platform/v1/data/transfer/export/update",
+        "method": "POST"
+      },
+      {
+        "key": "exportBaseMigration",
+        "url": "/platform/v1/data/transfer/export",
+        "method": "POST"
+      },
+      {
+        "key": "getExportDetail",
+        "url": "/platform/v1/data/transfer/export/detail",
+        "method": "GET"
+      },
+      {
+        "key": "getExportBusinessList",
+        "url": "/platform/v1/data/transfer/business/list",
+        "method": "POST"
+      },
+      {
+        "key": "getCustomerList",
+        "url": "/platform/v1/data/transfer/export/customer",
+        "method": "GET"
+      },
+      {
+        "key": "addCustomer",
+        "url": "/platform/v1/data/transfer/export/customer",
+        "method": "POST"
+      },
+      {
+        "key": "deleteCustomer",
+        "url": "/platform/v1/data/transfer/export/customer",
+        "method": "DELETE"
+      },
+      {
+        "key": "getRoleList",
+        "url": "/platform/v1/roles/retrieve",
+        "method": "GET"
+      },
+      {
+        "key": "getAllExportFlows",
+        "url": "/platform/v1/process/definitions/all",
+        "method": "GET"
+      },
+      {
+        "key": "getAllExportBatch",
+        "url": "/platform/v1/batch-execution/templates/all",
+        "method": "GET"
+      },
+      {
+        "key": "getAllExportItsm",
+        "url": "/taskman/api/v1/request-template/latest/all",
+        "method": "GET"
+      },
+      {
+        "key": "getBaseMigrationImportList",
+        "url": "/platform/v1/data/transfer/import/list",
+        "method": "POST"
+      },
+      {
+        "key": "getBaseMigrationImportQuery",
+        "url": "/platform/v1/data/transfer/import/list/options",
+        "method": "GET"
+      },
+      {
+        "key": "updateImportStatus",
+        "url": "/platform/v1/data/transfer/import/status",
+        "method": "POST"
+      },
+      {
+        "key": "getImportDetail",
+        "url": "/platform/v1/data/transfer/import/detail",
+        "method": "GET"
+      },
+      {
+        "key": "getImportBusinessList",
+        "url": "/platform/v1/data/transfer/import/business",
+        "method": "GET"
+      },
+      {
+        "key": "saveImportData",
+        "url": "/platform/v1/data/transfer/import",
+        "method": "POST"
+      },
+      {
+        "key": "getNexusConfig",
+        "url": "/platform/v1/data/transfer/export/nexus",
+        "method": "GET"
+      }
+    ]
+  }
+]

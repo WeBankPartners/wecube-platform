@@ -17,8 +17,7 @@ import indexCom from './pages/index'
 import req from './api/base'
 import implicitRoutes from './implicitRoutes.js'
 import { getChildRouters } from './pages/util/router.js'
-import { getGlobalMenus } from '@/const/util.js'
-import { pluginNameMap } from '@/const/util.js'
+import { pluginNameMap, getGlobalMenus } from '@/const/util.js'
 // 引用wecube公共组件
 import commonUI from 'wecube-common-ui'
 import 'wecube-common-ui/lib/wecube-common-ui.css'
@@ -65,28 +64,16 @@ class UserWatch {
   }
 }
 const WatchRouter = new UserWatch()
-WatchRouter.on('change', oldPath => {
-  let path = ''
-  if (window.needReLoad) {
-    return
-  }
-  if (oldPath === '/login' || oldPath === '/404') {
-    path = '/homepage'
-  }
-  window.location.href = window.location.origin + '/#' + path
-})
-
-const rewriteDocumentTitle = path => {
-  document.title = ''
-  Object.keys(pluginNameMap).forEach(key => {
-    if (path.startsWith(key) || path.startsWith('/' + key)) {
-      document.title = i18n.t(pluginNameMap[key])
-    }
-    if (!document.title) {
-      document.title = i18n.t('fd_platform')
-    }
-  })
-}
+// WatchRouter.on('change', oldPath => {
+//   let path = ''
+//   if (window.needReLoad) {
+//     return
+//   }
+//   if (oldPath === '/login' || oldPath === '/404') {
+//     path = '/homepage'
+//   }
+//   window.location.href = window.location.origin + '/#' + path
+// })
 
 const getDocumentTitleMap = (routeArr, name) => {
   if (routeArr.length > 0) {
@@ -184,7 +171,10 @@ router.beforeEach(async (to, from, next) => {
   const found = findPath(router.options.routes, to.path)
   if (!found) {
     window.sessionStorage.setItem('currentPath', to.fullPath)
-    next('/homepage')
+    next({
+      path: '/homepage',
+      query: { type: 'isInitStatus' }
+    })
   } else {
     if (window.myMenus || ((await getGlobalMenus()) && window.myMenus)) {
       const isHasPermission = []
@@ -192,14 +182,13 @@ router.beforeEach(async (to, from, next) => {
         .find(_ => to.path.startsWith(_.link) && _.active)
       if (
         (isHasPermission && isHasPermission.active)
-        || ['/collaboration/workflow-mgmt', '/collaboration/registrationDetail'].includes(to.path)
+        || ['/homepage', '/collaboration/workflow-mgmt', '/collaboration/registrationDetail'].includes(to.path)
       ) {
         /* has permission */
         window.sessionStorage.setItem(
           'currentPath',
           to.path === '/404' || to.path === '/login' ? '/homepage' : to.fullPath
         )
-        rewriteDocumentTitle(to.path)
         next()
       } else {
         /* has no permission */

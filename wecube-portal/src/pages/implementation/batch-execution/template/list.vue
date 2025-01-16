@@ -13,34 +13,36 @@
         <!--我的草稿-->
         <TabPane :label="$t('draft')" name="draft"></TabPane>
       </Tabs>
-      <Card :bordered="false" dis-hover :padding="0">
-        <template v-if="cardList.length">
-          <Card v-for="(i, index) in cardList" :key="index" style="width: 100%; margin-bottom: 20px">
-            <div class="custom-header" slot="title">
-              <Icon size="28" type="ios-people" />
-              <div class="title">
-                {{ i.role }}
-                <span class="underline"></span>
+      <div ref="maxHeight" :style="{maxHeight: maxHeight + 'px', overflowY: 'auto'}">
+        <Card :bordered="false" dis-hover :padding="0">
+          <template v-if="cardList.length">
+            <Card v-for="(i, index) in cardList" :key="index" style="width: 100%; margin-bottom: 20px">
+              <div class="custom-header" slot="title">
+                <Icon size="28" type="ios-people" />
+                <div class="title">
+                  {{ i.role }}
+                  <span class="underline"></span>
+                </div>
+                <Icon
+                  v-if="i.expand"
+                  size="28"
+                  type="md-arrow-dropdown"
+                  style="cursor: pointer"
+                  @click="handleExpand(i)"
+                />
+                <Icon v-else size="28" type="md-arrow-dropright" style="cursor: pointer" @click="handleExpand(i)" />
               </div>
-              <Icon
-                v-if="i.expand"
-                size="28"
-                type="md-arrow-dropdown"
-                style="cursor: pointer"
-                @click="handleExpand(i)"
-              />
-              <Icon v-else size="28" type="md-arrow-dropright" style="cursor: pointer" @click="handleExpand(i)" />
-            </div>
-            <div v-show="i.expand">
-              <Table size="small" :columns="tableColumns" :data="i.data" />
-            </div>
-          </Card>
-        </template>
-        <div v-else class="no-data">{{ $t('noData') }}</div>
-        <Spin fix v-if="spinShow">
-          <Icon type="ios-loading" size="44"></Icon>
-        </Spin>
-      </Card>
+              <div v-show="i.expand">
+                <Table size="small" :columns="tableColumns" :data="i.data" />
+              </div>
+            </Card>
+          </template>
+          <div v-else class="no-data">{{ $t('noData') }}</div>
+          <Spin fix v-if="spinShow">
+            <Icon type="ios-loading" size="44"></Icon>
+          </Spin>
+        </Card>
+      </div>
     </div>
     <!--权限弹窗-->
     <AuthDialog ref="authDialog" :useRolesRequired="true" @sendAuth="handleUpdateRole" />
@@ -75,6 +77,7 @@ export default {
       tableColumns: [],
       editRow: {},
       spinShow: false,
+      maxHeight: 500,
       searchOptions: [
         {
           key: 'isShowCollectTemplate',
@@ -298,7 +301,7 @@ export default {
     next(vm => {
       if (from.path === '/implementation/batch-execution/template-create') {
         // 读取列表搜索参数
-        const storage = window.sessionStorage.getItem('search_batchTemplate') || ''
+        const storage = window.sessionStorage.getItem('platform_search_batchTemplate') || ''
         if (storage) {
           const { searchParams, searchOptions } = JSON.parse(storage)
           vm.form = searchParams
@@ -315,7 +318,10 @@ export default {
       searchParams: this.form,
       searchOptions: this.searchOptions
     }
-    window.sessionStorage.setItem('search_batchTemplate', JSON.stringify(storage))
+    window.sessionStorage.setItem('platform_search_batchTemplate', JSON.stringify(storage))
+  },
+  mounted() {
+    this.maxHeight = document.documentElement.clientHeight - this.$refs.maxHeight.getBoundingClientRect().top - 60
   },
   methods: {
     initData() {

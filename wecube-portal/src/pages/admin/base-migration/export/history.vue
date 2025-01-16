@@ -62,11 +62,21 @@ export default {
           labelWidth: 110,
           component: 'custom-time'
         },
-        // 记录ID
+        // 目标客户
         {
-          key: 'id',
-          placeholder: this.$t('pe_record_id'),
-          component: 'input'
+          key: 'customerIds',
+          placeholder: this.$t('pi_target_custom'),
+          multiple: true,
+          component: 'select',
+          list: []
+        },
+        // 导出产品
+        {
+          key: 'business',
+          placeholder: this.$t('pe_export_product'),
+          multiple: true,
+          component: 'select',
+          list: []
         },
         // 导出状态
         {
@@ -97,13 +107,11 @@ export default {
             }
           ]
         },
-        // 导出产品
+        // 记录ID
         {
-          key: 'business',
-          placeholder: this.$t('pe_export_product'),
-          multiple: true,
-          component: 'select',
-          list: []
+          key: 'id',
+          placeholder: this.$t('pe_record_id'),
+          component: 'input'
         },
         // 创建人
         {
@@ -120,6 +128,7 @@ export default {
           .format('YYYY-MM-DD'), dayjs(new Date()).format('YYYY-MM-DD')],
         execTimeStart: '',
         execTimeEnd: '',
+        customerIds: [],
         status: [],
         business: [],
         operators: []
@@ -133,6 +142,13 @@ export default {
       tableData: [],
       loading: false,
       tableColumns: [
+        // 目标客户
+        {
+          title: this.$t('pi_target_custom'),
+          key: 'customerName',
+          minWidth: 200,
+          render: (h, params) => <span>{params.row.customerName || '-'}</span>
+        },
         // 导出产品
         {
           title: this.$t('pe_export_product'),
@@ -260,24 +276,33 @@ export default {
     next(vm => {
       if (from.path === '/admin/base-migration/export' && Object.keys(from.query).length > 0) {
         // 读取列表搜索参数
-        const storage = window.sessionStorage.getItem('export_baseMigration') || ''
+        const storage = window.sessionStorage.getItem('platform_export_baseMigration') || ''
         if (storage) {
-          const { searchParams, searchOptions } = JSON.parse(storage)
+          const { searchParams, searchOptions, pageable } = JSON.parse(storage)
           vm.searchParams = searchParams
           vm.searchOptions = searchOptions
+          // 多选下拉框有默认值自动触发onSearch事件，导致页数被重置，采用延时方法解决这个问题
+          setTimeout(() => {
+            vm.pageable = pageable
+            vm.initData()
+          }, 500)
+        } else {
+          vm.initData()
         }
+      } else {
+        // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+        vm.initData()
       }
-      // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
-      vm.initData()
     })
   },
   beforeDestroy() {
     // 缓存列表搜索条件
     const storage = {
       searchParams: this.searchParams,
-      searchOptions: this.searchOptions
+      searchOptions: this.searchOptions,
+      pageable: this.pageable
     }
-    window.sessionStorage.setItem('export_baseMigration', JSON.stringify(storage))
+    window.sessionStorage.setItem('platform_export_baseMigration', JSON.stringify(storage))
   },
   methods: {
     initData() {
@@ -300,12 +325,18 @@ export default {
                   value: item.businessId
                 })))
               || []
-          }
-          if (item.key === 'operators') {
+          } else if (item.key === 'operators') {
             item.list = (data.operators
                 && data.operators.map(item => ({
                   label: item,
                   value: item
+                })))
+              || []
+          } else if (item.key === 'customerIds') {
+            item.list = (data.customers
+                && data.customers.map(item => ({
+                  label: item.name,
+                  value: item.id
                 })))
               || []
           }
@@ -318,6 +349,7 @@ export default {
         status: this.searchParams.status,
         business: this.searchParams.business,
         operators: this.searchParams.operators,
+        customerIds: this.searchParams.customerIds,
         startIndex: (this.pageable.current - 1) * this.pageable.pageSize,
         pageSize: this.pageable.pageSize,
         execTimeStart: this.searchParams.time[0] ? this.searchParams.time[0] + ' 00:00:00' : undefined,

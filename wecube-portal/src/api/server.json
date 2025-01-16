@@ -1,0 +1,1400 @@
+[
+  {
+    "key": "getMyMenus",
+    "path": "/platform/v1/my-menus",
+    "method": "get",
+    "description": "获取我的菜单列表"
+  },
+  {
+    "key": "saveFlow",
+    "path": "/platform/v1/process/definitions/deploy",
+    "method": "post",
+    "description": "保存流程定义"
+  },
+  {
+    "key": "confirmSaveFlow",
+    "path": "/platform/v1/process/definitions/deploy",
+    "method": "post",
+    "description": "确认保存流程定义"
+  },
+  {
+    "key": "saveFlowDraft",
+    "path": "/platform/v1/process/definitions/draft",
+    "method": "post",
+    "description": "保存流程定义草稿"
+  },
+  {
+    "key": "confirmSaveFlowDraft",
+    "path": "/platform/v1/process/definitions/draft",
+    "method": "post",
+    "description": "确认保存流程定义草稿"
+  },
+  {
+    "key": "getAllFlow",
+    "path": "/platform/v1/process/definitions",
+    "method": "get",
+    "description": "获取所有流程定义"
+  },
+  {
+    "key": "getFlowDetailByID",
+    "path": "/platform/v1/process/definitions/{id}/detail",
+    "method": "get",
+    "description": "根据ID获取流程定义详情"
+  },
+  {
+    "key": "getFlowOutlineByID",
+    "path": "/platform/v1/process/definitions/{id}/outline",
+    "method": "get",
+    "description": "根据ID获取流程定义大纲"
+  },
+  {
+    "key": "getTargetOptions",
+    "path": "/{pkgName}/entities/{entityName}/query",
+    "method": "post",
+    "description": "获取目标选项"
+  },
+  {
+    "key": "getTreePreviewData",
+    "path": "/platform/v1/process/definitions/{flowId}/preview/entities/{targetId}?sessionId={sessionId}",
+    "method": "get",
+    "description": "获取树形预览数据"
+  },
+  {
+    "key": "createFlowInstance",
+    "path": "/platform/v1/process/instances",
+    "method": "post",
+    "description": "创建流程实例"
+  },
+  {
+    "key": "instancesWithPaging",
+    "path": "/platform/v1/process/instancesWithPaging",
+    "method": "post",
+    "description": "分页获取流程实例"
+  },
+  {
+    "key": "getProcessInstances",
+    "path": "/platform/v1/process/instances",
+    "method": "get",
+    "description": "获取流程实例列表"
+  },
+  {
+    "key": "getProcessInstance",
+    "path": "/platform/v1/process/instances/{id}",
+    "method": "get",
+    "description": "根据ID获取流程实例"
+  },
+  {
+    "key": "retryProcessInstance",
+    "path": "/platform/v1/process/instances/proceed",
+    "method": "post",
+    "description": "重试流程实例"
+  },
+  {
+    "key": "removeProcessDefinition",
+    "path": "/platform/v1/process/definitions/{id}",
+    "method": "delete",
+    "description": "删除流程定义"
+  },
+  {
+    "key": "getParamsInfosByFlowIdAndNodeId",
+    "path": "/platform/v1/process/definitions/{flowId}/tasknodes/{nodeId}",
+    "method": "get",
+    "description": "根据流程ID和节点ID获取参数信息"
+  },
+  {
+    "key": "getFlowNodes",
+    "path": "/platform/v1/process/definitions/{flowId}/tasknodes/briefs",
+    "method": "get",
+    "description": "获取流程节点概览"
+  },
+  {
+    "key": "getContextParametersNodes",
+    "path": "/platform/v1/process/definitions/{flowId}/root-context-nodes/briefs",
+    "method": "get",
+    "description": "获取上下文参数节点概览"
+  },
+  {
+    "key": "getAllDataModels",
+    "path": "/platform/v1/models",
+    "method": "get",
+    "description": "获取所有数据模型"
+  },
+  {
+    "key": "getPluginInterfaceList",
+    "path": "/platform/v1/plugins/interfaces/enabled",
+    "method": "get",
+    "description": "获取启用的插件接口列表"
+  },
+  {
+    "key": "exportProcessDefinitionWithId",
+    "path": "/platform/v1/process/definitions/{procDefId}/export",
+    "method": "get",
+    "description": "根据ID导出流程定义"
+  },
+  {
+    "key": "retrieveSystemVariables",
+    "path": "/platform/v1/system-variables/retrieve",
+    "method": "post",
+    "description": "检索系统变量"
+  },
+  {
+    "key": "createSystemVariables",
+    "path": "/platform/v1/system-variables/create",
+    "method": "post",
+    "description": "创建系统变量"
+  },
+  {
+    "key": "updateSystemVariables",
+    "path": "/platform/v1/system-variables/update",
+    "method": "post",
+    "description": "更新系统变量"
+  },
+  {
+    "key": "deleteSystemVariables",
+    "path": "/platform/v1/system-variables/delete",
+    "method": "post",
+    "description": "删除系统变量"
+  },
+  {
+    "key": "retrieveServers",
+    "path": "/platform/resource/servers/retrieve",
+    "method": "post",
+    "description": "检索服务器"
+  },
+  {
+    "key": "createServers",
+    "path": "/platform/resource/servers/create",
+    "method": "post",
+    "description": "创建服务器"
+  },
+  {
+    "key": "updateServers",
+    "path": "/platform/resource/servers/update",
+    "method": "post",
+    "description": "更新服务器"
+  },
+  {
+    "key": "deleteServers",
+    "path": "/platform/resource/servers/delete",
+    "method": "post",
+    "description": "删除服务器"
+  },
+  {
+    "key": "retrieveItems",
+    "path": "/platform/resource/items/retrieve",
+    "method": "post",
+    "description": "检索资源项"
+  },
+  {
+    "key": "getResourceServerStatus",
+    "path": "/platform/resource/constants/resource-server-status",
+    "method": "get",
+    "description": "获取资源服务器状态常量"
+  },
+  {
+    "key": "getResourceServerType",
+    "path": "/platform/resource/constants/resource-server-types",
+    "method": "get",
+    "description": "获取资源服务器类型常量"
+  },
+  {
+    "key": "getResourceItemStatus",
+    "path": "/platform/resource/constants/resource-item-status",
+    "method": "get",
+    "description": "获取资源项状态常量"
+  },
+  {
+    "key": "getResourceItemType",
+    "path": "/platform/resource/constants/resource-item-types",
+    "method": "get",
+    "description": "获取资源项类型常量"
+  },
+  {
+    "key": "getEnumCodesByCategoryId",
+    "path": "/platform/v1/cmdb/enum/category-types/{catTypeId}/categories/{catId}/codes",
+    "method": "get",
+    "description": "根据分类ID和类别ID获取枚举代码"
+  },
+  {
+    "key": "getAllPluginPkgs",
+    "path": "/platform/v1/packages",
+    "method": "get",
+    "description": "获取所有插件包"
+  },
+  {
+    "key": "getRefCiTypeFrom",
+    "path": "/platform/v1/cmdb/ci-types/{id}/references/by",
+    "method": "get",
+    "description": "获取CI类型的引用（来源）"
+  },
+  {
+    "key": "getRefCiTypeTo",
+    "path": "/platform/v1/cmdb/ci-types/{id}/references/to",
+    "method": "get",
+    "description": "获取CI类型的引用（目标）"
+  },
+  {
+    "key": "getCiTypeAttr",
+    "path": "/platform/v1/cmdb/ci-types/{id}/attributes",
+    "method": "get",
+    "description": "获取CI类型的属性"
+  },
+  {
+    "key": "getAvailableInstancesByPackageId",
+    "path": "/platform/v1/packages/{packageId}/instances",
+    "method": "get",
+    "description": "根据包ID获取可用的实例"
+  },
+  {
+    "key": "createPluginInstanceByPackageIdAndHostIp",
+    "path": "/platform/v1/packages/{packageId}/hosts/{ip}/ports/{port}/instance/launch",
+    "method": "post",
+    "description": "根据包ID、主机IP和端口创建插件实例"
+  },
+  {
+    "key": "removePluginInstance",
+    "path": "/platform/v1/packages/instances/{instanceId}/remove",
+    "method": "delete",
+    "description": "删除插件实例"
+  },
+  {
+    "key": "queryLog",
+    "path": "/platform/v1/plugin/packages/instances/log",
+    "method": "post",
+    "description": "查询插件实例日志"
+  },
+  {
+    "key": "getAvailableContainerHosts",
+    "path": "/platform/v1/available-container-hosts",
+    "method": "get",
+    "description": "获取可用的容器主机"
+  },
+  {
+    "key": "getAvailablePortByHostIp",
+    "path": "/platform/v1/hosts/{ip}/next-available-port",
+    "method": "get",
+    "description": "根据主机IP获取下一个可用端口"
+  },
+  {
+    "key": "createEnumCategory",
+    "path": "/platform/v1/cmdb/enum/category-types/{catTypeId}/categories/create",
+    "method": "post",
+    "description": "创建枚举类别"
+  },
+  {
+    "key": "updateEnumCategory",
+    "path": "/platform/v1/cmdb/enum/category-types/{catTypeId}/categories/{catId}",
+    "method": "put",
+    "description": "更新枚举类别"
+  },
+  {
+    "key": "login",
+    "path": "/auth/v1/api/login",
+    "method": "post",
+    "description": "用户登录"
+  },
+  {
+    "key": "getEncryptKey",
+    "path": "/auth/v1/api/seed",
+    "method": "get",
+    "description": "获取加密密钥"
+  },
+  {
+    "key": "getApplyRoles",
+    "path": "/auth/v1/roles",
+    "method": "get",
+    "description": "获取可申请角色列表"
+  },
+  {
+    "key": "startApply",
+    "path": "/auth/v1/roles/apply",
+    "method": "post",
+    "description": "开始申请角色"
+  },
+  {
+    "key": "deleteApplyData",
+    "path": "/auth/v1/roles/apply",
+    "method": "delete",
+    "description": "删除申请数据"
+  },
+  {
+    "key": "registerUser",
+    "path": "/auth/v1/users/register",
+    "method": "post",
+    "description": "注册用户"
+  },
+  {
+    "key": "deletePluginPkg",
+    "path": "/platform/v1/packages/decommission/{id}",
+    "method": "post",
+    "description": "删除插件包"
+  },
+  {
+    "key": "getPluginPkgDataModel",
+    "path": "/platform/v1/packages/{id}/models",
+    "method": "get",
+    "description": "获取插件包的数据模型"
+  },
+  {
+    "key": "getPluginPkgDependcy",
+    "path": "/platform/v1/packages/{id}/dependencies",
+    "method": "get",
+    "description": "获取插件包的依赖"
+  },
+  {
+    "key": "getAllPluginByPkgId",
+    "path": "/platform/v1/packages/{id}/plugins",
+    "method": "get",
+    "description": "根据包ID获取所有插件"
+  },
+  {
+    "key": "deleteRegisterSource",
+    "path": "/platform/v1/plugins/configs/{id}",
+    "method": "delete",
+    "description": "删除注册源"
+  },
+  {
+    "key": "getMenuInjection",
+    "path": "/platform/v1/packages/{id}/menus",
+    "method": "get",
+    "description": "获取菜单注入"
+  },
+  {
+    "key": "getSysParams",
+    "path": "/platform/v1/packages/{id}/system-parameters",
+    "method": "get",
+    "description": "获取系统参数"
+  },
+  {
+    "key": "getRuntimeResource",
+    "path": "/platform/v1/packages/{id}/runtime-resources",
+    "method": "get",
+    "description": "获取运行时资源"
+  },
+  {
+    "key": "getAuthSettings",
+    "path": "/platform/v1/packages/{id}/authorities",
+    "method": "get",
+    "description": "获取权限设置"
+  },
+  {
+    "key": "registerPlugin",
+    "path": "/platform/v1/plugins/enable/{id}",
+    "method": "post",
+    "description": "注册插件"
+  },
+  {
+    "key": "deletePlugin",
+    "path": "/platform/v1/plugins/disable/{id}",
+    "method": "post",
+    "description": "禁用插件"
+  },
+  {
+    "key": "savePluginConfig",
+    "path": "/platform/v1/plugins",
+    "method": "post",
+    "description": "保存插件配置"
+  },
+  {
+    "key": "registPluginPackage",
+    "path": "/platform/v1/packages/register/{id}",
+    "method": "post",
+    "description": "注册插件包"
+  },
+  {
+    "key": "queryDataBaseByPackageId",
+    "path": "/platform/v1/packages/{id}/resources/mysql/query",
+    "method": "post",
+    "description": "根据包ID查询数据库"
+  },
+  {
+    "key": "queryStorageFilesByPackageId",
+    "path": "/platform/v1/packages/{id}/resources/s3/files",
+    "method": "get",
+    "description": "根据包ID查询存储文件"
+  },
+  {
+    "key": "getAllPluginPackageResourceFiles",
+    "path": "/platform/v1/resource-files",
+    "method": "get",
+    "description": "获取所有插件包资源文件"
+  },
+  {
+    "key": "pullDynamicDataModel",
+    "path": "/platform/v1/models/package/{name}",
+    "method": "get",
+    "description": "拉取动态数据模型"
+  },
+  {
+    "key": "getRefByIdInfoByPackageNameAndEntityName",
+    "path": "/platform/v1/models/package/{pkgName}/entity/{entityName}/refById",
+    "method": "get",
+    "description": "根据包名和实体名获取引用信息"
+  },
+  {
+    "key": "getModelNodeDetail",
+    "path": "/platform/v1/packages/{packageName}/entities/{entityName}/query",
+    "method": "post",
+    "description": "获取模型节点详情"
+  },
+  {
+    "key": "getNodeBindings",
+    "path": "/platform/v1/process/instances/{id}/tasknode-bindings",
+    "method": "get",
+    "description": "获取节点绑定"
+  },
+  {
+    "key": "getNodeContext",
+    "path": "/platform/v1/process/instances/{procId}/tasknodes/{nodeId}/context",
+    "method": "get",
+    "description": "获取流程实例的节点上下文"
+  },
+  {
+    "key": "userCreate",
+    "path": "/platform/v1/users/create",
+    "method": "post",
+    "description": "创建用户"
+  },
+  {
+    "key": "removeUser",
+    "path": "/platform/v1/users/{roleId}/delete",
+    "method": "delete",
+    "description": "删除用户"
+  },
+  {
+    "key": "editUser",
+    "path": "/platform/v1/user/{username}/update",
+    "method": "post",
+    "description": "编辑用户信息"
+  },
+  {
+    "key": "changePassword",
+    "path": "/platform/v1/users/change-password",
+    "method": "post",
+    "description": "更改用户密码"
+  },
+  {
+    "key": "getUserList",
+    "path": "/platform/v1/users/retrieve",
+    "method": "get",
+    "description": "获取用户列表"
+  },
+  {
+    "key": "getAllUserList",
+    "path": "/platform/v1/users/query",
+    "method": "post",
+    "description": "模糊检索用户列表"
+  },
+  {
+    "key": "deleteUser",
+    "path": "/platform/v1/users/{id}/delete",
+    "method": "delete",
+    "description": "根据ID删除用户"
+  },
+  {
+    "key": "roleCreate",
+    "path": "/platform/v1/roles/create",
+    "method": "post",
+    "description": "创建角色"
+  },
+  {
+    "key": "getRoleList",
+    "path": "/platform/v1/roles/retrieve",
+    "method": "get",
+    "description": "获取角色列表"
+  },
+  {
+    "key": "getCurrentUserRoles",
+    "path": "/platform/v1/users/roles",
+    "method": "get",
+    "description": "获取当前用户的角色"
+  },
+  {
+    "key": "deleteRole",
+    "path": "/platform/v1/roles/{id}/delete",
+    "method": "delete",
+    "description": "根据ID删除角色"
+  },
+  {
+    "key": "addRoleToUser",
+    "path": "/platform/v1/users/{id}/roles/grant",
+    "method": "post",
+    "description": "为用户分配角色"
+  },
+  {
+    "key": "updateRole",
+    "path": "/platform/v1/roles/{id}/update",
+    "method": "post",
+    "description": "更新角色信息"
+  },
+  {
+    "key": "getRolesByUserName",
+    "path": "/platform/v1/users/{userName}/roles",
+    "method": "get",
+    "description": "根据用户名获取角色列表"
+  },
+  {
+    "key": "getUsersByRoleId",
+    "path": "/platform/v1/roles/{roleId}/users",
+    "method": "get",
+    "description": "根据角色ID获取用户列表"
+  },
+  {
+    "key": "grantRolesForUser",
+    "path": "/platform/v1/roles/{roleId}/users/grant",
+    "method": "post",
+    "description": "为用户批量分配角色"
+  },
+  {
+    "key": "revokeRolesForUser",
+    "path": "/platform/v1/roles/{roleId}/users/revoke",
+    "method": "delete",
+    "description": "从用户处撤销角色"
+  },
+  {
+    "key": "getAllMenusList",
+    "path": "/platform/v1/all-menus",
+    "method": "get",
+    "description": "获取所有菜单列表"
+  },
+  {
+    "key": "getMenusByUserName",
+    "path": "/platform/v1/users/{name}/menus",
+    "method": "get",
+    "description": "根据用户名获取菜单列表"
+  },
+  {
+    "key": "getMenusByRoleId",
+    "path": "/platform/v1/roles/{id}/menus",
+    "method": "get",
+    "description": "根据角色ID获取菜单列表"
+  },
+  {
+    "key": "updateRoleToMenusByRoleId",
+    "path": "/platform/v1/roles/{roleId}/menus",
+    "method": "post",
+    "description": "更新角色对应的菜单"
+  },
+  {
+    "key": "getFilteredPluginInterfaceList",
+    "path": "/platform/v1/plugins/interfaces/package/{packageName}/entity/{entityName}/enabled",
+    "method": "get",
+    "description": "获取指定包名和实体名的启用插件接口列表"
+  },
+  {
+    "key": "getRolesByCurrentUser",
+    "path": "/platform/v1/users/roles",
+    "method": "get",
+    "description": "获取当前用户的角色（与getCurrentUserRoles重复）"
+  },
+  {
+    "key": "getPermissionByProcessId",
+    "path": "/platform/v1/process/{id}/roles",
+    "method": "get",
+    "description": "根据流程ID获取权限角色列表"
+  },
+  {
+    "key": "updateFlowPermission",
+    "path": "/platform/v1/process/{id}/roles",
+    "method": "post",
+    "description": "更新流程权限"
+  },
+  {
+    "key": "deleteFlowPermission",
+    "path": "/platform/v1/process/{id}/roles",
+    "method": "delete",
+    "description": "删除流程权限"
+  },
+  {
+    "key": "dmeAllEntities",
+    "path": "/platform/v1/data-model/dme/all-entities",
+    "method": "post",
+    "description": "获取所有实体"
+  },
+  {
+    "key": "dmeIntegratedQuery",
+    "path": "/platform/v1/data-model/dme/integrated-query",
+    "method": "post",
+    "description": "集成查询"
+  },
+  {
+    "key": "entityView",
+    "path": "/platform/v1/models/package/{packageName}/entity/{entityName}/attributes",
+    "method": "get",
+    "description": "获取实体属性"
+  },
+  {
+    "key": "batchExecution",
+    "path": "{url}",
+    "method": "post",
+    "description": "批量执行（URL动态指定）"
+  },
+  {
+    "key": "deleteCollectionsRole",
+    "path": "/platform/v1/roles/{id}/favorites",
+    "method": "delete",
+    "description": "删除收藏的角色"
+  },
+  {
+    "key": "addCollectionsRole",
+    "path": "/platform/v1/roles/{id}/favorites",
+    "method": "post",
+    "description": "添加收藏的角色"
+  },
+  {
+    "key": "getAllCollections",
+    "path": "/platform/v1/roles/favorites/retrieve",
+    "method": "get",
+    "description": "获取所有收藏的角色"
+  },
+  {
+    "key": "deleteCollections",
+    "path": "/platform/v1/roles/favorites/{id}/delete",
+    "method": "delete",
+    "description": "根据ID删除收藏的角色"
+  },
+  {
+    "key": "saveBatchExecution",
+    "path": "/platform/v1/roles/favorites/create",
+    "method": "post",
+    "description": "保存批量执行（路径与功能不符，可能是错误）"
+  },
+  {
+    "key": "updateCollections",
+    "path": "/platform/v1/roles/favorites/update",
+    "method": "post",
+    "description": "更新收藏的角色"
+  },
+  {
+    "key": "getVariableScope",
+    "path": "/platform/v1/system-variables/constant/system-variable-scope",
+    "method": "get",
+    "description": "获取系统变量作用域"
+  },
+  {
+    "key": "getPluginConfigsByPackageId",
+    "path": "/platform/v1/packages/{packageId}/plugin-configs",
+    "method": "get",
+    "description": "根据包ID获取插件配置"
+  },
+  {
+    "key": "getInterfacesByPluginConfigId",
+    "path": "/platform/v1/plugins/interfaces/{configId}",
+    "method": "get",
+    "description": "根据插件配置ID获取接口"
+  },
+  {
+    "key": "getEntityRefsByPkgNameAndEntityName",
+    "path": "/platform/v1/models/package/{pkgName}/entity/{entityName}",
+    "method": "get",
+    "description": "根据包名和实体名获取实体引用"
+  },
+  {
+    "key": "getPluginsByTargetEntityFilterRule",
+    "path": "/platform/v1/plugins/query-by-target-entity",
+    "method": "post",
+    "description": "根据目标实体过滤规则查询插件"
+  },
+  {
+    "key": "getDataByNodeDefIdAndProcessSessionId",
+    "path": "/platform/v1/process/instances/tasknodes/{nodeDefId}/session/{ProcessSessionId}/tasknode-bindings",
+    "method": "get",
+    "description": "根据节点定义ID和流程会话ID获取任务节点绑定数据"
+  },
+  {
+    "key": "setDataByNodeDefIdAndProcessSessionId",
+    "path": "/platform/v1/process/instances/tasknodes/{nodeDefId}/session/{ProcessSessionId}/tasknode-bindings",
+    "method": "post",
+    "description": "设置任务节点绑定数据"
+  },
+  {
+    "key": "getAllBindingsProcessSessionId",
+    "path": "/platform/v1/process/instances/tasknodes/session/{ProcessSessionId}/tasknode-bindings",
+    "method": "get",
+    "description": "获取所有任务节点绑定数据"
+  },
+  {
+    "key": "getTargetModelByProcessDefId",
+    "path": "/platform/v1/process/definitions/{id}/root-entities",
+    "method": "get",
+    "description": "根据流程定义ID获取根实体"
+  },
+  {
+    "key": "getPreviewEntitiesByInstancesId",
+    "path": "/platform/v1/process/instances/{id}/preview/entities",
+    "method": "get",
+    "description": "根据实例ID获取预览实体"
+  },
+  {
+    "key": "getPluginArtifacts",
+    "path": "/platform/v1/plugin-artifacts",
+    "method": "get",
+    "description": "获取插件工件"
+  },
+  {
+    "key": "pullPluginArtifact",
+    "path": "/platform/v1/plugin-artifacts/pull-requests",
+    "method": "post",
+    "description": "拉取插件工件请求"
+  },
+  {
+    "key": "getPluginArtifactStatus",
+    "path": "/platform/v1/plugin-artifacts/pull-requests/{id}",
+    "method": "get",
+    "description": "获取插件工件请求状态"
+  },
+  {
+    "key": "exportPluginXMLWithId",
+    "path": "/platform/v1/plugins/packages/export/{id}",
+    "method": "get",
+    "description": "根据ID导出插件XML"
+  },
+  {
+    "key": "updatePluginConfigRoleBinding",
+    "path": "/platform/v1/plugins/roles/configs/{id}",
+    "method": "post",
+    "description": "更新插件配置的角色绑定"
+  },
+  {
+    "key": "deletePluginConfigRoleBinding",
+    "path": "/platform/v1/plugins/roles/configs/{id}",
+    "method": "delete",
+    "description": "删除插件配置的角色绑定"
+  },
+  {
+    "key": "getApplicationVersion",
+    "path": "/platform/v1/appinfo/version",
+    "method": "get",
+    "description": "获取应用版本"
+  },
+  {
+    "key": "getConfigByPkgId",
+    "path": "/platform/v1/packages/{id}/plugin-config-outlines",
+    "method": "get",
+    "description": "根据包ID获取插件配置概要"
+  },
+  {
+    "key": "updateConfigStatus",
+    "path": "/platform/v1/packages/{id}/plugin-configs/enable-in-batch",
+    "method": "post",
+    "description": "批量启用插件配置"
+  },
+  {
+    "key": "batchExportConfig",
+    "path": "/platform/v1/plugins/packages/export-choose/{id}",
+    "method": "post",
+    "description": "批量导出插件配置"
+  },
+  {
+    "key": "resetPassword",
+    "path": "/platform/v1/users/reset-password",
+    "method": "post",
+    "description": "重置用户密码"
+  },
+  {
+    "key": "createWorkflowInstanceTerminationRequest",
+    "path": "/platform/v1/public/process/instances/{procInstId}/terminations",
+    "method": "post",
+    "description": "创建工作流实例终止请求"
+  },
+  {
+    "key": "batchWorkflowInstanceTermination",
+    "path": "/platform/v1/public/process/instances/batch-terminations",
+    "method": "post",
+    "description": "批量终止工作流实例"
+  },
+  {
+    "key": "getTaskNodeInstanceExecBindings",
+    "path": "/platform/v1/process/instances/{procInstId}/tasknodes/{nodeInstId}/tasknode-bindings",
+    "method": "get",
+    "description": "获取任务节点实例执行绑定"
+  },
+  {
+    "key": "updateTaskNodeInstanceExecBindings",
+    "path": "/platform/v1/process/instances/{procInstId}/tasknodes/{nodeInstId}/tasknode-bindings",
+    "method": "post",
+    "description": "更新任务节点实例执行绑定"
+  },
+  {
+    "key": "getPluginRegisterObjectType",
+    "path": "/platform/v1/plugins/objectmetas/id/{objectMetaId}",
+    "method": "get",
+    "description": "获取插件注册对象类型"
+  },
+  {
+    "key": "updatePluginRegisterObjectType",
+    "path": "/platform/v1/plugins/configs/{pluginConfigId}/interfaces/objectmetas/{objectMetaId}",
+    "method": "post",
+    "description": "更新插件注册对象类型"
+  },
+  {
+    "key": "getCertification",
+    "path": "/platform/v1/plugin-certifications",
+    "method": "get",
+    "description": "获取插件认证列表"
+  },
+  {
+    "key": "deleteCertification",
+    "path": "/platform/v1/plugin-certifications/{id}",
+    "method": "delete",
+    "description": "删除插件认证"
+  },
+  {
+    "key": "exportCertification",
+    "path": "/platform/v1/plugin-certifications/{id}/export",
+    "method": "get",
+    "description": "导出插件认证"
+  },
+  {
+    "key": "importCertification",
+    "path": "/platform/v1/plugin-certifications/import",
+    "method": "post",
+    "description": "导入插件认证"
+  },
+  {
+    "key": "productSerial",
+    "path": "/platform/resource/servers/{id}/product-serial",
+    "method": "get",
+    "description": "获取产品序列号"
+  },
+  {
+    "key": "getProcessList",
+    "path": "/platform/v1/statistics/process/definitions",
+    "method": "get",
+    "description": "获取流程定义列表"
+  },
+  {
+    "key": "getTasknodesList",
+    "path": "/platform/v1/statistics/process/definitions/tasknodes/query",
+    "method": "post",
+    "description": "查询任务节点列表"
+  },
+  {
+    "key": "getPluginTasknodesBindings",
+    "path": "/platform/v1/statistics/process/definitions/service-ids/tasknode-bindings/query",
+    "method": "post",
+    "description": "查询插件任务节点绑定"
+  },
+  {
+    "key": "getTasknodesBindings",
+    "path": "/platform/v1/statistics/process/definitions/tasknodes/tasknode-bindings/query",
+    "method": "post",
+    "description": "查询任务节点绑定"
+  },
+  {
+    "key": "getTasknodesReport",
+    "path": "/platform/v1/statistics/process/definitions/executions/tasknodes/reports/query",
+    "method": "post",
+    "description": "查询任务节点报告"
+  },
+  {
+    "key": "getReportDetails",
+    "path": "/platform/v1/statistics/process/definitions/executions/tasknodes/report-details/query",
+    "method": "post",
+    "description": "查询报告详情"
+  },
+  {
+    "key": "getPluginReportDetails",
+    "path": "/platform/v1/statistics/process/definitions/executions/plugin/report-details/query",
+    "method": "post",
+    "description": "查询插件报告详情"
+  },
+  {
+    "key": "getPluginReport",
+    "path": "/platform/v1/statistics/process/definitions/executions/plugin/reports/query",
+    "method": "post",
+    "description": "查询插件报告"
+  },
+  {
+    "key": "getFlowExecutePluginList",
+    "path": "/platform/v1/statistics/process/definitions/tasknodes/service-ids",
+    "method": "get",
+    "description": "获取流程执行插件列表"
+  },
+  {
+    "key": "getFlowExecuteOverviews",
+    "path": "/platform/v1/statistics/process/definitions/executions/overviews/query",
+    "method": "post",
+    "description": "获取流程执行概览"
+  },
+  {
+    "key": "getUserScheduledTasks",
+    "path": "/platform/v1/user-scheduled-tasks/query",
+    "method": "post",
+    "description": "查询用户计划任务"
+  },
+  {
+    "key": "setUserScheduledTasks",
+    "path": "/platform/v1/user-scheduled-tasks/create",
+    "method": "post",
+    "description": "设置用户计划任务"
+  },
+  {
+    "key": "deleteUserScheduledTasks",
+    "path": "/platform/v1/user-scheduled-tasks/delete",
+    "method": "post",
+    "description": "删除用户计划任务"
+  },
+  {
+    "key": "resumeUserScheduledTasks",
+    "path": "/platform/v1/user-scheduled-tasks/resume",
+    "method": "post",
+    "description": "恢复用户计划任务"
+  },
+  {
+    "key": "stopUserScheduledTasks",
+    "path": "/platform/v1/user-scheduled-tasks/stop",
+    "method": "post",
+    "description": "停止用户计划任务"
+  },
+  {
+    "key": "getScheduledTasksByStatus",
+    "path": "/platform/v1/user-scheduled-tasks/process-instances/query",
+    "method": "post",
+    "description": "根据状态查询计划任务"
+  },
+  {
+    "key": "getMetaData",
+    "path": "/platform/v1/plugins/configs/interfaces/param/metadata/query",
+    "method": "post",
+    "description": "查询元数据"
+  },
+  {
+    "key": "flowList",
+    "path": "/platform/v1/process/definitions/list",
+    "method": "post",
+    "description": "获取编排列表"
+  },
+  {
+    "key": "collectFlow",
+    "path": "/platform/v1/process/definitions/collect/add",
+    "method": "post",
+    "description": "收藏编排"
+  },
+  {
+    "key": "unCollectFlow",
+    "path": "/platform/v1/process/definitions/collect/del",
+    "method": "post",
+    "description": "取消收藏编排"
+  },
+  {
+    "key": "flowMgmt",
+    "path": "/platform/v1/process/definitions",
+    "method": "post",
+    "description": "管理编排"
+  },
+  {
+    "key": "getFlowById",
+    "path": "/platform/v1/process/definitions/{id}",
+    "method": "get",
+    "description": "根据ID获取编排"
+  },
+  {
+    "key": "getChildFlowList",
+    "path": "/platform/v1/process/definitions",
+    "method": "get",
+    "description": "获取子编排列表"
+  },
+  {
+    "key": "getChildFlowListNew",
+    "path": "/platform/v1/process/definitions/sub/list",
+    "method": "post",
+    "description": "获取子编排列表（新接口）"
+  },
+  {
+    "key": "getParentFlowList",
+    "path": "/platform/v1/process/definitions/{id}/parent/get",
+    "method": "post",
+    "description": "获取父编排列表"
+  },
+  {
+    "key": "flowNodeMgmt",
+    "path": "/platform/v1/process/definitions/tasknodes",
+    "method": "post",
+    "description": "管理编排节点"
+  },
+  {
+    "key": "flowNodeDelete",
+    "path": "/platform/v1/process/definitions/{flowId}/tasknodes/{nodeId}",
+    "method": "delete",
+    "description": "删除编排节点"
+  },
+  {
+    "key": "flowEdgeMgmt",
+    "path": "/platform/v1/process/definitions/link",
+    "method": "post",
+    "description": "管理编排边"
+  },
+  {
+    "key": "flowEdgeDelete",
+    "path": "/platform/v1/process/definitions/{flowId}/link/{edgeId}",
+    "method": "delete",
+    "description": "删除编排边"
+  },
+  {
+    "key": "getPluginList",
+    "path": "/platform/v1/packages/name/list",
+    "method": "get",
+    "description": "获取插件列表"
+  },
+  {
+    "key": "getPluginFunByRule",
+    "path": "/platform/v1/plugins/query-by-target-entity",
+    "method": "post",
+    "description": "根据目标实体规则查询插件功能"
+  },
+  {
+    "key": "flowStatusChange",
+    "path": "/platform/v1/process/definitions/status",
+    "method": "post",
+    "description": "更改编排状态"
+  },
+  {
+    "key": "flowRelease",
+    "path": "/platform/v1/process/definitions/deploy/{flowId}",
+    "method": "post",
+    "description": "发布编排"
+  },
+  {
+    "key": "getAssociatedNodes",
+    "path": "/platform/v1/process/definitions/{flowId}/tasknodes/{nodeId}/preorder",
+    "method": "get",
+    "description": "获取关联节点"
+  },
+  {
+    "key": "getNodeParams",
+    "path": "/platform/v1/process/definitions/{flowId}/tasknodes/{nodeId}/parameters",
+    "method": "get",
+    "description": "根据流程ID和节点ID获取节点参数"
+  },
+  {
+    "key": "flowBatchAuth",
+    "path": "/platform/v1/process/definitions/permission",
+    "method": "post",
+    "description": "批量授权流程定义"
+  },
+  {
+    "key": "flowBatchChangeStatus",
+    "path": "/platform/v1/process/definitions/status",
+    "method": "post",
+    "description": "批量更改流程定义状态"
+  },
+  {
+    "key": "flowCopy",
+    "path": "/platform/v1/process/definitions/{flowId}/copy/{association}",
+    "method": "post",
+    "description": "复制流程定义"
+  },
+  {
+    "key": "getSourceNode",
+    "path": "/platform/v1/process/definitions/{flowId}/tasknodes/briefs",
+    "method": "get",
+    "description": "获取流程定义的源节点概览"
+  },
+  {
+    "key": "flowExport",
+    "path": "/platform/v1/process/definitions/export",
+    "method": "post",
+    "description": "导出流程定义"
+  },
+  {
+    "key": "flowImport",
+    "path": "/platform/v1/process/definitions/import",
+    "method": "post",
+    "description": "导入流程定义"
+  },
+  {
+    "key": "getNodeDetailById",
+    "path": "/platform/v1/process/definitions/{flowId}/tasknodes/{nodeId}",
+    "method": "get",
+    "description": "根据流程ID和节点ID获取节点详情"
+  },
+  {
+    "key": "transferToMe",
+    "path": "/platform/v1/process/definitions/handler/update",
+    "method": "post",
+    "description": "将编排列表转给自己"
+  },
+  {
+    "key": "saveBatchExecuteTemplate",
+    "path": "/platform/v1/batch-execution/templates",
+    "method": "post",
+    "description": "保存批量执行模板"
+  },
+  {
+    "key": "getBatchExecuteTemplateList",
+    "path": "/platform/v1/batch-execution/templates/list",
+    "method": "post",
+    "description": "获取批量执行模板列表"
+  },
+  {
+    "key": "updateExecuteTemplateRole",
+    "path": "/platform/v1/batch-execution/templates/permission/update",
+    "method": "post",
+    "description": "更新批量执行模板权限"
+  },
+  {
+    "key": "deleteExecuteTemplate",
+    "path": "/platform/v1/batch-execution/templates/{id}",
+    "method": "delete",
+    "description": "删除批量执行模板"
+  },
+  {
+    "key": "getBatchExecuteTemplateDetail",
+    "path": "/platform/v1/batch-execution/templates/{templateId}",
+    "method": "get",
+    "description": "获取批量执行模板详情"
+  },
+  {
+    "key": "collectBatchTemplate",
+    "path": "/platform/v1/batch-execution/templates/collect",
+    "method": "post",
+    "description": "收藏批量执行模板"
+  },
+  {
+    "key": "uncollectBatchTemplate",
+    "path": "/platform/v1/batch-execution/templates/uncollect",
+    "method": "post",
+    "description": "取消收藏批量执行模板"
+  },
+  {
+    "key": "getBatchExecuteList",
+    "path": "/platform/v1/batch-execution/list",
+    "method": "post",
+    "description": "获取批量执行列表"
+  },
+  {
+    "key": "batchExecuteHistory",
+    "path": "/platform/v1/batch-execution/{id}",
+    "method": "get",
+    "description": "获取批量执行历史"
+  },
+  {
+    "key": "saveBatchExecute",
+    "path": "{url}",
+    "method": "post",
+    "description": "保存批量执行（URL动态指定）"
+  },
+  {
+    "key": "getInputParamsEncryptKey",
+    "path": "/platform/v1/batch-execution/seed",
+    "method": "get",
+    "description": "获取批量执行输入参数加密密钥"
+  },
+  {
+    "key": "getProcessableList",
+    "path": "/auth/v1/roles/apply/byhandler",
+    "method": "post",
+    "description": "获取管理员视角的可处理申请列表"
+  },
+  {
+    "key": "getAllUser",
+    "path": "/auth/v1/users",
+    "method": "get",
+    "description": "获取所有用户"
+  },
+  {
+    "key": "getUserByRole",
+    "path": "/auth/v1/roles/{roleId}/users",
+    "method": "get",
+    "description": "根据角色ID获取用户"
+  },
+  {
+    "key": "removeUserFromRole",
+    "path": "/auth/v1/roles/{roleId}/users/revoke",
+    "method": "post",
+    "description": "从角色中删除用户"
+  },
+  {
+    "key": "addUserForRole",
+    "path": "/auth/v1/roles/{roleId}/users",
+    "method": "post",
+    "description": "为角色添加用户"
+  },
+  {
+    "key": "handleApplication",
+    "path": "/auth/v1/roles/apply",
+    "method": "put",
+    "description": "处理申请"
+  },
+  {
+    "key": "getApplyList",
+    "path": "/auth/v1/roles/apply/byapplier",
+    "method": "post",
+    "description": "获取用户视角的申请列表"
+  },
+  {
+    "key": "getExecutionTimeByNodeId",
+    "path": "/platform/v1/process/instances/node-message/{nodeId}/time",
+    "method": "get",
+    "description": "根据节点ID获取时间节点的预计执行时间"
+  },
+  {
+    "key": "getBranchByNodeId",
+    "path": "/platform/v1/process/instances/node-message/{nodeId}/choose",
+    "method": "get",
+    "description": "根据节点ID获取判断节点的可执行分支"
+  },
+  {
+    "key": "skipNode",
+    "path": "/platform/v1/process/instances/proceed",
+    "method": "post",
+    "description": "跳过时间节点"
+  },
+  {
+    "key": "executeBranch",
+    "path": "/platform/v1/process/instances/proceed",
+    "method": "post",
+    "description": "执行判断分支"
+  },
+  {
+    "key": "pauseAndContinueFlow",
+    "path": "/platform/v1/process/instances/proceed",
+    "method": "post",
+    "description": "暂停或继续流程执行"
+  },
+  {
+    "key": "previewFlowExecute",
+    "path": "/platform/v1/process/definitions/nodes/empty-query",
+    "method": "get",
+    "description": "编排执行试算接口"
+  },
+  {
+    "key": "getBaseMigrationExportList",
+    "path": "/platform/v1/data/transfer/export/list",
+    "method": "post",
+    "description": "获取导出历史列表"
+  },
+  {
+    "key": "getBaseMigrationExportQuery",
+    "path": "/platform/v1/data/transfer/export/list/options",
+    "method": "get",
+    "description": "获取导出列表查询条件"
+  },
+  {
+    "key": "getExportBusinessList",
+    "path": "/platform/v1/data/transfer/business/list",
+    "method": "post",
+    "description": "获取环境和产品列表"
+  },
+  {
+    "key": "saveEnvBusiness",
+    "path": "/platform/v1/data/transfer/export/create",
+    "method": "post",
+    "description": "保存环境和产品"
+  },
+  {
+    "key": "updateEnvBusiness",
+    "path": "/platform/v1/data/transfer/export/update",
+    "method": "post",
+    "description": "更新环境和产品"
+  },
+  {
+    "key": "getAllExportFlows",
+    "path": "/platform/v1/process/definitions/all",
+    "method": "get",
+    "description": "查询所有编排设计"
+  },
+  {
+    "key": "getAllExportBatch",
+    "path": "/platform/v1/batch-execution/templates/all",
+    "method": "get",
+    "description": "查询所有批量执行模板"
+  },
+  {
+    "key": "getAllExportItsm",
+    "path": "/taskman/api/v1/request-template/latest/all",
+    "method": "get",
+    "description": "查询所有ITSM请求模板"
+  },
+  {
+    "key": "exportBaseMigration",
+    "path": "/platform/v1/data/transfer/export",
+    "method": "post",
+    "description": "执行导出操作"
+  },
+  {
+    "key": "getExportDetail",
+    "path": "/platform/v1/data/transfer/export/detail",
+    "method": "get",
+    "description": "获取导出详情"
+  },
+  {
+    "key": "getImportBusinessList",
+    "path": "/platform/v1/data/transfer/import/business",
+    "method": "get",
+    "description": "获取导入产品环境列表"
+  },
+  {
+    "key": "saveImportData",
+    "path": "/platform/v1/data/transfer/import",
+    "method": "post",
+    "description": "执行导入操作"
+  },
+  {
+    "key": "getImportDetail",
+    "path": "/platform/v1/data/transfer/import/detail",
+    "method": "get",
+    "description": "获取导入详情"
+  },
+  {
+    "key": "getBaseMigrationImportList",
+    "path": "/platform/v1/data/transfer/import/list",
+    "method": "post",
+    "description": "获取导入列表"
+  },
+  {
+    "key": "getBaseMigrationImportQuery",
+    "path": "/platform/v1/data/transfer/import/list/options",
+    "method": "get",
+    "description": "获取导入列表查询条件"
+  },
+  {
+    "key": "updateImportStatus",
+    "path": "/platform/v1/data/transfer/import/status",
+    "method": "post",
+    "description": "变更导入状态"
+  },
+  {
+    "key": "getCustomerList",
+    "path": "/platform/v1/data/transfer/export/customer",
+    "method": "get",
+    "description": "获取目标客户列表"
+  },
+  {
+    "key": "addCustomer",
+    "path": "/platform/v1/data/transfer/export/customer",
+    "method": "post",
+    "description": "新增或编辑客户"
+  },
+  {
+    "key": "deleteCustomer",
+    "path": "/platform/v1/data/transfer/export/customer",
+    "method": "delete",
+    "description": "删除客户"
+  },
+  {
+    "key": "addResourceInstance",
+    "path": "/platform/resource/items/create",
+    "method": "post",
+    "description": "新增资源实例"
+  },
+  {
+    "key": "deleteResourceInstance",
+    "path": "/platform/resource/items/delete",
+    "method": "post",
+    "description": "删除资源实例"
+  },
+  {
+    "key": "updateResourceInstance",
+    "path": "/platform/resource/items/update",
+    "method": "post",
+    "description": "更新资源实例"
+  },
+  {
+    "key": "getNexusConfig",
+    "path": "/platform/v1/data/transfer/export/nexus",
+    "method": "get",
+    "description": "获取nexus配置"
+  }
+]
