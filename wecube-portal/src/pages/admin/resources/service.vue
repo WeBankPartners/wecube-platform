@@ -92,7 +92,6 @@ import {
 } from '@/api/server.js'
 import { outerActions } from '@/const/actions.js'
 import CryptoJS from 'crypto-js'
-import moment from 'moment'
 
 const booleanOptions = [
   {
@@ -221,7 +220,7 @@ export default {
           title: this.$t('table_created_date'),
           key: 'createdDate',
           inputKey: 'createdDate',
-          searchSeqNo: 8,
+          // searchSeqNo: 8,
           displaySeqNo: 8,
           component: 'DatePicker',
           type: 'datetimerange',
@@ -232,7 +231,7 @@ export default {
           title: this.$t('table_updated_date'),
           key: 'updatedDate',
           inputKey: 'updatedDate',
-          searchSeqNo: 9,
+          // searchSeqNo: 9,
           displaySeqNo: 9,
           component: 'DatePicker',
           type: 'datetimerange',
@@ -243,7 +242,7 @@ export default {
           title: this.$t('table_port'),
           key: 'port',
           inputKey: 'port',
-          searchSeqNo: 10,
+          // searchSeqNo: 10,
           displaySeqNo: 10,
           component: 'Input',
           inputType: 'text',
@@ -370,8 +369,6 @@ export default {
       if (status === 'OK') {
         this.tableData = data.contents.map(_ => {
           _.isAllocated = _.isAllocated ? 'true' : 'false'
-          _.createdDate = moment(_.createdDate).format('YYYY-MM-DD hh:mm:ss')
-          _.updatedDate = moment(_.updatedDate).format('YYYY-MM-DD hh:mm:ss')
           _._disabled = _.type === 'mysql_database' ? false : true
           return _
         })
