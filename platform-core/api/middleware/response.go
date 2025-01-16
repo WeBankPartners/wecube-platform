@@ -7,6 +7,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 const AcceptLanguageHeader = "Accept-Language"
@@ -84,7 +85,13 @@ func ReturnError(c *gin.Context, err error) {
 	c.Set(models.ContextErrorKey, errorKey)
 	c.Set(models.ContextErrorCode, errorCode)
 	c.Set(models.ContextErrorMessage, errorMessage)
+	c.Writer.Header().Add("Error-Code", strconv.Itoa(errorCode))
 	c.JSON(http.StatusOK, returnObj)
+}
+
+func ReturnApiPermissionError(c *gin.Context) {
+	log.Logger.Warn("ReturnApiPermissionError", log.String("url", c.Request.URL.Path), log.String("method", c.Request.Method), log.String("sourceIp", c.ClientIP()), log.StringList("roles", GetRequestRoles(c)))
+	ReturnError(c, exterror.New().ApiPermissionDeniedError)
 }
 
 func ReturnAuthError(c *gin.Context, err exterror.CustomError, token string) {

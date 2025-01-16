@@ -1,6 +1,7 @@
 import './table.scss'
 import moment from 'moment'
 import { createPopper } from '@popperjs/core'
+import { debounce } from '@/const/util'
 const DEFAULT_FILTER_NUMBER = 5
 const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 const MIN_WIDTH = 130
@@ -182,7 +183,7 @@ export default {
         }
       })
     },
-    handleSubmit() {
+    handleSubmit: debounce(function () {
       const generateFilters = (type, i) => {
         switch (type) {
           case 'text':
@@ -256,7 +257,7 @@ export default {
         }
       }
       this.$emit('handleSubmit', filters)
-    },
+    }, 350),
     reset() {
       this.tableColumns.forEach(_ => {
         if (_.children) {
@@ -342,7 +343,10 @@ export default {
             return (
               <item.component
                 onInput={v => (this.form[item.inputKey] = v)}
-                onChange={v => item.onChange && this.$emit(item.onChange, v)}
+                onChange={v => {
+                  item.onChange && this.$emit(item.onChange, v)
+                  this.handleSubmit()
+                }}
                 value={this.form[item.inputKey]}
                 filterable
                 clearable
@@ -354,7 +358,10 @@ export default {
             return (
               <item.component
                 value={this.form[item.inputKey]}
-                onInput={v => (this.form[item.inputKey] = v)}
+                onInput={v => {
+                  this.form[item.inputKey] = v
+                  this.handleSubmit()
+                }}
                 {...data}
               />
             )
@@ -367,7 +374,7 @@ export default {
             index < DEFAULT_FILTER_NUMBER ? '' : this.isShowHiddenFilters ? 'hidden-filters-show' : 'hidden-filters'
           }
         >
-          <FormItem label={item.title} prop={item.inputKey} key={item.inputKey}>
+          <FormItem prop={item.inputKey} key={item.inputKey}>
             {renders(item)}
           </FormItem>
         </Col>
@@ -384,7 +391,7 @@ export default {
         return 0
       }
       return (
-        <Form ref="form" label-position="top" inline>
+        <Form ref="form" inline>
           <Row>
             {this.tableColumns
               .filter(_ => !!_.children || !!_.searchSeqNo)
@@ -412,9 +419,9 @@ export default {
                 {this.tableColumns.filter(_ => !!_.searchSeqNo).sort(compare).length > DEFAULT_FILTER_NUMBER
                   && (!this.isShowHiddenFilters ? (
                     <FormItem>
-                      <div slot="label" style="visibility: hidden;">
+                      {/* <div slot="label" style="visibility: hidden;">
                         <span>Placeholder</span>
-                      </div>
+                      </div> */}
                       <Button
                         type="info"
                         ghost
@@ -429,9 +436,9 @@ export default {
                     </FormItem>
                   ) : (
                     <FormItem>
-                      <div slot="label" style="visibility: hidden;">
+                      {/* <div slot="label" style="visibility: hidden;">
                         <span>Placeholder</span>
-                      </div>
+                      </div> */}
                       <Button
                         type="info"
                         ghost
@@ -447,18 +454,24 @@ export default {
                   ))}
 
                 <FormItem>
-                  <div slot="label" style="visibility: hidden;">
+                  {/* <div slot="label" style="visibility: hidden;">
                     <span>Placeholder</span>
-                  </div>
-                  <Button type="primary" icon="ios-search" onClick={() => this.handleSubmit('form')}>
+                  </div> */}
+                  <Button type="primary" icon="ios-search" onClick={() => this.handleSubmit()}>
                     {this.$t('search')}
                   </Button>
                 </FormItem>
                 <FormItem>
-                  <div slot="label" style="visibility: hidden;">
+                  {/* <div slot="label" style="visibility: hidden;">
                     <span>Placeholder</span>
-                  </div>
-                  <Button icon="md-refresh" onClick={() => this.reset('form')}>
+                  </div> */}
+                  <Button
+                    icon="md-refresh"
+                    onClick={() => {
+                      this.reset('form')
+                      this.handleSubmit()
+                    }}
+                  >
                     {this.$t('reset')}
                   </Button>
                 </FormItem>

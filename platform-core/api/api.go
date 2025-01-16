@@ -250,6 +250,10 @@ func init() {
 
 		// 底座导入导出
 		&handlerFuncObj{Url: "/data/transfer/business/list", Method: "POST", HandlerFunc: data_trans.QueryBusinessList, ApiCode: "data-transfer-business-list"},
+		&handlerFuncObj{Url: "/data/transfer/export/customer", Method: "POST", HandlerFunc: data_trans.CreateOrUpdateExportCustomer, ApiCode: "data-transfer-export-customer-add"},
+		&handlerFuncObj{Url: "/data/transfer/export/nexus", Method: "GET", HandlerFunc: data_trans.GetExportNexusInfo, ApiCode: "data-transfer-export-nexus"},
+		&handlerFuncObj{Url: "/data/transfer/export/customer", Method: "GET", HandlerFunc: data_trans.QueryExportCustomerList, ApiCode: "data-transfer-export-customer-get"},
+		&handlerFuncObj{Url: "/data/transfer/export/customer", Method: "DELETE", HandlerFunc: data_trans.DeleteExportCustomer, ApiCode: "data-transfer-export-customer-delete"},
 		&handlerFuncObj{Url: "/data/transfer/export/create", Method: "POST", HandlerFunc: data_trans.CreateExport, ApiCode: "data-transfer-export-create"},
 		&handlerFuncObj{Url: "/data/transfer/export/update", Method: "POST", HandlerFunc: data_trans.UpdateExport, ApiCode: "data-transfer-export-update"},
 		&handlerFuncObj{Url: "/data/transfer/export", Method: "POST", HandlerFunc: data_trans.ExecExport, ApiCode: "data-transfer-export"},
@@ -279,7 +283,8 @@ func InitHttpServer() {
 		if !strings.HasPrefix(funcObj.Url, "/resource/") {
 			funcObj.Url = "/v1" + funcObj.Url
 		}
-		apiCodeMap[fmt.Sprintf("%s_%s%s", funcObj.Method, models.UrlPrefix, funcObj.Url)] = funcObj.ApiCode
+		tmpApiCode := fmt.Sprintf("%s_%s%s", funcObj.Method, models.UrlPrefix, funcObj.Url)
+		apiCodeMap[tmpApiCode] = funcObj.ApiCode
 		handleFuncList := []gin.HandlerFunc{funcObj.HandlerFunc}
 		if funcObj.PreHandle != nil {
 			handleFuncList = append([]gin.HandlerFunc{funcObj.PreHandle}, funcObj.HandlerFunc)
@@ -298,6 +303,7 @@ func InitHttpServer() {
 	r.GET(models.UrlPrefix+"/v1/route-items", system.GetRouteItems)
 	r.GET(models.UrlPrefix+"/v1/route-items/:name", system.GetRouteItems)
 	r.POST(models.UrlPrefix+"/entities/role/query", plugin.QueryRoleEntity)
+	middleware.InitApiMenuMap(apiCodeMap)
 	r.Run(":" + models.Config.HttpServer.Port)
 }
 
@@ -321,6 +327,8 @@ func httpLogHandle() gin.HandlerFunc {
 			c.Set(models.ContextRequestBody, string(bodyBytes))
 		}
 		apiCode := apiCodeMap[c.Request.Method+"_"+c.FullPath()]
+		c.Writer.Header().Add("Api-Code", apiCode)
+		c.Set(models.ContextApiCode, apiCode)
 		log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] ->", requestId, transactionId), log.String("uri", c.Request.RequestURI), log.String("serviceCode", apiCode), log.String("method", c.Request.Method), log.String("sourceIp", getRemoteIp(c)), log.String(models.ContextOperator, c.GetString(models.ContextOperator)), log.String(models.ContextRequestBody, c.GetString(models.ContextRequestBody)))
 		c.Next()
 		costTime := time.Since(start).Seconds() * 1000

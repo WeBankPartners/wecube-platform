@@ -9,6 +9,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"reflect"
 	"strings"
 )
 
@@ -142,6 +143,7 @@ func QueryExpressionEntities(c *gin.Context) {
 // QueryExpressionData 批量执行 - 表达式解析和数据查询
 func QueryExpressionData(c *gin.Context) {
 	var param models.QueryExpressionDataParam
+	var filterResult []map[string]interface{}
 	if err := c.ShouldBindJSON(&param); err != nil {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
@@ -154,9 +156,39 @@ func QueryExpressionData(c *gin.Context) {
 	result, queryErr := remote.QueryPluginData(c, exprList, param.Filters, c.GetHeader(models.AuthorizationHeader))
 	if queryErr != nil {
 		middleware.ReturnError(c, queryErr)
-	} else {
-		middleware.ReturnData(c, result)
+		return
 	}
+	// query不为空,则表示需要全部数据模糊匹配
+	if strings.TrimSpace(param.Query) != "" {
+		for _, item := range result {
+			for _, value := range item {
+				if reflect.TypeOf(value).Name() == "string" {
+					if strings.Contains(strings.ToLower(value.(string)), strings.ToLower(param.Query)) {
+						filterResult = append(filterResult, item)
+						break
+					}
+				}
+			}
+		}
+	} else {
+		filterResult = result
+	}
+	// 数据分页
+	if param.PageSize > 0 {
+		pageInfo := models.PageInfo{
+			StartIndex: param.StartIndex,
+			PageSize:   param.PageSize,
+			TotalRows:  len(filterResult),
+		}
+		endIndex := param.StartIndex + param.PageSize
+		if len(filterResult) < endIndex {
+			endIndex = len(filterResult)
+		}
+		filterResult = filterResult[param.StartIndex:endIndex]
+		middleware.ReturnPageData(c, pageInfo, filterResult)
+		return
+	}
+	middleware.ReturnData(c, filterResult)
 }
 
 // QueryExpressionDataForPlugin 给插件提供的表达式数据查询
