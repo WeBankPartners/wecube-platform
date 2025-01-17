@@ -72,9 +72,9 @@ You can download the code directly from git, or you can clone the code project t
     ```sql
     create database wecube_dev DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci;; 
     
-    create USER 'wecube'@'localhost' IDENTIFIED WITH mysql_native_password BY '***REMOVED***';
+    create USER 'wecube'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Abcd1234';
     
-    grant all privileges on `wecube_dev`.* to 'wecube'@'%' identified by '***REMOVED***';
+    grant all privileges on `wecube_dev`.* to 'wecube'@'%' identified by 'Abcd1234';
     ```
 
     Execute the following data initialization script on the database：
