@@ -72,9 +72,9 @@
 	```
 	create database wecube_dev DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci; 
 
-	create USER 'wecube'@'localhost' IDENTIFIED WITH mysql_native_password BY '***REMOVED***';
+	create USER 'wecube'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Abcd1234';
 
-	grant all privileges on `wecube_dev`.* to 'wecube'@'%' identified by '***REMOVED***';
+	grant all privileges on `wecube_dev`.* to 'wecube'@'%' identified by 'Abcd1234';
 	```
 	
 	在database上执行以下数据初始化脚本：
