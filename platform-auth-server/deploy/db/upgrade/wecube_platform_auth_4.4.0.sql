@@ -1,0 +1,6 @@
+SET FOREIGN_KEY_CHECKS = 0;
+INSERT INTO auth_sys_authority (id,created_by,created_time,updated_by,updated_time,is_active,is_deleted,code,description,display_name,`scope`) values ('7587be1b7a10465cbc58daf5a81930c2','admin',NULL,'',NULL,1,0,'ADMIN_BASE_MIGRATION','','ADMIN_BASE_MIGRATION','GLOBAL');
+INSERT INTO auth_sys_authority (id,created_by,created_time,updated_by,updated_time,is_active,is_deleted,code,description,display_name,`scope`) values ('83c18f834d044ae185f15ed5bc5e0003','umadmin',NULL,'',NULL,1,0,'ADMIN_SYSTEM_WORKFLOW_REPORT','','ADMIN_SYSTEM_WORKFLOW_REPORT','GLOBAL');
+INSERT INTO auth_sys_role_authority (id,created_by,created_time,updated_by,updated_time,is_active,is_deleted,authority_code,authority_id,role_id,role_name) values ('011e19012f5d4f599f662c826d1139d3','admin',NULL,'admin','2025-01-15 18:14:16',1,0,'ADMIN_BASE_MIGRATION','7587be1b7a10465cbc58daf5a81930c2','2c9280827019695c017019ac974f001c','SUPER_ADMIN');
+INSERT INTO auth_sys_role_authority (id,created_by,created_time,updated_by,updated_time,is_active,is_deleted,authority_code,authority_id,role_id,role_name) values ('2602ed2419dd409d939e09b2cadbb780','umadmin',NULL,'admin','2025-01-15 18:14:16',1,0,'ADMIN_SYSTEM_WORKFLOW_REPORT','83c18f834d044ae185f15ed5bc5e0003','2c9280827019695c017019ac974f001c','SUPER_ADMIN');
+SET FOREIGN_KEY_CHECKS = 1;
