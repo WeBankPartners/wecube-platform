@@ -69,6 +69,8 @@ func QueryResourceItem(ctx context.Context, param *models.QueryRequestParam) (re
 	}
 	for _, row := range queryRows {
 		tmpRow := models.ResourceItemQueryRow{ResourceItem: *row}
+		tmpRow.CreatedDateString = tmpRow.CreatedDate.Format(models.DateTimeFormat)
+		tmpRow.UpdatedDateString = tmpRow.UpdatedDate.Format(models.DateTimeFormat)
 		for _, resourceRow := range resourceList.Contents {
 			if resourceRow.Id == row.ResourceServerId {
 				tmpRow.ResourceServer = resourceRow.Host
@@ -221,6 +223,12 @@ func decodeUIAesPassword(seed, password string) (decodePwd string, err error) {
 func CreateResourceItem(ctx context.Context, params []*models.ResourceItem, operator string) (err error) {
 	var actions []*db.ExecAction
 	nowTime := time.Now()
+	var existResourceItemRows []*models.ResourceItem
+	err = db.MysqlEngine.Context(ctx).SQL("select id,name,`type` from resource_item").Find(&existResourceItemRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
 	for _, v := range params {
 		if v.Type != "mysql_database" {
 			err = fmt.Errorf("item type %s illegal", v.Type)
@@ -229,6 +237,12 @@ func CreateResourceItem(ctx context.Context, params []*models.ResourceItem, oper
 		if v.ResourceServerId == "" {
 			err = fmt.Errorf("resource server can not empty")
 			return
+		}
+		for _, existRow := range existResourceItemRows {
+			if existRow.Type == v.Type && existRow.Name == v.Name {
+				err = fmt.Errorf("resourceItem type:%s name:%s already exists", v.Type, v.Name)
+				return
+			}
 		}
 		v.Id = "rs_item_" + guid.CreateGuid()
 		if decodePwd, tmpErr := DecodeUIPassword(ctx, v.Password); tmpErr != nil {
@@ -271,8 +285,8 @@ func UpdateResourceItem(ctx context.Context, params []*models.ResourceItem, oper
 		}
 		properties := models.MysqlResourceItemProperties{Username: v.Username, Password: v.Password}
 		propertiesBytes, _ := json.Marshal(&properties)
-		actions = append(actions, &db.ExecAction{Sql: "update resource_item set additional_properties=?,`username`=?,`password`=?,is_allocated=?,purpose=?,updated_by=?,updated_date=? where id=?", Param: []interface{}{
-			string(propertiesBytes), v.Username, v.Password, v.IsAllocated, v.Purpose, operator, nowTime, v.Id,
+		actions = append(actions, &db.ExecAction{Sql: "update resource_item set resource_server_id=?,name=?,additional_properties=?,`username`=?,`password`=?,is_allocated=?,purpose=?,updated_by=?,updated_date=? where id=?", Param: []interface{}{
+			v.ResourceServerId, v.Name, string(propertiesBytes), v.Username, v.Password, v.IsAllocated, v.Purpose, operator, nowTime, v.Id,
 		}})
 		pluginMysqlInstanceRow, getMysqlInstanceErr := getPluginMysqlInstanceByItem(ctx, v.Id)
 		if getMysqlInstanceErr != nil {
@@ -370,10 +384,9 @@ func ValidateResourceServer(ctx context.Context, resourceServer *models.Resource
 		if len(queryResult) > 0 {
 			legalFlag := false
 			if resourceServer.Id != "" {
-				for _, v := range queryResult {
-					if v["id"] == resourceServer.Id {
+				if len(queryResult) == 1 {
+					if queryResult[0]["id"] == resourceServer.Id {
 						legalFlag = true
-						break
 					}
 				}
 			}

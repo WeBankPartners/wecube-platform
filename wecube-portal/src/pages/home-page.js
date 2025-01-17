@@ -19,14 +19,9 @@ export default {
       this.homePageList.forEach(c => {
         c.deleteFalg = false
         if (c.code && Array.isArray(window.myMenus) && window.myMenus.length > 0) {
-          // taskman根据二级菜单判断首页权限
-          const subPermission = window.myMenus.some(i => i.submenus.some(j => j.code === c.code))
-          // monitor所有二级菜单禁用，才会禁用首页权限
-          const mainPermission = window.myMenus.some(
-            i => i.code === c.code && Array.isArray(i.submenus) && i.submenus.length > 0
-          )
-          const hasPermission = subPermission || mainPermission
-          if (!hasPermission) {
+          // taskman、monitor根据二级菜单判断首页权限
+          const permission = window.myMenus.some(i => i.submenus.some(j => j.code === c.code))
+          if (!permission) {
             c.deleteFalg = true
           }
         }
