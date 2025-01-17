@@ -13,7 +13,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime
     environment:
-      - MYSQL_ROOT_PASSWORD=***REMOVED***
+      - MYSQL_ROOT_PASSWORD=Abcd1234
     ports:
       - 3306:3306
     volumes:
