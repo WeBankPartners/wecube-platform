@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2025-01-07 20:01:01
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-01-15 19:50:00
+ * @LastEditTime: 2025-01-17 10:20:42
 -->
 <template>
   <BaseDrawer
@@ -201,6 +201,18 @@ export default {
           const { status } = await deleteCustomer(row.id)
           if (status === 'OK') {
             this.$Message.success(this.$t('be_success'))
+            if (this.selected === row.id) {
+              this.$refs.form.resetFields()
+              this.selected = ''
+              this.form = {
+                createdUser: localStorage.getItem('username'),
+                name: '',
+                nexusAddr: '',
+                nexusAccount: '',
+                nexusPwd: '',
+                nexusRepo: ''
+              }
+            }
             this.getCustomerList()
           }
         },
