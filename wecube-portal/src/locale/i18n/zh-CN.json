@@ -1053,5 +1053,6 @@
   "pi_nexus_account": "nexus账号",
   "pi_nexus_password": "nexus密码",
   "pi_custom_default_config": "填充默认配置",
-  "pi_reset_data": "清空选项"
+  "pi_reset_data": "清空选项",
+  "server_404_error": "加载失败:当前插件已注销，请刷新页面重试"
 }

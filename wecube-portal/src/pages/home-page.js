@@ -12,7 +12,7 @@ export default {
     }
   },
   mounted() {
-    this.getRunningPackages()
+    // this.getRunningPackages()
     getGlobalMenus()
     setTimeout(async () => {
       this.homePageList = deepClone(window.homepageComponent.data || [])
@@ -20,7 +20,7 @@ export default {
         c.deleteFalg = false
         if (c.code && Array.isArray(window.myMenus) && window.myMenus.length > 0) {
           // taskman、monitor根据二级菜单判断首页权限
-          const permission = window.myMenus.some(i => i.submenus.some(j => j.code === c.code))
+          const permission = window.myMenus.some(i => i.submenus.some(j => j.code === c.code && j.active))
           if (!permission) {
             c.deleteFalg = true
           }
@@ -29,20 +29,20 @@ export default {
       // 首页根据菜单权限隐藏相关页面
       this.homePageList = this.homePageList.filter(i => !i.deleteFalg)
       // 根据插件注册状态隐藏相关页面
-      if (this.runningPackages.length > 0) {
-        const taskmanFlag = this.runningPackages.some(i => i.name === 'taskman')
-        const monitorFlag = this.runningPackages.some(i => i.name === 'monitor')
-        this.homePageList = this.homePageList.filter(i => {
-          if (i.code === 'TASK_WORKBENCH' && !taskmanFlag) {
-            return false
-          } else if (i.code === 'MONITORING' && !monitorFlag) {
-            return false
-          }
-          return true
-        })
-      }
+      // if (this.runningPackages.length > 0) {
+      //   const taskmanFlag = this.runningPackages.some(i => i.name === 'taskman')
+      //   const monitorFlag = this.runningPackages.some(i => i.name === 'monitor')
+      //   this.homePageList = this.homePageList.filter(i => {
+      //     if (i.code === 'TASK_WORKBENCH' && !taskmanFlag) {
+      //       return false
+      //     } else if (i.code === 'MONITORING' && !monitorFlag) {
+      //       return false
+      //     }
+      //     return true
+      //   })
+      // }
       this.comps = this.homePageList
-    }, 800)
+    }, 1000)
   },
   methods: {
     async getRunningPackages() {
