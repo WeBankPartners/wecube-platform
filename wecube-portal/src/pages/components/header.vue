@@ -355,6 +355,7 @@ export default {
                 if (this.loadPlugin.finnishNumber === this.loadPlugin.totalNumber) {
                   this.loadPlugin.isShow = false
                   window.isLoadingPlugin = false
+                  window.dispatchEvent(new CustomEvent('getAllPluginsLoaded')) // 提供给homePage判断使用
                   this.$nextTick(() => {
                     window.location.href = window.location.origin
                       + '/#'
