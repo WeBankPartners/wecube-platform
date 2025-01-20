@@ -13,7 +13,10 @@
 
 <script>
 export default {
-  methods: {}
+  mounted() {
+    // 进入404页面，清除currentPath
+    window.sessionStorage.removeItem('currentPath')
+  }
 }
 </script>
 
