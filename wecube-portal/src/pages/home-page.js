@@ -17,7 +17,7 @@ export default {
           this.fetchHomePage()
         }
       },
-      immediate: true,
+      immediate: true
     }
   },
   mounted() {
