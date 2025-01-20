@@ -1,12 +1,8 @@
 <template>
   <div class="row">
-    <h1>
-      404
-    </h1>
+    <h1>404</h1>
     <hr />
-    <h2>
-      Page Not Found
-    </h2>
+    <h2>Page Not Found</h2>
     <p>Back to <a href="/">homepage</a></p>
   </div>
 </template>
