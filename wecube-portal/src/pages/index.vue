@@ -10,6 +10,7 @@
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
       </Breadcrumb>
       <router-view class="pages" style="padding: 0"></router-view>
+      <div id="micro-app-container"></div>
     </div>
     <BackTop :height="100" :bottom="100" />
   </div>
@@ -96,7 +97,7 @@ export default {
     },
     homePageClickHandler() {
       window.needReLoad = false
-      this.$router.push('/homepage')
+      this.$router.push('/taskman')
     }
   },
   created() {
