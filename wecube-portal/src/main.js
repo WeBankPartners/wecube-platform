@@ -4,7 +4,7 @@ import router from './router'
 import store from './store'
 
 import ViewUI from 'view-design'
-import 'view-design/dist/styles/iview.css'
+import './styles/index.less'
 
 import VueI18n from 'vue-i18n'
 import { i18n } from './locale/i18n/index.js'
