@@ -24,6 +24,14 @@ module.exports = {
       outputPath: 'img'
     })
   },
+  css: {
+    loaderOptions: {
+      less: {
+        javascriptEnabled: true
+      }
+    }
+  },
+
   configureWebpack: config => {
     // config.optimization = {
     //   runtimeChunk: 'single',
