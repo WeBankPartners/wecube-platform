@@ -303,7 +303,7 @@ export default {
       this.currentLanguage = lang
     },
     async getMyMenus() {
-      this.menus = await getGlobalMenus()
+      // this.menus = await getGlobalMenus()
       window.localStorage.setItem('wecube_cache_menus', JSON.stringify(this.menus))
       this.$emit('allMenus', this.menus)
       this.$eventBusP.$emit('allMenus', this.menus)
