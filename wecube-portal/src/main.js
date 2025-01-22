@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
-import { registerMicroApps, start, setDefaultMountApp  } from 'qiankun'
+import { registerMicroApps, start, setDefaultMountApp } from 'qiankun'
 
 import ViewUI from 'view-design'
 import 'view-design/dist/styles/iview.css'
