@@ -405,7 +405,7 @@ export default {
   },
   async created() {
     if (window.needReLoad) {
-      this.getAllPluginPackageResourceFiles()
+      // this.getAllPluginPackageResourceFiles()
       window.needReLoad = false
     }
     this.getLocalLang()
