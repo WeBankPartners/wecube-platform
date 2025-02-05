@@ -17,7 +17,6 @@
     <BaseDrawer
       :title="operator === 'add' ? $t('full_word_add') : $t('edit')"
       :visible.sync="visible"
-      v-if="visible"
       :realWidth="900"
       :maskClosable="false"
     >
@@ -25,17 +24,7 @@
         <Form :label-width="100" :model="form" :rules="rules" ref="form">
           <!--资源-->
           <FormItem :label="$t('resource')" prop="resourceServerId">
-            <Select
-              v-model="form.resourceServerId"
-              :disabled="editRow.used"
-              @on-change="handleSelectResource"
-              @on-open-change="
-                flag => {
-                  if (flag) getResourceOptions()
-                }
-              "
-              clearable
-            >
+            <Select v-model="form.resourceServerId" @on-change="handleSelectResource" clearable>
               <Option v-for="item in resourceOptions" :key="item.id" :value="item.id">{{ item.name }}</Option>
             </Select>
           </FormItem>
@@ -49,14 +38,14 @@
           </FormItem>
           <!--名称-->
           <FormItem :label="$t('name')" prop="name">
-            <Input v-model.trim="form.name" :maxlength="100" :disabled="editRow.used" show-word-limit clearable></Input>
+            <Input v-model.trim="form.name" :maxlength="100" show-word-limit clearable></Input>
           </FormItem>
           <!--描述-->
-          <FormItem :label="$t('table_purpose')">
+          <FormItem :label="$t('table_purpose')" prop="purpose">
             <Input type="textarea" v-model.trim="form.purpose" :maxlength="255" show-word-limit clearable></Input>
           </FormItem>
           <!--是否分配-->
-          <FormItem v-show="false" :label="$t('table_is_allocated')" prop="isAllocated">
+          <FormItem :label="$t('table_is_allocated')" prop="isAllocated">
             <i-switch v-model="form.isAllocated" :true-value="true" :false-value="false" size="default" />
           </FormItem>
           <!--账号-->
@@ -92,6 +81,7 @@ import {
 } from '@/api/server.js'
 import { outerActions } from '@/const/actions.js'
 import CryptoJS from 'crypto-js'
+import moment from 'moment'
 
 const booleanOptions = [
   {
@@ -141,7 +131,6 @@ export default {
       typeOptions: [], // 类型下拉列表
       visible: false,
       operator: 'add', // add新增，edit编辑
-      editRow: {},
       outerActions,
       tableData: [],
       tableColumns: [
@@ -220,7 +209,7 @@ export default {
           title: this.$t('table_created_date'),
           key: 'createdDate',
           inputKey: 'createdDate',
-          // searchSeqNo: 8,
+          searchSeqNo: 8,
           displaySeqNo: 8,
           component: 'DatePicker',
           type: 'datetimerange',
@@ -231,7 +220,7 @@ export default {
           title: this.$t('table_updated_date'),
           key: 'updatedDate',
           inputKey: 'updatedDate',
-          // searchSeqNo: 9,
+          searchSeqNo: 9,
           displaySeqNo: 9,
           component: 'DatePicker',
           type: 'datetimerange',
@@ -242,7 +231,7 @@ export default {
           title: this.$t('table_port'),
           key: 'port',
           inputKey: 'port',
-          // searchSeqNo: 10,
+          searchSeqNo: 10,
           displaySeqNo: 10,
           component: 'Input',
           inputType: 'text',
@@ -268,6 +257,13 @@ export default {
           {
             required: true,
             message: this.$t('please_input') + this.$t('name'),
+            trigger: 'blur'
+          }
+        ],
+        purpose: [
+          {
+            required: true,
+            message: this.$t('please_input') + this.$t('table_purpose'),
             trigger: 'blur'
           }
         ],
@@ -308,6 +304,7 @@ export default {
     this.outerActions = this.outerActions.filter(i => ['add', 'edit', 'delete', 'cancel'].includes(i.actionType))
     this.getResourceItemStatus()
     this.getResourceItemType()
+    this.getResourceOptions()
     this.queryData()
   },
   methods: {
@@ -345,13 +342,7 @@ export default {
       })
       const { status, data } = await retrieveServers(payload)
       if (status === 'OK') {
-        const options = data.contents || []
-        this.resourceOptions = options.filter(i => !i.isAllocated && i.status === 'active')
-        // 如果数据被过滤掉了，手动添加进去
-        if (this.form.resourceServerId && !this.resourceOptions.some(i => i.id === this.form.resourceServerId)) {
-          const item = options.find(i => i.id === this.form.resourceServerId) || {}
-          this.resourceOptions.push(item)
-        }
+        this.resourceOptions = data.contents || []
       }
     },
     // 新增数据时选择资源自动带出类型
@@ -374,7 +365,8 @@ export default {
       if (status === 'OK') {
         this.tableData = data.contents.map(_ => {
           _.isAllocated = _.isAllocated ? 'true' : 'false'
-          _._disabled = _.type === 'mysql_database' ? false : true
+          _.createdDate = moment(_.createdDate).format('YYYY-MM-DD hh:mm:ss')
+          _.updatedDate = moment(_.updatedDate).format('YYYY-MM-DD hh:mm:ss')
           return _
         })
         this.pagination.total = data.pageInfo.totalRows
@@ -423,7 +415,6 @@ export default {
       }
       this.visible = true
       this.operator = 'add'
-      this.editRow = {}
     },
     submitAddData() {
       this.$refs.form.validate(async valid => {
@@ -449,21 +440,20 @@ export default {
     editHandler(row) {
       this.visible = true
       this.operator = 'edit'
-      const {
+      let {
         id, resourceServerId, type, name, purpose, isAllocated, username, password
       } = row[0]
-      this.editRow = row[0]
+      isAllocated = isAllocated === 'true' ? true : false
       this.form = Object.assign({}, this.form, {
         id,
         resourceServerId,
         type,
         name,
         purpose,
-        isAllocated: isAllocated === 'true' ? true : false,
+        isAllocated,
         username,
         password
       })
-      this.getResourceOptions()
     },
     deleteHandler(deleteData) {
       this.$Modal.confirm({
