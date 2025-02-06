@@ -20,6 +20,14 @@ module.exports = {
   productionSourceMap: false,
   chainWebpack: config => {
   },
+  css: {
+    loaderOptions: {
+      less: {
+        javascriptEnabled: true
+      }
+    }
+  },
+
   configureWebpack: config => {
     // config.optimization = {
     //   runtimeChunk: 'single',
