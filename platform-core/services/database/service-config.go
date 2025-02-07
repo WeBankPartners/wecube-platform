@@ -710,8 +710,12 @@ func SavePluginConfig(c context.Context, reqParam *models.PluginConfigDto) (resu
 			pluginPackageId, reqParam.Name, reqParam.RegisterName))
 		return
 	}
-
-	createActions, tmpErr := GetCreatePluginConfigActions(c, pluginConfigId, reqParam, false, pluginPackageData)
+	basePluginData, baseDataErr := getBasePluginConfigData(c, pluginPackageId)
+	if baseDataErr != nil {
+		err = fmt.Errorf("get base pluginConfig data failed: %s", baseDataErr.Error())
+		return
+	}
+	createActions, tmpErr := GetCreatePluginConfigActions(c, pluginConfigId, reqParam, false, pluginPackageData, basePluginData)
 	if tmpErr != nil {
 		err = fmt.Errorf("get create pluginConfig actions failed: %s", tmpErr.Error())
 		return
@@ -902,7 +906,7 @@ func GetDelPluginConfigActions(ctx context.Context, pluginConfigId string) (resu
 	return
 }
 
-func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pluginConfigDto *models.PluginConfigDto, isImportRequest bool, pluginPackageData *models.PluginPackages) (resultActions []*db.ExecAction, err error) {
+func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pluginConfigDto *models.PluginConfigDto, isImportRequest bool, pluginPackageData *models.PluginPackages, baseInterfaceParamMap map[string][]*models.PluginConfigInterfaceParameters) (resultActions []*db.ExecAction, err error) {
 	resultActions = []*db.ExecAction{}
 
 	pluginConfigDto.Id = pluginConfigId
@@ -954,6 +958,10 @@ func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pl
 			return
 		}
 		resultActions = append(resultActions, action)
+		baseInterParams := []*models.PluginConfigInterfaceParameters{}
+		if matchBaseParams, ok := baseInterfaceParamMap[interfaceInfo.Path]; ok {
+			baseInterParams = matchBaseParams
+		}
 
 		// handle inputParam
 		for _, inputParam := range interfaceInfo.InputParameters {
@@ -1006,6 +1014,27 @@ func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pl
 				}
 			}
 		}
+		for _, baseParam := range baseInterParams {
+			existFlag := false
+			for _, sourceParam := range interfaceInfo.InputParameters {
+				if baseParam.Type == sourceParam.Type && baseParam.Name == sourceParam.Name {
+					existFlag = true
+					break
+				}
+			}
+			for _, sourceParam := range interfaceInfo.OutputParameters {
+				if baseParam.Type == sourceParam.Type && baseParam.Name == sourceParam.Name {
+					existFlag = true
+					break
+				}
+			}
+			if !existFlag {
+				resultActions = append(resultActions, &db.ExecAction{Sql: "insert into plugin_config_interface_parameters (id,plugin_config_interface_id,type,name,data_type,mapping_type,mapping_entity_expression,mapping_system_variable_name,required,sensitive_data,description,mapping_val,ref_object_name,multiple ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+					models.IdPrefixPluCfgItfPar + guid.CreateGuid(), interfaceInfo.Id, baseParam.Type, baseParam.Name, baseParam.DataType, baseParam.MappingType, baseParam.MappingEntityExpression, baseParam.MappingSystemVariableName, baseParam.Required, baseParam.SensitiveData, baseParam.Description, baseParam.MappingVal, baseParam.RefObjectName, baseParam.Multiple,
+				}})
+			}
+		}
+
 	}
 
 	// handle pluginConfigRoles
@@ -1261,11 +1290,15 @@ func ImportPluginConfigs(ctx context.Context, pluginPackageId string, packagePlu
 		return
 	}
 	actions = append(actions, delActions...)
-
+	basePluginData, baseDataErr := getBasePluginConfigData(ctx, pluginPackageId)
+	if baseDataErr != nil {
+		err = fmt.Errorf("get base pluginConfig data failed: %s", baseDataErr.Error())
+		return
+	}
 	// handle creation actions for import data
 	for i := range savePluginConfigList {
 		curPluginConfigId := models.IdPrefixPluCfg + guid.CreateGuid()
-		curCreationActions, tmpErr := GetCreatePluginConfigActions(ctx, curPluginConfigId, savePluginConfigList[i], true, pluginPackageData)
+		curCreationActions, tmpErr := GetCreatePluginConfigActions(ctx, curPluginConfigId, savePluginConfigList[i], true, pluginPackageData, basePluginData)
 		if tmpErr != nil {
 			err = fmt.Errorf("get create pluginConfig actions failed: %s", tmpErr.Error())
 			return
@@ -1832,5 +1865,34 @@ func getPluginConfigDeleteActions(pluginPackageId string) (actions []*db.ExecAct
 	actions = append(actions, &db.ExecAction{Sql: "delete from plugin_config_interface_parameters where plugin_config_interface_id in (select id from plugin_config_interfaces where plugin_config_id in (select id from plugin_configs where plugin_package_id=? and register_name!=''))", Param: []interface{}{pluginPackageId}})
 	actions = append(actions, &db.ExecAction{Sql: "delete from plugin_config_interfaces where plugin_config_id in (select id from plugin_configs where plugin_package_id=? and register_name!='')", Param: []interface{}{pluginPackageId}})
 	actions = append(actions, &db.ExecAction{Sql: "delete from plugin_configs where plugin_package_id=? and register_name!=''", Param: []interface{}{pluginPackageId}})
+	return
+}
+
+func getBasePluginConfigData(ctx context.Context, pluginPackageId string) (baseInterfaceParamMap map[string][]*models.PluginConfigInterfaceParameters, err error) {
+	var baseInterfaceRows []*models.PluginConfigInterfaces
+	err = db.MysqlEngine.Context(ctx).SQL("select id,plugin_config_id,`action`,`path` from plugin_config_interfaces where plugin_config_id in (select id from plugin_configs where plugin_package_id=? and register_name='')", pluginPackageId).Find(&baseInterfaceRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	var baseParamRows []*models.PluginConfigInterfaceParameters
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_config_interface_parameters where plugin_config_interface_id in (select id from plugin_config_interfaces where plugin_config_id in (select id from plugin_configs where plugin_package_id=? and register_name=''))", pluginPackageId).Find(&baseParamRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	baseInterfaceMap := make(map[string]string) // key:id value:path
+	baseInterfaceParamMap = make(map[string][]*models.PluginConfigInterfaceParameters)
+	for _, row := range baseInterfaceRows {
+		baseInterfaceMap[row.Id] = row.Path
+	}
+	for _, row := range baseParamRows {
+		interPath := baseInterfaceMap[row.PluginConfigInterfaceId]
+		if existList, ok := baseInterfaceParamMap[interPath]; ok {
+			baseInterfaceParamMap[interPath] = append(existList, row)
+		} else {
+			baseInterfaceParamMap[interPath] = []*models.PluginConfigInterfaceParameters{row}
+		}
+	}
 	return
 }
