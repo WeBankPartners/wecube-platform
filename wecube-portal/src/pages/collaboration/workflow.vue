@@ -531,7 +531,7 @@ export default {
               {
                 label: this.$t('deployed'),
                 value: 'deployed',
-                color: '#19be6b'
+                color: '#00cb91'
               },
               {
                 label: this.$t('draft'),
@@ -541,7 +541,7 @@ export default {
               {
                 label: this.$t('disabled'),
                 value: 'disabled',
-                color: '#ed4014'
+                color: '#ff4d4f'
               }
             ]
             const item = list.find(i => i.value === params.row.status)
@@ -1151,7 +1151,7 @@ th.ivu-table-column-center div.ivu-table-cell-with-selection {
   padding: 0 4px !important;
 }
 .workflow-design .ivu-radio-wrapper-checked {
-  background-color: #2d8cf0 !important;
+  background-color: #5384ff !important;
   color: #fff !important;
 }
 .workflow-design .ivu-table .ivu-tag {

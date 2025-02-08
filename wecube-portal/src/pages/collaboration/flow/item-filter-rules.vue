@@ -31,12 +31,12 @@
                 @paste="pastePathExp($event)"
               />
             </li>
-            <li class v-if="pathList.length > 0" style="color: #ed4014" @click="deleteCurrentNode">
+            <li class v-if="pathList.length > 0" style="color: #ff4d4f" @click="deleteCurrentNode">
               {{ $t('delete_node') }}
             </li>
             <li
               class
-              style="color: #2d8cf0"
+              style="color: #5384ff"
               v-if="pathList.length > 0 && currentNode.nodeType === 'entity'"
               @click="addFilterRuleForCurrentNode"
             >

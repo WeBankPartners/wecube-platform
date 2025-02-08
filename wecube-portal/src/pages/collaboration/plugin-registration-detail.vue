@@ -747,7 +747,7 @@ export default {
         height: 24px;
         color: #fff;
         border-radius: 2px;
-        background: #2d8cf0;
+        background: #5384ff;
         margin-right: 12px;
         margin-bottom: 10px;
       }
