@@ -13,8 +13,8 @@
             <Icon type="ios-paper-plane-outline" size="16"></Icon>
             {{ $t('release_flow') }}
           </Button>
-          <Button type="success" v-if="['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
-            <img src="../../../assets/icon/export.png" class="btn-img" alt="" />
+          <Button class="btn-upload" v-if="['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
+            <img src="@/styles/icon/UploadOutlined.svg" class="upload-icon" />
             {{ $t('export_flow') }}{{ editFlow }}
           </Button>
           <Button type="warning" v-if="['draft', 'deployed'].includes(itemCustomInfo.status)" @click="changePermission">
