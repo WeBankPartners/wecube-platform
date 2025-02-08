@@ -337,7 +337,7 @@ export default {
         .number {
           font-size: 18px;
           font-weight: bold;
-          color: #2d8cf0;
+          color: #5384ff;
           margin-left: 6px;
         }
       }
@@ -351,14 +351,14 @@ export default {
       }
       .number {
         font-size: 18px;
-        color: #2d8cf0;
+        color: #5384ff;
         margin-left: 6px;
       }
       .success {
-        color: #19be6b;
+        color: #00cb91;
       }
       .fail {
-        color: #ed4014;
+        color: #ff4d4f;
       }
     }
     .content {

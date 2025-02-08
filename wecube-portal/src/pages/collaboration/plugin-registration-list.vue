@@ -823,7 +823,7 @@ export default {
     width: 50%;
     flex-direction: row;
     .ivu-radio-wrapper-checked {
-      background-color: #2d8cf0;
+      background-color: #5384ff;
       color: #fff;
     }
   }
@@ -912,7 +912,7 @@ export default {
   align-items: center;
   margin-bottom: 10px;
   .required-star {
-    color: #ed4014;
+    color: #ff4d4f;
   }
 }
 .allow-add-port {

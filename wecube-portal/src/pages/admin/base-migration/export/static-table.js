@@ -403,14 +403,14 @@ export default {
             key: 'state',
             render: (h, params) => {
               const stateColor = {
-                added_0: '#19be6b',
-                added_1: '#19be6b',
+                added_0: '#00cb91',
+                added_1: '#00cb91',
                 updated_0: '#5cadff',
                 updated_1: '#5cadff',
-                delete: '#ed4014',
+                delete: '#ff4d4f',
                 created: '#2b85e4',
                 changed: 'purple',
-                destroyed: '#ff9900'
+                destroyed: '#f29360'
               }
               const style = {
                 color: stateColor[params.row.state] || '#2b85e4'
