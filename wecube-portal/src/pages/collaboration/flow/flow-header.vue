@@ -14,7 +14,7 @@
             {{ $t('release_flow') }}
           </Button>
           <Button class="btn-upload" v-if="['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
-            <img src="@/styles/icon/UploadOutlined.svg" class="upload-icon" />
+            <img src="@/styles/icon/DownloadOutlined.svg" class="upload-icon" />
             {{ $t('export_flow') }}{{ editFlow }}
           </Button>
           <Button type="warning" v-if="['draft', 'deployed'].includes(itemCustomInfo.status)" @click="changePermission">
