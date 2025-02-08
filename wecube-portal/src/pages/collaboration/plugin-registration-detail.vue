@@ -210,7 +210,8 @@
         :on-error="onError"
         accept=".xml"
       >
-        <Button v-if="currentStep === 2" class="mr-3" type="info">
+        <Button v-if="currentStep === 2" class="btn-upload mr-3">
+          <img src="@/styles/icon/DownloadOutlined.svg" class="upload-icon" />
           {{ $t('p_importing_configuration') }}
         </Button>
       </Upload>
