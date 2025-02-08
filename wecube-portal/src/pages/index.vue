@@ -188,7 +188,7 @@ html {
     margin-right: 4px;
     line-height: 1;
     font-size: 12px;
-    color: #ed4014;
+    color: #ff4d4f;
   }
 }
 // to show table x direction scroll bar

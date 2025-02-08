@@ -10,7 +10,7 @@
         <pre style="margin-left: 44px; margin-top: 22px">{{ data.message }}</pre>
       </div>
       <div slot="footer">
-        <span style="margin-left: 30px; color: #ed4014; float: left; text-align: left">
+        <span style="margin-left: 30px; color: #ff4d4f; float: left; text-align: left">
           <Checkbox v-model="checked">{{ $t('dangerous_confirm_tip') }}</Checkbox>
         </span>
         <Button type="text" @click="$emit('update:visible', false)">{{ $t('bc_cancel') }}</Button>

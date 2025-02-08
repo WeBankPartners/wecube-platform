@@ -59,7 +59,7 @@
                   <div slot="content" style="padding: 3px 0px">
                     <div v-for="i in flowData.request" :key="i.id" style="padding: 3px 0">
                       <Icon type="md-person"></Icon>
-                      <span style="color: #2d8cf0; cursor: pointer" @click="handleLinkItsmDetail(i)">{{ i.name }}</span>
+                      <span style="color: #5384ff; cursor: pointer" @click="handleLinkItsmDetail(i)">{{ i.name }}</span>
                     </div>
                   </div>
                 </Poptip>
@@ -514,7 +514,7 @@
         <pre style="margin-left: 44px; margin-top: 22px">{{ this.confirmModal.message }}</pre>
       </div>
       <div slot="footer">
-        <span style="margin-left: 30px; color: #ed4014; float: left; text-align: left">
+        <span style="margin-left: 30px; color: #ff4d4f; float: left; text-align: left">
           <Checkbox v-model="confirmModal.check">{{ $t('dangerous_confirm_tip') }}</Checkbox>
         </span>
         <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
@@ -904,7 +904,7 @@ export default {
                         <Icon
                           type="md-search"
                           onClick={() => this.handleClick(key, value)}
-                          style="cursor:pointer;color:#2d8cf0"
+                          style="cursor:pointer;color:#5384ff"
                         />
                         {key}: <span style="color:#42b983;">{value}</span>
                       </div>
@@ -2098,7 +2098,7 @@ export default {
               excution
                 ? statusColor[_.status] || '#7F8A96'
                 : isModelClick
-                  ? '#ff9900'
+                  ? '#f29360'
                   : _.nodeId === this.currentFlowNodeId
                     ? '#5DB400'
                     : '#7F8A96'
@@ -2896,7 +2896,7 @@ export default {
       height: 24px;
       color: #fff;
       border-radius: 2px;
-      background: #2d8cf0;
+      background: #5384ff;
     }
     .name {
       font-size: 16px;

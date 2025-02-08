@@ -15,7 +15,7 @@
                 <template slot="title">
                   <Icon type="md-grid" />
                   <span style="font-size: 15px">{{ plugin.pluginConfigName }}</span>
-                  <div style="float: right; color: #2d8cf0; margin-right: 30px">
+                  <div style="float: right; color: #5384ff; margin-right: 30px">
                     <Tooltip :content="$t('add')" :delay="1000">
                       <Icon @click.stop.prevent="addPluginConfigDto(plugin)" style="" type="md-add" />
                     </Tooltip>
@@ -41,13 +41,13 @@
                     <Tooltip :content="$t('copy')" :delay="500">
                       <Icon
                         size="16"
-                        style="color: #19be6b"
+                        style="color: #00cb91"
                         @click.stop.prevent="copyPluginConfigDto(dto.id)"
                         type="md-copy"
                       />
                     </Tooltip>
                     <Tooltip :content="$t('config_permission')" :delay="500">
-                      <Icon size="16" style="color: #2db7f5" @click="permissionsHandler(dto)" type="md-contacts" />
+                      <Icon size="16" style="color: #5384ff" @click="permissionsHandler(dto)" type="md-contacts" />
                     </Tooltip>
                   </div>
                 </MenuItem>
@@ -1354,7 +1354,7 @@ export default {
     right: 0;
   }
   .ivu-menu-vertical .ivu-menu-opened > * > .ivu-menu-submenu-title-icon {
-    color: #2d8cf0;
+    color: #5384ff;
   }
   .ivu-menu-opened {
     .ivu-menu-submenu-title {
