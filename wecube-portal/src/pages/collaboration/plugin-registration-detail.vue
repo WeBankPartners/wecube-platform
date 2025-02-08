@@ -211,7 +211,7 @@
         accept=".xml"
       >
         <Button v-if="currentStep === 2" class="btn-upload mr-3">
-          <img src="@/styles/icon/DownloadOutlined.svg" class="upload-icon" />
+          <img src="@/styles/icon/UploadOutlined.svg" class="upload-icon" />
           {{ $t('p_importing_configuration') }}
         </Button>
       </Upload>

@@ -17,7 +17,7 @@
         style="display: inline-block"
       >
         <Button class="btn-upload btn-right">
-          <img src="@/styles/icon/DownloadOutlined.svg" class="upload-icon" />
+          <img src="@/styles/icon/UploadOutlined.svg" class="upload-icon" />
           {{ $t('import_flow') }}
         </Button>
       </Upload>
@@ -26,7 +26,7 @@
         :disabled="!(['deployed'].includes(searchParams.status) && selectedParams.length > 0)"
         @click="exportFlow"
       >
-        <img src="@/styles/icon/UploadOutlined.svg" class="upload-icon" />
+        <img src="@/styles/icon/DownloadOutlined.svg" class="upload-icon" />
         {{ $t('export_flow') }}
       </Button>
       <Button
