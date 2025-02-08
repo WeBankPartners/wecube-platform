@@ -11,9 +11,10 @@
         action="platform/v1/plugin-certifications/import"
         :headers="headers"
       >
-        <Button style="float: right; margin-right: 4px" type="primary" @click="getHeaders">{{
-          $t('import_flow')
-        }}</Button>
+        <Button @click="getHeaders" class="btn-upload" style="float: right; margin-right: 4px">
+          <img src="@/styles/icon/DownloadOutlined.svg" class="upload-icon" />
+          {{ $t('import_flow') }}
+        </Button>
       </Upload>
     </div>
     <Table border :columns="tableColumns" :data="tableData"></Table>

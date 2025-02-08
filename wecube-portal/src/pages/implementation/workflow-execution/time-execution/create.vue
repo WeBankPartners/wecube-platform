@@ -5,8 +5,8 @@
         <Icon type="md-add" :size="18" />
         {{ $t('full_word_add') }}
       </Button>
-      <Button type="info" @click="exportData">
-        <img src="../../../../assets/icon/export.png" class="btn-img" alt="" />
+      <Button class="btn-upload" @click="exportData">
+        <img src="@/styles/icon/UploadOutlined.svg" class="upload-icon" />
         {{ $t('export_flow') }}
       </Button>
     </div>
@@ -155,7 +155,7 @@
       </template>
       <template slot="footer">
         <Button type="default" @click="timeConfig.isShow = false">{{ $t('bc_cancel') }}</Button>
-        <Button type="primary" @click="saveTime">{{ $t('save') }}</Button>
+        <Button type="primary" @click="saveTime" style="margin-left: 10px">{{ $t('save') }}</Button>
       </template>
     </BaseDrawer>
   </div>

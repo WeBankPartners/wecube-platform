@@ -27,7 +27,10 @@
                 action="platform/v1/packages"
                 :headers="headers"
               >
-                <Button style="display: none" icon="ios-cloud-upload-outline">{{ $t('upload_plugin_btn') }}</Button>
+                <Button class="btn-upload" style="display: none">
+                  <img src="@/styles/icon/UploadOutlined.svg" class="upload-icon" />
+                  {{ $t('upload_plugin_btn') }}
+                </Button>
               </Upload>
             </div>
             <span v-if="showSuccess" style="color: #2b85e4">{{ $t('plugin_analysis') }}</span>
