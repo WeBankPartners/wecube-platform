@@ -12,7 +12,7 @@
         :headers="headers"
       >
         <Button @click="getHeaders" class="btn-upload" style="float: right; margin-right: 4px">
-          <img src="@/styles/icon/DownloadOutlined.svg" class="upload-icon" />
+          <img src="@/styles/icon/UploadOutlined.svg" class="upload-icon" />
           {{ $t('import_flow') }}
         </Button>
       </Upload>
