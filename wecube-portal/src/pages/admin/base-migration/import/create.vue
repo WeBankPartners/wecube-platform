@@ -99,22 +99,22 @@ export default {
         {
           label: this.$t('fe_inProgress'), // 执行中
           value: 'doing',
-          color: '#2d8cf0'
+          color: '#5384ff'
         },
         {
           label: this.$t('be_success'), // 成功
           value: 'success',
-          color: '#19be6b'
+          color: '#00cb91'
         },
         {
           label: this.$t('be_error'), // 失败
           value: 'fail',
-          color: '#ed4014'
+          color: '#ff4d4f'
         },
         {
           label: this.$t('stop_orch'), // 终止
           value: 'exit',
-          color: '#ff9900'
+          color: '#f29360'
         }
       ]
     }
@@ -410,7 +410,7 @@ export default {
         height: 24px;
         color: #fff;
         border-radius: 2px;
-        background: #2d8cf0;
+        background: #5384ff;
       }
       .name {
         font-size: 16px;
