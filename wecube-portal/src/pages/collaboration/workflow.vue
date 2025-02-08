@@ -16,18 +16,17 @@
         accept=".json"
         style="display: inline-block"
       >
-        <Button type="primary" class="btn-right">
-          <img src="../../assets/icon/import.png" class="btn-img" alt="" />
+        <Button class="btn-upload btn-right">
+          <img src="@/styles/icon/DownloadOutlined.svg" class="upload-icon" />
           {{ $t('import_flow') }}
         </Button>
       </Upload>
       <Button
-        type="info"
-        class="btn-right"
+        class="btn-upload btn-right"
         :disabled="!(['deployed'].includes(searchParams.status) && selectedParams.length > 0)"
         @click="exportFlow"
       >
-        <img src="../../assets/icon/export.png" class="btn-img" alt="" />
+        <img src="@/styles/icon/UploadOutlined.svg" class="upload-icon" />
         {{ $t('export_flow') }}
       </Button>
       <Button

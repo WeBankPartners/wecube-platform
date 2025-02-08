@@ -41,10 +41,8 @@
         </Select>
       </div>
       <div class="search-top-right">
-        <Button type="primary" class="mr-2" @click="showDeletedPlugin">{{ $t('p_deleted_plugin') }}</Button>
-        <Button type="info" class="mr-2" @click="showOnlinePluginSelect" ghost icon="ios-cloud-upload-outline">{{
-          $t('origin_plugins')
-        }}</Button>
+        <Button class="mr-2" @click="showDeletedPlugin">{{ $t('p_deleted_plugin') }}</Button>
+        <Button type="primary" class="mr-2" @click="showOnlinePluginSelect">{{ $t('origin_plugins') }}</Button>
         <div>
           <Upload
             ref="uploadButton"
@@ -57,7 +55,10 @@
             action="platform/v1/packages"
             :headers="uploadHeaders"
           >
-            <Button type="info" ghost icon="ios-cloud-upload-outline">{{ $t('upload_plugin_btn') }}</Button>
+            <Button class="btn-upload">
+              <img src="@/styles/icon/UploadOutlined.svg" class="upload-icon" />
+              {{ $t('upload_plugin_btn') }}
+            </Button>
           </Upload>
           <span v-if="showSuccess" style="color: #2b85e4">{{ $t('plugin_analysis') }}</span>
         </div>
@@ -956,16 +957,6 @@ export default {
 </style>
 
 <style lang="scss">
-.search-top-right {
-  .ivu-btn-primary {
-    background-color: #a6adb2;
-    border-color: #a6adb2;
-  }
-  .ivu-btn-primary:hover {
-    background-color: #a6adb2;
-    border-color: #a6adb2;
-  }
-}
 .card-content-list {
   .card-action-button {
     .ivu-btn-primary {
