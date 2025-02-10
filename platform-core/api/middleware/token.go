@@ -34,6 +34,10 @@ var (
 		"get-user":                               true,
 		"change-user-password":                   true,
 		"get-packages":                           true,
+		"query-roles":                            true,
+		"get-all-user":                           true,
+		"get-role-user":                          true,
+		"get-user-roles":                         true,
 	}
 )
 
