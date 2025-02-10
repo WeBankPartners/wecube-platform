@@ -1052,7 +1052,13 @@ export default {
     },
     async retrieveSystemVariables() {
       const { data, status } = await retrieveSystemVariables({
-        filters: [],
+        filters: [
+          {
+            'name': 'status',
+            'operator': 'eq',
+            'value': 'active'
+          }
+        ],
         paging: false
       })
       if (status === 'OK') {
