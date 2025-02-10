@@ -1948,7 +1948,9 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 		filterParams = append(filterParams, param.ProcDefId)
 	}
 	if param.Status != "" {
-		if strings.HasPrefix(param.Status, "InProgress(") {
+		if param.Status == "InProgress(all)" {
+			param.Status = models.JobStatusRunning
+		} else if strings.HasPrefix(param.Status, "InProgress(") {
 			nodeStatus := param.Status[11 : len(param.Status)-1]
 			param.Status = models.JobStatusRunning
 			filterSqlList = append(filterSqlList, "id in (select proc_ins_id from proc_ins_node where status in (?))")
