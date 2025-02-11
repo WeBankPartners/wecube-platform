@@ -5,30 +5,6 @@
         <Icon type="md-add" :size="18" />
         {{ $t('full_word_add') }}
       </Button>
-      <Upload
-        action="platform/v1/process/definitions/import"
-        :before-upload="handleUpload"
-        :show-upload-list="false"
-        with-credentials
-        :headers="headers"
-        :on-success="uploadSucess"
-        :on-error="uploadFailed"
-        accept=".json"
-        style="display: inline-block"
-      >
-        <Button class="btn-upload btn-right">
-          <img src="@/styles/icon/UploadOutlined.svg" class="upload-icon" />
-          {{ $t('import_flow') }}
-        </Button>
-      </Upload>
-      <Button
-        class="btn-upload btn-right"
-        :disabled="!(['deployed'].includes(searchParams.status) && selectedParams.length > 0)"
-        @click="exportFlow"
-      >
-        <img src="@/styles/icon/DownloadOutlined.svg" class="upload-icon" />
-        {{ $t('export_flow') }}
-      </Button>
       <Button
         type="warning"
         class="btn-right"
@@ -65,6 +41,30 @@
       >
         <img src="../../assets/icon/enable.png" class="btn-img" alt="" />
         {{ $t('enable') }}
+      </Button>
+      <Upload
+        action="platform/v1/process/definitions/import"
+        :before-upload="handleUpload"
+        :show-upload-list="false"
+        with-credentials
+        :headers="headers"
+        :on-success="uploadSucess"
+        :on-error="uploadFailed"
+        accept=".json"
+        style="display: inline-block"
+      >
+        <Button class="btn-upload btn-right">
+          <img src="@/styles/icon/UploadOutlined.svg" class="upload-icon" />
+          {{ $t('import_flow') }}
+        </Button>
+      </Upload>
+      <Button
+        class="btn-upload btn-right"
+        :disabled="!(['deployed'].includes(searchParams.status) && selectedParams.length > 0)"
+        @click="exportFlow"
+      >
+        <img src="@/styles/icon/DownloadOutlined.svg" class="upload-icon" />
+        {{ $t('export_flow') }}
       </Button>
     </div>
     <div class="search">
