@@ -83,7 +83,7 @@
                           <Select v-model="selectedIp" multiple style="width: 40%" :max-tag-count="4">
                             <Option v-for="item in availableHostList" :value="item" :key="item">{{ item }}</Option>
                           </Select>
-                          <Button size="small" type="success" @click="getPortByHostIp">
+                          <Button style="margin-left: 10px" size="small" type="success" @click="getPortByHostIp">
                             {{ $t('port_preview') }}
                           </Button>
                         </div>
