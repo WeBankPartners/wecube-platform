@@ -13,10 +13,6 @@
             <Icon type="ios-paper-plane-outline" size="16"></Icon>
             {{ $t('release_flow') }}
           </Button>
-          <Button class="btn-upload" v-if="['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
-            <img src="@/styles/icon/DownloadOutlined.svg" class="upload-icon" />
-            {{ $t('export_flow') }}{{ editFlow }}
-          </Button>
           <Button type="warning" v-if="['draft', 'deployed'].includes(itemCustomInfo.status)" @click="changePermission">
             <Icon type="ios-person-outline" size="16"></Icon>
             {{ $t('config_permission') }}
@@ -36,6 +32,10 @@
           >
             <img src="../../../assets/icon/enable.png" style="width: 16px; vertical-align: middle" alt="" />
             {{ $t('enable') }}
+          </Button>
+          <Button class="btn-upload" v-if="['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
+            <img src="@/styles/icon/DownloadOutlined.svg" class="upload-icon" />
+            {{ $t('export_flow') }}{{ editFlow }}
           </Button>
         </template>
       </div>
