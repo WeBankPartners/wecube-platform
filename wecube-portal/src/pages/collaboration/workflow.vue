@@ -26,6 +26,7 @@
       </Button>
       <Button
         type="error"
+        class="btn-right"
         v-if="['deployed'].includes(searchParams.status) && searchParams.subProc !== 'sub'"
         :disabled="!(['deployed'].includes(searchParams.status) && selectedParams.length > 0)"
         @click="batchChangeStatus('disabled')"
@@ -35,6 +36,7 @@
       </Button>
       <Button
         type="success"
+        class="btn-right"
         @click="batchChangeStatus('enabled')"
         v-if="['disabled'].includes(searchParams.status)"
         :disabled="!(['disabled'].includes(searchParams.status) && selectedParams.length > 0)"
