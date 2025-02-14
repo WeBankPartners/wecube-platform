@@ -7,3 +7,16 @@
 .btn-upload:hover .upload-icon {
   filter: brightness(0) saturate(100%) invert(50%) sepia(100%) saturate(1000%) hue-rotate(200deg);
 }
+
+.@{css-prefix}modal {
+  &-confirm-footer {
+    .ivu-btn-text {
+      border-color: @border-color-base;
+      color: @text-color;
+      &:hover {
+        border-color: @primary-color;
+        color: @primary-color;
+      }
+    }
+  }
+}
