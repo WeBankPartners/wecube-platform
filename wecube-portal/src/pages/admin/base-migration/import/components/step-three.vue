@@ -46,7 +46,7 @@
         />
         <Upload v-if="idx === 0" action="#" :before-upload="uploadJsonFile" style="display: inline-block">
           <Button class="btn-upload" :disabled="getDisabled">
-            <img src="@/styles/icon/UploadOutlined.svg" class="upload-icon" />
+            <img src="@/assets/icon/UploadOutlined.svg" class="upload-icon" />
             {{ $t('pe_one_import') }}
           </Button>
         </Upload>

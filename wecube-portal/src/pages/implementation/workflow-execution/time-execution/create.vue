@@ -6,7 +6,7 @@
         {{ $t('full_word_add') }}
       </Button>
       <Button class="btn-upload" @click="exportData">
-        <img src="@/styles/icon/DownloadOutlined.svg" class="upload-icon" />
+        <img src="@/assets/icon/DownloadOutlined.svg" class="upload-icon" />
         {{ $t('export_flow') }}
       </Button>
     </div>
