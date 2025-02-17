@@ -322,7 +322,7 @@ export default {
                   this.$emit('actionFun', _.actionType, this.selectedRows)
                 }}
               >
-                <img src={require('@/styles/icon/DownloadOutlined.svg')} class="upload-icon" />
+                <img src={require('@/assets/icon/DownloadOutlined.svg')} class="upload-icon" />
                 <span style="margin-left: 5px">{_.label}</span>
               </Button>
             )
