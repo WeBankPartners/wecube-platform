@@ -3,6 +3,7 @@ package support
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"strings"
@@ -53,7 +54,6 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 	if response, err := client.Do(newRequest); err != nil {
 		return err
 	} else {
-		defer response.Body.Close()
 		respHeader := c.Writer.Header()
 		for k, v := range response.Header {
 			respHeader[k] = v
@@ -61,27 +61,40 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 				c.Writer.Header().Add(k, v[0])
 			}
 		}
-		c.Header("Content-Type", response.Header.Get("Content-Type"))
-		c.Header("Content-Length", response.Header.Get("Content-Length"))
-		// 使用 c.Stream() 逐步转发数据流
-		c.Stream(func(w io.Writer) bool {
-			// 缓冲区（可根据实际情况调整大小）
-			buf := make([]byte, 32*1024) // 32KB 缓冲区
-			for {
-				n, readErr := response.Body.Read(buf)
-				if n > 0 {
-					_, writeErr := w.Write(buf[:n])
-					if writeErr != nil {
-						return false // 发生错误，停止传输
+		responseContentType := response.Header.Get("Content-Type")
+		if strings.Contains(responseContentType, "application/json") {
+			respBody, _ := ioutil.ReadAll(response.Body)
+			defer response.Body.Close()
+
+			if strings.EqualFold(model.Config.Log.Level, "debug") {
+				responseDump, _ := httputil.DumpResponse(response, true)
+				log.Logger.Debug(fmt.Sprintf("Response from downstream system: %s  [body size]: %d", string(responseDump), len(respBody)))
+			}
+			c.Data(response.StatusCode, response.Header.Get("Content-Type"), respBody)
+		} else {
+			c.Header("Content-Type", responseContentType)
+			c.Header("Content-Length", response.Header.Get("Content-Length"))
+			defer response.Body.Close()
+			// 使用 c.Stream() 逐步转发数据流
+			c.Stream(func(w io.Writer) bool {
+				// 缓冲区（可根据实际情况调整大小）
+				buf := make([]byte, 32*1024) // 32KB 缓冲区
+				for {
+					n, readErr := response.Body.Read(buf)
+					if n > 0 {
+						_, writeErr := w.Write(buf[:n])
+						if writeErr != nil {
+							return false // 发生错误，停止传输
+						}
+					}
+					if readErr != nil {
+						break // 读取完成或发生错误
 					}
 				}
-				if readErr != nil {
-					break // 读取完成或发生错误
-				}
-			}
-			return false // 结束流
-		})
-		log.Logger.Info("Success done with response")
+				return false // 结束流
+			})
+			log.Logger.Info("Success done with response")
+		}
 		//respBody, _ := ioutil.ReadAll(response.Body)
 		//defer response.Body.Close()
 		//
