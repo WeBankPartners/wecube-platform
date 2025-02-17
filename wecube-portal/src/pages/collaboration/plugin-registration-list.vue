@@ -56,7 +56,7 @@
             :headers="uploadHeaders"
           >
             <Button class="btn-upload">
-              <img src="@/styles/icon/UploadOutlined.svg" class="upload-icon" />
+              <img src="@/assets/icon/UploadOutlined.svg" class="upload-icon" />
               {{ $t('upload_plugin_btn') }}
             </Button>
           </Upload>
