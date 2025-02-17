@@ -201,7 +201,7 @@
     <Modal
       v-model="isAddInstanceModalShow"
       :title="$t('p_add_instance')"
-      cancel-text=""
+      :cancel-text="$t('cancel')"
       :ok-text="$t('p_finish')"
       @on-ok="addInstanceConfirm"
       @on-visible-change="onAddInstanceModalChange"
@@ -253,7 +253,7 @@
       v-model="isDeletedPluginModalShow"
       :title="$t('p_deleted_plugin')"
       :width="50"
-      cancel-text=""
+      :cancel-text="$t('cancel')"
       :ok-text="$t('p_finish')"
       @on-ok="onDeletePluginModalChange(false)"
       @on-visible-change="onDeletePluginModalChange"
