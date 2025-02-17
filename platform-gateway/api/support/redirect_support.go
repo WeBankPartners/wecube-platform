@@ -72,6 +72,7 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 			}
 			c.Data(response.StatusCode, response.Header.Get("Content-Type"), respBody)
 		} else {
+			c.Status(response.StatusCode)
 			c.Header("Content-Type", responseContentType)
 			c.Header("Content-Length", response.Header.Get("Content-Length"))
 			defer response.Body.Close()
