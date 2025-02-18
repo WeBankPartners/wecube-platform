@@ -198,7 +198,7 @@
               {{ $t('attribute_type') }}
             </strong>
           </Col>
-          <Col span="10" style="margin-left: 122px" offset="1">
+          <Col span="8" style="margin-left: 122px" offset="1">
             <strong style="font-size: 15px">{{ $t('attribute') }}</strong>
           </Col>
         </Row>
