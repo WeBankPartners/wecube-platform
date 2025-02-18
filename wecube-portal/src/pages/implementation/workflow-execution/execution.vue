@@ -184,7 +184,7 @@
       </template>
       <template slot="footer">
         <Button type="default" @click="flowNodesWithDataModalVisible = false">{{ $t('bc_cancel') }}</Button>
-        <Button type="primary" @click="flowNodesTargetModelConfirm">{{ $t('submit') }}</Button>
+        <Button type="primary" @click="flowNodesTargetModelConfirm" style="margin-left:8px;">{{ $t('submit') }}</Button>
       </template>
     </BaseDrawer>
     <!--右侧预览弹窗(新建、查看)-->
@@ -406,6 +406,7 @@
           type="primary"
           :disabled="isNodeCanBindData && !['Faulted', 'Timeouted'].includes(currentNodeStatus)"
           @click="retryTargetModelConfirm"
+          style="margin-left:8px;"
         >{{ $t('submit') }}</Button>
       </div>
     </Modal>
@@ -489,7 +490,7 @@
       </template>
       <template slot="footer">
         <Button @click="targetModalVisible = false">{{ $t('cancel') }}</Button>
-        <Button type="primary" :disabled="isNodeCanBindData" @click="targetModelConfirm(false)">{{
+        <Button type="primary" :disabled="isNodeCanBindData" @click="targetModelConfirm(false)" style="margin-left:8px;">{{
           $t('submit')
         }}</Button>
       </template>
@@ -519,7 +520,7 @@
           <Checkbox v-model="confirmModal.check">{{ $t('dangerous_confirm_tip') }}</Checkbox>
         </span>
         <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
-        <Button type="warning" :disabled="!confirmModal.check" @click="confirmToExecution">{{
+        <Button type="warning" :disabled="!confirmModal.check" @click="confirmToExecution" style="margin-left:8px;">{{
           $t('bc_confirm')
         }}</Button>
       </div>
@@ -581,7 +582,7 @@
       </Form>
       <div slot="footer">
         <Button type="text" @click="timeConfig.isShow = false">{{ $t('bc_cancel') }}</Button>
-        <Button type="primary" @click="saveTime">{{ $t('save') }}</Button>
+        <Button type="primary" @click="saveTime" style="margin-left:8px;">{{ $t('save') }}</Button>
       </div>
     </Modal>
     <!--日志查看input列嵌套详情弹框(查看)-->
@@ -2180,10 +2181,6 @@ export default {
           // 新建执行-节点绑定事件
            this.bindFlowEvent()
         })
-      // 新建执行-节点绑定事件
-      // setTimeout(() => {
-      //   this.bindFlowEvent()
-      // }, 1000)
     },
     async excutionFlow() {
       // 区分已存在的flowInstance执行 和 新建的执行
