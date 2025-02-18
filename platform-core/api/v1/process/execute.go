@@ -900,6 +900,18 @@ func GetProcNodeNextChoose(c *gin.Context) {
 	}
 }
 
+func GetProcInstanceBySessionId(c *gin.Context) {
+	sessionId := c.Query("sessionId")
+	if strings.TrimSpace(sessionId) == "" {
+		middleware.ReturnError(c, exterror.New().RequestParamValidateError)
+	}
+	if procInstanceId, err := database.GetProcInstanceBySessionId(c, sessionId); err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, procInstanceId)
+	}
+}
+
 func SubProcDefList(c *gin.Context) {
 	var param models.SubProcDefListParam
 	if err := c.ShouldBindJSON(&param); err != nil {
