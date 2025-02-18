@@ -380,6 +380,7 @@ func ProcInsTaskNodeBindings(ctx context.Context, sessionId, taskNodeId string) 
 			OrderedNo:           row.OrderedNo,
 			SubPreviewSessionId: row.SubSessionId,
 			SubProcDefId:        subProcDefMap[row.ProcDefNodeId],
+			EntityDisplayName:   row.EntityDataName,
 		}
 		if !row.IsBound {
 			tmpBindingObj.Bound = "N"
@@ -446,19 +447,6 @@ func GetInstanceTaskNodeBindings(ctx context.Context, procInsId, procInsNodeId s
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
-	//if procDefNodeObj.DynamicBind && procInsNodeObj.Status != models.JobStatusRunning {
-	//	dataBindingRows, err = getRecurDynamicBindData(ctx, procInsId, procDefNodeObj.ProcDefId, procDefNodeObj.BindNodeId)
-	//} else {
-	//	if procInsNodeId != "" {
-	//		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_id=? and proc_ins_node_id=?", procInsId, procInsNodeId).Find(&dataBindingRows)
-	//	} else {
-	//		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_id=?", procInsId).Find(&dataBindingRows)
-	//	}
-	//	if err != nil {
-	//		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
-	//		return
-	//	}
-	//}
 	result = []*models.TaskNodeBindingObj{}
 	for _, row := range dataBindingRows {
 		if row.ProcDefNodeId == "" {
@@ -2454,6 +2442,19 @@ func CheckProcSubRunning(ctx context.Context, procRunNodeId string) (runningRows
 	err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.workflow_id from proc_run_node_sub_proc t1 left join proc_run_workflow t2 on t1.workflow_id=t2.id where t1.proc_run_node_id=? and t2.status=?", procRunNodeId, models.JobStatusRunning).Find(&runningRows)
 	if err != nil {
 		err = fmt.Errorf("query proc run node sub proc table fail,%s ", err.Error())
+	}
+	return
+}
+
+func GetProcInstanceBySessionId(ctx context.Context, sessionId string) (procInsId string, err error) {
+	var result []string
+	err = db.MysqlEngine.Context(ctx).SQL("select id  from proc_ins where proc_session_id=?", sessionId).Find(&result)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(result) > 0 {
+		procInsId = result[0]
 	}
 	return
 }
