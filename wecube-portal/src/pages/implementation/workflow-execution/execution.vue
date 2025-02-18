@@ -2177,11 +2177,13 @@ export default {
             removeEvent('.time-node', 'click', this.timeNodeHandler)
             removeEvent('.decision-node', 'click', this.executeBranchHandler)
           }
+          // 新建执行-节点绑定事件
+           this.bindFlowEvent()
         })
       // 新建执行-节点绑定事件
-      setTimeout(() => {
-        this.bindFlowEvent()
-      }, 1000)
+      // setTimeout(() => {
+      //   this.bindFlowEvent()
+      // }, 1000)
     },
     async excutionFlow() {
       // 区分已存在的flowInstance执行 和 新建的执行
