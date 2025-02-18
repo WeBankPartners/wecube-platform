@@ -2586,6 +2586,7 @@ export default {
     // 新建执行-节点点击事件
     bindFlowEvent() {
       if (this.isEnqueryPage !== true) {
+        console.log('1111111111111111111111111111111111')
         addEvent('.flow', 'mouseover', e => {
           e.preventDefault()
           e.stopPropagation()
