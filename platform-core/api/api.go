@@ -201,6 +201,7 @@ func init() {
 		&handlerFuncObj{Url: "/public/process/definitions/:proc-def-id/options/:proc-node-def-id", Method: "GET", HandlerFunc: process.GetProcNodeAllowOptions, ApiCode: "get-proc-node-options"},
 		&handlerFuncObj{Url: "/process/instances/node-message/:procInsNodeId/time", Method: "GET", HandlerFunc: process.GetProcNodeEndTime, ApiCode: "get-process-ins-node-time"},
 		&handlerFuncObj{Url: "/process/instances/node-message/:procInsNodeId/choose", Method: "GET", HandlerFunc: process.GetProcNodeNextChoose, ApiCode: "get-process-ins-node-choose"},
+		&handlerFuncObj{Url: "/process/instances/by-session-id", Method: "GET", HandlerFunc: process.GetProcInstanceBySessionId, ApiCode: "get-process-ins-by-session-id"},
 
 		// certification manager
 		&handlerFuncObj{Url: "/plugin-certifications", Method: "GET", HandlerFunc: certification.GetCertifications, ApiCode: "get-certifications"},
