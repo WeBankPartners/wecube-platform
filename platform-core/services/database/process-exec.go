@@ -2458,3 +2458,16 @@ func GetProcInstanceBySessionId(ctx context.Context, sessionId string) (procInsI
 	}
 	return
 }
+
+func GetProcDefBySessionId(ctx context.Context, sessionId string) (procDefId string) {
+	var rows []*models.ProcDataPreview
+	err := db.MysqlEngine.Context(ctx).SQL("select proc_def_id from proc_data_preview where proc_session_id=?", sessionId).Find(&rows)
+	if err != nil {
+		log.Logger.Error("get proc def by proc session id fail", log.String("sessionId", sessionId), log.Error(err))
+		return
+	}
+	if len(rows) > 0 {
+		procDefId = rows[0].ProcDefId
+	}
+	return
+}
