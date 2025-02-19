@@ -385,6 +385,9 @@ func ProcInsStart(c *gin.Context) {
 		return
 	}
 	operator := middleware.GetRequestUser(c)
+	if param.ProcDefId == "" && param.ProcessSessionId != "" {
+		param.ProcDefId = database.GetProcDefBySessionId(c, param.ProcessSessionId)
+	}
 	// 检测编排定义状态是否合法
 	if err := database.CheckProcDefStatus(c, param.ProcDefId); err != nil {
 		middleware.ReturnError(c, err)
