@@ -781,7 +781,8 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 					return
 				}
 				if mysqlInstance == nil {
-					if dbPass, createDBErr := bash.CreatePluginDatabase(ctx, pluginPackageObj.Name, mysqlResource, mysqlServer); createDBErr != nil {
+					mysqlUsername := strings.ReplaceAll(pluginPackageObj.Name, "-", "_")
+					if dbPass, createDBErr := bash.CreatePluginDatabase(ctx, mysqlUsername, mysqlResource, mysqlServer); createDBErr != nil {
 						err = createDBErr
 						return
 					} else {
@@ -791,7 +792,7 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 							PluginPackageId: pluginPackageId,
 							ResourceItemId:  "rs_item_" + guid.CreateGuid(),
 							SchemaName:      mysqlResource.SchemaName,
-							Username:        pluginPackageObj.Name,
+							Username:        mysqlUsername,
 						}
 						log.Logger.Debug("database pwd", log.String("pass", dbPass))
 						if err = database.NewPluginMysqlInstance(ctx, mysqlServer, mysqlInstance, operator, true); err != nil {
