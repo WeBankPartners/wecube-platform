@@ -18,7 +18,11 @@ func main() {
 		return
 	}
 
-	log.InitLogger()
+	if err := log.InitLogger(); err != nil {
+		fmt.Printf("Server  init loggers failed, err: %v\n", err)
+		return
+	}
+	defer log.SyncLoggers()
 	middleware.Init()
 
 	if err := service.Init(); err != nil {
