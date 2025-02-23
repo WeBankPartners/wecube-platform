@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	data_trans "github.com/WeBankPartners/wecube-platform/platform-core/api/v1/data-trans"
+	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"strings"
@@ -330,14 +331,14 @@ func httpLogHandle() gin.HandlerFunc {
 		apiCode := apiCodeMap[c.Request.Method+"_"+c.FullPath()]
 		c.Writer.Header().Add("Api-Code", apiCode)
 		c.Set(models.ContextApiCode, apiCode)
-		log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] ->", requestId, transactionId), log.String("uri", c.Request.RequestURI), log.String("serviceCode", apiCode), log.String("method", c.Request.Method), log.String("sourceIp", getRemoteIp(c)), log.String(models.ContextOperator, c.GetString(models.ContextOperator)), log.String(models.ContextRequestBody, c.GetString(models.ContextRequestBody)))
+		log.Infof(nil, log.LOGGER_ACCESS, fmt.Sprintf("[%s] [%s] ->", requestId, transactionId), zap.String("uri", c.Request.RequestURI), zap.String("serviceCode", apiCode), zap.String("method", c.Request.Method), zap.String("sourceIp", getRemoteIp(c)), zap.String(models.ContextOperator, c.GetString(models.ContextOperator)), zap.String(models.ContextRequestBody, c.GetString(models.ContextRequestBody)))
 		c.Next()
 		costTime := time.Since(start).Seconds() * 1000
 		userId := c.GetString(models.ContextUserId)
 		if log.DebugEnable {
-			log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] [%s] <-", requestId, transactionId, userId), log.String("uri", c.Request.RequestURI), log.String("serviceCode", apiCode), log.String("method", c.Request.Method), log.Int("httpCode", c.Writer.Status()), log.Int(models.ContextErrorCode, c.GetInt(models.ContextErrorCode)), log.String(models.ContextErrorMessage, c.GetString(models.ContextErrorMessage)), log.Float64("costTime", costTime), log.String(models.ContextResponseBody, c.GetString(models.ContextResponseBody)))
+			log.Infof(nil, log.LOGGER_ACCESS, fmt.Sprintf("[%s] [%s] [%s] <-", requestId, transactionId, userId), zap.String("uri", c.Request.RequestURI), zap.String("serviceCode", apiCode), zap.String("method", c.Request.Method), zap.Int("httpCode", c.Writer.Status()), zap.Int(models.ContextErrorCode, c.GetInt(models.ContextErrorCode)), zap.String(models.ContextErrorMessage, c.GetString(models.ContextErrorMessage)), zap.Float64("costTime", costTime), zap.String(models.ContextResponseBody, c.GetString(models.ContextResponseBody)))
 		} else {
-			log.AccessLogger.Info(fmt.Sprintf("[%s] [%s] [%s] <-", requestId, transactionId, userId), log.String("uri", c.Request.RequestURI), log.String("serviceCode", apiCode), log.String("method", c.Request.Method), log.Int("httpCode", c.Writer.Status()), log.Int(models.ContextErrorCode, c.GetInt(models.ContextErrorCode)), log.String(models.ContextErrorMessage, c.GetString(models.ContextErrorMessage)), log.Float64("costTime", costTime))
+			log.Infof(nil, log.LOGGER_ACCESS, fmt.Sprintf("[%s] [%s] [%s] <-", requestId, transactionId, userId), zap.String("uri", c.Request.RequestURI), zap.String("serviceCode", apiCode), zap.String("method", c.Request.Method), zap.Int("httpCode", c.Writer.Status()), zap.Int(models.ContextErrorCode, c.GetInt(models.ContextErrorCode)), zap.String(models.ContextErrorMessage, c.GetString(models.ContextErrorMessage)), zap.Float64("costTime", costTime))
 		}
 	}
 }
@@ -351,7 +352,7 @@ func recoverHandle(c *gin.Context, err interface{}) {
 	if err != nil {
 		errorMessage = err.(error).Error()
 	}
-	log.Logger.Error("Handle recover error", log.Int("code", -2), log.String("message", errorMessage))
+	log.Error(c, log.LOGGER_APP, "Handle recover error", zap.Int("code", -2), zap.String("message", errorMessage))
 	c.JSON(http.StatusInternalServerError, models.HttpResponseMeta{Code: -2, Status: models.DefaultHttpErrorCode})
 }
 
