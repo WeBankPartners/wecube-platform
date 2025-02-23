@@ -7,6 +7,7 @@ import (
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"net/url"
@@ -50,15 +51,11 @@ func GetInputFormMeta(ctx context.Context, procInstId, nodeDefId string, pluginI
 		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
 		return
 	}
-	log.Logger.Debug("get input form meta data", log.String("procInstId", procInstId), log.String("nodeDefId", nodeDefId), log.String("response", string(respBody)))
+	log.Debug(nil, log.LOGGER_APP, "get input form meta data", zap.String("procInstId", procInstId), zap.String("nodeDefId", nodeDefId), zap.String("response", string(respBody)))
 	if response.Status != models.DefaultHttpSuccessCode {
 		err = fmt.Errorf(response.Message)
 		return
 	}
 	result = &response.Data
 	return
-}
-
-func CallPluginCustomForm() {
-
 }

@@ -2,6 +2,7 @@ package process
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
@@ -17,7 +18,7 @@ func StatisticsProDefList(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	includeDraft := c.Query("includeDraft") // 0 | 1
@@ -35,7 +36,7 @@ func StatisticsProDefList(c *gin.Context) {
 	if subProc == "" {
 		subProc = "main"
 	}
-	log.Logger.Debug("procDefList", log.String("includeDraft", includeDraft), log.String("permission", permission), log.String("tag", tag), log.StringList("roleList", middleware.GetRequestRoles(c)))
+	log.Debug(nil, log.LOGGER_APP, "procDefList", zap.String("includeDraft", includeDraft), zap.String("permission", permission), zap.String("tag", tag), zap.Strings("roleList", middleware.GetRequestRoles(c)))
 	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, subProc, middleware.GetRequestUser(c), rootEntity, middleware.GetRequestRoles(c))
 	mergeProcDefNameAndVersion(result)
 	if err != nil {
@@ -58,7 +59,7 @@ func StatisticsServiceNames(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	result, err := database.StatisticsServiceNames(c)
@@ -75,7 +76,7 @@ func StatisticsBindingsEntityByService(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	var serviceNameList []string
@@ -98,7 +99,7 @@ func StatisticsTasknodes(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	var procDefIdList []string
@@ -121,7 +122,7 @@ func StatisticsBindingsEntityByNode(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	var nodeList []string
@@ -144,7 +145,7 @@ func StatisticsProcessExec(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	var reqParam models.StatisticsProcessExecReq
@@ -167,7 +168,7 @@ func StatisticsTasknodeExec(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	var reqParam models.StatisticsTasknodeExecReq
@@ -192,7 +193,7 @@ func StatisticsTasknodeExecDetails(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	var reqParam models.StatisticsTasknodeExecDetailsReq
@@ -217,7 +218,7 @@ func StatisticsPluginExec(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	var reqParam models.StatisticsTasknodeExecReq
@@ -242,7 +243,7 @@ func StatisticsPluginExecDetails(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	var reqParam models.StatisticsTasknodeExecDetailsReq
