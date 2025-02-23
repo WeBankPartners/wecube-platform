@@ -55,7 +55,7 @@ func InitLogger() (err error) {
 
 	// 应用性能实例
 	param.Filename = filepath.Join(baseLogDir, fmt.Sprintf("/%s-metric.log", appName))
-	if AccessLogger, err = newLogger(param); err != nil {
+	if MetricLogger, err = newLogger(param); err != nil {
 		return
 	}
 
