@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"go.uber.org/zap"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -139,6 +140,6 @@ func HttpPostJsonFile(filePath, url, userToken, language string) (uploadData []b
 	if uploadData, err = io.ReadAll(resp.Body); err != nil {
 		return
 	}
-	log.Logger.Info("HttpPostJsonFile response", log.String("response", string(uploadData)))
+	log.Info(nil, log.LOGGER_APP, "HttpPostJsonFile response", zap.String("response", string(uploadData)))
 	return
 }

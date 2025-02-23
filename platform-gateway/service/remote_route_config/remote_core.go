@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
+	"go.uber.org/zap"
 	"net"
 	"net/http"
 	"net/url"
@@ -56,22 +57,22 @@ var (
 )
 
 func Execute(serviceInvoke RemoteServiceInvoke, reqBody interface{}, resultPtr interface{}) error {
-	log.Logger.Info("execute remote service", log.JsonObj("remote service", serviceInvoke))
+	log.Info(nil, log.LOGGER_APP, "execute remote service", log.JsonObj("remote service", serviceInvoke))
 	if strings.HasPrefix(serviceInvoke.Url, constant.NotApplicableRemoteCall) {
-		log.Logger.Info(fmt.Sprintf("skipped call to [%s] on purpose", strings.TrimPrefix(serviceInvoke.Url, constant.NotApplicableRemoteCall)))
+		log.Info(nil, log.LOGGER_APP, fmt.Sprintf("skipped call to [%s] on purpose", strings.TrimPrefix(serviceInvoke.Url, constant.NotApplicableRemoteCall)))
 		return nil
 	}
 	if url, err := url.ParseRequestURI(serviceInvoke.Url); err != nil {
 		errStr := fmt.Sprintf("invalid request url: [%+v]", err)
-		log.Logger.Error(errStr)
+		log.Error(nil, log.LOGGER_APP, errStr)
 		return errors.New(errStr)
 	} else if url.Scheme == "" || url.Host == "" || url.Path == "" {
 		errStr := fmt.Sprintf("invalid remote service url [%s]", url.String())
-		log.Logger.Error(errStr)
+		log.Error(nil, log.LOGGER_APP, errStr)
 		return errors.New(errStr)
 	}
 	if reqBody != nil {
-		log.Logger.Debug("request body", log.JsonObj("reqBody", reqBody))
+		log.Debug(nil, log.LOGGER_APP, "request body", log.JsonObj("reqBody", reqBody))
 	}
 	client := resty.New()
 	client.SetTimeout(time.Duration(model.Config.Remote.Timeout) * time.Second)
@@ -114,28 +115,28 @@ func Execute(serviceInvoke RemoteServiceInvoke, reqBody interface{}, resultPtr i
 
 	remoteSysName := getRemoteSystemName(serviceInvoke.Url)
 	if err != nil {
-		log.Logger.Error(fmt.Sprintf("error on remote %s request", remoteSysName), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("error on remote %s request", remoteSysName), zap.Error(err))
 		if isNetworkTimeout(err) {
 			return ErrNetworkTimeOut
 		}
 		return err
 	}
-	log.Logger.Info(fmt.Sprintf("response from remote %s system. HttpStatus: %s", remoteSysName, resp.Status()))
-	log.Logger.Debug(fmt.Sprintf("response Body: %+v", remoteResponse))
+	log.Info(nil, log.LOGGER_APP, fmt.Sprintf("response from remote %s system. HttpStatus: %s", remoteSysName, resp.Status()))
+	log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("response Body: %+v", remoteResponse))
 	if resp.IsError() {
 		errStr := fmt.Sprintf("error http status from remote %s system: %s", remoteSysName, resp.Status())
-		log.Logger.Error(errStr)
+		log.Error(nil, log.LOGGER_APP, errStr)
 		return errors.New(errStr)
 	}
 	if remoteResponse.Status != constant.DefaultHttpSuccessStatus {
 		errStr := fmt.Sprintf("error from remote %s system. status: %d, message: %s", remoteSysName, remoteResponse.Status, remoteResponse.Message)
-		log.Logger.Error(errStr)
+		log.Error(nil, log.LOGGER_APP, errStr)
 		return errors.New(errStr)
 	}
 
 	if remoteResponse.Data != nil && resultPtr != nil {
 		if err := mapstructure.Decode(remoteResponse.Data, resultPtr); err != nil {
-			log.Logger.Error("failed to decode result data", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "failed to decode result data", zap.Error(err))
 			return errors.New("failed to decode result data")
 		} else {
 			return nil
