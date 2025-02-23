@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"strings"
 	"time"
 
@@ -163,7 +164,7 @@ func QueryPluginConfigInfo(ctx context.Context, pluginConfigIds []string) (resul
 func QueryCoreObjectMeta(ctx context.Context, packageName, objectName string, configId string) *models.CoreObjectMeta {
 	objectMetaEntity, err := getOnePluginObjectMetaByCondition(ctx, packageName, objectName, configId)
 	if err != nil {
-		log.Logger.Error("getOnePluginObjectMetaByCondition err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "getOnePluginObjectMetaByCondition err", zap.Error(err))
 		return nil
 	}
 	if objectMetaEntity == nil {
@@ -173,7 +174,7 @@ func QueryCoreObjectMeta(ctx context.Context, packageName, objectName string, co
 
 	propertyMetaEntities, err := getPluginObjectPropertyMetaListByObjectMeta(ctx, objectMetaEntity.Id)
 	if err != nil {
-		log.Logger.Error("getPluginObjectPropertyMetaListByObjectMeta err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "getPluginObjectPropertyMetaListByObjectMeta err", zap.Error(err))
 		return nil
 	}
 	if len(propertyMetaEntities) == 0 {
@@ -211,7 +212,7 @@ func QueryCoreObjectMetaV2(ctx context.Context, pluginConfigId string, objectNam
 
 	result = QueryCoreObjectMeta(ctx, packageName, objectName, pluginConfigId)
 	if result == nil {
-		log.Logger.Warn("query coreObjectMeta empty", log.String("packageName", packageName), log.String("objectName", objectName), log.String("pluginConfigId", pluginConfigId))
+		log.Warn(nil, log.LOGGER_APP, "query coreObjectMeta empty", zap.String("packageName", packageName), zap.String("objectName", objectName), zap.String("pluginConfigId", pluginConfigId))
 		return
 	}
 	return
@@ -398,7 +399,7 @@ func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *mo
 			roleNameMapId[roleDto.Name] = roleDto.ID
 		}
 	} else {
-		log.Logger.Error("retrieve all local roles empty")
+		log.Error(nil, log.LOGGER_APP, "retrieve all local roles empty")
 	}
 
 	// firstly delete original pluginConfigRole and then create new pluginConfigRole
@@ -929,7 +930,7 @@ func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pl
 	action, tmpErr := db.GetInsertTableExecAction(models.TableNamePluginConfigs, pluginConfigData, nil)
 	if tmpErr != nil {
 		err = fmt.Errorf("get insert sql for pluginConfig failed: %s", tmpErr.Error())
-		log.Logger.Error(err.Error())
+		log.Error(nil, log.LOGGER_APP, err.Error())
 		return
 	}
 	resultActions = append(resultActions, action)
@@ -954,7 +955,7 @@ func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pl
 		action, tmpErr = db.GetInsertTableExecAction(models.TableNamePluginConfigInterfaces, *interfaceInfo, nil)
 		if tmpErr != nil {
 			err = fmt.Errorf("get insert sql for pluginConfigInterfaces failed: %s", tmpErr.Error())
-			log.Logger.Error(err.Error())
+			log.Error(nil, log.LOGGER_APP, err.Error())
 			return
 		}
 		resultActions = append(resultActions, action)
@@ -971,7 +972,7 @@ func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pl
 			action, tmpErr = db.GetInsertTableExecAction(models.TableNamePluginConfigInterfaceParameters, *inputParam, nil)
 			if tmpErr != nil {
 				err = fmt.Errorf("get insert sql for pluginConfigInterfaceParameters failed: %s", tmpErr.Error())
-				log.Logger.Error(err.Error())
+				log.Error(nil, log.LOGGER_APP, err.Error())
 				return
 			}
 			resultActions = append(resultActions, action)
@@ -997,7 +998,7 @@ func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pl
 			action, tmpErr = db.GetInsertTableExecAction(models.TableNamePluginConfigInterfaceParameters, *outputParam, nil)
 			if tmpErr != nil {
 				err = fmt.Errorf("get insert sql for pluginConfigInterfaceParameters failed: %s", tmpErr.Error())
-				log.Logger.Error(err.Error())
+				log.Error(nil, log.LOGGER_APP, err.Error())
 				return
 			}
 			resultActions = append(resultActions, action)
@@ -1041,7 +1042,7 @@ func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pl
 	pluginConfigRolesActions, tmpErr := getCreatePluginCfgRolesActions(ctx, pluginConfigId, pluginConfigDto.PermissionToRole)
 	if tmpErr != nil {
 		err = fmt.Errorf("get insert sql for pluginConfigRoles failed: %s", tmpErr.Error())
-		log.Logger.Error(err.Error())
+		log.Error(nil, log.LOGGER_APP, err.Error())
 		return
 	}
 	resultActions = append(resultActions, pluginConfigRolesActions...)
@@ -1059,7 +1060,7 @@ func getHandleObjectTypeActions(objectMeta *models.CoreObjectMeta, pluginConfigI
 	action, tmpErr := db.GetInsertTableExecAction(models.TableNamePluginObjectMeta, *objectMeta, nil)
 	if tmpErr != nil {
 		err = fmt.Errorf("get insert sql for objectMeta failed: %s", tmpErr.Error())
-		log.Logger.Error(err.Error())
+		log.Error(nil, log.LOGGER_APP, err.Error())
 		return
 	}
 	resultActions = append(resultActions, action)
@@ -1076,7 +1077,7 @@ func getHandleObjectTypeActions(objectMeta *models.CoreObjectMeta, pluginConfigI
 		action, tmpErr = db.GetInsertTableExecAction(models.TableNamePluginObjectPropertyMeta, *propertyMeta, nil)
 		if tmpErr != nil {
 			err = fmt.Errorf("get insert sql for inputParam.RefObjectMeta.PropertyMeta failed: %s", tmpErr.Error())
-			log.Logger.Error(err.Error())
+			log.Error(nil, log.LOGGER_APP, err.Error())
 			return
 		}
 		resultActions = append(resultActions, action)
@@ -1104,7 +1105,7 @@ func getCreatePluginCfgRolesActions(ctx context.Context,
 			roleNameMapId[roleDto.Name] = roleDto.ID
 		}
 	} else {
-		log.Logger.Error("retrieve all local roles empty")
+		log.Error(nil, log.LOGGER_APP, "retrieve all local roles empty")
 	}
 
 	pluginConfigRolesList := []*models.PluginConfigRoles{}

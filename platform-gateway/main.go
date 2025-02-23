@@ -25,7 +25,7 @@ func main() {
 		fmt.Printf("failed to init service:%s", err.Error())
 		return
 	}
-	log.Logger.Info("Server started")
+	log.Info(nil, log.LOGGER_APP, "Server started")
 
 	router := sw.NewRouter()
 	router.Run(model.Config.ServerAddress + ":" + model.Config.ServerPort)

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/encrypt"
+	"go.uber.org/zap"
 	"io/fs"
 	"os"
 	"strings"
@@ -50,31 +51,31 @@ func StartTransImport(ctx context.Context, param models.ExecImportParam) (err er
 	var localPath string
 	var transImportAction *models.TransImportActionTable
 	if transImport, err = database.GetTransImport(ctx, param.TransImportId); err != nil {
-		log.Logger.Error("GetTransImport err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "GetTransImport err", zap.Error(err))
 		return
 	}
 	if transImport == nil || transImport.Id == "" {
 		// 下载物料包
 		_, _, err = database.DownloadImportArtifactPackages(ctx, param.ExportNexusUrl, param.TransImportId)
 		if err != nil {
-			log.Logger.Error("download import artifact packages fail", log.String("url", param.ExportNexusUrl), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "download import artifact packages fail", zap.String("url", param.ExportNexusUrl), zap.Error(err))
 			return
 		}
 		// 文件解压
 		if localPath, err = database.DecompressExportZip(ctx, param.ExportNexusUrl, param.TransImportId); err != nil {
-			log.Logger.Error("DecompressExportZip err", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "DecompressExportZip err", zap.Error(err))
 			return
 		}
 		// 初始化导入
 		if err = database.InitTransImport(ctx, param.TransImportId, param.ExportNexusUrl, localPath, param.Operator); err != nil {
-			log.Logger.Error("initTransImport err", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "initTransImport err", zap.Error(err))
 			return
 		}
 	} else {
 		localPath = fmt.Sprintf(database.TempTransImportDir, transImport.Id)
 	}
 	if transImportAction, err = database.GetLatestTransImportAction(ctx, param.TransImportId); err != nil {
-		log.Logger.Error("GetLatestTransImportAction err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "GetLatestTransImportAction err", zap.Error(err))
 		return
 	}
 	actionParam := &models.CallTransImportActionParam{
@@ -114,12 +115,12 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 	transImportJobParam, getConfigErr := database.GetTransImportWithDetail(ctx, callParam.TransImportId, false)
 	if getConfigErr != nil {
 		err = getConfigErr
-		log.Logger.Error("GetTransImportWithDetail err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "GetTransImportWithDetail err", zap.Error(err))
 		return
 	}
 	if err = database.RecordTransImportAction(ctx, callParam); err != nil {
 		err = fmt.Errorf("record trans import action table fail,%s ", err.Error())
-		log.Logger.Error("RecordTransImportAction err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "RecordTransImportAction err", zap.Error(err))
 		return
 	}
 	transImportJobParam.DirPath = callParam.DirPath
@@ -181,7 +182,7 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 	}
 	if err != nil {
 		callParam.ErrorMsg = err.Error()
-		log.Logger.Error("doImportAction fail", log.JsonObj("callParam", callParam), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "doImportAction fail", log.JsonObj("callParam", callParam), zap.Error(err))
 		database.RecordTransImportAction(ctx, callParam)
 	}
 	return
@@ -206,7 +207,7 @@ func callImportFunc(ctx context.Context, transImportJobParam *models.TransImport
 // 1、导入角色
 func importRole(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	// 解析role.json,导入角色
-	log.Logger.Info("1. importRole start!!!")
+	log.Info(nil, log.LOGGER_APP, "1. importRole start!!!")
 	var roleList []*models.SimpleLocalRoleDto
 	var response models.QuerySingleRolesResponse
 	var defaultRoleMap = make(map[string]bool)
@@ -222,23 +223,23 @@ func importRole(ctx context.Context, transImportParam *models.TransImportJobPara
 			continue
 		}
 		if response, err = remote.RegisterLocalRole(role, transImportParam.Token, transImportParam.Language); err != nil {
-			log.Logger.Error("RegisterLocalRole err", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "RegisterLocalRole err", zap.Error(err))
 			return
 		}
 		if response.Status != "OK" || response.Data.ID == "" {
 			err = fmt.Errorf("RegisterLocalRole fail,msg:%s", response.Message)
-			log.Logger.Error("RegisterLocalRole fail", log.String("roleName", role.Name), log.String("msg", response.Message))
+			log.Error(nil, log.LOGGER_APP, "RegisterLocalRole fail", zap.String("roleName", role.Name), zap.String("msg", response.Message))
 			return
 		}
 	}
-	log.Logger.Info("1. importRole success end!!!")
+	log.Info(nil, log.LOGGER_APP, "1. importRole success end!!!")
 	return
 }
 
 // 4、导入编排
 func importWorkflow(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	// 解析workflow.json,导入编排
-	log.Logger.Info("4. importWorkflow start!!!")
+	log.Info(nil, log.LOGGER_APP, "4. importWorkflow start!!!")
 	var procDefList []*models.ProcessDefinitionDto
 	var importResult *models.ImportResultDto
 	var procDef *models.ProcDef
@@ -249,7 +250,7 @@ func importWorkflow(ctx context.Context, transImportParam *models.TransImportJob
 		return
 	}
 	if !exist {
-		log.Logger.Info("importWorkflow data empty!")
+		log.Info(nil, log.LOGGER_APP, "importWorkflow data empty!")
 		return
 	}
 	if err = database.ParseJsonData(workflowPath, &procDefList); err != nil {
@@ -275,7 +276,7 @@ func importWorkflow(ctx context.Context, transImportParam *models.TransImportJob
 				}
 				if data.Code > 0 {
 					err = fmt.Errorf("importWorkflow【%s】fail,%s", data.ProcDefName, errMsg)
-					log.Logger.Error("importWorkflow fail", log.String("name", data.ProcDefName), log.String("errMsg", errMsg))
+					log.Error(nil, log.LOGGER_APP, "importWorkflow fail", zap.String("name", data.ProcDefName), zap.String("errMsg", errMsg))
 					return
 				}
 			}
@@ -286,19 +287,19 @@ func importWorkflow(ctx context.Context, transImportParam *models.TransImportJob
 				}
 				if err = process.ExecDeployedProcDef(ctx, procDef, transImportParam.Operator); err != nil {
 					err = fmt.Errorf("deployed【%s】fail,%s", procDef.Name, err.Error())
-					log.Logger.Error("importWorkflow Deployed fail", log.String("name", procDef.Name), log.String("errMsg", errMsg))
+					log.Error(nil, log.LOGGER_APP, "importWorkflow Deployed fail", zap.String("name", procDef.Name), zap.String("errMsg", errMsg))
 					return
 				}
 			}
 		}
 	}
-	log.Logger.Info("4. importWorkflow success end!!!")
+	log.Info(nil, log.LOGGER_APP, "4. importWorkflow success end!!!")
 	return
 }
 
 // 5、导入批量执行
 func importBatchExecution(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-	log.Logger.Info("5. importBatchExecution start!!!")
+	log.Info(nil, log.LOGGER_APP, "5. importBatchExecution start!!!")
 	var batchExecutionTemplateList []*models.BatchExecutionTemplate
 	var exist bool
 	batchExecutionPath := fmt.Sprintf("%s/batch_execution.json", transImportParam.DirPath)
@@ -306,7 +307,7 @@ func importBatchExecution(ctx context.Context, transImportParam *models.TransImp
 		return
 	}
 	if !exist {
-		log.Logger.Info("importBatchExecution data empty!")
+		log.Info(nil, log.LOGGER_APP, "importBatchExecution data empty!")
 		return
 	}
 	if err = database.ParseJsonData(batchExecutionPath, &batchExecutionTemplateList); err != nil {
@@ -314,17 +315,17 @@ func importBatchExecution(ctx context.Context, transImportParam *models.TransImp
 	}
 	if len(batchExecutionTemplateList) > 0 {
 		if err = database.ImportTemplate(ctx, transImportParam.Operator, batchExecutionTemplateList); err != nil {
-			log.Logger.Error("importBatchExecution ImportTemplate fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "importBatchExecution ImportTemplate fail", zap.Error(err))
 			return
 		}
 	}
-	log.Logger.Info("5. importBatchExecution success end!!!")
+	log.Info(nil, log.LOGGER_APP, "5. importBatchExecution success end!!!")
 	return
 }
 
 // 7、导入监控基础类型、对象组、基础类型指标、对象组指标、对象组阈值配置、业务配置模版
 func importMonitorBaseConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-	log.Logger.Info("6. importMonitorBaseConfig start!!!")
+	log.Info(nil, log.LOGGER_APP, "6. importMonitorBaseConfig start!!!")
 	var monitorTypeList []string
 	var response monitor.BatchAddTypeConfigResp
 	var monitorTypeExist, endpointGroupExist, metricExist, strategyExist, logMonitorTemplateExist bool
@@ -338,17 +339,17 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 			return
 		}
 		if response, err = monitor.ImportMonitorType(monitorTypeList, transImportParam.Token); err != nil {
-			log.Logger.Error("ImportMonitorType fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "ImportMonitorType fail", zap.Error(err))
 			return
 		}
 		if response.Status != "OK" {
 			err = fmt.Errorf("ImportMonitorType %s", response.Message)
-			log.Logger.Error("ImportMonitorType fail", log.String("msg", response.Message))
+			log.Error(nil, log.LOGGER_APP, "ImportMonitorType fail", zap.String("msg", response.Message))
 			return
 		}
-		log.Logger.Info("6-1. import monitorType success!")
+		log.Info(nil, log.LOGGER_APP, "6-1. import monitorType success!")
 	} else {
-		log.Logger.Info("6-1. import monitorType data empty!")
+		log.Info(nil, log.LOGGER_APP, "6-1. import monitorType data empty!")
 	}
 	// 导入对象组
 	endpointGroupPath := fmt.Sprintf("%s/monitor/endpoint_group.json", transImportParam.DirPath)
@@ -357,12 +358,12 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 	}
 	if endpointGroupExist {
 		if err = monitor.ImportEndpointGroup(endpointGroupPath, transImportParam.Token, transImportParam.Language); err != nil {
-			log.Logger.Error("ImportEndpointGroup fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "ImportEndpointGroup fail", zap.Error(err))
 			return
 		}
-		log.Logger.Info("6-2. import endpointGroup success!")
+		log.Info(nil, log.LOGGER_APP, "6-2. import endpointGroup success!")
 	} else {
-		log.Logger.Info("6-2. import endpointGroup date empty!")
+		log.Info(nil, log.LOGGER_APP, "6-2. import endpointGroup date empty!")
 	}
 
 	// 导入基础类型指标、对象组指标
@@ -373,7 +374,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 	if metricExist {
 		var files, childFiles []fs.DirEntry
 		if files, err = os.ReadDir(metricPath); err != nil {
-			log.Logger.Error("ReadDir fail", log.String("metricPath", metricPath), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "ReadDir fail", zap.String("metricPath", metricPath), zap.Error(err))
 			return
 		}
 		files = sortDirEntry(files)
@@ -385,7 +386,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 				}
 				// endpoint_group 对象组目录遍历
 				if childFiles, err = os.ReadDir(fmt.Sprintf("%s/%s", metricPath, "endpoint_group")); err != nil {
-					log.Logger.Error("ReadDir fail", log.Error(err))
+					log.Error(nil, log.LOGGER_APP, "ReadDir fail", zap.Error(err))
 					return
 				}
 				childFiles = sortDirEntry(childFiles)
@@ -406,7 +407,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 					}
 					if err = monitor.ImportMetric(param); err != nil {
 						err = fmt.Errorf("%s,fileName:%s", err.Error(), newFile.Name())
-						log.Logger.Error("ImportMetric err", log.String("fileName", newFile.Name()), log.Error(err))
+						log.Error(nil, log.LOGGER_APP, "ImportMetric err", zap.String("fileName", newFile.Name()), zap.Error(err))
 						return
 					}
 				}
@@ -427,13 +428,13 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 			}
 			if err = monitor.ImportMetric(param); err != nil {
 				err = fmt.Errorf("%s,fileName:%s", err.Error(), file.Name())
-				log.Logger.Error("ImportMetric err", log.String("fileName", file.Name()), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "ImportMetric err", zap.String("fileName", file.Name()), zap.Error(err))
 				return
 			}
 		}
-		log.Logger.Info("6-3. import metric monitorType and endpointGroup success!")
+		log.Info(nil, log.LOGGER_APP, "6-3. import metric monitorType and endpointGroup success!")
 	} else {
-		log.Logger.Info("6-3. import metric data empty!")
+		log.Info(nil, log.LOGGER_APP, "6-3. import metric data empty!")
 	}
 
 	// 导入对象组阈值配置
@@ -444,7 +445,7 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 	if strategyExist {
 		var strategyFiles []fs.DirEntry
 		if strategyFiles, err = os.ReadDir(strategyPath); err != nil {
-			log.Logger.Error("ReadDir fail", log.String("strategyPath", strategyPath), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "ReadDir fail", zap.String("strategyPath", strategyPath), zap.Error(err))
 			return
 		}
 		// 遍历文件和子目录
@@ -463,14 +464,14 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 					Language:     transImportParam.Language,
 				}
 				if err = monitor.ImportStrategy(param); err != nil {
-					log.Logger.Error("ImportStrategy err", log.String("fileName", file.Name()), log.Error(err))
+					log.Error(nil, log.LOGGER_APP, "ImportStrategy err", zap.String("fileName", file.Name()), zap.Error(err))
 					return
 				}
 			}
 		}
-		log.Logger.Info("6-4. import  monitor strategy endpointGroup success!")
+		log.Info(nil, log.LOGGER_APP, "6-4. import  monitor strategy endpointGroup success!")
 	} else {
-		log.Logger.Info("6-4. import  monitor strategy endpointGroup data empty!")
+		log.Info(nil, log.LOGGER_APP, "6-4. import  monitor strategy endpointGroup data empty!")
 	}
 
 	// 导入业务模版配置
@@ -481,14 +482,14 @@ func importMonitorBaseConfig(ctx context.Context, transImportParam *models.Trans
 	if logMonitorTemplateExist {
 		err = monitor.ImportLogMonitorTemplate(logMonitorTemplatePath, transImportParam.Token, transImportParam.Language)
 		if err != nil {
-			log.Logger.Error("ImportLogMetricTemplate fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "ImportLogMetricTemplate fail", zap.Error(err))
 			return
 		}
-		log.Logger.Info("6-5. import  log_metric_template success!")
+		log.Info(nil, log.LOGGER_APP, "6-5. import  log_metric_template success!")
 	} else {
-		log.Logger.Info("6-5. import  log_metric_template data empty!")
+		log.Info(nil, log.LOGGER_APP, "6-5. import  log_metric_template data empty!")
 	}
-	log.Logger.Info("6. importMonitorBaseConfig success end!!!")
+	log.Info(nil, log.LOGGER_APP, "6. importMonitorBaseConfig success end!!!")
 	return
 }
 
@@ -497,11 +498,11 @@ func importTaskManComponentLibrary(ctx context.Context, transImportParam *models
 	// 判断是否要导入组件库
 	var input string
 	var pathExist bool
-	log.Logger.Info("8. importTaskManComponentLibrary start!!!")
+	log.Info(nil, log.LOGGER_APP, "8. importTaskManComponentLibrary start!!!")
 	componentLibraryPath := fmt.Sprintf("%s/component_library.json", transImportParam.DirPath)
 	if transImportParam.CurrentDetail == nil {
 		err = fmt.Errorf("importTaskManTemplate CurrentDetail is empty")
-		log.Logger.Error("err:", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "err:", zap.Error(err))
 		return
 	}
 	if input, err = database.GetTransImportDetailInput(ctx, transImportParam.CurrentDetail.Id); err != nil {
@@ -510,54 +511,54 @@ func importTaskManComponentLibrary(ctx context.Context, transImportParam *models
 	if input == "true" {
 		// 导入时候先检查 组件库路径是否存在,不存在直接跳过,不报错
 		if pathExist, err = tools.PathExist(componentLibraryPath); err != nil || !pathExist {
-			log.Logger.Info("pathExist", log.Error(err), log.String("path", componentLibraryPath), log.Bool("pathExist", pathExist))
+			log.Info(nil, log.LOGGER_APP, "pathExist", zap.Error(err), zap.String("path", componentLibraryPath), zap.Bool("pathExist", pathExist))
 			err = nil
 			return
 		}
 		// 导入组件库
 		err = remote.ImportComponentLibrary(componentLibraryPath, transImportParam.Token, transImportParam.Language)
 		if err != nil {
-			log.Logger.Error("importTaskManComponentLibrary", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "importTaskManComponentLibrary", zap.Error(err))
 			return
 		}
-		log.Logger.Info("8. importTaskManComponentLibrary success end!!!")
+		log.Info(nil, log.LOGGER_APP, "8. importTaskManComponentLibrary success end!!!")
 	} else {
-		log.Logger.Info("8. importTaskManComponentLibrary data empty!!!")
+		log.Info(nil, log.LOGGER_APP, "8. importTaskManComponentLibrary data empty!!!")
 	}
 	return
 }
 
 // 9、导入taskman模版
 func importTaskManTemplate(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-	log.Logger.Info("9. importTaskManTemplate start!!!")
+	log.Info(nil, log.LOGGER_APP, "9. importTaskManTemplate start!!!")
 	// 导入模版
 	err = remote.ImportRequestTemplate(fmt.Sprintf("%s/request_template.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
 	if err != nil {
-		log.Logger.Error("ImportRequestTemplate fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "ImportRequestTemplate fail", zap.Error(err))
 		return
 	}
-	log.Logger.Info("9. importTaskManTemplate success end!!!")
+	log.Info(nil, log.LOGGER_APP, "9. importTaskManTemplate success end!!!")
 	return
 }
 
 // 10、页面第二步导入数据成功,点击下一步触发
 func updateWebBaseImportSuccess(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-	log.Logger.Info("10. updateWebBaseImportSuccess start!!!")
+	log.Info(nil, log.LOGGER_APP, "10. updateWebBaseImportSuccess start!!!")
 	err = database.UpdateTransImportDetailStatus(ctx, transImportParam.TransImport.Id, transImportParam.CurrentDetail.Id, string(models.TransImportStatusSuccess), "", "")
 	if err != nil {
-		log.Logger.Error("UpdateTransImportDetailStatus fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "UpdateTransImportDetailStatus fail", zap.Error(err))
 		return
 	}
-	log.Logger.Info("10. updateWebBaseImportSuccess end!!!")
+	log.Info(nil, log.LOGGER_APP, "10. updateWebBaseImportSuccess end!!!")
 	return
 }
 
 // 11、修改新环境数据
 func modifyNewEnvData(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-	log.Logger.Info("11. modifyNewEnvData start!!!")
+	log.Info(nil, log.LOGGER_APP, "11. modifyNewEnvData start!!!")
 	if transImportParam.ImportCustomFormData == nil {
 		err = fmt.Errorf("modify new environment is empty")
-		log.Logger.Error("ImportCustomFormData err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "ImportCustomFormData err", zap.Error(err))
 		return
 	}
 	transImportParam.ImportCustomFormData.WecubeHost1Pwd = transImportParam.ImportCustomFormData.WecubeHost1Password
@@ -573,21 +574,21 @@ func modifyNewEnvData(ctx context.Context, transImportParam *models.TransImportJ
 	}
 	byteArr, _ := json.Marshal(transImportParam.ImportCustomFormData)
 	if err = database.UpdateTransImportDetailInput(ctx, transImportParam.TransImport.Id, models.TransImportStepModifyNewEnvData, string(byteArr)); err != nil {
-		log.Logger.Error("UpdateTransImportDetailInput err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "UpdateTransImportDetailInput err", zap.Error(err))
 		return
 	}
 	// 更新cmdb数据
 	if err = database.UpdateTransImportCMDBData(ctx, transImportParam); err != nil {
-		log.Logger.Error("UpdateTransImportCMDBData err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "UpdateTransImportCMDBData err", zap.Error(err))
 		return
 	}
-	log.Logger.Info("11. modifyNewEnvData success end!!!")
+	log.Info(nil, log.LOGGER_APP, "11. modifyNewEnvData success end!!!")
 	return
 }
 
 // 13、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板、关键字层级对象
 func importMonitorServiceConfig(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-	log.Logger.Info("13. importMonitorServiceConfig start!!!")
+	log.Info(nil, log.LOGGER_APP, "13. importMonitorServiceConfig start!!!")
 	var logMonitorExist, serviceGroupMetricExist, strategyExist, dashboardExist, logKeywordExist bool
 	// 导入监控业务配置 (说明: 业务配置导入在层级对象指标之前导入,层级对象指标导入做了防止重复处理)
 	logMonitorPath := fmt.Sprintf("%s/monitor/log_monitor", transImportParam.DirPath)
@@ -597,7 +598,7 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 	if logMonitorExist {
 		var files []fs.DirEntry
 		if files, err = os.ReadDir(logMonitorPath); err != nil {
-			log.Logger.Error("ReadDir fail", log.String("logMonitorPath", logMonitorPath), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "ReadDir fail", zap.String("logMonitorPath", logMonitorPath), zap.Error(err))
 			return
 		}
 		// 遍历文件和子目录
@@ -605,13 +606,13 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 			serviceGroup := file.Name()[:strings.LastIndex(file.Name(), ".")]
 			err = monitor.ImportLogMonitor(fmt.Sprintf("%s/%s", logMonitorPath, file.Name()), transImportParam.Token, transImportParam.Language, serviceGroup)
 			if err != nil {
-				log.Logger.Error("ImportLogMonitor err", log.String("fileName", file.Name()))
+				log.Error(nil, log.LOGGER_APP, "ImportLogMonitor err", zap.String("fileName", file.Name()))
 				return
 			}
 		}
-		log.Logger.Info("13-1. import log_monitor success!")
+		log.Info(nil, log.LOGGER_APP, "13-1. import log_monitor success!")
 	} else {
-		log.Logger.Info("13-1. import log_monitor data empty!")
+		log.Info(nil, log.LOGGER_APP, "13-1. import log_monitor data empty!")
 	}
 
 	// 导入层级对象指标
@@ -622,7 +623,7 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 	if serviceGroupMetricExist {
 		var files []fs.DirEntry
 		if files, err = os.ReadDir(serviceGroupMetricPath); err != nil {
-			log.Logger.Error("ReadDir fail", log.String("serviceGroupMetricPath", serviceGroupMetricPath), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "ReadDir fail", zap.String("serviceGroupMetricPath", serviceGroupMetricPath), zap.Error(err))
 			return
 		}
 		files = sortDirEntry(files)
@@ -643,13 +644,13 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 				Comparison:   comparison,
 			}
 			if err = monitor.ImportMetric(param); err != nil {
-				log.Logger.Error("ImportMetric err", log.String("fileName", file.Name()), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "ImportMetric err", zap.String("fileName", file.Name()), zap.Error(err))
 				return
 			}
 		}
-		log.Logger.Info("13-2. import service_group metric success!")
+		log.Info(nil, log.LOGGER_APP, "13-2. import service_group metric success!")
 	} else {
-		log.Logger.Info("13-2. import service_group metric data empty!")
+		log.Info(nil, log.LOGGER_APP, "13-2. import service_group metric data empty!")
 	}
 
 	// 导入层级对象阈值配置
@@ -661,7 +662,7 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 	if strategyExist {
 		var strategyFiles []fs.DirEntry
 		if strategyFiles, err = os.ReadDir(strategyPath); err != nil {
-			log.Logger.Error("ReadDir fail", log.String("strategyPath", strategyPath), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "ReadDir fail", zap.String("strategyPath", strategyPath), zap.Error(err))
 			return
 		}
 		// 遍历文件和子目录
@@ -680,14 +681,14 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 					Language:     transImportParam.Language,
 				}
 				if err = monitor.ImportStrategy(param); err != nil {
-					log.Logger.Error("ImportStrategy err", log.String("fileName", file.Name()), log.Error(err))
+					log.Error(nil, log.LOGGER_APP, "ImportStrategy err", zap.String("fileName", file.Name()), zap.Error(err))
 					return
 				}
 			}
 		}
-		log.Logger.Info("13-3. import strategy service_group success!")
+		log.Info(nil, log.LOGGER_APP, "13-3. import strategy service_group success!")
 	} else {
-		log.Logger.Info("13-3. import strategy service_group data empty!")
+		log.Info(nil, log.LOGGER_APP, "13-3. import strategy service_group data empty!")
 	}
 	// 导入自定义看板
 	dashboardPath := fmt.Sprintf("%s/monitor/dashboard", transImportParam.DirPath)
@@ -697,19 +698,19 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 	if dashboardExist {
 		var files []fs.DirEntry
 		if files, err = os.ReadDir(dashboardPath); err != nil {
-			log.Logger.Error("ReadDir fail", log.String("dashboardPath", dashboardPath), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "ReadDir fail", zap.String("dashboardPath", dashboardPath), zap.Error(err))
 			return
 		}
 		// 遍历文件和子目录
 		for _, file := range files {
 			if err = monitor.ImportDashboard(fmt.Sprintf("%s/%s", dashboardPath, file.Name()), transImportParam.Token, transImportParam.Language); err != nil {
-				log.Logger.Error("ImportDashboard err", log.String("fileName", file.Name()), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "ImportDashboard err", zap.String("fileName", file.Name()), zap.Error(err))
 				return
 			}
 		}
-		log.Logger.Info("13-4. import dashboard success!")
+		log.Info(nil, log.LOGGER_APP, "13-4. import dashboard success!")
 	} else {
-		log.Logger.Info("13-4. import dashboard data empty!")
+		log.Info(nil, log.LOGGER_APP, "13-4. import dashboard data empty!")
 	}
 
 	// 导入关键字(包含层级对象)
@@ -720,22 +721,22 @@ func importMonitorServiceConfig(ctx context.Context, transImportParam *models.Tr
 	if logKeywordExist {
 		var files []fs.DirEntry
 		if files, err = os.ReadDir(logKeywordPath); err != nil {
-			log.Logger.Error("ReadDir fail", log.String("logKeywordPath", logKeywordPath), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "ReadDir fail", zap.String("logKeywordPath", logKeywordPath), zap.Error(err))
 			return
 		}
 		// 遍历文件和子目录
 		for _, file := range files {
 			serviceGroup := file.Name()[:strings.LastIndex(file.Name(), ".")]
 			if err = monitor.ImportLogKeyword(fmt.Sprintf("%s/%s", logKeywordPath, file.Name()), transImportParam.Token, transImportParam.Language, serviceGroup); err != nil {
-				log.Logger.Error("ImportLogKeyword err", log.String("fileName", file.Name()), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "ImportLogKeyword err", zap.String("fileName", file.Name()), zap.Error(err))
 				return
 			}
 		}
-		log.Logger.Info("13-5. import log_keyword success!")
+		log.Info(nil, log.LOGGER_APP, "13-5. import log_keyword success!")
 	} else {
-		log.Logger.Info("13-5. import log_keyword data empty!")
+		log.Info(nil, log.LOGGER_APP, "13-5. import log_keyword data empty!")
 	}
-	log.Logger.Info("13. importMonitorServiceConfig end!!!")
+	log.Info(nil, log.LOGGER_APP, "13. importMonitorServiceConfig end!!!")
 	return
 }
 
@@ -764,7 +765,7 @@ func checkImportHasExit(ctx context.Context, transImportId string) bool {
 		return false
 	}
 	if transImportAction.Action == string(models.TransImportActionExit) {
-		log.Logger.Info("import has exit", log.String("transImportId", transImportId))
+		log.Info(nil, log.LOGGER_APP, "import has exit", zap.String("transImportId", transImportId))
 		return true
 	}
 	return false

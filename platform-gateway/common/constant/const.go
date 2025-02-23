@@ -3,6 +3,9 @@ package constant
 const (
 	DefaultHttpSuccessStatus = "OK"
 	NotApplicableRemoteCall  = "NA"
+
+	HEADER_BUSINESS_ID = "BusinessId" // 业务流水号
+	HEADER_REQUEST_ID  = "RequestId"  // 交易流水号
 )
 
 var HttpMethods = [8]string{"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "TRACE"}
