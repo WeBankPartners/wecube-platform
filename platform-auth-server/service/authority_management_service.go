@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/utils"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/db"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -23,12 +24,12 @@ func (a AuthorityManagementService) RegisterLocalAuthority(authDto model.SimpleA
 
 	authority, err := db.AuthorityRepositoryInstance.FindNotDeletedOneByCode(authDto.Code)
 	if err != nil {
-		log.Logger.Warn("can not find not deleted auth by code", log.String("code", authDto.Code), log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "can not find not deleted auth by code", zap.String("code", authDto.Code), zap.Error(err))
 		return nil, err
 	}
 
 	if authority != nil {
-		log.Logger.Debug(fmt.Sprintf("authority %v to register already exists.", authDto.Code))
+		log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("authority %v to register already exists.", authDto.Code))
 		/*		msg := fmt.Sprintf(
 				"Authority registering failed,because authority code {%s} already exist.", authDto.Code);
 		*/return nil, exterror.Catch(exterror.New().AuthServer3001Error.WithParam(authDto.Code), nil)
@@ -70,7 +71,7 @@ func (a AuthorityManagementService) RetrieveAllLocalAuthorities() ([]*model.Simp
 	result := make([]*model.SimpleAuthorityDto, 0)
 	authorities, err := db.AuthorityRepositoryInstance.FindAllNotDeletedAuthorities()
 	if err != nil {
-		log.Logger.Error("failed to find all not deleted auth", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to find all not deleted auth", zap.Error(err))
 		return nil, err
 	}
 	if len(authorities) == 0 {
