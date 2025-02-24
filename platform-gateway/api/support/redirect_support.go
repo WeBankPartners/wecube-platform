@@ -26,7 +26,7 @@ type ResponseHandlerFunc func(body *[]byte, c *gin.Context) error
 
 func (invoke RedirectInvoke) Do(c *gin.Context) error {
 
-	log.Logger.Info(fmt.Sprintf("Redirecting request to downstream system: [Method: %s] [URL: %s] [ContentLength: %d]", c.Request.Method, invoke.TargetUrl, c.Request.ContentLength))
+	log.Info(nil, log.LOGGER_APP, fmt.Sprintf("Redirecting request to downstream system: [Method: %s] [URL: %s] [ContentLength: %d]", c.Request.Method, invoke.TargetUrl, c.Request.ContentLength))
 	cloneRequest := c.Request.Clone(c.Request.Context()) // deep copy original request
 	newRequest, _ := http.NewRequest(cloneRequest.Method, invoke.TargetUrl, cloneRequest.Body)
 	newRequest.Header = cloneRequest.Header
@@ -47,9 +47,9 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 
 	if strings.EqualFold(model.Config.Log.Level, "debug") {
 		requestDump, _ := httputil.DumpRequest(newRequest, true)
-		log.Logger.Debug("Request to downstream system: " + string(requestDump))
+		log.Debug(nil, log.LOGGER_APP, "Request to downstream system: "+string(requestDump))
 	}
-	log.Logger.Debug(fmt.Sprintf("Sending request to downstream system: [Method: %s] [URL: %s]", newRequest.Method, invoke.TargetUrl))
+	log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("Sending request to downstream system: [Method: %s] [URL: %s]", newRequest.Method, invoke.TargetUrl))
 
 	if response, err := client.Do(newRequest); err != nil {
 		return err
@@ -68,7 +68,7 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 
 			if strings.EqualFold(model.Config.Log.Level, "debug") {
 				responseDump, _ := httputil.DumpResponse(response, true)
-				log.Logger.Debug(fmt.Sprintf("Response from downstream system: %s  [body size]: %d", string(responseDump), len(respBody)))
+				log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("Response from downstream system: %s  [body size]: %d", string(responseDump), len(respBody)))
 			}
 			c.Data(response.StatusCode, response.Header.Get("Content-Type"), respBody)
 		} else {
@@ -94,14 +94,14 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 				}
 				return false // 结束流
 			})
-			log.Logger.Info("Success done with response")
+			log.Info(nil, log.LOGGER_APP, "Success done with response")
 		}
 		//respBody, _ := ioutil.ReadAll(response.Body)
 		//defer response.Body.Close()
 		//
 		//if strings.EqualFold(model.Config.Log.Level, "debug") {
 		//	responseDump, _ := httputil.DumpResponse(response, true)
-		//	log.Logger.Debug(fmt.Sprintf("Response from downstream system: %s  [body size]: %d", string(responseDump), len(respBody)))
+		//	log.Debug(nil, log.LOGGER_APP,fmt.Sprintf("Response from downstream system: %s  [body size]: %d", string(responseDump), len(respBody)))
 		//}
 		//respHeader := c.Writer.Header()
 		//for k, v := range response.Header {
@@ -112,7 +112,7 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 		//}
 		//c.Data(response.StatusCode, response.Header.Get("Content-Type"), respBody)
 		//
-		//log.Logger.Debug(fmt.Sprintf("Success request with response body: %s", respBody))
+		//log.Debug(nil, log.LOGGER_APP,fmt.Sprintf("Success request with response body: %s", respBody))
 		return nil
 	}
 
