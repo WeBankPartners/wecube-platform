@@ -191,6 +191,17 @@ import {
 } from '@/api/server.js'
 import FlowAuth from '@/pages/components/auth.vue'
 import dayjs from 'dayjs'
+
+export const custom_api_enum = [
+  {
+    "url": "/platform/v1/process/definitions/export",
+    "method": "post"
+  },
+  {
+    "url": "/platform/v1/process/definitions/import",
+    "method": "post"
+  }
+]
 export default {
   components: {
     FlowAuth

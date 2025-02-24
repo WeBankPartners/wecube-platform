@@ -2,13 +2,14 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2025-02-21 11:05:22
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-02-24 17:30:53
+ * @LastEditTime: 2025-02-24 21:32:38
  * 
  * 备注：采用该脚本生成API权限JSON，需注意以下几点：
  * 1. 页面中用到的API必须在server.js中定义
  * 2. 组件中目前识别通过import { *** } from '@/api/server'(.js可带可不带) 这种形式引入的API，其他形式的导入暂不支持。
  * 3. server.js中定义的API必须以export const开头，并且url不能通过变量方式传递，需要写在server.js中
  *    // export const saveBatchExecute = (url, data) => req.post(url, data)，这种方式传递就不行
+ * 4. server.js中api的url需要用模板字符串的形式拼接url
  */
 
 const fs = require('fs');
@@ -33,6 +34,18 @@ function extractApiImports(content) {
   }
 }
 
+// 提取 custom_api_enum 内容
+function extractCustomApiEnum(content) {
+  const regex = /custom_api_enum\s*=\s*(\[.*?\])/gs;
+  const match = regex.exec(content);
+  if (match && match[1]) {
+    const apiEnum = eval(match && match[1])
+    return apiEnum
+  }
+  return null;
+}
+
+
 function scanFilesAndExtractImports(rootPath) {
   // 使用 glob 匹配所有 .vue 文件
   const files_vue = glob.sync('**/*.vue', { cwd: rootPath });
@@ -44,10 +57,12 @@ function scanFilesAndExtractImports(rootPath) {
   files.forEach((file) => {
     const content = fs.readFileSync(file, 'utf-8');
     const apiImports = extractApiImports(content);
+    const customApi = extractCustomApiEnum(content);
     if (apiImports.length > 0) {
       allImports.push({
         path: path.resolve(__dirname, file), // 绝对路径，用于后续定位文件位置
-        api: apiImports
+        api: apiImports,
+        customApi: customApi
       })
     }
   });
@@ -163,7 +178,7 @@ Object.entries(menuPathMap).forEach(([menu, pathArr]) => {
             if (fs.existsSync(absolutePath)) {
               parseComponent(absolutePath);
             } else {
-              console.warn(`未找到组件文件: ${absolutePath}`);
+              // console.warn(`未找到组件文件: ${absolutePath}`);
             }
         }
     }
@@ -182,6 +197,20 @@ Object.entries(menuPathMap).forEach(([menu, pathArr]) => {
 const apiMap = {};
 allImports.forEach(item => {
   apiMap[item.path] = item.api;
+  if (Array.isArray(item.customApi) && item.customApi.length > 0) {
+    apiMap[item.path] = [...apiMap[item.path], item.customApi]
+    /*数据结构如下
+    'D:\\webankCode\\wecube-platform\\wecube-portal\\src\\pages\\admin\\base-migration\\import\\history.vue': [
+      'getBaseMigrationImportList',
+      'getBaseMigrationImportQuery',
+      'updateImportStatus',
+       [{
+         "url": "/platform/v1/process/definitions/export",
+         "method": "post"
+       }]
+      ]
+    */
+  }
 });
 
 // 遍历第一个JSON对象，将对应的API合并到一个数组中，并去重
@@ -197,7 +226,6 @@ for (const [key, values] of Object.entries(menuKeysMap)) {
 }
 // const jsonString_ = JSON.stringify(menuKeysMap, null, 2);
 // fs.writeFileSync(path.join(__dirname, 'node-api-tree.json'), jsonString_, 'utf-8');
-// console.log(menuKeysMap);
 
 
 // -------------------------------------------------------将api函数名转换成method和url组成的对象----------------------------------------------------
@@ -225,8 +253,8 @@ const getApiConfigArr = () => {
     const methodUrlMatch = apiStr.match(/req\.(\w+)\(['"`]([^'"`]+)['"`]/);
     if (keyMatch && methodUrlMatch) {
       const key = keyMatch[1]; // 函数名称
-      const method = methodUrlMatch[1].toUpperCase(); // 请求方法名
-      const url = methodUrlMatch[2].replace(/\${(.*?)}/g, "{$1}"); // 接口 URL
+      const method = methodUrlMatch[1].toLowerCase(); // 请求方法名
+      const url = methodUrlMatch[2].replace(/\${(.*?)}/g, "${$1}"); // 接口 URL
       apiConfigArr.push({
         key,
         url: url.replace(/\?.*/, ''),
@@ -256,6 +284,10 @@ Object.keys(menuKeysMap).forEach(key => {
         newMenuKeysMap[key].push(item)
       }
     })
+    if (Array.isArray(apiName) && apiName.length > 0) {
+      // 组件内部暴露的自定义api custom_api_enum
+      newMenuKeysMap[key].push(...apiName)
+    }
   })
 })
 
