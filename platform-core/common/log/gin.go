@@ -60,7 +60,11 @@ func Debug(c *gin.Context, loggerType LoggerType, args ...interface{}) {
 	if logger == nil {
 		return
 	}
-	logger.Debugw(args[0].(string), addKeyValues(c, args[1:])...)
+	if _, ok := args[0].(string); ok {
+		logger.Debugw(args[0].(string), addKeyValues(c, args[1:])...)
+	} else {
+		logger.Debugw("", addKeyValues(c, args)...)
+	}
 }
 
 func Debugf(c *gin.Context, loggerType LoggerType, template string,
@@ -78,7 +82,11 @@ func Info(c *gin.Context, loggerType LoggerType, args ...interface{}) {
 	if logger == nil {
 		return
 	}
-	logger.Infow(args[0].(string), addKeyValues(c, args[1:])...)
+	if _, ok := args[0].(string); ok {
+		logger.Infow(args[0].(string), addKeyValues(c, args[1:])...)
+	} else {
+		logger.Infow("", addKeyValues(c, args)...)
+	}
 }
 
 func Infof(c *gin.Context, loggerType LoggerType, template string,
@@ -96,7 +104,11 @@ func Warn(c *gin.Context, loggerType LoggerType, args ...interface{}) {
 	if logger == nil {
 		return
 	}
-	logger.Warnw(args[0].(string), addKeyValues(c, args[1:])...)
+	if _, ok := args[0].(string); ok {
+		logger.Warnw(args[0].(string), addKeyValues(c, args[1:])...)
+	} else {
+		logger.Warnw("", addKeyValues(c, args)...)
+	}
 }
 
 func Warnf(c *gin.Context, loggerType LoggerType, template string,
@@ -114,7 +126,11 @@ func Error(c *gin.Context, loggerType LoggerType, args ...interface{}) {
 	if logger == nil {
 		return
 	}
-	logger.Errorw(args[0].(string), addKeyValues(c, args[1:])...)
+	if _, ok := args[0].(string); ok {
+		logger.Errorw(args[0].(string), addKeyValues(c, args[1:])...)
+	} else {
+		logger.Errorw("", addKeyValues(c, args)...)
+	}
 }
 
 func Errorf(c *gin.Context, loggerType LoggerType, template string,
@@ -132,7 +148,11 @@ func DPanic(c *gin.Context, loggerType LoggerType, args ...interface{}) {
 	if logger == nil {
 		return
 	}
-	logger.DPanicw(args[0].(string), addKeyValues(c, args[1:])...)
+	if _, ok := args[0].(string); ok {
+		logger.DPanicw(args[0].(string), addKeyValues(c, args[1:])...)
+	} else {
+		logger.DPanicw("", addKeyValues(c, args)...)
+	}
 }
 
 func DPanicf(c *gin.Context, loggerType LoggerType, template string,
@@ -150,7 +170,11 @@ func Panic(c *gin.Context, loggerType LoggerType, args ...interface{}) {
 	if logger == nil {
 		return
 	}
-	logger.Panicw(args[0].(string), addKeyValues(c, args[1:])...)
+	if _, ok := args[0].(string); ok {
+		logger.Panicw(args[0].(string), addKeyValues(c, args[1:])...)
+	} else {
+		logger.Panicw("", addKeyValues(c, args)...)
+	}
 }
 
 func Panicf(c *gin.Context, loggerType LoggerType, template string,
@@ -168,7 +192,11 @@ func Fatal(c *gin.Context, loggerType LoggerType, args ...interface{}) {
 	if logger == nil {
 		return
 	}
-	logger.Fatalw(args[0].(string), addKeyValues(c, args[1:])...)
+	if _, ok := args[0].(string); ok {
+		logger.Fatalw(args[0].(string), addKeyValues(c, args[1:])...)
+	} else {
+		logger.Fatalw("", addKeyValues(c, args)...)
+	}
 }
 
 func Fatalf(c *gin.Context, loggerType LoggerType, template string,
