@@ -3,6 +3,7 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
+	"go.uber.org/zap"
 	"strconv"
 	"strings"
 
@@ -71,12 +72,12 @@ func RegisterSubSystem(pluginPackageObj *models.PluginPackages) (subSystemCode, 
 		Description: fmt.Sprintf("Plugin %s registered from platform.", pluginPackageObj.Name),
 	}
 	postBytes, _ := json.Marshal(param)
-	log.Logger.Debug("RegisterSubSystem", log.String("token", GetToken()))
+	log.Debug(nil, log.LOGGER_APP, "RegisterSubSystem", zap.String("token", GetToken()))
 	byteArr, err = network.HttpPost(models.Config.Auth.Url+pathRegisterSubSystem, GetToken(), "en", postBytes)
 	if err != nil {
 		return
 	}
-	log.Logger.Debug("RegisterSubSystem", log.String("response", string(byteArr)))
+	log.Debug(nil, log.LOGGER_APP, "RegisterSubSystem", zap.String("response", string(byteArr)))
 	var response models.RegisterSubSysResponse
 	if err = json.Unmarshal(byteArr, &response); err != nil {
 		err = fmt.Errorf("json unmarhsal response body fail,%s ", err.Error())

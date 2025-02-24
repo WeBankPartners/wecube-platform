@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"fmt"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
@@ -85,16 +86,16 @@ func HttpLogHandle() gin.HandlerFunc {
 		c.Request.Body.Close()
 		c.Request.Body = ioutil.NopCloser(bytes.NewReader(bodyBytes))
 		c.Set("requestBody", string(bodyBytes))
-		log.Logger.Info("Received request ", log.String("url", c.Request.RequestURI), log.String("method", c.Request.Method), log.String("body", c.GetString("requestBody")))
+		log.Info(nil, log.LOGGER_APP, "Received request ", zap.String("url", c.Request.RequestURI), zap.String("method", c.Request.Method), zap.String("body", c.GetString("requestBody")))
 		if strings.EqualFold(model.Config.Log.Level, "debug") {
 			requestDump, _ := httputil.DumpRequest(c.Request, true)
-			log.Logger.Debug("Received request: " + string(requestDump))
+			log.Debug(nil, log.LOGGER_APP, "Received request: "+string(requestDump))
 		}
 		apiCode := apiCodeMap[c.Request.Method+"_"+c.FullPath()]
 		c.Writer.Header().Add("Api-Code", apiCode)
 		c.Next()
 		costTime := time.Since(start).Seconds() * 1000
-		log.AccessLogger.Info("Got request -", log.String("url", c.Request.RequestURI), log.String("method", c.Request.Method), log.Int("code", c.Writer.Status()), log.String("operator", c.GetString("user")), log.String("ip", getRemoteIp(c)), log.Float64("cost_ms", costTime), log.String("body", c.GetString("responseBody")))
+		log.Info(nil, log.LOGGER_ACCESS, "Got request -", zap.String("url", c.Request.RequestURI), zap.String("method", c.Request.Method), zap.Int("code", c.Writer.Status()), zap.String("operator", c.GetString("user")), zap.String("ip", getRemoteIp(c)), zap.Float64("cost_ms", costTime), zap.String("body", c.GetString("responseBody")))
 	}
 }
 
@@ -111,7 +112,7 @@ func RecoverHandle(c *gin.Context, err interface{}) {
 	if err != nil {
 		errorMessage = err.(error).Error()
 	}
-	log.Logger.Error("Handle error", log.Int("errorCode", 1), log.String("message", errorMessage))
+	log.Error(nil, log.LOGGER_APP, "Handle error", zap.Int("errorCode", 1), zap.String("message", errorMessage))
 	c.JSON(http.StatusInternalServerError, model.ResponseWrap{ErrorCode: 1, Status: model.ResponseStatusError})
 }
 

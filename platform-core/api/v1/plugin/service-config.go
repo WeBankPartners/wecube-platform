@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
+	"go.uber.org/zap"
 	"net/http"
 	"sort"
 	"strings"
@@ -35,7 +36,7 @@ func GetPluginConfigsWithInterfaces(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	pluginPackageId := c.Param("pluginPackageId")
@@ -63,7 +64,7 @@ func UpdatePluginConfigRoles(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	pluginConfigId := c.Param("pluginConfigId")
@@ -98,7 +99,7 @@ func DisablePluginConfig(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	pluginConfigId := c.Param("pluginConfigId")
@@ -122,7 +123,7 @@ func EnablePluginConfig(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	pluginConfigId := c.Param("pluginConfigId")
@@ -146,7 +147,7 @@ func SavePluginConfig(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	var err error
@@ -178,7 +179,7 @@ func DeletePluginConfig(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	pluginConfigId := c.Param("pluginConfigId")
@@ -202,7 +203,7 @@ func GetBatchPluginConfigs(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	pluginPackageId := c.Param("pluginPackageId")
@@ -226,7 +227,7 @@ func BatchEnablePluginConfig(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	pluginPackageId := c.Param("pluginPackageId")
@@ -255,7 +256,7 @@ func ExportPluginConfigs(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	pluginPackageId := c.Param("pluginPackageId")
@@ -298,7 +299,7 @@ func ImportPluginConfigs(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	pluginPackageId := c.Param("pluginPackageId")
@@ -367,7 +368,7 @@ func DeletePlugin(c *gin.Context) {
 	if pluginPackage.UiPackageIncluded {
 		for _, staticResourceObj := range models.Config.StaticResources {
 			targetCmd := fmt.Sprintf("rm -rf %s/%s/%s/", staticResourceObj.Path, pluginPackage.Name, pluginPackage.Version)
-			log.Logger.Debug("unregister plugin,remove ui in remote host", log.String("server", staticResourceObj.Server), log.String("cmd", targetCmd))
+			log.Debug(nil, log.LOGGER_APP, "unregister plugin,remove ui in remote host", zap.String("server", staticResourceObj.Server), zap.String("cmd", targetCmd))
 			if err = bash.RemoteSSHCommand(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, targetCmd); err != nil {
 				middleware.ReturnError(c, err)
 				return
@@ -425,7 +426,7 @@ func QueryPluginByTargetEntity(c *gin.Context) {
 		return
 	}
 	if dataModelEntity == nil {
-		log.Logger.Info("No data model found for package", log.String("package", param.PkgName))
+		log.Info(nil, log.LOGGER_APP, "No data model found for package", zap.String("package", param.PkgName))
 		middleware.ReturnData(c, resultPluginConfigInterfaceDtoList)
 		return
 	}
@@ -554,7 +555,7 @@ func GetObjectMetas(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	objectMetaId := c.Param("objectMetaId")
@@ -571,7 +572,7 @@ func UpdateObjectMetas(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	pluginConfigId := c.Param("pluginConfigId")

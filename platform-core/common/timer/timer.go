@@ -129,7 +129,7 @@ func (c *CronSecond) RemoveAll() {
 
 func (c *CronSecond) Run() {
 	defer try.Exception(func(e interface{}) {
-		log.Logger.Error(try.GetErrorStackTrace(e))
+		log.Error(nil, log.LOGGER_APP, try.GetErrorStackTrace(e))
 	})
 	if c.started {
 		return

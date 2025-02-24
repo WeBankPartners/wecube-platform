@@ -94,6 +94,9 @@ const (
 	ProcEventStatusFail    = "fail"
 
 	SensitiveDisplay = "******"
+
+	HEADER_BUSINESS_ID = "BusinessId" // 业务流水号
+	HEADER_REQUEST_ID  = "RequestId"  // 交易流水号
 )
 
 var (
