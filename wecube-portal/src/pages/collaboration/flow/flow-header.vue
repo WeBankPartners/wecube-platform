@@ -51,6 +51,13 @@ import dayjs from 'dayjs'
 import FlowAuth from '@/pages/components/auth.vue'
 import { getCookie } from '@/pages/util/cookie'
 import { flowBatchChangeStatus, flowRelease } from '@/api/server.js'
+
+export const custom_api_enum = [
+  {
+    "url": "/platform/v1/process/definitions/export",
+    "method": "post"
+  }
+]
 export default {
   components: {
     FlowAuth
