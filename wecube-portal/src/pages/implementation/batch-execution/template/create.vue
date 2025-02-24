@@ -209,7 +209,7 @@ export default {
         sourceData: JSON.stringify(frontData)
       }
       this.$Spin.show()
-      const { status, data } = await saveBatchExecute('/platform/v1/batch-execution/job/run', params)
+      const { status, data } = await saveBatchExecute(params)
       this.$Spin.hide()
       if (status === 'OK') {
         this.$Notice.success({
