@@ -7,6 +7,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/db"
+	"go.uber.org/zap"
 )
 
 var SubSystemInfoDataServiceImplInstance SubSystemInfoDataServiceImpl
@@ -16,18 +17,18 @@ type SubSystemInfoDataServiceImpl struct {
 
 func (SubSystemInfoDataServiceImpl) retrieveSysSubSystemInfoWithSystemCode(systemCode string) (*model.SysSubSystemInfo, error) {
 	if len(systemCode) == 0 {
-		log.Logger.Debug("system code is blank.")
+		log.Debug(nil, log.LOGGER_APP, "system code is blank.")
 		return nil, errors.New("system code cannot be blank")
 	}
 
 	subSystem, err := db.SubSystemRepositoryInstance.FindOneBySystemCode(systemCode)
 	if err != nil {
-		log.Logger.Error("failed to find by subsystem by systemcode", log.String("systemcode", systemCode), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to find by subsystem by systemcode", zap.String("systemcode", systemCode), zap.Error(err))
 		return nil, err
 	}
 
 	if subSystem == nil {
-		log.Logger.Debug(fmt.Sprintf("cannot find sub system with system code:%v", systemCode))
+		log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("cannot find sub system with system code:%v", systemCode))
 		return nil, nil
 	}
 
@@ -35,8 +36,8 @@ func (SubSystemInfoDataServiceImpl) retrieveSysSubSystemInfoWithSystemCode(syste
 
 	subSystemAuthorities, err := db.SubSystemAuthorityRsRepositoryInstance.FindAllBySubSystemId(subSystem.Id)
 	if err != nil {
-		log.Logger.Error("failed to find all SubSystemAuthorityRsEntity", log.String("subSystem id", subSystem.Id),
-			log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to find all SubSystemAuthorityRsEntity", zap.String("subSystem id", subSystem.Id),
+			zap.Error(err))
 		return nil, err
 	}
 
@@ -48,8 +49,8 @@ func (SubSystemInfoDataServiceImpl) retrieveSysSubSystemInfoWithSystemCode(syste
 		authority := &model.SysAuthorityEntity{}
 		existed, err := db.Engine.ID(subSystemAuthority.AuthorityID).Get(authority)
 		if err != nil {
-			log.Logger.Error("failed to get authority", log.String("authorityId", subSystemAuthority.AuthorityID),
-				log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "failed to get authority", zap.String("authorityId", subSystemAuthority.AuthorityID),
+				zap.Error(err))
 			return nil, err
 		}
 
