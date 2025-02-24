@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { saveBatchExecute } from '@/api/server'
+import { saveBatchExecuteByToken } from '@/api/server'
 export default {
   props: {
     visible: {
@@ -42,8 +42,8 @@ export default {
     // 提交高危检测
     async confirmDangerous() {
       this.$Spin.show()
-      const { status, data } = await saveBatchExecute(
-        `/platform/v1/batch-execution/job/run?continueToken=${this.data.continueToken}`,
+      const { status, data } = await saveBatchExecuteByToken(
+        this.data.continueToken,
         this.data.params
       )
       this.$Spin.hide()

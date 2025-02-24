@@ -133,8 +133,6 @@ export const getAllPluginPackageResourceFiles = () => req.get('/platform/v1/reso
 export const pullDynamicDataModel = name => req.get(`/platform/v1/models/package/${name}`)
 export const getRefByIdInfoByPackageNameAndEntityName = (pkgName, entityName) =>
   req.get(`/platform/v1/models/package/${pkgName}/entity/${entityName}/refById`)
-// export const getModelNodeDetail = (packageName, entityName, data) =>
-//   req.post(`/${packageName}/entities/${entityName}/query`, data)
 export const getModelNodeDetail = (packageName, entityName, data) =>
   req.post(`/platform/v1/packages/${packageName}/entities/${entityName}/query`, data)
 export const getNodeBindings = id => req.get(`/platform/v1/process/instances/${id}/tasknode-bindings`)
@@ -171,7 +169,7 @@ export const dmeAllEntities = data => req.post('/platform/v1/data-model/dme/all-
 export const dmeIntegratedQuery = data => req.post('/platform/v1/data-model/dme/integrated-query', data)
 export const entityView = (packageName, entityName) =>
   req.get(`/platform/v1/models/package/${packageName}/entity/${entityName}/attributes`)
-export const batchExecution = (url, data) => req.post(url, data)
+// export const batchExecution = (url, data) => req.post(url, data)
 export const deleteCollectionsRole = (id, data) => req.delete(`/platform/v1/roles/${id}/favorites`, { data })
 export const addCollectionsRole = (id, data) => req.post(`/platform/v1/roles/${id}/favorites`, data)
 export const getAllCollections = () => req.get('/platform/v1/roles/favorites/retrieve')
@@ -319,7 +317,9 @@ export const getBatchExecuteList = data => req.post('/platform/v1/batch-executio
 // 批量执行历史
 export const batchExecuteHistory = id => req.get(`/platform/v1/batch-execution/${id}`)
 // 保存批量执行
-export const saveBatchExecute = (url, data) => req.post(url, data)
+export const saveBatchExecute = (data) => req.post('/platform/v1/batch-execution/job/run', data)
+// 保存批量执行
+export const saveBatchExecuteByToken = (continueToken, data) => req.post(`/platform/v1/batch-execution/job/run?continueToken=${continueToken}`, data)
 // 批量执行获取密钥
 export const getInputParamsEncryptKey = () => req.get('/platform/v1/batch-execution/seed')
 
