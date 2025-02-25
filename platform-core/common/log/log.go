@@ -41,7 +41,7 @@ func InitLogger() (err error) {
 		AddCallerSkip: 1,
 	}
 	// 业务日志实例
-	param.Filename = filepath.Join(baseLogDir, "/txn.log")
+	param.Filename = filepath.Join(baseLogDir, "/"+appName+".log")
 	if Logger, err = newLogger(param); err != nil {
 		return
 	}
