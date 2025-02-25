@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"strings"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
@@ -89,7 +90,7 @@ func filterLatestPluginConfigInterfaces(authEnableInterfaceEntities []*models.Au
 			serviceName := generateServiceName(entity)
 			if value, ok := serviceNamedPluginConfigInterfacesMap[serviceName]; ok {
 				if entity.UploadTimestamp.After(value.UploadTimestamp) {
-					log.Logger.Info("pluginA is later than pluginB", log.String("pluginA", entity.Id), log.String("pluginB", value.Id))
+					log.Info(nil, log.LOGGER_APP, "pluginA is later than pluginB", zap.String("pluginA", entity.Id), zap.String("pluginB", value.Id))
 					serviceNamedPluginConfigInterfacesMap[serviceName] = entity
 				}
 			} else {
@@ -120,12 +121,12 @@ func convertToPluginConfigInterfaces(ctx context.Context, interfaces *models.Aut
 	if strings.TrimSpace(interfaces.PluginConfigId) != "" {
 		pluginConfigsEntity, err := getPluginConfig(ctx, interfaces.PluginConfigId)
 		if err != nil {
-			log.Logger.Error("getPluginConfig err", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "getPluginConfig err", zap.Error(err))
 		}
 		if pluginConfigsEntity != nil {
 			pluginPackages, err := getPluginPackages(ctx, pluginConfigsEntity.PluginPackageId)
 			if err != nil {
-				log.Logger.Error("getPluginPackages err", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "getPluginPackages err", zap.Error(err))
 			}
 			pluginConfigsEntity.PluginPackages = pluginPackages
 			configInterfaces.PluginConfig = pluginConfigsEntity
@@ -133,7 +134,7 @@ func convertToPluginConfigInterfaces(ctx context.Context, interfaces *models.Aut
 	}
 	inputParameters, err := getAllByConfigInterfaceAddParamType(ctx, interfaces.Id, "INPUT")
 	if err != nil {
-		log.Logger.Error("getAllByConfigInterfaceAddParamType err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "getAllByConfigInterfaceAddParamType err", zap.Error(err))
 	}
 	for _, paramEntity := range inputParameters {
 		paramEntity.PluginConfigInterface = configInterfaces
@@ -143,7 +144,7 @@ func convertToPluginConfigInterfaces(ctx context.Context, interfaces *models.Aut
 	}
 	outputParameters, err := getAllByConfigInterfaceAddParamType(ctx, interfaces.Id, "OUTPUT")
 	if err != nil {
-		log.Logger.Error("getAllByConfigInterfaceAddParamType err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "getAllByConfigInterfaceAddParamType err", zap.Error(err))
 	}
 	for _, paramEntity := range outputParameters {
 		paramEntity.PluginConfigInterface = configInterfaces
@@ -159,22 +160,22 @@ func convertToPluginConfigInterfaces(ctx context.Context, interfaces *models.Aut
 func TryFetchEnrichCoreObjectMeta(ctx context.Context, param *models.PluginConfigInterfaceParameters) *models.CoreObjectMeta {
 	pluginConfigInterface := param.PluginConfigInterface
 	if pluginConfigInterface == nil {
-		log.Logger.Info("Cannot find plugin_config_interface", log.String("id", param.Id))
+		log.Info(nil, log.LOGGER_APP, "Cannot find plugin_config_interface", zap.String("id", param.Id))
 		return nil
 	}
 	pluginConfig := pluginConfigInterface.PluginConfig
 	if pluginConfig == nil {
-		log.Logger.Info("Cannot find plugin_config", log.String("id", pluginConfigInterface.Id))
+		log.Info(nil, log.LOGGER_APP, "Cannot find plugin_config", zap.String("id", pluginConfigInterface.Id))
 		return nil
 	}
 	pluginPackage := pluginConfig.PluginPackages
 	if pluginPackage == nil {
-		log.Logger.Info("Cannot find plugin_package", log.String("id", pluginConfig.Id))
+		log.Info(nil, log.LOGGER_APP, "Cannot find plugin_package", zap.String("id", pluginConfig.Id))
 		return nil
 	}
 
 	if strings.TrimSpace(param.RefObjectName) == "" {
-		log.Logger.Info("object name value is blank", log.String("id", param.Id))
+		log.Info(nil, log.LOGGER_APP, "object name value is blank", zap.String("id", param.Id))
 		return nil
 	}
 	return fetchAssembledCoreObjectMeta(ctx, pluginPackage.Name, param.RefObjectName, nil, pluginConfig.Id)
@@ -193,7 +194,7 @@ func fetchAssembledCoreObjectMeta(ctx context.Context, packageName, objectName s
 	}
 	objectMetaEntity, err := getOnePluginObjectMetaByCondition(ctx, packageName, objectName, configId)
 	if err != nil {
-		log.Logger.Error("getOnePluginObjectMetaByCondition err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "getOnePluginObjectMetaByCondition err", zap.Error(err))
 		return nil
 	}
 	if objectMetaEntity == nil {
