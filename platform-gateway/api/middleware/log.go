@@ -6,6 +6,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"net/http/httputil"
 	"strings"
@@ -26,16 +27,16 @@ func HttpLogHandle() gin.HandlerFunc {
 			c.Request.Body = ioutil.NopCloser(bytes.NewReader(bodyBytes))
 			c.Set("requestBody", string(bodyBytes))
 		}
-		log.Logger.Info(fmt.Sprintf("Received request "), log.String("url", c.Request.RequestURI), log.String("method", c.Request.Method), log.String("body", c.GetString("requestBody")))
+		log.Info(nil, log.LOGGER_APP, fmt.Sprintf("Received request "), zap.String("url", c.Request.RequestURI), zap.String("method", c.Request.Method), zap.String("body", c.GetString("requestBody")))
 		if strings.EqualFold(model.Config.Log.Level, "debug") && c.Request.RequestURI != "/platform/v1/packages" && !strings.HasSuffix(c.Request.RequestURI, "/packages/upload") {
 			requestDump, _ := httputil.DumpRequest(c.Request, true)
-			log.Logger.Debug("Received request: " + string(requestDump))
+			log.Debug(nil, log.LOGGER_APP, "Received request: "+string(requestDump))
 		}
 		c.Next()
 		costTime := int64(time.Now().Sub(start).Seconds() * 1000)
 		apiCode := c.Writer.Header().Get("Api-Code")
 		if strings.TrimSpace(apiCode) == "" {
-			log.Logger.Info("apiCode is empty", log.String("url", c.Request.RequestURI), log.String("method", c.Request.Method), log.Int("code", c.Writer.Status()), log.String("operator", c.GetString("user")), log.String("ip", getRemoteIp(c)), log.Int64("cost_ms", costTime))
+			log.Info(nil, log.LOGGER_APP, "apiCode is empty", zap.String("url", c.Request.RequestURI), zap.String("method", c.Request.Method), zap.Int("code", c.Writer.Status()), zap.String("operator", c.GetString("user")), zap.String("ip", getRemoteIp(c)), zap.Int64("cost_ms", costTime))
 			return
 		}
 		// 业务错误码
@@ -80,9 +81,12 @@ func HttpLogHandle() gin.HandlerFunc {
 			// 状态码 不为200 都是技术错误,T表示技术类错误
 			errCode = model.Config.SubSystemCode.Core + fmt.Sprintf("T00000%d", c.Writer.Status())
 		}
-		log.AccessLogger.Info(fmt.Sprintf("Got request -"), log.String("url", c.Request.RequestURI), log.String("txnCode", apiCode), log.String("method", c.Request.Method),
-			log.Int("code", c.Writer.Status()), log.String("errCode", errCode), log.String("operator", c.GetString("user")), log.String("ip", getRemoteIp(c)), log.Int64("txnCost", costTime),
-			log.String("body", c.GetString("responseBody")))
+		log.Info(nil, log.LOGGER_ACCESS, "Got request -", zap.String("url", c.Request.RequestURI), zap.String("txnCode", apiCode), zap.String("method", c.Request.Method),
+			zap.Int("code", c.Writer.Status()), zap.String("errCode", errCode), zap.String("operator", c.GetString("user")), zap.String("ip", getRemoteIp(c)), zap.Int64("txnCost", costTime),
+			zap.String("body", c.GetString("responseBody")))
+		log.Info(nil, log.LOGGER_TXN, "Got request -", zap.String("url", c.Request.RequestURI), zap.String("txnCode", apiCode), zap.String("method", c.Request.Method),
+			zap.Int("code", c.Writer.Status()), zap.String("errCode", errCode), zap.String("operator", c.GetString("user")), zap.String("ip", getRemoteIp(c)), zap.Int64("txnCost", costTime),
+			zap.String("body", c.GetString("responseBody")))
 	}
 }
 
@@ -99,5 +103,5 @@ func RecoverHandle(c *gin.Context, err interface{}) {
 	if err != nil {
 		errorMessage = err.(error).Error()
 	}
-	log.Logger.Error("Handle error", log.Int("errorCode", 1), log.String("message", errorMessage))
+	log.Error(nil, log.LOGGER_APP, "Handle error", zap.Int("errorCode", 1), zap.String("message", errorMessage))
 }
