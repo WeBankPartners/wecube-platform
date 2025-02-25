@@ -81,7 +81,7 @@ func HttpLogHandle() gin.HandlerFunc {
 			// 状态码 不为200 都是技术错误,T表示技术类错误
 			errCode = model.Config.SubSystemCode.Core + fmt.Sprintf("T00000%d", c.Writer.Status())
 		}
-		log.AccessLogger.Info(fmt.Sprintf("Got request -"), zap.String("url", c.Request.RequestURI), zap.String("txnCode", apiCode), zap.String("method", c.Request.Method),
+		log.Info(nil, log.LOGGER_ACCESS, "Got request -", zap.String("url", c.Request.RequestURI), zap.String("txnCode", apiCode), zap.String("method", c.Request.Method),
 			zap.Int("code", c.Writer.Status()), zap.String("errCode", errCode), zap.String("operator", c.GetString("user")), zap.String("ip", getRemoteIp(c)), zap.Int64("txnCost", costTime),
 			zap.String("body", c.GetString("responseBody")))
 	}
