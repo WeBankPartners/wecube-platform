@@ -14,6 +14,7 @@ import (
 
 var (
 	Logger         *zap.SugaredLogger
+	TxnLogger      *zap.SugaredLogger
 	AccessLogger   *zap.SugaredLogger
 	DatabaseLogger *zap.SugaredLogger
 	MetricLogger   *zap.SugaredLogger
@@ -34,7 +35,7 @@ func InitLogger() (err error) {
 		AddCallerSkip: 1,
 	}
 	// 业务日志实例
-	param.Filename = filepath.Join(baseLogDir, "/txn.log")
+	param.Filename = filepath.Join(baseLogDir, "/"+appName+".log")
 	if Logger, err = newLogger(param); err != nil {
 		return
 	}
@@ -42,6 +43,10 @@ func InitLogger() (err error) {
 	if model.Config.Log.AccessLogEnable {
 		param.Filename = filepath.Join(baseLogDir, fmt.Sprintf("/%s-access.log", appName))
 		if AccessLogger, err = newLogger(param); err != nil {
+			return
+		}
+		param.Filename = filepath.Join(baseLogDir, "/txn.log")
+		if TxnLogger, err = newLogger(param); err != nil {
 			return
 		}
 	}
@@ -81,6 +86,7 @@ func newLogger(param *logger.LoggerParam) (sugaredLogger *zap.SugaredLogger, err
 func SyncLoggers() {
 	syncLogger(Logger)
 	syncLogger(AccessLogger)
+	syncLogger(TxnLogger)
 	syncLogger(MetricLogger)
 	syncLogger(DatabaseLogger)
 }
