@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2025-02-21 11:05:22
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-02-24 21:32:38
+ * @LastEditTime: 2025-02-25 20:09:56
  * 
  * 备注：采用该脚本生成API权限JSON，需注意以下几点：
  * 1. 页面中用到的API必须在server.js中定义
@@ -10,6 +10,8 @@
  * 3. server.js中定义的API必须以export const开头，并且url不能通过变量方式传递，需要写在server.js中
  *    // export const saveBatchExecute = (url, data) => req.post(url, data)，这种方式传递就不行
  * 4. server.js中api的url需要用模板字符串的形式拼接url
+ * 5. 自定义写法，需要在相应组件写入自定义组件枚举custom_api_enum
+
  */
 
 const fs = require('fs');
@@ -17,9 +19,9 @@ const path = require('path');
 const compiler = require('vue-template-compiler');
 const glob = require('glob');
 
-// -------------------------------------------------------------------------------------------------------------------
+
+
 // -------------------------------------------------生成组件对应api的引用关系--------------------------------------------------------------
-// -------------------------------------------------------------------------------------------------------------------
 
 // 根据import语句返回对应API函数列表
 function extractApiImports(content) {
@@ -55,12 +57,13 @@ function scanFilesAndExtractImports(rootPath) {
   const files = files_vue.concat(files_js);
   const allImports = []; // 存储每个文件及其导入的 API 列表
   files.forEach((file) => {
+    file = path.resolve(rootPath, file) // 绝对路径
     const content = fs.readFileSync(file, 'utf-8');
     const apiImports = extractApiImports(content);
     const customApi = extractCustomApiEnum(content);
     if (apiImports.length > 0) {
       allImports.push({
-        path: path.resolve(__dirname, file), // 绝对路径，用于后续定位文件位置
+        path: file,
         api: apiImports,
         customApi: customApi
       })
@@ -70,13 +73,11 @@ function scanFilesAndExtractImports(rootPath) {
   return allImports;
 }
 
-const rootPath_ = path.resolve(__dirname, '');
+const rootPath_ = path.resolve(__dirname, 'src');
 const allImports = scanFilesAndExtractImports(rootPath_);
 
 
-// ----------------------------------------------------------------------------------------
-// --------------------------------------生成菜单对应组件path的映射关系-----------------
-// ----------------------------------------------------------------------------------------
+// -------------------------------------------生成菜单对应组件path的映射关系---------------------------------------------
 
 // 菜单对应组件入口集合
 const menuPathMap = {
@@ -138,11 +139,16 @@ Object.entries(menuPathMap).forEach(([menu, pathArr]) => {
   // 带单下对应的组件入口路径集合
   pathArr.forEach(entry_path => {
     const projectRoot = path.resolve(__dirname, '');
-    if (!entry_path.endsWith('.vue')) {
-      entry_path = entry_path + '.vue'
+    // 绝对路径
+    let entryComponentPath = path.resolve(projectRoot, entry_path);
+    // 入口文件不是.vue结尾的，自动补全
+    if (!entryComponentPath.endsWith('.vue')) {
+      entryComponentPath = entryComponentPath + '.vue'
+      // 可能组件省略了index.vue结尾，则尝试加上index.vue再查找文件是否存在
+      if (!fs.existsSync(entryComponentPath)) {
+        entryComponentPath = entryComponentPath.replace(/\.vue$/, "/index.vue");
+      }
     }
-    const entryComponentPath = path.resolve(projectRoot, entry_path); // 根据实际情况调整
-
     // 存储已解析的组件路径，避免重复解析
     const parsedComponents = new Set();
 
@@ -166,19 +172,21 @@ Object.entries(menuPathMap).forEach(([menu, pathArr]) => {
         while ((importMatch = importRegex.exec(scriptContent))) {
             const relativePath = importMatch[1].replace(/@/g, path.resolve(__dirname, 'src')); // 替换 @ 别名
             let absolutePath = path.resolve(path.dirname(filePath), relativePath);
-            // 如果import引入的文件不是js或者vue文件结尾, 则在后面加上.vue或者.js结尾再尝试查找文件是否存在
+            // 如果import引入的文件不是js或者vue文件结尾, 1.则在后面加上.vue或者.js结尾再尝试查找文件是否存在
             if (!absolutePath.endsWith('.vue') && !absolutePath.endsWith('.js')) {
               absolutePath = absolutePath + '.vue'
               if (!fs.existsSync(absolutePath)) {
-                // absolutePath = absolutePath + '.js'
                 absolutePath = absolutePath.replace(/\.vue$/, ".js");
-
+                // 如果自动添加.vue和.js结尾的文件都不存在，则在后面加上/index.vue再尝试查找文件是否存在
+                if (!fs.existsSync(entryComponentPath)) {
+                  entryComponentPath = entryComponentPath.replace(/\.js$/, "/index.vue");
+                }
               }
             }
             if (fs.existsSync(absolutePath)) {
               parseComponent(absolutePath);
             } else {
-              // console.warn(`未找到组件文件: ${absolutePath}`);
+              console.error(`文件不存在: ${absolutePath}`)
             }
         }
     }
@@ -190,7 +198,7 @@ Object.entries(menuPathMap).forEach(([menu, pathArr]) => {
 })
 
 
-// -------------------------------------------------------------------------------------------------------------
+// -----------------------------------------------生成菜单对应api集合映射关系-----------------------------------------------
 
 
 // 得到菜单和对应api的集合
@@ -228,8 +236,7 @@ for (const [key, values] of Object.entries(menuKeysMap)) {
 // fs.writeFileSync(path.join(__dirname, 'node-api-tree.json'), jsonString_, 'utf-8');
 
 
-// -------------------------------------------------------将api函数名转换成method和url组成的对象----------------------------------------------------
-
+// -------------------------------------------------将api转换成key、method、url组成的对象-----------------------------------------
 
 // 读取代码文件
 const filePath = path.join(__dirname, 'src/api/server.js');
@@ -250,7 +257,9 @@ const getApiConfigArr = () => {
   apiArray.forEach(apiStr => {
     // 使用正则表达式匹配 key、method 和 url
     const keyMatch = apiStr.match(/(\w+)\s*=/);
-    const methodUrlMatch = apiStr.match(/req\.(\w+)\(['"`]([^'"`]+)['"`]/);
+    // const methodUrlMatch = apiStr.match(/req\.(\w+)\(['"`]([^'"`]+)['"`]/)
+    // 优化正则，可以识别req.post()里面内容换行的情况
+    const methodUrlMatch = apiStr.match(/req\.(\w+)\(\s*['"`]([^'"`]*?)['"`]/)
     if (keyMatch && methodUrlMatch) {
       const key = keyMatch[1]; // 函数名称
       const method = methodUrlMatch[1].toLowerCase(); // 请求方法名
@@ -272,7 +281,7 @@ getApiConfigArr();
 
 
 
-// --------------------------------------------------------生成最终结果--------------------------------------------------------
+// --------------------------------------------------------合并数据生成最终结果--------------------------------------------------------
 
 
 const newMenuKeysMap = {}
