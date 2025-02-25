@@ -17,6 +17,7 @@ const (
 	LOGGER_DB                       // 数据库日志器
 	LOGGER_METRIC                   // 指标日志器
 	LOGGER_TRACE                    // trace 日志器
+	LOGGER_TXN    = 5
 )
 
 // 获取日志器
@@ -30,6 +31,8 @@ func getLogger(loggerType LoggerType) *zap.SugaredLogger {
 		return DatabaseLogger
 	case LOGGER_METRIC:
 		return MetricLogger
+	case LOGGER_TXN:
+		return TxnLogger
 	default:
 		return nil
 	}
