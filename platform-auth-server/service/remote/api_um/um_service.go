@@ -9,6 +9,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	resty "github.com/go-resty/resty/v2"
+	"go.uber.org/zap"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -86,19 +87,19 @@ func UmAppAuth(umAuthContext model.UmAuthContext) error {
 		SetHeader("ContentType", "application/x-www-form-urlencoded;charset=UTF-8").
 		Get(reqDomain + "/um_service")
 
-	log.Logger.Debug("UM request:", log.String("url", resp.Request.URL))
+	log.Debug(nil, log.LOGGER_APP, "UM request:", zap.String("url", resp.Request.URL))
 	if err != nil {
-		log.Logger.Error("failed to authenticate with um", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to authenticate with um", zap.Error(err))
 		return err
 	}
 	if resp.IsError() {
 		errStr := "error http status from um system: " + resp.Status()
 		return errors.New(errStr)
 	}
-	log.Logger.Debug("Got UM response:" + string(resp.Body()))
+	log.Debug(nil, log.LOGGER_APP, "Got UM response:"+string(resp.Body()))
 
 	if err := json.Unmarshal(resp.Body(), &umToken); err != nil {
-		log.Logger.Error("failed to unmarshal um reponse.", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to unmarshal um reponse.", zap.Error(err))
 		return err
 	}
 	return nil
@@ -142,12 +143,12 @@ func convertUmAuthContext(authCtxMap map[string]string) model.UmAuthContext {
 }
 
 func UmAuthenticate(authCtxMap map[string]string, credential *model.CredentialDto) (bool, string, error) {
-	log.Logger.Debug("current umToken", log.JsonObj("umToken", umToken))
+	log.Debug(nil, log.LOGGER_APP, "current umToken", log.JsonObj("umToken", umToken))
 	umAuthCtx := convertUmAuthContext(authCtxMap)
 	curTimeStamp := time.Now().Unix()
 	if umToken.ExpTime == 0 || umToken.ExpTime < curTimeStamp {
-		log.Logger.Info("need app authentication with UM in first.")
-		log.Logger.Debug("curTimeStamp:" + strconv.Itoa(int(curTimeStamp)))
+		log.Info(nil, log.LOGGER_APP, "need app authentication with UM in first.")
+		log.Debug(nil, log.LOGGER_APP, "curTimeStamp:"+strconv.Itoa(int(curTimeStamp)))
 		if err := UmAppAuth(umAuthCtx); err != nil {
 			return false, "", errors.New("failed to authentication app with UM:" + err.Error())
 		}
@@ -174,24 +175,24 @@ func UmAuthenticate(authCtxMap map[string]string, credential *model.CredentialDt
 		SetHeader("ContentType", "application/x-www-form-urlencoded;charset=UTF-8").
 		Get(reqDomain + "/um_service")
 
-	log.Logger.Debug("UM user auth request:", log.String("url", resp.Request.URL))
+	log.Debug(nil, log.LOGGER_APP, "UM user auth request:", zap.String("url", resp.Request.URL))
 	if err != nil {
-		log.Logger.Error("error on remote request", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "error on remote request", zap.Error(err))
 		return false, "", err
 	}
 	if resp.IsError() {
 		errStr := "error http status from um system: " + resp.Status()
-		log.Logger.Error(errStr)
+		log.Error(nil, log.LOGGER_APP, errStr)
 		return false, "", errors.New(errStr)
 	}
 
-	log.Logger.Debug("Got Um token authentication response", log.String("response", string(resp.Body())))
+	log.Debug(nil, log.LOGGER_APP, "Got Um token authentication response", zap.String("response", string(resp.Body())))
 	if err := json.Unmarshal(resp.Body(), &umAuthResp); err != nil {
-		log.Logger.Error("failed to unmarshal um reponse.", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to unmarshal um reponse.", zap.Error(err))
 		return false, "", err
 	}
 
-	log.Logger.Info("Got UM response:", log.JsonObj("UmAuthResponse", umAuthResp))
+	log.Info(nil, log.LOGGER_APP, "Got UM response:", log.JsonObj("UmAuthResponse", umAuthResp))
 	umUserName := umAuthResp.UserName
 	if umAuthResp.Code == 0 {
 		return true, umUserName, nil
@@ -204,7 +205,7 @@ func UmAuthenticate(authCtxMap map[string]string, credential *model.CredentialDt
 // 	// Get all network interfaces on the machine
 // 	ifaces, err := net.Interfaces()
 // 	if err != nil {
-// 		log.Logger.Error("failed to get local ip address", log.Error(err))
+// 		log.Error(nil, log.LOGGER_APP, "failed to get local ip address", zap.Error(err))
 // 		return ""
 // 	}
 
@@ -213,7 +214,7 @@ func UmAuthenticate(authCtxMap map[string]string, credential *model.CredentialDt
 // 		// Get the addresses for the current interface
 // 		addrs, err := iface.Addrs()
 // 		if err != nil {
-// 			log.Logger.Error("failed to get local ip address", log.Error(err))
+// 			log.Error(nil, log.LOGGER_APP, "failed to get local ip address", zap.Error(err))
 // 			continue
 // 		}
 // 		// Iterate over each address for the current interface
