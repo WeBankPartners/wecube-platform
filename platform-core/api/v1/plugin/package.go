@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"go.uber.org/zap"
 	"os"
 	"regexp"
 	"strconv"
@@ -68,7 +69,7 @@ func UploadPackage(c *gin.Context) {
 			middleware.ReturnError(c, readFileErr)
 			return
 		}
-		log.Logger.Debug("zip-file", log.String("name", fileName))
+		log.Debug(nil, log.LOGGER_APP, "zip-file", zap.String("name", fileName))
 		// 解压插件zip包
 		if tmpFilePath, tmpFileDir, err = bash.SaveTmpFile(fileName, fileBytes); err != nil {
 			middleware.ReturnError(c, err)
@@ -76,10 +77,10 @@ func UploadPackage(c *gin.Context) {
 		}
 	}
 	// fileBytes = []byte{}
-	log.Logger.Debug("tmpFile", log.String("tmpFilePath", tmpFilePath))
+	log.Debug(nil, log.LOGGER_APP, "tmpFile", zap.String("tmpFilePath", tmpFilePath))
 	defer func() {
 		if removeTmpDirErr := os.RemoveAll(tmpFileDir); removeTmpDirErr != nil {
-			log.Logger.Error("Try to remove package upload tmp dir fail", log.String("tmpDir", tmpFileDir), log.Error(removeTmpDirErr))
+			log.Error(nil, log.LOGGER_APP, "Try to remove package upload tmp dir fail", zap.String("tmpDir", tmpFileDir), zap.Error(removeTmpDirErr))
 		}
 	}()
 	if _, err = bash.DecompressFile(tmpFilePath, ""); err != nil {
@@ -201,9 +202,9 @@ func UploadPackage(c *gin.Context) {
 			if len(menuCodeList) > 0 {
 				updateRoleErr := updateRoleMenuWithPackage(c, registerConfig.Authorities.Authority.SystemRoleName, menuCodeList)
 				if updateRoleErr != nil {
-					log.Logger.Error("updateRoleMenuWithPackage fail", log.String("pluginPackageId", pluginPackageId), log.Error(updateRoleErr))
+					log.Error(nil, log.LOGGER_APP, "updateRoleMenuWithPackage fail", zap.String("pluginPackageId", pluginPackageId), zap.Error(updateRoleErr))
 				} else {
-					log.Logger.Info("updateRoleMenuWithPackage done", log.String("pluginPackageId", pluginPackageId), log.StringList("menuCodeList", menuCodeList))
+					log.Info(nil, log.LOGGER_APP, "updateRoleMenuWithPackage done", zap.String("pluginPackageId", pluginPackageId), zap.Strings("menuCodeList", menuCodeList))
 				}
 			}
 		}
@@ -275,7 +276,7 @@ func PullOnliePackage(c *gin.Context) {
 		KeyName: reqParam.KeyName,
 		State:   "InProgress",
 	}, c.GetString(models.ContextUserId))
-	log.Logger.Debug("pull plugin package,create plugin package pull req", log.JsonObj("pullId", pullId))
+	log.Debug(nil, log.LOGGER_APP, "pull plugin package,create plugin package pull req", log.JsonObj("pullId", pullId))
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -288,14 +289,14 @@ func doPullPackageBackground(c *gin.Context, pullId, fileName string) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", retErr.Error(), "", 0)
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 	tmpFile, err := remote.GetOnlinePluginPackageFile(c, fileName)
-	log.Logger.Debug("pull plugin package,get online plugin package archive file", log.JsonObj("fileName", fileName))
+	log.Debug(nil, log.LOGGER_APP, "pull plugin package,get online plugin package archive file", log.JsonObj("fileName", fileName))
 	if err != nil {
 		// update failed
 		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", err.Error(), "", 0)
-		log.Logger.Error("pull plugin package,get online plugin package archive file failed", log.JsonObj("fileName", fileName), log.JsonObj("errMsg", err.Error()))
+		log.Error(nil, log.LOGGER_APP, "pull plugin package,get online plugin package archive file failed", log.JsonObj("fileName", fileName), log.JsonObj("errMsg", err.Error()))
 		return
 	}
 	tmpFileSize := 0
@@ -304,11 +305,11 @@ func doPullPackageBackground(c *gin.Context, pullId, fileName string) {
 		if fileInfo != nil {
 			tmpFileSize = int(fileInfo.Size())
 		}
-		log.Logger.Debug("pull plugin package,get online plugin package file size", log.JsonObj("fileName", fileName), log.JsonObj("fileSize", tmpFileSize))
+		log.Debug(nil, log.LOGGER_APP, "pull plugin package,get online plugin package file size", log.JsonObj("fileName", fileName), log.JsonObj("fileSize", tmpFileSize))
 	} else {
 		// update failed
 		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", "failed to download file", "", 0)
-		log.Logger.Error("pull plugin package,get online plugin package archive file failed", log.JsonObj("fileName", fileName), log.JsonObj("errMsg", "failed to download file"))
+		log.Error(nil, log.LOGGER_APP, "pull plugin package,get online plugin package archive file failed", log.JsonObj("fileName", fileName), log.JsonObj("errMsg", "failed to download file"))
 		return
 	}
 	archiveFilePath := tmpFile.Name()
@@ -316,16 +317,16 @@ func doPullPackageBackground(c *gin.Context, pullId, fileName string) {
 	if err != nil {
 		// update failed
 		database.UpdatePluginPackagePullReq(c, pullId, "", "Faulted", err.Error(), "", tmpFileSize)
-		log.Logger.Error("pull plugin package,upload plugin package archive file failed", log.JsonObj("fileName", fileName), log.JsonObj("errMsg", err.Error()))
+		log.Error(nil, log.LOGGER_APP, "pull plugin package,upload plugin package archive file failed", log.JsonObj("fileName", fileName), log.JsonObj("errMsg", err.Error()))
 	} else {
 		// update ok
 		database.UpdatePluginPackagePullReq(c, pullId, pkgId, "Completed", "", "", tmpFileSize)
-		log.Logger.Debug("pull plugin package,upload online plugin package archive file ok", log.JsonObj("fileName", fileName))
+		log.Debug(nil, log.LOGGER_APP, "pull plugin package,upload online plugin package archive file ok", log.JsonObj("fileName", fileName))
 
 	}
 	// 清理
 	os.Remove(archiveFilePath)
-	log.Logger.Debug("pull plugin package,clean up plugin package tmp file", log.JsonObj("fileName", fileName), log.JsonObj("archiveFilePath", archiveFilePath))
+	log.Debug(nil, log.LOGGER_APP, "pull plugin package,clean up plugin package tmp file", log.JsonObj("fileName", fileName), log.JsonObj("archiveFilePath", archiveFilePath))
 }
 
 func doUploadPackage(c context.Context, archiveFilePath, operator string) (pluginPkgId string, err error) {
@@ -335,10 +336,10 @@ func doUploadPackage(c context.Context, archiveFilePath, operator string) (plugi
 		return
 	}
 	// 上传包
-	log.Logger.Debug("tmpFile", log.String("tmpFileDir", tmpFileDir))
+	log.Debug(nil, log.LOGGER_APP, "tmpFile", zap.String("tmpFileDir", tmpFileDir))
 	defer func() {
 		if removeTmpDirErr := os.RemoveAll(tmpFileDir); removeTmpDirErr != nil {
-			log.Logger.Error("Try to remove package upload tmp dir fail", log.String("tmpDir", tmpFileDir), log.Error(removeTmpDirErr))
+			log.Error(nil, log.LOGGER_APP, "Try to remove package upload tmp dir fail", zap.String("tmpDir", tmpFileDir), zap.Error(removeTmpDirErr))
 		}
 	}()
 	if _, err = bash.DecompressFile(archiveFilePath, tmpFileDir); err != nil {
@@ -539,14 +540,14 @@ func RegisterPackage(c *gin.Context) {
 			return
 		}
 		// 把s3上的ui.zip下下来放到本地
-		log.Logger.Debug("register plugin,start download ui.zip")
+		log.Debug(nil, log.LOGGER_APP, "register plugin,start download ui.zip")
 		var uiFileLocalPath, uiDir string
 		if uiFileLocalPath, err = bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/ui.zip", pluginPackageObj.Name, pluginPackageObj.Version)); err != nil {
 			middleware.ReturnError(c, err)
 			return
 		}
 		defer bash.RemoveTmpFile(uiFileLocalPath)
-		log.Logger.Debug("register plugin,start decompress ui.zip", log.String("uiFileLocalPath", uiFileLocalPath))
+		log.Debug(nil, log.LOGGER_APP, "register plugin,start decompress ui.zip", zap.String("uiFileLocalPath", uiFileLocalPath))
 		// 本地解压ui.zip
 		if uiDir, err = bash.DecompressFile(uiFileLocalPath, ""); err != nil {
 			middleware.ReturnError(c, err)
@@ -557,11 +558,11 @@ func RegisterPackage(c *gin.Context) {
 		for _, staticResourceObj := range models.Config.StaticResources {
 			targetPath := fmt.Sprintf("%s/%s/%s/ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
 			unzipCmd := fmt.Sprintf("cd %s/%s/%s && unzip -o ui.zip && rm -f ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
-			log.Logger.Debug("register plugin,start scp ui.zip to remote host", log.String("server", staticResourceObj.Server), log.String("targetPath", targetPath))
+			log.Debug(nil, log.LOGGER_APP, "register plugin,start scp ui.zip to remote host", zap.String("server", staticResourceObj.Server), zap.String("targetPath", targetPath))
 			if err = bash.RemoteSCP(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, uiFileLocalPath, targetPath); err != nil {
 				break
 			}
-			log.Logger.Debug("register plugin,start unzip ui.zip in remote host", log.String("server", staticResourceObj.Server), log.String("unzipCmd", unzipCmd))
+			log.Debug(nil, log.LOGGER_APP, "register plugin,start unzip ui.zip in remote host", zap.String("server", staticResourceObj.Server), zap.String("unzipCmd", unzipCmd))
 			if err = bash.RemoteSSHCommand(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, unzipCmd); err != nil {
 				break
 			}
@@ -581,7 +582,7 @@ func RegisterPackage(c *gin.Context) {
 			middleware.ReturnError(c, fmt.Errorf("can not find index.html in ui package"))
 			return
 		}
-		log.Logger.Debug("match index path", log.String("indexPath", indexPath))
+		log.Debug(nil, log.LOGGER_APP, "match index path", zap.String("indexPath", indexPath))
 		indexPath = strings.TrimSuffix(indexPath, "/")
 		dirPrefix := uiDir
 		if indexPath != "" {
@@ -606,7 +607,7 @@ func RegisterPackage(c *gin.Context) {
 			resourceFileList = append(resourceFileList, &tmpResourceObj)
 		}
 		if len(resourceFileList) > 0 {
-			log.Logger.Debug("register plugin,start update plugin static resource file data", log.JsonObj("resourceFileList", resourceFileList))
+			log.Debug(nil, log.LOGGER_APP, "register plugin,start update plugin static resource file data", log.JsonObj("resourceFileList", resourceFileList))
 			if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, pluginPackageObj.Name, resourceFileList, middleware.GetRequestUser(c)); err != nil {
 				middleware.ReturnError(c, err)
 				return
@@ -648,7 +649,7 @@ func LaunchPlugin(c *gin.Context) {
 		return
 	}
 	if running, err := database.CheckServerPortRunning(c, hostIp, port); err != nil {
-		log.Logger.Error("check server port running fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "check server port running fail", zap.Error(err))
 		middleware.ReturnError(c, err)
 		return
 	} else {
@@ -668,7 +669,7 @@ func LaunchPlugin(c *gin.Context) {
 func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator string, port int) (err error) {
 	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
 	if err = database.GetSimplePluginPackage(ctx, &pluginPackageObj, true); err != nil {
-		log.Logger.Error("GetSimplePluginPackage fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "GetSimplePluginPackage fail", zap.Error(err))
 		return
 	}
 	existPluginInstance, getExistErr := database.GetPluginInstance("", pluginPackageObj.Name, hostIp, "", false)
@@ -680,10 +681,10 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 		err = fmt.Errorf("Host:%s already running plugin:%s ", hostIp, pluginPackageObj.Name)
 		return
 	}
-	log.Logger.Debug("pluginPackage", log.JsonObj("data", pluginPackageObj))
+	log.Debug(nil, log.LOGGER_APP, "pluginPackage", log.JsonObj("data", pluginPackageObj))
 	resources, getResourceErr := database.GetPluginRuntimeResources(ctx, pluginPackageId)
 	if getResourceErr != nil {
-		log.Logger.Error("GetPluginRuntimeResources fail", log.Error(getResourceErr))
+		log.Error(nil, log.LOGGER_APP, "GetPluginRuntimeResources fail", zap.Error(getResourceErr))
 		err = getResourceErr
 		return
 	}
@@ -716,7 +717,7 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 					}
 				}
 			} else {
-				log.Logger.Warn("Try to json unmarshal s3 resource addition fail", log.String("additionalProperties", s3Resource.AdditionalProperties), log.Error(tmpErr))
+				log.Warn(nil, log.LOGGER_APP, "Try to json unmarshal s3 resource addition fail", zap.String("additionalProperties", s3Resource.AdditionalProperties), zap.Error(tmpErr))
 			}
 			if err != nil {
 				return
@@ -781,7 +782,8 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 					return
 				}
 				if mysqlInstance == nil {
-					if dbPass, createDBErr := bash.CreatePluginDatabase(ctx, pluginPackageObj.Name, mysqlResource, mysqlServer); createDBErr != nil {
+					mysqlUsername := strings.ReplaceAll(pluginPackageObj.Name, "-", "_")
+					if dbPass, createDBErr := bash.CreatePluginDatabase(ctx, mysqlUsername, mysqlResource, mysqlServer); createDBErr != nil {
 						err = createDBErr
 						return
 					} else {
@@ -791,9 +793,9 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 							PluginPackageId: pluginPackageId,
 							ResourceItemId:  "rs_item_" + guid.CreateGuid(),
 							SchemaName:      mysqlResource.SchemaName,
-							Username:        pluginPackageObj.Name,
+							Username:        mysqlUsername,
 						}
-						log.Logger.Debug("database pwd", log.String("pass", dbPass))
+						log.Debug(nil, log.LOGGER_APP, "database pwd", zap.String("pass", dbPass))
 						if err = database.NewPluginMysqlInstance(ctx, mysqlServer, mysqlInstance, operator, true); err != nil {
 							return
 						}
@@ -816,7 +818,7 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 			if mysqlResource.UpgradeFileName != "" {
 				tmpFile, downloadErr := bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/%s", pluginPackageObj.Name, pluginPackageObj.Version, mysqlResource.UpgradeFileName))
 				if downloadErr != nil {
-					log.Logger.Warn("plugin have no upgrade sql", log.String("plugin", pluginPackageObj.Name), log.String("version", pluginPackageObj.Version))
+					log.Warn(nil, log.LOGGER_APP, "plugin have no upgrade sql", zap.String("plugin", pluginPackageObj.Name), zap.String("version", pluginPackageObj.Version))
 				} else {
 					defer bash.RemoveTmpFile(tmpFile)
 					upgradeSqlFile = tmpFile
@@ -859,7 +861,7 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 		envMap["DB_USER"] = mysqlInstance.Username
 		if models.Config.Plugin.PasswordPubKeyContent != "" {
 			if encryptDBPwd, enErr := cipher.EncryptRsa(mysqlInstance.Password, models.Config.Plugin.PasswordPubKeyContent); enErr != nil {
-				log.Logger.Error("Try to encrypt plugin password fail", log.Error(enErr))
+				log.Error(nil, log.LOGGER_APP, "Try to encrypt plugin password fail", zap.Error(enErr))
 				envMap["DB_PWD"] = mysqlInstance.Password
 			} else {
 				envMap["DB_PWD"] = encryptDBPwd
@@ -925,7 +927,7 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 	if err = bash.RemoteSCP(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, tmpImageFile, targetImagePath); err != nil {
 		return
 	}
-	log.Logger.Info("scp plugin image file", log.String("targetHost", dockerServer.Host), log.String("tmpFile", tmpImageFile), log.String("targetPath", targetImagePath))
+	log.Info(nil, log.LOGGER_APP, "scp plugin image file", zap.String("targetHost", dockerServer.Host), zap.String("tmpFile", tmpImageFile), zap.String("targetPath", targetImagePath))
 	if err = bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, fmt.Sprintf("docker load --input %s && rm -f %s", targetImagePath, targetImagePath)); err != nil {
 		return
 	}
@@ -952,7 +954,7 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 	if err = bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, dockerCmd); err != nil {
 		// 清理启动失败的docker
 		if rmDockerErr := bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, fmt.Sprintf("docker rm -f %s", dockerResource.ContainerName)); rmDockerErr != nil {
-			log.Logger.Error("Try to remove failed docker container", log.String("containerName", dockerResource.ContainerName), log.Error(rmDockerErr))
+			log.Error(nil, log.LOGGER_APP, "Try to remove failed docker container", zap.String("containerName", dockerResource.ContainerName), zap.Error(rmDockerErr))
 		}
 		return
 	}
@@ -1135,14 +1137,14 @@ func UIRegisterPackage(c *gin.Context) {
 		return
 	}
 	// 把s3上的ui.zip下下来放到本地
-	log.Logger.Debug("register plugin,start download ui.zip")
+	log.Debug(nil, log.LOGGER_APP, "register plugin,start download ui.zip")
 	var uiFileLocalPath, uiDir string
 	if uiFileLocalPath, err = bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/ui.zip", pluginPackageObj.Name, pluginPackageObj.Version)); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
 	defer bash.RemoveTmpFile(uiFileLocalPath)
-	log.Logger.Debug("register plugin,start decompress ui.zip", log.String("uiFileLocalPath", uiFileLocalPath))
+	log.Debug(nil, log.LOGGER_APP, "register plugin,start decompress ui.zip", zap.String("uiFileLocalPath", uiFileLocalPath))
 	// 本地解压ui.zip
 	if uiDir, err = bash.DecompressFile(uiFileLocalPath, ""); err != nil {
 		middleware.ReturnError(c, err)
@@ -1153,11 +1155,11 @@ func UIRegisterPackage(c *gin.Context) {
 	for _, staticResourceObj := range models.Config.StaticResources {
 		targetPath := fmt.Sprintf("%s/%s/%s/ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
 		unzipCmd := fmt.Sprintf("cd %s/%s/%s && unzip -o ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
-		log.Logger.Debug("register plugin,start scp ui.zip to remote host", log.String("server", staticResourceObj.Server), log.String("targetPath", targetPath))
+		log.Debug(nil, log.LOGGER_APP, "register plugin,start scp ui.zip to remote host", zap.String("server", staticResourceObj.Server), zap.String("targetPath", targetPath))
 		if err = bash.RemoteSCP(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, uiFileLocalPath, targetPath); err != nil {
 			break
 		}
-		log.Logger.Debug("register plugin,start unzip ui.zip in remote host", log.String("server", staticResourceObj.Server), log.String("unzipCmd", unzipCmd))
+		log.Debug(nil, log.LOGGER_APP, "register plugin,start unzip ui.zip in remote host", zap.String("server", staticResourceObj.Server), zap.String("unzipCmd", unzipCmd))
 		if err = bash.RemoteSSHCommand(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, unzipCmd); err != nil {
 			break
 		}
@@ -1177,7 +1179,7 @@ func UIRegisterPackage(c *gin.Context) {
 		middleware.ReturnError(c, fmt.Errorf("can not find index.html in ui package"))
 		return
 	}
-	log.Logger.Debug("match index path", log.String("indexPath", indexPath))
+	log.Debug(nil, log.LOGGER_APP, "match index path", zap.String("indexPath", indexPath))
 	indexPath = strings.TrimSuffix(indexPath, "/")
 	dirPrefix := uiDir
 	if indexPath != "" {
@@ -1202,7 +1204,7 @@ func UIRegisterPackage(c *gin.Context) {
 		resourceFileList = append(resourceFileList, &tmpResourceObj)
 	}
 	if len(resourceFileList) > 0 {
-		log.Logger.Debug("register plugin,start update plugin static resource file data", log.JsonObj("resourceFileList", resourceFileList))
+		log.Debug(nil, log.LOGGER_APP, "register plugin,start update plugin static resource file data", log.JsonObj("resourceFileList", resourceFileList))
 		if err = database.UpdatePluginStaticResourceFiles(c, pluginPackageId, pluginPackageObj.Name, resourceFileList, middleware.GetRequestUser(c)); err != nil {
 			middleware.ReturnError(c, err)
 			return
@@ -1234,10 +1236,10 @@ func RegisterPackageDone(c *gin.Context) {
 		if dynamicModel {
 			pluginModels, syncDynamicErr := remote.GetPluginDataModels(c, pluginPackageObj.Name, c.GetHeader(models.AuthorizationHeader))
 			if syncDynamicErr != nil {
-				log.Logger.Error("syncDynamic fail with get plugin data model", log.String("package", pluginPackageObj.Name), log.Error(syncDynamicErr))
+				log.Error(nil, log.LOGGER_APP, "syncDynamic fail with get plugin data model", zap.String("package", pluginPackageObj.Name), zap.Error(syncDynamicErr))
 			} else {
 				if syncDynamicErr = database.SyncPluginDataModels(c, pluginPackageObj.Name, pluginModels); syncDynamicErr != nil {
-					log.Logger.Error("syncDynamic fail with update plugin data model", log.String("package", pluginPackageObj.Name), log.Error(syncDynamicErr))
+					log.Error(nil, log.LOGGER_APP, "syncDynamic fail with update plugin data model", zap.String("package", pluginPackageObj.Name), zap.Error(syncDynamicErr))
 				}
 			}
 		}
