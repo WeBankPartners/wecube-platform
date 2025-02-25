@@ -331,14 +331,14 @@ func httpLogHandle() gin.HandlerFunc {
 		apiCode := apiCodeMap[c.Request.Method+"_"+c.FullPath()]
 		c.Writer.Header().Add("Api-Code", apiCode)
 		c.Set(models.ContextApiCode, apiCode)
-		log.Infof(nil, log.LOGGER_ACCESS, fmt.Sprintf("[%s] [%s] ->", requestId, transactionId), zap.String("uri", c.Request.RequestURI), zap.String("serviceCode", apiCode), zap.String("method", c.Request.Method), zap.String("sourceIp", getRemoteIp(c)), zap.String(models.ContextOperator, c.GetString(models.ContextOperator)), zap.String(models.ContextRequestBody, c.GetString(models.ContextRequestBody)))
+		log.Info(nil, log.LOGGER_ACCESS, zap.String("uri", c.Request.RequestURI), zap.String("serviceCode", apiCode), zap.String("method", c.Request.Method), zap.String("sourceIp", getRemoteIp(c)), zap.String(models.ContextOperator, c.GetString(models.ContextOperator)), zap.String(models.ContextRequestBody, c.GetString(models.ContextRequestBody)))
 		c.Next()
 		costTime := time.Since(start).Seconds() * 1000
 		userId := c.GetString(models.ContextUserId)
 		if log.DebugEnable {
-			log.Infof(nil, log.LOGGER_ACCESS, fmt.Sprintf("[%s] [%s] [%s] <-", requestId, transactionId, userId), zap.String("uri", c.Request.RequestURI), zap.String("serviceCode", apiCode), zap.String("method", c.Request.Method), zap.Int("httpCode", c.Writer.Status()), zap.Int(models.ContextErrorCode, c.GetInt(models.ContextErrorCode)), zap.String(models.ContextErrorMessage, c.GetString(models.ContextErrorMessage)), zap.Float64("costTime", costTime), zap.String(models.ContextResponseBody, c.GetString(models.ContextResponseBody)))
+			log.Info(nil, log.LOGGER_ACCESS, zap.String("userId", userId), zap.String("uri", c.Request.RequestURI), zap.String("serviceCode", apiCode), zap.String("method", c.Request.Method), zap.Int("httpCode", c.Writer.Status()), zap.Int(models.ContextErrorCode, c.GetInt(models.ContextErrorCode)), zap.String(models.ContextErrorMessage, c.GetString(models.ContextErrorMessage)), zap.Float64("costTime", costTime), zap.String(models.ContextResponseBody, c.GetString(models.ContextResponseBody)))
 		} else {
-			log.Infof(nil, log.LOGGER_ACCESS, fmt.Sprintf("[%s] [%s] [%s] <-", requestId, transactionId, userId), zap.String("uri", c.Request.RequestURI), zap.String("serviceCode", apiCode), zap.String("method", c.Request.Method), zap.Int("httpCode", c.Writer.Status()), zap.Int(models.ContextErrorCode, c.GetInt(models.ContextErrorCode)), zap.String(models.ContextErrorMessage, c.GetString(models.ContextErrorMessage)), zap.Float64("costTime", costTime))
+			log.Info(nil, log.LOGGER_ACCESS, zap.String("userId", userId), zap.String("uri", c.Request.RequestURI), zap.String("serviceCode", apiCode), zap.String("method", c.Request.Method), zap.Int("httpCode", c.Writer.Status()), zap.Int(models.ContextErrorCode, c.GetInt(models.ContextErrorCode)), zap.String(models.ContextErrorMessage, c.GetString(models.ContextErrorMessage)), zap.Float64("costTime", costTime))
 		}
 	}
 }
