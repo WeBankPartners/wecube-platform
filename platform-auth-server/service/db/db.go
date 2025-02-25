@@ -29,7 +29,7 @@ func InitDatabase() error {
 		model.Config.Database.User, model.Config.Database.Password, "tcp", fmt.Sprintf("%s:%s", model.Config.Database.Server, model.Config.Database.Port), model.Config.Database.DataBase)
 	engine, err := xorm.NewEngine("mysql", connStr)
 	if err != nil {
-		log.Logger.Error("Init database connect fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Init database connect fail", zap.Error(err))
 		return err
 	}
 	engine.SetMaxIdleConns(model.Config.Database.MaxIdle)
@@ -41,7 +41,7 @@ func InitDatabase() error {
 	// 使用驼峰式映射
 	engine.SetMapper(core.SnakeMapper{})
 	Engine = engine
-	log.Logger.Info("Success init database connect !!")
+	log.Info(nil, log.LOGGER_APP, "Success init database connect !!")
 	return nil
 }
 
@@ -93,7 +93,7 @@ func (d *dbLogger) Infof(format string, v ...interface{}) {
 		secTime, _ := strconv.ParseFloat(costTime[mIndex+1:], 64)
 		costMs = (minTime*60 + secTime) * 1000
 	}
-	d.Logger.Info("db_log", log.String("sql", fmt.Sprintf("%s", v[1])), log.String("param", fmt.Sprintf("%v", v[2])), log.Float64("cost_ms", costMs))
+	d.Logger.Info("db_log", zap.String("sql", fmt.Sprintf("%s", v[1])), zap.String("param", fmt.Sprintf("%v", v[2])), log.Float64("cost_ms", costMs))
 }
 
 func (d *dbLogger) Warn(v ...interface{}) {
@@ -123,7 +123,7 @@ func (d *dbLogger) IsShowSQL() bool {
 type dbContextLogger struct {
 	LogLevel xorm_log.LogLevel
 	ShowSql  bool
-	Logger   *zap.Logger
+	Logger   *zap.SugaredLogger
 }
 
 func (d *dbContextLogger) BeforeSQL(ctx xorm_log.LogContext) {
@@ -152,7 +152,7 @@ func (d *dbContextLogger) AfterSQL(ctx xorm_log.LogContext) {
 		secTime, _ := strconv.ParseFloat(costTime[mIndex+1:], 64)
 		costMs = (minTime*60 + secTime) * 1000
 	}
-	d.Logger.Info("sql:"+ctx.SQL, log.String("param", fmt.Sprintf("%v", ctx.Args)), log.Float64("cost_ms", costMs))
+	d.Logger.Info("sql:"+ctx.SQL, zap.String("param", fmt.Sprintf("%v", ctx.Args)), zap.Float64("cost_ms", costMs))
 }
 
 func (d *dbContextLogger) Debugf(format string, v ...interface{}) {
@@ -332,7 +332,7 @@ func queryCount(ctx context.Context, sql string, params ...interface{}) int {
 	resultMap := make(map[string]interface{})
 	_, err := Engine.Context(ctx).SQL(combineDBSql("SELECT COUNT(1) FROM ( ", sql, " ) sub_query"), params...).Get(&resultMap)
 	if err != nil {
-		log.Logger.Error("Query sql count message fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query sql count message fail", zap.Error(err))
 		return 0
 	}
 	if countV, b := resultMap["COUNT(1)"]; b {

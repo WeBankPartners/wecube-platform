@@ -3,7 +3,7 @@ module github.com/WeBankPartners/wecube-platform/platform-core
 go 1.19
 
 require (
-	github.com/WeBankPartners/go-common-lib v1.1.5
+	github.com/WeBankPartners/go-common-lib v1.1.8
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
@@ -36,7 +36,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
-	github.com/petermattis/goid v0.0.0-20231126143041-f558c26febf5 // indirect
+	github.com/petermattis/goid v0.0.0-20250121172306-05bcfb9a85dc // indirect
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/syndtr/goleveldb v1.0.0 // indirect
