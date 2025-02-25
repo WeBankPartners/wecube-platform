@@ -84,6 +84,9 @@ func HttpLogHandle() gin.HandlerFunc {
 		log.Info(nil, log.LOGGER_ACCESS, "Got request -", zap.String("url", c.Request.RequestURI), zap.String("txnCode", apiCode), zap.String("method", c.Request.Method),
 			zap.Int("code", c.Writer.Status()), zap.String("errCode", errCode), zap.String("operator", c.GetString("user")), zap.String("ip", getRemoteIp(c)), zap.Int64("txnCost", costTime),
 			zap.String("body", c.GetString("responseBody")))
+		log.Info(nil, log.LOGGER_TXN, "Got request -", zap.String("url", c.Request.RequestURI), zap.String("txnCode", apiCode), zap.String("method", c.Request.Method),
+			zap.Int("code", c.Writer.Status()), zap.String("errCode", errCode), zap.String("operator", c.GetString("user")), zap.String("ip", getRemoteIp(c)), zap.Int64("txnCost", costTime),
+			zap.String("body", c.GetString("responseBody")))
 	}
 }
 
