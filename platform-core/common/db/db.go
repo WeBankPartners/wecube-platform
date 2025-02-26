@@ -132,7 +132,7 @@ func (d *dbContextLogger) AfterSQL(ctx xorm_log.LogContext) {
 		secTime, _ := strconv.ParseFloat(costTime[mIndex+1:], 64)
 		costMs = (minTime*60 + secTime) * 1000
 	}
-	d.Logger.Info("["+transactionId+"]", zap.String("sql", ctx.SQL), zap.String("param", fmt.Sprintf("%v", ctx.Args)), zap.Float64("cost_ms", costMs))
+	d.Logger.Info(zap.String("transactionId", transactionId), zap.String("sql", ctx.SQL), zap.String("param", fmt.Sprintf("%v", ctx.Args)), zap.Float64("cost_ms", costMs))
 }
 
 func (d *dbContextLogger) Debugf(format string, v ...interface{}) {
