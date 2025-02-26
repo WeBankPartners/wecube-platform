@@ -132,23 +132,23 @@ func (d *dbContextLogger) AfterSQL(ctx xorm_log.LogContext) {
 		secTime, _ := strconv.ParseFloat(costTime[mIndex+1:], 64)
 		costMs = (minTime*60 + secTime) * 1000
 	}
-	d.Logger.Info(zap.String("transactionId", transactionId), zap.String("sql", ctx.SQL), zap.String("param", fmt.Sprintf("%v", ctx.Args)), zap.Float64("cost_ms", costMs))
+	d.Logger.Infow(fmt.Sprintf("[%s]", transactionId), zap.String("sql", ctx.SQL), zap.String("param", fmt.Sprintf("%v", ctx.Args)), zap.Float64("cost_ms", costMs))
 }
 
 func (d *dbContextLogger) Debugf(format string, v ...interface{}) {
-	d.Logger.Debug(fmt.Sprintf(format, v...))
+	d.Logger.Debugw(fmt.Sprintf(format, v...))
 }
 
 func (d *dbContextLogger) Errorf(format string, v ...interface{}) {
-	d.Logger.Debug(fmt.Sprintf(format, v...))
+	d.Logger.Errorw(fmt.Sprintf(format, v...))
 }
 
 func (d *dbContextLogger) Infof(format string, v ...interface{}) {
-	d.Logger.Debug(fmt.Sprintf(format, v...))
+	d.Logger.Infow(fmt.Sprintf(format, v...))
 }
 
 func (d *dbContextLogger) Warnf(format string, v ...interface{}) {
-	d.Logger.Debug(fmt.Sprintf(format, v...))
+	d.Logger.Warnw(fmt.Sprintf(format, v...))
 }
 
 func (d *dbContextLogger) Level() xorm_log.LogLevel {
