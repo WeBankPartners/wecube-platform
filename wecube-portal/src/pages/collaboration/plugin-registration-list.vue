@@ -310,7 +310,7 @@ import find from 'lodash/find'
 import cloneDeep from 'lodash/cloneDeep'
 import isEmpty from 'lodash/isEmpty'
 import { getCookie } from '@/pages/util/cookie'
-import req from '@/api/base'
+import { getPluginPackage, pluginsRegister } from '@/api/server.js'
 import {
   getAvailableContainerHosts,
   getAvailablePortByHostIp,
@@ -320,7 +320,8 @@ import {
   pullPluginArtifact,
   getPluginArtifactStatus,
   deletePluginPkg,
-  getAvailableInstancesByPackageId
+  getAvailableInstancesByPackageId,
+  getUserList
 } from '@/api/server.js'
 import BatchRegistModal from './components/batch-register-modal.vue'
 
@@ -439,12 +440,11 @@ export default {
     }, 300),
     async getViewList() {
       return new Promise(resolve => {
-        const api = '/platform/v1/packages'
         let params = cloneDeep(this.searchForm)
         if (this.pluginListType === 'isDeleted') {
           params = cloneDeep(this.deletedSearchForm)
         }
-        req.get(api, { params }).then(res => {
+        getPluginPackage({ params }).then(res => {
           this.searchNameOptionList = []
           this.processOptionList(res.data, this.searchNameOptionList, 'name')
           if (this.pluginListType === 'isDeleted') {
@@ -457,8 +457,7 @@ export default {
       })
     },
     async getUpdatedByOptionList() {
-      const api = '/platform/v1/users/retrieve'
-      const { data } = await req.get(api)
+      const { data } = await getUserList()
       this.processOptionList(data, this.updatedByOptionList, 'username')
     },
     processOptionList(data = [], needFillArray = [], key = 'name') {
@@ -618,8 +617,7 @@ export default {
     async registPlugin(pluginId) {
       this.isSpinShow = true
       this.spinContent = this.$t('plugin_registing')
-      const api = '/platform/v1/packages/ui/register'
-      const { status } = await req.post(api, {
+      const { status } = await pluginsRegister({
         id: pluginId
       })
       this.isSpinShow = false

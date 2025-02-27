@@ -267,7 +267,7 @@ import AuthSettings from './components/auth-setting.vue'
 import RuntimesResources from './components/runtime-resource.vue'
 import PluginRegister from './components/plugin-register.vue'
 import { getCookie } from '@/pages/util/cookie'
-import req from '@/api/base'
+import { getPluginPackage, getPluginVersionInherit, getPluginVersion, pluginsRegister, pluginsRegisterDone } from '@/api/server.js'
 import {
   getAvailableContainerHosts,
   getAvailablePortByHostIp,
@@ -434,11 +434,10 @@ export default {
       if (!this.pluginId) {
         this.$router.push({ path: '/collaboration/plugin-management' })
       }
-      const api = '/platform/v1/packages'
       const params = {
         id: this.pluginId
       }
-      const { data, status } = await req.get(api, { params })
+      const { data, status } = await getPluginPackage({params})
       if (status === 'OK') {
         this.pluginItemDetail = data[0]
       } else {
@@ -447,11 +446,10 @@ export default {
       this.stepContent[0].title += this.pluginItemDetail.name + '_' + this.pluginItemDetail.version
     },
     async getOptionList() {
-      const api = '/platform/v1/plugins/packages/version/get'
       const params = {
         id: this.pluginId
       }
-      const res = await req.get(api, { params })
+      const res = await getPluginVersion({ params })
       if (res.status === 'OK') {
         this.inheritedVersionOptionList = res.data || []
       } else {
@@ -517,8 +515,7 @@ export default {
     async onInheritedVersionSelected(item) {
       if (item) {
         const versionObj = JSON.parse(item)
-        const api = '/platform/v1/plugins/packages/version/inherit'
-        const { status } = await req.post(api, {
+        const { status } = await getPluginVersionInherit({
           pluginPackageId: this.pluginId,
           inheritPackageId: versionObj.pluginPackageId
         })
@@ -565,8 +562,7 @@ export default {
       }
     },
     async registItem() {
-      const api = '/platform/v1/packages/ui/register'
-      const { status } = await req.post(api, {
+      const { status } = await pluginsRegister({
         id: this.pluginId
       })
       if (status === 'OK') {
@@ -699,8 +695,7 @@ export default {
       this.getDBTableData()
     },
     async installFinish() {
-      const api = '/platform/v1/packages/register-done'
-      const { status } = await req.post(api, {
+      const { status } = await pluginsRegisterDone({
         id: this.pluginId
       })
       if (status === 'OK') {
