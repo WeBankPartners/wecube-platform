@@ -405,3 +405,14 @@ export const addResourceInstance = data => req.post('/platform/resource/items/cr
 export const deleteResourceInstance = data => req.post('/platform/resource/items/delete', data)
 // 更新资源实例
 export const updateResourceInstance = data => req.post('/platform/resource/items/update', data)
+
+export const getPluginPackage = params => req.get('/platform/v1/packages', params)
+
+export const getPluginVersionInherit = data => req.post('/platform/v1/plugins/packages/version/inherit', data)
+
+export const getPluginVersion = params => req.get('/platform/v1/plugins/packages/version/get', params)
+
+export const pluginsRegister = data => req.post('/platform/v1/packages/ui/register', data)
+
+export const pluginsRegisterDone = data => req.post('/platform/v1/packages/register-done', data)
+
