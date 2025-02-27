@@ -145,49 +145,29 @@
     "menu": "COLLABORATION_PLUGIN_MANAGEMENT",
     "urls": [
       {
-        "key": "getAvailableContainerHosts",
-        "url": "/platform/v1/available-container-hosts",
+        "key": "getPluginPackage",
+        "url": "/platform/v1/packages",
         "method": "get"
       },
       {
-        "key": "getAvailablePortByHostIp",
-        "url": "/platform/v1/hosts/${ip}/next-available-port",
-        "method": "get"
-      },
-      {
-        "key": "createPluginInstanceByPackageIdAndHostIp",
-        "url": "/platform/v1/packages/${packageId}/hosts/${ip}/ports/${port}/instance/launch",
+        "key": "getPluginVersionInherit",
+        "url": "/platform/v1/plugins/packages/version/inherit",
         "method": "post"
       },
       {
-        "key": "removePluginInstance",
-        "url": "/platform/v1/packages/instances/${instanceId}/remove",
-        "method": "delete"
+        "key": "getPluginVersion",
+        "url": "/platform/v1/plugins/packages/version/get",
+        "method": "get"
       },
       {
-        "key": "queryDataBaseByPackageId",
-        "url": "/platform/v1/packages/${id}/resources/mysql/query",
+        "key": "pluginsRegister",
+        "url": "/platform/v1/packages/ui/register",
         "method": "post"
       },
       {
-        "key": "queryStorageFilesByPackageId",
-        "url": "/platform/v1/packages/${id}/resources/s3/files",
-        "method": "get"
-      },
-      {
-        "key": "registPluginPackage",
-        "url": "/platform/v1/packages/register/${id}",
+        "key": "pluginsRegisterDone",
+        "url": "/platform/v1/packages/register-done",
         "method": "post"
-      },
-      {
-        "key": "getAvailableInstancesByPackageId",
-        "url": "/platform/v1/packages/${packageId}/instances",
-        "method": "get"
-      },
-      {
-        "key": "getPluginConfigsByPackageId",
-        "url": "/platform/v1/packages/${packageId}/plugin-configs",
-        "method": "get"
       },
       {
         "key": "getPluginPkgDependcy",
@@ -260,6 +240,11 @@
         "method": "post"
       },
       {
+        "key": "getPluginConfigsByPackageId",
+        "url": "/platform/v1/packages/${packageId}/plugin-configs",
+        "method": "get"
+      },
+      {
         "key": "getInterfacesByPluginConfigId",
         "url": "/platform/v1/plugins/interfaces/${configId}",
         "method": "get"
@@ -308,26 +293,6 @@
         "key": "getEntityRefsByPkgNameAndEntityName",
         "url": "/platform/v1/models/package/${pkgName}/entity/${entityName}",
         "method": "get"
-      },
-      {
-        "key": "getPluginArtifacts",
-        "url": "/platform/v1/plugin-artifacts",
-        "method": "get"
-      },
-      {
-        "key": "pullPluginArtifact",
-        "url": "/platform/v1/plugin-artifacts/pull-requests",
-        "method": "post"
-      },
-      {
-        "key": "getPluginArtifactStatus",
-        "url": "/platform/v1/plugin-artifacts/pull-requests/${id}",
-        "method": "get"
-      },
-      {
-        "key": "deletePluginPkg",
-        "url": "/platform/v1/packages/decommission/${id}",
-        "method": "post"
       },
       {
         "key": "batchExportConfig",
