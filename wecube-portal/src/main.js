@@ -196,6 +196,9 @@ router.beforeEach(async (to, from, next) => {
         next('/404')
       }
     } else {
+      if (!['/404', '/login', '/homepage'].includes(to.path)) {
+        window.sessionStorage.setItem('currentPath', to.fullPath)
+      }
       next('/login')
     }
   }
