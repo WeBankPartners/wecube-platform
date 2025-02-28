@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2025-02-21 11:05:22
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-02-27 16:30:00
+ * @LastEditTime: 2025-02-27 16:34:49
  * 
  * 备注：采用该脚本生成API权限JSON，需注意以下几点：
  * 1. 页面中用到的API必须在server.js中定义
@@ -19,8 +19,8 @@ const path = require('path');
 const compiler = require('vue-template-compiler');
 const glob = require('glob');
 
-const API_SERVER_PATH = 'src/api/server.js' // api入口文件
-const GLOBAL_COMPONENT_PATH = 'src/main.js' // 全局组件入口文件
+const API_SERVER_PATH = 'src/api/server.js' // 全局api文件入口
+const GLOBAL_COMPONENT_PATH = 'src/main.js' // 定义了Vue.component全局组件方法的入口
 const WRITE_API_PATH = path.resolve(path.resolve('..'), 'platform-core/config') // api-menu-config.json文件写入的路径
 
 // -------------------------------------------------生成组件对应api的引用关系--------------------------------------------------------------
