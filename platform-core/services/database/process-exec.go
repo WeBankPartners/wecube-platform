@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
@@ -11,8 +14,6 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"go.uber.org/zap"
-	"strings"
-	"time"
 )
 
 // ProcDefList
@@ -328,6 +329,17 @@ func ProcInsTaskNodeBindings(ctx context.Context, sessionId, taskNodeId string) 
 		}
 		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_preview where proc_session_id=?", sessionId).Find(&previewRows)
 	} else {
+		if strings.HasPrefix(taskNodeId, "pdef_node") {
+			queryRows, queryErr := db.MysqlEngine.Context(ctx).QueryString("select id from proc_def_node where node_id=? and proc_def_id in (select proc_def_id from proc_data_preview where proc_session_id=?)", taskNodeId, sessionId)
+			if queryErr != nil {
+				err = queryErr
+				err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+				return
+			}
+			if len(queryRows) > 0 {
+				taskNodeId = queryRows[0]["id"]
+			}
+		}
 		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_preview where proc_session_id=? and proc_def_node_id=?", sessionId, taskNodeId).Find(&previewRows)
 	}
 	if err != nil {
@@ -478,6 +490,17 @@ func GetInstanceTaskNodeBindings(ctx context.Context, procInsId, procInsNodeId s
 
 func UpdateProcNodeBindingData(ctx context.Context, param []*models.TaskNodeBindingObj, sessionId, taskNodeId, operator string) (err error) {
 	var previewRows []*models.ProcDataPreview
+	if strings.HasPrefix(taskNodeId, "pdef_node") {
+		queryRows, queryErr := db.MysqlEngine.Context(ctx).QueryString("select id from proc_def_node where node_id=? and proc_def_id in (select proc_def_id from proc_data_preview where proc_session_id=?)", taskNodeId, sessionId)
+		if queryErr != nil {
+			err = queryErr
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		if len(queryRows) > 0 {
+			taskNodeId = queryRows[0]["id"]
+		}
+	}
 	err = db.MysqlEngine.Context(ctx).SQL("select id,proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,ordered_no,bind_type,is_bound from proc_data_preview where proc_session_id=? and proc_def_node_id=?", sessionId, taskNodeId).Find(&previewRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
