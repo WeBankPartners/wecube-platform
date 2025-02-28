@@ -39,6 +39,9 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 
 	client := &http.Client{
 		Timeout: 30 * time.Minute,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse // 阻止重定向
+		},
 	}
 
 	if model.Config.ProxyConfig.Timeout > 0 {
