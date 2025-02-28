@@ -2182,7 +2182,9 @@ export default {
           //  this.bindFlowEvent()
         })
       // 新建执行-节点绑定事件
-      this.bindFlowEvent()
+      setTimeout(() => {
+        this.bindFlowEvent()
+      }, 1000)
     },
     async excutionFlow() {
       // 区分已存在的flowInstance执行 和 新建的执行
