@@ -310,6 +310,23 @@ export default {
               </Poptip>
             )
           }
+          if (_.actionType === 'export') {
+            delete _.props.icon
+            delete _.props.type
+            return (
+              <Button
+                class="btn-upload"
+                style="margin-right: 10px"
+                {..._}
+                onClick={() => {
+                  this.$emit('actionFun', _.actionType, this.selectedRows)
+                }}
+              >
+                <img src={require('@/assets/icon/DownloadOutlined.svg')} class="upload-icon" />
+                <span style="margin-left: 5px">{_.label}</span>
+              </Button>
+            )
+          }
           return (
             <Button
               style="margin-right: 10px"

@@ -6,6 +6,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"math/rand"
 	"strings"
 	"sync"
@@ -72,7 +73,7 @@ func Redirect() gin.HandlerFunc {
 					}
 					err := invoke.Do(c)
 					if err != nil {
-						log.Logger.Warn("failed to request", log.String("targetUrl", targetUrl), log.Error(err))
+						log.Warn(nil, log.LOGGER_APP, "failed to request", zap.String("targetUrl", targetUrl), zap.Error(err))
 					} else {
 						break
 					}
@@ -80,7 +81,7 @@ func Redirect() gin.HandlerFunc {
 
 				if len(rules) > 0 {
 				} else {
-					log.Logger.Warn("can not find redirect rule for context:" + context)
+					log.Warn(nil, log.LOGGER_APP, "can not find redirect rule for context:"+context)
 				}
 			}
 		}
@@ -90,7 +91,7 @@ func Redirect() gin.HandlerFunc {
 }
 
 func AddRedirectRule(context string, rules []RedirectRule) {
-	log.Logger.Info("add redirect route context: " + context)
+	log.Info(nil, log.LOGGER_APP, "add redirect route context: "+context)
 
 	key := BuildRequestKey(context)
 
@@ -101,7 +102,7 @@ func RemoveRule(context string) {
 	lock.Lock()
 	defer lock.Unlock()
 
-	log.Logger.Info("remove redirect route context: " + context)
+	log.Info(nil, log.LOGGER_APP, "remove redirect route context: "+context)
 
 	redirectRuleMap.Range(func(key, value interface{}) bool {
 		rules := value.([]RedirectRule)
