@@ -132,17 +132,17 @@ export default {
             {
               label: this.$t('fe_stop'),
               value: 'Stop',
-              color: '#ed4014'
+              color: '#ff4d4f'
             },
             {
               label: this.$t('fe_inProgressFaulted'),
               value: 'InProgress(Faulted)',
-              color: '#ed4014'
+              color: '#ff4d4f'
             },
             {
               label: this.$t('fe_inProgressTimeouted'),
               value: 'InProgress(Timeouted)',
-              color: '#ed4014'
+              color: '#ff4d4f'
             },
             {
               label: this.$t('fe_inProgress'),
@@ -250,17 +250,17 @@ export default {
               {
                 label: this.$t('fe_inProgressFaulted'),
                 value: 'InProgress(Faulted)',
-                color: '#ed4014'
+                color: '#ff4d4f'
               },
               {
                 label: this.$t('fe_inProgressTimeouted'),
                 value: 'InProgress(Timeouted)',
-                color: '#ed4014'
+                color: '#ff4d4f'
               },
               {
                 label: this.$t('fe_stop'),
                 value: 'Stop',
-                color: '#ed4014'
+                color: '#ff4d4f'
               },
               {
                 label: this.$t('fe_inProgress'),
@@ -406,17 +406,17 @@ export default {
           {
             label: this.$t('fe_stop'),
             value: 'Stop',
-            color: '#ed4014'
+            color: '#ff4d4f'
           },
           {
             label: this.$t('fe_inProgressFaulted'),
             value: 'InProgress(Faulted)',
-            color: '#ed4014'
+            color: '#ff4d4f'
           },
           {
             label: this.$t('fe_inProgressTimeouted'),
             value: 'InProgress(Timeouted)',
-            color: '#ed4014'
+            color: '#ff4d4f'
           },
           {
             label: this.$t('fe_inProgress'),

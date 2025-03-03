@@ -1,4 +1,4 @@
-# github.com/WeBankPartners/go-common-lib v1.0.38
+# github.com/WeBankPartners/go-common-lib v1.1.8
 ## explicit; go 1.17
 github.com/WeBankPartners/go-common-lib/logger
 # github.com/bytedance/sonic v1.9.1
@@ -70,7 +70,7 @@ github.com/goccy/go-json/internal/runtime
 # github.com/json-iterator/go v1.1.12
 ## explicit; go 1.12
 github.com/json-iterator/go
-# github.com/klauspost/cpuid/v2 v2.2.4
+# github.com/klauspost/cpuid/v2 v2.2.6
 ## explicit; go 1.15
 github.com/klauspost/cpuid/v2
 # github.com/leodido/go-urn v1.2.4
@@ -95,6 +95,9 @@ github.com/pelletier/go-toml/v2/internal/characters
 github.com/pelletier/go-toml/v2/internal/danger
 github.com/pelletier/go-toml/v2/internal/tracker
 github.com/pelletier/go-toml/v2/unstable
+# github.com/petermattis/goid v0.0.0-20250121172306-05bcfb9a85dc
+## explicit; go 1.17
+github.com/petermattis/goid
 # github.com/twitchyliquid64/golang-asm v0.15.1
 ## explicit; go 1.13
 github.com/twitchyliquid64/golang-asm/asm/arch
@@ -117,29 +120,28 @@ github.com/twitchyliquid64/golang-asm/unsafeheader
 # github.com/ugorji/go/codec v1.2.11
 ## explicit; go 1.11
 github.com/ugorji/go/codec
-# go.uber.org/atomic v1.7.0
-## explicit; go 1.13
-go.uber.org/atomic
-# go.uber.org/multierr v1.6.0
-## explicit; go 1.12
+# go.uber.org/multierr v1.10.0
+## explicit; go 1.19
 go.uber.org/multierr
-# go.uber.org/zap v1.23.0
-## explicit; go 1.18
+# go.uber.org/zap v1.26.0
+## explicit; go 1.19
 go.uber.org/zap
 go.uber.org/zap/buffer
 go.uber.org/zap/internal
 go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
+go.uber.org/zap/internal/pool
+go.uber.org/zap/internal/stacktrace
 go.uber.org/zap/zapcore
 # golang.org/x/arch v0.3.0
 ## explicit; go 1.17
 golang.org/x/arch/x86/x86asm
-# golang.org/x/crypto v0.9.0
-## explicit; go 1.17
+# golang.org/x/crypto v0.16.0
+## explicit; go 1.18
 golang.org/x/crypto/sha3
-# golang.org/x/net v0.10.0
-## explicit; go 1.17
+# golang.org/x/net v0.19.0
+## explicit; go 1.18
 golang.org/x/net/html
 golang.org/x/net/html/atom
 golang.org/x/net/http/httpguts
@@ -148,14 +150,13 @@ golang.org/x/net/http2/h2c
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/publicsuffix
-# golang.org/x/sys v0.8.0
-## explicit; go 1.17
+# golang.org/x/sys v0.15.0
+## explicit; go 1.18
 golang.org/x/sys/cpu
-golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.9.0
-## explicit; go 1.17
+# golang.org/x/text v0.14.0
+## explicit; go 1.18
 golang.org/x/text/internal/language
 golang.org/x/text/internal/language/compact
 golang.org/x/text/internal/tag

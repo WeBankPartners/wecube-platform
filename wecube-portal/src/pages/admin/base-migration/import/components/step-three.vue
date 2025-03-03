@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2024-10-16 15:32:21
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2024-11-14 16:37:23
+ * @LastEditTime: 2025-02-08 17:29:38
 -->
 <template>
   <div class="base-migration-import-three">
@@ -45,7 +45,10 @@
           style="width: 500px"
         />
         <Upload v-if="idx === 0" action="#" :before-upload="uploadJsonFile" style="display: inline-block">
-          <Button type="primary" :disabled="getDisabled">{{ $t('pe_one_import') }}</Button>
+          <Button class="btn-upload" :disabled="getDisabled">
+            <img src="@/assets/icon/UploadOutlined.svg" class="upload-icon" />
+            {{ $t('pe_one_import') }}
+          </Button>
         </Upload>
       </FormItem>
     </Form>

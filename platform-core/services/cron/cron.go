@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/execution"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
+	"go.uber.org/zap"
 	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
@@ -28,13 +29,13 @@ func SetupCleanUpBatchExecTicker() {
 	go func() {
 		for t := range ticker.C {
 			startTime := time.Now()
-			log.Logger.Info("start clean up batch exec", log.String("ticker", fmt.Sprintf("%v", t)))
+			log.Info(nil, log.LOGGER_APP, "start clean up batch exec", zap.String("ticker", fmt.Sprintf("%v", t)))
 			CleanUpBatchExecRecord()
-			log.Logger.Info("finish clean up batch exec", log.String("ticker", fmt.Sprintf("%v", t)),
-				log.Int64("cost_ms", time.Since(startTime).Milliseconds()))
+			log.Info(nil, log.LOGGER_APP, "finish clean up batch exec", zap.String("ticker", fmt.Sprintf("%v", t)),
+				zap.Int64("cost_ms", time.Since(startTime).Milliseconds()))
 		}
 	}()
-	log.Logger.Info("setup clean up batch exec ticker")
+	log.Info(nil, log.LOGGER_APP, "setup clean up batch exec ticker")
 }
 
 func CleanUpBatchExecRecord() {
@@ -64,7 +65,7 @@ func CleanUpBatchExecRecord() {
 
 	err := db.Transaction(actions, db.DBCtx(transId))
 	if err != nil {
-		log.Logger.Error("clean up batch exec sql failed", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "clean up batch exec sql failed", zap.Error(err))
 	}
 }
 
@@ -77,22 +78,22 @@ func StartSendProcScheduleMail() {
 }
 
 func doSendProcScheduleMail() {
-	log.Logger.Info("start check proc schedule job mail")
+	log.Info(nil, log.LOGGER_APP, "start check proc schedule job mail")
 	// 更新 mail status是sending状态但更新时间小于当前1分钟的，可能是之前实例占用了但没发送成功
 	lastMinuteTime := time.Unix(time.Now().Unix()-60, 0)
 	if _, resetErr := db.MysqlEngine.Exec("update proc_schedule_job set mail_status='wait' where mail_status='sending' and updated_time<?", lastMinuteTime); resetErr != nil {
-		log.Logger.Error("sendProcScheduleMail try to reset sending status job fail", log.Error(resetErr))
+		log.Error(nil, log.LOGGER_APP, "sendProcScheduleMail try to reset sending status job fail", zap.Error(resetErr))
 	}
 	var jobList []*models.ScheduleJobMailQueryObj
 	err := db.MysqlEngine.SQL("select t1.id,t1.proc_ins_id,t1.schedule_config_id,t2.proc_def_name,t2.entity_data_name,t2.status,t2.created_time,t3.status as node_status,t4.name as node_name from proc_schedule_job t1 left join proc_ins t2 on t1.proc_ins_id=t2.id left join proc_ins_node t3 on t2.id=t3.proc_ins_id left join proc_def_node t4 on t3.proc_def_node_id=t4.id where t1.mail_status='wait' and (t2.status='" + models.JobStatusSuccess + "' or t3.status in ('" + models.JobStatusFail + "','" + models.JobStatusTimeout + "'))").Find(&jobList)
 	if err != nil {
-		log.Logger.Error("sendProcScheduleMail fail with query schedule job table", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "sendProcScheduleMail fail with query schedule job table", zap.Error(err))
 		return
 	}
 	var configList []*models.ProcScheduleConfig
 	err = db.MysqlEngine.SQL("select id,mail_mode,created_by,`role` from proc_schedule_config where mail_mode in ('user','role')").Find(&configList)
 	if err != nil {
-		log.Logger.Error("sendProcScheduleMail fail with query schedule config table", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "sendProcScheduleMail fail with query schedule config table", zap.Error(err))
 		return
 	}
 	configMap := make(map[string]*models.ProcScheduleConfig)
@@ -124,10 +125,10 @@ func doSendProcScheduleMail() {
 			if tryUpdateScheduleJobMail(v) {
 				tmpMail, tmpErr := buildScheduleJobMail(configObj.MailMode, configObj.CreatedBy, configObj.Role, v)
 				if tmpErr != nil {
-					log.Logger.Error("buildScheduleJobMail fail", log.String("jobId", v.Id), log.Error(tmpErr))
+					log.Error(nil, log.LOGGER_APP, "buildScheduleJobMail fail", zap.String("jobId", v.Id), zap.Error(tmpErr))
 				} else {
 					if tmpErr = remote.SendSmtpMail(tmpMail); tmpErr != nil {
-						log.Logger.Error("proc schedule job send smtp mail fail", log.String("jobId", v.Id), log.Error(tmpErr))
+						log.Error(nil, log.LOGGER_APP, "proc schedule job send smtp mail fail", zap.String("jobId", v.Id), zap.Error(tmpErr))
 					}
 				}
 				if tmpErr != nil {
@@ -139,14 +140,14 @@ func doSendProcScheduleMail() {
 			}
 		}
 	}
-	log.Logger.Info("done check proc schedule job mail")
+	log.Info(nil, log.LOGGER_APP, "done check proc schedule job mail")
 }
 
 func tryUpdateScheduleJobMail(input *models.ScheduleJobMailQueryObj) bool {
 	ok := false
 	execResult, err := db.MysqlEngine.Exec("update proc_schedule_job set mail_status='sending' where id=? and mail_status='wait'", input.Id)
 	if err != nil {
-		log.Logger.Error("tryUpdateScheduleJobMail fail with exec sql", log.String("jobId", input.Id), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "tryUpdateScheduleJobMail fail with exec sql", zap.String("jobId", input.Id), zap.Error(err))
 		return ok
 	}
 	if affectNum, _ := execResult.RowsAffected(); affectNum > 0 {
@@ -204,7 +205,7 @@ func buildScheduleJobMail(mailMode, user, role string, jobObj *models.ScheduleJo
 func updateProcScheduleJobMail(jobId, mailStatus, mailMessage string) {
 	_, err := db.MysqlEngine.Exec("update proc_schedule_job set mail_status=?,mail_msg=? where id=?", mailStatus, mailMessage, jobId)
 	if err != nil {
-		log.Logger.Error("updateProcScheduleJobMail fail", log.String("jobId", jobId), log.String("mailStatus", mailStatus), log.String("mailMsg", mailMessage), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "updateProcScheduleJobMail fail", zap.String("jobId", jobId), zap.String("mailStatus", mailStatus), zap.String("mailMsg", mailMessage), zap.Error(err))
 	}
 }
 
@@ -218,22 +219,22 @@ func StartHandleProcEvent() {
 
 // 扫事件表定时处理
 func doHandleProcEventJob() {
-	log.Logger.Debug("Start handle proc event job")
+	log.Debug(nil, log.LOGGER_APP, "Start handle proc event job")
 	var procEventRows []*models.ProcInsEvent
 	err := db.MysqlEngine.SQL("select * from proc_ins_event where status=?", models.ProcEventStatusCreated).Find(&procEventRows)
 	if err != nil {
-		log.Logger.Error("doHandleProcEventJob fail with query proc_ins_event table", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "doHandleProcEventJob fail with query proc_ins_event table", zap.Error(err))
 		return
 	}
 	if len(procEventRows) == 0 {
-		log.Logger.Debug("Done handle proc event job,match empty rows")
+		log.Debug(nil, log.LOGGER_APP, "Done handle proc event job,match empty rows")
 		return
 	}
 	for _, row := range procEventRows {
 		ctx := context.WithValue(context.Background(), models.TransactionIdHeader, fmt.Sprintf("proc_event_%d", row.Id))
 		takeoverFlag, procInsId, tmpErr := handleProcEvent(ctx, row)
 		if tmpErr != nil {
-			log.Logger.Error("handleProcEvent fail", log.Int("procInsEvent", row.Id), log.Error(tmpErr))
+			log.Error(nil, log.LOGGER_APP, "handleProcEvent fail", zap.Int("procInsEvent", row.Id), zap.Error(tmpErr))
 			db.MysqlEngine.Context(ctx).Exec("update proc_ins_event set status=?,error_message=? where id=?", models.ProcEventStatusFail, tmpErr.Error(), row.Id)
 		} else {
 			if !takeoverFlag {
@@ -242,7 +243,7 @@ func doHandleProcEventJob() {
 			db.MysqlEngine.Context(ctx).Exec("update proc_ins_event set status=?,proc_ins_id=? where id=?", models.ProcEventStatusDone, procInsId, row.Id)
 		}
 	}
-	log.Logger.Debug("Done handle proc event job")
+	log.Debug(nil, log.LOGGER_APP, "Done handle proc event job")
 }
 
 func handleProcEvent(ctx context.Context, procEvent *models.ProcInsEvent) (takeoverFlag bool, procInsId string, err error) {
@@ -278,7 +279,7 @@ func handleProcEvent(ctx context.Context, procEvent *models.ProcInsEvent) (takeo
 	newProcInsId, workflowRow, workNodes, workLinks, createInsErr := database.CreateProcInstance(ctx, &procStartParam, operator)
 	if createInsErr != nil {
 		err = createInsErr
-		log.Logger.Error("handleProcScheduleJob fail with create proc instance data", log.String("psConfigId", procEvent.ProcDefId), log.String("sessionId", previewData.ProcessSessionId), log.Error(createInsErr))
+		log.Error(nil, log.LOGGER_APP, "handleProcScheduleJob fail with create proc instance data", zap.String("psConfigId", procEvent.ProcDefId), zap.String("sessionId", previewData.ProcessSessionId), zap.Error(createInsErr))
 		return
 	}
 	procInsId = newProcInsId
@@ -300,16 +301,16 @@ func StartTransProcEvent() {
 
 // 把老event表数据转到新event表
 func doTransOldEventToNew() {
-	log.Logger.Debug("Start trans proc event job")
+	log.Debug(nil, log.LOGGER_APP, "Start trans proc event job")
 	ctx := context.WithValue(context.Background(), models.TransactionIdHeader, fmt.Sprintf("trans_event_%d", time.Now().Unix()))
 	var oldEventRows []*models.CoreOperationEvent
 	err := db.MysqlEngine.Context(ctx).SQL("select * from core_operation_event where oper_key like 'pdef_key_%'").Find(&oldEventRows)
 	if err != nil {
-		log.Logger.Info("doTransOldEventToNew fail with query core_operation_event table", log.Error(err))
+		log.Info(nil, log.LOGGER_APP, "doTransOldEventToNew fail with query core_operation_event table", zap.Error(err))
 		return
 	}
 	if len(oldEventRows) == 0 {
-		log.Logger.Debug("Done trans proc event job with empty rows")
+		log.Debug(nil, log.LOGGER_APP, "Done trans proc event job with empty rows")
 		return
 	}
 	var actions []*db.ExecAction
@@ -324,9 +325,9 @@ func doTransOldEventToNew() {
 	}
 	if len(actions) > 0 {
 		if err = db.Transaction(actions, ctx); err != nil {
-			log.Logger.Error("doTransOldEventToNew fail with do db transaction", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "doTransOldEventToNew fail with do db transaction", zap.Error(err))
 			return
 		}
 	}
-	log.Logger.Debug("Done trans proc event job")
+	log.Debug(nil, log.LOGGER_APP, "Done trans proc event job")
 }

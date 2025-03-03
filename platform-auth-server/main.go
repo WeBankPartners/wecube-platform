@@ -9,6 +9,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/db"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -19,19 +20,23 @@ func main() {
 		return
 	}
 
-	log.InitLogger()
-	err := exterror.InitErrorTemplateList(model.Config.ErrorTemplateDir, model.Config.ErrorDetailReturn)
-	if err != nil {
-		log.Logger.Error("Init error template list fail", log.Error(err))
+	if err := log.InitLogger(); err != nil {
+		fmt.Printf("Server  init loggers failed, err: %v\n", err)
 		return
 	}
-	log.Logger.Info("Server started")
+	defer log.SyncLoggers()
+	err := exterror.InitErrorTemplateList(model.Config.ErrorTemplateDir, model.Config.ErrorDetailReturn)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Init error template list fail", zap.Error(err))
+		return
+	}
+	log.Info(nil, log.LOGGER_APP, "Server started")
 	if err := service.AuthServiceInstance.InitKey(); err != nil {
 		fmt.Printf("failed to init auth service key")
 		return
 	}
 	if initDbError := db.InitDatabase(); initDbError != nil {
-		log.Logger.Error("Init db connection error", log.Error(initDbError))
+		log.Error(nil, log.LOGGER_APP, "Init db connection error", zap.Error(initDbError))
 		return
 	}
 	go service.StartCornJob()

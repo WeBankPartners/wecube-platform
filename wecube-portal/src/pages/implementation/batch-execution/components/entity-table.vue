@@ -180,8 +180,8 @@ export default {
     background: #fff;
   }
   .ivu-radio-wrapper-checked.ivu-radio-border {
-    border-color: #2d8cf0;
-    background: #2d8cf0;
+    border-color: #5384ff;
+    background: #5384ff;
     color: #fff;
   }
   .search {

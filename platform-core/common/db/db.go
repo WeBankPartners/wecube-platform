@@ -30,7 +30,7 @@ func InitDatabase() error {
 		models.Config.Database.User, models.Config.Database.Password, "tcp", fmt.Sprintf("%s:%s", models.Config.Database.Server, models.Config.Database.Port), models.Config.Database.DataBase)
 	engine, err := xorm.NewEngine("mysql", connStr)
 	if err != nil {
-		log.Logger.Error("Init database connect fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Init database connect fail", zap.Error(err))
 		return err
 	}
 	engine.SetMaxIdleConns(models.Config.Database.MaxIdle)
@@ -43,13 +43,13 @@ func InitDatabase() error {
 	engine.SetMapper(core.SnakeMapper{})
 	MysqlEngine = engine
 	if err = CheckDbConnection(); err == nil {
-		log.Logger.Info("Success init database connect !!")
+		log.Info(nil, log.LOGGER_APP, "Success init database connect !!")
 	} else {
-		log.Logger.Error("Init database fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Init database fail", zap.Error(err))
 	}
 	if err == nil {
 		if initWorkflowDbErr := InitWorkflowDatabase(); initWorkflowDbErr != nil {
-			log.Logger.Error("Init workflow database fail", log.Error(initWorkflowDbErr))
+			log.Error(nil, log.LOGGER_APP, "Init workflow database fail", zap.Error(initWorkflowDbErr))
 		}
 	}
 	return err
@@ -60,7 +60,7 @@ func InitWorkflowDatabase() error {
 		models.Config.Database.User, models.Config.Database.Password, "tcp", fmt.Sprintf("%s:%s", models.Config.Database.Server, models.Config.Database.Port), models.Config.Database.DataBase)
 	engine, err := xorm.NewEngine("mysql", connStr)
 	if err != nil {
-		log.Logger.Error("Init workflow database connect fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Init workflow database connect fail", zap.Error(err))
 		return err
 	}
 	engine.SetMaxIdleConns(models.Config.Database.MaxIdle)
@@ -73,9 +73,9 @@ func InitWorkflowDatabase() error {
 	engine.SetMapper(core.SnakeMapper{})
 	WorkflowMysqlEngine = engine
 	if err = CheckDbConnection(); err == nil {
-		log.Logger.Info("Success init workflow database connect !!")
+		log.Info(nil, log.LOGGER_APP, "Success init workflow database connect !!")
 	} else {
-		log.Logger.Error("Init workflow database fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Init workflow database fail", zap.Error(err))
 	}
 	return err
 }
@@ -103,7 +103,7 @@ func GetDatabaseEngine(inputConfig *models.DatabaseConfig) (engine *xorm.Engine,
 type dbContextLogger struct {
 	LogLevel xorm_log.LogLevel
 	ShowSql  bool
-	Logger   *zap.Logger
+	Logger   *zap.SugaredLogger
 }
 
 func (d *dbContextLogger) BeforeSQL(ctx xorm_log.LogContext) {
@@ -132,23 +132,23 @@ func (d *dbContextLogger) AfterSQL(ctx xorm_log.LogContext) {
 		secTime, _ := strconv.ParseFloat(costTime[mIndex+1:], 64)
 		costMs = (minTime*60 + secTime) * 1000
 	}
-	d.Logger.Info("["+transactionId+"]", log.String("sql", ctx.SQL), log.String("param", fmt.Sprintf("%v", ctx.Args)), log.Float64("cost_ms", costMs))
+	d.Logger.Infow(fmt.Sprintf("[%s]", transactionId), zap.String("sql", ctx.SQL), zap.String("param", fmt.Sprintf("%v", ctx.Args)), zap.Float64("cost_ms", costMs))
 }
 
 func (d *dbContextLogger) Debugf(format string, v ...interface{}) {
-	d.Logger.Debug(fmt.Sprintf(format, v...))
+	d.Logger.Debugw(fmt.Sprintf(format, v...))
 }
 
 func (d *dbContextLogger) Errorf(format string, v ...interface{}) {
-	d.Logger.Debug(fmt.Sprintf(format, v...))
+	d.Logger.Errorw(fmt.Sprintf(format, v...))
 }
 
 func (d *dbContextLogger) Infof(format string, v ...interface{}) {
-	d.Logger.Debug(fmt.Sprintf(format, v...))
+	d.Logger.Infow(fmt.Sprintf(format, v...))
 }
 
 func (d *dbContextLogger) Warnf(format string, v ...interface{}) {
-	d.Logger.Debug(fmt.Sprintf(format, v...))
+	d.Logger.Warnw(fmt.Sprintf(format, v...))
 }
 
 func (d *dbContextLogger) Level() xorm_log.LogLevel {
@@ -175,7 +175,7 @@ type ExecAction struct {
 
 func Transaction(actions []*ExecAction, ctx context.Context) error {
 	if len(actions) == 0 {
-		log.Logger.Warn("Transaction is empty,nothing to do")
+		log.Warn(nil, log.LOGGER_APP, "Transaction is empty,nothing to do")
 		return nil
 	}
 	for i, action := range actions {
@@ -387,7 +387,7 @@ func QueryCount(sql string, params ...interface{}) int {
 	resultMap := make(map[string]interface{})
 	_, err := MysqlEngine.SQL(CombineDBSql("SELECT COUNT(1) FROM ( ", sql, " ) sub_query"), params...).Get(&resultMap)
 	if err != nil {
-		log.Logger.Error("Query sql count message fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query sql count message fail", zap.Error(err))
 		return 0
 	}
 	if countV, b := resultMap["COUNT(1)"]; b {

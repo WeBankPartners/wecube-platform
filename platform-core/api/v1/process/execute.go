@@ -14,6 +14,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"strings"
 	"time"
 )
@@ -34,7 +35,7 @@ func ProcDefList(c *gin.Context) {
 	if subProc == "" {
 		subProc = "all"
 	}
-	log.Logger.Debug("procDefList", log.String("includeDraft", includeDraft), log.String(permission, "permission"), log.String("tag", tag), log.StringList("roleList", middleware.GetRequestRoles(c)))
+	log.Debug(nil, log.LOGGER_APP, "procDefList", zap.String("includeDraft", includeDraft), zap.String(permission, "permission"), zap.String("tag", tag), zap.Strings("roleList", middleware.GetRequestRoles(c)))
 	result, err := database.ProcDefList(c, includeDraft, permission, tag, plugin, subProc, middleware.GetRequestUser(c), rootEntity, middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -70,7 +71,7 @@ func PublicProcDefList(c *gin.Context) {
 	if strings.TrimSpace(rootEntity) != "" {
 		rootEntity = strings.Split(rootEntity, "{")[0]
 	}
-	log.Logger.Debug("public procDefList", log.String(permission, "permission"), log.String("tag", tag))
+	log.Debug(nil, log.LOGGER_APP, "public procDefList", zap.String(permission, "permission"), zap.String("tag", tag))
 	procList, err := database.ProcDefList(c, "0", permission, tag, plugin, subProc, middleware.GetRequestUser(c), rootEntity, middleware.GetRequestRoles(c))
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -158,7 +159,7 @@ func PublicProcDefList(c *gin.Context) {
 
 func ProcDefOutline(c *gin.Context) {
 	procDefId := c.Param("proc-def-id")
-	log.Logger.Debug("ProcDefOutline", log.String("procDefId", procDefId))
+	log.Debug(nil, log.LOGGER_APP, "ProcDefOutline", zap.String("procDefId", procDefId))
 	result, err := database.ProcDefOutline(c, procDefId)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -169,7 +170,7 @@ func ProcDefOutline(c *gin.Context) {
 
 func ProcDefRootEntities(c *gin.Context) {
 	procDefId := c.Param("proc-def-id")
-	log.Logger.Debug("ProcDefRootEntities", log.String("procDefId", procDefId))
+	log.Debug(nil, log.LOGGER_APP, "ProcDefRootEntities", zap.String("procDefId", procDefId))
 	procDefObj, err := database.GetSimpleProcDefRow(c, procDefId)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -212,7 +213,7 @@ func ProcDefPreview(c *gin.Context) {
 func PublicProcDefPreview(c *gin.Context) {
 	procDefId := c.Param("proc-def-id")
 	entityDataId := c.Param("entityDataId")
-	log.Logger.Debug("ProcDefPreview", log.String("procDefId", procDefId), log.String("entityDataId", entityDataId))
+	log.Debug(nil, log.LOGGER_APP, "ProcDefPreview", zap.String("procDefId", procDefId), zap.String("entityDataId", entityDataId))
 	procOutlineData, err := database.ProcDefOutline(c, procDefId)
 	if err != nil {
 		middleware.ReturnError(c, err)
@@ -246,7 +247,7 @@ func PublicProcDefPreview(c *gin.Context) {
 	entityNodeMap := make(map[string]*models.ProcPreviewEntityNode)
 	rootData := rootDataList[0]
 	previewResult := models.ProcPreviewData{ProcessSessionId: fmt.Sprintf("proc_session_" + guid.CreateGuid()), EntityTreeNodes: []*models.ProcPreviewEntityNode{}}
-	log.Logger.Debug("rootData", log.String("entityDataId", entityDataId), log.JsonObj("data", rootData))
+	log.Debug(nil, log.LOGGER_APP, "rootData", zap.String("entityDataId", entityDataId), log.JsonObj("data", rootData))
 	rootEntityNode := models.ProcPreviewEntityNode{}
 	rootEntityNode.Parse(rootFilter.PackageName, rootFilter.EntityName, rootData)
 	rootEntityNode.FullDataId = rootEntityNode.DataId
@@ -304,7 +305,7 @@ func PublicProcDefPreview(c *gin.Context) {
 		if err != nil {
 			break
 		}
-		log.Logger.Debug("nodeData", log.String("node", node.NodeId), log.JsonObj("data", nodeDataList))
+		log.Debug(nil, log.LOGGER_APP, "nodeData", zap.String("node", node.NodeId), log.JsonObj("data", nodeDataList))
 		for _, nodeDataObj := range nodeDataList {
 			if existEntityNodeObj, ok := entityNodeMap[nodeDataObj.Id]; !ok {
 				entityNodeMap[nodeDataObj.Id] = nodeDataObj
@@ -385,6 +386,9 @@ func ProcInsStart(c *gin.Context) {
 		return
 	}
 	operator := middleware.GetRequestUser(c)
+	if param.ProcDefId == "" && param.ProcessSessionId != "" {
+		param.ProcDefId = database.GetProcDefBySessionId(c, param.ProcessSessionId)
+	}
 	// 检测编排定义状态是否合法
 	if err := database.CheckProcDefStatus(c, param.ProcDefId); err != nil {
 		middleware.ReturnError(c, err)
@@ -831,7 +835,7 @@ func killSubProc(ctx context.Context, mainProcInsId, procNodeId, operator string
 	var subWorkflowIdList []string
 	subWorkflowIdList, err = database.GetRunningProcInsSubWorkflow(ctx, mainProcInsId, procNodeId)
 	if err != nil {
-		log.Logger.Error("Try to kill sub proc fail with query sub workflow list", log.String("mainProcIns", mainProcInsId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Try to kill sub proc fail with query sub workflow list", zap.String("mainProcIns", mainProcInsId), zap.Error(err))
 		return
 	}
 	if len(subWorkflowIdList) == 0 {
@@ -841,7 +845,7 @@ func killSubProc(ctx context.Context, mainProcInsId, procNodeId, operator string
 		subOperationObj := models.ProcRunOperation{WorkflowId: subWorkflowId, Operation: "kill", Status: "wait", CreatedBy: operator}
 		subOperationObj.Id, err = database.AddWorkflowOperation(ctx, &subOperationObj)
 		if err != nil {
-			log.Logger.Error("Try to kill sub proc fail", log.String("mainProcIns", mainProcInsId), log.String("subWorkflowId", subWorkflowId), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "Try to kill sub proc fail", zap.String("mainProcIns", mainProcInsId), zap.String("subWorkflowId", subWorkflowId), zap.Error(err))
 		} else {
 			go workflow.HandleProOperation(&subOperationObj)
 		}
@@ -897,6 +901,18 @@ func GetProcNodeNextChoose(c *gin.Context) {
 		middleware.ReturnError(c, err)
 	} else {
 		middleware.ReturnData(c, result)
+	}
+}
+
+func GetProcInstanceBySessionId(c *gin.Context) {
+	sessionId := c.Query("sessionId")
+	if strings.TrimSpace(sessionId) == "" {
+		middleware.ReturnError(c, exterror.New().RequestParamValidateError)
+	}
+	if procInstanceId, err := database.GetProcInstanceBySessionId(c, sessionId); err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, procInstanceId)
 	}
 }
 

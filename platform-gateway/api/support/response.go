@@ -14,7 +14,7 @@ func ReturnData(c *gin.Context, data interface{}) {
 	bodyBytes, _ := json.Marshal(obj)
 	c.Set("responseBody", string(bodyBytes))
 	c.Set("logOperation", true)
-	log.Logger.Debug("Handle success with data response", log.JsonObj("response", obj))
+	log.Debug(nil, log.LOGGER_APP, "Handle success with data response", log.JsonObj("response", obj))
 	c.JSON(http.StatusOK, obj)
 }
 

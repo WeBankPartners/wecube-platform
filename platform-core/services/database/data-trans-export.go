@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go.uber.org/zap"
 	"os"
 	"strconv"
 	"strings"
@@ -81,7 +82,7 @@ func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActi
 		return
 	}
 	if queryRolesResponse, err = remote.RetrieveAllLocalRoles("Y", callParam.UserToken, callParam.Language, false); err != nil {
-		log.Logger.Error("remote retrieveAllLocalRoles error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "remote retrieveAllLocalRoles error", zap.Error(err))
 		return
 	}
 	// 通用路径
@@ -96,7 +97,7 @@ func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActi
 	}
 	// 压缩文件路径
 	if zipPath, err = tools.GetPath(tempWeCubeZipDir); err != nil {
-		log.Logger.Error("getZipPath error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "getZipPath error", zap.Error(err))
 		return
 	}
 	if transDataVariableConfig, err = GetDataTransVariableMap(ctx); err != nil {
@@ -136,13 +137,13 @@ func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActi
 	}
 	// 删除导出目录
 	if err = os.RemoveAll(transExportJobParam.Path); err != nil {
-		log.Logger.Error("delete fail", log.String("path", transExportJobParam.Path), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "delete fail", zap.String("path", transExportJobParam.Path), zap.Error(err))
 	}
 	// 删除导出压缩包
 	exportZipPath := transExportJobParam.ZipPath + "/" + zipFile
 	if exist, _ := tools.PathExist(exportZipPath); exist {
 		if err = os.Remove(exportZipPath); err != nil {
-			log.Logger.Error("delete fail", log.String("filePath", transExportJobParam.ZipPath), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "delete fail", zap.String("filePath", transExportJobParam.ZipPath), zap.Error(err))
 		}
 	}
 	return
@@ -185,18 +186,18 @@ func callExportFunc(ctx context.Context, transExportJobParam *models.TransExport
 	if result.ExportData != nil {
 		// 导出数据不为空,即执行导出
 		if err = tools.WriteJsonData2File(getExportJsonFile(transExportJobParam.Path, transExportDetailMap[models.TransExportStep(transExportJobParam.Step)]), result.ExportData); err != nil {
-			log.Logger.Error("WriteJsonData2File error", log.String("name", transExportDetailMap[models.TransExportStep(transExportJobParam.Step)]), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "WriteJsonData2File error", zap.String("name", transExportDetailMap[models.TransExportStep(transExportJobParam.Step)]), zap.Error(err))
 			return
 		}
 	}
 	transExportMonitorDetail.EndTime = time.Now().Format(models.DateTimeFormat)
-	log.Logger.Info(fmt.Sprintf("%d. export %s success!!!", transExportJobParam.Step, transExportDetailMap[models.TransExportStep(transExportJobParam.Step)]))
+	log.Info(nil, log.LOGGER_APP, fmt.Sprintf("%d. export %s success!!!", transExportJobParam.Step, transExportDetailMap[models.TransExportStep(transExportJobParam.Step)]))
 	transExportMonitorDetail.Status = string(models.TransImportStatusSuccess)
 	updateTransExportDetail(ctx, transExportMonitorDetail)
 	// 上传url不为空表示整个导出ok,更新导出状态
 	if result.UploadUrl != "" {
 		if err = updateTransExportSuccess(ctx, transExportJobParam.TransExportId, result.UploadUrl); err != nil {
-			log.Logger.Error("updateTransExportSuccess fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "updateTransExportSuccess fail", zap.Error(err))
 			return
 		}
 	}
@@ -206,7 +207,7 @@ func callExportFunc(ctx context.Context, transExportJobParam *models.TransExport
 // exportRole  1.导出角色
 func exportRole(ctx context.Context, param *models.TransExportJobParam) (result models.ExportResult, err error) {
 	// 1. 导出选中角色
-	log.Logger.Info("1. export role start!!!!")
+	log.Info(nil, log.LOGGER_APP, "1. export role start!!!!")
 	result.InputData = param.Roles
 	result.OutputData = buildRoleResultData(param.Roles, param.AllRoles)
 	result.ExportData = result.OutputData
@@ -217,9 +218,9 @@ func exportRole(ctx context.Context, param *models.TransExportJobParam) (result 
 func exportRequestTemplate(ctx context.Context, param *models.TransExportJobParam) (result models.ExportResult, err error) {
 	var queryRequestTemplatesResponse models.QueryRequestTemplatesResponse
 	var procDefDto *models.ProcessDefinitionDto
-	log.Logger.Info("2. export requestTemplate start!!!!")
+	log.Info(nil, log.LOGGER_APP, "2. export requestTemplate start!!!!")
 	if queryRequestTemplatesResponse, err = remote.GetRequestTemplates(models.GetRequestTemplatesDto{RequestTemplateIds: param.RequestTemplateIds}, param.UserToken, param.Language); err != nil {
-		log.Logger.Error("remote GetRequestTemplates error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "remote GetRequestTemplates error", zap.Error(err))
 		return
 	}
 	result.InputData = param.RequestTemplateIds
@@ -243,10 +244,10 @@ func exportRequestTemplate(ctx context.Context, param *models.TransExportJobPara
 // exportComponentLibrary 3.导出组件库
 func exportComponentLibrary(ctx context.Context, param *models.TransExportJobParam) (result models.ExportResult, err error) {
 	var queryComponentLibraryResponse models.QueryComponentLibraryResponse
-	log.Logger.Info("3. export componentLibrary start!!!!")
+	log.Info(nil, log.LOGGER_APP, "3. export componentLibrary start!!!!")
 	if param.ExportComponentLibrary {
 		if queryComponentLibraryResponse, err = remote.GetComponentLibrary(param.UserToken, param.Language); err != nil {
-			log.Logger.Error("remote GetComponentLibrary error", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "remote GetComponentLibrary error", zap.Error(err))
 			return
 		}
 		result.OutputData = queryComponentLibraryResponse.Data
@@ -262,7 +263,7 @@ func exportWorkflow(ctx context.Context, param *models.TransExportJobParam) (res
 	var procDefDataList []*models.ProcDefDto
 	var procDefExportList, procDefExportMainList, procDefExportSubList []*models.ProcessDefinitionDto
 	var subProcDefIds []string
-	log.Logger.Info("4. export workflow start!!!!")
+	log.Info(nil, log.LOGGER_APP, "4. export workflow start!!!!")
 	if len(param.WorkflowIds) > 0 && len(param.WorkflowList) == 0 {
 		for _, v := range param.WorkflowIds {
 			param.WorkflowList = append(param.WorkflowList, &models.TransExportWorkflowObj{WorkflowId: v})
@@ -278,7 +279,7 @@ func exportWorkflow(ctx context.Context, param *models.TransExportJobParam) (res
 		param.WorkflowIds = filterRepeatWorkflowId(param.WorkflowIds)
 		for _, procDefId := range param.WorkflowIds {
 			if procDefDto, err = GetProcDefDetailByProcDefId(ctx, procDefId); err != nil {
-				log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err), log.String("procDefId", procDefId))
+				log.Error(nil, log.LOGGER_APP, "GetProcDefDetailByProcDefId error", zap.Error(err), zap.String("procDefId", procDefId))
 				return
 			}
 			if procDefDto != nil && procDefDto.ProcDef != nil {
@@ -296,7 +297,7 @@ func exportWorkflow(ctx context.Context, param *models.TransExportJobParam) (res
 			for _, subProcDefId := range subProcDefIds {
 				if !contains(param.WorkflowIds, subProcDefId) {
 					if procDefDto, err = GetProcDefDetailByProcDefId(ctx, subProcDefId); err != nil {
-						log.Logger.Error("GetProcDefDetailByProcDefId error", log.Error(err))
+						log.Error(nil, log.LOGGER_APP, "GetProcDefDetailByProcDefId error", zap.Error(err))
 						continue
 					}
 					param.WorkflowIds = append(param.WorkflowIds, subProcDefId)
@@ -320,9 +321,9 @@ func exportWorkflow(ctx context.Context, param *models.TransExportJobParam) (res
 // exportBatchExecution 5.导出批量执行
 func exportBatchExecution(ctx context.Context, param *models.TransExportJobParam) (result models.ExportResult, err error) {
 	var batchExecutionTemplateList []*models.BatchExecutionTemplate
-	log.Logger.Info("5. export batchExecution start!!!!")
+	log.Info(nil, log.LOGGER_APP, "5. export batchExecution start!!!!")
 	if batchExecutionTemplateList, err = ExportTemplate(ctx, param.UserToken, &models.ExportBatchExecTemplateReqParam{BatchExecTemplateIds: param.BatchExecutionIds}); err != nil {
-		log.Logger.Error("ExportTemplate error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "ExportTemplate error", zap.Error(err))
 		return
 	}
 	result.InputData = param.BatchExecutionIds
@@ -334,31 +335,31 @@ func exportBatchExecution(ctx context.Context, param *models.TransExportJobParam
 // exportPluginConfig  6.导出插件配置
 func exportPluginConfig(ctx context.Context, param *models.TransExportJobParam) (result models.ExportResult, err error) {
 	var pluginPath string
-	log.Logger.Info("6. export pluginConfig start!!!!")
+	log.Info(nil, log.LOGGER_APP, "6. export pluginConfig start!!!!")
 	if pluginPath, err = tools.GetPath(fmt.Sprintf("%s/plugin-config", param.Path)); err != nil {
 		return
 	}
 	// 插件配置导出文件比较多,创建plugin-config子目录导出
 	if err = DataTransExportPluginConfig(ctx, param.TransExportId, pluginPath); err != nil {
-		log.Logger.Error("DataTransExportPluginConfig error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "DataTransExportPluginConfig error", zap.Error(err))
 	}
 	return
 }
 
 // exportCmdb 7.导出CMDB
 func exportCmdb(ctx context.Context, param *models.TransExportJobParam) (result models.ExportResult, err error) {
-	log.Logger.Info("7. export cmdb start!!!!")
+	log.Info(nil, log.LOGGER_APP, "7. export cmdb start!!!!")
 	if err = DataTransExportCMDBData(ctx, param.TransExportId, param.Path); err != nil {
-		log.Logger.Error("DataTransExportCMDBData error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "DataTransExportCMDBData error", zap.Error(err))
 	}
 	return
 }
 
 // exportArtifacts 8.导出物料包
 func exportArtifacts(ctx context.Context, param *models.TransExportJobParam) (result models.ExportResult, err error) {
-	log.Logger.Info("8. export artifact start!!!!")
+	log.Info(nil, log.LOGGER_APP, "8. export artifact start!!!!")
 	if err = DataTransExportArtifactData(ctx, param.TransExportId); err != nil {
-		log.Logger.Error("DataTransExportArtifactData error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "DataTransExportArtifactData error", zap.Error(err))
 	}
 	return
 }
@@ -408,16 +409,16 @@ func exportMonitor(ctx context.Context, param *models.TransExportJobParam) (resu
 		finalExportDataList = []interface{}{}
 		exportDataKeyList = []string{}
 		if strings.TrimSpace(monitorAnalyzeData.Data) == "" {
-			log.Logger.Info("analyze monitor data empty")
+			log.Info(nil, log.LOGGER_APP, "analyze monitor data empty")
 			continue
 		}
 		if err = json.Unmarshal([]byte(monitorAnalyzeData.Data), &exportDataKeyList); err != nil {
 			err = fmt.Errorf("dataTypeName:%s,%+v", monitorAnalyzeData.DataTypeName, err.Error())
-			log.Logger.Error("monitor json Unmarshal err", log.String("dataTypeName", monitorAnalyzeData.DataTypeName), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "monitor json Unmarshal err", zap.String("dataTypeName", monitorAnalyzeData.DataTypeName), zap.Error(err))
 			return
 		}
 		if len(exportDataKeyList) == 0 {
-			log.Logger.Info("analyze monitor data empty")
+			log.Info(nil, log.LOGGER_APP, "analyze monitor data empty")
 			continue
 		}
 		switch models.TransExportAnalyzeMonitorDataType(monitorAnalyzeData.DataType) {
@@ -429,7 +430,7 @@ func exportMonitor(ctx context.Context, param *models.TransExportJobParam) (resu
 			// 导出对象组
 			filePathList = []string{fmt.Sprintf("%s/%s.json", param.MonitorPath, monitorAnalyzeData.DataType)}
 			if allMonitorEndpointGroupList, err = monitor.GetMonitorEndpointGroup(param.UserToken); err != nil {
-				log.Logger.Error("GetMonitorEndpointGroup  err", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "GetMonitorEndpointGroup  err", zap.Error(err))
 				return
 			}
 			for _, endpointGroupObj := range allMonitorEndpointGroupList {
@@ -444,7 +445,7 @@ func exportMonitor(ctx context.Context, param *models.TransExportJobParam) (resu
 			// 导出指标的业务配置
 			for _, serviceGroup := range exportDataKeyList {
 				if responseBytes, err = monitor.ExportLogMetric(serviceGroup, param.UserToken); err != nil {
-					log.Logger.Error("ExportLogMetric err", log.JsonObj("serviceGroup", serviceGroup), log.Error(err))
+					log.Error(nil, log.LOGGER_APP, "ExportLogMetric err", log.JsonObj("serviceGroup", serviceGroup), zap.Error(err))
 					return
 				}
 				if isEffectiveJson(responseBytes) {
@@ -457,7 +458,7 @@ func exportMonitor(ctx context.Context, param *models.TransExportJobParam) (resu
 		case models.TransExportAnalyzeMonitorDataTypeLogMonitorTemplate:
 			// 导出业务日志模版
 			if responseBytes, err = monitor.ExportLogMonitorTemplate(exportDataKeyList, param.UserToken); err != nil {
-				log.Logger.Error("ExportLogMonitorTemplate err", log.StringList("LogMonitorTemplates", exportDataKeyList), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "ExportLogMonitorTemplate err", zap.Strings("LogMonitorTemplates", exportDataKeyList), zap.Error(err))
 				return
 			}
 			if isEffectiveJson(responseBytes) {
@@ -470,7 +471,7 @@ func exportMonitor(ctx context.Context, param *models.TransExportJobParam) (resu
 			// 导出指标阈值,层级对象
 			for _, key := range exportDataKeyList {
 				if responseBytes, err = monitor.ExportAlarmStrategy("service", key, param.UserToken); err != nil {
-					log.Logger.Error("ExportAlarmStrategy err", log.JsonObj("service", key), log.Error(err))
+					log.Error(nil, log.LOGGER_APP, "ExportAlarmStrategy err", log.JsonObj("service", key), zap.Error(err))
 					return
 				}
 				if isEffectiveJson(responseBytes) {
@@ -484,7 +485,7 @@ func exportMonitor(ctx context.Context, param *models.TransExportJobParam) (resu
 			// 导出指标阈值,组
 			for _, key := range exportDataKeyList {
 				if responseBytes, err = monitor.ExportAlarmStrategy("group", key, param.UserToken); err != nil {
-					log.Logger.Error("ExportAlarmStrategy err", log.JsonObj("group", key), log.Error(err))
+					log.Error(nil, log.LOGGER_APP, "ExportAlarmStrategy err", log.JsonObj("group", key), zap.Error(err))
 					return
 				}
 				if isEffectiveJson(responseBytes) {
@@ -498,7 +499,7 @@ func exportMonitor(ctx context.Context, param *models.TransExportJobParam) (resu
 			// 导出关键字
 			for _, serviceGroup := range exportDataKeyList {
 				if responseBytes, err = monitor.ExportKeyword(serviceGroup, param.UserToken); err != nil {
-					log.Logger.Error("ExportKeyword err", log.JsonObj("serviceGroup", serviceGroup), log.Error(err))
+					log.Error(nil, log.LOGGER_APP, "ExportKeyword err", log.JsonObj("serviceGroup", serviceGroup), zap.Error(err))
 					return
 				}
 				if isEffectiveJson(responseBytes) {
@@ -511,9 +512,9 @@ func exportMonitor(ctx context.Context, param *models.TransExportJobParam) (resu
 		case models.TransExportAnalyzeMonitorDataTypeDashboard:
 			// 导出看板
 			for dashboardId, chartIds := range param.ExportDashboardMap {
-				log.Logger.Info("export dashboard", log.Int("dashboardId", dashboardId))
+				log.Info(nil, log.LOGGER_APP, "export dashboard", zap.Int("dashboardId", dashboardId))
 				if responseBytes, err = monitor.ExportCustomDashboard(dashboardId, chartIds, param.UserToken); err != nil {
-					log.Logger.Error("ExportCustomDashboard err", log.JsonObj("dashboardId", dashboardId), log.Error(err))
+					log.Error(nil, log.LOGGER_APP, "ExportCustomDashboard err", log.JsonObj("dashboardId", dashboardId), zap.Error(err))
 					return
 				}
 				if isEffectiveJson(responseBytes) {
@@ -540,7 +541,7 @@ func exportMonitor(ctx context.Context, param *models.TransExportJobParam) (resu
 		}
 		for i, filePath := range filePathList {
 			if err = tools.WriteJsonData2File(filePath, finalExportDataList[i]); err != nil {
-				log.Logger.Error("WriteJsonData2File error", log.String("dataType", monitorAnalyzeData.DataType), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "WriteJsonData2File error", zap.String("dataType", monitorAnalyzeData.DataType), zap.Error(err))
 				return
 			}
 		}
@@ -572,7 +573,7 @@ func exportImportShowData(ctx context.Context, param *models.TransExportJobParam
 		return
 	}
 	if transExport == nil {
-		log.Logger.Error("exportImportShowData transExportId is invalid", log.String("transExportId", param.TransExportId))
+		log.Error(nil, log.LOGGER_APP, "exportImportShowData transExportId is invalid", zap.String("transExportId", param.TransExportId))
 		return
 	}
 	environmentMap["env_id"] = transExport.Environment
@@ -599,7 +600,7 @@ func exportImportShowData(ctx context.Context, param *models.TransExportJobParam
 				Condition: id,
 			})
 			if temp, err = remote.QueryBusinessList(query); err != nil {
-				log.Logger.Error("remote QueryBusinessList err", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "remote QueryBusinessList err", zap.Error(err))
 				return
 			}
 			if len(temp) > 0 {
@@ -609,28 +610,28 @@ func exportImportShowData(ctx context.Context, param *models.TransExportJobParam
 	}
 	// 导出环境
 	if err = tools.WriteJsonData2File(fmt.Sprintf("%s/env.json", param.ExportDataPath), environmentMap); err != nil {
-		log.Logger.Error("WriteJsonData2File env.json err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "WriteJsonData2File env.json err", zap.Error(err))
 		return
 	}
 	// 导出产品
 	if err = tools.WriteJsonData2File(fmt.Sprintf("%s/product.json", param.ExportDataPath), showResult); err != nil {
-		log.Logger.Error("WriteJsonData2File product.json err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "WriteJsonData2File product.json err", zap.Error(err))
 		return
 	}
 	if detail, err = GetTransExportDetail(ctx, param.TransExportId); err != nil {
-		log.Logger.Error("GetTransExportDetail err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "GetTransExportDetail err", zap.Error(err))
 		return
 	}
 	// 导出ui数据,导入回显用
 	if err = tools.WriteJsonData2File(fmt.Sprintf("%s/ui-data.json", param.ExportDataPath), detail); err != nil {
-		log.Logger.Error("WriteJsonData2File ui-data err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "WriteJsonData2File ui-data err", zap.Error(err))
 	}
 	return
 }
 
 // exportFileUpload 11.导出文件上传nexus
 func exportFileUpload(ctx context.Context, param *models.TransExportJobParam) (result models.ExportResult, err error) {
-	log.Logger.Info("11. create and upload file start!!!!")
+	log.Info(nil, log.LOGGER_APP, "11. create and upload file start!!!!")
 	uploadReqParam := &tools.NexusReqParam{
 		UserName:   param.DataTransVariableConfig.NexusUser,
 		Password:   param.DataTransVariableConfig.NexusPwd,
@@ -646,7 +647,7 @@ func exportFileUpload(ctx context.Context, param *models.TransExportJobParam) (r
 	}
 	// CreateZipCompress 和 UploadFile分开调用,需要等创建zip文件关闭流再上传
 	if err = tools.CreateZipCompress(param.ZipPath, param.Path, zipFile); err != nil {
-		log.Logger.Error("CreateZipCompress error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "CreateZipCompress error", zap.Error(err))
 		return
 	}
 	var uploadFileResult []*tools.NexusUploadFileRet
@@ -856,7 +857,7 @@ func AutoAppendExportParam(ctx context.Context, userToken string, param models.D
 			return
 		}
 		if procDefDto != nil && procDefDto.Id != "" {
-			log.Logger.Info("trans-export monitor append workflow ", log.String("procDefId", procDefDto.Id))
+			log.Info(nil, log.LOGGER_APP, "trans-export monitor append workflow ", zap.String("procDefId", procDefDto.Id))
 			newParam.WorkflowIds = append(newParam.WorkflowIds, procDefDto.Id)
 		}
 	}
@@ -944,7 +945,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 		if strings.HasSuffix(transExport.DataType, "service_group") {
 			var tempData []string
 			if err = json.Unmarshal([]byte(transExport.Data), &tempData); err != nil {
-				log.Logger.Error("json Unmarshal trans_export data err", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "json Unmarshal trans_export data err", zap.Error(err))
 			}
 			serviceGroupIds = append(serviceGroupIds, tempData...)
 		}
@@ -952,7 +953,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 	if len(serviceGroupIds) > 0 {
 		var list []*monitor.ServiceGroupTable
 		if list, err = monitor.QueryServiceGroupBatch(serviceGroupIds, remote.GetToken()); err != nil {
-			log.Logger.Error("QueryServiceGroupNameBatch err", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "QueryServiceGroupNameBatch err", zap.Error(err))
 		}
 		for _, serviceGroupTable := range list {
 			displayServiceGroupMap[serviceGroupTable.Guid] = serviceGroupTable
@@ -980,12 +981,12 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 		if strings.TrimSpace(transExportDetail.Input) != "" && models.TransExportStep(transExportDetail.Step) != models.TransExportStepWorkflow &&
 			models.TransExportStep(transExportDetail.Step) != models.TransExportStepComponentLibrary {
 			if err = json.Unmarshal([]byte(transExportDetail.Input), &tempArr); err != nil {
-				log.Logger.Error("json Unmarshal Input err", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "json Unmarshal Input err", zap.Error(err))
 			}
 		}
 		if strings.TrimSpace(transExportDetail.Output) != "" {
 			if err = json.Unmarshal([]byte(transExportDetail.Output), &data); err != nil {
-				log.Logger.Error("json Unmarshal Output err", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "json Unmarshal Output err", zap.Error(err))
 			}
 		}
 		output := &models.CommonOutput{
@@ -1009,7 +1010,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			tmpWorkflowList := models.TransExportWorkflowList{}
 			if transExportDetail.Input != "" {
 				if err = json.Unmarshal([]byte(transExportDetail.Input), &tmpWorkflowList); err != nil {
-					log.Logger.Error("json unmarshal workflow input fail", log.Error(err))
+					log.Error(nil, log.LOGGER_APP, "json unmarshal workflow input fail", zap.Error(err))
 					continue
 				}
 				tmpWorkflowList.Parse(dataTransVariableConfig.WorkflowExecList)
@@ -1040,7 +1041,7 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			var dataObj interface{}
 			if strings.TrimSpace(transExportAnalyze.Data) != "" {
 				if err = json.Unmarshal([]byte(transExportAnalyze.Data), &dataObj); err != nil {
-					log.Logger.Error("json Unmarshal transExportAnalyze err", log.Error(err))
+					log.Error(nil, log.LOGGER_APP, "json Unmarshal transExportAnalyze err", zap.Error(err))
 				}
 			}
 			detail.CmdbCI = append(detail.CmdbCI, &models.CommonNameCount{
@@ -1162,21 +1163,21 @@ func GetMonitorNameById(dataTypeName string, ids []string, displayServiceGroupMa
 	var err error
 	if dataTypeName == string(models.TransExportAnalyzeMonitorDataTypeLogMonitorTemplate) {
 		if result, err = monitor.QueryLogMonitorTemplateBatch(ids, remote.GetToken()); err != nil {
-			log.Logger.Error("QueryLogMonitorTemplateNameBatch err", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "QueryLogMonitorTemplateNameBatch err", zap.Error(err))
 		}
 		return result
 	}
 	// 看板存储是ID 需要转换成名称
 	if dataTypeName == string(models.TransExportAnalyzeMonitorDataTypeDashboard) {
 		if result, err = monitor.QueryDashboardBatch(ids, remote.GetToken()); err != nil {
-			log.Logger.Error("QueryDashboardNameBatch err", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "QueryDashboardNameBatch err", zap.Error(err))
 		}
 		return result
 	}
 	// 基础类型,需要添加数据展示
 	if dataTypeName == string(models.TransExportAnalyzeMonitorDataTypeMonitorType) {
 		if result, err = monitor.QueryBasicTypeConfigBatch(ids, remote.GetToken()); err != nil {
-			log.Logger.Error("QueryBasicTypeConfigBatch err", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "QueryBasicTypeConfigBatch err", zap.Error(err))
 		}
 		return result
 	}
@@ -1233,23 +1234,23 @@ func GetExportDashboardMap(ctx context.Context, transExportId, userToken string)
 	}
 	if dashboardAnalyze.Data != "" {
 		if err = json.Unmarshal([]byte(dashboardAnalyze.Data), &dashboardList); err != nil {
-			log.Logger.Error("json Unmarshal dashboard analyze err", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "json Unmarshal dashboard analyze err", zap.Error(err))
 			return
 		}
 		for _, dashboardId := range dashboardList {
 			if dashboardIntId, err = strconv.Atoi(dashboardId); err != nil {
-				log.Logger.Error("dashboardId  string convert int err", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "dashboardId  string convert int err", zap.Error(err))
 				return
 			}
 			if dashboard, err = monitor.QueryCustomDashboard(dashboardIntId, userToken); err != nil {
-				log.Logger.Error("QueryCustomDashboard err", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "QueryCustomDashboard err", zap.Error(err))
 				return
 			}
 			if dashboard != nil {
 				for _, chart := range dashboard.Charts {
 					chartIds = append(chartIds, chart.Id)
 				}
-				log.Logger.Info("add dashboard", log.Int("dashboard", dashboardIntId))
+				log.Info(nil, log.LOGGER_APP, "add dashboard", zap.Int("dashboard", dashboardIntId))
 				exportDashboardMap[dashboardIntId] = chartIds
 			}
 		}
@@ -1288,14 +1289,14 @@ func exportMetricList(param models.ExportMetricListDto) (err error) {
 	}
 	for _, requestParam := range requestParam {
 		if responseBytes, err = monitor.ExportMetricList(requestParam, param.Token); err != nil {
-			log.Logger.Error("ExportMetricList err", log.JsonObj("requestParam", requestParam), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "ExportMetricList err", log.JsonObj("requestParam", requestParam), zap.Error(err))
 			return
 		}
 		if isEffectiveJson(responseBytes) {
 			var temp interface{}
 			json.Unmarshal(responseBytes, &temp)
 			if err = tools.WriteJsonData2File(requestParam.FilePath, temp); err != nil {
-				log.Logger.Error("WriteJsonData2File error", log.JsonObj("requestParam", requestParam), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "WriteJsonData2File error", log.JsonObj("requestParam", requestParam), zap.Error(err))
 				return
 			}
 		}

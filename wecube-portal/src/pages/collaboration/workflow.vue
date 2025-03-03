@@ -5,31 +5,6 @@
         <Icon type="md-add" :size="18" />
         {{ $t('full_word_add') }}
       </Button>
-      <Upload
-        action="platform/v1/process/definitions/import"
-        :before-upload="handleUpload"
-        :show-upload-list="false"
-        with-credentials
-        :headers="headers"
-        :on-success="uploadSucess"
-        :on-error="uploadFailed"
-        accept=".json"
-        style="display: inline-block"
-      >
-        <Button type="primary" class="btn-right">
-          <img src="../../assets/icon/import.png" class="btn-img" alt="" />
-          {{ $t('import_flow') }}
-        </Button>
-      </Upload>
-      <Button
-        type="info"
-        class="btn-right"
-        :disabled="!(['deployed'].includes(searchParams.status) && selectedParams.length > 0)"
-        @click="exportFlow"
-      >
-        <img src="../../assets/icon/export.png" class="btn-img" alt="" />
-        {{ $t('export_flow') }}
-      </Button>
       <Button
         type="warning"
         class="btn-right"
@@ -51,6 +26,7 @@
       </Button>
       <Button
         type="error"
+        class="btn-right"
         v-if="['deployed'].includes(searchParams.status) && searchParams.subProc !== 'sub'"
         :disabled="!(['deployed'].includes(searchParams.status) && selectedParams.length > 0)"
         @click="batchChangeStatus('disabled')"
@@ -60,12 +36,37 @@
       </Button>
       <Button
         type="success"
+        class="btn-right"
         @click="batchChangeStatus('enabled')"
         v-if="['disabled'].includes(searchParams.status)"
         :disabled="!(['disabled'].includes(searchParams.status) && selectedParams.length > 0)"
       >
         <img src="../../assets/icon/enable.png" class="btn-img" alt="" />
         {{ $t('enable') }}
+      </Button>
+      <Upload
+        action="platform/v1/process/definitions/import"
+        :before-upload="handleUpload"
+        :show-upload-list="false"
+        with-credentials
+        :headers="headers"
+        :on-success="uploadSucess"
+        :on-error="uploadFailed"
+        accept=".json"
+        style="display: inline-block"
+      >
+        <Button class="btn-upload btn-right">
+          <img src="@/assets/icon/UploadOutlined.svg" class="upload-icon" />
+          {{ $t('import_flow') }}
+        </Button>
+      </Upload>
+      <Button
+        class="btn-upload btn-right"
+        :disabled="!(['deployed'].includes(searchParams.status) && selectedParams.length > 0)"
+        @click="exportFlow"
+      >
+        <img src="@/assets/icon/DownloadOutlined.svg" class="upload-icon" />
+        {{ $t('export_flow') }}
       </Button>
     </div>
     <div class="search">
@@ -190,6 +191,18 @@ import {
 } from '@/api/server.js'
 import FlowAuth from '@/pages/components/auth.vue'
 import dayjs from 'dayjs'
+
+export const custom_api_enum = [
+  {
+    "url": "/platform/v1/process/definitions/export",
+    "method": "post"
+  },
+  {
+    "url": "/platform/v1/process/definitions/import",
+    "method": "post"
+  }
+]
+
 export default {
   components: {
     FlowAuth
@@ -531,7 +544,7 @@ export default {
               {
                 label: this.$t('deployed'),
                 value: 'deployed',
-                color: '#19be6b'
+                color: '#00cb91'
               },
               {
                 label: this.$t('draft'),
@@ -541,7 +554,7 @@ export default {
               {
                 label: this.$t('disabled'),
                 value: 'disabled',
-                color: '#ed4014'
+                color: '#ff4d4f'
               }
             ]
             const item = list.find(i => i.value === params.row.status)
@@ -1151,7 +1164,7 @@ th.ivu-table-column-center div.ivu-table-cell-with-selection {
   padding: 0 4px !important;
 }
 .workflow-design .ivu-radio-wrapper-checked {
-  background-color: #2d8cf0 !important;
+  background-color: #5384ff !important;
   color: #fff !important;
 }
 .workflow-design .ivu-table .ivu-tag {

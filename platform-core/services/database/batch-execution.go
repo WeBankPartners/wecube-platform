@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go.uber.org/zap"
 	"strings"
 	"time"
 
@@ -543,7 +544,7 @@ func UpdateTemplateRolesDisplayName(c *gin.Context, templateDataList []*models.B
 			}
 		}
 	} else {
-		log.Logger.Error("retrieve all local roles empty")
+		log.Error(nil, log.LOGGER_APP, "retrieve all local roles empty")
 	}
 	return
 }
@@ -1212,7 +1213,7 @@ func ExportTemplate(c context.Context, userToken string, reqParam *models.Export
 	var queryRolesResponse models.QueryRolesResponse
 	var roleDisplayNameMap = make(map[string]string)
 	if queryRolesResponse, err = remote.RetrieveAllLocalRoles("Y", userToken, "", false); err != nil {
-		log.Logger.Error("remote retrieveAllLocalRoles error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "remote retrieveAllLocalRoles error", zap.Error(err))
 		return
 	}
 	if len(queryRolesResponse.Data) > 0 {

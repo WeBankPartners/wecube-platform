@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"strings"
 	"time"
 
@@ -163,7 +164,7 @@ func QueryPluginConfigInfo(ctx context.Context, pluginConfigIds []string) (resul
 func QueryCoreObjectMeta(ctx context.Context, packageName, objectName string, configId string) *models.CoreObjectMeta {
 	objectMetaEntity, err := getOnePluginObjectMetaByCondition(ctx, packageName, objectName, configId)
 	if err != nil {
-		log.Logger.Error("getOnePluginObjectMetaByCondition err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "getOnePluginObjectMetaByCondition err", zap.Error(err))
 		return nil
 	}
 	if objectMetaEntity == nil {
@@ -173,7 +174,7 @@ func QueryCoreObjectMeta(ctx context.Context, packageName, objectName string, co
 
 	propertyMetaEntities, err := getPluginObjectPropertyMetaListByObjectMeta(ctx, objectMetaEntity.Id)
 	if err != nil {
-		log.Logger.Error("getPluginObjectPropertyMetaListByObjectMeta err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "getPluginObjectPropertyMetaListByObjectMeta err", zap.Error(err))
 		return nil
 	}
 	if len(propertyMetaEntities) == 0 {
@@ -211,7 +212,7 @@ func QueryCoreObjectMetaV2(ctx context.Context, pluginConfigId string, objectNam
 
 	result = QueryCoreObjectMeta(ctx, packageName, objectName, pluginConfigId)
 	if result == nil {
-		log.Logger.Warn("query coreObjectMeta empty", log.String("packageName", packageName), log.String("objectName", objectName), log.String("pluginConfigId", pluginConfigId))
+		log.Warn(nil, log.LOGGER_APP, "query coreObjectMeta empty", zap.String("packageName", packageName), zap.String("objectName", objectName), zap.String("pluginConfigId", pluginConfigId))
 		return
 	}
 	return
@@ -398,7 +399,7 @@ func UpdatePluginConfigRoles(c *gin.Context, pluginConfigId string, reqParam *mo
 			roleNameMapId[roleDto.Name] = roleDto.ID
 		}
 	} else {
-		log.Logger.Error("retrieve all local roles empty")
+		log.Error(nil, log.LOGGER_APP, "retrieve all local roles empty")
 	}
 
 	// firstly delete original pluginConfigRole and then create new pluginConfigRole
@@ -710,8 +711,12 @@ func SavePluginConfig(c context.Context, reqParam *models.PluginConfigDto) (resu
 			pluginPackageId, reqParam.Name, reqParam.RegisterName))
 		return
 	}
-
-	createActions, tmpErr := GetCreatePluginConfigActions(c, pluginConfigId, reqParam, false, pluginPackageData)
+	basePluginData, baseDataErr := getBasePluginConfigData(c, pluginPackageId)
+	if baseDataErr != nil {
+		err = fmt.Errorf("get base pluginConfig data failed: %s", baseDataErr.Error())
+		return
+	}
+	createActions, tmpErr := GetCreatePluginConfigActions(c, pluginConfigId, reqParam, false, pluginPackageData, basePluginData)
 	if tmpErr != nil {
 		err = fmt.Errorf("get create pluginConfig actions failed: %s", tmpErr.Error())
 		return
@@ -902,7 +907,7 @@ func GetDelPluginConfigActions(ctx context.Context, pluginConfigId string) (resu
 	return
 }
 
-func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pluginConfigDto *models.PluginConfigDto, isImportRequest bool, pluginPackageData *models.PluginPackages) (resultActions []*db.ExecAction, err error) {
+func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pluginConfigDto *models.PluginConfigDto, isImportRequest bool, pluginPackageData *models.PluginPackages, baseInterfaceParamMap map[string][]*models.PluginConfigInterfaceParameters) (resultActions []*db.ExecAction, err error) {
 	resultActions = []*db.ExecAction{}
 
 	pluginConfigDto.Id = pluginConfigId
@@ -925,7 +930,7 @@ func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pl
 	action, tmpErr := db.GetInsertTableExecAction(models.TableNamePluginConfigs, pluginConfigData, nil)
 	if tmpErr != nil {
 		err = fmt.Errorf("get insert sql for pluginConfig failed: %s", tmpErr.Error())
-		log.Logger.Error(err.Error())
+		log.Error(nil, log.LOGGER_APP, err.Error())
 		return
 	}
 	resultActions = append(resultActions, action)
@@ -950,10 +955,14 @@ func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pl
 		action, tmpErr = db.GetInsertTableExecAction(models.TableNamePluginConfigInterfaces, *interfaceInfo, nil)
 		if tmpErr != nil {
 			err = fmt.Errorf("get insert sql for pluginConfigInterfaces failed: %s", tmpErr.Error())
-			log.Logger.Error(err.Error())
+			log.Error(nil, log.LOGGER_APP, err.Error())
 			return
 		}
 		resultActions = append(resultActions, action)
+		baseInterParams := []*models.PluginConfigInterfaceParameters{}
+		if matchBaseParams, ok := baseInterfaceParamMap[interfaceInfo.Path]; ok {
+			baseInterParams = matchBaseParams
+		}
 
 		// handle inputParam
 		for _, inputParam := range interfaceInfo.InputParameters {
@@ -963,7 +972,7 @@ func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pl
 			action, tmpErr = db.GetInsertTableExecAction(models.TableNamePluginConfigInterfaceParameters, *inputParam, nil)
 			if tmpErr != nil {
 				err = fmt.Errorf("get insert sql for pluginConfigInterfaceParameters failed: %s", tmpErr.Error())
-				log.Logger.Error(err.Error())
+				log.Error(nil, log.LOGGER_APP, err.Error())
 				return
 			}
 			resultActions = append(resultActions, action)
@@ -989,7 +998,7 @@ func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pl
 			action, tmpErr = db.GetInsertTableExecAction(models.TableNamePluginConfigInterfaceParameters, *outputParam, nil)
 			if tmpErr != nil {
 				err = fmt.Errorf("get insert sql for pluginConfigInterfaceParameters failed: %s", tmpErr.Error())
-				log.Logger.Error(err.Error())
+				log.Error(nil, log.LOGGER_APP, err.Error())
 				return
 			}
 			resultActions = append(resultActions, action)
@@ -1006,13 +1015,34 @@ func GetCreatePluginConfigActions(ctx context.Context, pluginConfigId string, pl
 				}
 			}
 		}
+		for _, baseParam := range baseInterParams {
+			existFlag := false
+			for _, sourceParam := range interfaceInfo.InputParameters {
+				if baseParam.Type == sourceParam.Type && baseParam.Name == sourceParam.Name {
+					existFlag = true
+					break
+				}
+			}
+			for _, sourceParam := range interfaceInfo.OutputParameters {
+				if baseParam.Type == sourceParam.Type && baseParam.Name == sourceParam.Name {
+					existFlag = true
+					break
+				}
+			}
+			if !existFlag {
+				resultActions = append(resultActions, &db.ExecAction{Sql: "insert into plugin_config_interface_parameters (id,plugin_config_interface_id,type,name,data_type,mapping_type,mapping_entity_expression,mapping_system_variable_name,required,sensitive_data,description,mapping_val,ref_object_name,multiple ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+					models.IdPrefixPluCfgItfPar + guid.CreateGuid(), interfaceInfo.Id, baseParam.Type, baseParam.Name, baseParam.DataType, baseParam.MappingType, baseParam.MappingEntityExpression, baseParam.MappingSystemVariableName, baseParam.Required, baseParam.SensitiveData, baseParam.Description, baseParam.MappingVal, baseParam.RefObjectName, baseParam.Multiple,
+				}})
+			}
+		}
+
 	}
 
 	// handle pluginConfigRoles
 	pluginConfigRolesActions, tmpErr := getCreatePluginCfgRolesActions(ctx, pluginConfigId, pluginConfigDto.PermissionToRole)
 	if tmpErr != nil {
 		err = fmt.Errorf("get insert sql for pluginConfigRoles failed: %s", tmpErr.Error())
-		log.Logger.Error(err.Error())
+		log.Error(nil, log.LOGGER_APP, err.Error())
 		return
 	}
 	resultActions = append(resultActions, pluginConfigRolesActions...)
@@ -1030,7 +1060,7 @@ func getHandleObjectTypeActions(objectMeta *models.CoreObjectMeta, pluginConfigI
 	action, tmpErr := db.GetInsertTableExecAction(models.TableNamePluginObjectMeta, *objectMeta, nil)
 	if tmpErr != nil {
 		err = fmt.Errorf("get insert sql for objectMeta failed: %s", tmpErr.Error())
-		log.Logger.Error(err.Error())
+		log.Error(nil, log.LOGGER_APP, err.Error())
 		return
 	}
 	resultActions = append(resultActions, action)
@@ -1047,7 +1077,7 @@ func getHandleObjectTypeActions(objectMeta *models.CoreObjectMeta, pluginConfigI
 		action, tmpErr = db.GetInsertTableExecAction(models.TableNamePluginObjectPropertyMeta, *propertyMeta, nil)
 		if tmpErr != nil {
 			err = fmt.Errorf("get insert sql for inputParam.RefObjectMeta.PropertyMeta failed: %s", tmpErr.Error())
-			log.Logger.Error(err.Error())
+			log.Error(nil, log.LOGGER_APP, err.Error())
 			return
 		}
 		resultActions = append(resultActions, action)
@@ -1075,7 +1105,7 @@ func getCreatePluginCfgRolesActions(ctx context.Context,
 			roleNameMapId[roleDto.Name] = roleDto.ID
 		}
 	} else {
-		log.Logger.Error("retrieve all local roles empty")
+		log.Error(nil, log.LOGGER_APP, "retrieve all local roles empty")
 	}
 
 	pluginConfigRolesList := []*models.PluginConfigRoles{}
@@ -1261,11 +1291,15 @@ func ImportPluginConfigs(ctx context.Context, pluginPackageId string, packagePlu
 		return
 	}
 	actions = append(actions, delActions...)
-
+	basePluginData, baseDataErr := getBasePluginConfigData(ctx, pluginPackageId)
+	if baseDataErr != nil {
+		err = fmt.Errorf("get base pluginConfig data failed: %s", baseDataErr.Error())
+		return
+	}
 	// handle creation actions for import data
 	for i := range savePluginConfigList {
 		curPluginConfigId := models.IdPrefixPluCfg + guid.CreateGuid()
-		curCreationActions, tmpErr := GetCreatePluginConfigActions(ctx, curPluginConfigId, savePluginConfigList[i], true, pluginPackageData)
+		curCreationActions, tmpErr := GetCreatePluginConfigActions(ctx, curPluginConfigId, savePluginConfigList[i], true, pluginPackageData, basePluginData)
 		if tmpErr != nil {
 			err = fmt.Errorf("get create pluginConfig actions failed: %s", tmpErr.Error())
 			return
@@ -1832,5 +1866,34 @@ func getPluginConfigDeleteActions(pluginPackageId string) (actions []*db.ExecAct
 	actions = append(actions, &db.ExecAction{Sql: "delete from plugin_config_interface_parameters where plugin_config_interface_id in (select id from plugin_config_interfaces where plugin_config_id in (select id from plugin_configs where plugin_package_id=? and register_name!=''))", Param: []interface{}{pluginPackageId}})
 	actions = append(actions, &db.ExecAction{Sql: "delete from plugin_config_interfaces where plugin_config_id in (select id from plugin_configs where plugin_package_id=? and register_name!='')", Param: []interface{}{pluginPackageId}})
 	actions = append(actions, &db.ExecAction{Sql: "delete from plugin_configs where plugin_package_id=? and register_name!=''", Param: []interface{}{pluginPackageId}})
+	return
+}
+
+func getBasePluginConfigData(ctx context.Context, pluginPackageId string) (baseInterfaceParamMap map[string][]*models.PluginConfigInterfaceParameters, err error) {
+	var baseInterfaceRows []*models.PluginConfigInterfaces
+	err = db.MysqlEngine.Context(ctx).SQL("select id,plugin_config_id,`action`,`path` from plugin_config_interfaces where plugin_config_id in (select id from plugin_configs where plugin_package_id=? and register_name='')", pluginPackageId).Find(&baseInterfaceRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	var baseParamRows []*models.PluginConfigInterfaceParameters
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_config_interface_parameters where plugin_config_interface_id in (select id from plugin_config_interfaces where plugin_config_id in (select id from plugin_configs where plugin_package_id=? and register_name=''))", pluginPackageId).Find(&baseParamRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	baseInterfaceMap := make(map[string]string) // key:id value:path
+	baseInterfaceParamMap = make(map[string][]*models.PluginConfigInterfaceParameters)
+	for _, row := range baseInterfaceRows {
+		baseInterfaceMap[row.Id] = row.Path
+	}
+	for _, row := range baseParamRows {
+		interPath := baseInterfaceMap[row.PluginConfigInterfaceId]
+		if existList, ok := baseInterfaceParamMap[interPath]; ok {
+			baseInterfaceParamMap[interPath] = append(existList, row)
+		} else {
+			baseInterfaceParamMap[interPath] = []*models.PluginConfigInterfaceParameters{row}
+		}
+	}
 	return
 }

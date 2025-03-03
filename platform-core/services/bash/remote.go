@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"go.uber.org/zap"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -24,7 +25,7 @@ func RemoteSSHCommand(targetIp, user, pwd, port, command string) (err error) {
 	_, err = exec.Command("/bin/bash", "-c", commandString).Output()
 	if err != nil {
 		err = fmt.Errorf("run remote ssh command to target %s fail,%s ", targetIp, err.Error())
-		log.Logger.Debug("run remote ssh command fail", log.String("cmd", commandString), log.String("targetIp", targetIp))
+		log.Debug(nil, log.LOGGER_APP, "run remote ssh command fail", zap.String("cmd", commandString), zap.String("targetIp", targetIp))
 	}
 	return
 }
@@ -38,7 +39,7 @@ func RemoteSSHCommandWithOutput(targetIp, user, pwd, port, command string) (stdo
 	stdout, err = exec.Command("/bin/bash", "-c", commandString).Output()
 	if err != nil {
 		err = fmt.Errorf("run remote ssh command to target %s fail,%s ", targetIp, err.Error())
-		log.Logger.Debug("run remote ssh command fail", log.String("cmd", commandString), log.String("targetIp", targetIp))
+		log.Debug(nil, log.LOGGER_APP, "run remote ssh command fail", zap.String("cmd", commandString), zap.String("targetIp", targetIp))
 	}
 	return
 }
@@ -52,7 +53,7 @@ func RemoteSCP(targetIp, user, pwd, port, localFile, targetPath string) (err err
 	_, err = exec.Command("/bin/bash", "-c", mkDirCommandString).Output()
 	if err != nil {
 		err = fmt.Errorf("scp file,try to mkdir target dir path %s in %s fail,%s ", targetDir, targetIp, err.Error())
-		log.Logger.Debug("scp mkdir error", log.String("mkDirCommandString", mkDirCommandString))
+		log.Debug(nil, log.LOGGER_APP, "scp mkdir error", zap.String("mkDirCommandString", mkDirCommandString))
 		return
 	}
 	commandString := fmt.Sprintf("sshpass -p '%s' scp -P %s %s %s@%s:%s", pwd, port, localFile, user, targetIp, targetPath)
@@ -62,7 +63,7 @@ func RemoteSCP(targetIp, user, pwd, port, localFile, targetPath string) (err err
 		_, err = exec.Command("/bin/bash", "-c", commandString).Output()
 		if err != nil {
 			err = fmt.Errorf("scp file %s to target %s fail,%s ", localFile, targetIp, err.Error())
-			log.Logger.Debug("remoteScp error", log.String("commandString", commandString))
+			log.Debug(nil, log.LOGGER_APP, "remoteScp error", zap.String("commandString", commandString))
 		}
 	}
 	return
@@ -73,7 +74,7 @@ func GetRemoteHostAvailablePort(resourceServer *models.ResourceServer) (port int
 	output, execErr := exec.Command("/bin/bash", "-c", commandString).Output()
 	if execErr != nil {
 		err = fmt.Errorf("run remote ssh command to get available port target %s fail,%s ", resourceServer.Host, execErr.Error())
-		log.Logger.Debug("get plugin host network port fail", log.String("commandString", commandString))
+		log.Debug(nil, log.LOGGER_APP, "get plugin host network port fail", zap.String("commandString", commandString))
 		return
 	}
 	existPortLines := strings.Split(string(output), "\n")
@@ -117,7 +118,7 @@ func CreatePluginDatabase(ctx context.Context, username string, mysqlResource *m
 			}
 		}
 		if existFlag {
-			log.Logger.Info("CreatePluginDatabase break,database already exists", log.String("database", mysqlResource.SchemaName))
+			log.Info(nil, log.LOGGER_APP, "CreatePluginDatabase break,database already exists", zap.String("database", mysqlResource.SchemaName))
 			session.Commit()
 			return
 		}
@@ -127,32 +128,32 @@ func CreatePluginDatabase(ctx context.Context, username string, mysqlResource *m
 		return
 	}
 	if _, err = session.Exec(fmt.Sprintf("CREATE DATABASE %s", mysqlResource.SchemaName)); err != nil {
-		log.Logger.Error("try to create plugin database fail", log.String("database", mysqlResource.SchemaName), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "try to create plugin database fail", zap.String("database", mysqlResource.SchemaName), zap.Error(err))
 		session.Rollback()
 		return
 	}
-	log.Logger.Info("create plugin mysql database done", log.String("database", mysqlResource.SchemaName))
+	log.Info(nil, log.LOGGER_APP, "create plugin mysql database done", zap.String("database", mysqlResource.SchemaName))
 	b := make([]byte, 16)
 	rand.Read(b)
 	password = fmt.Sprintf("%x", b[4:8])
 	if _, err = session.Exec(fmt.Sprintf("CREATE USER '%s'@'%%' IDENTIFIED BY '%s'", username, password)); err != nil {
-		log.Logger.Error("try to create plugin user fail,rollback", log.String("user", username), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "try to create plugin user fail,rollback", zap.String("user", username), zap.Error(err))
 		session.Rollback()
 		return
 	}
-	log.Logger.Info("create plugin mysql user done", log.String("user", username))
+	log.Info(nil, log.LOGGER_APP, "create plugin mysql user done", zap.String("user", username))
 	if _, err = session.Exec(fmt.Sprintf("GRANT ALL PRIVILEGES ON %s.* TO '%s'@'%%'", mysqlResource.SchemaName, username)); err != nil {
-		log.Logger.Error("try to grant plugin privileges to user fail,rollback", log.String("database", mysqlResource.SchemaName), log.String("user", username), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "try to grant plugin privileges to user fail,rollback", zap.String("database", mysqlResource.SchemaName), zap.String("user", username), zap.Error(err))
 		session.Rollback()
 		return
 	}
-	log.Logger.Info("grant plugin mysql privileges done", log.String("database", mysqlResource.SchemaName), log.String("user", username))
+	log.Info(nil, log.LOGGER_APP, "grant plugin mysql privileges done", zap.String("database", mysqlResource.SchemaName), zap.String("user", username))
 	if _, err = session.Exec("flush privileges"); err != nil {
-		log.Logger.Error("try to flush privileges fail,rollback", log.String("database", mysqlResource.SchemaName), log.String("user", username), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "try to flush privileges fail,rollback", zap.String("database", mysqlResource.SchemaName), zap.String("user", username), zap.Error(err))
 		session.Rollback()
 		return
 	}
-	log.Logger.Info("flush privileges done", log.String("database", mysqlResource.SchemaName), log.String("user", username))
+	log.Info(nil, log.LOGGER_APP, "flush privileges done", zap.String("database", mysqlResource.SchemaName), zap.String("user", username))
 	session.Commit()
 	return
 }

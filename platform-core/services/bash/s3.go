@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
+	"go.uber.org/zap"
 	"os"
 	"strings"
 
@@ -96,6 +97,6 @@ func ListBucketFiles(bucket string) (datas []PlatformObjectInfo, err error) {
 
 func RemoveTmpFile(tmpFile string) {
 	if removeFileErr := os.RemoveAll(tmpFile); removeFileErr != nil {
-		log.Logger.Error("try to remove tmp file fail", log.String("file", tmpFile), log.Error(removeFileErr))
+		log.Error(nil, log.LOGGER_APP, "try to remove tmp file fail", zap.String("file", tmpFile), zap.Error(removeFileErr))
 	}
 }

@@ -83,7 +83,7 @@
                           <Select v-model="selectedIp" multiple style="width: 40%" :max-tag-count="4">
                             <Option v-for="item in availableHostList" :value="item" :key="item">{{ item }}</Option>
                           </Select>
-                          <Button size="small" type="success" @click="getPortByHostIp">
+                          <Button style="margin-left: 10px" size="small" type="success" @click="getPortByHostIp">
                             {{ $t('port_preview') }}
                           </Button>
                         </div>
@@ -210,7 +210,8 @@
         :on-error="onError"
         accept=".xml"
       >
-        <Button v-if="currentStep === 2" class="mr-3" type="info">
+        <Button v-if="currentStep === 2" class="btn-upload mr-3">
+          <img src="@/assets/icon/UploadOutlined.svg" class="upload-icon" />
           {{ $t('p_importing_configuration') }}
         </Button>
       </Upload>
@@ -266,7 +267,7 @@ import AuthSettings from './components/auth-setting.vue'
 import RuntimesResources from './components/runtime-resource.vue'
 import PluginRegister from './components/plugin-register.vue'
 import { getCookie } from '@/pages/util/cookie'
-import req from '@/api/base'
+import { getPluginPackage, getPluginVersionInherit, getPluginVersion, pluginsRegister, pluginsRegisterDone } from '@/api/server.js'
 import {
   getAvailableContainerHosts,
   getAvailablePortByHostIp,
@@ -278,6 +279,13 @@ import {
   getAvailableInstancesByPackageId,
   getPluginConfigsByPackageId
 } from '@/api/server.js'
+
+export const custom_api_enum = [
+  {
+    "url": "/platform/v1/plugins/packages/import/${id}",
+    "method": "post"
+  }
+]
 
 export default {
   name: '',
@@ -433,11 +441,10 @@ export default {
       if (!this.pluginId) {
         this.$router.push({ path: '/collaboration/plugin-management' })
       }
-      const api = '/platform/v1/packages'
       const params = {
         id: this.pluginId
       }
-      const { data, status } = await req.get(api, { params })
+      const { data, status } = await getPluginPackage({params})
       if (status === 'OK') {
         this.pluginItemDetail = data[0]
       } else {
@@ -446,11 +453,10 @@ export default {
       this.stepContent[0].title += this.pluginItemDetail.name + '_' + this.pluginItemDetail.version
     },
     async getOptionList() {
-      const api = '/platform/v1/plugins/packages/version/get'
       const params = {
         id: this.pluginId
       }
-      const res = await req.get(api, { params })
+      const res = await getPluginVersion({ params })
       if (res.status === 'OK') {
         this.inheritedVersionOptionList = res.data || []
       } else {
@@ -516,8 +522,7 @@ export default {
     async onInheritedVersionSelected(item) {
       if (item) {
         const versionObj = JSON.parse(item)
-        const api = '/platform/v1/plugins/packages/version/inherit'
-        const { status } = await req.post(api, {
+        const { status } = await getPluginVersionInherit({
           pluginPackageId: this.pluginId,
           inheritPackageId: versionObj.pluginPackageId
         })
@@ -564,8 +569,7 @@ export default {
       }
     },
     async registItem() {
-      const api = '/platform/v1/packages/ui/register'
-      const { status } = await req.post(api, {
+      const { status } = await pluginsRegister({
         id: this.pluginId
       })
       if (status === 'OK') {
@@ -698,8 +702,7 @@ export default {
       this.getDBTableData()
     },
     async installFinish() {
-      const api = '/platform/v1/packages/register-done'
-      const { status } = await req.post(api, {
+      const { status } = await pluginsRegisterDone({
         id: this.pluginId
       })
       if (status === 'OK') {
@@ -747,7 +750,7 @@ export default {
         height: 24px;
         color: #fff;
         border-radius: 2px;
-        background: #2d8cf0;
+        background: #5384ff;
         margin-right: 12px;
         margin-bottom: 10px;
       }
