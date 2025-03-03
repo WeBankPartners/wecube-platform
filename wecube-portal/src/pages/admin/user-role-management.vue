@@ -9,7 +9,28 @@
               $t('add_user')
             }}</Button>
           </p>
-          <Input v-model="userFilter" clearable :placeholder="$t('pi_enter_to_filter')" style="margin-bottom: 12px" />
+          <div style="display: flex">
+            <Input
+              v-model="userFilter"
+              clearable 
+              :placeholder="$t('username')" 
+              @on-change="onUserFilterChange"
+              style="margin-bottom: 12px; margin-right: 5px; width: 40%" 
+            />
+            <Select
+              v-model="currentRoleId" 
+              filterable 
+              clearable
+              :placeholder="$t('please_choose') + $t('role')"
+              @on-change="onFilterUserRoleChange" 
+              @on-clear="onFilterUserRoleClear"
+              style="width: 50%" 
+            >
+              <Option v-for="item in roles" :value="item.id" :key="item.id" :label="item.username">
+                {{ item.name + '(' + item.displayName + ')' }}
+              </Option>
+            </Select>
+          </div>
           <div class="user-tag-containers">
             <div class="user-item" v-for="item in userFilterRes" :key="item.id">
               <Tag
@@ -51,6 +72,7 @@
             </div>
           </div>
           <Page
+            v-if="!currentRoleId"
             :styles="{marginBottom: '-10px'}"
             :total="pagination.total"
             @on-change="
@@ -256,6 +278,7 @@
   </div>
 </template>
 <script>
+import {cloneDeep} from 'lodash'
 import {
   userCreate,
   removeUser,
@@ -347,13 +370,6 @@ export default {
     }
   },
   watch: {
-    userFilter: {
-      handler: debounce(function () {
-        this.pagination.page = 1
-        this.getAllUsers()
-      }, 300), // 300ms防抖时间
-      immediate: true
-    },
     roleFilter: {
       handler: debounce(function (newValue) {
         const filter = newValue.trim()
@@ -631,6 +647,8 @@ export default {
                 _.checked = checked
               }
             })
+            let tempUser = this.users.filter(item => item.checked)
+            this.userFilterRes = cloneDeep(tempUser)
           }
         })
       } else {
@@ -819,6 +837,29 @@ export default {
       if (status === 'OK') {
         this.initAllUserInfo = data
       }
+    },
+    getFirstPageUsers() {
+      this.pagination.page = 1
+      this.getAllUsers()
+    },
+    onUserFilterChange: debounce(function () {
+      this.currentRoleId = ''
+      this.getFirstPageUsers()
+    }, 300),
+    onFilterUserRoleChange(id) {
+      if (!id) return
+      this.roles.forEach(item => {
+        if (item.id === id) {
+          item.checked = true
+        } else {
+          item.checked = false
+        }
+      })
+      this.handleRoleClick(true, id)
+      
+    },
+    onFilterUserRoleClear() {
+      this.getFirstPageUsers()
     }
   },
   created() {
