@@ -225,7 +225,7 @@ export default {
             const expireFlag = params.row.expireTime && params.row.status === 'expire'
             if (params.row.expireTime) {
               return (
-                <span style={{ color: expireFlag ? '#ed4014' : '' }}>
+                <span style={{ color: expireFlag ? '#ff4d4f' : '' }}>
                   {`${params.row.expireTime}${expireFlag ? this.$t('be_hasExpired') : ''}`}
                 </span>
               )
@@ -239,7 +239,7 @@ export default {
           render: (h, params) => {
             const status = params.row.handleStatus
             const statusTitle = status === 'approve' ? this.$t('be_approve') : this.$t('be_reject')
-            return <div style={status === 'approve' ? 'color: #19be6b' : 'color:red'}>{statusTitle}</div>
+            return <div style={status === 'approve' ? 'color: #00cb91' : 'color:red'}>{statusTitle}</div>
           }
         }
       ],
@@ -262,11 +262,11 @@ export default {
       return function ({ status }) {
         let color = ''
         if (status === 'preExpired') {
-          color = '#ff9900'
+          color = '#f29360'
         } else if (status === 'expire') {
-          color = '#ed4014'
+          color = '#ff4d4f'
         } else {
-          color = '#19be6b'
+          color = '#00cb91'
         }
         return { color }
       }
@@ -459,7 +459,7 @@ export default {
   display: inline-block;
 }
 .active-item {
-  background-color: #2db7f5;
+  background-color: #5384ff;
 }
 
 .title {

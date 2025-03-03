@@ -266,14 +266,14 @@ export default {
       min-width: 90px;
       .number {
         font-size: 18px;
-        color: #2d8cf0;
+        color: #5384ff;
         margin-left: 6px;
       }
     }
     .sub-title {
       font-size: 14px;
       font-weight: normal;
-      color: #ed4014;
+      color: #ff4d4f;
       margin-left: 5px;
     }
   }
@@ -288,7 +288,7 @@ export default {
       font-weight: 600;
       .number {
         font-size: 18px;
-        color: #2d8cf0;
+        color: #5384ff;
         margin-left: 6px;
       }
     }

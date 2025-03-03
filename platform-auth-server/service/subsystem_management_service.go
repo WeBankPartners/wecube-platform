@@ -10,6 +10,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/db"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/jwt"
+	"go.uber.org/zap"
 	"strconv"
 	"time"
 )
@@ -188,7 +189,7 @@ func validateStrictPermission(currUser *model.AuthenticatedUser) error {
 		return nil
 	}
 
-	log.Logger.Info(fmt.Sprintf("current username is : %v", currUser.Username))
+	log.Info(nil, log.LOGGER_APP, fmt.Sprintf("current username is : %v", currUser.Username))
 	return exterror.NewAuthServerError("Lack of permission due to not platform identity.")
 }
 
@@ -206,31 +207,31 @@ func (SubSystemManagementService) RegisterSubSystem(subSystemDto *model.SimpleSu
 
 	subSystem, err := db.SubSystemRepositoryInstance.FindOneBySystemCode(subSystemDto.SystemCode)
 	if err != nil {
-		log.Logger.Error("failed to find SubSystem", log.String("systemCode", subSystemDto.SystemCode),
-			log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to find SubSystem", zap.String("systemCode", subSystemDto.SystemCode),
+			zap.Error(err))
 		return nil, err
 	}
 
 	if subSystem == nil {
 		subSystem, err = db.SubSystemRepositoryInstance.FindOneBySystemName(subSystemDto.Name)
 		if err != nil {
-			log.Logger.Error("failed to find subSystem by system name", log.String("subsystem name", subSystemDto.Name),
-				log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "failed to find subSystem by system name", zap.String("subsystem name", subSystemDto.Name),
+				zap.Error(err))
 			return nil, err
 		}
 		//subSystem = subSystemRepository.findOneBySystemName(subSystemDto.getName());
 	}
 
 	if subSystem != nil {
-		log.Logger.Debug(fmt.Sprintf("such sub-system already exists,system code %s", subSystemDto.SystemCode))
+		log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("such sub-system already exists,system code %s", subSystemDto.SystemCode))
 		return convertToSimpleSubSystemDto(subSystem), nil
 	}
 
-	log.Logger.Info("About to create a new sub system:", log.JsonObj("subSystemDto", subSystemDto))
+	log.Info(nil, log.LOGGER_APP, "About to create a new sub system:", log.JsonObj("subSystemDto", subSystemDto))
 
 	keyPair, err := utils.InitAsymmetricKeyPair()
 	if err != nil {
-		log.Logger.Error("failed to init asymmetric key paire", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to init asymmetric key paire", zap.Error(err))
 		return nil, err
 	}
 
@@ -250,7 +251,7 @@ func (SubSystemManagementService) RegisterSubSystem(subSystemDto *model.SimpleSu
 	result, err := db.Engine.Insert(subSystem)
 	if err != nil || result == 0 {
 		if err != nil {
-			log.Logger.Error("failed to insert subsystem", log.JsonObj("subsystem", subSystem))
+			log.Error(nil, log.LOGGER_APP, "failed to insert subsystem", log.JsonObj("subsystem", subSystem))
 		}
 		return nil, errors.New("failed to insert subsystem")
 	}
@@ -279,8 +280,8 @@ func (SubSystemManagementService) RetrieveSubSystemApikey(systemCode string) (*m
 
 	subSystem, err := db.SubSystemRepositoryInstance.FindOneBySystemCode(systemCode)
 	if err != nil {
-		log.Logger.Error("failed to find SubSystem by systemcode", log.String("systemcode", systemCode),
-			log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to find SubSystem by systemcode", zap.String("systemcode", systemCode),
+			zap.Error(err))
 		return nil, err
 	}
 
@@ -305,8 +306,8 @@ func (SubSystemManagementService) RetrieveSubSystemByName(name string, currUser 
 	}
 	subSystem, err := db.SubSystemRepositoryInstance.FindOneBySystemName(name)
 	if err != nil {
-		log.Logger.Error("failed to find Subsystem by system name", log.String("system name", name),
-			log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to find Subsystem by system name", zap.String("system name", name),
+			zap.Error(err))
 		return nil, err
 	}
 
@@ -323,7 +324,7 @@ func (SubSystemManagementService) RetrieveAllSubSystems(currUser *model.Authenti
 	}
 	subSystems := make([]*model.SysSubSystemEntity, 0)
 	if err := db.Engine.Find(&subSystems); err != nil {
-		log.Logger.Error("failed to find subsystem", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to find subsystem", zap.Error(err))
 		return nil, err
 	}
 

@@ -11,9 +11,10 @@
         action="platform/v1/plugin-certifications/import"
         :headers="headers"
       >
-        <Button style="float: right; margin-right: 4px" type="primary" @click="getHeaders">{{
-          $t('import_flow')
-        }}</Button>
+        <Button @click="getHeaders" class="btn-upload" style="float: right; margin-right: 4px">
+          <img src="@/assets/icon/UploadOutlined.svg" class="upload-icon" />
+          {{ $t('import_flow') }}
+        </Button>
       </Upload>
     </div>
     <Table border :columns="tableColumns" :data="tableData"></Table>
@@ -24,6 +25,21 @@
 import axios from 'axios'
 import { setCookie, getCookie } from '@/pages//util/cookie'
 import { getCertification, deleteCertification } from '@/api/server'
+
+export const custom_api_enum = [
+  {
+    "url": '/platform/v1/plugin-certifications/${row.id}/export',
+    "method": 'get'
+  },
+  {
+    "url": '/auth/v1/api/token',
+    "method": 'get'
+  },
+  {
+    "url": "/platform/v1/plugin-certifications/import",
+    "method": "post"
+  }
+]
 export default {
   name: '',
   data() {

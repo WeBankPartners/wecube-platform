@@ -13,6 +13,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote/monitor"
+	"go.uber.org/zap"
 	"os"
 	"sort"
 	"strings"
@@ -25,7 +26,7 @@ import (
 func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransParam) (actions []*db.ExecAction, err error) {
 	lastConfirmTime, timeParseErr := time.ParseInLocation(models.DateTimeFormat, param.LastConfirmTime, time.Local)
 	if timeParseErr != nil {
-		log.Logger.Warn("AnalyzeCMDBDataExport try to parse lastConfirmTime fail", log.String("inputTime", param.LastConfirmTime), log.Error(timeParseErr))
+		log.Warn(nil, log.LOGGER_APP, "AnalyzeCMDBDataExport try to parse lastConfirmTime fail", zap.String("inputTime", param.LastConfirmTime), zap.Error(timeParseErr))
 		lastConfirmTime = time.Now()
 	}
 	param.LastConfirmTime = lastConfirmTime.Format(models.DateTimeFormat)
@@ -88,20 +89,20 @@ func AnalyzeCMDBDataExport(ctx context.Context, param *models.AnalyzeDataTransPa
 	}
 	ciTypeDataMap := make(map[string]*models.CiTypeData)
 	//filters := []*models.CiTypeDataFilter{{CiType: transConfig.EnvCiType, Condition: "in", GuidList: []string{param.Env}}}
-	log.Logger.Info("<--- start analyzeCMDBData --->")
+	log.Info(nil, log.LOGGER_APP, "<--- start analyzeCMDBData --->")
 	err = analyzeCMDB(param, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, ciTypeStateMap)
 	//err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string))
 	if err != nil {
-		log.Logger.Error("<--- fail analyzeCMDBData --->", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "<--- fail analyzeCMDBData --->", zap.Error(err))
 		return
 	}
-	log.Logger.Info("<--- done analyzeCMDBData --->")
+	log.Info(nil, log.LOGGER_APP, "<--- done analyzeCMDBData --->")
 	// 写入cmdb ci数据
 	for k, ciData := range ciTypeDataMap {
 		ciData.CiType = ciTypeMap[k]
 		ciData.Attributes = ciTypeAttrMap[k]
 		for chainKey, chainValue := range ciData.DataChainMap {
-			log.Logger.Debug("CMDB Analyze Chain --- ", log.String("dataGuid", chainKey), log.String("chain", chainValue))
+			log.Debug(nil, log.LOGGER_APP, "CMDB Analyze Chain --- ", zap.String("dataGuid", chainKey), zap.String("chain", chainValue))
 		}
 	}
 	actions = getInsertAnalyzeCMDBActions(param.TransExportId, ciTypeDataMap)
@@ -223,7 +224,7 @@ func analyzeCMDB(param *models.AnalyzeDataTransParam, ciTypeAttrMap map[string][
 			}
 		}
 	}
-	log.Logger.Info("analyze system data done", log.StringList("systemGuidList", systemGuidList))
+	log.Info(nil, log.LOGGER_APP, "analyze system data done", zap.Strings("systemGuidList", systemGuidList))
 	if len(systemGuidList) == 0 {
 		err = fmt.Errorf("can not find any system data with business and env")
 		return
@@ -236,7 +237,7 @@ func analyzeCMDB(param *models.AnalyzeDataTransParam, ciTypeAttrMap map[string][
 }
 
 func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig, parentMap map[string]string, lastConfirmTime, nowTime string, ciTypeStateMap map[string]string) (err error) {
-	log.Logger.Info("analyzeCMDBData", log.String("ciType", ciType), log.StringList("guidList", ciDataGuidList))
+	log.Info(nil, log.LOGGER_APP, "analyzeCMDBData", zap.String("ciType", ciType), zap.Strings("guidList", ciDataGuidList))
 	if len(ciDataGuidList) == 0 {
 		return
 	}
@@ -695,7 +696,7 @@ func QueryBusinessList(c context.Context, userToken, language string, param mode
 	}
 	// 系统初始化,DB都没有,隐藏掉 db查询报错展示
 	if result, err = remote.QueryBusinessList(query); err != nil && strings.Contains(err.Error(), "Query database fail") {
-		log.Logger.Error("QueryBusinessList err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "QueryBusinessList err", zap.Error(err))
 		err = nil
 	}
 	return
@@ -1282,7 +1283,7 @@ func DataTransExportArtifactData(ctx context.Context, transExportId string) (err
 		newDataBytes, _ := json.Marshal(dataList)
 		_, updateErr := db.MysqlEngine.Context(ctx).Exec("update trans_export_analyze_data set `data`=? where id=?", string(newDataBytes), transExportAnalyzeRows[0].Id)
 		if updateErr != nil {
-			log.Logger.Error("try to update export artifact analyze data fail ", log.Error(updateErr))
+			log.Error(nil, log.LOGGER_APP, "try to update export artifact analyze data fail ", zap.Error(updateErr))
 		}
 	}
 	return
@@ -1354,7 +1355,7 @@ func DataTransExportPluginConfig(ctx context.Context, transExportId, path string
 		return
 	}
 	if len(transExportAnalyzeRows) == 0 {
-		log.Logger.Warn("no analyze plugin package data found in database", log.String("transExportId", transExportId))
+		log.Warn(nil, log.LOGGER_APP, "no analyze plugin package data found in database", zap.String("transExportId", transExportId))
 		return
 	}
 	var analyzeData []*models.DataTransPluginExportData

@@ -9,7 +9,7 @@ import (
 )
 
 func RefreshRoute(c *gin.Context) {
-	log.Logger.Info("refresh route")
+	log.Info(nil, log.LOGGER_APP, "refresh route")
 	service.DynamicRouteConfigurationServiceInstance.RefreshRoutes()
 	support.ReturnSuccess(c)
 }
@@ -26,7 +26,7 @@ func ListLoadedRouteItems(c *gin.Context) {
 
 func DeleteRouteItems(c *gin.Context) {
 	routeName := c.Param("route-name")
-	log.Logger.Info(fmt.Sprintf("to delete route %v", routeName))
+	log.Info(nil, log.LOGGER_APP, fmt.Sprintf("to delete route %v", routeName))
 
 	service.DynamicRouteConfigurationServiceInstance.DeleteRouteItem(routeName)
 	support.ReturnSuccess(c)

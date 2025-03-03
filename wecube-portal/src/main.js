@@ -1,10 +1,18 @@
+/*
+ * @Author: wanghao7717 792974788@qq.com
+ * @Date: 2025-01-20 09:58:50
+ * @LastEditors: wanghao7717 792974788@qq.com
+ * @LastEditTime: 2025-03-03 16:21:29
+ * @FilePath: \wecube-platform\wecube-portal\src\main.js
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import { registerMicroApps, start, setDefaultMountApp } from 'qiankun'
 
 import ViewUI from 'view-design'
-import 'view-design/dist/styles/iview.css'
+import './styles/index.less'
 
 import VueI18n from 'vue-i18n'
 import { i18n } from './locale/i18n/index.js'

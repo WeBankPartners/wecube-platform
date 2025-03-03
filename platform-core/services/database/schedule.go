@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"go.uber.org/zap"
 	"strconv"
 	"strings"
 	"time"
@@ -106,7 +107,7 @@ func AddProcScheduleExecTimes(ctx context.Context, id string) {
 func GetProcScheduleConfigStatus(ctx context.Context, id string) (status string) {
 	queryRows, err := db.MysqlEngine.Context(ctx).QueryString("select status from proc_schedule_config where id=?", id)
 	if err != nil {
-		log.Logger.Error("GetProcScheduleConfigStatus query status fail", log.String("id", id), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "GetProcScheduleConfigStatus query status fail", zap.String("id", id), zap.Error(err))
 		return
 	}
 	if len(queryRows) > 0 {

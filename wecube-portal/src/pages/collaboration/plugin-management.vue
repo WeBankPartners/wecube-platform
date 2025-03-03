@@ -27,7 +27,10 @@
                 action="platform/v1/packages"
                 :headers="headers"
               >
-                <Button style="display: none" icon="ios-cloud-upload-outline">{{ $t('upload_plugin_btn') }}</Button>
+                <Button class="btn-upload" style="display: none">
+                  <img src="@/assets/icon/UploadOutlined.svg" class="upload-icon" />
+                  {{ $t('upload_plugin_btn') }}
+                </Button>
               </Upload>
             </div>
             <span v-if="showSuccess" style="color: #2b85e4">{{ $t('plugin_analysis') }}</span>
@@ -337,6 +340,25 @@ import RuntimesResources from './components/runtime-resource.vue'
 import AuthSettings from './components/auth-setting.vue'
 import { setCookie, getCookie } from '@/pages/util/cookie'
 import axios from 'axios'
+
+export const custom_api_enum = [
+  {
+    "url": "/auth/v1/api/token",
+    "method": "get"
+  },
+  {
+    "url": "/platform/v1/packages",
+    "method": "get"
+  },
+  {
+    "url": "/platform/v1/packages",
+    "method": "post"
+  },
+  {
+    "url": "/platform/v1/plugins/packages/import/${id}",
+    "method": "post"
+  }
+]
 const logTablePagination = {
   pageSize: 10,
   currentPage: 1,

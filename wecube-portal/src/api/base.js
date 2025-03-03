@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import axios from 'axios'
 import exportFile from '@/const/export-file'
-import { i18n } from '../locale/i18n/index.js'
 import { setCookie, getCookie, clearCookie } from '../pages/util/cookie'
 
 const baseURL = ''
@@ -148,19 +147,6 @@ req.interceptors.response.use(
       }
       // throwInfo(response)
       return response
-    }
-
-    if (err.response.status === 404) {
-      return new Promise(resolve => {
-        resolve({
-          data: throwError({
-            data: {
-              status: '404',
-              message: i18n.t('server_404_error')
-            }
-          })
-        })
-      })
     }
 
     return new Promise(resolve => {

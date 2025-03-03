@@ -179,7 +179,7 @@ export default {
           key: 'successCount',
           render: (h, params) => (
             <div>
-              <span style="color:#2d8cf0">{params.row.successCount}</span>
+              <span style="color:#5384ff">{params.row.successCount}</span>
               {params.row.successCount > 0 && (
                 <Button
                   style="margin-left:8px"
