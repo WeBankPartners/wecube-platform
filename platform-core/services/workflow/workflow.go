@@ -11,6 +11,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/execution"
+	"go.uber.org/zap"
 
 	"sync"
 	"time"
@@ -80,12 +81,12 @@ func (w *Workflow) Start(input *models.ProcOperation) {
 		sleepFlag = true
 	}
 	if killFlag {
-		log.WorkflowLogger.Info("<--workflow kill-->", log.String("wid", w.Id))
+		log.Info(nil, log.LOGGER_WORKFOLW, "<--workflow kill-->", zap.String("wid", w.Id))
 		<-w.doneChan
 	} else if sleepFlag {
-		log.WorkflowLogger.Info("<--workflow sleep-->", log.String("wid", w.Id))
+		log.Info(nil, log.LOGGER_WORKFOLW, "<--workflow sleep-->", zap.String("wid", w.Id))
 	} else {
-		log.WorkflowLogger.Info("<--workflow done-->", log.String("wid", w.Id))
+		log.Info(nil, log.LOGGER_WORKFOLW, "<--workflow done-->", zap.String("wid", w.Id))
 		w.setStatus(w.Status, nil)
 	}
 	GlobalWorkflowMap.Delete(w.Id)
@@ -108,7 +109,7 @@ func (w *Workflow) nodeDoneCallback(node *WorkNode) {
 			node.Input = getNodeInputData(node.Id)
 		}
 		decisionChose = node.Input
-		log.WorkflowLogger.Info("decision node receive choose", log.String("wid", w.Id), log.String("decisionChose", decisionChose))
+		log.Info(nil, log.LOGGER_WORKFOLW, "decision node receive choose", zap.String("wid", w.Id), zap.String("decisionChose", decisionChose))
 	}
 	if node.Err != nil {
 		w.updateErrorList(true, "", &models.WorkProblemErrObj{NodeId: node.Id, NodeName: node.Name, ErrMessage: node.Err.Error()})
@@ -231,7 +232,7 @@ func (w *Workflow) RetryNode(nodeId string, confirmFlag bool) {
 		}
 	}
 	if nodeObj == nil {
-		log.WorkflowLogger.Error("can not find node in workflow", log.String("node", nodeId), log.String("workflowId", w.Id))
+		log.Error(nil, log.LOGGER_WORKFOLW, "can not find node in workflow", zap.String("node", nodeId), zap.String("workflowId", w.Id))
 		return
 	}
 	nodeObj.Input = ""
@@ -259,7 +260,7 @@ func (w *Workflow) IgnoreNode(nodeId string) {
 		}
 	}
 	if nodeObj == nil {
-		log.WorkflowLogger.Error("can not find node in workflow", log.String("node", nodeId), log.String("workflowId", w.Id))
+		log.Error(nil, log.LOGGER_WORKFOLW, "can not find node in workflow", zap.String("node", nodeId), zap.String("workflowId", w.Id))
 		return
 	}
 	if nodeObj.JobType == models.JobTimeType || nodeObj.JobType == models.JobDateType {
@@ -283,7 +284,7 @@ func (w *Workflow) ApproveNode(nodeId, message string) {
 		}
 	}
 	if nodeObj == nil {
-		log.WorkflowLogger.Error("can not find node in workflow", log.String("node", nodeId), log.String("workflowId", w.Id))
+		log.Error(nil, log.LOGGER_WORKFOLW, "can not find node in workflow", zap.String("node", nodeId), zap.String("workflowId", w.Id))
 		return
 	}
 	nodeObj.Callback(message)
@@ -293,20 +294,20 @@ func (w *Workflow) heartbeat() {
 	t := time.NewTicker(10 * time.Second).C
 	for {
 		if w.ProcRunWorkflow.Sleep {
-			log.WorkflowLogger.Info("workflow heartbeat get quit with sleep flag", log.String("workflowId", w.Id))
+			log.Info(nil, log.LOGGER_WORKFOLW, "workflow heartbeat get quit with sleep flag", zap.String("workflowId", w.Id))
 			break
 		}
 		wStatus := w.getStatus()
 		if wStatus == models.JobStatusSuccess || wStatus == models.JobStatusKill || wStatus == models.JobStatusFail {
-			log.WorkflowLogger.Info("workflow heartbeat get quit status", log.String("workflowId", w.Id), log.String("status", wStatus))
+			log.Info(nil, log.LOGGER_WORKFOLW, "workflow heartbeat get quit status", zap.String("workflowId", w.Id), zap.String("status", wStatus))
 			break
 		}
 		if _, err := db.WorkflowMysqlEngine.Exec("update proc_run_workflow set host=?,last_alive_time=? where id=?", instanceHost, time.Now(), w.Id); err != nil {
-			log.WorkflowLogger.Error("workflow heartbeat update alive time fail", log.String("workflowId", w.Id), log.Error(err))
+			log.Error(nil, log.LOGGER_WORKFOLW, "workflow heartbeat update alive time fail", zap.String("workflowId", w.Id), zap.Error(err))
 		}
 		<-t
 	}
-	log.WorkflowLogger.Info("workflow heartbeat quit", log.String("workflowId", w.Id))
+	log.Info(nil, log.LOGGER_WORKFOLW, "workflow heartbeat quit", zap.String("workflowId", w.Id))
 }
 
 type WorkNode struct {
@@ -331,13 +332,13 @@ func (n *WorkNode) Init(w *Workflow) {
 }
 
 func (n *WorkNode) Ready() {
-	log.WorkflowLogger.Info("init job", log.String("nodeId", n.Id))
+	log.Info(nil, log.LOGGER_WORKFOLW, "init job", zap.String("nodeId", n.Id))
 	select {
 	case <-n.Ctx.Done():
-		log.WorkflowLogger.Info("job cancel", log.String("nodeId", n.Id))
+		log.Info(nil, log.LOGGER_WORKFOLW, "job cancel", zap.String("nodeId", n.Id))
 		return
 	case <-n.StartChan:
-		log.WorkflowLogger.Info("ready job ", log.String("nodeId", n.Id))
+		log.Info(nil, log.LOGGER_WORKFOLW, "ready job ", zap.String("nodeId", n.Id))
 	}
 	if n.StartTime.IsZero() {
 		n.StartTime = time.Now()
@@ -351,14 +352,14 @@ func (n *WorkNode) Ready() {
 			n.Status = models.JobStatusTimeout
 			updateNodeDB(&n.ProcRunNode)
 		case <-n.DoneChan:
-			log.WorkflowLogger.Info("<--- done node", log.String("id", n.Id), log.String("type", n.JobType))
+			log.Info(nil, log.LOGGER_WORKFOLW, "<--- done node", zap.String("id", n.Id), zap.String("type", n.JobType))
 		}
 	} else {
 		<-n.DoneChan
-		log.WorkflowLogger.Info("<--- done node", log.String("id", n.Id), log.String("type", n.JobType))
+		log.Info(nil, log.LOGGER_WORKFOLW, "<--- done node", zap.String("id", n.Id), zap.String("type", n.JobType))
 	}
 	if n.Err != nil {
-		log.WorkflowLogger.Error("node error", log.String("id", n.Id), log.Error(n.Err))
+		log.Error(nil, log.LOGGER_WORKFOLW, "node error", zap.String("id", n.Id), zap.Error(n.Err))
 	}
 	n.workflow.nodeDoneCallback(n)
 }
@@ -390,7 +391,7 @@ func (n *WorkNode) start() {
 			}
 		}
 	}
-	log.WorkflowLogger.Info("---> start node", log.String("id", n.Id), log.String("type", n.JobType), log.String("input", n.Input))
+	log.Info(nil, log.LOGGER_WORKFOLW, "---> start node", zap.String("id", n.Id), zap.String("type", n.JobType), zap.String("input", n.Input))
 	if !retryFlag {
 		n.Status = models.JobStatusRunning
 		updateNodeDB(&n.ProcRunNode)
@@ -424,13 +425,13 @@ func (n *WorkNode) start() {
 			}
 		}
 		if needStartCount > 1 {
-			log.WorkflowLogger.Info("merge wait other signal", log.Int("wait signal num", needStartCount-1))
+			log.Info(nil, log.LOGGER_WORKFOLW, "merge wait other signal", zap.Int("wait signal num", needStartCount-1))
 			n.Status = "wait"
 			updateNodeDB(&n.ProcRunNode)
 			for needStartCount > 1 {
 				<-n.StartChan
 				needStartCount = needStartCount - 1
-				log.WorkflowLogger.Info("merge get another signal", log.Int("wait signal num", needStartCount-1))
+				log.Info(nil, log.LOGGER_WORKFOLW, "merge get another signal", zap.Int("wait signal num", needStartCount-1))
 			}
 		}
 	case models.JobTimeType:
@@ -451,7 +452,7 @@ func (n *WorkNode) start() {
 				//n.Err = fmt.Errorf("dicision type receive empty choose")
 			}
 			if tmpErr := updateNodeInputData(n.Id, n.Input); tmpErr != nil {
-				log.WorkflowLogger.Error("updateNodeInputData for decision job fail", log.Error(tmpErr))
+				log.Error(nil, log.LOGGER_WORKFOLW, "updateNodeInputData for decision job fail", zap.Error(tmpErr))
 			}
 		}
 	case models.JobSubProcType:
@@ -481,7 +482,7 @@ func (n *WorkNode) start() {
 }
 
 func (n *WorkNode) doAutoJob() (output string, err error) {
-	log.WorkflowLogger.Info("do auto job", log.String("nodeId", n.Id), log.String("input", n.Input))
+	log.Info(nil, log.LOGGER_WORKFOLW, "do auto job", zap.String("nodeId", n.Id), zap.String("input", n.Input))
 	continueToken := ""
 	if n.ConfirmFlag {
 		continueToken = "Y"
@@ -493,22 +494,22 @@ func (n *WorkNode) doAutoJob() (output string, err error) {
 		n.ErrorMessage = err.Error()
 	}
 	if err != nil {
-		log.WorkflowLogger.Error("do auto job error", log.Error(err))
+		log.Error(nil, log.LOGGER_WORKFOLW, "do auto job error", zap.Error(err))
 	}
 	return
 }
 
 func (n *WorkNode) doDataJob() (output string, err error) {
-	log.WorkflowLogger.Info("do data job", log.String("nodeId", n.Id), log.String("input", n.Input))
+	log.Info(nil, log.LOGGER_WORKFOLW, "do data job", zap.String("nodeId", n.Id), zap.String("input", n.Input))
 	err = execution.DoWorkflowDataJob(n.Ctx, n.Id)
 	if err != nil {
-		log.WorkflowLogger.Error("do data job error", log.Error(err))
+		log.Error(nil, log.LOGGER_WORKFOLW, "do data job error", zap.Error(err))
 	}
 	return
 }
 
 func (n *WorkNode) doHumanJob(recoverFlag bool) (output string, err error) {
-	log.WorkflowLogger.Info("do human job", log.String("nodeId", n.Id), log.String("input", n.Input))
+	log.Info(nil, log.LOGGER_WORKFOLW, "do human job", zap.String("nodeId", n.Id), zap.String("input", n.Input))
 	// call task
 	//if recoverFlag {
 	//	if n.ErrorMessage != "" {
@@ -518,7 +519,7 @@ func (n *WorkNode) doHumanJob(recoverFlag bool) (output string, err error) {
 	//}
 	err = execution.DoWorkflowHumanJob(n.Ctx, n.Id, recoverFlag)
 	if err != nil {
-		log.WorkflowLogger.Error("do human job error", log.Error(err))
+		log.Error(nil, log.LOGGER_WORKFOLW, "do human job error", zap.Error(err))
 		return
 	}
 	// wait callback
@@ -533,7 +534,7 @@ func (n *WorkNode) doHumanJob(recoverFlag bool) (output string, err error) {
 }
 
 func (n *WorkNode) doTimeJob(recoverFlag bool) (output string, err error) {
-	log.WorkflowLogger.Info("do time job", log.String("nodeId", n.Id), log.String("input", n.Input))
+	log.Info(nil, log.LOGGER_WORKFOLW, "do time job", zap.String("nodeId", n.Id), zap.String("input", n.Input))
 	var timeConfig models.TimeNodeParam
 	if err = json.Unmarshal([]byte(n.Input), &timeConfig); err != nil {
 		err = fmt.Errorf("time node param:%s json unmarshal fail,%s ", n.Input, err.Error())
@@ -567,34 +568,34 @@ func (n *WorkNode) doTimeJob(recoverFlag bool) (output string, err error) {
 	if recoverFlag {
 		nowSubSec := time.Since(n.StartTime).Seconds()
 		if nowSubSec > timeDuration.Seconds() {
-			log.WorkflowLogger.Info("time job already start,now time match done", log.String("startTime", n.StartTime.Format(models.DateTimeFormat)), log.Float64("waitSec", timeDuration.Seconds()))
+			log.Info(nil, log.LOGGER_WORKFOLW, "time job already start,now time match done", zap.String("startTime", n.StartTime.Format(models.DateTimeFormat)), zap.Float64("waitSec", timeDuration.Seconds()))
 		} else {
 			newTimeDuration := time.Duration(timeDuration.Seconds()-nowSubSec) * time.Second
 			select {
 			case <-time.After(newTimeDuration):
-				log.WorkflowLogger.Info("time job success done", log.String("nodeId", n.Id))
+				log.Info(nil, log.LOGGER_WORKFOLW, "time job success done", zap.String("nodeId", n.Id))
 			case <-n.ContinueChan:
-				log.WorkflowLogger.Info("time job continue before done", log.String("nodeId", n.Id))
+				log.Info(nil, log.LOGGER_WORKFOLW, "time job continue before done", zap.String("nodeId", n.Id))
 			}
 		}
 	} else {
 		endDate := time.Unix(time.Now().Unix()+int64(waitSec), 0).Format(models.DateTimeFormat)
 		n.Output = endDate
 		if _, updateTimeOutputErr := db.WorkflowMysqlEngine.Exec("update proc_run_node set `output`=?,updated_time=? where id=?", endDate, time.Now(), n.Id); updateTimeOutputErr != nil {
-			log.WorkflowLogger.Error("update time job output fail", log.String("nodeId", n.Id), log.String("endDate", endDate), log.Error(updateTimeOutputErr))
+			log.Error(nil, log.LOGGER_WORKFOLW, "update time job output fail", zap.String("nodeId", n.Id), zap.String("endDate", endDate), zap.Error(updateTimeOutputErr))
 		}
 		select {
 		case <-time.After(timeDuration):
-			log.WorkflowLogger.Info("time job success done", log.String("nodeId", n.Id))
+			log.Info(nil, log.LOGGER_WORKFOLW, "time job success done", zap.String("nodeId", n.Id))
 		case <-n.ContinueChan:
-			log.WorkflowLogger.Info("time job continue before done", log.String("nodeId", n.Id))
+			log.Info(nil, log.LOGGER_WORKFOLW, "time job continue before done", zap.String("nodeId", n.Id))
 		}
 	}
 	return
 }
 
 func (n *WorkNode) doDateJob(recoverFlag bool) (output string, err error) {
-	log.WorkflowLogger.Info("do date job", log.String("nodeId", n.Id), log.String("input", n.Input), log.Bool("recover", recoverFlag))
+	log.Info(nil, log.LOGGER_WORKFOLW, "do date job", zap.String("nodeId", n.Id), zap.String("input", n.Input), zap.Bool("recover", recoverFlag))
 	var timeConfig models.TimeNodeParam
 	if err = json.Unmarshal([]byte(n.Input), &timeConfig); err != nil {
 		err = fmt.Errorf("time node param:%s json unmarshal fail,%s ", n.Input, err.Error())
@@ -607,7 +608,7 @@ func (n *WorkNode) doDateJob(recoverFlag bool) (output string, err error) {
 	}
 	n.Output = timeConfig.Date
 	if _, updateTimeOutputErr := db.WorkflowMysqlEngine.Exec("update proc_run_node set `output`=?,updated_time=? where id=?", timeConfig.Date, time.Now(), n.Id); updateTimeOutputErr != nil {
-		log.WorkflowLogger.Error("update date job output fail", log.String("nodeId", n.Id), log.String("endDate", timeConfig.Date), log.Error(updateTimeOutputErr))
+		log.Error(nil, log.LOGGER_WORKFOLW, "update date job output fail", zap.String("nodeId", n.Id), zap.String("endDate", timeConfig.Date), zap.Error(updateTimeOutputErr))
 	}
 	timeSub := t.Unix() - time.Now().Unix()
 	if timeSub < 0 {
@@ -615,9 +616,9 @@ func (n *WorkNode) doDateJob(recoverFlag bool) (output string, err error) {
 	} else {
 		select {
 		case <-time.After(time.Duration(timeSub) * time.Second):
-			log.WorkflowLogger.Info("date job success done", log.String("nodeId", n.Id))
+			log.Info(nil, log.LOGGER_WORKFOLW, "date job success done", zap.String("nodeId", n.Id))
 		case <-n.ContinueChan:
-			log.WorkflowLogger.Info("date job continue before done", log.String("nodeId", n.Id))
+			log.Info(nil, log.LOGGER_WORKFOLW, "date job continue before done", zap.String("nodeId", n.Id))
 		}
 	}
 	return
@@ -629,20 +630,20 @@ func waitSubProc(ctx context.Context, workNodeId string) {
 		<-t
 		runningRows, tmpErr := database.CheckProcSubRunning(ctx, workNodeId)
 		if tmpErr != nil {
-			log.WorkflowLogger.Error("doSubProcessJob recover check fail", log.String("procRunNodeId", workNodeId), log.Error(tmpErr))
+			log.Error(nil, log.LOGGER_WORKFOLW, "doSubProcessJob recover check fail", zap.String("procRunNodeId", workNodeId), zap.Error(tmpErr))
 			continue
 		}
 		if len(runningRows) > 0 {
-			log.WorkflowLogger.Debug("doSubProcessJob recover check continue", log.String("procRunNodeId", workNodeId), log.Int("runningSubProcessNum", len(runningRows)))
+			log.Debug(nil, log.LOGGER_WORKFOLW, "doSubProcessJob recover check continue", zap.String("procRunNodeId", workNodeId), zap.Int("runningSubProcessNum", len(runningRows)))
 			continue
 		}
 		break
 	}
-	log.WorkflowLogger.Info("doSubProcessJob recover done", log.String("procRunNodeId", workNodeId))
+	log.Info(nil, log.LOGGER_WORKFOLW, "doSubProcessJob recover done", zap.String("procRunNodeId", workNodeId))
 }
 
 func (n *WorkNode) doSubProcessJob(recoverFlag bool) (output string, err error) {
-	log.WorkflowLogger.Info("do sub process job", log.String("nodeId", n.Id), log.String("input", n.Input))
+	log.Info(nil, log.LOGGER_WORKFOLW, "do sub process job", zap.String("nodeId", n.Id), zap.String("input", n.Input))
 	ctx := context.WithValue(n.Ctx, models.TransactionIdHeader, n.Id)
 	if recoverFlag {
 		waitSubProc(ctx, n.Id)
@@ -681,7 +682,7 @@ func (n *WorkNode) doSubProcessJob(recoverFlag bool) (output string, err error) 
 			}
 		}
 		if len(dataBindings) == 0 {
-			log.WorkflowLogger.Warn("sub process job return with empty binding data", log.String("procIns", procInsNode.ProcInsId), log.String("procInsNode", procInsNode.Id))
+			log.Warn(nil, log.LOGGER_WORKFOLW, "sub process job return with empty binding data", zap.String("procIns", procInsNode.ProcInsId), zap.String("procInsNode", procInsNode.Id))
 			// 无数据，空跑
 			return
 		}
@@ -738,7 +739,7 @@ func (n *WorkNode) doSubProcessJob(recoverFlag bool) (output string, err error) 
 					ParentInsNodeId:   procInsNode.Id,
 					ParentRunNodeId:   n.Id,
 				}
-				log.WorkflowLogger.Debug("doSubProcessJob", log.Int("i", i), log.JsonObj("tmpCreateInsParam", tmpCreateInsParam))
+				log.Debug(nil, log.LOGGER_WORKFOLW, "doSubProcessJob", zap.Int("i", i), log.JsonObj("tmpCreateInsParam", tmpCreateInsParam))
 				// 新增 proc_ins,proc_ins_node,proc_data_binding 纪录
 				subProcInsId, subWorkflowRow, subWorkNodes, subWorkLinks, tmpCreateInsErr := database.CreateProcInstance(context.WithValue(n.Ctx, models.TransactionIdHeader, fmt.Sprintf("%s_%d", n.Id, i)), &tmpCreateInsParam, operator)
 				if tmpCreateInsErr != nil {
@@ -758,7 +759,7 @@ func (n *WorkNode) doSubProcessJob(recoverFlag bool) (output string, err error) 
 				err = fmt.Errorf("UpdateProcRunNodeSubProc fail,%s ", err.Error())
 				return
 			}
-			log.WorkflowLogger.Debug("start sub proc")
+			log.Debug(nil, log.LOGGER_WORKFOLW, "start sub proc")
 			//wg := sync.WaitGroup{}
 			//for i, workObj := range subWorkflowList {
 			//	wg.Add(1)
@@ -766,7 +767,7 @@ func (n *WorkNode) doSubProcessJob(recoverFlag bool) (output string, err error) 
 			//		wo.Init(context.Background(), nl, wo.Links)
 			//		wo.Start(&models.ProcOperation{CreatedBy: operator})
 			//		wg.Done()
-			//		log.WorkflowLogger.Debug("sub proc done", log.String("subWorkflowId", wo.Id))
+			//		log.Debug(nil, log.LOGGER_WORKFOLW, "sub proc done", zap.String("subWorkflowId", wo.Id))
 			//	}(workObj, subWorkNodeList[i])
 			//}
 			//wg.Wait()
@@ -774,11 +775,11 @@ func (n *WorkNode) doSubProcessJob(recoverFlag bool) (output string, err error) 
 				go func(wo *Workflow, nl []*models.ProcRunNode) {
 					wo.Init(context.Background(), nl, wo.Links)
 					wo.Start(&models.ProcOperation{CreatedBy: operator})
-					log.WorkflowLogger.Debug("sub proc done", log.String("subWorkflowId", wo.Id))
+					log.Debug(nil, log.LOGGER_WORKFOLW, "sub proc done", zap.String("subWorkflowId", wo.Id))
 				}(workObj, subWorkNodeList[i])
 			}
 			waitSubProc(ctx, n.Id)
-			log.WorkflowLogger.Info("sub proc wait done")
+			log.Info(nil, log.LOGGER_WORKFOLW, "sub proc wait done")
 		}
 	}
 	// 获取子编排的结果
@@ -828,7 +829,7 @@ func updateWorkflowDB(w *models.ProcRunWorkflow, op *models.ProcOperation) {
 	actions = append(actions, &db.ExecAction{Sql: "update proc_ins set status=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{w.Status, op.CreatedBy, nowTime, w.ProcInsId}})
 	actions = append(actions, &db.ExecAction{Sql: "insert into proc_run_work_record(workflow_id,host,`action`,message,created_by,created_time) values (?,?,?,?,?,?)", Param: []interface{}{w.Id, instanceHost, w.Status, op.Message, op.CreatedBy, nowTime}})
 	if err := db.Transaction(actions, op.Ctx); err != nil {
-		log.WorkflowLogger.Error("record workflow state fail", log.String("workflowId", w.Id), log.Error(err))
+		log.Error(nil, log.LOGGER_WORKFOLW, "record workflow state fail", zap.String("workflowId", w.Id), zap.Error(err))
 	}
 }
 
@@ -838,7 +839,7 @@ func updateNodeDB(n *models.ProcRunNode) {
 	nowTime := time.Now()
 	if n.Id != "" && n.ProcInsNodeId == "" {
 		if runNode, getErr := getRunNodeRow(n.Id); getErr != nil {
-			log.WorkflowLogger.Error("record node try to get procInsNodeId fail", log.String("nodeId", n.Id), log.Error(getErr))
+			log.Error(nil, log.LOGGER_WORKFOLW, "record node try to get procInsNodeId fail", zap.String("nodeId", n.Id), zap.Error(getErr))
 		} else {
 			if runNode != nil {
 				n.ProcInsNodeId = runNode.ProcInsNodeId
@@ -869,7 +870,7 @@ func updateNodeDB(n *models.ProcRunNode) {
 	}
 	err = db.Transaction(actions, context.Background())
 	if err != nil {
-		log.WorkflowLogger.Error("record node state fail", log.String("nodeId", n.Id), log.Error(err))
+		log.Error(nil, log.LOGGER_WORKFOLW, "record node state fail", zap.String("nodeId", n.Id), zap.Error(err))
 	}
 }
 

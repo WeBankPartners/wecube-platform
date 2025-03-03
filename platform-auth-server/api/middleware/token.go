@@ -3,6 +3,7 @@ package middleware
 import (
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"net/http"
 	"strings"
 
@@ -39,8 +40,7 @@ func AuthApi(authoritiesFetcher GetAuthorities) gin.HandlerFunc {
 			//apiUri := c.Request.URL.Path[len(constant.UrlPrefix):]
 			authClaim, err := getTokenData(c.GetHeader(constant.AuthorizationHeader))
 			if err != nil {
-				log.Logger.Warn("failed to validate jwt token", log.Error(err))
-				//support.ReturnErrorWithHttpCode(c, exterror.Catch(exterror.New().AuthManagerTokenError, err), http.StatusUnauthorized)
+				log.Warn(nil, log.LOGGER_APP, "failed to validate jwt token", zap.Error(err))
 				support.ReturnErrorWithHttpCode(c, errors.New("failed to validate jwt token"), http.StatusUnauthorized)
 
 				c.Abort()
@@ -52,7 +52,7 @@ func AuthApi(authoritiesFetcher GetAuthorities) gin.HandlerFunc {
 					urlPath != constant.UrlPrefix+constant.UriListApplyByApplier &&
 					urlPath != constant.UrlPrefix+constant.UriApplyByApplier &&
 					!(urlPath == constant.UrlPrefix+constant.UriRoles && c.Request.Method == http.MethodGet) {
-					log.Logger.Warn("jwt token need register", log.String("path", c.Request.URL.Path))
+					log.Warn(nil, log.LOGGER_APP, "jwt token need register", zap.String("path", c.Request.URL.Path))
 					support.ReturnErrorWithHttpCode(c, errors.New("jwt token need register"), http.StatusUnauthorized)
 					c.Abort()
 					return
@@ -84,7 +84,7 @@ func AuthApi(authoritiesFetcher GetAuthorities) gin.HandlerFunc {
 				c.Next()
 			} else {
 				errStr := "user don't have authority to access"
-				log.Logger.Warn(errStr)
+				log.Warn(nil, log.LOGGER_APP, errStr)
 				support.ReturnErrorWithHttpCode(c, fmt.Errorf(errStr), http.StatusForbidden)
 				c.Abort()
 			}

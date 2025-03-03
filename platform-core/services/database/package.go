@@ -855,7 +855,7 @@ func UpdatePluginStaticResourceFiles(ctx context.Context, pluginPackageId, plugi
 func GetPluginResourceFiles(ctx context.Context) (result []*models.PluginPackageResourceFiles, err error) {
 	result = []*models.PluginPackageResourceFiles{}
 	//err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_resource_files where plugin_package_id in (SELECT t1.id FROM plugin_packages t1 where t1.ui_package_included=1 and t1.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t1.upload_timestamp = (SELECT MAX(t2.upload_timestamp) FROM plugin_packages t2 WHERE t2.status IN ('REGISTERED' ,'RUNNING', 'STOPPED') AND t2.name = t1.name GROUP BY t2.name))").Find(&result)
-	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_resource_files where plugin_package_id in (select id from plugin_packages where status='REGISTERED' and ui_active=1)").Find(&result)
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_resource_files where plugin_package_id in (select id from plugin_packages where status='REGISTERED' and ui_active=1) and package_name in (select name from plugin_packages where id in (select package_id from plugin_instances))").Find(&result)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	}
@@ -1115,7 +1115,14 @@ func InheritPluginConfig(ctx context.Context, param *models.InheritPluginConfigP
 		interfaceIdMap := make(map[string]string)
 		newConfigGuidList := guid.CreateGuidList(len(sourceConfigRows))
 		newInterfaceGuidList := guid.CreateGuidList(len(sourceInterfaceRows))
+		sourceInterfaceMap := make(map[string]string) // key:id value:path
+		sourceInterfaceParamMap := make(map[string][]*models.PluginConfigInterfaceParameters)
 		nowTime := time.Now()
+		baseInterfaceParamMap, getBaseDataErr := getBasePluginConfigData(ctx, param.PluginPackageId)
+		if getBaseDataErr != nil {
+			err = getBaseDataErr
+			return
+		}
 		actions = append(actions, getPluginConfigDeleteActions(param.PluginPackageId)...)
 		for i, row := range sourceConfigRows {
 			newConfigGuid := "p_config_" + newConfigGuidList[i]
@@ -1130,17 +1137,50 @@ func InheritPluginConfig(ctx context.Context, param *models.InheritPluginConfigP
 			actions = append(actions, &db.ExecAction{Sql: "insert into plugin_config_interfaces (id,plugin_config_id,action,service_name,service_display_name,path,http_method,is_async_processing,type,filter_rule,description) values (?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 				newInterfaceGuid, configIdMap[row.PluginConfigId], row.Action, row.ServiceName, row.ServiceDisplayName, row.Path, row.HttpMethod, row.IsAsyncProcessing, row.Type, row.FilterRule, row.Description,
 			}})
+			sourceInterfaceMap[row.Id] = row.Path
 		}
 		for _, row := range sourceParamRows {
 			newParamId := "p_conf_inf_param_" + guid.CreateGuid()
 			actions = append(actions, &db.ExecAction{Sql: "insert into plugin_config_interface_parameters (id,plugin_config_interface_id,type,name,data_type,mapping_type,mapping_entity_expression,mapping_system_variable_name,required,sensitive_data,description,mapping_val,ref_object_name,multiple ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 				newParamId, interfaceIdMap[row.PluginConfigInterfaceId], row.Type, row.Name, row.DataType, row.MappingType, row.MappingEntityExpression, row.MappingSystemVariableName, row.Required, row.SensitiveData, row.Description, row.MappingVal, row.RefObjectName, row.Multiple,
 			}})
+			interPath := sourceInterfaceMap[row.PluginConfigInterfaceId]
+			if existList, ok := sourceInterfaceParamMap[interPath]; ok {
+				sourceInterfaceParamMap[interPath] = append(existList, row)
+			} else {
+				sourceInterfaceParamMap[interPath] = []*models.PluginConfigInterfaceParameters{row}
+			}
 		}
 		for _, row := range sourcePermissionRows {
 			actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_config_roles (id,is_active,perm_type,plugin_cfg_id,role_id,role_name,created_by,created_time,updated_by,updated_time) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 				"p_conf_rol_" + guid.CreateGuid(), row.IsActive, row.PermType, configIdMap[row.PluginCfgId], row.RoleId, row.RoleName, operator, nowTime, operator, nowTime,
 			}})
+		}
+		for sourceInterPath, sourceInterParams := range sourceInterfaceParamMap {
+			if baseInterParams, ok := baseInterfaceParamMap[sourceInterPath]; ok {
+				for _, baseParam := range baseInterParams {
+					existFlag := false
+					for _, sourceParam := range sourceInterParams {
+						if baseParam.Type == sourceParam.Type && baseParam.Name == sourceParam.Name {
+							existFlag = true
+							break
+						}
+					}
+					if !existFlag {
+						tmpSourceInterIdMap := make(map[string]int)
+						for _, sourceInterParam := range sourceInterParams {
+							if _, pass := tmpSourceInterIdMap[sourceInterParam.PluginConfigInterfaceId]; pass {
+								continue
+							}
+							tmpSourceInterIdMap[sourceInterParam.PluginConfigInterfaceId] = 1
+							newParamId := "p_conf_inf_param_" + guid.CreateGuid()
+							actions = append(actions, &db.ExecAction{Sql: "insert into plugin_config_interface_parameters (id,plugin_config_interface_id,type,name,data_type,mapping_type,mapping_entity_expression,mapping_system_variable_name,required,sensitive_data,description,mapping_val,ref_object_name,multiple ) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+								newParamId, interfaceIdMap[sourceInterParam.PluginConfigInterfaceId], baseParam.Type, baseParam.Name, baseParam.DataType, baseParam.MappingType, baseParam.MappingEntityExpression, baseParam.MappingSystemVariableName, baseParam.Required, baseParam.SensitiveData, baseParam.Description, baseParam.MappingVal, baseParam.RefObjectName, baseParam.Multiple,
+							}})
+						}
+					}
+				}
+			}
 		}
 	}
 	// 继承系统参数

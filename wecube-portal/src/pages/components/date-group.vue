@@ -97,7 +97,7 @@ export default {
     font-size: 12px !important;
   }
   .ivu-radio-wrapper-checked.ivu-radio-border {
-    background-color: #2d8cf0;
+    background-color: #5384ff;
     color: #fff;
   }
 }
