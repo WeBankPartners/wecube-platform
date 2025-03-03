@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/network"
+	"go.uber.org/zap"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -278,12 +279,12 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 		}
 		if i == exprLastIndex && rootFilter.Index == i && len(lastQueryResult) > 0 {
 			// 表达式与根表达式一样
-			log.Logger.Debug("QueryPluginFullData expr same with root", log.Int("index", i), log.Int("rootIndex", rootFilter.Index), log.JsonObj("lastQueryResult", lastQueryResult))
+			log.Debug(nil, log.LOGGER_APP, "QueryPluginFullData expr same with root", zap.Int("index", i), zap.Int("rootIndex", rootFilter.Index), log.JsonObj("lastQueryResult", lastQueryResult))
 			rootEntityNode.LastFlag = true
 			resultNodeList = append(resultNodeList, rootEntityNode)
 			continue
 		}
-		log.Logger.Debug("QueryPluginFullData expr", log.Int("index", i), log.Int("rootIndex", rootFilter.Index), log.JsonObj("tmpLeftDataMap", tmpLeftDataMap))
+		log.Debug(nil, log.LOGGER_APP, "QueryPluginFullData expr", zap.Int("index", i), zap.Int("rootIndex", rootFilter.Index), log.JsonObj("tmpLeftDataMap", tmpLeftDataMap))
 		if i > rootFilter.Index && len(lastQueryResult) > 0 {
 			for _, rowData := range lastQueryResult {
 				rowDataId := rowData["id"].(string)
@@ -304,7 +305,7 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 					}
 				}
 				if exprObj.LeftJoinColumn != "" {
-					log.Logger.Debug("QueryPluginFullData handle row,LeftJoinColumn", log.String("id", rowDataId), log.String("LeftJoinColumn", exprObj.LeftJoinColumn))
+					log.Debug(nil, log.LOGGER_APP, "QueryPluginFullData handle row,LeftJoinColumn", zap.String("id", rowDataId), zap.String("LeftJoinColumn", exprObj.LeftJoinColumn))
 					if leftMapDataId, ok := tmpLeftDataMap[rowDataId]; ok {
 						dataFullIdMap[rowDataId] = dataFullIdMap[leftMapDataId] + "::" + rowDataId
 						if existPreList, existPreKey := nodePreviousMap[rowDataId]; existPreKey {
@@ -320,7 +321,7 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 					}
 				}
 				if exprObj.RightJoinColumn != "" {
-					log.Logger.Debug("QueryPluginFullData handle row,RightJoinColumn1", log.String("id", rowDataId), log.String("RightJoinColumn", exprObj.LeftJoinColumn))
+					log.Debug(nil, log.LOGGER_APP, "QueryPluginFullData handle row,RightJoinColumn1", zap.String("id", rowDataId), zap.String("RightJoinColumn", exprObj.LeftJoinColumn))
 					if matchAttrData, ok := rowData[exprObj.RightJoinColumn]; ok {
 						attrIdList := getInterfaceStringList(matchAttrData)
 						tmpMatchRightFullDataId := ""
@@ -332,7 +333,7 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 								break
 							}
 						}
-						log.Logger.Debug("QueryPluginFullData handle row,RightJoinColumn2", log.StringList("attrIdList", attrIdList), log.String("tmpMatchRightFullDataId", tmpMatchRightFullDataId))
+						log.Debug(nil, log.LOGGER_APP, "QueryPluginFullData handle row,RightJoinColumn2", zap.Strings("attrIdList", attrIdList), zap.String("tmpMatchRightFullDataId", tmpMatchRightFullDataId))
 						if tmpMatchRightFullDataId != "" {
 							dataFullIdMap[rowDataId] = tmpMatchRightFullDataId + "::" + rowDataId
 							if existPreList, existPreKey := nodePreviousMap[rowDataId]; existPreKey {
@@ -353,7 +354,7 @@ func QueryPluginFullData(ctx context.Context, exprList []*models.ExpressionObj, 
 		tmpQueryResult = lastQueryResult
 	}
 	for k, v := range dataFullIdMap {
-		log.Logger.Debug("dataFullIdMap", log.String("k", k), log.String("v", v))
+		log.Debug(nil, log.LOGGER_APP, "dataFullIdMap", zap.String("k", k), zap.String("v", v))
 	}
 	for _, v := range resultNodeList {
 		v.FullDataId = dataFullIdMap[v.DataId]
@@ -391,7 +392,7 @@ func RequestPluginModelData(ctx context.Context, packageName, entity, token stri
 	for _, v := range filters {
 		if v.Op == "in" && v.Condition == nil {
 			v.Condition = []interface{}{}
-			log.Logger.Info("RequestPluginModelData trans filter value to []interface{} ", log.String("name", v.AttrName), log.String("op", v.Op))
+			log.Info(nil, log.LOGGER_APP, "RequestPluginModelData trans filter value to []interface{} ", zap.String("name", v.AttrName), zap.String("op", v.Op))
 		}
 	}
 	queryParam := models.EntityQueryParam{AdditionalFilters: filters}
@@ -415,7 +416,7 @@ func RequestPluginModelData(ctx context.Context, packageName, entity, token stri
 	req.Header.Set(models.AuthorizationHeader, token)
 	req.Header.Set("Content-type", "application/json")
 	startTime := time.Now()
-	log.Logger.Info("Start remote modelData request --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.JsonObj("Authorization", token), log.String("requestBody", string(postBytes)))
+	log.Info(nil, log.LOGGER_APP, "Start remote modelData request --->>> ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("method", http.MethodPost), zap.String("url", urlObj.String()), log.JsonObj("Authorization", token), zap.String("requestBody", string(postBytes)))
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("do request fail,%s ", respErr.Error())
@@ -428,9 +429,9 @@ func RequestPluginModelData(ctx context.Context, packageName, entity, token stri
 		}
 		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
 		if err != nil {
-			log.Logger.Error("End remote modelData request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "End remote modelData request <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.Error(err))
 		} else {
-			log.Logger.Info("End remote modelData request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(responseBodyBytes)))
+			log.Info(nil, log.LOGGER_APP, "End remote modelData request <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.String("response", string(responseBodyBytes)))
 		}
 	}()
 	if resp.StatusCode != http.StatusOK {
@@ -479,7 +480,7 @@ func CreatePluginModelData(ctx context.Context, packageName, entity, token, oper
 		req.Header.Set(models.OperationHeader, operation)
 	}
 	startTime := time.Now()
-	log.Logger.Info("Start remote modelData create --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.String("operation", operation), log.JsonObj("Authorization", token), log.String("requestBody", string(postBytes)))
+	log.Info(nil, log.LOGGER_APP, "Start remote modelData create --->>> ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("method", http.MethodPost), zap.String("url", urlObj.String()), zap.String("operation", operation), log.JsonObj("Authorization", token), zap.String("requestBody", string(postBytes)))
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("do request fail,%s ", respErr.Error())
@@ -492,9 +493,9 @@ func CreatePluginModelData(ctx context.Context, packageName, entity, token, oper
 		}
 		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
 		if err != nil {
-			log.Logger.Error("End remote modelData create <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "End remote modelData create <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.Error(err))
 		} else {
-			log.Logger.Info("End remote modelData create <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(responseBodyBytes)))
+			log.Info(nil, log.LOGGER_APP, "End remote modelData create <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.String("response", string(responseBodyBytes)))
 		}
 	}()
 	var response models.EntityResponse
@@ -539,7 +540,7 @@ func UpdatePluginModelData(ctx context.Context, packageName, entity, token, oper
 		req.Header.Set(models.OperationHeader, operation)
 	}
 	startTime := time.Now()
-	log.Logger.Info("Start remote modelData update --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.JsonObj("Authorization", token), log.String("requestBody", string(postBytes)))
+	log.Info(nil, log.LOGGER_APP, "Start remote modelData update --->>> ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("method", http.MethodPost), zap.String("url", urlObj.String()), log.JsonObj("Authorization", token), zap.String("requestBody", string(postBytes)))
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("do request fail,%s ", respErr.Error())
@@ -552,9 +553,9 @@ func UpdatePluginModelData(ctx context.Context, packageName, entity, token, oper
 		}
 		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
 		if err != nil {
-			log.Logger.Error("End remote modelData update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "End remote modelData update <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.Error(err))
 		} else {
-			log.Logger.Info("End remote modelData update <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(responseBodyBytes)))
+			log.Info(nil, log.LOGGER_APP, "End remote modelData update <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.String("response", string(responseBodyBytes)))
 		}
 	}()
 	var response models.EntityResponse
@@ -621,7 +622,7 @@ func DangerousBatchCheck(ctx context.Context, token string, reqParam interface{}
 	req.Header.Set(models.AuthorizationHeader, token)
 	req.Header.Set("Content-type", "application/json")
 	startTime := time.Now()
-	log.Logger.Info("Start remote dangerousBatchCheck request --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.JsonObj("Authorization", token), log.String("requestBody", string(reqBody)))
+	log.Info(nil, log.LOGGER_APP, "Start remote dangerousBatchCheck request --->>> ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("method", http.MethodPost), zap.String("url", urlObj.String()), log.JsonObj("Authorization", token), zap.String("requestBody", string(reqBody)))
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("do request fail,%s ", respErr.Error())
@@ -635,9 +636,9 @@ func DangerousBatchCheck(ctx context.Context, token string, reqParam interface{}
 		}
 		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
 		if err != nil {
-			log.Logger.Error("End remote dangerousBatchCheck request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "End remote dangerousBatchCheck request <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.Error(err))
 		} else {
-			log.Logger.Info("End remote dangerousBatchCheck request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+			log.Info(nil, log.LOGGER_APP, "End remote dangerousBatchCheck request <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.String("response", string(respBody)))
 		}
 	}()
 	if readBodyErr != nil {
@@ -684,7 +685,7 @@ func DangerousWorkflowCheck(ctx context.Context, token string, reqParam interfac
 	req.Header.Set(models.AuthorizationHeader, token)
 	req.Header.Set("Content-type", "application/json")
 	startTime := time.Now()
-	log.Logger.Info("Start remote dangerousWorkflowCheck request --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.JsonObj("Authorization", token), log.String("requestBody", string(reqBody)))
+	log.Info(nil, log.LOGGER_APP, "Start remote dangerousWorkflowCheck request --->>> ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("method", http.MethodPost), zap.String("url", urlObj.String()), log.JsonObj("Authorization", token), zap.String("requestBody", string(reqBody)))
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("do request fail,%s ", respErr.Error())
@@ -698,12 +699,12 @@ func DangerousWorkflowCheck(ctx context.Context, token string, reqParam interfac
 		}
 		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
 		if err != nil {
-			log.Logger.Error("End remote dangerousWorkflowCheck request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "End remote dangerousWorkflowCheck request <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.Error(err))
 		} else {
-			log.Logger.Info("End remote dangerousWorkflowCheck request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+			log.Info(nil, log.LOGGER_APP, "End remote dangerousWorkflowCheck request <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.String("response", string(respBody)))
 		}
 	}()
-	log.Logger.Debug("End remote dangerousWorkflowCheck request 1111", log.String("respBody", string(respBody)))
+	log.Debug(nil, log.LOGGER_APP, "End remote dangerousWorkflowCheck request 1111", zap.String("respBody", string(respBody)))
 	if readBodyErr != nil {
 		err = fmt.Errorf("read response body fail,%s ", readBodyErr.Error())
 		return
@@ -751,7 +752,7 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 	req.Header.Set(models.AuthorizationHeader, token)
 	req.Header.Set("Content-type", "application/json")
 	startTime := time.Now()
-	log.Logger.Info("Start remote pluginInterfaceApi request --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.JsonObj("Authorization", token), log.String("requestBody", string(reqBodyPtr)))
+	log.Info(nil, log.LOGGER_APP, "Start remote pluginInterfaceApi request --->>> ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("method", http.MethodPost), zap.String("url", urlObj.String()), log.JsonObj("Authorization", token), zap.String("requestBody", string(reqBodyPtr)))
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("do request fail,%s ", respErr.Error())
@@ -765,9 +766,9 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 		}
 		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
 		if err != nil {
-			log.Logger.Error("End remote pluginInterfaceApi request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "End remote pluginInterfaceApi request <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.String("response", string(respBody)), zap.Error(err))
 		} else {
-			log.Logger.Info("End remote pluginInterfaceApi request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+			log.Info(nil, log.LOGGER_APP, "End remote pluginInterfaceApi request <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.String("response", string(respBody)))
 		}
 	}()
 	if readBodyErr != nil {
@@ -871,7 +872,7 @@ func PushPackage(ctx context.Context, token string, unitDesignId string, deployP
 	req.Header.Set("Content-type", "application/json")
 
 	startTime := time.Now()
-	log.Logger.Info("Start remote pushPackage request --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()), log.JsonObj("Authorization", token))
+	log.Info(nil, log.LOGGER_APP, "Start remote pushPackage request --->>> ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("method", http.MethodPost), zap.String("url", urlObj.String()), log.JsonObj("Authorization", token))
 
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
@@ -887,9 +888,9 @@ func PushPackage(ctx context.Context, token string, unitDesignId string, deployP
 		}
 		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
 		if err != nil {
-			log.Logger.Error("End remote pushPackage request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "End remote pushPackage request <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.Error(err))
 		} else {
-			log.Logger.Info("End remote pushPackage request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+			log.Info(nil, log.LOGGER_APP, "End remote pushPackage request <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.String("response", string(respBody)))
 		}
 	}()
 
@@ -964,7 +965,7 @@ func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId st
 	req.Header.Set(models.AuthorizationHeader, token)
 
 	startTime := time.Now()
-	log.Logger.Info("Start remote uploadPackage to artifacts plugin request --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()))
+	log.Info(nil, log.LOGGER_APP, "Start remote uploadPackage to artifacts plugin request --->>> ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("method", http.MethodPost), zap.String("url", urlObj.String()))
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("do request fail,%s ", respErr.Error())
@@ -979,9 +980,9 @@ func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId st
 		}
 		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
 		if err != nil {
-			log.Logger.Error("End remote uploadPackage to artifacts plugin request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "End remote uploadPackage to artifacts plugin request <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.Error(err))
 		} else {
-			log.Logger.Info("End remote uploadPackage to artifacts plugin request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+			log.Info(nil, log.LOGGER_APP, "End remote uploadPackage to artifacts plugin request <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.String("response", string(respBody)))
 		}
 	}()
 
@@ -1042,7 +1043,7 @@ func UploadArtifactPackage(ctx context.Context, token string, unitDesignId strin
 			fileObj.Close()
 		}
 		if err != nil {
-			log.Logger.Error("build multipart form data fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "build multipart form data fail", zap.Error(err))
 		}
 	}()
 	if err != nil {
@@ -1066,7 +1067,7 @@ func UploadArtifactPackage(ctx context.Context, token string, unitDesignId strin
 	req.Header.Set(models.AuthorizationHeader, token)
 
 	startTime := time.Now()
-	log.Logger.Info("Start remote uploadPackage to artifacts plugin request --->>> ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("method", http.MethodPost), log.String("url", urlObj.String()))
+	log.Info(nil, log.LOGGER_APP, "Start remote uploadPackage to artifacts plugin request --->>> ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("method", http.MethodPost), zap.String("url", urlObj.String()))
 	resp, respErr := http.DefaultClient.Do(req)
 	if respErr != nil {
 		err = fmt.Errorf("do request fail,%s ", respErr.Error())
@@ -1081,9 +1082,9 @@ func UploadArtifactPackage(ctx context.Context, token string, unitDesignId strin
 		}
 		useTime := fmt.Sprintf("%.3fms", time.Since(startTime).Seconds()*1000)
 		if err != nil {
-			log.Logger.Error("End remote uploadPackage to artifacts plugin request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "End remote uploadPackage to artifacts plugin request <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.Error(err))
 		} else {
-			log.Logger.Info("End remote uploadPackage to artifacts plugin request <<<--- ", log.String("requestId", reqId), log.String("transactionId", transId), log.String("url", urlObj.String()), log.Int("httpCode", resp.StatusCode), log.String("costTime", useTime), log.String("response", string(respBody)))
+			log.Info(nil, log.LOGGER_APP, "End remote uploadPackage to artifacts plugin request <<<--- ", zap.String("requestId", reqId), zap.String("transactionId", transId), zap.String("url", urlObj.String()), zap.Int("httpCode", resp.StatusCode), zap.String("costTime", useTime), zap.String("response", string(respBody)))
 		}
 	}()
 
@@ -1135,13 +1136,13 @@ func QueryBusinessList(query models.QueryBusinessListParam) (result []map[string
 }
 
 func AutoConfirmCMDBView(ctx context.Context, viewId string) (err error) {
-	log.Logger.Debug("AutoConfirmCMDBView start", log.String("viewId", viewId))
+	log.Debug(nil, log.LOGGER_APP, "AutoConfirmCMDBView start", zap.String("viewId", viewId))
 	structQueryBytes, structQueryErr := network.HttpGet(fmt.Sprintf("http://%s/wecmdb/api/v1/view/%s", models.Config.Gateway.Url, viewId), GetToken(), models.DefaultLanguage)
 	if structQueryErr != nil {
 		err = fmt.Errorf("query cmdb view struct fail,view:%s ,error:%s ", viewId, structQueryErr.Error())
 		return
 	}
-	log.Logger.Debug("AutoConfirmCMDBView query cmdb view struct done", log.String("viewId", viewId), log.String("response", string(structQueryBytes)))
+	log.Debug(nil, log.LOGGER_APP, "AutoConfirmCMDBView query cmdb view struct done", zap.String("viewId", viewId), zap.String("response", string(structQueryBytes)))
 	var structQueryResp models.CMDBViewStructQueryResp
 	if err = json.Unmarshal(structQueryBytes, &structQueryResp); err != nil {
 		err = fmt.Errorf("json unmarshal query cmdb view struct response:%s fail,%s ", string(structQueryBytes), err.Error())
@@ -1156,7 +1157,7 @@ func AutoConfirmCMDBView(ctx context.Context, viewId string) (err error) {
 		return
 	}
 	if structQueryResp.Data.SupportVersion != "yes" {
-		log.Logger.Warn("AutoConfirmCMDBView ignore with view supportView=no", log.String("viewId", viewId))
+		log.Warn(nil, log.LOGGER_APP, "AutoConfirmCMDBView ignore with view supportView=no", zap.String("viewId", viewId))
 		return
 	}
 	queryCiDataParam := models.QueryCiDataRequestParam{Dialect: &models.QueryRequestDialect{QueryMode: "new"}, Sorting: &models.QueryRequestSorting{Asc: false, Field: "create_time"}, Filters: []*models.QueryRequestFilterObj{}}
@@ -1164,13 +1165,13 @@ func AutoConfirmCMDBView(ctx context.Context, viewId string) (err error) {
 		queryCiDataParam.Filters = append(queryCiDataParam.Filters, &models.QueryRequestFilterObj{Name: structQueryResp.Data.FilterAttr, Operator: "eq", Value: structQueryResp.Data.FilterValue})
 	}
 	ciDataParamBytes, _ := json.Marshal(&queryCiDataParam)
-	log.Logger.Debug("AutoConfirmCMDBView start query ci data", log.String("viewId", viewId), log.String("ciType", structQueryResp.Data.CiType))
+	log.Debug(nil, log.LOGGER_APP, "AutoConfirmCMDBView start query ci data", zap.String("viewId", viewId), zap.String("ciType", structQueryResp.Data.CiType))
 	ciDataRespBytes, ciDataRespErr := network.HttpPost(fmt.Sprintf("http://%s/wecmdb/api/v1/ci-data/query/%s", models.Config.Gateway.Url, structQueryResp.Data.CiType), GetToken(), models.DefaultLanguage, ciDataParamBytes)
 	if ciDataRespErr != nil {
 		err = fmt.Errorf("query cmdb ci data fail,%s ", ciDataRespErr.Error())
 		return
 	}
-	log.Logger.Debug("AutoConfirmCMDBView query ci data done", log.String("viewId", viewId), log.String("ciDataRespBytes", string(ciDataRespBytes)))
+	log.Debug(nil, log.LOGGER_APP, "AutoConfirmCMDBView query ci data done", zap.String("viewId", viewId), zap.String("ciDataRespBytes", string(ciDataRespBytes)))
 	var ciDataQueryResp models.QueryCiDataResp
 	if err = json.Unmarshal(ciDataRespBytes, &ciDataQueryResp); err != nil {
 		err = fmt.Errorf("json unmarshal query cmdb ci data response:%s fail,%s ", string(ciDataRespBytes), err.Error())
@@ -1189,12 +1190,12 @@ func AutoConfirmCMDBView(ctx context.Context, viewId string) (err error) {
 		if tmpGuid == "" {
 			continue
 		}
-		log.Logger.Debug("AutoConfirmCMDBView start confirm view", log.String("viewId", viewId), log.String("ciDataGuid", tmpGuid))
+		log.Debug(nil, log.LOGGER_APP, "AutoConfirmCMDBView start confirm view", zap.String("viewId", viewId), zap.String("ciDataGuid", tmpGuid))
 		if err = confirmCMDBView(ctx, viewId, tmpGuid); err != nil {
 			err = fmt.Errorf("try to confirm view:%s ciData:%s fail,%s ", viewId, tmpGuid, err.Error())
 			break
 		}
-		log.Logger.Debug("AutoConfirmCMDBView confirm view done", log.String("viewId", viewId), log.String("ciDataGuid", tmpGuid))
+		log.Debug(nil, log.LOGGER_APP, "AutoConfirmCMDBView confirm view done", zap.String("viewId", viewId), zap.String("ciDataGuid", tmpGuid))
 	}
 	return
 }

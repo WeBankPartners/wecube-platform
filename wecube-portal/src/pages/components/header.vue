@@ -2,7 +2,7 @@
   <div class="platform-header">
     <div v-if="loadPlugin.isShow" class="plugin-load">
       <div class="plugin-load-header">
-        <Icon type="ios-alert-outline" size="32" color="#2d8cf0" />
+        <Icon type="ios-alert-outline" size="32" color="#5384ff" />
         <div style="position: relative; display: inline-block; bottom: 4px">
           {{ $t('notification_desc') }}({{ loadPlugin.finnishNumber }}/{{ loadPlugin.totalNumber }})
         </div>

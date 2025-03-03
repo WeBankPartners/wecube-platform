@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
+	"go.uber.org/zap"
 	"reflect"
 	"strconv"
 	"strings"
@@ -161,7 +162,7 @@ func normalizePluginInterfaceParamData(ctxParam *models.HandleProcessInputDataPa
 	// 此时value可能是nil以外的任意值
 	var result interface{}
 	t := reflect.TypeOf(value)
-	log.Logger.Debug("normalizePluginInterfaceParamData", log.String("key", inputParamDef.Name), log.String("valueType", t.Kind().String()), log.String("value", fmt.Sprintf("%v", value)))
+	log.Debug(nil, log.LOGGER_APP, "normalizePluginInterfaceParamData", zap.String("key", inputParamDef.Name), zap.String("valueType", t.Kind().String()), zap.String("value", fmt.Sprintf("%v", value)))
 	// value的kind可能是[]{int, string, float, object}, int, string, float, object
 	if t.Kind() == reflect.Slice {
 		if inputParamDef.DataType == models.PluginParamDataTypeObject {
@@ -415,7 +416,7 @@ func normalizeInputParamData(
 	// 此时value可能是nil以外的任意值
 	var result interface{}
 	t := reflect.TypeOf(value)
-	log.Logger.Debug("normalizeInputParamData", log.String("key", inputParamDef.Name), log.String("valueType", t.Kind().String()), log.String("value", fmt.Sprintf("%v", value)))
+	log.Debug(nil, log.LOGGER_APP, "normalizeInputParamData", zap.String("key", inputParamDef.Name), zap.String("valueType", t.Kind().String()), zap.String("value", fmt.Sprintf("%v", value)))
 	// value的kind可能是[]{int, string, float, object}, int, string, float, object
 	if t.Kind() == reflect.Slice {
 		if inputParamDef.Multiple == "Y" && inputParamDef.DataType == models.PluginParamDataTypeList {
@@ -849,7 +850,7 @@ func handleInputData(
 				if marshalErr == nil {
 					procReqParamObj.DataValue = string(objectJsonBytes)
 				} else {
-					log.Logger.Warn("json marshal object data value fail", log.Error(marshalErr))
+					log.Warn(nil, log.LOGGER_APP, "json marshal object data value fail", zap.Error(marshalErr))
 					procReqParamObj.DataValue = fmt.Sprintf("%v", inputParamData[inputDef.Name])
 				}
 			} else {
@@ -1055,24 +1056,24 @@ func handleOutputData(
 		if rootData.Id == "" {
 			ret, errCreate := remote.CreateEntityData(ctx, authToken, tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Data)
 			if errCreate != nil {
-				log.Logger.Error(fmt.Sprintf("failed to create %s entity %s %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Data))
+				log.Error(nil, log.LOGGER_APP, fmt.Sprintf("failed to create %s entity %s %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Data))
 				err = errCreate
 				return
 			} else {
 				// 成功需要回写ID，以便后续Branch数据更新使用
 				rootData.Id = ret["id"].(string)
-				log.Logger.Debug(fmt.Sprintf("create %s entity %s[%s] %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, rootData.Data))
+				log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("create %s entity %s[%s] %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, rootData.Data))
 			}
 		} else {
 			// 除了ID以外有其他值才需要写入
 			if len(rootData.Data) > 1 {
 				_, errUpdate := remote.UpdateEntityData(ctx, authToken, tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Data)
 				if errUpdate != nil {
-					log.Logger.Error(fmt.Sprintf("failed to update %s entity %s[%s] %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, rootData.Data))
+					log.Error(nil, log.LOGGER_APP, fmt.Sprintf("failed to update %s entity %s[%s] %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, rootData.Data))
 					err = errUpdate
 					return
 				} else {
-					log.Logger.Debug(fmt.Sprintf("update %s entity %s[%s] %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, rootData.Data))
+					log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("update %s entity %s[%s] %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, rootData.Data))
 				}
 			}
 		}
@@ -1080,11 +1081,11 @@ func handleOutputData(
 		for _, branchData := range rootData.SubBranchs {
 			errUpdate := remote.UpdatentityDataWithExpr(ctx, authToken, tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, branchData.Exprs, branchData.Data)
 			if errUpdate != nil {
-				log.Logger.Error(fmt.Sprintf("failed to update %s entity %s[%s] with expression %s %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, branchData.OriginExpr, branchData.Data))
+				log.Error(nil, log.LOGGER_APP, fmt.Sprintf("failed to update %s entity %s[%s] with expression %s %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, branchData.OriginExpr, branchData.Data))
 				err = errUpdate
 				return
 			} else {
-				log.Logger.Debug(fmt.Sprintf("update %s entity %s[%s] with expression %s %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, branchData.OriginExpr, branchData.Data))
+				log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("update %s entity %s[%s] with expression %s %v", tmpResultForEntity.Package, tmpResultForEntity.Entity, rootData.Id, branchData.OriginExpr, branchData.Data))
 			}
 		}
 	}
@@ -1120,13 +1121,13 @@ func buildSensitiveData(inputValue interface{}, dataId string) (output string) {
 	}
 	seed, err := database.GetEncryptSeed(ctx)
 	if err != nil {
-		log.Logger.Error("buildSensitiveData fail with get seed error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "buildSensitiveData fail with get seed error", zap.Error(err))
 		return
 	}
 	output, err = cipher.AesEnPasswordByGuid(dataId, seed, inputString, "")
 	if err != nil {
 		output = inputString
-		log.Logger.Error("buildSensitiveData aes encrypt fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "buildSensitiveData aes encrypt fail", zap.Error(err))
 	}
 	return
 }

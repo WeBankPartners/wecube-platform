@@ -10,7 +10,7 @@
         <pre style="margin-left: 44px; margin-top: 22px">{{ data.message }}</pre>
       </div>
       <div slot="footer">
-        <span style="margin-left: 30px; color: #ed4014; float: left; text-align: left">
+        <span style="margin-left: 30px; color: #ff4d4f; float: left; text-align: left">
           <Checkbox v-model="checked">{{ $t('dangerous_confirm_tip') }}</Checkbox>
         </span>
         <Button type="text" @click="$emit('update:visible', false)">{{ $t('bc_cancel') }}</Button>
@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { saveBatchExecute } from '@/api/server'
+import { saveBatchExecuteByToken } from '@/api/server'
 export default {
   props: {
     visible: {
@@ -42,8 +42,8 @@ export default {
     // 提交高危检测
     async confirmDangerous() {
       this.$Spin.show()
-      const { status, data } = await saveBatchExecute(
-        `/platform/v1/batch-execution/job/run?continueToken=${this.data.continueToken}`,
+      const { status, data } = await saveBatchExecuteByToken(
+        this.data.continueToken,
         this.data.params
       )
       this.$Spin.hide()

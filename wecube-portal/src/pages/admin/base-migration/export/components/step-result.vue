@@ -18,7 +18,7 @@
             <Icon
               type="md-copy"
               size="22"
-              color="#2d8cf0"
+              color="#5384ff"
               style="cursor: pointer"
               @click="copyText(detailData.outputUrl)"
             />
@@ -361,7 +361,7 @@ export default {
       .number {
         font-size: 16px;
         font-weight: bold;
-        color: #2d8cf0;
+        color: #5384ff;
         margin-left: 6px;
         max-width: 200px;
         text-overflow: ellipsis;
@@ -378,14 +378,14 @@ export default {
       }
       .number {
         font-size: 18px;
-        color: #2d8cf0;
+        color: #5384ff;
         margin-left: 6px;
       }
       .success {
-        color: #19be6b;
+        color: #00cb91;
       }
       .fail {
-        color: #ed4014;
+        color: #ff4d4f;
       }
     }
     .content {

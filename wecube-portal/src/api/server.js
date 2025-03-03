@@ -1,23 +1,24 @@
 import req from './base'
 
 export const getMyMenus = () => req.get('/platform/v1/my-menus')
-// init page
 
-// flow
 export const saveFlow = data => req.post('/platform/v1/process/definitions/deploy', data)
-export const confirmSaveFlow = (continueToken, data) => {
-  const params = {
-    continue_token: continueToken
-  }
-  return req.post('/platform/v1/process/definitions/deploy', data, { params })
-}
-export const saveFlowDraft = data => req.post('/platform/v1/process/definitions/draft', data)
-export const confirmSaveFlowDraft = (continueToken, data) => {
-  const params = {
-    continue_token: continueToken
-  }
-  return req.post('/platform/v1/process/definitions/draft', data, { params })
-}
+
+// export const confirmSaveFlow = (continueToken, data) => {
+//   const params = {
+//     continue_token: continueToken
+//   }
+//   return req.post('/platform/v1/process/definitions/deploy', data, { params })
+// }
+
+// export const saveFlowDraft = data => req.post('/platform/v1/process/definitions/draft', data)
+
+// export const confirmSaveFlowDraft = (continueToken, data) => {
+//   const params = {
+//     continue_token: continueToken
+//   }
+//   return req.post('/platform/v1/process/definitions/draft', data, { params })
+// }
 export const getAllFlow = (isIncludeDraft = true) => {
   let params = {}
   if (isIncludeDraft) {
@@ -32,7 +33,8 @@ export const getAllFlow = (isIncludeDraft = true) => {
   }
   return req.get('/platform/v1/process/definitions', { params })
 }
-export const getFlowDetailByID = id => req.get(`/platform/v1/process/definitions/${id}/detail`)
+
+// export const getFlowDetailByID = id => req.get(`/platform/v1/process/definitions/${id}/detail`)
 export const getFlowOutlineByID = id => req.get(`/platform/v1/process/definitions/${id}/outline`)
 
 export const getTargetOptions = (pkgName, entityName) =>
@@ -47,27 +49,28 @@ export const getProcessInstances = params => req.get('platform/v1/process/instan
 export const getProcessInstance = id => req.get(`platform/v1/process/instances/${id}`)
 
 export const retryProcessInstance = data => req.post('platform/v1/process/instances/proceed', data)
-export const removeProcessDefinition = id => req.delete(`platform/v1/process/definitions/${id}`)
+// export const removeProcessDefinition = id => req.delete(`platform/v1/process/definitions/${id}`)
 
-export const getParamsInfosByFlowIdAndNodeId = (flowId, nodeId) =>
-  req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)
+// export const getParamsInfosByFlowIdAndNodeId = (flowId, nodeId) =>
+//   req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)
 
-export const getFlowNodes = flowId => req.get(`platform/v1/process/definitions/${flowId}/tasknodes/briefs`)
-export const getContextParametersNodes = (flowId, taskNodeId, contextParamNodes) => {
-  const params = {
-    taskNodeId,
-    contextParamNodes: contextParamNodes.join(',')
-  }
-  return req.get(`/platform/v1/process/definitions/${flowId}/root-context-nodes/briefs`, { params })
-}
+// export const getFlowNodes = flowId => req.get(`platform/v1/process/definitions/${flowId}/tasknodes/briefs`)
+
+// export const getContextParametersNodes = (flowId, taskNodeId, contextParamNodes) => {
+//   const params = {
+//     taskNodeId,
+//     contextParamNodes: contextParamNodes.join(',')
+//   }
+//   return req.get(`/platform/v1/process/definitions/${flowId}/root-context-nodes/briefs`, { params })
+// }
 
 export const getAllDataModels = () => req.get('platform/v1/models')
 
-export const getPluginInterfaceList = () => req.get('platform/v1/plugins/interfaces/enabled')
+// export const getPluginInterfaceList = () => req.get('platform/v1/plugins/interfaces/enabled')
 
-export const exportProcessDefinitionWithId = procDefId => {
-  req.get(`platform/v1/process/definitions/${procDefId}/export`)
-}
+// export const exportProcessDefinitionWithId = procDefId => {
+//   req.get(`platform/v1/process/definitions/${procDefId}/export`)
+// }
 
 // admin
 export const retrieveSystemVariables = data => req.post('/platform/v1/system-variables/retrieve', data)
@@ -85,13 +88,14 @@ export const getResourceItemStatus = () => req.get('/platform/resource/constants
 export const getResourceItemType = () => req.get('/platform/resource/constants/resource-item-types')
 
 // enum
-export const getEnumCodesByCategoryId = (catTypeId, catId) =>
-  req.get(`/platform/v1/cmdb/enum/category-types/${catTypeId}/categories/${catId}/codes`)
+
+// export const getEnumCodesByCategoryId = (catTypeId, catId) =>
+//   req.get(`/platform/v1/cmdb/enum/category-types/${catTypeId}/categories/${catId}/codes`)
 export const getAllPluginPkgs = isRetrieveAllPluginPackages =>
   req.get(`/platform/v1/packages?all=${isRetrieveAllPluginPackages}`)
-export const getRefCiTypeFrom = id => req.get(`/platform/v1/cmdb/ci-types/${id}/references/by`)
-export const getRefCiTypeTo = id => req.get(`/platform/v1/cmdb/ci-types/${id}/references/to`)
-export const getCiTypeAttr = id => req.get(`/platform/v1/cmdb/ci-types/${id}/attributes`)
+// export const getRefCiTypeFrom = id => req.get(`/platform/v1/cmdb/ci-types/${id}/references/by`)
+// export const getRefCiTypeTo = id => req.get(`/platform/v1/cmdb/ci-types/${id}/references/to`)
+// export const getCiTypeAttr = id => req.get(`/platform/v1/cmdb/ci-types/${id}/attributes`)
 export const getAvailableInstancesByPackageId = packageId => req.get(`/platform/v1/packages/${packageId}/instances`)
 export const createPluginInstanceByPackageIdAndHostIp = (packageId, ip, port) =>
   req.post(`/platform/v1/packages/${packageId}/hosts/${ip}/ports/${port}/instance/launch`)
@@ -133,8 +137,6 @@ export const getAllPluginPackageResourceFiles = () => req.get('/platform/v1/reso
 export const pullDynamicDataModel = name => req.get(`/platform/v1/models/package/${name}`)
 export const getRefByIdInfoByPackageNameAndEntityName = (pkgName, entityName) =>
   req.get(`/platform/v1/models/package/${pkgName}/entity/${entityName}/refById`)
-// export const getModelNodeDetail = (packageName, entityName, data) =>
-//   req.post(`/${packageName}/entities/${entityName}/query`, data)
 export const getModelNodeDetail = (packageName, entityName, data) =>
   req.post(`/platform/v1/packages/${packageName}/entities/${entityName}/query`, data)
 export const getNodeBindings = id => req.get(`/platform/v1/process/instances/${id}/tasknode-bindings`)
@@ -146,11 +148,11 @@ export const editUser = data => req.post(`/platform/v1/user/${data.username}/upd
 export const changePassword = data => req.post('/platform/v1/users/change-password', data)
 export const getUserList = () => req.get('/platform/v1/users/retrieve')
 export const getAllUserList = data => req.post('/platform/v1/users/query', data) // 实现用户模糊检索
-export const deleteUser = id => req.delete(`/platform/v1/users/${id}/delete`)
+// export const deleteUser = id => req.delete(`/platform/v1/users/${id}/delete`)
 export const roleCreate = data => req.post('/platform/v1/roles/create', data)
 export const getRoleList = params => req.get('/platform/v1/roles/retrieve', { params })
 export const getCurrentUserRoles = () => req.get('/platform/v1/users/roles')
-export const deleteRole = id => req.delete(`/platform/v1/roles/${id}/delete`)
+// export const deleteRole = id => req.delete(`/platform/v1/roles/${id}/delete`)
 export const addRoleToUser = (id, data) => req.post(`/platform/v1/users/${id}/roles/grant`, data)
 export const updateRole = (id, data) => req.post(`/platform/v1/roles/${id}/update`, data)
 export const getRolesByUserName = userName => req.get(`/platform/v1/users/${userName}/roles`)
@@ -164,20 +166,20 @@ export const updateRoleToMenusByRoleId = (roleId, data) => req.post(`platform/v1
 export const getFilteredPluginInterfaceList = (packageName, entityName) =>
   req.get(`/platform/v1/plugins/interfaces/package/${packageName}/entity/${entityName}/enabled`)
 export const getRolesByCurrentUser = () => req.get('/platform/v1/users/roles')
-export const getPermissionByProcessId = id => req.get(`/platform/v1/process/${id}/roles`)
-export const updateFlowPermission = (id, data) => req.post(`/platform/v1/process/${id}/roles`, data)
-export const deleteFlowPermission = (id, data) => req.delete(`/platform/v1/process/${id}/roles`, { data })
+// export const getPermissionByProcessId = id => req.get(`/platform/v1/process/${id}/roles`)
+// export const updateFlowPermission = (id, data) => req.post(`/platform/v1/process/${id}/roles`, data)
+// export const deleteFlowPermission = (id, data) => req.delete(`/platform/v1/process/${id}/roles`, { data })
 export const dmeAllEntities = data => req.post('/platform/v1/data-model/dme/all-entities', data)
 export const dmeIntegratedQuery = data => req.post('/platform/v1/data-model/dme/integrated-query', data)
 export const entityView = (packageName, entityName) =>
   req.get(`/platform/v1/models/package/${packageName}/entity/${entityName}/attributes`)
-export const batchExecution = (url, data) => req.post(url, data)
-export const deleteCollectionsRole = (id, data) => req.delete(`/platform/v1/roles/${id}/favorites`, { data })
-export const addCollectionsRole = (id, data) => req.post(`/platform/v1/roles/${id}/favorites`, data)
-export const getAllCollections = () => req.get('/platform/v1/roles/favorites/retrieve')
-export const deleteCollections = id => req.delete(`/platform/v1/roles/favorites/${id}/delete`)
-export const saveBatchExecution = data => req.post('/platform/v1/roles/favorites/create', data)
-export const updateCollections = data => req.post('/platform/v1/roles/favorites/update', data)
+// export const batchExecution = (url, data) => req.post(url, data)
+// export const deleteCollectionsRole = (id, data) => req.delete(`/platform/v1/roles/${id}/favorites`, { data })
+// export const addCollectionsRole = (id, data) => req.post(`/platform/v1/roles/${id}/favorites`, data)
+// export const getAllCollections = () => req.get('/platform/v1/roles/favorites/retrieve')
+// export const deleteCollections = id => req.delete(`/platform/v1/roles/favorites/${id}/delete`)
+// export const saveBatchExecution = data => req.post('/platform/v1/roles/favorites/create', data)
+// export const updateCollections = data => req.post('/platform/v1/roles/favorites/update', data)
 export const getVariableScope = () => req.get('/platform/v1/system-variables/constant/system-variable-scope')
 export const getPluginConfigsByPackageId = packageId => req.get(`/platform/v1/packages/${packageId}/plugin-configs`)
 export const getInterfacesByPluginConfigId = configId => req.get(`/platform/v1/plugins/interfaces/${configId}`)
@@ -200,8 +202,8 @@ export const exportPluginXMLWithId = id => {
   req.get(`/platform/v1/plugins/packages/export/${id}`)
 }
 export const updatePluginConfigRoleBinding = (id, data) => req.post(`/platform/v1/plugins/roles/configs/${id}`, data)
-export const deletePluginConfigRoleBinding = (id, data) =>
-  req.delete(`/platform/v1/plugins/roles/configs/${id}`, { data })
+// export const deletePluginConfigRoleBinding = (id, data) =>
+//   req.delete(`/platform/v1/plugins/roles/configs/${id}`, { data })
 export const getApplicationVersion = () => req.get('/platform/v1/appinfo/version')
 export const getConfigByPkgId = id => req.get(`/platform/v1/packages/${id}/plugin-config-outlines`)
 export const updateConfigStatus = (id, data) =>
@@ -226,8 +228,8 @@ export const updatePluginRegisterObjectType = (pluginConfigId, objectMetaId, dat
 
 export const getCertification = () => req.get('platform/v1/plugin-certifications')
 export const deleteCertification = id => req.delete(`platform/v1/plugin-certifications/${id}`)
-export const exportCertification = id => req.get(`platform/v1/plugin-certifications/${id}/export`)
-export const importCertification = () => req.post('platform/v1/plugin-certifications/import')
+// export const exportCertification = id => req.get(`platform/v1/plugin-certifications/${id}/export`)
+// export const importCertification = () => req.post('platform/v1/plugin-certifications/import')
 
 export const productSerial = id => req.get(`platform/resource/servers/${id}/product-serial`)
 
@@ -291,8 +293,8 @@ export const flowBatchChangeStatus = data => req.post('platform/v1/process/defin
 export const flowCopy = (flowId, association) =>
   req.post(`platform/v1/process/definitions/${flowId}/copy/${association}`, {})
 export const getSourceNode = flowId => req.get(`platform/v1/process/definitions/${flowId}/tasknodes/briefs`)
-export const flowExport = data => req.post('platform/v1/process/definitions/export', data)
-export const flowImport = data => req.post('platform/v1/process/definitions/import', data)
+// export const flowExport = data => req.post('platform/v1/process/definitions/export', data)
+// export const flowImport = data => req.post('platform/v1/process/definitions/import', data)
 export const getNodeDetailById = (flowId, nodeId) =>
   req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`)
 // 编排列表转给我
@@ -319,7 +321,9 @@ export const getBatchExecuteList = data => req.post('/platform/v1/batch-executio
 // 批量执行历史
 export const batchExecuteHistory = id => req.get(`/platform/v1/batch-execution/${id}`)
 // 保存批量执行
-export const saveBatchExecute = (url, data) => req.post(url, data)
+export const saveBatchExecute = (data) => req.post('/platform/v1/batch-execution/job/run', data)
+// 保存批量执行
+export const saveBatchExecuteByToken = (continueToken, data) => req.post(`/platform/v1/batch-execution/job/run?continueToken=${continueToken}`, data)
 // 批量执行获取密钥
 export const getInputParamsEncryptKey = () => req.get('/platform/v1/batch-execution/seed')
 
@@ -401,3 +405,14 @@ export const addResourceInstance = data => req.post('/platform/resource/items/cr
 export const deleteResourceInstance = data => req.post('/platform/resource/items/delete', data)
 // 更新资源实例
 export const updateResourceInstance = data => req.post('/platform/resource/items/update', data)
+
+export const getPluginPackage = params => req.get('/platform/v1/packages', params)
+
+export const getPluginVersionInherit = data => req.post('/platform/v1/plugins/packages/version/inherit', data)
+
+export const getPluginVersion = params => req.get('/platform/v1/plugins/packages/version/get', params)
+
+export const pluginsRegister = data => req.post('/platform/v1/packages/ui/register', data)
+
+export const pluginsRegisterDone = data => req.post('/platform/v1/packages/register-done', data)
+

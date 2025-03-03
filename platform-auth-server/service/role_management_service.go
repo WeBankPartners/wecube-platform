@@ -9,6 +9,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/utils"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/db"
+	"go.uber.org/zap"
 	"strings"
 	"time"
 )
@@ -30,7 +31,7 @@ func (RoleManagementService) RetrieveLocalRoleByRoleName(roleName string) (*mode
 
 	existedRole, err := db.RoleRepositoryInstance.FindNotDeletedRoleByName(roleName)
 	if err != nil {
-		log.Logger.Error("failed to find not deleted role by name", log.String("name", roleName), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to find not deleted role by name", zap.String("name", roleName), zap.Error(err))
 		return nil, err
 	}
 
@@ -66,11 +67,11 @@ func (RoleManagementService) UpdateLocalRole(roleDto *model.SimpleLocalRoleDto, 
 
 	existed, err := session.ID(roleDto.ID).Get(role)
 	if err != nil {
-		log.Logger.Error(fmt.Sprintf("failed to get role:%s", roleDto.ID), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("failed to get role:%s", roleDto.ID), zap.Error(err))
 		return nil, err
 	}
 	if !existed {
-		log.Logger.Debug(fmt.Sprintf("can not find role:%s", roleDto.ID))
+		log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("can not find role:%s", roleDto.ID))
 		return nil, exterror.Catch(exterror.New().AuthServer3006Error.WithParam(roleDto.ID), nil)
 	}
 
@@ -86,7 +87,7 @@ func (RoleManagementService) UpdateLocalRole(roleDto *model.SimpleLocalRoleDto, 
 	if validateRoleStatus(inputStatus) {
 		inputRoleDeletedStatus, err := convertRoleStatus(inputStatus)
 		if err != nil {
-			log.Logger.Error("failed to convertRoleStatus", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "failed to convertRoleStatus", zap.Error(err))
 			session.Rollback()
 			return nil, err
 		}
@@ -100,7 +101,7 @@ func (RoleManagementService) UpdateLocalRole(roleDto *model.SimpleLocalRoleDto, 
 
 				userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByRoleId(role.Id)
 				if err != nil {
-					log.Logger.Error("failed to faill all by roleId", log.String("role id", role.Id), log.Error(err))
+					log.Error(nil, log.LOGGER_APP, "failed to faill all by roleId", zap.String("role id", role.Id), zap.Error(err))
 					session.Rollback()
 					return nil, err
 				}
@@ -118,7 +119,7 @@ func (RoleManagementService) UpdateLocalRole(roleDto *model.SimpleLocalRoleDto, 
 					if err != nil || affected == 0 {
 						session.Rollback()
 						if err != nil {
-							log.Logger.Error("failed to update user role", log.JsonObj("userRole", userRole), log.Error(err))
+							log.Error(nil, log.LOGGER_APP, "failed to update user role", log.JsonObj("userRole", userRole), zap.Error(err))
 						}
 						return nil, fmt.Errorf("failed to UpdateLocalRole: %v(%v)", roleDto.ID, roleDto.Name)
 					}
@@ -136,7 +137,7 @@ func (RoleManagementService) UpdateLocalRole(roleDto *model.SimpleLocalRoleDto, 
 	_, err = session.ID(role.Id).UseBool().Update(role)
 	if err != nil {
 		session.Rollback()
-		log.Logger.Error("failed to update role", log.JsonObj("role", role), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to update role", log.JsonObj("role", role), zap.Error(err))
 		return nil, fmt.Errorf("failed to UpdateLocalRole: %v(%v)", roleDto.ID, roleDto.Name)
 	}
 
@@ -202,7 +203,7 @@ func (RoleManagementService) RegisterLocalRole(roleDto *model.SimpleLocalRoleDto
 
 	existedRoles, err := db.RoleRepositoryInstance.FindAllRolesByName(roleDto.Name)
 	if err != nil {
-		log.Logger.Error("failed to find all roles by name", log.String("name", roleDto.Name), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to find all roles by name", zap.String("name", roleDto.Name), zap.Error(err))
 		return nil, err
 	}
 
@@ -214,7 +215,7 @@ func (RoleManagementService) RegisterLocalRole(roleDto *model.SimpleLocalRoleDto
 	affect, err := db.Engine.Insert(role)
 	if affect == 0 || err != nil {
 		if err != nil {
-			log.Logger.Error("failed to insert role", log.JsonObj("role", role), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "failed to insert role", log.JsonObj("role", role), zap.Error(err))
 		}
 		return nil, fmt.Errorf("failed to registerLocalRole:" + roleDto.Name)
 	}
@@ -226,14 +227,14 @@ func (RoleManagementService) RetrieveAllLocalRoles(requiredAll bool) ([]*model.S
 	var roles []*model.SysRoleEntity
 	if requiredAll {
 		if result, err := db.RoleRepositoryInstance.FindAllRoles(); err != nil {
-			log.Logger.Error("failed to find all roles", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "failed to find all roles", zap.Error(err))
 			return nil, err
 		} else {
 			roles = result
 		}
 	} else {
 		if result, err := db.RoleRepositoryInstance.FindAllActiveRoles(); err != nil {
-			log.Logger.Error("failed to find all active roles", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "failed to find all active roles", zap.Error(err))
 			return nil, err
 		} else {
 			roles = result
@@ -261,7 +262,7 @@ func (RoleManagementService) UnregisterLocalRoleById(roleId string, curUser stri
 	found, err := session.ID(roleId).Get(role)
 	if !found || err != nil {
 		if err != nil {
-			log.Logger.Error("failed to get role", log.String("roleId", roleId), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "failed to get role", zap.String("roleId", roleId), zap.Error(err))
 		}
 		return exterror.Catch(exterror.New().AuthServer3012Error, nil)
 	}
@@ -278,7 +279,7 @@ func (RoleManagementService) UnregisterLocalRoleById(roleId string, curUser stri
 	affecCnt, err := session.ID(role.Id).UseBool().Update(role)
 	if affecCnt == 0 || err != nil {
 		if err != nil {
-			log.Logger.Error("failed to update role", log.JsonObj("role", role), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "failed to update role", log.JsonObj("role", role), zap.Error(err))
 		}
 		session.Rollback()
 		return fmt.Errorf("failed to UnregisterLocalRoleById %v", roleId)
@@ -286,7 +287,7 @@ func (RoleManagementService) UnregisterLocalRoleById(roleId string, curUser stri
 
 	userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByRoleId(role.Id)
 	if err != nil {
-		log.Logger.Error("failed to find all by roleId", log.String("role id", role.Id), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to find all by roleId", zap.String("role id", role.Id), zap.Error(err))
 		session.Rollback()
 		return err
 	}
@@ -304,7 +305,7 @@ func (RoleManagementService) UnregisterLocalRoleById(roleId string, curUser stri
 		if err != nil || affected == 0 {
 			session.Rollback()
 			if err != nil {
-				log.Logger.Error("failed to update user role", log.JsonObj("userRole", userRole), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "failed to update user role", log.JsonObj("userRole", userRole), zap.Error(err))
 			}
 			return fmt.Errorf("failed to UpdateLocalRole: %v", roleId)
 		}
@@ -317,7 +318,7 @@ func (RoleManagementService) RetriveLocalRoleByRoleId(roleId string) (*model.Sim
 	role := &model.SysRoleEntity{}
 	existed, err := db.Engine.ID(roleId).Get(role)
 	if err != nil {
-		log.Logger.Error("failed to get role", log.String("roleId", roleId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to get role", zap.String("roleId", roleId), zap.Error(err))
 		return nil, err
 	}
 	if !existed {
@@ -332,7 +333,7 @@ func (RoleManagementService) RetrieveAllAuthoritiesByRoleId(roleId string) ([]*m
 	role := &model.SysRoleEntity{}
 	existed, err := db.Engine.ID(roleId).Get(role)
 	if err != nil {
-		log.Logger.Error("failed to get role", log.String("roleId", roleId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to get role", zap.String("roleId", roleId), zap.Error(err))
 		return nil, err
 	}
 	if !existed {
@@ -340,13 +341,13 @@ func (RoleManagementService) RetrieveAllAuthoritiesByRoleId(roleId string) ([]*m
 	}
 
 	if role.Deleted || !role.Active {
-		log.Logger.Debug(fmt.Sprintf("such role is deleted or inactive,role id %v", roleId))
+		log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("such role is deleted or inactive,role id %v", roleId))
 		return result, nil
 	}
 
 	roleAuthorities, err := db.RoleAuthorityRsRepositoryInstance.FindAllConfiguredAuthoritiesByRoleId(role.Id)
 	if err != nil {
-		log.Logger.Error("failed to find all configured auth by roleId", log.String("role id", role.Id), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to find all configured auth by roleId", zap.String("role id", role.Id), zap.Error(err))
 		return nil, err
 	}
 
@@ -354,16 +355,16 @@ func (RoleManagementService) RetrieveAllAuthoritiesByRoleId(roleId string) ([]*m
 		authority := &model.SysAuthorityEntity{}
 		existed, err := db.Engine.ID(roleAuthority.AuthorityID).Get(authority)
 		if err != nil {
-			log.Logger.Error("failed to get authority", log.String("roleId", roleId), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "failed to get authority", zap.String("roleId", roleId), zap.Error(err))
 			return nil, err
 		}
 		if !existed {
-			log.Logger.Debug(fmt.Sprintf("authority entity does not exist, authority id %v", roleAuthority.AuthorityID))
+			log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("authority entity does not exist, authority id %v", roleAuthority.AuthorityID))
 			continue
 		}
 
 		if authority.Deleted {
-			log.Logger.Debug(fmt.Sprintf("such authority is deleted,authority:%v %v", authority.Id, authority.Code))
+			log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("such authority is deleted,authority:%v %v", authority.Id, authority.Code))
 			continue
 		}
 
@@ -395,21 +396,21 @@ func (RoleManagementService) ConfigureRoleWithAuthorities(grantDto *model.RoleAu
 	if len(grantDto.RoleId) > 0 {
 		found, err = session.ID(grantDto.RoleId).Get(role)
 		if err != nil {
-			log.Logger.Error("failed to get role", log.String("role id", grantDto.RoleId), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "failed to get role", zap.String("role id", grantDto.RoleId), zap.Error(err))
 			session.Rollback()
 			return err
 		}
 	}
 	if !found && len(grantDto.RoleName) > 0 {
 		if role, err = db.RoleRepositoryInstance.FindNotDeletedRoleByName(grantDto.RoleName); err != nil {
-			log.Logger.Error("failed to find not deleted role by name", log.String("roleName", grantDto.RoleName), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "failed to find not deleted role by name", zap.String("roleName", grantDto.RoleName), zap.Error(err))
 			session.Rollback()
 			return err
 		}
 	}
 
 	if role == nil {
-		log.Logger.Debug(fmt.Sprintf("such role entity does not exist,role id %v, role name %v ", grantDto.RoleId,
+		log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("such role entity does not exist,role id %v, role name %v ", grantDto.RoleId,
 			grantDto.RoleName))
 		session.Rollback()
 		return exterror.Catch(exterror.New().AuthServer3009Error, nil)
@@ -417,12 +418,12 @@ func (RoleManagementService) ConfigureRoleWithAuthorities(grantDto *model.RoleAu
 
 	for _, authorityDto := range grantDto.Authorities {
 		if len(authorityDto.ID) == 0 && len(authorityDto.Code) == 0 {
-			log.Logger.Debug("The ID and code of authority to configure is blank.")
+			log.Debug(nil, log.LOGGER_APP, "The ID and code of authority to configure is blank.")
 			session.Rollback()
 			return exterror.Catch(exterror.New().AuthServer3010Error, nil)
 		}
 
-		log.Logger.Info(fmt.Sprintf("configure role %v with authority %v-%v", role.Name, authorityDto.ID,
+		log.Info(nil, log.LOGGER_APP, fmt.Sprintf("configure role %v with authority %v-%v", role.Name, authorityDto.ID,
 			authorityDto.Code))
 
 		authority := &model.SysAuthorityEntity{}
@@ -430,12 +431,12 @@ func (RoleManagementService) ConfigureRoleWithAuthorities(grantDto *model.RoleAu
 			existed := false
 			existed, err = session.ID(authorityDto.ID).Get(authority)
 			if err != nil {
-				log.Logger.Error("failed to get authority", log.String("authority id", authorityDto.ID), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "failed to get authority", zap.String("authority id", authorityDto.ID), zap.Error(err))
 				session.Rollback()
 				return err
 			}
 			if !existed {
-				log.Logger.Debug(fmt.Sprintf("such authority entity does not exist,authority id %v", authorityDto.ID))
+				log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("such authority entity does not exist,authority id %v", authorityDto.ID))
 				//msg := fmt.Sprintf("Authority with {%s} does not exist.", authorityDto.ID)
 				//throw new AuthServerException("3011", msg, authorityDto.getId());
 				session.Rollback()
@@ -445,7 +446,7 @@ func (RoleManagementService) ConfigureRoleWithAuthorities(grantDto *model.RoleAu
 		} else {
 			authority, err = db.AuthorityRepositoryInstance.FindNotDeletedOneByCode(authorityDto.Code)
 			if err != nil {
-				log.Logger.Error("failed to find not deleted auth by code", log.String("code", authorityDto.Code), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "failed to find not deleted auth by code", zap.String("code", authorityDto.Code), zap.Error(err))
 				session.Rollback()
 				return err
 			}
@@ -475,8 +476,8 @@ func (RoleManagementService) ConfigureRoleWithAuthorities(grantDto *model.RoleAu
 
 		roleAuthority, err := db.RoleAuthorityRsRepositoryInstance.FindOneByRoleIdAndAuthorityId(role.Id, authority.Id, session)
 		if err != nil {
-			log.Logger.Error("failed to find role auth rs", log.String("role id", role.Id),
-				log.String("authority id", authority.Id), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "failed to find role auth rs", zap.String("role id", role.Id),
+				zap.String("authority id", authority.Id), zap.Error(err))
 			session.Rollback()
 			return err
 		}
@@ -511,7 +512,7 @@ func (RoleManagementService) ConfigureRoleWithAuthoritiesById(roleId string, aut
 	role := &model.SysRoleEntity{}
 	found, err := session.ID(roleId).Get(role)
 	if err != nil {
-		log.Logger.Error("failed to get role", log.String("roleId", roleId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to get role", zap.String("roleId", roleId), zap.Error(err))
 		session.Rollback()
 		return err
 	}
@@ -523,33 +524,33 @@ func (RoleManagementService) ConfigureRoleWithAuthoritiesById(roleId string, aut
 
 	for _, authorityDto := range authorityDtos {
 		if len(authorityDto.ID) == 0 && len(authorityDto.Code) == 0 {
-			log.Logger.Debug("The ID and code of authority to configure is blank.")
+			log.Debug(nil, log.LOGGER_APP, "The ID and code of authority to configure is blank.")
 			session.Rollback()
 			return exterror.Catch(exterror.New().AuthServer3013Error, nil)
 		}
 
-		log.Logger.Info(fmt.Sprintf("configure role %v with authority %v-%v", role.Name, authorityDto.ID,
+		log.Info(nil, log.LOGGER_APP, fmt.Sprintf("configure role %v with authority %v-%v", role.Name, authorityDto.ID,
 			authorityDto.Code))
 
 		authority := &model.SysAuthorityEntity{}
 		if len(authorityDto.ID) > 0 {
 			found, err := session.ID(authorityDto.ID).Get(authority)
 			if err != nil {
-				log.Logger.Error("failed to get authority", log.String("authorityId", authorityDto.ID), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "failed to get authority", zap.String("authorityId", authorityDto.ID), zap.Error(err))
 				session.Rollback()
 				return err
 			}
 			if !found {
 				session.Rollback()
-				log.Logger.Debug(fmt.Sprintf("such authority entity does not exist,authority id %v", authorityDto.ID))
+				log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("such authority entity does not exist,authority id %v", authorityDto.ID))
 				return exterror.Catch(exterror.New().AuthServer3014Error.WithParam(authorityDto.ID), nil)
 				//throw new AuthServerException("3014", msg, authorityDto.getId());
 			}
 		} else {
 			authority, err = db.AuthorityRepositoryInstance.FindNotDeletedOneByCode(authorityDto.Code)
 			if err != nil {
-				log.Logger.Error("failed to find not deleted authority by code", log.String("authority code", authorityDto.Code),
-					log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "failed to find not deleted authority by code", zap.String("authority code", authorityDto.Code),
+					zap.Error(err))
 				session.Rollback()
 				return err
 			}
@@ -576,7 +577,7 @@ func (RoleManagementService) ConfigureRoleWithAuthoritiesById(roleId string, aut
 				if result, err := session.Insert(authority); result == 0 || err != nil {
 					session.Rollback()
 					if err != nil {
-						log.Logger.Error("failed to insert authority", log.JsonObj("authority", authority), log.Error(err))
+						log.Error(nil, log.LOGGER_APP, "failed to insert authority", log.JsonObj("authority", authority), zap.Error(err))
 					}
 					return errors.New("failed to insert authority")
 				}
@@ -586,7 +587,7 @@ func (RoleManagementService) ConfigureRoleWithAuthoritiesById(roleId string, aut
 
 		roleAuthority, err := db.RoleAuthorityRsRepositoryInstance.FindOneByRoleIdAndAuthorityId(role.Id, authority.Id, session)
 		if err != nil {
-			log.Logger.Error("failed to query role authority rs")
+			log.Error(nil, log.LOGGER_APP, "failed to query role authority rs")
 			session.Rollback()
 			return err
 		}
@@ -608,7 +609,7 @@ func (RoleManagementService) ConfigureRoleWithAuthoritiesById(roleId string, aut
 		if result, err := session.Insert(roleAuthority); result == 0 || err != nil {
 			session.Rollback()
 			if err != nil {
-				log.Logger.Error("failed to insert authority rs", log.JsonObj("roleAuthority", roleAuthority), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "failed to insert authority rs", log.JsonObj("roleAuthority", roleAuthority), zap.Error(err))
 			}
 			return errors.New("failed to insert authority rs")
 		}
@@ -630,7 +631,7 @@ func (RoleManagementService) RevokeRoleAuthorities(revocationDto *model.RoleAuth
 	if len(revocationDto.RoleId) > 0 {
 		found, err = session.ID(revocationDto.RoleId).Get(role)
 		if err != nil {
-			log.Logger.Error("failed to get role", log.String("role id", revocationDto.RoleId), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "failed to get role", zap.String("role id", revocationDto.RoleId), zap.Error(err))
 			session.Rollback()
 			return err
 		}
@@ -640,15 +641,15 @@ func (RoleManagementService) RevokeRoleAuthorities(revocationDto *model.RoleAuth
 	if !found && len(revocationDto.RoleName) > 0 {
 		role, err = db.RoleRepositoryInstance.FindNotDeletedRoleByName(revocationDto.RoleName)
 		if err != nil {
-			log.Logger.Error("failed to find not deleted role by name", log.String("roleName", revocationDto.RoleName),
-				log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "failed to find not deleted role by name", zap.String("roleName", revocationDto.RoleName),
+				zap.Error(err))
 			session.Rollback()
 			return err
 		}
 	}
 
 	if role == nil {
-		log.Logger.Debug(fmt.Sprintf("such role entity does not exist,role id %v, role name %v ", revocationDto.RoleId,
+		log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("such role entity does not exist,role id %v, role name %v ", revocationDto.RoleId,
 			revocationDto.RoleName))
 		//throw new AuthServerException("3012", "Such role entity does not exist.");
 		session.Rollback()
@@ -664,7 +665,7 @@ func (RoleManagementService) RevokeRoleAuthorities(revocationDto *model.RoleAuth
 		if len(authorityDto.ID) == 0 {
 			roleAuthority, err = db.RoleAuthorityRsRepositoryInstance.FindOneByRoleIdAndAuthorityCode(role.Id, authorityDto.Code, session)
 			if err != nil {
-				log.Logger.Error("failed to query role authority rs", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "failed to query role authority rs", zap.Error(err))
 				session.Rollback()
 				return err
 			}
@@ -672,7 +673,7 @@ func (RoleManagementService) RevokeRoleAuthorities(revocationDto *model.RoleAuth
 		} else {
 			roleAuthority, err = db.RoleAuthorityRsRepositoryInstance.FindOneByRoleIdAndAuthorityId(role.Id, authorityDto.ID, session)
 			if err != nil {
-				log.Logger.Error("failed to query role authority rs", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "failed to query role authority rs", zap.Error(err))
 				session.Rollback()
 				return err
 			}
@@ -690,7 +691,7 @@ func (RoleManagementService) RevokeRoleAuthorities(revocationDto *model.RoleAuth
 		if result, err := session.ID(roleAuthority.Id).UseBool().Update(roleAuthority); result == 0 || err != nil {
 			session.Rollback()
 			if err != nil {
-				log.Logger.Error("failed to update authority rs", log.JsonObj("roleAuthority", roleAuthority), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "failed to update authority rs", log.JsonObj("roleAuthority", roleAuthority), zap.Error(err))
 			}
 			return errors.New("failed to update authority rs")
 		}
@@ -709,7 +710,7 @@ func (RoleManagementService) RevokeRoleAuthoritiesById(roleId string, authorityD
 	role := &model.SysRoleEntity{}
 	found, err := session.ID(roleId).Get(role)
 	if err != nil {
-		log.Logger.Error("failed to get role", log.String("roleId", roleId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to get role", zap.String("roleId", roleId), zap.Error(err))
 		session.Rollback()
 		return err
 	}
@@ -728,14 +729,14 @@ func (RoleManagementService) RevokeRoleAuthoritiesById(roleId string, authorityD
 		if len(authorityDto.ID) == 0 {
 			roleAuthority, err = db.RoleAuthorityRsRepositoryInstance.FindOneByRoleIdAndAuthorityCode(role.Id, authorityDto.Code, session)
 			if err != nil {
-				log.Logger.Error("failed to query role authority rs", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "failed to query role authority rs", zap.Error(err))
 				session.Rollback()
 				return err
 			}
 		} else {
 			roleAuthority, err = db.RoleAuthorityRsRepositoryInstance.FindOneByRoleIdAndAuthorityId(role.Id, authorityDto.ID, session)
 			if err != nil {
-				log.Logger.Error("failed to query role authority rs", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "failed to query role authority rs", zap.Error(err))
 				session.Rollback()
 				return err
 			}
@@ -753,7 +754,7 @@ func (RoleManagementService) RevokeRoleAuthoritiesById(roleId string, authorityD
 		if result, err := session.ID(roleAuthority.Id).UseBool().Update(roleAuthority); result == 0 || err != nil {
 			session.Rollback()
 			if err != nil {
-				log.Logger.Error("failed to update authority rs", log.JsonObj("roleAuthority", roleAuthority), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "failed to update authority rs", log.JsonObj("roleAuthority", roleAuthority), zap.Error(err))
 			}
 			return errors.New("failed to update authority rs")
 		}

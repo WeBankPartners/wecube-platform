@@ -18,14 +18,18 @@ func main() {
 		return
 	}
 
-	log.InitLogger()
+	if err := log.InitLogger(); err != nil {
+		fmt.Printf("Server  init loggers failed, err: %v\n", err)
+		return
+	}
+	defer log.SyncLoggers()
 	middleware.Init()
 
 	if err := service.Init(); err != nil {
 		fmt.Printf("failed to init service:%s", err.Error())
 		return
 	}
-	log.Logger.Info("Server started")
+	log.Info(nil, log.LOGGER_APP, "Server started")
 
 	router := sw.NewRouter()
 	router.Run(model.Config.ServerAddress + ":" + model.Config.ServerPort)

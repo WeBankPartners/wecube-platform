@@ -12,6 +12,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/execution"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"sync"
 	"time"
 )
@@ -51,7 +52,7 @@ func CreateProcSchedule(c *gin.Context) {
 	if err = procScheduleTimer.AddCron(newRow.Id, param.CronExpr, handleProcScheduleJob, *newRow); err != nil {
 		err = fmt.Errorf("register cron job:%s fail,%s", param.CronExpr, err.Error())
 		if rollbackErr := database.DeleteProcSchedule(c, newRow.Id); rollbackErr != nil {
-			log.Logger.Error("rollback create proc schedule config fail", log.String("id", newRow.Id), log.Error(rollbackErr))
+			log.Error(nil, log.LOGGER_APP, "rollback create proc schedule config fail", zap.String("id", newRow.Id), zap.Error(rollbackErr))
 		}
 		middleware.ReturnError(c, err)
 		return
@@ -175,14 +176,14 @@ func InitProcScheduleTimer() {
 	go checkNewProcScheduleJob()
 	psConfigList, getErr := database.GetProcScheduleLoadList()
 	if getErr != nil {
-		log.Logger.Error("InitProcScheduleTimer load config list fail", log.Error(getErr))
+		log.Error(nil, log.LOGGER_APP, "InitProcScheduleTimer load config list fail", zap.Error(getErr))
 		return
 	}
 	for _, row := range psConfigList {
 		if tmpErr := procScheduleTimer.AddCron(row.Id, row.CronExpr, handleProcScheduleJob, *row); tmpErr != nil {
-			log.Logger.Error("InitProcScheduleTimer load config add cron job fail", log.String("psConfigId", row.Id), log.Error(tmpErr))
+			log.Error(nil, log.LOGGER_APP, "InitProcScheduleTimer load config add cron job fail", zap.String("psConfigId", row.Id), zap.Error(tmpErr))
 		} else {
-			log.Logger.Info("InitProcScheduleTimer load config done", log.String("psConfigId", row.Id))
+			log.Info(nil, log.LOGGER_APP, "InitProcScheduleTimer load config done", zap.String("psConfigId", row.Id))
 			procScheduleConfigMap.Store(row.Id, row)
 		}
 	}
@@ -195,7 +196,7 @@ func checkNewProcScheduleJob() {
 		<-t
 		newConfigList, getErr := database.GetNewProcScheduleList()
 		if getErr != nil {
-			log.Logger.Error("checkNewProcScheduleJob get newly config list fail", log.Error(getErr))
+			log.Error(nil, log.LOGGER_APP, "checkNewProcScheduleJob get newly config list fail", zap.Error(getErr))
 			continue
 		}
 		if len(newConfigList) == 0 {
@@ -204,7 +205,7 @@ func checkNewProcScheduleJob() {
 		for _, newConfigRow := range newConfigList {
 			if _, ok := procScheduleConfigMap.Load(newConfigRow.Id); !ok {
 				if registerErr := procScheduleTimer.AddCron(newConfigRow.Id, newConfigRow.CronExpr, handleProcScheduleJob, *newConfigRow); registerErr != nil {
-					log.Logger.Error("register proc schedule config fail", log.String("id", newConfigRow.Id), log.Error(registerErr))
+					log.Error(nil, log.LOGGER_APP, "register proc schedule config fail", zap.String("id", newConfigRow.Id), zap.Error(registerErr))
 				} else {
 					procScheduleConfigMap.Store(newConfigRow.Id, newConfigRow)
 				}
@@ -216,7 +217,7 @@ func checkNewProcScheduleJob() {
 func handleProcScheduleJob(unixTimestamp int64, param interface{}) {
 	psConfig, ok := param.(models.ProcScheduleConfig)
 	if !ok {
-		log.Logger.Error("handleProcScheduleJob fail with assert param to ProcScheduleConfig")
+		log.Error(nil, log.LOGGER_APP, "handleProcScheduleJob fail with assert param to ProcScheduleConfig")
 		return
 	}
 	jobId := fmt.Sprintf("%s_%d", psConfig.Id, unixTimestamp)
@@ -233,13 +234,13 @@ func handleProcScheduleJob(unixTimestamp int64, param interface{}) {
 		procScheduleConfigMap.Delete(psConfig.Id)
 		return
 	}
-	log.Logger.Info("start handleProcScheduleJob", log.String("psConfigId", psConfig.Id), log.String("jobId", jobId))
+	log.Info(nil, log.LOGGER_APP, "start handleProcScheduleJob", zap.String("psConfigId", psConfig.Id), zap.String("jobId", jobId))
 	// 抢占任务
 	if duplicateRow, err := database.NewProcScheduleJob(ctx, &psConfig, jobId); err != nil {
-		log.Logger.Error("NewProcScheduleJob fail", log.String("psConfigId", psConfig.Id), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "NewProcScheduleJob fail", zap.String("psConfigId", psConfig.Id), zap.Error(err))
 		return
 	} else if duplicateRow {
-		log.Logger.Warn("NewProcScheduleJob insert with duplicate id,break", log.String("psConfigId", psConfig.Id))
+		log.Warn(nil, log.LOGGER_APP, "NewProcScheduleJob insert with duplicate id,break", zap.String("psConfigId", psConfig.Id))
 		return
 	}
 	database.AddProcScheduleExecTimes(ctx, psConfig.Id)
@@ -247,7 +248,7 @@ func handleProcScheduleJob(unixTimestamp int64, param interface{}) {
 	defer func() {
 		if err != nil {
 			if updateJobErr := database.UpdateProcScheduleJob(ctx, jobId, "fail", err.Error(), ""); updateJobErr != nil {
-				log.Logger.Error("handleProcScheduleJob create instance fail,but update schedule job message error", log.String("jobId", jobId), log.String("catchErr", err.Error()), log.Error(updateJobErr))
+				log.Error(nil, log.LOGGER_APP, "handleProcScheduleJob create instance fail,but update schedule job message error", zap.String("jobId", jobId), zap.String("catchErr", err.Error()), zap.Error(updateJobErr))
 			}
 		}
 	}()
@@ -256,7 +257,7 @@ func handleProcScheduleJob(unixTimestamp int64, param interface{}) {
 	previewData, previewErr := execution.BuildProcPreviewData(ctx, psConfig.ProcDefId, psConfig.EntityDataId, operator)
 	if previewErr != nil {
 		err = previewErr
-		log.Logger.Error("handleProcScheduleJob fail with build proc preview data", log.String("psConfigId", psConfig.Id), log.Error(previewErr))
+		log.Error(nil, log.LOGGER_APP, "handleProcScheduleJob fail with build proc preview data", zap.String("psConfigId", psConfig.Id), zap.Error(previewErr))
 		return
 	}
 	// proc instance start
@@ -270,7 +271,7 @@ func handleProcScheduleJob(unixTimestamp int64, param interface{}) {
 	procInsId, workflowRow, workNodes, workLinks, createInsErr := database.CreateProcInstance(ctx, &procStartParam, operator)
 	if createInsErr != nil {
 		err = createInsErr
-		log.Logger.Error("handleProcScheduleJob fail with create proc instance data", log.String("psConfigId", psConfig.Id), log.String("sessionId", previewData.ProcessSessionId), log.Error(createInsErr))
+		log.Error(nil, log.LOGGER_APP, "handleProcScheduleJob fail with create proc instance data", zap.String("psConfigId", psConfig.Id), zap.String("sessionId", previewData.ProcessSessionId), zap.Error(createInsErr))
 		return
 	}
 	// 初始化workflow并开始
@@ -279,8 +280,8 @@ func handleProcScheduleJob(unixTimestamp int64, param interface{}) {
 	//workflow.GlobalWorkflowMap.Store(workObj.Id, &workObj)
 	go workObj.Start(&models.ProcOperation{CreatedBy: operator})
 	if updateJobInsIdErr := database.UpdateProcScheduleJob(ctx, jobId, "done", "", procInsId); updateJobInsIdErr != nil {
-		log.Logger.Error("handleProcScheduleJob done but update job proc instance id fail", log.String("jobId", jobId), log.String("procInsId", procInsId), log.Error(updateJobInsIdErr))
+		log.Error(nil, log.LOGGER_APP, "handleProcScheduleJob done but update job proc instance id fail", zap.String("jobId", jobId), zap.String("procInsId", procInsId), zap.Error(updateJobInsIdErr))
 	} else {
-		log.Logger.Info("done handleProcScheduleJob", log.String("psConfigId", psConfig.Id), log.String("jobId", jobId), log.String("procInsId", procInsId))
+		log.Info(nil, log.LOGGER_APP, "done handleProcScheduleJob", zap.String("psConfigId", psConfig.Id), zap.String("jobId", jobId), zap.String("procInsId", procInsId))
 	}
 }

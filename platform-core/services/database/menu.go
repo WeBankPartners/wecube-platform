@@ -6,6 +6,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"go.uber.org/zap"
 )
 
 // GetAllRootMenus 查询所有根菜单
@@ -93,7 +94,7 @@ func GetMenuItemsByCode(ctx context.Context, code string) (result *models.MenuIt
 func BuildPackageMenuItemDto(ctx context.Context, menus *models.PluginPackageMenus) *models.MenuItemDto {
 	result, err := GetMenuItemsByCode(ctx, menus.Category)
 	if err != nil {
-		log.Logger.Error("Cannot find system menu item by package menus category", log.String("category", menus.Category))
+		log.Error(nil, log.LOGGER_APP, "Cannot find system menu item by package menus category", zap.String("category", menus.Category))
 		return nil
 	}
 	if menus == nil {

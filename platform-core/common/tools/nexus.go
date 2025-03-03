@@ -184,7 +184,7 @@ func doUploadFile(reqParam *NexusReqParam, uploadFileParam *NexusFileParam) (sto
 
 func doDownloadFile(reqParam *NexusReqParam, downloadFileParam *NexusFileParam) (err error) {
 	srcFilePath := downloadFileParam.SourceFilePath
-	//log.Logger.Info(fmt.Sprintf("start to download file: %s", srcFilePath))
+	//log.Info(nil, log.LOGGER_APP, fmt.Sprintf("start to download file: %s", srcFilePath))
 
 	// 创建 HTTP 请求
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Duration(reqParam.TimeoutSec)*time.Second)
@@ -230,7 +230,7 @@ func doDownloadFile(reqParam *NexusReqParam, downloadFileParam *NexusFileParam) 
 		return
 	}
 
-	//log.Logger.Info(fmt.Sprintf("download file: %s successfully", srcFilePath))
+	//log.Info(nil, log.LOGGER_APP, fmt.Sprintf("download file: %s successfully", srcFilePath))
 	return
 }
 

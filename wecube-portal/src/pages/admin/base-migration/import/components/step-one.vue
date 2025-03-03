@@ -4,7 +4,7 @@
       <span class="title">{{ $t('pi_url') }}：</span>
       <div class="link">
         <Input v-model="url" :placeholder="$t('please_input') + $t('pi_url')" clearable style="width: 600px" />
-        <Button type="primary" :disabled="!url" @click="getImportBusinessList">{{ $t('confirm') }}</Button>
+        <Button type="primary" :disabled="!url" @click="getImportBusinessList" style="margin-left: 10px">{{ $t('confirm') }}</Button>
       </div>
     </div>
     <Card :bordered="false" dis-hover :padding="0" style="min-height: 400px">
@@ -153,7 +153,7 @@ export default {
       font-weight: 600;
       .number {
         font-size: 18px;
-        color: #2d8cf0;
+        color: #5384ff;
         margin-left: 6px;
       }
     }
