@@ -151,7 +151,7 @@
             <template v-if="searchParameters && searchParameters.length > 0">
               <Col v-for="(item, index) in searchParameters" :key="index" :span="24" class="item">
                 <span color="success">{{ item.packageName }}-{{ item.entityName }}:{{ item.name }}</span>
-                <span color="primary" style="margin-left: 10px; color: #2db7f5">{{ item.operator }}</span>
+                <span color="primary" style="margin-left: 10px; color: #5384ff">{{ item.operator }}</span>
                 <span color="primary" style="margin-left: 10px">{{ item.value }}</span>
               </Col>
             </template>
@@ -661,7 +661,7 @@ export default {
       height: 24px;
       color: #fff;
       border-radius: 2px;
-      background: #2d8cf0;
+      background: #5384ff;
     }
     .name {
       font-size: 16px;
@@ -708,7 +708,7 @@ export default {
       line-height: 1;
       font-family: SimSun;
       font-size: 14px;
-      color: #ed4014;
+      color: #ff4d4f;
     }
   }
 }

@@ -6,19 +6,23 @@ import (
 	"github.com/WeBankPartners/go-common-lib/logger"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"go.uber.org/zap"
+	"log"
+	"path/filepath"
 	"strings"
 )
 
 var (
-	Logger                 *zap.Logger
-	AccessLogger           *zap.Logger
-	DatabaseLogger         *zap.Logger
-	WorkflowLogger         *zap.Logger
-	WorkflowDatabaseLogger *zap.Logger
+	Logger                 *zap.SugaredLogger
+	AccessLogger           *zap.SugaredLogger
+	MetricLogger           *zap.SugaredLogger
+	TraceLogger            *zap.SugaredLogger
+	DatabaseLogger         *zap.SugaredLogger
+	WorkflowLogger         *zap.SugaredLogger
+	WorkflowDatabaseLogger *zap.SugaredLogger
 	DebugEnable            bool
 )
 
-func InitLogger() {
+func InitLogger() (err error) {
 	baseLogDir := models.Config.Log.LogDir
 	if strings.HasSuffix(models.Config.Log.LogDir, "/") {
 		baseLogDir = baseLogDir[:len(baseLogDir)-1]
@@ -27,84 +31,93 @@ func InitLogger() {
 	if models.Config.Log.Level == "debug" {
 		DebugEnable = true
 	}
-	Logger = logger.InitArchiveZapLogger(logger.LogConfig{
-		Name:             "server",
-		FilePath:         fmt.Sprintf("%s/%s.log", baseLogDir, models.GlobalProjectName),
-		LogLevel:         models.Config.Log.Level,
-		ArchiveMaxSize:   models.Config.Log.ArchiveMaxSize,
-		ArchiveMaxBackup: models.Config.Log.ArchiveMaxBackup,
-		ArchiveMaxDay:    models.Config.Log.ArchiveMaxDay,
-		Compress:         models.Config.Log.Compress,
-		FormatJson:       models.Config.Log.FormatJson,
-	})
+	appName := models.GlobalProjectName
+	param := &logger.LoggerParam{
+		MaxSize:       models.Config.Log.ArchiveMaxSize,
+		MaxAge:        models.Config.Log.ArchiveMaxDay,
+		MaxBackups:    models.Config.Log.ArchiveMaxBackup,
+		Compress:      models.Config.Log.Compress,
+		Level:         models.Config.Log.Level,
+		AddCallerSkip: 1,
+	}
+	// 业务日志实例
+	param.Filename = filepath.Join(baseLogDir, "/"+appName+".log")
+	if Logger, err = newLogger(param); err != nil {
+		return
+	}
+	// 访问日志实例
 	if models.Config.Log.AccessLogEnable {
-		AccessLogger = logger.InitArchiveZapLogger(logger.LogConfig{
-			Name:             "access",
-			FilePath:         fmt.Sprintf("%s/%s-access.log", baseLogDir, models.GlobalProjectName),
-			LogLevel:         models.Config.Log.Level,
-			ArchiveMaxSize:   models.Config.Log.ArchiveMaxSize,
-			ArchiveMaxBackup: models.Config.Log.ArchiveMaxBackup,
-			ArchiveMaxDay:    models.Config.Log.ArchiveMaxDay,
-			Compress:         models.Config.Log.Compress,
-			FormatJson:       models.Config.Log.FormatJson,
-		})
+		param.Filename = filepath.Join(baseLogDir, fmt.Sprintf("/%s-access.log", appName))
+		if AccessLogger, err = newLogger(param); err != nil {
+			return
+		}
 	}
+
+	// 应用性能实例
+	param.Filename = filepath.Join(baseLogDir, fmt.Sprintf("/%s-metric.log", appName))
+	if MetricLogger, err = newLogger(param); err != nil {
+		return
+	}
+
+	// 交易链路日志实例
+	param.Filename = filepath.Join(baseLogDir, fmt.Sprintf("/%s-trace.log", appName))
+	if TraceLogger, err = newLogger(param); err != nil {
+		return
+	}
+
+	// Db日志实例
 	if models.Config.Log.DbLogEnable {
-		DatabaseLogger = logger.InitArchiveZapLogger(logger.LogConfig{
-			Name:             "database",
-			FilePath:         fmt.Sprintf("%s/%s-db.log", baseLogDir, models.GlobalProjectName),
-			LogLevel:         models.Config.Log.Level,
-			ArchiveMaxSize:   models.Config.Log.ArchiveMaxSize,
-			ArchiveMaxBackup: models.Config.Log.ArchiveMaxBackup,
-			ArchiveMaxDay:    models.Config.Log.ArchiveMaxDay,
-			Compress:         models.Config.Log.Compress,
-			FormatJson:       models.Config.Log.FormatJson,
-		})
-		WorkflowDatabaseLogger = logger.InitArchiveZapLogger(logger.LogConfig{
-			Name:             "workflow-database",
-			FilePath:         fmt.Sprintf("%s/%s-workflow-db.log", baseLogDir, models.GlobalProjectName),
-			LogLevel:         models.Config.Log.Level,
-			ArchiveMaxSize:   models.Config.Log.ArchiveMaxSize,
-			ArchiveMaxBackup: models.Config.Log.ArchiveMaxBackup,
-			ArchiveMaxDay:    models.Config.Log.ArchiveMaxDay,
-			Compress:         models.Config.Log.Compress,
-			FormatJson:       models.Config.Log.FormatJson,
-		})
+		param.Filename = filepath.Join(baseLogDir, fmt.Sprintf("/%s-db.log", appName))
+		if DatabaseLogger, err = newLogger(param); err != nil {
+			return
+		}
+
+		param.Filename = filepath.Join(baseLogDir, fmt.Sprintf("/%s-workflow-db.log", appName))
+		if WorkflowDatabaseLogger, err = newLogger(param); err != nil {
+			return
+		}
 	}
-	WorkflowLogger = logger.InitArchiveZapLogger(logger.LogConfig{
-		Name:             "workflow",
-		FilePath:         fmt.Sprintf("%s/%s-workflow.log", baseLogDir, models.GlobalProjectName),
-		LogLevel:         models.Config.Log.Level,
-		ArchiveMaxSize:   models.Config.Log.ArchiveMaxSize,
-		ArchiveMaxBackup: models.Config.Log.ArchiveMaxBackup,
-		ArchiveMaxDay:    models.Config.Log.ArchiveMaxDay,
-		Compress:         models.Config.Log.Compress,
-		FormatJson:       models.Config.Log.FormatJson,
-	})
+
+	// 编排执行日志实例
+	param.Filename = filepath.Join(baseLogDir, fmt.Sprintf("/%s-workflow.log", appName))
+	if WorkflowLogger, err = newLogger(param); err != nil {
+		return
+	}
+	return
 }
 
-func Error(err error) zap.Field {
-	return zap.Error(err)
+// 创建日志实例
+func newLogger(param *logger.LoggerParam) (sugaredLogger *zap.SugaredLogger, err error) {
+	l, err := logger.NewLogger(param)
+	if err != nil {
+		return
+	}
+	sugaredLogger = l.Sugar()
+	if Logger != nil {
+		Logger.Debugf("Logger %s initialized", param.Filename)
+	} else {
+		log.Printf("Logger %s initialized\n", param.Filename)
+	}
+	return
 }
 
-func String(k, v string) zap.Field {
-	return zap.String(k, v)
+// SyncLoggers 同步日志实例
+func SyncLoggers() {
+	syncLogger(Logger)
+	syncLogger(AccessLogger)
+	syncLogger(MetricLogger)
+	syncLogger(DatabaseLogger)
+	syncLogger(WorkflowLogger)
+	syncLogger(WorkflowDatabaseLogger)
 }
 
-func Int(k string, v int) zap.Field {
-	return zap.Int(k, v)
-}
-
-func Int64(k string, v int64) zap.Field {
-	return zap.Int64(k, v)
-}
-
-func Float64(k string, v float64) zap.Field {
-	return zap.Float64(k, v)
-}
-
-func Bool(k string, v bool) zap.Field {
-	return zap.Bool(k, v)
+// 调用Sync方法将缓冲区中的日志条目刷新到磁盘
+func syncLogger(logger *zap.SugaredLogger) {
+	if logger != nil {
+		if err := logger.Sync(); err != nil {
+			log.Println(err)
+		}
+	}
 }
 
 func JsonObj(k string, v interface{}) zap.Field {
@@ -114,8 +127,4 @@ func JsonObj(k string, v interface{}) zap.Field {
 	} else {
 		return zap.Error(err)
 	}
-}
-
-func StringList(k string, v []string) zap.Field {
-	return zap.Strings(k, v)
 }

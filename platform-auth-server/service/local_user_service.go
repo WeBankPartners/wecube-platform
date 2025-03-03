@@ -4,6 +4,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/db"
+	"go.uber.org/zap"
 )
 
 const (
@@ -19,7 +20,7 @@ var LocalUserServiceInstance LocalUserService
 func (LocalUserService) loadUserByUsername(username string) (*model.SysUser, error) {
 	userEntity, err := db.UserRepositoryInstance.FindNotDeletedUserByUsername(username)
 	if err != nil {
-		log.Logger.Warn("failed to FindNotDeletedUserByUsername", log.String("username", username), log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "failed to FindNotDeletedUserByUsername", zap.String("username", username), zap.Error(err))
 		return nil, err
 	}
 
@@ -44,7 +45,7 @@ func (LocalUserService) loadUserByUsername(username string) (*model.SysUser, err
 
 	userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByUserId(userEntity.Id)
 	if err != nil {
-		log.Logger.Warn("failed to FindAllByUserId for userRoleRs", log.String("userId", userEntity.Id), log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "failed to FindAllByUserId for userRoleRs", zap.String("userId", userEntity.Id), zap.Error(err))
 		return nil, err
 	}
 	if userRoles == nil {
@@ -59,7 +60,7 @@ func (LocalUserService) loadUserByUsername(username string) (*model.SysUser, err
 		role := &model.SysRoleEntity{}
 		found, err := db.Engine.ID(userRole.RoleId).Get(role)
 		if err != nil {
-			log.Logger.Warn("failed to get role", log.String("roleId", userRole.RoleId), log.Error(err))
+			log.Warn(nil, log.LOGGER_APP, "failed to get role", zap.String("roleId", userRole.RoleId), zap.Error(err))
 			return nil, err
 		}
 
@@ -89,7 +90,7 @@ func (LocalUserService) loadUserByUsername(username string) (*model.SysUser, err
 func appendAuthorities(user *model.SysUser, role *model.SysRoleEntity) error {
 	roleAuthorities, err := db.RoleAuthorityRsRepositoryInstance.FindAllConfiguredAuthoritiesByRoleId(role.Id)
 	if err != nil {
-		log.Logger.Warn("failed to FindAllConfiguredAuthoritiesByRoleId", log.String("roleId", role.Id), log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "failed to FindAllConfiguredAuthoritiesByRoleId", zap.String("roleId", role.Id), zap.Error(err))
 		return err
 	}
 	if len(roleAuthorities) == 0 {
@@ -104,7 +105,7 @@ func appendAuthorities(user *model.SysUser, role *model.SysRoleEntity) error {
 		authority := &model.SysAuthorityEntity{}
 		found, err := db.Engine.ID(roleAuthority.AuthorityID).Get(authority)
 		if err != nil {
-			log.Logger.Warn("failed to get authority", log.String("authorityId", roleAuthority.AuthorityID), log.Error(err))
+			log.Warn(nil, log.LOGGER_APP, "failed to get authority", zap.String("authorityId", roleAuthority.AuthorityID), zap.Error(err))
 			return err
 		}
 

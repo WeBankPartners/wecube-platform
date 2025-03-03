@@ -904,7 +904,7 @@ export default {
     background-color: #4ee643;
   }
   .ivu-checkbox-disabled.ivu-checkbox-checked .ivu-checkbox-inner {
-    background-color: #2d8cf0;
+    background-color: #5384ff;
   }
 }
 .icon-copy {

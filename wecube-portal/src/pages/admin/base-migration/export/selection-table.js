@@ -178,7 +178,7 @@ export default {
               {
                 label: this.$t('be_status_use'),
                 value: 'available',
-                color: '#19be6b'
+                color: '#00cb91'
               },
               {
                 label: this.$t('be_status_draft'),
@@ -188,7 +188,7 @@ export default {
               {
                 label: this.$t('be_status_role'),
                 value: 'unauthorized',
-                color: '#ed4014'
+                color: '#ff4d4f'
               }
             ]
             const item = list.find(i => i.value === params.row.status)

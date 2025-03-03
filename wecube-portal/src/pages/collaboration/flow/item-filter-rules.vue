@@ -31,12 +31,12 @@
                 @paste="pastePathExp($event)"
               />
             </li>
-            <li class v-if="pathList.length > 0" style="color: #ed4014" @click="deleteCurrentNode">
+            <li class v-if="pathList.length > 0" style="color: #ff4d4f" @click="deleteCurrentNode">
               {{ $t('delete_node') }}
             </li>
             <li
               class
-              style="color: #2d8cf0"
+              style="color: #5384ff"
               v-if="pathList.length > 0 && currentNode.nodeType === 'entity'"
               @click="addFilterRuleForCurrentNode"
             >
@@ -48,7 +48,7 @@
           </ul>
           <hr style="margin-top: 5px" />
           <template v-if="(rootOnly && pathList.length === 0) || (!rootOnly && pathList.length > 0)">
-            <div v-if="!needNativeAttr" style="max-height: 145px; overflow: auto; margin-top: 5px">
+            <div v-if="!needNativeAttr" style="max-height: 200px; padding-top: 5px">
               <ul v-for="opt in filterCurrentLeafOptiongs" :key="opt.pathExp + Math.random() * 1000">
                 <li style="color: rgb(49, 104, 4)" @click="optClickHandler(opt, 'leaf')">{{ opt.pathExp }}</li>
               </ul>

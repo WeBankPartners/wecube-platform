@@ -20,6 +20,7 @@ sed -i "s~\[#AUTH_SERVER\]~$AUTH_SERVER~g" /app/platform-auth-server/config/defa
 sed -i "s~\[#AUTH_PASSWORD\]~$AUTH_PASSWORD~g" /app/platform-auth-server/config/default.json
 sed -i "s~\[#SSL\]~$SSL~g" /app/platform-auth-server/config/default.json
 sed -i "s~\[#NOTIFY_PERCENT\]~$NOTIFY_PERCENT~g" /app/platform-auth-server/config/default.json
+sed -i "s~\[#ENCRYPT_SEED\]~$ENCRYPT_SEED~g" /app/platform-auth-server/config/default.json
 
 
 exec ./platform-auth-server

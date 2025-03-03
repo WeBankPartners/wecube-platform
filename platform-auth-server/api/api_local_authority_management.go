@@ -10,7 +10,7 @@ import (
 )
 
 func RegisterLocalAuthority(c *gin.Context) {
-	//log.Logger.Info("Start RegisterLocalAuthority, ", log.String("RequestId", c.GetHeader(constant.RequestId)))
+	//log.Info(nil, log.LOGGER_APP, "Start RegisterLocalAuthority, ", zap.String("RequestId", c.GetHeader(constant.RequestId)))
 	var authorityDto model.SimpleAuthorityDto
 	if err := c.ShouldBindJSON(&authorityDto); err != nil {
 		support.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, fmt.Errorf("invalid request: %s", err.Error())))
@@ -27,7 +27,7 @@ func RegisterLocalAuthority(c *gin.Context) {
 }
 
 func RetrieveAllLocalAuthorities(c *gin.Context) {
-	//log.Logger.Info("Start RegisterLocalAuthority, ", log.String("RequestId", c.GetHeader(constant.RequestId)))
+	//log.Info(nil, log.LOGGER_APP, "Start RegisterLocalAuthority, ", zap.String("RequestId", c.GetHeader(constant.RequestId)))
 	result, err := service.AuthorityManagementServiceInstance.RetrieveAllLocalAuthorities()
 	if err != nil {
 		support.ReturnError(c, err)

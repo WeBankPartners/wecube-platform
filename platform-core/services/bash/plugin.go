@@ -9,6 +9,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"go.uber.org/zap"
 	"os"
 	"os/exec"
 	"regexp"
@@ -30,7 +31,7 @@ func SaveTmpFile(fileName string, fileContent []byte) (filePath, fileDir string,
 	filePath = fmt.Sprintf("%s/%s", fileDir, fileName)
 	if err = os.WriteFile(filePath, fileContent, 0644); err != nil {
 		err = fmt.Errorf("write tmp file fail,%s ", err.Error())
-		log.Logger.Error("save tmp file fail", log.String("fileName", fileName))
+		log.Error(nil, log.LOGGER_APP, "save tmp file fail", zap.String("fileName", fileName))
 	}
 	return
 }
@@ -217,7 +218,7 @@ func InitPluginDockerHostSSH() {
 	var resourceServers []*models.ResourceServer
 	err := db.MysqlEngine.SQL("select name,host,login_password,login_username,port,login_mode from resource_server where `type`='docker'").Find(&resourceServers)
 	if err != nil {
-		log.Logger.Error("init plugin docker ssh fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "init plugin docker ssh fail", zap.Error(err))
 		return
 	}
 	for _, row := range resourceServers {
@@ -225,11 +226,11 @@ func InitPluginDockerHostSSH() {
 			row.LoginPassword = encrypt.DecryptWithAesECB(row.LoginPassword[5:], models.Config.Plugin.ResourcePasswordSeed, row.Name)
 		}
 		exec.Command("/bin/bash", "-c", fmt.Sprintf("sshpass -p '%s' ssh -o StrictHostKeyChecking=no %s@%s -p %s", row.LoginPassword, row.LoginUsername, row.Host, row.Port)).Output()
-		log.Logger.Info("init plugin docker ssh", log.String("server", row.Host))
+		log.Info(nil, log.LOGGER_APP, "init plugin docker ssh", zap.String("server", row.Host))
 	}
 	for _, staticResource := range models.Config.StaticResources {
 		exec.Command("/bin/bash", "-c", fmt.Sprintf("sshpass -p '%s' ssh -o StrictHostKeyChecking=no %s@%s -p %s", staticResource.Password, staticResource.User, staticResource.Server, staticResource.Port)).Output()
-		log.Logger.Info("init platform docker ssh", log.String("server", staticResource.Server))
+		log.Info(nil, log.LOGGER_APP, "init platform docker ssh", zap.String("server", staticResource.Server))
 	}
 }
 
@@ -250,6 +251,6 @@ func CopyTmpFile(sourceFilePath string) (filePath, fileDir string, err error) {
 		err = fmt.Errorf("cp file fail,%s ", err.Error())
 		return
 	}
-	log.Logger.Debug("cp file done", log.String("source", sourceFilePath), log.String("target", filePath))
+	log.Debug(nil, log.LOGGER_APP, "cp file done", zap.String("source", sourceFilePath), zap.String("target", filePath))
 	return
 }
