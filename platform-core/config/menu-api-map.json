@@ -215,6 +215,10 @@
         "method": "get"
       },
       {
+        "url": "/platform/v1/plugins/packages/import/${id}",
+        "method": "post"
+      },
+      {
         "key": "getPluginPkgDependcy",
         "url": "/platform/v1/packages/${id}/dependencies",
         "method": "get"
@@ -358,6 +362,14 @@
         "key": "getUserList",
         "url": "/platform/v1/users/retrieve",
         "method": "get"
+      },
+      {
+        "url": "/platform/v1/packages",
+        "method": "get"
+      },
+      {
+        "url": "/platform/v1/plugins/packages/import/${id}",
+        "method": "post"
       },
       {
         "key": "batchExportConfig",
