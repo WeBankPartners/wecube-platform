@@ -325,6 +325,17 @@ import {
 } from '@/api/server.js'
 import BatchRegistModal from './components/batch-register-modal.vue'
 
+export const custom_api_enum = [
+  {
+    "url": "/platform/v1/packages",
+    "method": "get"
+  },
+  {
+    "url": "/platform/v1/plugins/packages/import/${id}",
+    "method": "post"
+  }
+]
+
 const initSearchForm = {
   running: 'yes',
   name: '',
