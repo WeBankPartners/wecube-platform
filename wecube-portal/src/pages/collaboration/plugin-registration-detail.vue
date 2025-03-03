@@ -280,6 +280,13 @@ import {
   getPluginConfigsByPackageId
 } from '@/api/server.js'
 
+export const custom_api_enum = [
+  {
+    "url": "/platform/v1/plugins/packages/import/${id}",
+    "method": "post"
+  }
+]
+
 export default {
   name: '',
   components: {

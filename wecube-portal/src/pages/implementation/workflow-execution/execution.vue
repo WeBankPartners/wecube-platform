@@ -1778,33 +1778,33 @@ export default {
         this.isShowNonOwnerModal = true
       }
     },
-    queryHistory() {
-      this.selectedTarget = null
-      this.stop()
-      this.isEnqueryPage = true
-      this.showExcution = false
-      this.selectedFlow = ''
-      this.modelData = []
-      this.flowData = {}
-      this.$nextTick(() => {
-        this.initModelGraph()
-        this.initFlowGraph()
-      })
-    },
-    createHandler() {
-      this.selectedTarget = null
-      this.stop()
-      this.isEnqueryPage = false
-      this.selectedFlowInstance = ''
-      this.selectedFlow = ''
-      this.modelData = []
-      this.flowData = {}
-      this.showExcution = false
-      this.$nextTick(() => {
-        this.initModelGraph()
-        this.initFlowGraph()
-      })
-    },
+    // queryHistory() {
+    //   this.selectedTarget = null
+    //   this.stop()
+    //   this.isEnqueryPage = true
+    //   this.showExcution = false
+    //   this.selectedFlow = ''
+    //   this.modelData = []
+    //   this.flowData = {}
+    //   this.$nextTick(() => {
+    //     this.initModelGraph()
+    //     this.initFlowGraph()
+    //   })
+    // },
+    // createHandler() {
+    //   this.selectedTarget = null
+    //   this.stop()
+    //   this.isEnqueryPage = false
+    //   this.selectedFlowInstance = ''
+    //   this.selectedFlow = ''
+    //   this.modelData = []
+    //   this.flowData = {}
+    //   this.showExcution = false
+    //   this.$nextTick(() => {
+    //     this.initModelGraph()
+    //     this.initFlowGraph()
+    //   })
+    // },
     clearTarget() {
       this.isExecuteActive = false
       this.showExcution = false
@@ -2178,13 +2178,9 @@ export default {
             removeEvent('.time-node', 'click', this.timeNodeHandler)
             removeEvent('.decision-node', 'click', this.executeBranchHandler)
           }
-          //  // 新建执行-节点绑定事件
-          //  this.bindFlowEvent()
+           // 新建执行-节点绑定事件
+           this.bindFlowEvent()
         })
-      // 新建执行-节点绑定事件
-      setTimeout(() => {
-        this.bindFlowEvent()
-      }, 1000)
     },
     async excutionFlow() {
       // 区分已存在的flowInstance执行 和 新建的执行
@@ -2745,23 +2741,23 @@ export default {
       }
       initEvent()
     },
-    initModelGraph() {
-      const graphEl = document.getElementById('graph')
-      const initEvent = () => {
-        const graph = d3.select('#graph')
-        graph.on('dblclick.zoom', null).on('wheel.zoom', null)
-          .on('mousewheel.zoom', null)
-        this.graph.graphviz = graph
-          .graphviz()
-          .fit(true)
-          .zoom(true)
-          .height(graphEl.offsetHeight - 10)
-          .width(graphEl.offsetWidth - 10)
-      }
-      initEvent()
-      this.formatRefNodeIds()
-      this.renderModelGraph()
-    },
+    // initModelGraph() {
+    //   const graphEl = document.getElementById('graph')
+    //   const initEvent = () => {
+    //     const graph = d3.select('#graph')
+    //     graph.on('dblclick.zoom', null).on('wheel.zoom', null)
+    //       .on('mousewheel.zoom', null)
+    //     this.graph.graphviz = graph
+    //       .graphviz()
+    //       .fit(true)
+    //       .zoom(true)
+    //       .height(graphEl.offsetHeight - 10)
+    //       .width(graphEl.offsetWidth - 10)
+    //   }
+    //   initEvent()
+    //   this.formatRefNodeIds()
+    //   this.renderModelGraph()
+    // },
     initFlowGraph(excution = false) {
       const graphEl = document.getElementById('flow')
       const graph = d3.select('#flow')
