@@ -70,6 +70,12 @@
                 ></Button>
               </Tooltip>
             </div>
+            <div 
+              v-if="!userFilterRes.length" 
+              style="display: flex; justify-content: center; margin-top: 10px"
+>
+              {{ $t('noData') }}
+            </div>
           </div>
           <Page
             v-if="!currentRoleId"
