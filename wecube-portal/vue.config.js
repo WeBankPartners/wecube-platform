@@ -4,6 +4,9 @@ dotenv.config()
 
 module.exports = {
   devServer: {
+    client: {
+      overlay: false 
+    },
     port: 3000,
     proxy: {
       '/': {

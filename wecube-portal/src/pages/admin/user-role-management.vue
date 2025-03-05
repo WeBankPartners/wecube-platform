@@ -9,7 +9,28 @@
               $t('add_user')
             }}</Button>
           </p>
-          <Input v-model="userFilter" clearable :placeholder="$t('pi_enter_to_filter')" style="margin-bottom: 12px" />
+          <div style="display: flex">
+            <Input
+              v-model="userFilter"
+              clearable 
+              :placeholder="$t('username')" 
+              @on-change="onUserFilterChange"
+              style="margin-bottom: 12px; margin-right: 5px; width: 40%" 
+            />
+            <Select
+              v-model="currentRoleId" 
+              filterable 
+              clearable
+              :placeholder="$t('please_choose') + $t('role')"
+              @on-change="onFilterUserRoleChange" 
+              @on-clear="onFilterUserRoleClear"
+              style="width: 50%" 
+            >
+              <Option v-for="item in roles" :value="item.id" :key="item.id" :label="item.username">
+                {{ item.name + '(' + item.displayName + ')' }}
+              </Option>
+            </Select>
+          </div>
           <div class="user-tag-containers">
             <div class="user-item" v-for="item in userFilterRes" :key="item.id">
               <Tag
@@ -48,6 +69,12 @@
                   @click="resetRolePassword(item)"
                 ></Button>
               </Tooltip>
+            </div>
+            <div 
+              v-if="!userFilterRes.length" 
+              style="display: flex; justify-content: center; margin-top: 10px"
+>
+              {{ $t('noData') }}
             </div>
           </div>
           <Page
@@ -297,7 +324,7 @@ export default {
       },
       showNewPassword: false,
       newPassword: '',
-      currentRoleId: 0,
+      currentRoleId: '',
       users: [],
       selectedUser: '',
       roles: [],
@@ -347,13 +374,6 @@ export default {
     }
   },
   watch: {
-    userFilter: {
-      handler: debounce(function () {
-        this.pagination.page = 1
-        this.getAllUsers()
-      }, 300), // 300ms防抖时间
-      immediate: true
-    },
     roleFilter: {
       handler: debounce(function (newValue) {
         const filter = newValue.trim()
@@ -536,9 +556,10 @@ export default {
     renderUserNameForTransfer(item) {
       return item.label
     },
-    async getAllUsers() {
+    async getAllUsers(isfullRequest = true) {
       const params = {
-        username: this.userFilter.trim(),
+        roleId: this.currentRoleId,
+        userName: this.userFilter.trim(),
         pageSize: this.pagination.size,
         startIndex: (this.pagination.page - 1) * this.pagination.size
       }
@@ -548,13 +569,15 @@ export default {
         this.pagination.total = data.pageInfo.totalRows
         this.users = tempUsers.map(_ => ({
           ..._,
-          checked: false,
+          checked: this.currentRoleId ? true : false,
           color: '#5cadff'
         }))
         this.userFilterRes = this.users
       }
-      this.getAllRoles()
-      this.getInitAllUserInfo()
+      if (isfullRequest) {
+        this.getAllRoles()
+        this.getInitAllUserInfo()
+      }
     },
     async getAllRoles() {
       const params = { all: 'Y' }
@@ -571,7 +594,7 @@ export default {
     },
     async handleUserClick(checked, name) {
       this.selectedUser = name
-      this.currentRoleId = 0
+      this.currentRoleId = ''
       this.users.forEach(_ => {
         _.checked = false
         if (name === _.username) {
@@ -622,17 +645,8 @@ export default {
             this.menusPermissionSelected(this.menus, permissions.data.menuList, false)
           }
         })
-        getUsersByRoleId(id).then(res => {
-          if (res.status === 'OK') {
-            this.users.forEach(_ => {
-              _.checked = false
-              const found = res.data.find(item => item.username === _.username)
-              if (found) {
-                _.checked = checked
-              }
-            })
-          }
-        })
+        this.userFilter = ''
+        this.getAllUsers(false)
       } else {
         this.users.forEach(_ => {
           _.checked = false
@@ -819,6 +833,31 @@ export default {
       if (status === 'OK') {
         this.initAllUserInfo = data
       }
+    },
+    getFirstPageUsers() {
+      this.pagination.page = 1
+      this.getAllUsers(false)
+    },
+    onUserFilterChange: debounce(function () {
+      this.getFirstPageUsers()
+    }, 300),
+    onFilterUserRoleChange(id) {
+      if (!id) return
+      this.roles.forEach(item => {
+        if (item.id === id) {
+          item.checked = true
+        } else {
+          item.checked = false
+        }
+      })
+      this.handleRoleClick(true, id)
+      
+    },
+    onFilterUserRoleClear() {
+      this.roles.forEach(_ => {
+        _.checked = false
+      })
+      this.getFirstPageUsers()
     }
   },
   created() {
