@@ -1948,7 +1948,7 @@ export default {
         + genEdge()
         + '}'
       this.reloadGraph()
-      this.graph.graphviz.transition().renderDot(nodesString)
+      this.graph.graphviz.renderDot(nodesString)
       // .on('end', this.setFontSizeForText)
       removeEvent('.model text', 'click', this.modelGraphClickHandler)
       removeEvent('#graph svg', 'click', this.resetcurrentModelNodeRefs)
