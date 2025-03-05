@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
@@ -221,15 +222,36 @@ func (UserRepository) FindAllActiveUsers() ([]*model.SysUserEntity, error) {
 
 func (UserRepository) QueryUsers(param model.QueryUserParam) (int, []*model.SysUserEntity, error) {
 	var users []*model.SysUserEntity
+	var userRoles []*model.UserRoleRsEntity
+	var userIds []string
+	var dataSession, countSession *xorm.Session
 	var err error
 	var count int
+	sql := "select count(1) from auth_sys_user where is_deleted = false and is_active = true and is_blocked = false"
 	if strings.TrimSpace(param.UserName) != "" {
-		err = Engine.Where("is_deleted = ?", false).And("is_active = ?", true).And("is_blocked = ?", false).And("username like ?", "%"+param.UserName+"%").Limit(param.PageSize, param.StartIndex).Find(&users)
-		Engine.SQL("select count(1) from auth_sys_user where is_deleted = false and is_active = true and is_blocked = false and username like ?", "%"+param.UserName+"%").Get(&count)
+		dataSession = Engine.Where("is_deleted = ?", false).And("is_active = ?", true).And("is_blocked = ?", false).And("username like ?", "%"+param.UserName+"%")
+		countSession = Engine.SQL("select count(1) from auth_sys_user where is_deleted = false and is_active = true and is_blocked = false and username like ?", "%"+param.UserName+"%")
 	} else {
-		err = Engine.Where("is_deleted = ?", false).And("is_active = ?", true).And("is_blocked = ?", false).Limit(param.PageSize, param.StartIndex).Find(&users)
-		Engine.SQL("select count(1) from auth_sys_user where is_deleted = false and is_active = true and is_blocked = false").Get(&count)
+		dataSession = Engine.Where("is_deleted = ?", false).And("is_active = ?", true).And("is_blocked = ?", false)
+		countSession = Engine.SQL(sql)
 	}
+	defer dataSession.Close()
+	defer countSession.Close()
+	if param.RoleId != "" {
+		if err = Engine.Where("is_deleted = ?", false).And("role_id = ?", param.RoleId).Find(&userRoles); err != nil {
+			return count, nil, err
+		}
+		for _, userRole := range userRoles {
+			userIds = append(userIds, userRole.UserId)
+		}
+		if len(userIds) == 0 {
+			return 0, nil, nil
+		}
+		dataSession = dataSession.And(builder.In("id", userIds))
+		countSession = countSession.SQL(sql + fmt.Sprintf(" and id in ('%s')", strings.Join(userIds, "','")))
+	}
+	err = dataSession.Limit(param.PageSize, param.StartIndex).Find(&users)
+	countSession.Get(&count)
 	if err != nil {
 		return count, nil, err
 	}
