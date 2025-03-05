@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
@@ -226,20 +225,27 @@ func (UserRepository) QueryUsers(param model.QueryUserParam) (int, []*model.SysU
 	var userIds []string
 	var dataSession, countSession *xorm.Session
 	var err error
-	var count int
-	sql := "select count(1) from auth_sys_user where is_deleted = false and is_active = true and is_blocked = false"
+	var count int64
+	// 构建基础查询条件
+	baseConditions := builder.Eq{"is_deleted": false, "is_active": true, "is_blocked": false}
+
+	// 创建数据查询会话
+	dataSession = Engine.Where(baseConditions)
+
+	// 创建计数查询会话
+	countSession = Engine.Where(baseConditions)
+
+	// 添加用户名查询条件
 	if strings.TrimSpace(param.UserName) != "" {
-		dataSession = Engine.Where("is_deleted = ?", false).And("is_active = ?", true).And("is_blocked = ?", false).And("username like ?", "%"+param.UserName+"%")
-		countSession = Engine.SQL("select count(1) from auth_sys_user where is_deleted = false and is_active = true and is_blocked = false and username like ?", "%"+param.UserName+"%")
-	} else {
-		dataSession = Engine.Where("is_deleted = ?", false).And("is_active = ?", true).And("is_blocked = ?", false)
-		countSession = Engine.SQL(sql)
+		dataSession = dataSession.And(builder.Like{"username", "%" + param.UserName + "%"})
+		countSession = countSession.And(builder.Like{"username", "%" + param.UserName + "%"})
 	}
 	defer dataSession.Close()
 	defer countSession.Close()
+	// 添加角色ID查询条件
 	if param.RoleId != "" {
 		if err = Engine.Where("is_deleted = ?", false).And("role_id = ?", param.RoleId).Find(&userRoles); err != nil {
-			return count, nil, err
+			return int(count), nil, err
 		}
 		for _, userRole := range userRoles {
 			userIds = append(userIds, userRole.UserId)
@@ -248,14 +254,19 @@ func (UserRepository) QueryUsers(param model.QueryUserParam) (int, []*model.SysU
 			return 0, nil, nil
 		}
 		dataSession = dataSession.And(builder.In("id", userIds))
-		countSession = countSession.SQL(sql + fmt.Sprintf(" and id in ('%s')", strings.Join(userIds, "','")))
+		countSession = countSession.And(builder.In("id", userIds))
 	}
+	// 执行数据查询
 	err = dataSession.Limit(param.PageSize, param.StartIndex).Find(&users)
-	countSession.Get(&count)
 	if err != nil {
-		return count, nil, err
+		return int(count), nil, err
 	}
-	return count, users, nil
+	// 执行计数查询
+	count, _ = countSession.Count(&model.SysUserEntity{})
+	if err != nil {
+		return int(count), nil, err
+	}
+	return int(count), users, nil
 }
 
 var UserRoleRsRepositoryInstance UserRoleRsRepository
