@@ -14,9 +14,6 @@ module.exports = {
         changeOrigin: true,
         ws: false,
       }
-    },
-    client: {
-      overlay: false
     }
   },
   runtimeCompiler: true,
