@@ -23,6 +23,7 @@ type QueryUserParam struct {
 	UserName   string `json:"userName"`
 	StartIndex int    `json:"startIndex"`
 	PageSize   int    `json:"pageSize"`
+	RoleId     string `json:"roleId"`
 }
 
 type TransFiltersParam struct {
