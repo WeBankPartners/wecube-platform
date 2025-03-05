@@ -306,7 +306,7 @@ export default {
   },
   methods: {
     initData() {
-      this.MODALHEIGHT = document.body.scrollHeight - 220
+      this.MODALHEIGHT = document.documentElement.clientHeight - this.$refs.table.$el.getBoundingClientRect().top - 100
       this.getList()
       this.getSearchParams()
     },

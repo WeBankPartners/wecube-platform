@@ -30,13 +30,13 @@
 
             <Submenu v-else :name="menu.code">
               <template slot="title">{{ menu.title }}</template>
-              <router-link
-                v-for="submenu in menu.submenus"
-                :key="submenu.code"
-                :to="submenu.active ? submenu.link || '' : ''"
-              >
-                <MenuItem :disabled="!submenu.active" :name="submenu.code">{{ submenu.title }}</MenuItem>
-              </router-link>
+                <MenuItem
+                  v-for="submenu in menu.submenus"
+                  :key="submenu.code"
+                  :disabled="!submenu.active"
+                  :name="submenu.code"
+                  :to="submenu.link"
+                >{{ submenu.title }}</MenuItem>
             </Submenu>
           </div>
         </Menu>
@@ -154,7 +154,6 @@ import RoleApply from './role-apply.vue'
 import { clearCookie } from '@/pages/util/cookie'
 import Vue from 'vue'
 import {
-  getAllPluginPackageResourceFiles,
   getApplicationVersion,
   changePassword,
   getProcessableList,
@@ -226,6 +225,11 @@ export default {
     }
   },
   methods: {
+    routerPush (menu) {
+      this.$router.push({
+        path: menu.active ? menu.link : ''
+      })
+    },
     async getApplicationVersion() {
       const { status, data } = await getApplicationVersion()
       if (status === 'OK') {
@@ -303,71 +307,71 @@ export default {
       this.currentLanguage = lang
     },
     async getMyMenus() {
-      // this.menus = await getGlobalMenus()
+      this.menus = await getGlobalMenus()
       window.localStorage.setItem('wecube_cache_menus', JSON.stringify(this.menus))
       this.$emit('allMenus', this.menus)
       this.$eventBusP.$emit('allMenus', this.menus)
       getChildRouters(window.routers || [])
     },
-    async getAllPluginPackageResourceFiles() {
-      const { status, data } = await getAllPluginPackageResourceFiles()
-      window.resourceFiles = data
-      if (status === 'OK' && data && data.length > 0) {
-        // const data = [
-        //   { relatedPath: 'http://localhost:8888/js/app.e4cd4d03.js ' },
-        //   { relatedPath: 'http://localhost:8888/css/app.f724c7a4.css' }
-        // ]
-        const eleContain = document.getElementsByTagName('body')
-        const script = {}
-        data.forEach(file => {
-          if (file.relatedPath.indexOf('.js') > -1) {
-            const contains = document.createElement('script')
-            contains.type = 'text/javascript'
-            contains.src = file.relatedPath
-            script[file.packageName] = contains
-            eleContain[0].appendChild(contains)
-          }
-          if (file.relatedPath.indexOf('.css') > -1) {
-            const contains = document.createElement('link')
-            contains.type = 'text/css'
-            contains.rel = 'stylesheet'
-            contains.href = file.relatedPath
-            eleContain[0].appendChild(contains)
-          }
-        })
-        this.loadPlugin.totalNumber = Object.keys(script).length
-        this.loadPlugin.isShow = true
-        window.isLoadingPlugin = true
-        Object.keys(script).forEach(key => {
-          if (script[key].readyState) {
-            // IE
-            script[key].onreadystatechange = () => {
-              if (script[key].readyState === 'complete' || script[key].readyState === 'loaded') {
-                script[key].onreadystatechange = null
-              }
-            }
-          } else {
-            // Non IE
-            script[key].onload = () => {
-              setTimeout(() => {
-                this.loadPlugin.currentName = `${key} ${this.$t('plugin_load')}`
-                ++this.loadPlugin.finnishNumber
-                if (this.loadPlugin.finnishNumber === this.loadPlugin.totalNumber) {
-                  this.loadPlugin.isShow = false
-                  window.isLoadingPlugin = false
-                  window.dispatchEvent(new CustomEvent('getAllPluginsLoaded')) // 提供给homePage判断使用
-                  this.$nextTick(() => {
-                    window.location.href = window.location.origin
-                      + '/#'
-                      + (window.sessionStorage.currentPath ? window.sessionStorage.currentPath : '/')
-                  })
-                }
-              }, 0)
-            }
-          }
-        })
-      }
-    },
+    // async getAllPluginPackageResourceFiles() {
+    //   const { status, data } = await getAllPluginPackageResourceFiles()
+    //   window.resourceFiles = data
+    //   if (status === 'OK' && data && data.length > 0) {
+    //     // const data = [
+    //     //   { relatedPath: 'http://localhost:8888/js/app.e4cd4d03.js ' },
+    //     //   { relatedPath: 'http://localhost:8888/css/app.f724c7a4.css' }
+    //     // ]
+    //     const eleContain = document.getElementsByTagName('body')
+    //     const script = {}
+    //     data.forEach(file => {
+    //       if (file.relatedPath.indexOf('.js') > -1) {
+    //         const contains = document.createElement('script')
+    //         contains.type = 'text/javascript'
+    //         contains.src = file.relatedPath
+    //         script[file.packageName] = contains
+    //         eleContain[0].appendChild(contains)
+    //       }
+    //       if (file.relatedPath.indexOf('.css') > -1) {
+    //         const contains = document.createElement('link')
+    //         contains.type = 'text/css'
+    //         contains.rel = 'stylesheet'
+    //         contains.href = file.relatedPath
+    //         eleContain[0].appendChild(contains)
+    //       }
+    //     })
+    //     this.loadPlugin.totalNumber = Object.keys(script).length
+    //     this.loadPlugin.isShow = true
+    //     window.isLoadingPlugin = true
+    //     Object.keys(script).forEach(key => {
+    //       if (script[key].readyState) {
+    //         // IE
+    //         script[key].onreadystatechange = () => {
+    //           if (script[key].readyState === 'complete' || script[key].readyState === 'loaded') {
+    //             script[key].onreadystatechange = null
+    //           }
+    //         }
+    //       } else {
+    //         // Non IE
+    //         script[key].onload = () => {
+    //           setTimeout(() => {
+    //             this.loadPlugin.currentName = `${key} ${this.$t('plugin_load')}`
+    //             ++this.loadPlugin.finnishNumber
+    //             if (this.loadPlugin.finnishNumber === this.loadPlugin.totalNumber) {
+    //               this.loadPlugin.isShow = false
+    //               window.isLoadingPlugin = false
+    //               window.dispatchEvent(new CustomEvent('getAllPluginsLoaded')) // 提供给homePage判断使用
+    //               this.$nextTick(() => {
+    //                 window.location.href = window.location.origin
+    //                   + '/#'
+    //                   + (window.sessionStorage.currentPath ? window.sessionStorage.currentPath : '/')
+    //               })
+    //             }
+    //           }, 0)
+    //         }
+    //       }
+    //     })
+    //   }
+    // },
     // #region 角色管理，角色申请
     userMgmt() {
       this.$refs.userMgmtRef.openModal()
@@ -404,10 +408,10 @@ export default {
     // #endregion
   },
   async created() {
-    if (window.needReLoad) {
-      this.getAllPluginPackageResourceFiles()
-      window.needReLoad = false
-    }
+    // if (window.needReLoad) {
+    //   this.getAllPluginPackageResourceFiles()
+    //   window.needReLoad = false
+    // }
     this.getLocalLang()
     this.getApplicationVersion()
     this.getMyMenus()
