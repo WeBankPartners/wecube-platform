@@ -1,9 +1,7 @@
-/* eslint-disable */
 const CompressionPlugin = require('compression-webpack-plugin')
 const dotenv = require('dotenv')
 dotenv.config()
 
-/* eslint-disable */
 module.exports = {
   devServer: {
     port: 3000,
@@ -18,8 +16,6 @@ module.exports = {
   runtimeCompiler: true,
   publicPath: '/',
   productionSourceMap: false,
-  chainWebpack: config => {
-  },
   css: {
     loaderOptions: {
       less: {
@@ -27,28 +23,7 @@ module.exports = {
       }
     }
   },
-
-  configureWebpack: config => {
-    // config.optimization = {
-    //   runtimeChunk: 'single',
-    //   splitChunks: {
-    //     chunks: 'all',
-    //     minSize: 200000, // 允许新拆出 chunk 的最小体积
-    //     maxSize: 500000, // 设置chunk的最大体积为500KB
-    //     automaticNameDelimiter: '-',
-    //     cacheGroups: {
-    //       defaultVendors: {
-    //         test: /[\\/]node_modules[\\/]/,
-    //         priority: -10
-    //       },
-    //       default: {
-    //         minChunks: 2,
-    //         priority: -20,
-    //         reuseExistingChunk: true
-    //       }
-    //     }
-    //   }
-    // }
+  configureWebpack: () => {
     if (process.env.NODE_ENV === 'production') {
       return {
         plugins: [

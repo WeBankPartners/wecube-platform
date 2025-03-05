@@ -55,7 +55,7 @@ export default {
   components: { CustomFlowSelect },
   data() {
     return {
-      MODALHEIGHT: 0,
+      MODALHEIGHT: 500,
       searchOptions: [
         // 是否子编排
         {
@@ -543,7 +543,7 @@ export default {
   },
   methods: {
     initData() {
-      this.MODALHEIGHT = document.body.scrollHeight - 220
+      this.MODALHEIGHT = document.documentElement.clientHeight - this.$refs.table.$el.getBoundingClientRect().top - 100
       this.getFlows()
       this.getProcessInstances()
       this.getAllUsers()
