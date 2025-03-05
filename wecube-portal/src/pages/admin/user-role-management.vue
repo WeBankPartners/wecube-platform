@@ -78,7 +78,6 @@
             </div>
           </div>
           <Page
-            v-if="!currentRoleId"
             :styles="{marginBottom: '-10px'}"
             :total="pagination.total"
             @on-change="
@@ -284,7 +283,6 @@
   </div>
 </template>
 <script>
-import {cloneDeep} from 'lodash'
 import {
   userCreate,
   removeUser,
@@ -326,7 +324,7 @@ export default {
       },
       showNewPassword: false,
       newPassword: '',
-      currentRoleId: 0,
+      currentRoleId: '',
       users: [],
       selectedUser: '',
       roles: [],
@@ -558,9 +556,10 @@ export default {
     renderUserNameForTransfer(item) {
       return item.label
     },
-    async getAllUsers() {
+    async getAllUsers(isfullRequest = true) {
       const params = {
-        username: this.userFilter.trim(),
+        roleId: this.currentRoleId,
+        userName: this.userFilter.trim(),
         pageSize: this.pagination.size,
         startIndex: (this.pagination.page - 1) * this.pagination.size
       }
@@ -570,13 +569,15 @@ export default {
         this.pagination.total = data.pageInfo.totalRows
         this.users = tempUsers.map(_ => ({
           ..._,
-          checked: false,
+          checked: this.currentRoleId ? true : false,
           color: '#5cadff'
         }))
         this.userFilterRes = this.users
       }
-      this.getAllRoles()
-      this.getInitAllUserInfo()
+      if (isfullRequest) {
+        this.getAllRoles()
+        this.getInitAllUserInfo()
+      }
     },
     async getAllRoles() {
       const params = { all: 'Y' }
@@ -593,7 +594,7 @@ export default {
     },
     async handleUserClick(checked, name) {
       this.selectedUser = name
-      this.currentRoleId = 0
+      this.currentRoleId = ''
       this.users.forEach(_ => {
         _.checked = false
         if (name === _.username) {
@@ -644,19 +645,8 @@ export default {
             this.menusPermissionSelected(this.menus, permissions.data.menuList, false)
           }
         })
-        getUsersByRoleId(id).then(res => {
-          if (res.status === 'OK') {
-            this.users.forEach(_ => {
-              _.checked = false
-              const found = res.data.find(item => item.username === _.username)
-              if (found) {
-                _.checked = checked
-              }
-            })
-            let tempUser = this.users.filter(item => item.checked)
-            this.userFilterRes = cloneDeep(tempUser)
-          }
-        })
+        this.userFilter = ''
+        this.getAllUsers(false)
       } else {
         this.users.forEach(_ => {
           _.checked = false
@@ -846,10 +836,9 @@ export default {
     },
     getFirstPageUsers() {
       this.pagination.page = 1
-      this.getAllUsers()
+      this.getAllUsers(false)
     },
     onUserFilterChange: debounce(function () {
-      this.currentRoleId = ''
       this.getFirstPageUsers()
     }, 300),
     onFilterUserRoleChange(id) {
@@ -865,6 +854,9 @@ export default {
       
     },
     onFilterUserRoleClear() {
+      this.roles.forEach(_ => {
+        _.checked = false
+      })
       this.getFirstPageUsers()
     }
   },
