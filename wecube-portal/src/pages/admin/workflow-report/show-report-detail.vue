@@ -41,6 +41,7 @@
         </Poptip>
         <Table
           id="detailTable"
+          ref="table"
           :columns="detailTableColums"
           size="small"
           :max-height="MODALHEIGHT"
@@ -59,7 +60,6 @@ export default {
       showModal: false,
       MODALHEIGHT: 200,
       fullscreen: false,
-
       oriDetailTableColums: [],
       detailTableColums: [],
       oriDetailTableData: [],
@@ -70,7 +70,7 @@ export default {
     }
   },
   mounted() {
-    this.MODALHEIGHT = document.body.scrollHeight - 200
+    this.MODALHEIGHT = document.documentElement.clientHeight - this.$refs.table.$el.getBoundingClientRect().top - 100
     document.getElementById('detailTable').classList.add('wer')
   },
   methods: {

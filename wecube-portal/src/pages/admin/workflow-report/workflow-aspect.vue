@@ -41,7 +41,7 @@
         <Button type="primary" :disabled="!disableBtn()" @click="getFlowExecuteOverviews"> {{ $t('query') }}</Button>
       </div> -->
     </div>
-    <Table size="small" :columns="tableColumns" :max-height="MODALHEIGHT" :loading="loading" :data="tableData"></Table>
+    <Table size="small" ref="table" :columns="tableColumns" :max-height="MODALHEIGHT" :loading="loading" :data="tableData"></Table>
   </div>
 </template>
 
@@ -177,7 +177,7 @@ export default {
     }
   },
   mounted() {
-    this.MODALHEIGHT = document.body.scrollHeight - 300
+    this.MODALHEIGHT = document.documentElement.clientHeight - this.$refs.table.$el.getBoundingClientRect().top - 100
     this.getProcess()
     this.getFlowExecuteOverviews()
   },

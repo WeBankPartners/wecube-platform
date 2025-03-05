@@ -928,7 +928,7 @@ export default {
     }
   },
   mounted() {
-    this.MODALHEIGHT = document.body.scrollHeight - 220
+    this.MODALHEIGHT = document.documentElement.clientHeight - this.$refs.table.$el.getBoundingClientRect().top - 100
     this.getFlows()
     this.getUserScheduledTasks()
   },

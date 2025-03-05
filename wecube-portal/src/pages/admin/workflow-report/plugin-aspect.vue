@@ -62,6 +62,7 @@
     <div style="text-align: right">{{ $t('total') }}{{ totalRows }} {{ $t('display') }}{{ tableData.length }}</div>
     <Table
       @on-sort-change="sortTable"
+      ref="table"
       size="small"
       :columns="tableColumns"
       :max-height="MODALHEIGHT"
@@ -192,7 +193,7 @@ export default {
     }
   },
   mounted() {
-    this.MODALHEIGHT = document.body.scrollHeight - 300
+    this.MODALHEIGHT = document.documentElement.clientHeight - this.$refs.table.$el.getBoundingClientRect().top - 100
   },
   methods: {
     async sortTable(column) {
