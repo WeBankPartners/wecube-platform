@@ -832,6 +832,15 @@ func (UserManagementService) QueryUserPage(param model.QueryUserParam) (page mod
 		return
 	}
 	page.TotalRows = count
+	var allRolesList []*model.SysRoleEntity
+	var allRolesMap = make(map[string]*model.SysRoleEntity)
+	if err = db.Engine.Where("is_deleted = ?", false).Find(&allRolesList); err != nil {
+		log.Error(nil, log.LOGGER_APP, "failed to find all roles", zap.Error(err))
+		return
+	}
+	for _, entity := range allRolesList {
+		allRolesMap[entity.Id] = entity
+	}
 	result := make([]*model.SimpleLocalUserDto, 0)
 	if len(userEntities) == 0 {
 		return
@@ -847,11 +856,7 @@ func (UserManagementService) QueryUserPage(param model.QueryUserParam) (page mod
 			for _, userRole := range userRoles {
 				var found bool
 				role := &model.SysRoleEntity{}
-				if found, err = db.Engine.ID(userRole.RoleId).Get(role); err != nil {
-					log.Error(nil, log.LOGGER_APP, "failed to get role", zap.String("roleId", userRole.RoleId), zap.Error(err))
-					return
-				}
-				if found {
+				if role, found = allRolesMap[userRole.RoleId]; found {
 					roleDto := &model.SimpleLocalRoleDto{
 						ID:          role.Id,
 						DisplayName: role.DisplayName,

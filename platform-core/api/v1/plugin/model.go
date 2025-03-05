@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"reflect"
+	"sort"
 	"strings"
 )
 
@@ -173,6 +174,19 @@ func QueryExpressionData(c *gin.Context) {
 	} else {
 		filterResult = result
 	}
+	// 对 filterResult 进行排序,按guid 或者id倒序
+	sort.SliceStable(filterResult, func(i, j int) bool {
+		guidI, guidIOk := filterResult[i]["guid"].(string)
+		guidJ, guidJOk := filterResult[j]["guid"].(string)
+		idI, idIOk := filterResult[i]["id"].(string)
+		idJ, idJOk := filterResult[j]["id"].(string)
+		if guidIOk && guidJOk {
+			return guidI > guidJ
+		} else if idIOk && idJOk {
+			return idI > idJ
+		}
+		return false
+	})
 	// 数据分页
 	if param.PageSize > 0 {
 		pageInfo := models.PageInfo{
