@@ -59,7 +59,7 @@ export default {
       }
     }
   },
-  mounted() {
+  created() {
     this.$eventBusP.$on('expand-menu', val => {
       this.expand = val
     })

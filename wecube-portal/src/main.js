@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2025-01-20 09:58:50
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-03-04 19:28:22
+ * @LastEditTime: 2025-03-06 14:39:34
  */
 import Vue from 'vue'
 import App from './App.vue'
@@ -26,6 +26,9 @@ Vue.use(commonUI)
 
 import WeSelect from '@/pages/components/select.vue'
 import WeTable from '@/pages/components/table.js'
+import implicitRoutes from './implicitRoutes.js'
+import './permission.js'
+
 Vue.component('WeSelect', WeSelect)
 Vue.component('WeTable', WeTable)
 
@@ -66,7 +69,7 @@ setDefaultMountApp('/#/taskman')
 
 start({
   sandbox: {
-    strictStyleIsolation: true // 开启严格的样式隔离（Shadow DOM 模式）
+    strictStyleIsolation: false // 开启严格的样式隔离（Shadow DOM 模式）
   },
   prefetch: false
 })
@@ -96,12 +99,30 @@ window.locale = (key, obj) => {
 
 // qiankun父子应用通信
 const globalState = {
-  expand: true // 解决子应用侧边栏折叠，面包屑不左右移动的问题
+  expand: false, // 解决子应用侧边栏折叠，面包屑不左右移动的问题
+  implicitRoute: implicitRoutes, // 存放子应用的路由信息，用于面包屑导航显示
+  childRouters: [], // 存放子应用没有权限配置的子路由
+  routes: []
 }
 const actions = initGlobalState(globalState)
 actions.onGlobalStateChange((state) => {
   console.log("主应用监听到状态变化:", state)
-  store.commit('setSideExpand', state.expand)
+
+  if (Object.prototype.hasOwnProperty.call(state, 'expand')) {
+    store.commit('setSideExpand', state.expand)
+  }
+
+  if (Object.prototype.hasOwnProperty.call(state, 'implicitRoute')) {
+    store.commit('setImplicitRoute', state.implicitRoute)
+  }
+
+  if (Object.prototype.hasOwnProperty.call(state, 'childRouters')) {
+    store.commit('setChildRouters', state.childRouters)
+  }
+
+  // if (Object.prototype.hasOwnProperty.call(state, 'routes')) {
+  //   store.commit('setRoutes', state.routes)
+  // }
 })
 actions.setGlobalState(globalState)
 //actions.offGlobalStateChange()

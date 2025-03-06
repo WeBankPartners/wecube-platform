@@ -46,7 +46,8 @@ export default {
   },
   computed: {
     ...mapGetters([
-      'sideExpand'
+      'sideExpand',
+      'implicitRoute'
     ]),
     setBreadcrumbStyle() {
       // 给侧边菜单栏适配样式
@@ -94,7 +95,7 @@ export default {
         this.allMenusAry.forEach(_ => {
           _.submenus.forEach(sub => {
             if (menuObj.code === sub.code) {
-              this.parentBreadcrumb = currentLangKey === 'zh-CN' ? _.cnName : _.enName
+              this.parentBreadcrumb = currentLangKey === 'zh-CN' ? _.cnName || _.cn : _.enName || _.en
             }
           })
         })
@@ -102,10 +103,10 @@ export default {
       } else {
         this.parentBreadcrumb = '-'
         const path = this.$route.path.substr(1)
-        if (!window.implicitRoutes) {
+        if (!this.implicitRoute) {
           return
         }
-        const implicitRoute = window.implicitRoutes[path]
+        const implicitRoute = this.implicitRoute[path]
         this.parentBreadcrumb = implicitRoute ? implicitRoute['parentBreadcrumb'][currentLangKey] : '-'
         this.childBreadcrumb = implicitRoute ? implicitRoute['childBreadcrumb'][currentLangKey] : '-'
       }

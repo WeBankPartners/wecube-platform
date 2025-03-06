@@ -4,13 +4,16 @@ dotenv.config()
 
 module.exports = {
   devServer: {
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    },
     client: {
       overlay: false 
     },
     port: 3000,
     proxy: {
       '/': {
-        target: process.env.BASE_URL,
+        target: process.env.VUE_APP_BASE_URL,
         changeOrigin: true,
         ws: false,
       }
