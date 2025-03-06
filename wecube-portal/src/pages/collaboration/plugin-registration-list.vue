@@ -331,6 +331,10 @@ export const custom_api_enum = [
     "method": "get"
   },
   {
+    "url": "/platform/v1/packages",
+    "method": "post"
+  },
+  {
     "url": "/platform/v1/plugins/packages/import/${id}",
     "method": "post"
   }
