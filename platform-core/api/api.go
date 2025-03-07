@@ -66,6 +66,7 @@ func init() {
 		&handlerFuncObj{Url: "/resource/items/delete", Method: "POST", HandlerFunc: system.DeleteResourceItem, ApiCode: "delete-resource-item"},
 		// plugin
 		&handlerFuncObj{Url: "/packages", Method: "GET", HandlerFunc: plugin.GetPackages, ApiCode: "get-packages"},
+		&handlerFuncObj{Url: "/packages/web-running", Method: "GET", HandlerFunc: plugin.GetWebRunningPackages, ApiCode: "get-web-running-packages"},
 		&handlerFuncObj{Url: "/packages", Method: "POST", HandlerFunc: plugin.UploadPackage, ApiCode: "upload-packages"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/dependencies", Method: "GET", HandlerFunc: plugin.GetPluginDependencies, ApiCode: "get-plugin-dependencies"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/menus", Method: "GET", HandlerFunc: plugin.GetPluginMenus, ApiCode: "get-plugin-menus"},

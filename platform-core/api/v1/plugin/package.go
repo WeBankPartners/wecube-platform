@@ -51,6 +51,15 @@ func GetPackages(c *gin.Context) {
 	}
 }
 
+func GetWebRunningPackages(c *gin.Context) {
+	result, err := database.QueryWebRunningPluginPackages(c)
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnData(c, result)
+	}
+}
+
 // UploadPackage 上传插件
 func UploadPackage(c *gin.Context) {
 	var tmpFilePath, tmpFileDir string

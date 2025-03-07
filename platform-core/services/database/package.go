@@ -30,6 +30,18 @@ func GetPackages(ctx context.Context, allFlag bool) (result []*models.PluginPack
 	return
 }
 
+func QueryWebRunningPluginPackages(ctx context.Context) (versionMap map[string]string, err error) {
+	versionMap = make(map[string]string)
+	var list []*models.PluginPackages
+	if err = db.MysqlEngine.Context(ctx).SQL("select name,version from plugin_packages where ui_active =1").Find(&list); err != nil {
+		return
+	}
+	for _, packages := range list {
+		versionMap[packages.Name] = packages.Version
+	}
+	return
+}
+
 func QueryPluginPackages(ctx context.Context, param *models.PluginPackageQueryParam) (result []*models.PluginPackageQueryObj, err error) {
 	var packageRows []*models.PluginPackages
 	var filterSql []string
