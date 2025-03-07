@@ -1,4 +1,3 @@
-console.log('111111111111111111 process.env.NODE_ENV', process.env.NODE_ENV)
 const microApps = [
   {
     name: 'taskman',
@@ -13,7 +12,7 @@ const microApps = [
   },
   {
     name: 'wecmdb',
-    entry: process.env.NODE_ENV === 'production' ? '/ui-resources/wecmdb/v1.4.1.60/plugin/' : 'http://localhost:3020',
+    entry: process.env.NODE_ENV === 'production' ? '/ui-resources/wecmdb/v2.2.0.40/plugin/' : 'http://localhost:3020',
     container: '#micro-app-container',
     activeRule: '#/wecmdb',
     props: {
