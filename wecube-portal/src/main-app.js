@@ -2,7 +2,7 @@ console.log('111111111111111111 process.env.NODE_ENV', process.env.NODE_ENV)
 const microApps = [
   {
     name: 'taskman',
-    entry: process.env.NODE_ENV === 'production' ? 'http://106.52.160.142:18080/ui-resources/taskman/v1.4.1.62/plugin/' : 'http://localhost:3010',
+    entry: process.env.NODE_ENV === 'production' ? '/ui-resources/taskman/v1.4.1.62/plugin/' : 'http://localhost:3010',
     container: '#micro-app-container',
     activeRule: '#/taskman',
     props: {
