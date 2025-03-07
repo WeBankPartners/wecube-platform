@@ -40,6 +40,7 @@ var (
 		"get-role-user":                          true,
 		"get-user-roles":                         true,
 		"get-process-ins-by-session-id":          true,
+		"get-web-running-packages":               true,
 	}
 )
 
