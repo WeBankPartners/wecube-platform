@@ -4,7 +4,7 @@
   "author": "wecube dev",
   "private": true,
   "scripts": {
-    "start": "vue-cli-service serve --development",
+    "start": "vue-cli-service serve",
     "build": "vue-cli-service build"
   },
   "husky": {
