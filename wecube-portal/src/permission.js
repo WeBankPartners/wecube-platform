@@ -2,7 +2,6 @@ import router from './router'
 import { i18n } from './locale/i18n/index.js'
 // import { getChildRouters } from './pages/util/router.js'
 // import { getGlobalMenus } from '@/const/util.js'
-import store from './store'
 
 // const findPath = (routes, path) => {
 //   let found
@@ -32,8 +31,6 @@ import store from './store'
 // }
 
 router.beforeEach(async (to, from, next) => {
-  // 每次进入页面，先重置侧边菜单展开状态
-  store.commit('setSideExpand', false)
   if (to.path === '/homepage') {
     return
   }
