@@ -416,3 +416,6 @@ export const pluginsRegister = data => req.post('/platform/v1/packages/ui/regist
 
 export const pluginsRegisterDone = data => req.post('/platform/v1/packages/register-done', data)
 
+// 获取前端正在运行的插件及版本号
+export const getFrontRunningPlugins = () => req.get('/platform/v1/packages/web-running')
+
