@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2025-01-20 09:58:50
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-03-07 21:06:54
+ * @LastEditTime: 2025-03-07 21:47:35
  */
 import Vue from 'vue'
 import App from './App.vue'
@@ -45,6 +45,18 @@ Vue.use(ViewUI, {
 
 // 注册qiankun
 registerMicroApps(mainApp, {
+  // 配置 getPublicPath 钩子
+  getPublicPath: (app) => {
+    const { name } = app
+    // 根据子应用名称动态生成资源路径
+    if (name === 'taskman') {
+      return '/ui-resources/taskman/v1.4.1.63/plugin/'
+    } else if (name === 'wecmdb') {
+      return '/ui-resources/wecmdb/v2.2.0.40/plugin/'
+    } else {
+      return '/'
+    }
+  },
   beforeLoad: app => {
     console.log('before load app.name====>>>>>', app.name)
   },
