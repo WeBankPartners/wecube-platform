@@ -31,6 +31,7 @@ const initMicroApps = async () => {
         }
       }
     ])
+    console.log('micro APPs11111111111', microApps)
     // 注册qiankun
     registerMicroApps(microApps, {
       beforeLoad: app => {
