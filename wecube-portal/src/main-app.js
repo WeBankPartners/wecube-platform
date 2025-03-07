@@ -1,7 +1,7 @@
 const microApps = [
   {
     name: 'taskman',
-    entry: process.env.VUE_APP_TASKMAN,
+    entry: process.env.NODE_ENV === 'production' ? '/ui-resources/taskman/v1.4.1.60/plugin/' : '//localhost:3010',
     container: '#micro-app-container',
     activeRule: '#/taskman',
     props: {
@@ -12,7 +12,7 @@ const microApps = [
   },
   {
     name: 'wecmdb',
-    entry: process.env.VUE_APP_WECMDB,
+    entry: process.env.NODE_ENV === 'production' ? '/ui-resources/wecmdb/v1.4.1.60/plugin/' : '//localhost:3020',
     container: '#micro-app-container',
     activeRule: '#/wecmdb',
     props: {

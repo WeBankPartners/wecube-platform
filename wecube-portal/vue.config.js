@@ -13,7 +13,7 @@ module.exports = {
     port: 3000,
     proxy: {
       '/': {
-        target: process.env.VUE_APP_BASE_URL,
+        target: process.env.BASE_URL,
         changeOrigin: true,
         ws: false,
       }
