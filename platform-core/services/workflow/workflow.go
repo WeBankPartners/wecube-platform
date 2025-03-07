@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
@@ -271,7 +272,11 @@ func (w *Workflow) IgnoreNode(nodeId string) {
 	nodeObj.Status = models.JobStatusSuccess
 	updateNodeDB(&nodeObj.ProcRunNode)
 	w.updateErrorList(false, nodeId, nil)
-	w.nodeDoneCallback(nodeObj)
+	if nodeObj.JobType == models.JobSubProcType {
+		nodeObj.DoneChan <- 1
+	} else {
+		w.nodeDoneCallback(nodeObj)
+	}
 }
 
 func (w *Workflow) ApproveNode(nodeId, message string) {
@@ -457,6 +462,10 @@ func (n *WorkNode) start() {
 		}
 	case models.JobSubProcType:
 		n.Output, n.Err = n.doSubProcessJob(recoverFlag)
+		if n.Status == models.JobStatusSuccess {
+			// 如果子编排节点被手动跳过，此时它的状态会被置成成功，那就不去查结果了直接返回
+			return
+		}
 	case models.JobDecisionMergeType:
 		break
 	}
