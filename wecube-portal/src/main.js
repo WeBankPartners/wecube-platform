@@ -45,18 +45,6 @@ Vue.use(ViewUI, {
 
 // 注册qiankun
 registerMicroApps(mainApp, {
-  // 配置 getPublicPath 钩子
-  // getPublicPath: (app) => {
-  //   const { name } = app
-  //   // 根据子应用名称动态生成资源路径
-  //   if (name === 'taskman') {
-  //     return 'http://106.52.160.142:18080/ui-resources/taskman/v1.4.1.63/plugin/'
-  //   } else if (name === 'wecmdb') {
-  //     return 'http://106.52.160.142:18080/ui-resources/wecmdb/v2.2.0.40/plugin/'
-  //   } else {
-  //     return '/'
-  //   }
-  // },
   beforeLoad: app => {
     console.log('before load app.name====>>>>>', app.name)
   },
