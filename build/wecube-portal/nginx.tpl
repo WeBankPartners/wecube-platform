@@ -66,6 +66,12 @@ http {
     location ^~ /ui-resources/ {
       alias /root/app/ui-resources/;
     }
+    location ~ ^/ui-resources/taskman/(v[0-9.]+)/plugin {
+      alias /root/app/ui-resources/taskman/$1/plugin;
+    }
+    location ~ ^/ui-resources/wecmdb/(v[0-9.]+)/plugin {
+      alias /root/app/ui-resources/wecmdb/$1/plugin;
+    }
     location / {
       proxy_set_header Host ${PUBLIC_DOMAIN};
       proxy_pass http://gateway;
