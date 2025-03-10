@@ -1,9 +1,9 @@
 const microApps = [
   {
     name: 'taskman',
-    entry: process.env.NODE_ENV === 'production' ? '/ui-resources/taskman/v1.4.1.64/plugin/' : 'http://localhost:3010',
+    entry: process.env.NODE_ENV === 'production' ? '/ui-resources/taskman/v1.4.1.65/plugin/' : 'http://localhost:3010',
     container: '#micro-app-container',
-    activeRule: '/ui-resources/taskman/*',
+    activeRule: '#/taskman',
     props: {
       sandbox: {
         strictStyleIsolation: false // 为该子应用开启严格的样式隔离
