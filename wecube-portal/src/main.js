@@ -2,13 +2,13 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2025-01-20 09:58:50
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-03-07 21:52:50
+ * @LastEditTime: 2025-03-11 17:20:34
  */
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
-import { registerMicroApps, start, setDefaultMountApp, initGlobalState } from 'qiankun'
+import { registerMicroApps, start, initGlobalState } from 'qiankun'
 
 import ViewUI from 'view-design'
 import './styles/index.less'
@@ -19,6 +19,9 @@ import viewDesignEn from 'view-design/dist/locale/en-US'
 import viewDesignZh from 'view-design/dist/locale/zh-CN'
 import mainApp from './main-app'
 
+import { getChildRouters } from './pages/util/router.js'
+import { getGlobalMenus } from '@/const/util.js'
+
 // 引用wecube公共组件
 import commonUI from 'wecube-common-ui'
 import 'wecube-common-ui/lib/wecube-common-ui.css'
@@ -27,7 +30,6 @@ Vue.use(commonUI)
 import WeSelect from '@/pages/components/select.vue'
 import WeTable from '@/pages/components/table.js'
 import implicitRoutes from './implicitRoutes.js'
-import './permission.js'
 
 Vue.component('WeSelect', WeSelect)
 Vue.component('WeTable', WeTable)
@@ -65,7 +67,7 @@ registerMicroApps(mainApp, {
   ]
 })
 
-setDefaultMountApp('/#/taskman')
+// setDefaultMountApp('/#/taskman')
 
 start({
   sandbox: {
@@ -115,14 +117,82 @@ actions.onGlobalStateChange((state) => {
   if (Object.prototype.hasOwnProperty.call(state, 'implicitRoute')) {
     store.commit('setImplicitRoute', state.implicitRoute)
   }
-
-  if (Object.prototype.hasOwnProperty.call(state, 'childRouters')) {
-    store.commit('setChildRouters', state.childRouters)
-  }
-
-  // if (Object.prototype.hasOwnProperty.call(state, 'routes')) {
-  //   store.commit('setRoutes', state.routes)
-  // }
 })
 actions.setGlobalState(globalState)
 //actions.offGlobalStateChange()
+
+
+// 处理路由权限
+window.routers = []
+window.childRouters = []
+
+window.addRoutes = (routes) => {
+  window.routers = window.routers.concat(routes)
+  getChildRouters(routes)
+}
+
+window.addRoutersWithoutPermission = routes => {
+  window.childRouters = window.childRouters.concat(
+    routes.map(r => ({
+      ...r,
+      link: r.path,
+      active: true
+    }))
+  )
+}
+
+const findPath = (routes, path) => {
+  let found
+  window.routers.concat(routes).forEach(route => {
+    if (route.children) {
+      route.children.forEach(child => {
+        if (child.path === path || child.redirect === path || findSideMenuPath(child)) {
+          found = true
+        }
+      })
+    }
+    if (route.path === path || route.redirect === path) {
+      found = true
+    }
+    if (path.includes(route.path) && route.path !== '/') {
+      found = true
+    }
+  })
+  // 适配平台侧边菜单栏，父路由配置有子路由，判断子路由权限
+  function findSideMenuPath(child) {
+    if (Array.isArray(child.children) && child.children.length > 0) {
+      return child.children.some(item => item.path === path)
+    }
+    return false
+  }
+  return found
+}
+
+// 路由跳转这一块还有bug, 有待优化，window.routers和window.childRouters获取为空
+router.beforeEach(async (to, from, next) => {
+  document.title = i18n.t('fd_platform')
+  if (['/404', '/login', '/homepage'].includes(to.path)) {
+    return next()
+  }
+  const found = findPath(router.options.routes, to.path)
+  if (!found) {
+    next({ path: '/homepage' })
+  } else {
+    if (window.myMenus || ((await getGlobalMenus()) && window.myMenus)) {
+      const isHasPermission = []
+        .concat(...window.myMenus.map(_ => _.submenus), window.childRouters)
+        .find(_ => to.path.startsWith(_.link) && _.active)
+      if (
+        (isHasPermission && isHasPermission.active)
+        || ['/collaboration/workflow-mgmt', '/collaboration/registrationDetail'].includes(to.path)
+      ) {
+        next()
+      } else {
+        /* has no permission */
+        next('/404')
+      }
+    } else {
+      next('/login')
+    }
+  }
+})

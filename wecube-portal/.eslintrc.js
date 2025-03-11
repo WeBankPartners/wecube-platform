@@ -9,7 +9,8 @@ module.exports = {
     parser: '@babel/eslint-parser',
     ecmaVersion: 2020,
     sourceType: 'module',
-    requireConfigFile: false // Babel 配置文件可选
+    requireConfigFile: false, // Babel 配置文件可选
+    ecmaFeatures: { jsx: true }
   },
   extends: ['eslint:recommended', 'plugin:vue/recommended', 'plugin:import/recommended', 'plugin:promise/recommended'],
   rules: {
@@ -37,7 +38,6 @@ module.exports = {
     'vue/require-default-prop': 'off',
     'vue/no-template-shadow': 'off',
     'promise/no-promise-in-callback': 'off',
-    'promise/always-return': 'off',
     'import/no-duplicates': 'off',
     'vue/component-definition-name-casing': 'off',
     'import/no-named-as-default-member': 'off',
