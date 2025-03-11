@@ -6,9 +6,15 @@ const router = new Router({
   mode: 'hash',
   routes: [
     {
+      path: '/',
+      name: 'home',
+      redirect: '/homepage',
+      props: true
+    },
+    {
       path: '/homepage',
       name: 'homepage',
-      component: () => import('@/pages/home-page.js'),
+      component: () => import('@/pages/home-page.vue'),
       params: {},
       props: true
     },
