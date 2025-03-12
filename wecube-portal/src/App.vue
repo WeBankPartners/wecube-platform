@@ -19,7 +19,6 @@ export default {
 
 <style lang="scss" scoped>
 #wecube_app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #0f1222; // Fes字体颜色规范
