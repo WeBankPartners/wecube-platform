@@ -1,12 +1,20 @@
 <template>
   <div id="wecube_app">
     <transition name="fade" mode="out-in">
-      <router-view class="pages"></router-view>
+      <router-view v-if="noAuthPages.includes($route.path)" class="pages"></router-view>
+      <Layout v-else />
     </transition>
   </div>
 </template>
 <script>
+import Layout from '@/pages/index.vue'
 export default {
+  components: { Layout },
+  data() {
+    return {
+      noAuthPages: ['/login', '/404']
+    }
+  },
   mounted() {
     // remove loading
     const boxLoading = document.getElementById('boxLoading')

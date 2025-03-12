@@ -3,7 +3,7 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import 'core-js/stable'
-import 'regenerator-runtime/runtime'
+// import 'regenerator-runtime/runtime'
 
 import ViewUI from 'view-design'
 import './styles/index.less'
@@ -15,12 +15,14 @@ import viewDesignZh from 'view-design/dist/locale/zh-CN'
 
 import WeSelect from '../src/pages/components/select.vue'
 import WeTable from '../src/pages/components/table.js'
-import indexCom from './pages/index'
+// import indexCom from './pages/index'
 import req from './api/base'
 import implicitRoutes from './implicitRoutes.js'
 import { getChildRouters } from './pages/util/router.js'
 import { getGlobalMenus } from '@/const/util.js'
 import { pluginNameMap } from '@/const/util.js'
+import { registerMicroApps, start } from 'qiankun'
+// import './main-app.js'
 // 引用wecube公共组件
 import commonUI from 'wecube-common-ui'
 import 'wecube-common-ui/lib/wecube-common-ui.css'
@@ -93,13 +95,14 @@ window.addRoutes = (route, name) => {
   window.routers = window.routers.concat(route)
   getChildRouters(route)
   router.addRoutes([
-    {
-      path: '/',
-      name,
-      redirect: '/homepage',
-      component: indexCom,
-      children: route
-    }
+    // {
+    //   path: '/',
+    //   name,
+    //   redirect: '/homepage',
+    //   component: indexCom,
+    //   children: route
+    // }
+    ...route
   ])
   if (window.sessionStorage.currentPath) {
     WatchRouter.emit('change', [window.sessionStorage.currentPath])
@@ -168,7 +171,7 @@ router.beforeEach(async (to, from, next) => {
     return
   }
   document.title = i18n.t('fd_platform')
-  if (['/404', '/login', '/homepage'].includes(to.path)) {
+  if (['/404', '/login', '/homepage', '/superset', '/superset/about'].includes(to.path)) {
     return next()
   }
   const found = findPath(router.options.routes, to.path)
@@ -205,6 +208,52 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 })
+
+const microApps = [
+  {
+    name: 'superset',
+    entry: process.env.NODE_ENV === 'production' ? '' : 'http://localhost:1111',
+    container: '#micro-app-container',
+    activeRule: '#/superset',
+    props: {
+      sandbox: {
+        strictStyleIsolation: false // 为该子应用开启严格的样式隔离
+      }
+    }
+  }
+]
+
+// 注册qiankun
+registerMicroApps(microApps, {
+  beforeLoad: app => {
+    console.log('before load app.name====>>>>>', app.name)
+  },
+  beforeMount: [
+    app => {
+      console.log('[LifeCycle] before mount %c%s', 'color: green;', app.name)
+    }
+  ],
+  afterMount: [
+    app => {
+      console.log('[LifeCycle] after mount %c%s', 'color: green;', app.name)
+    }
+  ],
+  afterUnmount: [
+    app => {
+      console.log('[LifeCycle] after unmount %c%s', 'color: green;', app.name)
+    }
+  ]
+})
+
+// setDefaultMountApp('/#/taskman')
+
+start({
+  sandbox: {
+    strictStyleIsolation: false // 开启严格的样式隔离（Shadow DOM 模式）
+  },
+  prefetch: false
+})
+
 const vm = new Vue({
   router,
   render: h => h(App),
