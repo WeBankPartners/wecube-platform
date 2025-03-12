@@ -9,7 +9,12 @@
         <BreadcrumbItem>{{ parentBreadcrumb }}</BreadcrumbItem>
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
       </Breadcrumb>
-      <router-view class="pages" style="padding: 0"></router-view>
+      <transition name="fade" mode="out-in">
+        <div>
+          <router-view class="pages" style="padding: 0"></router-view>
+          <div id="micro-app-container"></div>
+        </div>
+      </transition>
     </div>
     <BackTop :height="100" :bottom="100">
       <div class="w-back-top">
