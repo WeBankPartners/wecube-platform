@@ -171,7 +171,7 @@ router.beforeEach(async (to, from, next) => {
     return
   }
   document.title = i18n.t('fd_platform')
-  if (['/404', '/login', '/homepage', '/superset', '/superset/about'].includes(to.path)) {
+  if (['/404', '/login', '/homepage', '/superset', '/superset/about', '/superset/contact'].includes(to.path)) {
     return next()
   }
   const found = findPath(router.options.routes, to.path)
@@ -212,7 +212,7 @@ router.beforeEach(async (to, from, next) => {
 const microApps = [
   {
     name: 'superset',
-    entry: process.env.NODE_ENV === 'production' ? '' : 'http://localhost:1111',
+    entry: process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3010',
     container: '#micro-app-container',
     activeRule: '#/superset',
     props: {
@@ -237,15 +237,8 @@ registerMicroApps(microApps, {
     app => {
       console.log('[LifeCycle] after mount %c%s', 'color: green;', app.name)
     }
-  ],
-  afterUnmount: [
-    app => {
-      console.log('[LifeCycle] after unmount %c%s', 'color: green;', app.name)
-    }
   ]
 })
-
-// setDefaultMountApp('/#/taskman')
 
 start({
   sandbox: {
