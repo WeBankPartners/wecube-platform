@@ -212,7 +212,7 @@ router.beforeEach(async (to, from, next) => {
 const microApps = [
   {
     name: 'superset',
-    entry: process.env.NODE_ENV === 'production' ? '/ui-resources/superset/build' : 'http://localhost:3010',
+    entry: process.env.NODE_ENV === 'production' ? '/ui-resources/superset/' : 'http://localhost:3010',
     container: '#micro-app-container',
     activeRule: '#/superset',
     props: {
