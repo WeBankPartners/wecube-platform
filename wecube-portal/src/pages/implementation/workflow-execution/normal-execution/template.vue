@@ -240,7 +240,7 @@ export default {
               {
                 label: this.$t('deployed'),
                 value: 'deployed',
-                color: '#19be6b'
+                color: '#00cb91'
               },
               {
                 label: this.$t('draft'),
@@ -250,7 +250,7 @@ export default {
               {
                 label: this.$t('disabled'),
                 value: 'disabled',
-                color: '#ed4014'
+                color: '#ff4d4f'
               }
             ]
             const item = list.find(i => i.value === params.row.status)

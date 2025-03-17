@@ -948,7 +948,7 @@ export default {
   position: fixed;
   top: 400px;
   right: 500px;
-  color: #2db7f5;
+  color: #5384ff;
   cursor: pointer;
 }
 .item-footer {

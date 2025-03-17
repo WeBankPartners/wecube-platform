@@ -41,10 +41,8 @@
         </Select>
       </div>
       <div class="search-top-right">
-        <Button type="primary" class="mr-2" @click="showDeletedPlugin">{{ $t('p_deleted_plugin') }}</Button>
-        <Button type="info" class="mr-2" @click="showOnlinePluginSelect" ghost icon="ios-cloud-upload-outline">{{
-          $t('origin_plugins')
-        }}</Button>
+        <Button class="mr-2" @click="showDeletedPlugin">{{ $t('p_deleted_plugin') }}</Button>
+        <Button type="primary" class="mr-2" @click="showOnlinePluginSelect">{{ $t('origin_plugins') }}</Button>
         <div>
           <Upload
             ref="uploadButton"
@@ -57,7 +55,10 @@
             action="platform/v1/packages"
             :headers="uploadHeaders"
           >
-            <Button type="info" ghost icon="ios-cloud-upload-outline">{{ $t('upload_plugin_btn') }}</Button>
+            <Button class="btn-upload">
+              <img src="@/assets/icon/UploadOutlined.svg" class="upload-icon" />
+              {{ $t('upload_plugin_btn') }}
+            </Button>
           </Upload>
           <span v-if="showSuccess" style="color: #2b85e4">{{ $t('plugin_analysis') }}</span>
         </div>
@@ -200,7 +201,7 @@
     <Modal
       v-model="isAddInstanceModalShow"
       :title="$t('p_add_instance')"
-      cancel-text=""
+      :cancel-text="$t('cancel')"
       :ok-text="$t('p_finish')"
       @on-ok="addInstanceConfirm"
       @on-visible-change="onAddInstanceModalChange"
@@ -252,7 +253,7 @@
       v-model="isDeletedPluginModalShow"
       :title="$t('p_deleted_plugin')"
       :width="50"
-      cancel-text=""
+      :cancel-text="$t('cancel')"
       :ok-text="$t('p_finish')"
       @on-ok="onDeletePluginModalChange(false)"
       @on-visible-change="onDeletePluginModalChange"
@@ -309,7 +310,7 @@ import find from 'lodash/find'
 import cloneDeep from 'lodash/cloneDeep'
 import isEmpty from 'lodash/isEmpty'
 import { getCookie } from '@/pages/util/cookie'
-import req from '@/api/base'
+import { getPluginPackage, pluginsRegister } from '@/api/server.js'
 import {
   getAvailableContainerHosts,
   getAvailablePortByHostIp,
@@ -319,9 +320,25 @@ import {
   pullPluginArtifact,
   getPluginArtifactStatus,
   deletePluginPkg,
-  getAvailableInstancesByPackageId
+  getAvailableInstancesByPackageId,
+  getUserList
 } from '@/api/server.js'
 import BatchRegistModal from './components/batch-register-modal.vue'
+
+export const custom_api_enum = [
+  {
+    "url": "/platform/v1/packages",
+    "method": "get"
+  },
+  {
+    "url": "/platform/v1/packages",
+    "method": "post"
+  },
+  {
+    "url": "/platform/v1/plugins/packages/import/${id}",
+    "method": "post"
+  }
+]
 
 const initSearchForm = {
   running: 'yes',
@@ -438,12 +455,11 @@ export default {
     }, 300),
     async getViewList() {
       return new Promise(resolve => {
-        const api = '/platform/v1/packages'
         let params = cloneDeep(this.searchForm)
         if (this.pluginListType === 'isDeleted') {
           params = cloneDeep(this.deletedSearchForm)
         }
-        req.get(api, { params }).then(res => {
+        getPluginPackage({ params }).then(res => {
           this.searchNameOptionList = []
           this.processOptionList(res.data, this.searchNameOptionList, 'name')
           if (this.pluginListType === 'isDeleted') {
@@ -456,8 +472,7 @@ export default {
       })
     },
     async getUpdatedByOptionList() {
-      const api = '/platform/v1/users/retrieve'
-      const { data } = await req.get(api)
+      const { data } = await getUserList()
       this.processOptionList(data, this.updatedByOptionList, 'username')
     },
     processOptionList(data = [], needFillArray = [], key = 'name') {
@@ -617,8 +632,7 @@ export default {
     async registPlugin(pluginId) {
       this.isSpinShow = true
       this.spinContent = this.$t('plugin_registing')
-      const api = '/platform/v1/packages/ui/register'
-      const { status } = await req.post(api, {
+      const { status } = await pluginsRegister({
         id: pluginId
       })
       this.isSpinShow = false
@@ -823,7 +837,7 @@ export default {
     width: 50%;
     flex-direction: row;
     .ivu-radio-wrapper-checked {
-      background-color: #2d8cf0;
+      background-color: #5384ff;
       color: #fff;
     }
   }
@@ -912,7 +926,7 @@ export default {
   align-items: center;
   margin-bottom: 10px;
   .required-star {
-    color: #ed4014;
+    color: #ff4d4f;
   }
 }
 .allow-add-port {
@@ -956,16 +970,6 @@ export default {
 </style>
 
 <style lang="scss">
-.search-top-right {
-  .ivu-btn-primary {
-    background-color: #a6adb2;
-    border-color: #a6adb2;
-  }
-  .ivu-btn-primary:hover {
-    background-color: #a6adb2;
-    border-color: #a6adb2;
-  }
-}
 .card-content-list {
   .card-action-button {
     .ivu-btn-primary {
