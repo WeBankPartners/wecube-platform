@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/plugin"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/execution"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
+	"go.uber.org/zap"
 	"os"
 	"sort"
 	"strconv"
@@ -247,7 +248,7 @@ func importCmdbConfig(ctx context.Context, transImportParam *models.TransImportJ
 	if len(transImportConfig.AutoConfirmViewList) > 0 {
 		for _, viewId := range transImportConfig.AutoConfirmViewList {
 			if err = remote.AutoConfirmCMDBView(ctx, viewId); err != nil {
-				log.Logger.Error("confirm view fail", log.String("viewId", viewId), log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "confirm view fail", zap.String("viewId", viewId), zap.Error(err))
 				err = fmt.Errorf("confirm view:%s fail,%s ", viewId, err.Error())
 				break
 			}
@@ -379,7 +380,7 @@ func importArtifactPackage(ctx context.Context, transImportParam *models.TransIm
 	var artifactDataList []*models.AnalyzeArtifactDisplayData
 	if err = json.Unmarshal([]byte(input), &artifactDataList); err != nil {
 		err = fmt.Errorf("json unmarshal artifact import detail data fail,%s ", err.Error())
-		log.Logger.Error("importArtifactPackageFunc", log.String("inputData", input), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "importArtifactPackageFunc", zap.String("inputData", input), zap.Error(err))
 		return
 	}
 	for _, artifactData := range artifactDataList {
@@ -394,7 +395,7 @@ func importArtifactPackage(ctx context.Context, transImportParam *models.TransIm
 				err = fmt.Errorf("upload artifact package to artifacts plugin fail,tmpPath:%s ,error:%s ", tmpImportFilePath, tmpErr.Error())
 				break
 			} else {
-				log.Logger.Info("upload artifact package to artifacts plugin done", log.String("packageName", tmpPackageName), log.String("deployPackageGuid", tmpDeployPackageGuid))
+				log.Info(nil, log.LOGGER_APP, "upload artifact package to artifacts plugin done", zap.String("packageName", tmpPackageName), zap.String("deployPackageGuid", tmpDeployPackageGuid))
 			}
 		}
 		if err != nil {
@@ -479,7 +480,7 @@ func execWorkflow(ctx context.Context, transImportParam *models.TransImportJobPa
 			}
 			exprList, analyzeErr := remote.AnalyzeExpression(v.RootEntity)
 			if analyzeErr != nil || len(exprList) == 0 {
-				log.Logger.Warn("workflow proc def rootEntity analyze fail", log.String("name", v.Name), log.String("rootEntity", v.RootEntity), log.Error(analyzeErr))
+				log.Warn(nil, log.LOGGER_APP, "workflow proc def rootEntity analyze fail", zap.String("name", v.Name), zap.String("rootEntity", v.RootEntity), zap.Error(analyzeErr))
 				continue
 			}
 			queryEntityRows, queryEntityDataErr := remote.QueryPluginData(ctx, exprList, []*models.QueryExpressionDataFilter{}, remote.GetToken())
@@ -539,11 +540,11 @@ func doExecWorkflowDaemonJob() {
 	ctx := db.NewDBCtx(transactionId)
 	procExecList, err := database.GetTransImportProcExecList(ctx)
 	if err != nil {
-		log.Logger.Error("doExecWorkflowDaemonJob fail with get proc exec list", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "doExecWorkflowDaemonJob fail with get proc exec list", zap.Error(err))
 		return
 	}
 	if len(procExecList) == 0 {
-		log.Logger.Debug("done doExecWorkflowDaemonJob with empty procExecList", log.String("id", transactionId))
+		log.Debug(nil, log.LOGGER_APP, "done doExecWorkflowDaemonJob with empty procExecList", zap.String("id", transactionId))
 		return
 	}
 	importExecMap := make(map[string][]*models.TransImportProcExecTable)
@@ -573,7 +574,7 @@ func doExecWorkflowDaemonJob() {
 					if v.Status != v.ProcInsStatus {
 						v.Status = v.ProcInsStatus
 						if _, updateStatusErr := database.UpdateTransImportProcExec(ctx, v); updateStatusErr != nil {
-							log.Logger.Error("doExecWorkflowDaemonJob update running proc exec status fail", log.String("detailId", v.Id), log.String("status", v.Status), log.Error(updateStatusErr))
+							log.Error(nil, log.LOGGER_APP, "doExecWorkflowDaemonJob update running proc exec status fail", zap.String("detailId", v.Id), zap.String("status", v.Status), zap.Error(updateStatusErr))
 						}
 					}
 				}
@@ -597,16 +598,16 @@ func doExecWorkflowDaemonJob() {
 			needStartExec.Status = models.TransImportInPreparationStatus
 			rowAffect, execErr := database.UpdateTransImportProcExec(ctx, needStartExec)
 			if execErr != nil {
-				log.Logger.Error("doExecWorkflowDaemonJob update proc exec status fail", log.String("detailId", transImportDetailId), log.String("status", needStartExec.Status), log.Error(execErr))
+				log.Error(nil, log.LOGGER_APP, "doExecWorkflowDaemonJob update proc exec status fail", zap.String("detailId", transImportDetailId), zap.String("status", needStartExec.Status), zap.Error(execErr))
 				continue
 			}
 			if !rowAffect {
-				log.Logger.Warn("doExecWorkflowDaemonJob update proc exec status affect now row", log.String("detailId", transImportDetailId))
+				log.Warn(nil, log.LOGGER_APP, "doExecWorkflowDaemonJob update proc exec status affect now row", zap.String("detailId", transImportDetailId))
 				continue
 			}
 			tmpProcInsId, tmpErr := startExecWorkflow(ctx, needStartExec)
 			if tmpErr != nil {
-				log.Logger.Error("doExecWorkflowDaemonJob start exec workflow fail", log.String("detailId", transImportDetailId), log.Error(tmpErr))
+				log.Error(nil, log.LOGGER_APP, "doExecWorkflowDaemonJob start exec workflow fail", zap.String("detailId", transImportDetailId), zap.Error(tmpErr))
 				needStartExec.Status = models.JobStatusReady
 				database.UpdateTransImportProcExec(ctx, needStartExec)
 				continue
@@ -614,7 +615,7 @@ func doExecWorkflowDaemonJob() {
 			needStartExec.Status = models.JobStatusRunning
 			needStartExec.ProcIns = tmpProcInsId
 			if _, tmpErr = database.UpdateTransImportProcExec(ctx, needStartExec); tmpErr != nil {
-				log.Logger.Error("doExecWorkflowDaemonJob update proc exec status fail", log.String("detailId", transImportDetailId), log.String("status", needStartExec.Status), log.Error(tmpErr))
+				log.Error(nil, log.LOGGER_APP, "doExecWorkflowDaemonJob update proc exec status fail", zap.String("detailId", transImportDetailId), zap.String("status", needStartExec.Status), zap.Error(tmpErr))
 				continue
 			}
 			continue
@@ -623,7 +624,7 @@ func doExecWorkflowDaemonJob() {
 			// 需要更新trans import detail 状态
 			tmpErr := database.UpdateTransImportDetailStatus(ctx, "", transImportDetailId, "success", "", "")
 			if tmpErr != nil {
-				log.Logger.Error("doExecWorkflowDaemonJob update trans import detail status fail", log.String("detailId", transImportDetailId), log.String("status", models.JobStatusSuccess), log.Error(tmpErr))
+				log.Error(nil, log.LOGGER_APP, "doExecWorkflowDaemonJob update trans import detail status fail", zap.String("detailId", transImportDetailId), zap.String("status", models.JobStatusSuccess), zap.Error(tmpErr))
 			}
 		}
 	}
@@ -639,7 +640,7 @@ func startExecWorkflow(ctx context.Context, procExecRow *models.TransImportProcE
 	previewData, previewErr := execution.BuildProcPreviewData(ctx, procDefId, procExecRow.EntityDataId, procExecRow.CreatedUser)
 	if previewErr != nil {
 		err = previewErr
-		log.Logger.Error("startExecWorkflow fail with build proc preview data", log.String("procExecId", procExecRow.Id), log.Error(previewErr))
+		log.Error(nil, log.LOGGER_APP, "startExecWorkflow fail with build proc preview data", zap.String("procExecId", procExecRow.Id), zap.Error(previewErr))
 		return
 	}
 	// proc instance start
@@ -653,7 +654,7 @@ func startExecWorkflow(ctx context.Context, procExecRow *models.TransImportProcE
 	procInsId, workflowRow, workNodes, workLinks, createInsErr := database.CreateProcInstance(ctx, &procStartParam, procExecRow.CreatedUser)
 	if createInsErr != nil {
 		err = createInsErr
-		log.Logger.Error("startExecWorkflow fail with create proc instance data", log.String("procExecId", procExecRow.Id), log.String("sessionId", previewData.ProcessSessionId), log.Error(createInsErr))
+		log.Error(nil, log.LOGGER_APP, "startExecWorkflow fail with create proc instance data", zap.String("procExecId", procExecRow.Id), zap.String("sessionId", previewData.ProcessSessionId), zap.Error(createInsErr))
 		return
 	}
 	retProcInsId = procInsId

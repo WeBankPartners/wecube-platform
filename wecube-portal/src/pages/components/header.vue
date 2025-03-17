@@ -2,7 +2,7 @@
   <div class="platform-header">
     <div v-if="loadPlugin.isShow" class="plugin-load">
       <div class="plugin-load-header">
-        <Icon type="ios-alert-outline" size="32" color="#2d8cf0" />
+        <Icon type="ios-alert-outline" size="32" color="#5384ff" />
         <div style="position: relative; display: inline-block; bottom: 4px">
           {{ $t('notification_desc') }}({{ loadPlugin.finnishNumber }}/{{ loadPlugin.totalNumber }})
         </div>
@@ -355,6 +355,7 @@ export default {
                 if (this.loadPlugin.finnishNumber === this.loadPlugin.totalNumber) {
                   this.loadPlugin.isShow = false
                   window.isLoadingPlugin = false
+                  window.dispatchEvent(new CustomEvent('getAllPluginsLoaded')) // 提供给homePage判断使用
                   this.$nextTick(() => {
                     window.location.href = window.location.origin
                       + '/#'

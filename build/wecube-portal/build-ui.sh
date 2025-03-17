@@ -1,5 +1,7 @@
-#!/bin/bash
 set -e -x
 cd /home/node/app/wecube-portal
-#npm install --registry https://registry.npmmirror.com --force --unsafe-perm
+# npm --registry https://registry.npmmirror.com install --unsafe-perm --force
+# rm -rf node_modules
+npm set registry https://mirrors.cloud.tencent.com/npm/
+npm install --force
 npm run build
