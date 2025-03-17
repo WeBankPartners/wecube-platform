@@ -495,12 +495,12 @@ export default {
     },
     async enterNextStep() {
       if (this.currentStep === 1) {
-        const data = await this.getAllServiceById()
-        if (!data || isEmpty(data)) {
-          this.currentStep += 1
-          this.enterNextStep()
-          return
-        }
+        // const data = await this.getAllServiceById()
+        // if (!data || isEmpty(data)) {
+        //   this.currentStep += 1
+        //   this.enterNextStep()
+        //   return
+        // }
         if (!isEmpty(this.inheritedVersionOptionList)) {
           this.onInheritedVersionSelected(JSON.stringify(this.inheritedVersionOptionList[0]))
         }
