@@ -29,7 +29,7 @@ func InitDatabase() error {
 		model.Config.Database.User, model.Config.Database.Password, "tcp", fmt.Sprintf("%s:%s", model.Config.Database.Server, model.Config.Database.Port), model.Config.Database.DataBase)
 	engine, err := xorm.NewEngine("mysql", connStr)
 	if err != nil {
-		log.Logger.Error("Init database connect fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Init database connect fail", zap.Error(err))
 		return err
 	}
 	engine.SetMaxIdleConns(model.Config.Database.MaxIdle)
@@ -41,101 +41,21 @@ func InitDatabase() error {
 	// 使用驼峰式映射
 	engine.SetMapper(core.SnakeMapper{})
 	Engine = engine
-	log.Logger.Info("Success init database connect !!")
+	log.Info(nil, log.LOGGER_APP, "Success init database connect !!")
 	return nil
 }
-
-/*type dbLogger struct {
-	LogLevel xorm_log.LogLevel
-	ShowSql  bool
-	Logger   *zap.Logger
-}
-
-func (d *dbLogger) Debug(v ...interface{}) {
-	d.Logger.Debug(fmt.Sprint(v...))
-}
-
-func (d *dbLogger) Debugf(format string, v ...interface{}) {
-	d.Logger.Debug(fmt.Sprintf(format, v...))
-}
-
-func (d *dbLogger) Error(v ...interface{}) {
-	d.Logger.Error(fmt.Sprint(v...))
-}
-
-func (d *dbLogger) Errorf(format string, v ...interface{}) {
-	d.Logger.Error(fmt.Sprintf(format, v...))
-}
-
-func (d *dbLogger) Info(v ...interface{}) {
-	d.Logger.Info(fmt.Sprint(v...))
-}
-
-func (d *dbLogger) Infof(format string, v ...interface{}) {
-	if len(v) < 4 {
-		d.Logger.Info(fmt.Sprintf(format, v...))
-		return
-	}
-	var costMs float64 = 0
-	costTime := fmt.Sprintf("%s", v[3])
-	if strings.Contains(costTime, "µs") {
-		costMs, _ = strconv.ParseFloat(strings.ReplaceAll(costTime, "µs", ""), 64)
-		costMs = costMs / 1000
-	} else if strings.Contains(costTime, "ms") {
-		costMs, _ = strconv.ParseFloat(costTime[:len(costTime)-2], 64)
-	} else if strings.Contains(costTime, "s") && !strings.Contains(costTime, "m") {
-		costMs, _ = strconv.ParseFloat(costTime[:len(costTime)-1], 64)
-		costMs = costMs * 1000
-	} else {
-		costTime = costTime[:len(costTime)-1]
-		mIndex := strings.Index(costTime, "m")
-		minTime, _ := strconv.ParseFloat(costTime[:mIndex], 64)
-		secTime, _ := strconv.ParseFloat(costTime[mIndex+1:], 64)
-		costMs = (minTime*60 + secTime) * 1000
-	}
-	d.Logger.Info("db_log", log.String("sql", fmt.Sprintf("%s", v[1])), log.String("param", fmt.Sprintf("%v", v[2])), log.Float64("cost_ms", costMs))
-}
-
-func (d *dbLogger) Warn(v ...interface{}) {
-	d.Logger.Warn(fmt.Sprint(v...))
-}
-
-func (d *dbLogger) Warnf(format string, v ...interface{}) {
-	d.Logger.Warn(fmt.Sprintf(format, v...))
-}
-
-func (d *dbLogger) Level() xorm_log.LogLevel {
-	return d.LogLevel
-}
-
-func (d *dbLogger) SetLevel(l xorm_log.LogLevel) {
-	d.LogLevel = l
-}
-
-func (d *dbLogger) ShowSQL(b ...bool) {
-	d.ShowSql = b[0]
-}
-
-func (d *dbLogger) IsShowSQL() bool {
-	return d.ShowSql
-}*/
 
 type dbContextLogger struct {
 	LogLevel xorm_log.LogLevel
 	ShowSql  bool
-	Logger   *zap.Logger
+	Logger   *zap.SugaredLogger
 }
 
 func (d *dbContextLogger) BeforeSQL(ctx xorm_log.LogContext) {
 }
 
 func (d *dbContextLogger) AfterSQL(ctx xorm_log.LogContext) {
-	/*	t := ctx.Ctx.Value(constant.TransactionId)
-		transactionId := "NoTransactionId"
-		if tmpTransactionId, ok := t.(string); ok {
-			transactionId = tmpTransactionId
-		}
-	*/var costMs float64 = 0
+	var costMs float64 = 0
 	costTime := ctx.ExecuteTime.String()
 	if strings.Contains(costTime, "µs") {
 		costMs, _ = strconv.ParseFloat(strings.ReplaceAll(costTime, "µs", ""), 64)
@@ -152,23 +72,23 @@ func (d *dbContextLogger) AfterSQL(ctx xorm_log.LogContext) {
 		secTime, _ := strconv.ParseFloat(costTime[mIndex+1:], 64)
 		costMs = (minTime*60 + secTime) * 1000
 	}
-	d.Logger.Info("sql:"+ctx.SQL, log.String("param", fmt.Sprintf("%v", ctx.Args)), log.Float64("cost_ms", costMs))
+	d.Logger.Infow("sql:"+ctx.SQL, zap.String("param", fmt.Sprintf("%v", ctx.Args)), zap.Float64("cost_ms", costMs))
 }
 
 func (d *dbContextLogger) Debugf(format string, v ...interface{}) {
-	d.Logger.Debug(fmt.Sprintf(format, v...))
+	d.Logger.Debugw(fmt.Sprintf(format, v...))
 }
 
 func (d *dbContextLogger) Errorf(format string, v ...interface{}) {
-	d.Logger.Debug(fmt.Sprintf(format, v...))
+	d.Logger.Errorw(fmt.Sprintf(format, v...))
 }
 
 func (d *dbContextLogger) Infof(format string, v ...interface{}) {
-	d.Logger.Debug(fmt.Sprintf(format, v...))
+	d.Logger.Infow(fmt.Sprintf(format, v...))
 }
 
 func (d *dbContextLogger) Warnf(format string, v ...interface{}) {
-	d.Logger.Debug(fmt.Sprintf(format, v...))
+	d.Logger.Warnw(fmt.Sprintf(format, v...))
 }
 
 func (d *dbContextLogger) Level() xorm_log.LogLevel {
@@ -332,7 +252,7 @@ func queryCount(ctx context.Context, sql string, params ...interface{}) int {
 	resultMap := make(map[string]interface{})
 	_, err := Engine.Context(ctx).SQL(combineDBSql("SELECT COUNT(1) FROM ( ", sql, " ) sub_query"), params...).Get(&resultMap)
 	if err != nil {
-		log.Logger.Error("Query sql count message fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Query sql count message fail", zap.Error(err))
 		return 0
 	}
 	if countV, b := resultMap["COUNT(1)"]; b {

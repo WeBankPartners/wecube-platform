@@ -6,6 +6,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -40,7 +41,7 @@ func doScanOperationJob() {
 	filterSql, filterParam := db.CreateListParams(curWorkflowIds, "")
 	err := db.WorkflowMysqlEngine.SQL("select id,workflow_id,node_id,operation,message,created_by,created_time from proc_run_operation where status='wait' and workflow_id in ("+filterSql+")", filterParam...).Find(&operationRows)
 	if err != nil {
-		log.WorkflowLogger.Error("query proc operation fail", log.Error(err))
+		log.Error(nil, log.LOGGER_WORKFOLW, "query proc operation fail", zap.Error(err))
 		return
 	}
 	if len(operationRows) == 0 {
@@ -55,11 +56,11 @@ func HandleProOperation(operation *models.ProcRunOperation) {
 	// 尝试抢占
 	execResult, err := db.WorkflowMysqlEngine.Exec("update proc_run_operation set status='doing',handle_by=?,start_time=? where id=? and status='wait'", instanceHost, time.Now(), operation.Id)
 	if err != nil {
-		log.WorkflowLogger.Error("try to handle operation fail", log.String("host", instanceHost), log.Int64("operation", operation.Id), log.Error(err))
+		log.Error(nil, log.LOGGER_WORKFOLW, "try to handle operation fail", zap.String("host", instanceHost), zap.Int64("operation", operation.Id), zap.Error(err))
 		return
 	}
 	if rowAffectNum, _ := execResult.RowsAffected(); rowAffectNum <= 0 {
-		log.WorkflowLogger.Warn("try to handle operation,but too late", log.String("host", instanceHost), log.Int64("operation", operation.Id))
+		log.Warn(nil, log.LOGGER_WORKFOLW, "try to handle operation,but too late", zap.String("host", instanceHost), zap.Int64("operation", operation.Id))
 		return
 	}
 	doneFlag := false
@@ -70,7 +71,7 @@ func HandleProOperation(operation *models.ProcRunOperation) {
 			_, err = db.WorkflowMysqlEngine.Exec("update proc_run_operation set status='wait' where id=?", operation.Id)
 		}
 		if err != nil {
-			log.WorkflowLogger.Error("handle operation update operation status fail", log.Bool("done", doneFlag), log.String("host", instanceHost), log.Int64("operation", operation.Id), log.Error(err))
+			log.Error(nil, log.LOGGER_WORKFOLW, "handle operation update operation status fail", zap.Bool("done", doneFlag), zap.String("host", instanceHost), zap.Int64("operation", operation.Id), zap.Error(err))
 		}
 	}()
 	if workIf, ok := GlobalWorkflowMap.Load(operation.WorkflowId); ok {
@@ -79,25 +80,25 @@ func HandleProOperation(operation *models.ProcRunOperation) {
 		doneFlag = true
 	} else {
 		// check need to wakeup
-		log.WorkflowLogger.Warn("handle operation message warning,can not find workflow", log.String("workflowId", operation.WorkflowId))
+		log.Warn(nil, log.LOGGER_WORKFOLW, "handle operation message warning,can not find workflow", zap.String("workflowId", operation.WorkflowId))
 		workflowRow, queryErr := getWorkflowRow(operation.WorkflowId)
 		if queryErr != nil {
-			log.WorkflowLogger.Error("handle operation fail with get workflow row", log.Error(queryErr))
+			log.Error(nil, log.LOGGER_WORKFOLW, "handle operation fail with get workflow row", zap.Error(queryErr))
 			return
 		}
 		if !workflowRow.Sleep {
 			// 如果不是sleep，应该有其它实例在处理它，如果也没有其它实例处理它，那等抢占的worker把它接管后再处理
-			log.WorkflowLogger.Warn("give up handle operation,workflow is not sleeping", log.String("workflowId", operation.WorkflowId))
+			log.Warn(nil, log.LOGGER_WORKFOLW, "give up handle operation,workflow is not sleeping", zap.String("workflowId", operation.WorkflowId))
 			return
 		}
 		// 尝试恢复workflow
 		if err = setWorkflowSleepDB(operation.WorkflowId, false); err != nil {
-			log.WorkflowLogger.Error("handle operation fail with set workflow sleep false", log.String("workflowId", operation.WorkflowId), log.Error(err))
+			log.Error(nil, log.LOGGER_WORKFOLW, "handle operation fail with set workflow sleep false", zap.String("workflowId", operation.WorkflowId), zap.Error(err))
 			return
 		}
 		if err = recoverWorkflow(operation.WorkflowId); err != nil {
 			setWorkflowSleepDB(operation.WorkflowId, true)
-			log.WorkflowLogger.Error("handle operation fail with recover workflow from sleep", log.String("workflowId", operation.WorkflowId), log.Error(err))
+			log.Error(nil, log.LOGGER_WORKFOLW, "handle operation fail with recover workflow from sleep", zap.String("workflowId", operation.WorkflowId), zap.Error(err))
 		} else {
 			time.Sleep(2 * time.Second)
 			if workLoaded, loadOk := GlobalWorkflowMap.Load(operation.WorkflowId); loadOk {
@@ -105,7 +106,7 @@ func HandleProOperation(operation *models.ProcRunOperation) {
 				doWorkflowOperation(operation, workObj)
 				doneFlag = true
 			} else {
-				log.WorkflowLogger.Warn("handle operation,recover workflow done but get GlobalWorkflowMap item fail", log.String("workflowId", operation.WorkflowId))
+				log.Warn(nil, log.LOGGER_WORKFOLW, "handle operation,recover workflow done but get GlobalWorkflowMap item fail", zap.String("workflowId", operation.WorkflowId))
 			}
 		}
 	}
@@ -129,7 +130,7 @@ func doWorkflowOperation(operation *models.ProcRunOperation, workObj *Workflow) 
 	case "confirm":
 		workObj.RetryNode(operation.NodeId, true)
 	default:
-		log.WorkflowLogger.Error("handle operation error with illegal operation", log.String("operation", operation.Operation))
+		log.Error(nil, log.LOGGER_WORKFOLW, "handle operation error with illegal operation", zap.String("operation", operation.Operation))
 	}
 }
 
@@ -151,17 +152,17 @@ func doTakeOver() {
 	lastTime := time.Unix(time.Now().Unix()-30, 0).Format(models.DateTimeFormat)
 	err := db.WorkflowMysqlEngine.SQL("select id,status,host,updated_time,last_alive_time from proc_run_workflow where `sleep`=0 and status=? and last_alive_time<=?", models.JobStatusRunning, lastTime).Find(&workflowRows)
 	if err != nil {
-		log.WorkflowLogger.Error("do takeover workflow fail with query workflow table error", log.Error(err))
+		log.Error(nil, log.LOGGER_WORKFOLW, "do takeover workflow fail with query workflow table error", zap.Error(err))
 		return
 	}
 	for _, row := range workflowRows {
 		if !tryTakeoverWorkflowRow(row.Id) {
-			log.WorkflowLogger.Warn("tryTakeoverWorkflowRow fail", log.String("workflowId", row.Id))
+			log.Warn(nil, log.LOGGER_WORKFOLW, "tryTakeoverWorkflowRow fail", zap.String("workflowId", row.Id))
 			continue
 		}
-		log.WorkflowLogger.Info("start takeoverWorkflowRow", log.String("workflowId", row.Id))
+		log.Info(nil, log.LOGGER_WORKFOLW, "start takeoverWorkflowRow", zap.String("workflowId", row.Id))
 		if tmpErr := recoverWorkflow(row.Id); tmpErr != nil {
-			log.WorkflowLogger.Error("end takeoverWorkflowRow,fail recover workflow", log.String("workflowId", row.Id), log.Error(tmpErr))
+			log.Error(nil, log.LOGGER_WORKFOLW, "end takeoverWorkflowRow,fail recover workflow", zap.String("workflowId", row.Id), zap.Error(tmpErr))
 		}
 	}
 }
@@ -172,7 +173,7 @@ func tryTakeoverWorkflowRow(workflowId string) bool {
 	lastTime := time.Unix(time.Now().Unix()-30, 0).Format(models.DateTimeFormat)
 	execResult, execErr := db.WorkflowMysqlEngine.Exec("update proc_run_workflow set host=?,last_alive_time=? where id=? and last_alive_time<?", instanceHost, nowTime, workflowId, lastTime)
 	if execErr != nil {
-		log.WorkflowLogger.Error("tryTakeoverWorkflowRow fail with exec update workflow sql", log.Error(execErr))
+		log.Error(nil, log.LOGGER_WORKFOLW, "tryTakeoverWorkflowRow fail with exec update workflow sql", zap.Error(execErr))
 		return ok
 	}
 	if affectNum, _ := execResult.RowsAffected(); affectNum > 0 {
@@ -182,27 +183,27 @@ func tryTakeoverWorkflowRow(workflowId string) bool {
 }
 
 func loadAllWorkflow() {
-	log.WorkflowLogger.Info("<<--Start load all workflow-->>")
+	log.Info(nil, log.LOGGER_WORKFOLW, "<<--Start load all workflow-->>")
 	var workflowRows []*models.ProcRunWorkflow
 	err := db.WorkflowMysqlEngine.SQL("select id,name from proc_run_workflow where status=? and `sleep`=0 and stop=0 and host=?", models.JobStatusRunning, instanceHost).Find(&workflowRows)
 	if err != nil {
-		log.WorkflowLogger.Error("load all workflow fail with query workflow table error", log.Error(err))
+		log.Error(nil, log.LOGGER_WORKFOLW, "load all workflow fail with query workflow table error", zap.Error(err))
 		return
 	}
 	for _, row := range workflowRows {
 		recoverWorkflow(row.Id)
 	}
-	log.WorkflowLogger.Info("<<--Done load all workflow-->>")
+	log.Info(nil, log.LOGGER_WORKFOLW, "<<--Done load all workflow-->>")
 }
 
 func recoverWorkflow(workflowId string) (err error) {
 	ctx := context.WithValue(context.Background(), models.TransactionIdHeader, fmt.Sprintf("recover_%s_%d", workflowId, time.Now().Unix()))
-	log.WorkflowLogger.Info("<<--Start recover workflow-->>", log.String("workflowId", workflowId))
+	log.Info(nil, log.LOGGER_WORKFOLW, "<<--Start recover workflow-->>", zap.String("workflowId", workflowId))
 	defer func() {
 		if err != nil {
-			log.WorkflowLogger.Error("<<--Fail recover workflow-->>", log.String("workflowId", workflowId), log.Error(err))
+			log.Error(nil, log.LOGGER_WORKFOLW, "<<--Fail recover workflow-->>", zap.String("workflowId", workflowId), zap.Error(err))
 		} else {
-			log.WorkflowLogger.Info("<<--Done recover workflow-->>", log.String("workflowId", workflowId))
+			log.Info(nil, log.LOGGER_WORKFOLW, "<<--Done recover workflow-->>", zap.String("workflowId", workflowId))
 		}
 	}()
 	// 查workflow、node、link
@@ -258,16 +259,16 @@ func startSleepWorkflowJob() {
 }
 
 func doSleepWorkflowJob() {
-	log.WorkflowLogger.Info("<<--Start do sleep workflow job-->>")
+	log.Info(nil, log.LOGGER_WORKFOLW, "<<--Start do sleep workflow job-->>")
 	ctx := context.WithValue(context.Background(), models.TransactionIdHeader, fmt.Sprintf("sleep_workflow_%d", time.Now().Unix()))
 	var workflowRows []*models.ProcRunWorkflow
 	err := db.WorkflowMysqlEngine.Context(ctx).SQL("select id,proc_ins_id,name,status,stop,created_time,last_alive_time from proc_run_workflow where status=? and (last_alive_time-created_time)>7200 and `sleep`=0", models.JobStatusRunning).Find(&workflowRows)
 	if err != nil {
-		log.WorkflowLogger.Error("query workflow table fail,", log.Error(err))
+		log.Error(nil, log.LOGGER_WORKFOLW, "query workflow table fail,", zap.Error(err))
 		return
 	}
 	if len(workflowRows) == 0 {
-		log.WorkflowLogger.Info("<<--Quit do sleep workflow job-->>", log.String("detail", "no workflow row match with sleep"))
+		log.Info(nil, log.LOGGER_WORKFOLW, "<<--Quit do sleep workflow job-->>", zap.String("detail", "no workflow row match with sleep"))
 		return
 	}
 	for _, row := range workflowRows {
@@ -275,23 +276,23 @@ func doSleepWorkflowJob() {
 			if workIf, ok := GlobalWorkflowMap.Load(row.Id); ok {
 				workObj := workIf.(*Workflow)
 				if tmpErr := workObj.Sleep(); tmpErr != nil {
-					log.WorkflowLogger.Error("<<--Fail do sleep workflow job-->>", log.String("workflowId", row.Id), log.Error(tmpErr))
+					log.Error(nil, log.LOGGER_WORKFOLW, "<<--Fail do sleep workflow job-->>", zap.String("workflowId", row.Id), zap.Error(tmpErr))
 				} else {
-					log.WorkflowLogger.Info("<<--Done do sleep workflow job-->>", log.String("workflowId", row.Id))
+					log.Info(nil, log.LOGGER_WORKFOLW, "<<--Done do sleep workflow job-->>", zap.String("workflowId", row.Id))
 				}
 			}
 		} else {
-			log.WorkflowLogger.Info("<<--Ignore do sleep workflow job-->>", log.String("workflowId", row.Id), log.String("detail", "workflow node still running "))
+			log.Info(nil, log.LOGGER_WORKFOLW, "<<--Ignore do sleep workflow job-->>", zap.String("workflowId", row.Id), zap.String("detail", "workflow node still running "))
 		}
 	}
-	log.WorkflowLogger.Info("<<--End do sleep workflow job-->>")
+	log.Info(nil, log.LOGGER_WORKFOLW, "<<--End do sleep workflow job-->>")
 }
 
 func isWorkflowNeedSleep(ctx context.Context, workflowRow *models.ProcRunWorkflow) (ok bool) {
 	var procRunNodeRows []*models.ProcRunNode
 	err := db.WorkflowMysqlEngine.Context(ctx).SQL("select * from proc_run_node where workflow_id=?", workflowRow.Id).Find(&procRunNodeRows)
 	if err != nil {
-		log.WorkflowLogger.Error("check isWorkflowNeedSleep fail with query proc node table", log.String("workflowId", workflowRow.Id))
+		log.Error(nil, log.LOGGER_WORKFOLW, "check isWorkflowNeedSleep fail with query proc node table", zap.String("workflowId", workflowRow.Id))
 		return
 	}
 	if len(procRunNodeRows) == 0 {

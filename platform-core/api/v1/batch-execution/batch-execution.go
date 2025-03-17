@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"go.uber.org/zap"
 	"net/http"
 	"strings"
 	"time"
@@ -25,7 +26,7 @@ func CreateOrUpdateTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	reqParam := models.BatchExecutionTemplate{}
@@ -53,7 +54,7 @@ func CollectTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	reqParam := models.BatchExecutionTemplateCollect{}
@@ -82,7 +83,7 @@ func UncollectTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	reqParam := models.BatchExecutionTemplateCollect{}
@@ -111,7 +112,7 @@ func CheckCollectTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	reqParam := models.BatchExecutionTemplateCollect{}
@@ -142,7 +143,7 @@ func GetAllTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 	if templateData, err = database.GetAllTemplate(c); err != nil {
 		middleware.ReturnError(c, err)
@@ -156,7 +157,7 @@ func RetrieveTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	var param models.QueryRequestParam
@@ -182,7 +183,7 @@ func GetTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	templateId := c.Param("templateId")
@@ -203,7 +204,7 @@ func DeleteTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	templateId := c.Param("templateId")
@@ -224,7 +225,7 @@ func UpdateTemplatePermission(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	reqParam := models.BatchExecutionTemplate{}
@@ -257,7 +258,7 @@ func RetrieveBatchExec(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	var param models.QueryRequestParam
@@ -292,7 +293,7 @@ func GetBatchExec(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	var err error
@@ -369,7 +370,7 @@ func RunJob(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	reqParam := models.BatchExecRun{}
@@ -404,7 +405,7 @@ func RunJob(c *gin.Context) {
 }
 
 func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.BatchExecRunResp, err error) {
-	log.Logger.Debug("doRunJob reqParam", log.JsonObj("reqParam", reqParam))
+	log.Debug(nil, log.LOGGER_APP, "doRunJob reqParam", log.JsonObj("reqParam", reqParam))
 
 	result = &models.BatchExecRunResp{}
 	operator := middleware.GetRequestUser(c)
@@ -441,7 +442,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 				decryptData, tmpErr := decryptWithEncryptSeed(encryptText)
 				if tmpErr != nil {
 					err = fmt.Errorf("decrypt sensitive data of inputParameter id: %s failed: %s", pluginDefInputParams.ParamId, tmpErr.Error())
-					log.Logger.Error(err.Error())
+					log.Error(nil, log.LOGGER_APP, err.Error())
 					return
 				}
 				pluginDefInputParams.ParameValue = decryptData
@@ -459,7 +460,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		isBatchExecNameValid, tmpErr = database.ValidateBatchExecName(c, reqParam, continueToken)
 		if tmpErr != nil {
 			err = tmpErr
-			log.Logger.Error("validate batch exec name failed", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "validate batch exec name failed", zap.Error(err))
 			return
 		}
 		if !isBatchExecNameValid {
@@ -473,7 +474,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		batchExecId, tmpErr = database.InsertBatchExec(c, reqParam)
 		if tmpErr != nil {
 			err = tmpErr
-			log.Logger.Error("insert batch execution record failed", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "insert batch execution record failed", zap.Error(err))
 			return
 		}
 	} else {
@@ -482,21 +483,21 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		queryBatchExecData, tmpErr := database.GetBatchExec(c, batchExecId)
 		if tmpErr != nil {
 			err = tmpErr
-			log.Logger.Error(fmt.Sprintf("validate batchExecId: %s failed", batchExecId), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, fmt.Sprintf("validate batchExecId: %s failed", batchExecId), zap.Error(err))
 			return
 		}
 		if queryBatchExecData.ErrorCode != models.BatchExecErrorCodeDangerousBlock {
 			errMsg := fmt.Sprintf("batchExecId: %s has been finished", batchExecId)
 			err = fmt.Errorf(errMsg)
-			log.Logger.Error(errMsg)
+			log.Error(nil, log.LOGGER_APP, errMsg)
 			return
 		}
 	}
 	result.BatchExecId = batchExecId
-	log.Logger.Debug("call execution.BatchExecutionCallPluginService parameters", log.String("operator", operator), log.String("continueToken", continueToken))
+	log.Debug(nil, log.LOGGER_APP, "call execution.BatchExecutionCallPluginService parameters", zap.String("operator", operator), zap.String("continueToken", continueToken))
 
-	log.Logger.Debug("call execution.BatchExecutionCallPluginService parameters", log.String("pluginInterfaceId", pluginInterfaceId),
-		log.String("entityType", entityType), log.JsonObj("entityInstances", entityInstances), log.JsonObj("inputParamConstants", inputParamConstants))
+	log.Debug(nil, log.LOGGER_APP, "call execution.BatchExecutionCallPluginService parameters", zap.String("pluginInterfaceId", pluginInterfaceId),
+		zap.String("entityType", entityType), log.JsonObj("entityInstances", entityInstances), log.JsonObj("inputParamConstants", inputParamConstants))
 
 	execTime := time.Now()
 	errCode := models.BatchExecErrorCodeSucceed
@@ -506,7 +507,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 	if err != nil {
 		errCode = models.BatchExecErrorCodeFailed
 		errMsg = fmt.Sprintf("plugin call error: %s", err.Error())
-		log.Logger.Error(errMsg)
+		log.Error(nil, log.LOGGER_APP, errMsg)
 		// update batch exec record，更新批量执行记录
 		updateData := make(map[string]interface{})
 		updateData["error_code"] = errCode
@@ -516,7 +517,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		tmpErr = database.UpdateBatchExec(c, batchExecId, updateData)
 		if tmpErr != nil {
 			err = tmpErr
-			log.Logger.Error("update batch execution record failed", log.Error(err), log.String("batchExecErrMsg", errMsg))
+			log.Error(nil, log.LOGGER_APP, "update batch execution record failed", zap.Error(err), zap.String("batchExecErrMsg", errMsg))
 			return
 		}
 		err = exterror.New().BatchExecPluginApiError.WithParam(err.Error())
@@ -525,7 +526,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 
 	if dangerousCheckResult != nil {
 		result.DangerousCheckResult = dangerousCheckResult
-		log.Logger.Warn("dangerous check result existed", log.JsonObj("dangerousCheckResult", dangerousCheckResult))
+		log.Warn(nil, log.LOGGER_APP, "dangerous check result existed", log.JsonObj("dangerousCheckResult", dangerousCheckResult))
 		// if reqParam.IsDangerousBlock {
 		// update batch exec errorCode record，更新批量执行记录
 		errCode = models.BatchExecErrorCodeDangerousBlock
@@ -538,7 +539,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		tmpErr = database.UpdateBatchExec(c, batchExecId, updateData)
 		if tmpErr != nil {
 			err = tmpErr
-			log.Logger.Error("plugin call succeed and dangerous block, but update batch execution record failed", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "plugin call succeed and dangerous block, but update batch execution record failed", zap.Error(err))
 			return
 		}
 		// }
@@ -564,10 +565,10 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		tmpErr = database.UpdateBatchExec(c, batchExecId, updateData)
 		if tmpErr != nil {
 			err = tmpErr
-			log.Logger.Error("update batch execution record failed", log.Error(err), log.String("batchExecErrMsg", errMsg))
+			log.Error(nil, log.LOGGER_APP, "update batch execution record failed", zap.Error(err), zap.String("batchExecErrMsg", errMsg))
 			return
 		}
-		log.Logger.Error(fmt.Sprintf("batchExecErrMsg: %s", errMsg))
+		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("batchExecErrMsg: %s", errMsg))
 		return
 	} else {
 		errCode = models.BatchExecErrorCodeSucceed
@@ -580,7 +581,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 		tmpErr = database.UpdateBatchExec(c, batchExecId, updateData)
 		if tmpErr != nil {
 			err = tmpErr
-			log.Logger.Error("plugin call succeed, but update batch execution record failed", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "plugin call succeed, but update batch execution record failed", zap.Error(err))
 			return
 		}
 	}
@@ -610,7 +611,7 @@ func GetSeed(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 	result, err := database.GetEncryptSeed(c)
 	md5sum := cipher.Md5Encode(result)
@@ -627,7 +628,7 @@ func ExportTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	var param models.ExportBatchExecTemplateReqParam
@@ -668,7 +669,7 @@ func ImportTemplate(c *gin.Context) {
 	defer try.ExceptionStack(func(e interface{}, err interface{}) {
 		retErr := fmt.Errorf("%v", err)
 		middleware.ReturnError(c, exterror.Catch(exterror.New().ServerHandleError, retErr))
-		log.Logger.Error(e.(string))
+		log.Error(nil, log.LOGGER_APP, e.(string))
 	})
 
 	_, fileBytes, err := middleware.ReadFormFile(c, "file")

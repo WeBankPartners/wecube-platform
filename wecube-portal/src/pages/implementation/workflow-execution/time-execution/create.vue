@@ -5,8 +5,8 @@
         <Icon type="md-add" :size="18" />
         {{ $t('full_word_add') }}
       </Button>
-      <Button type="info" @click="exportData">
-        <img src="../../../../assets/icon/export.png" class="btn-img" alt="" />
+      <Button class="btn-upload" @click="exportData">
+        <img src="@/assets/icon/DownloadOutlined.svg" class="upload-icon" />
         {{ $t('export_flow') }}
       </Button>
     </div>
@@ -155,7 +155,7 @@
       </template>
       <template slot="footer">
         <Button type="default" @click="timeConfig.isShow = false">{{ $t('bc_cancel') }}</Button>
-        <Button type="primary" @click="saveTime">{{ $t('save') }}</Button>
+        <Button type="primary" @click="saveTime" style="margin-left: 10px">{{ $t('save') }}</Button>
       </template>
     </BaseDrawer>
   </div>
@@ -412,7 +412,7 @@ export default {
           width: 90,
           render: (h, params) => (
             <div>
-              <span style="color:#2d8cf0">{params.row.totalCompletedInstances}</span>
+              <span style="color:#5384ff">{params.row.totalCompletedInstances}</span>
               {params.row.totalCompletedInstances > 0 && (
                 <Button
                   style="margin-left:8px"
@@ -795,17 +795,17 @@ export default {
               {
                 label: this.$t('fe_inProgressFaulted'),
                 value: 'InProgress(Faulted)',
-                color: '#ed4014'
+                color: '#ff4d4f'
               },
               {
                 label: this.$t('fe_inProgressTimeouted'),
                 value: 'InProgress(Timeouted)',
-                color: '#ed4014'
+                color: '#ff4d4f'
               },
               {
                 label: this.$t('fe_stop'),
                 value: 'Stop',
-                color: '#ed4014'
+                color: '#ff4d4f'
               },
               {
                 label: this.$t('fe_inProgress'),
@@ -876,17 +876,17 @@ export default {
           {
             label: this.$t('fe_inProgressFaulted'),
             value: 'InProgress(Faulted)',
-            color: '#ed4014'
+            color: '#ff4d4f'
           },
           {
             label: this.$t('fe_inProgressTimeouted'),
             value: 'InProgress(Timeouted)',
-            color: '#ed4014'
+            color: '#ff4d4f'
           },
           {
             label: this.$t('fe_stop'),
             value: 'Stop',
-            color: '#ed4014'
+            color: '#ff4d4f'
           },
           {
             label: this.$t('fe_inProgress'),

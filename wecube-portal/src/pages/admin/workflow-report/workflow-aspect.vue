@@ -147,7 +147,7 @@ export default {
           key: 'totalCompletedInstances',
           render: (h, params) => (
             <div>
-              <span style="color:#2d8cf0">{params.row.totalCompletedInstances}</span>
+              <span style="color:#5384ff">{params.row.totalCompletedInstances}</span>
             </div>
           )
         },
@@ -165,7 +165,7 @@ export default {
           key: 'totalInProgressInstances',
           render: (h, params) => (
             <div>
-              <span style="color:#19be6b">{params.row.totalInProgressInstances}</span>
+              <span style="color:#00cb91">{params.row.totalInProgressInstances}</span>
             </div>
           )
         },

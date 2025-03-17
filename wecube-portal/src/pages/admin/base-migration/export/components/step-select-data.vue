@@ -400,7 +400,7 @@ export default {
       .number {
         font-size: 16px;
         font-weight: bold;
-        color: #2d8cf0;
+        color: #5384ff;
         margin-left: 6px;
         max-width: 200px;
         text-overflow: ellipsis;
@@ -417,7 +417,7 @@ export default {
       }
       .number {
         font-size: 18px;
-        color: #2d8cf0;
+        color: #5384ff;
         margin-left: 6px;
       }
     }
