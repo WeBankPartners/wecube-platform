@@ -85,6 +85,7 @@ type QueryExpressionDataParam struct {
 	StartIndex          int                          `json:"startIndex"`
 	PageSize            int                          `json:"pageSize"`
 	Query               string                       `json:"query"`
+	Sorting             []*QueryRequestSorting       `json:"sorting"`
 }
 
 type QueryExpressionDataFilter struct {

@@ -87,7 +87,7 @@ export default {
         const label = node.id + '_' + node.version
         const len = label.length
         const fontSize = Math.min((58 / len) * 3, 16)
-        const color = node.status === 'active' ? '#19be6b' : '#c5c8ce'
+        const color = node.status === 'active' ? '#00cb91' : '#c5c8ce'
         return `"${node.id}" [id="${node.id}" label="${label}" fontsize=${fontSize} shape="ellipse" color="${color}" style="filled"];`
       }
       const nodeMap = new Map()

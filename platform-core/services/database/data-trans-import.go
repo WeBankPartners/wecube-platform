@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/cipher"
+	"go.uber.org/zap"
 	"io"
 	"os"
 	"strings"
@@ -84,7 +85,7 @@ func DecompressExportZip(ctx context.Context, nexusUrl, transImportId string) (l
 func RemoveTempExportDir(path string) (err error) {
 	// 删除导出目录
 	if err = os.RemoveAll(path); err != nil {
-		log.Logger.Error("delete fail", log.String("path", path), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "delete fail", zap.String("path", path), zap.Error(err))
 	}
 	return
 }
@@ -117,7 +118,7 @@ func ParseJsonData(jsonPath string, data interface{}) (err error) {
 		return
 	}
 	if err = json.Unmarshal(byteArr, &data); err != nil {
-		log.Logger.Error("ParseJsonData json Unmarshal err", log.Error(err), log.String("jsoPath", jsonPath))
+		log.Error(nil, log.LOGGER_APP, "ParseJsonData json Unmarshal err", zap.Error(err), zap.String("jsoPath", jsonPath))
 		return
 	}
 	return
@@ -125,11 +126,11 @@ func ParseJsonData(jsonPath string, data interface{}) (err error) {
 
 func GetBusinessList(localPath string) (result models.GetBusinessListRes, err error) {
 	if err = ParseJsonData(fmt.Sprintf("%s/export/env.json", localPath), &result.Environment); err != nil {
-		log.Logger.Error("Environment json Unmarshal err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Environment json Unmarshal err", zap.Error(err))
 		return
 	}
 	if err = ParseJsonData(fmt.Sprintf("%s/export/product.json", localPath), &result.BusinessList); err != nil {
-		log.Logger.Error("Product json Unmarshal err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Product json Unmarshal err", zap.Error(err))
 		return
 	}
 	return
@@ -157,7 +158,7 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 		var data interface{}
 		if strings.TrimSpace(transImportDetail.Input) != "" && transImportDetail.Step != int(models.TransImportStepComponentLibrary) {
 			if err = json.Unmarshal([]byte(transImportDetail.Input), &data); err != nil {
-				log.Logger.Error("json Unmarshal err", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "json Unmarshal err", zap.Error(err))
 			}
 		}
 		switch models.TransImportStep(transImportDetail.Step) {
@@ -257,7 +258,7 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 				version = ""
 				if transImport.ProcIns != "" {
 					if procInsList, err = QueryProcInstanceByIds(ctx, []string{transImport.ProcIns}); err != nil {
-						log.Logger.Error("QueryProcInstanceByIds err", log.Error(err))
+						log.Error(nil, log.LOGGER_APP, "QueryProcInstanceByIds err", zap.Error(err))
 						return
 					}
 					workflowList = append(workflowList, procInsList...)
@@ -341,11 +342,11 @@ func InitTransImport(ctx context.Context, transImportId, ExportNexusUrl, localPa
 	var associationSystemList, associationProductList []string
 	var business, businessName string
 	if err = ParseJsonData(fmt.Sprintf("%s/export/env.json", localPath), &environmentMap); err != nil {
-		log.Logger.Error("Environment json Unmarshal err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Environment json Unmarshal err", zap.Error(err))
 		return
 	}
 	if err = ParseJsonData(fmt.Sprintf("%s/export/ui-data.json", localPath), &detail); err != nil {
-		log.Logger.Error("TransExportDetail json Unmarshal err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "TransExportDetail json Unmarshal err", zap.Error(err))
 		return
 	}
 	if detail == nil {
@@ -397,7 +398,7 @@ func InitTransImport(ctx context.Context, transImportId, ExportNexusUrl, localPa
 	}
 	if len(actions) > 0 {
 		if err = db.Transaction(actions, ctx); err != nil {
-			log.Logger.Error("initTransImport Transaction err", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "initTransImport Transaction err", zap.Error(err))
 		}
 	}
 	return
@@ -778,7 +779,7 @@ func UpdateTransImportDetailStatus(ctx context.Context, transImportId, transImpo
 	err = db.Transaction(actions, ctx)
 	if err != nil {
 		err = fmt.Errorf("update trans import detail status fail,%s ", err.Error())
-		log.Logger.Error("UpdateTransImportDetailStatus fail", log.String("transImportId", transImportId), log.String("detailId", transImportDetailId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "UpdateTransImportDetailStatus fail", zap.String("transImportId", transImportId), zap.String("detailId", transImportDetailId), zap.Error(err))
 	}
 	return
 }
@@ -857,7 +858,7 @@ func DownloadImportArtifactPackages(ctx context.Context, nexusUrl, transImportId
 	}
 	if err != nil {
 		if clearErr := os.RemoveAll(tmpImportDir); clearErr != nil {
-			log.Logger.Error("download nexus artifact fail,try to clear artifact tmp dir fail ", log.Error(clearErr))
+			log.Error(nil, log.LOGGER_APP, "download nexus artifact fail,try to clear artifact tmp dir fail ", zap.Error(clearErr))
 		}
 	}
 	return

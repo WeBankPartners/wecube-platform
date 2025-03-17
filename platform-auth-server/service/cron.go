@@ -6,6 +6,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/db"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -24,7 +25,7 @@ func startNotifyCronJob() {
 
 func notifyAction() {
 	var err error
-	log.Logger.Info("Start notify action")
+	log.Info(nil, log.LOGGER_APP, "Start notify action")
 	var allUserList []*model.SysUserEntity
 	var allUserEmailMap = make(map[string]string)
 	var userRoleEntityList []*model.UserRoleRsEntity
@@ -48,13 +49,13 @@ func notifyAction() {
 		}
 	}
 	if err = db.Engine.SQL("select  * from auth_sys_user_role where  expire_time is not null  and is_deleted = 0").Find(&userRoleEntityList); err != nil {
-		log.Logger.Error("notify action fail,query auth_sys_user_role error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "notify action fail,query auth_sys_user_role error", zap.Error(err))
 		return
 	}
 	if len(userRoleEntityList) == 0 {
 		return
 	}
-	log.Logger.Info("mail config", log.String("mailServer", model.Config.Mail.AuthServer), log.String("senderMail", model.Config.Mail.SenderMail))
+	log.Info(nil, log.LOGGER_APP, "mail config", zap.String("mailServer", model.Config.Mail.AuthServer), zap.String("senderMail", model.Config.Mail.SenderMail))
 	for _, entity := range userRoleEntityList {
 		// 计算过期百分比
 		entityPercent := calcExpireObj(entity)
@@ -62,7 +63,7 @@ func notifyAction() {
 			go NotifyRoleExpireMail(allRoleDisplayNameMap[entity.RoleName], allUserEmailMap[entity.Username], entity.ExpireTime.Format(constant.DateTimeFormat))
 			// 删除授权角色
 			if _, err = db.Engine.Exec("update auth_sys_user_role set is_deleted = 1,updated_time = ?,role_apply = null where id = ?", time.Now().Format(constant.DateTimeFormat), entity.Id); err != nil {
-				log.Logger.Error("update auth_sys_user_role error", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "update auth_sys_user_role error", zap.Error(err))
 				return
 			}
 		} else if entityPercent >= model.Config.NotifyPercent && entity.NotifyCount == 0 {
@@ -70,7 +71,7 @@ func notifyAction() {
 			go NotifyRolePreExpireMail(allRoleDisplayNameMap[entity.RoleName], allUserEmailMap[entity.Username], entity.ExpireTime.Format(constant.DateTimeFormat))
 			// 更新通知次数
 			if _, err = db.Engine.Exec("update auth_sys_user_role set notify_count = 1,updated_time = ? where id = ?", time.Now().Format(constant.DateTimeFormat), entity.Id); err != nil {
-				log.Logger.Error("update auth_sys_user_role error", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "update auth_sys_user_role error", zap.Error(err))
 				return
 			}
 		}
@@ -98,7 +99,7 @@ func NotifyRoleExpireMail(role, email, expireTime string) (err error) {
 		content = content + fmt.Sprintf("\n\n\n您的角色[%s]权限将在%s过期,请进入页面-右上角账户-角色申请-已过期-将过期角色,点击按钮申请续期,否则将影响您的正常使用", role, expireTime)
 		err = model.MailSender.Send(subject, content, []string{email})
 		if err != nil {
-			log.Logger.Error("send mail err", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "send mail err", zap.Error(err))
 		}
 	}
 	return
@@ -112,7 +113,7 @@ func NotifyRolePreExpireMail(role, email, expireTime string) (err error) {
 		content = content + fmt.Sprintf("\n\n\n您的角色[%s]权限将在%s过期,请进入页面-右上角账户-角色申请-已过期-将过期角色,点击按钮申请续期,否则将影响您的正常使用", role, expireTime)
 		err = model.MailSender.Send(subject, content, []string{email})
 		if err != nil {
-			log.Logger.Error("send mail err", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "send mail err", zap.Error(err))
 		}
 	}
 	return

@@ -1,50 +1,32 @@
-/* eslint-disable */
 const CompressionPlugin = require('compression-webpack-plugin')
+const dotenv = require('dotenv')
+dotenv.config()
 
-/* eslint-disable */
 module.exports = {
   devServer: {
-    open: true,
+    client: {
+      overlay: false 
+    },
     port: 3000,
     proxy: {
       '/': {
-        target: process.env.BASE_URL
+        target: process.env.BASE_URL,
+        changeOrigin: true,
+        ws: false,
       }
     }
   },
   runtimeCompiler: true,
   publicPath: '/',
   productionSourceMap: false,
-  chainWebpack: config => {
-    // remove the old loader
-    const img = config.module.rule('images')
-    img.uses.clear()
-    // add the new one
-    img.use('file-loader').loader('file-loader').options({
-      outputPath: 'img'
-    })
+  css: {
+    loaderOptions: {
+      less: {
+        javascriptEnabled: true
+      }
+    }
   },
-  configureWebpack: config => {
-    // config.optimization = {
-    //   runtimeChunk: 'single',
-    //   splitChunks: {
-    //     chunks: 'all',
-    //     minSize: 200000, // 允许新拆出 chunk 的最小体积
-    //     maxSize: 500000, // 设置chunk的最大体积为500KB
-    //     automaticNameDelimiter: '-',
-    //     cacheGroups: {
-    //       defaultVendors: {
-    //         test: /[\\/]node_modules[\\/]/,
-    //         priority: -10
-    //       },
-    //       default: {
-    //         minChunks: 2,
-    //         priority: -20,
-    //         reuseExistingChunk: true
-    //       }
-    //     }
-    //   }
-    // }
+  configureWebpack: () => {
     if (process.env.NODE_ENV === 'production') {
       return {
         plugins: [

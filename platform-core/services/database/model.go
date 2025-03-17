@@ -8,6 +8,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
+	"go.uber.org/zap"
 	"strings"
 	"time"
 )
@@ -293,7 +294,7 @@ func SyncPluginDataModels(ctx context.Context, packageName string, allModels []*
 func getLatestDataModelAttrId(ctx context.Context, packageName, entityName, attrName string) (attrId string) {
 	queryResult, queryErr := db.MysqlEngine.Context(ctx).QueryString("select t1.id from plugin_package_attributes t1 left join plugin_package_entities t2 on t1.entity_id=t2.id where t2.package_name=? and t2.name=? and t1.name=? order by t2.data_model_version desc limit 1", packageName, entityName, attrName)
 	if queryErr != nil {
-		log.Logger.Error("getLatestDataModelAttrId fail", log.String("package", packageName), log.String("entity", entityName), log.String("attr", attrName), log.Error(queryErr))
+		log.Error(nil, log.LOGGER_APP, "getLatestDataModelAttrId fail", zap.String("package", packageName), zap.String("entity", entityName), zap.String("attr", attrName), zap.Error(queryErr))
 		return
 	}
 	if len(queryResult) > 0 {

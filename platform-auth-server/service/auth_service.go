@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/WeBankPartners/go-common-lib/cipher"
+	"go.uber.org/zap"
 	"io/ioutil"
 	"math/big"
 	"strconv"
@@ -49,7 +50,7 @@ func (AuthService) InitKey() error {
 	}
 	keyBytes, err := ioutil.ReadAll(base64.NewDecoder(base64.RawStdEncoding, bytes.NewBufferString(signingKey)))
 	if err != nil {
-		log.Logger.Error("Decode core token fail,base64 decode error", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Decode core token fail,base64 decode error", zap.Error(err))
 		return err
 	}
 	model.Config.Auth.SigningKeyBytes = keyBytes
@@ -75,10 +76,10 @@ func (AuthService) Login(credential *model.CredentialDto, taskLogin bool) (*mode
 			if decodePwd, decodeErr := decodeUIAesPassword(GetLoginSeed(), inputPwd); decodeErr == nil {
 				credential.Password = decodePwd
 			} else {
-				log.Logger.Info("try to decode pwd with aes fail")
+				log.Info(nil, log.LOGGER_APP, "try to decode pwd with aes fail")
 			}
 		} else {
-			log.Logger.Info("try to decode pwd with base64 fail")
+			log.Info(nil, log.LOGGER_APP, "try to decode pwd with base64 fail")
 		}
 		if authResp, err := authenticateUser(credential, taskLogin); err != nil {
 			return nil, err
@@ -93,14 +94,14 @@ func (AuthService) RefreshToken(refreshToken string) ([]*model.Jwt, error) {
 		return model.Config.Auth.SigningKeyBytes, nil
 	})
 	if err != nil {
-		log.Logger.Error("Failed to refresh token:", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Failed to refresh token:", zap.Error(err))
 		return nil, ErrRefreshToken
 	}
 
 	var claim *model.AuthClaims
 	var ok bool
 	if claim, ok = jwtToken.Claims.(*model.AuthClaims); !ok || !jwtToken.Valid {
-		log.Logger.Info("failed to extract claims from jwt token")
+		log.Info(nil, log.LOGGER_APP, "failed to extract claims from jwt token")
 		return nil, ErrRefreshToken
 	}
 
@@ -135,18 +136,18 @@ func (AuthService) RefreshToken(refreshToken string) ([]*model.Jwt, error) {
 // func validateSubsystemClaimForRefresh(claim *model.AuthClaims) ([]*model.Jwt, error) {
 // 	systemCode := claim.Subject
 // 	if isBlank(systemCode) {
-// 		log.Logger.Warn("system code is blank")
+// 		log.Warn(nil, log.LOGGER_APP, "system code is blank")
 // 		return nil, exterror.NewBadCredentialsError("system code is blank")
 // 	}
 
 // 	systemInfo, err := SubSystemInfoDataServiceImplInstance.retrieveSysSubSystemInfoWithSystemCode(systemCode)
 // 	if err != nil {
-// 		log.Logger.Error("failed to retrieve sub system info", log.String("systemCode", systemCode), log.Error(err))
+// 		log.Error(nil, log.LOGGER_APP, "failed to retrieve sub system info", zap.String("systemCode", systemCode), zap.Error(err))
 // 		return nil, err
 // 	}
 
 // 	if systemInfo == nil {
-// 		log.Logger.Error(fmt.Sprintf("such sub system %s is not available.", systemCode))
+// 		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("such sub system %s is not available.", systemCode))
 // 		return nil, errors.New("such sub system is not available")
 // 	}
 
@@ -195,12 +196,12 @@ func authenticateSubSystem(credential *model.CredentialDto) (*model.Authenticati
 	subSystemPublicKey := subSystemInfo.PubAPIKey
 
 	if isBlank(subSystemPublicKey) {
-		log.Logger.Warn(fmt.Sprintf("sub system public key is blank for system code:%v", systemCode))
+		log.Warn(nil, log.LOGGER_APP, fmt.Sprintf("sub system public key is blank for system code:%v", systemCode))
 		return nil, exterror.NewBadCredentialsError("Bad credential and failed to decrypt password.")
 	}
 	decryptedPassword, err := RSADecryptByPublic(password, subSystemPublicKey)
 	if err != nil {
-		log.Logger.Warn("failed to decrypt by public", log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "failed to decrypt by public", zap.Error(err))
 		return nil, err
 	}
 
@@ -257,7 +258,7 @@ func RSADecryptByPublic(encryptString, publicKeyContent string) ([]byte, error) 
 func authenticateUser(credential *model.CredentialDto, taskLogin bool) (*model.AuthenticationResponse, error) {
 	username := credential.Username
 	if isBlank(username) {
-		log.Logger.Debug("blank user name")
+		log.Debug(nil, log.LOGGER_APP, "blank user name")
 		return nil, exterror.NewBadCredentialsError("Bad credential:blank username.")
 	}
 
@@ -267,7 +268,7 @@ func authenticateUser(credential *model.CredentialDto, taskLogin bool) (*model.A
 	}
 
 	if user == nil {
-		log.Logger.Debug("User does not exist", log.String("username", username))
+		log.Debug(nil, log.LOGGER_APP, "User does not exist", zap.String("username", username))
 		if taskLogin {
 			// 检查UM用户是否存在
 			umExists, err := checkUmUserExists(credential)
@@ -284,8 +285,8 @@ func authenticateUser(credential *model.CredentialDto, taskLogin bool) (*model.A
 	}
 
 	if err := additionalAuthenticationChecks(user, credential); err != nil {
-		log.Logger.Warn("failed to authenticate", log.String("username", user.Username), log.String("authSource", user.AuthSource),
-			log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "failed to authenticate", zap.String("username", user.Username), zap.String("authSource", user.AuthSource),
+			zap.Error(err))
 		return nil, err
 	}
 
@@ -312,7 +313,7 @@ func packJwtTokens(loginId string, roles []string, authorities []string, needReg
 
 func buildAccessToken(loginId string, roles []string, authorities []string, needRegister bool) (string, int64, error) {
 	if model.Config.Auth.SigningKeyBytes == nil {
-		log.Logger.Error("jwt key is invalid")
+		log.Error(nil, log.LOGGER_APP, "jwt key is invalid")
 		return "", 0, errors.New("failed to build refresh token")
 	}
 	issueAt := time.Now().UTC().Unix()
@@ -333,14 +334,14 @@ func buildAccessToken(loginId string, roles []string, authorities []string, need
 	if tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes); err == nil {
 		return tokenString, exp, nil
 	} else {
-		log.Logger.Error("Failed to build access token", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Failed to build access token", zap.Error(err))
 		return "", 0, errors.New("failed to build access token")
 	}
 }
 
 func buildRefreshToken(loginId string, needRegister bool) (string, int64, error) {
 	if model.Config.Auth.SigningKeyBytes == nil {
-		log.Logger.Error("jwt key is invalid")
+		log.Error(nil, log.LOGGER_APP, "jwt key is invalid")
 		return "", 0, errors.New("failed to build refresh token")
 	}
 
@@ -361,7 +362,7 @@ func buildRefreshToken(loginId string, needRegister bool) (string, int64, error)
 	if tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes); err == nil {
 		return tokenString, exp, nil
 	} else {
-		log.Logger.Error("Failed to build refresh token", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "Failed to build refresh token", zap.Error(err))
 		return "", 0, errors.New("failed to build access token")
 	}
 }
@@ -403,12 +404,12 @@ func additionalAuthenticationChecks(user *model.SysUser, credential *model.Crede
 		result, _, err := api_um.UmAuthenticate(authCtxMap, credential)
 		if err != nil {
 			errMsg := "failed to authenticate with token"
-			log.Logger.Error(errMsg, log.Error(err))
+			log.Error(nil, log.LOGGER_APP, errMsg, zap.Error(err))
 			rtErr := fmt.Errorf(errMsg)
 			return rtErr
 		}
 		if !result {
-			log.Logger.Warn("um authenticate failed")
+			log.Warn(nil, log.LOGGER_APP, "um authenticate failed")
 			return exterror.NewBadCredentialsError("um authenticate failed.")
 		}
 
@@ -421,7 +422,7 @@ func additionalAuthenticationChecks(user *model.SysUser, credential *model.Crede
 func checkAuthentication(user *model.SysUser, credential *model.CredentialDto) error {
 	presentedPassword := credential.Password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(presentedPassword)); err != nil {
-		log.Logger.Warn("failed to compare hash and password", log.Error(err))
+		log.Warn(nil, log.LOGGER_APP, "failed to compare hash and password", zap.Error(err))
 		return exterror.NewBadCredentialsError("Bad credential:bad password.")
 	}
 
@@ -478,7 +479,7 @@ func GetLoginSeed() (output string) {
 		sourceSeed = model.Config.Auth.SigningKey
 	}
 	output = sourceSeed
-	log.Logger.Info("loginSeed", log.String("output", output))
+	log.Info(nil, log.LOGGER_APP, "loginSeed", zap.String("output", output))
 	return
 }
 

@@ -221,19 +221,52 @@ func (UserRepository) FindAllActiveUsers() ([]*model.SysUserEntity, error) {
 
 func (UserRepository) QueryUsers(param model.QueryUserParam) (int, []*model.SysUserEntity, error) {
 	var users []*model.SysUserEntity
+	var userRoles []*model.UserRoleRsEntity
+	var userIds []string
+	var dataSession, countSession *xorm.Session
 	var err error
-	var count int
+	var count int64
+	// 构建基础查询条件
+	baseConditions := builder.Eq{"is_deleted": false, "is_active": true, "is_blocked": false}
+
+	// 创建数据查询会话
+	dataSession = Engine.Where(baseConditions)
+
+	// 创建计数查询会话
+	countSession = Engine.Where(baseConditions)
+
+	// 添加用户名查询条件
 	if strings.TrimSpace(param.UserName) != "" {
-		err = Engine.Where("is_deleted = ?", false).And("is_active = ?", true).And("is_blocked = ?", false).And("username like ?", "%"+param.UserName+"%").Limit(param.PageSize, param.StartIndex).Find(&users)
-		Engine.SQL("select count(1) from auth_sys_user where is_deleted = false and is_active = true and is_blocked = false and username like ?", "%"+param.UserName+"%").Get(&count)
-	} else {
-		err = Engine.Where("is_deleted = ?", false).And("is_active = ?", true).And("is_blocked = ?", false).Limit(param.PageSize, param.StartIndex).Find(&users)
-		Engine.SQL("select count(1) from auth_sys_user where is_deleted = false and is_active = true and is_blocked = false").Get(&count)
+		dataSession = dataSession.And(builder.Like{"username", "%" + param.UserName + "%"})
+		countSession = countSession.And(builder.Like{"username", "%" + param.UserName + "%"})
 	}
+	defer dataSession.Close()
+	defer countSession.Close()
+	// 添加角色ID查询条件
+	if param.RoleId != "" {
+		if err = Engine.Where("is_deleted = ?", false).And("role_id = ?", param.RoleId).Find(&userRoles); err != nil {
+			return int(count), nil, err
+		}
+		for _, userRole := range userRoles {
+			userIds = append(userIds, userRole.UserId)
+		}
+		if len(userIds) == 0 {
+			return 0, nil, nil
+		}
+		dataSession = dataSession.And(builder.In("id", userIds))
+		countSession = countSession.And(builder.In("id", userIds))
+	}
+	// 执行数据查询
+	err = dataSession.Limit(param.PageSize, param.StartIndex).Find(&users)
 	if err != nil {
-		return count, nil, err
+		return int(count), nil, err
 	}
-	return count, users, nil
+	// 执行计数查询
+	count, _ = countSession.Count(&model.SysUserEntity{})
+	if err != nil {
+		return int(count), nil, err
+	}
+	return int(count), users, nil
 }
 
 var UserRoleRsRepositoryInstance UserRoleRsRepository
