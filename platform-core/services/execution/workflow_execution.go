@@ -4,6 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
@@ -11,9 +15,6 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"go.uber.org/zap"
-	"strconv"
-	"strings"
-	"time"
 )
 
 /**
@@ -194,6 +195,11 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
 		if err != nil {
 			err = fmt.Errorf("get node dynamic bind data fail,%s ", err.Error())
+			return
+		}
+		dataBindings, err = GetDynamicBindNodeWithFilters(ctx, procInsNode, procDefNode, dataBindings)
+		if err != nil {
+			err = fmt.Errorf("get node dynamic bind data with fitlers fail,%s ", err.Error())
 			return
 		}
 		if len(dataBindings) > 0 {
@@ -523,6 +529,11 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag b
 		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
 		if err != nil {
 			err = fmt.Errorf("get dynamic bind data fail,%s ", err.Error())
+			return
+		}
+		dataBindings, err = GetDynamicBindNodeWithFilters(ctx, procInsNode, procDefNode, dataBindings)
+		if err != nil {
+			err = fmt.Errorf("get node dynamic bind data with fitlers fail,%s ", err.Error())
 			return
 		}
 		if len(dataBindings) > 0 {
@@ -1208,6 +1219,82 @@ func DynamicBindNodeInRuntime(ctx context.Context, procInsNode *models.ProcInsNo
 				EntityData:     nodeDataObj.EntityData,
 			}
 			dataBinding = append(dataBinding, &tmpPreviewRow)
+		}
+	}
+	return
+}
+
+func GetDynamicBindNodeWithFilters(ctx context.Context, procInsNode *models.ProcInsNode, procDefNode *models.ProcDefNode, parentDataBindDatas []*models.ProcDataBinding) (dataBinding []*models.ProcDataBinding, err error) {
+	if len(parentDataBindDatas) == 0 {
+		return
+	}
+	interfaceFilters := []*models.Filter{}
+	if procDefNode.ServiceName != "" {
+		interfaceObj, getInterfaceErr := database.GetSimpleLastPluginInterface(ctx, procDefNode.ServiceName)
+		if getInterfaceErr != nil {
+			err = fmt.Errorf("get node plugin interface:%s fail,%s ", procDefNode.ServiceName, getInterfaceErr.Error())
+			return
+		}
+		if interfaceObj.FilterRule != "" {
+			if interfaceFilters, err = remote.AnalyzeExprFilters(interfaceObj.FilterRule); err != nil {
+				err = fmt.Errorf("analyze expr filters:%s fail,%s ", interfaceObj.FilterRule, err.Error())
+				return
+			}
+		}
+	}
+	if len(interfaceFilters) == 0 {
+		dataBinding = parentDataBindDatas
+		return
+	}
+	var rootEntityDataId, rootExpr string
+	rootEntityDataId, _, rootExpr, err = database.GetProcInsRootEntityData(ctx, procInsNode.ProcInsId)
+	if err != nil {
+		return
+	}
+	nodeDataList := []*models.ProcPreviewEntityNode{}
+	nodeExpressionList := []string{procDefNode.RoutineExpression}
+	rootExprList, analyzeErr := remote.AnalyzeExpression(rootExpr)
+	if analyzeErr != nil {
+		err = analyzeErr
+		return
+	}
+	rootLastExprObj := rootExprList[len(rootExprList)-1]
+	rootFilter := models.QueryExpressionDataFilter{
+		Index:       len(rootExprList) - 1,
+		PackageName: rootLastExprObj.Package,
+		EntityName:  rootLastExprObj.Entity,
+		AttributeFilters: []*models.QueryExpressionDataAttrFilter{{
+			Name:     "id",
+			Operator: "eq",
+			Value:    rootEntityDataId,
+		}},
+	}
+	rootEntityNode := models.ProcPreviewEntityNode{DataId: rootEntityDataId, FullDataId: rootEntityDataId}
+	for _, nodeExpression := range nodeExpressionList {
+		tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: nodeExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
+		tmpNodeDataList, tmpErr := QueryProcPreviewNodeData(ctx, &tmpQueryDataParam, &rootEntityNode, true, interfaceFilters)
+		if tmpErr != nil {
+			err = tmpErr
+			break
+		}
+		nodeDataList = append(nodeDataList, tmpNodeDataList...)
+	}
+	if err != nil {
+		return
+	}
+	log.Debug(nil, log.LOGGER_APP, "GetDynamicBindNodeWithFilters nodeData", zap.String("node", procInsNode.Id), log.JsonObj("data", nodeDataList))
+	for _, parentData := range parentDataBindDatas {
+		matchFlag := false
+		for _, nodeDataObj := range nodeDataList {
+			if nodeDataObj.LastFlag {
+				if nodeDataObj.DataId == parentData.EntityDataId {
+					matchFlag = true
+					break
+				}
+			}
+		}
+		if matchFlag {
+			dataBinding = append(dataBinding, parentData)
 		}
 	}
 	return
