@@ -9,13 +9,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/WeBankPartners/go-common-lib/cipher"
-	"go.uber.org/zap"
 	"io/ioutil"
 	"math/big"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/go-common-lib/cipher"
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/exterror"
@@ -34,6 +35,7 @@ var (
 		jwtPublicKey  *rsa.PublicKey
 	*/
 	ErrRefreshToken = errors.New("failed to refreshToken")
+	specialAndChar  = "&" + string([]byte{0x01})
 )
 
 const DelimiterSystemCodeAndNonce = ":"
@@ -71,9 +73,14 @@ func (AuthService) Login(credential *model.CredentialDto, taskLogin bool) (*mode
 		}
 
 	} else {
+		var tmpPwdIV string
+		if splitCharList := strings.Split(credential.Password, specialAndChar); len(splitCharList) > 1 {
+			credential.Password = splitCharList[0]
+			tmpPwdIV = splitCharList[1]
+		}
 		if pwdBytes, pwdErr := base64.StdEncoding.DecodeString(credential.Password); pwdErr == nil {
 			inputPwd := hex.EncodeToString(pwdBytes)
-			if decodePwd, decodeErr := decodeUIAesPassword(GetLoginSeed(), inputPwd); decodeErr == nil {
+			if decodePwd, decodeErr := decodeAesPassword(GetLoginSeed(), inputPwd, tmpPwdIV); decodeErr == nil {
 				credential.Password = decodePwd
 			} else {
 				log.Info(nil, log.LOGGER_APP, "try to decode pwd with aes fail")
@@ -483,15 +490,18 @@ func GetLoginSeed() (output string) {
 	return
 }
 
-func decodeUIAesPassword(seed, password string) (decodePwd string, err error) {
+func decodeAesPassword(seed, password, ivValue string) (decodePwd string, err error) {
+	if ivValue != "" {
+		decodePwd, err = cipher.AesDePasswordWithIV(seed, password, ivValue)
+		return
+	}
 	unixTime := time.Now().Unix() / 100
-	decodePwd, err = cipher.AesDePasswordWithIV(seed, password, fmt.Sprintf("%d", unixTime*100000000))
+	ivValue = fmt.Sprintf("%d", unixTime*100000000)
+	decodePwd, err = cipher.AesDePasswordWithIV(seed, password, ivValue)
 	if err != nil {
 		unixTime = unixTime - 1
-		decodePwd, err = cipher.AesDePasswordWithIV(seed, password, fmt.Sprintf("%d", unixTime*100000000))
-	}
-	if err != nil {
-		err = fmt.Errorf("aes decode with iv fail,%s ", err.Error())
+		ivValue = fmt.Sprintf("%d", unixTime*100000000)
+		decodePwd, err = cipher.AesDePasswordWithIV(seed, password, ivValue)
 	}
 	return
 }

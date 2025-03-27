@@ -2758,7 +2758,7 @@ export default {
     //   this.formatRefNodeIds()
     //   this.renderModelGraph()
     // },
-    initFlowGraph(excution = false) {
+    initFlowGraph: debounce(function(excution = false) {
       const graphEl = document.getElementById('flow')
       const graph = d3.select('#flow')
       graph.on('dblclick.zoom', null)
@@ -2769,7 +2769,7 @@ export default {
         .height(graphEl.offsetHeight - 10)
         .width(graphEl.offsetWidth - 10)
       this.renderFlowGraph(excution)
-    },
+    }, 300),
     zoomModal() {
       this.tableMaxHeight = document.body.scrollHeight - 410
       this.nodeDetailFullscreen = true

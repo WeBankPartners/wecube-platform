@@ -1380,7 +1380,7 @@ func ProcDefImport(param models.ProcDefImportDto) (importResult *models.ImportRe
 			if len(repeatNameList) > 0 {
 				procDefDto.ProcDef.Key = repeatNameList[0].Key
 				for _, repeatProcDef := range repeatNameList {
-					if repeatProcDef.Version <= procDefDto.ProcDef.Version {
+					if repeatProcDef.Version >= procDefDto.ProcDef.Version {
 						versionExist = true
 						importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
 							ProcDefName:    procDefDto.ProcDef.Name,

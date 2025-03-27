@@ -507,6 +507,7 @@
       @on-ok="setConfigTreeHandler"
       @on-cancel="closeTreeModal"
     >
+      <div style="color: red">{{ $t('p_reigiter_tips') }}</div>
       <Checkbox @on-change="selectOrCancelAll" border>{{ $t('select_cancel_all') }}</Checkbox>
       <div style="height: 500px; overflow: auto">
         <Tree ref="configTree" :data="configTree" show-checkbox multiple></Tree>
