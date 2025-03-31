@@ -12,6 +12,7 @@
       <item-panel ref="itemPanelRef" />
       <div class="floating-button">
         <Button size="small" @click="resetCanvas">Reset</Button>
+        <Button @click="handleFormatLayout" size="small" class="btn-gap">{{ $t('workflow_format_layout') }}</Button>
       </div>
       <!-- 挂载节点 -->
       <div id="canvasPanel" ref="canvasPanel" @dragover.prevent></div>
@@ -982,6 +983,151 @@ export default {
         })
       }
       // this.graph.refresh()
+    },
+    // 处理格式化布局
+    handleFormatLayout() {
+      if (!this.graph) {
+        this.$Message.error('图形实例未初始化');
+        return;
+      }
+
+      try {
+        // 获取所有节点（排除删除按钮）
+        const nodes = this.graph.getNodes().filter(node => 
+          node.get('model').id !== 'remove_node'
+        );
+
+        if (nodes.length === 0) {
+          this.$Message.warning('没有找到可格式化的节点');
+          return;
+        }
+
+        // 获取所有边
+        const edges = this.graph.getEdges();
+        
+        // 构建节点关系图
+        const nodeMap = new Map();
+        const incomingEdges = new Map();
+        const outgoingEdges = new Map();
+        
+        // 初始化节点信息
+        nodes.forEach(node => {
+          const model = node.getModel();
+          if (!model || !model.id) {
+            console.warn('节点数据异常:', node);
+            return;
+          }
+          
+          // 保存节点原始位置
+          nodeMap.set(model.id, {
+            node,
+            originalX: model.x,
+            originalY: model.y,
+            x: model.x,
+            y: model.y
+          });
+          
+          incomingEdges.set(model.id, []);
+          outgoingEdges.set(model.id, []);
+        });
+        
+        // 构建边的关系
+        edges.forEach(edge => {
+          const model = edge.getModel();
+          if (!model || !model.source || !model.target) {
+            console.warn('边数据异常:', edge);
+            return;
+          }
+          
+          if (incomingEdges.has(model.target)) {
+            incomingEdges.get(model.target).push(model.source);
+          }
+          if (outgoingEdges.has(model.source)) {
+            outgoingEdges.get(model.source).push(model.target);
+          }
+        });
+        
+        // 找到起始节点
+        const startNodes = Array.from(nodeMap.keys()).filter(id => 
+          incomingEdges.get(id).length === 0
+        );
+        
+        if (startNodes.length === 0) {
+          this.$Message.warning('未找到起始节点');
+          return;
+        }
+        
+        // 记录已处理的节点
+        const processedNodes = new Set();
+        // let currentY = 0;
+        
+        // 处理单个分支
+        const processBranch = (nodeId, branchY) => {
+          if (processedNodes.has(nodeId)) return;
+          
+          const nodeInfo = nodeMap.get(nodeId);
+          if (!nodeInfo) return;
+          
+          processedNodes.add(nodeId);
+          nodeInfo.y = branchY;
+          
+          // 获取下一个节点
+          const nextNodes = outgoingEdges.get(nodeId) || [];
+          nextNodes.forEach((nextId, index) => {
+            if (!processedNodes.has(nextId)) {
+              const nextY = nextNodes.length > 1 ? 
+                branchY + (index * 150) : // 多分支情况
+                branchY; // 单分支保持同一水平线
+              processBranch(nextId, nextY);
+            }
+          });
+        };
+        
+        // 处理所有分支
+        startNodes.forEach((startId, index) => {
+          processBranch(startId, index * 150);
+        });
+        
+        // 准备更新数据
+        const updates = [];
+        nodeMap.forEach((info, id) => {
+          if (processedNodes.has(id)) {
+            updates.push({
+              node: info.node,
+              newPosition: {
+                x: info.x,
+                y: info.y
+              }
+            });
+          }
+        });
+        
+        // 逐个更新节点位置
+        updates.forEach(update => {
+          try {
+            this.graph.updateItem(update.node, update.newPosition);
+          } catch (err) {
+            console.error('更新节点位置失败:', err);
+          }
+        });
+        
+        // 刷新画布
+        this.graph.refresh();
+        
+        this.$Message.success(`成功处理 ${updates.length} 个节点`);
+        
+      } catch (error) {
+        console.error('格式化布局失败:', error);
+        this.$Message.error({
+          content: '布局格式化失败: ' + error.message,
+          duration: 5
+        });
+        
+        // 输出调试信息
+        console.log('Graph 实例:', this.graph);
+        console.log('节点数量:', this.graph.getNodes().length);
+        console.log('边数量:', this.graph.getEdges().length);
+      }
     }
     // #endregion
   }
@@ -1028,5 +1174,17 @@ export default {
 .canvas-zone {
   border: 2px solid #f9f9f9;
   margin-top: 8px;
+}
+
+.toolbar {
+  margin-bottom: 10px;
+  
+  .ivu-btn {
+    margin-right: 8px;
+    
+    .fa {
+      margin-right: 4px;
+    }
+  }
 }
 </style>
