@@ -13,7 +13,12 @@
             <Icon type="ios-paper-plane-outline" size="16"></Icon>
             {{ $t('release_flow') }}
           </Button>
-          <Button type="warning" v-if="['draft', 'deployed'].includes(itemCustomInfo.status)" @click="changePermission">
+          <Button
+            type="warning"
+            v-if="['draft', 'deployed'].includes(itemCustomInfo.status)"
+            @click="changePermission"
+            class="btn-gap"
+          >
             <Icon type="ios-person-outline" size="16"></Icon>
             {{ $t('config_permission') }}
           </Button>
@@ -21,6 +26,7 @@
             type="error"
             v-if="['deployed'].includes(itemCustomInfo.status)"
             @click="changeStatus('disabled', 'disable')"
+            class="btn-gap"
           >
             <img src="../../../assets/icon/disable.png" style="width: 16px; vertical-align: middle" alt="" />
             {{ $t('disable') }}
@@ -29,11 +35,12 @@
             type="success"
             v-if="['disabled'].includes(itemCustomInfo.status)"
             @click="changeStatus('enabled', 'enable')"
+            class="btn-gap"
           >
             <img src="../../../assets/icon/enable.png" style="width: 16px; vertical-align: middle" alt="" />
             {{ $t('enable') }}
           </Button>
-          <Button class="btn-upload" v-if="['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
+          <Button class="btn-upload btn-gap" v-if="['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
             <img src="@/assets/icon/DownloadOutlined.svg" class="upload-icon" />
             {{ $t('export_flow') }}{{ editFlow }}
           </Button>
