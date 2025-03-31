@@ -1056,5 +1056,6 @@
   "pi_custom_default_config": "Fill Default Configuration",
   "pi_reset_data": "Clear Data",
   "server_404_error": "Loading failed: The current plugin has been logged out. Please refresh the page and try again",
-  "p_reigiter_tips": "[Service interface] and [system parameters] will be inherited together"
+  "p_reigiter_tips": "[Service interface] and [system parameters] will be inherited together",
+  "workflow_format_layout": "Format Layout"
 }
