@@ -1055,5 +1055,6 @@
   "pi_custom_default_config": "填充默认配置",
   "pi_reset_data": "清空选项",
   "server_404_error": "加载失败:当前插件已注销，请刷新页面重试",
-  "p_reigiter_tips": "【服务接口】和【系统参数】都将会被一起继承"
+  "p_reigiter_tips": "【服务接口】和【系统参数】都将会被一起继承",
+  "workflow_format_layout": "格式化布局"
 }
