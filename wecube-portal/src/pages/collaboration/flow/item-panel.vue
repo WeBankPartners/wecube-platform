@@ -15,7 +15,7 @@
           stroke="#303030"
         >
           <img
-            src="./icon/start.svg"
+            src="../../../../public/icon/start.svg"
             style="border: 1px solid #303030; border-radius: 50%"
             class="item-tool-icon"
             draggable="false"
@@ -42,7 +42,7 @@
           stroke="#303030"
         >
           <img
-            src="./icon/end.svg"
+            src="../../../../public/icon/end.svg"
             style="border: 1px solid #303030; border-radius: 50%"
             class="item-tool-icon"
             draggable="false"
@@ -69,7 +69,7 @@
           stroke="#303030"
         >
           <img
-            src="./icon/abnormal.svg"
+            src="../../../../public/icon/abnormal.svg"
             style="border: 1px solid #303030; border-radius: 50%"
             class="item-tool-icon"
             draggable="false"
@@ -96,7 +96,7 @@
           stroke="#303030"
         >
           <div class="diamond-border">
-            <img src="./icon/descision-panel.svg" class="item-tool-icon" draggable="false" />
+            <img src="../../../../public/icon/descision-panel.svg" class="item-tool-icon" draggable="false" />
           </div>
           <div class="diamond-item-tool-name">{{ $t('decision') }}</div>
         </div>
@@ -119,7 +119,7 @@
           stroke="#303030"
         >
           <div class="diamond-border">
-            <img src="./icon/descision-panel.svg" class="item-tool-icon" draggable="false" />
+            <img src="../../../../public/icon/descision-panel.svg" class="item-tool-icon" draggable="false" />
           </div>
           <div class="diamond-item-tool-name">{{ $t('decisionMerge') }}</div>
         </div>
@@ -142,7 +142,7 @@
           stroke="#303030"
         >
           <div class="diamond-border">
-            <img src="./icon/fork-panel.svg" class="item-tool-icon" draggable="false" />
+            <img src="../../../../public/icon/fork-panel.svg" class="item-tool-icon" draggable="false" />
           </div>
           <div class="diamond-item-tool-name">{{ $t('forkNode') }}</div>
         </div>
@@ -166,7 +166,7 @@
           stroke="#303030"
         >
           <div class="diamond-border">
-            <img src="./icon/merge-panel.svg" class="item-tool-icon" draggable="false" />
+            <img src="../../../../public/icon/merge-panel.svg" class="item-tool-icon" draggable="false" />
           </div>
           <div class="diamond-item-tool-name">{{ $t('merge') }}</div>
         </div>
@@ -191,7 +191,7 @@
           stroke="#303030"
         >
           <img
-            src="./icon/human.svg"
+            src="../../../../public/icon/human.svg"
             style="border: 1px solid #303030; width: 37px; height: 28px"
             class="item-tool-icon"
             draggable="false"
@@ -217,7 +217,7 @@
           stroke="#303030"
         >
           <img
-            src="./icon/automatic.svg"
+            src="../../../../public/icon/automatic.svg"
             style="border: 1px solid #303030; width: 37px; height: 28px"
             class="item-tool-icon"
             draggable="false"
@@ -243,7 +243,7 @@
           stroke="#303030"
         >
           <img
-            src="./icon/data.svg"
+            src="../../../../public/icon/data.svg"
             style="border: 1px solid #303030; width: 32px"
             class="item-tool-icon"
             draggable="false"
@@ -270,7 +270,7 @@
           stroke="#303030"
         >
           <img
-            src="./icon/subProc.svg"
+            src="../../../../public/icon/subProc.svg"
             style="border: 1px solid #303030; width: 37px; height: 28px"
             class="item-tool-icon"
             draggable="false"
@@ -295,7 +295,7 @@
           stroke="#303030"
         >
           <img
-            src="./icon/date.svg"
+            src="../../../../public/icon/date.svg"
             style="border: 1px solid #303030; border-radius: 50%"
             class="item-tool-icon"
             draggable="false"
@@ -320,7 +320,7 @@
           stroke="#303030"
         >
           <img
-            src="./icon/timeInterval.svg"
+            src="../../../../public/icon/timeInterval.svg"
             style="border: 1px solid #303030; border-radius: 50%"
             class="item-tool-icon"
             draggable="false"
