@@ -990,11 +990,17 @@ export default {
         this.$Message.error('图形实例未初始化');
         return;
       }
+
       try {
         // 获取所有节点（排除删除按钮）
         const nodes = this.graph.getNodes().filter(node => 
           node.get('model').id !== 'remove_node'
         );
+
+        if (nodes.length === 0) {
+          this.$Message.warning('没有找到可格式化的节点');
+          return;
+        }
 
         // 获取所有边
         const edges = this.graph.getEdges();
