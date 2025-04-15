@@ -44,6 +44,20 @@
 
 <script>
 import G6 from '@antv/g6'
+import startIcon from './flow/icon/start.svg'
+import endIcon from './flow/icon/end.svg'
+import decisionIcon from './flow/icon/decision.svg'
+import decisionMergeIcon from './flow/icon/decisionMerge.svg'
+import abnormalIcon from './flow/icon/abnormal.svg'
+import timeIntervalIcon from './flow/icon/timeInterval.svg'
+import dateIcon from './flow/icon/date.svg'
+import dataIcon from './flow/icon/data.svg'
+import automaticIcon from './flow/icon/automatic.svg'
+import humanIcon from './flow/icon/human.svg'
+import mergeIcon from './flow/icon/merge.svg'
+import forkIcon from './flow/icon/fork.svg'
+import deleteIcon from './flow/icon/delete.svg'
+import subProcIcon from './flow/icon/subProc.svg'
 import FlowHeader from '@/pages/collaboration/flow/flow-header.vue'
 import registerFactory from './flow/graph/graph'
 import ItemPanel from '@/pages/collaboration/flow/item-panel.vue'
@@ -54,6 +68,23 @@ import { nodeDefaultAttr } from './flow/node-default-attr.js'
 import {
   getFlowById, flowMgmt, flowNodeMgmt, flowEdgeMgmt, flowNodeDelete, flowEdgeDelete
 } from '@/api/server.js'
+
+const nodeTypeToImg = {
+  delete: deleteIcon,
+  start: startIcon,
+  end: endIcon,
+  decision: decisionIcon,
+  decisionMerge: decisionMergeIcon,
+  abnormal: abnormalIcon,
+  timeInterval: timeIntervalIcon,
+  date: dateIcon,
+  automatic: automaticIcon,
+  human: humanIcon,
+  merge: mergeIcon,
+  data: dataIcon,
+  fork: forkIcon,
+  subProc: subProcIcon
+}
 
 export default {
   components: {
@@ -940,6 +971,8 @@ export default {
           ...info.selfAttrs,
           customAttrs: info.customAttrs
         }
+        // 解决接口返回图片资源404不存在问题
+        params.logoIcon.img = nodeTypeToImg[params.customAttrs.nodeType]
         this.graph.updateItem(item, params)
         if (!needAddFirst) {
           this.deleteRemoveNode()

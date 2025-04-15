@@ -75,7 +75,7 @@
       <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
         $t('save')
       }}</Button>
-      <Button v-if="editFlow !== 'false'" @click="hideItem">{{ $t('cancel') }}</Button>
+      <Button v-if="editFlow !== 'false'" @click="hideItem" class="btn-gap">{{ $t('cancel') }}</Button>
     </div>
   </div>
 </template>

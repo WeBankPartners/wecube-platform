@@ -7,20 +7,20 @@
 import itemEvents from './item-event'
 import anchorEvent from './anchor-event'
 import defaultStyles from '../defaultStyles'
-import startIcon from '../../../../../../../public/img/start.svg'
-import endIcon from '../../../../../../../public/img/end.svg'
-import decisionIcon from '../../../../../../../public/img/decision.svg'
-import decisionMergeIcon from '../../../../../../../public/img/decisionMerge.svg'
-import abnormalIcon from '../../../../../../../public/img/abnormal.svg'
-import timeIntervalIcon from '../../../../../../../public/img/timeInterval.svg'
-import dateIcon from '../../../../../../../public/img/date.svg'
-import dataIcon from '../../../../../../../public/img/data.svg'
-import automaticIcon from '../../../../../../../public/img/automatic.svg'
-import humanIcon from '../../../../../../../public/img/human.svg'
-import mergeIcon from '../../../../../../../public/img/merge.svg'
-import forkIcon from '../../../../../../../public/img/fork.svg'
-import deleteIcon from '../../../../../../../public/img/delete.svg'
-import subProcIcon from '../../../../../../../public/img/subProc.svg'
+import startIcon from '../../../icon/start.svg'
+import endIcon from '../../../icon/end.svg'
+import decisionIcon from '../../../icon/decision.svg'
+import decisionMergeIcon from '../../../icon/decisionMerge.svg'
+import abnormalIcon from '../../../icon/abnormal.svg'
+import timeIntervalIcon from '../../../icon/timeInterval.svg'
+import dateIcon from '../../../icon/date.svg'
+import dataIcon from '../../../icon/data.svg'
+import automaticIcon from '../../../icon/automatic.svg'
+import humanIcon from '../../../icon/human.svg'
+import mergeIcon from '../../../icon/merge.svg'
+import forkIcon from '../../../icon/fork.svg'
+import deleteIcon from '../../../icon/delete.svg'
+import subProcIcon from '../../../icon/subProc.svg'
 
 const {
   iconStyles, nodeStyles, anchorPointStyles, nodeLabelStyles
@@ -115,7 +115,6 @@ export default G6 => {
                 draggable: true,
                 className
               })
-
               icon.toFront()
               item = group.$getItem(className)
             }
