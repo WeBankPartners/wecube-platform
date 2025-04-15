@@ -2251,8 +2251,8 @@ export default {
         }
         if (previewRes.data && previewRes.data.length > 0) {
           this.$Modal.confirm({
-            title: '执行数据为空',
-            content: `编排节点:【${previewRes.data.join('，')}】数据为空，是否继续执行？`,
+            title: this.$t('workflow_empty_running'),
+            content: `${this.$t('workflow_task_node_aspect')}:【${previewRes.data.join('，')}】${this.$t('workflow_empty_running_tip')}`,
             'z-index': 1000000,
             loading: true,
             onOk: async () => {

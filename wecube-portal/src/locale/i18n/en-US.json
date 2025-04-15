@@ -1057,5 +1057,7 @@
   "pi_reset_data": "Clear Data",
   "server_404_error": "Loading failed: The current plugin has been logged out. Please refresh the page and try again",
   "p_reigiter_tips": "[Service interface] and [system parameters] will be inherited together",
-  "workflow_format_layout": "Format Layout"
+  "workflow_format_layout": "Format Layout",
+  "workflow_empty_running": "Execution data is empty",
+  "workflow_empty_running_tip": "Data is empty, whether to continue execution?"
 }
