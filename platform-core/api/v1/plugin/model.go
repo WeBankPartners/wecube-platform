@@ -2,17 +2,18 @@ package plugin
 
 import (
 	"fmt"
+	"net/http"
+	"reflect"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"reflect"
-	"sort"
-	"strings"
-	"time"
 )
 
 // GetPluginModels 插件配置 - 数据模型

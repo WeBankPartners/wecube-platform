@@ -397,8 +397,11 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 				} else {
 					attr.Multiple = "N"
 				}
-				actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_attributes (id,entity_id,name,description,data_type,mandatory,multiple,is_array,created_time,order_no) values  (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-					attrId, entityId, attr.Name, attr.Description, attr.Datatype, 0, attr.Multiple, tmpMultiple, nowTime, attrIndex,
+				if attr.RefEntityName != "" && attr.RefAttributeName == "" {
+					attr.RefAttributeName = "id"
+				}
+				actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_attributes (id,entity_id,name,description,data_type,ref_package,ref_entity,ref_attr,mandatory,multiple,is_array,created_time,order_no) values  (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+					attrId, entityId, attr.Name, attr.Description, attr.Datatype, attr.RefPackageName, attr.RefEntityName, attr.RefAttributeName, 0, attr.Multiple, tmpMultiple, nowTime, attrIndex,
 				}})
 			}
 		}
