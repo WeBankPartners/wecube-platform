@@ -35,6 +35,11 @@ export const MENUS = [
     enName: 'Conjoin'
   },
   {
+    code: 'ADMIN',
+    cnName: '系统',
+    enName: 'Admin'
+  },
+  {
     code: 'REPORT',
     cnName: '报表',
     enName: 'Report'

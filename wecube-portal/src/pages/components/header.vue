@@ -31,15 +31,17 @@
             <Submenu v-else :name="menu.code">
               <template slot="title">{{ menu.title }}</template>
               <template v-for="submenu in menu.submenus">  
+                <!--superset页面单独跳转-->
+                <MenuItem v-if="submenu.code.startsWith('REPORT')" :key="submenu.code" :disabled="!submenu.active" :name="submenu.code">
+                  <span @click="handleJumpToSuperset(submenu)">{{ submenu.title }}</span>
+                </MenuItem>
                 <router-link
-                  v-if="submenu.code.startsWith('REPORT')"
+                  v-else
                   :key="submenu.code"
                   :to="submenu.active ? submenu.link || '' : ''"
                 >
                   <MenuItem :disabled="!submenu.active" :name="submenu.code">{{ submenu.title }}</MenuItem>
                 </router-link>
-                <!--superset页面单独跳转-->
-                <MenuItem v-else :key="submenu.code" :disabled="!submenu.active" :name="submenu.code" @click="handleJumpToSuperset(submenu)">{{ submenu.title }}</MenuItem>
               </template>
             </Submenu>
           </div>
@@ -231,7 +233,7 @@ export default {
   },
   methods: {
     handleJumpToSuperset(menu) {
-      if (menu.active) return
+      if (!menu.active) return
       window.open(`${window.location.hostname}:26060${menu.link}`, '_blank')
     },
     async getApplicationVersion() {
