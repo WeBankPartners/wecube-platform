@@ -234,7 +234,7 @@ export default {
   methods: {
     handleJumpToSuperset(menu) {
       if (!menu.active) return
-      window.open(`${window.location.hostname}:26060${menu.link}`, '_blank')
+      window.open(`${window.location.origin}:26060${menu.link}`, '_blank')
     },
     async getApplicationVersion() {
       const { status, data } = await getApplicationVersion()
