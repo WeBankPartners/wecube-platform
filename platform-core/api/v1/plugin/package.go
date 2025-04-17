@@ -961,6 +961,7 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 		dockerCmd += fmt.Sprintf("-e %s ", tmpV)
 	}
 	dockerCmd += dockerResource.ImageName
+	log.Info(nil, log.LOGGER_APP, "docker run command", zap.String("cmd", dockerCmd))
 	if err = bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, dockerCmd); err != nil {
 		// 清理启动失败的docker
 		if rmDockerErr := bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, fmt.Sprintf("docker rm -f %s", dockerResource.ContainerName)); rmDockerErr != nil {
