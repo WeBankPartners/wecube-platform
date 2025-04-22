@@ -235,7 +235,7 @@ export default {
     handleJumpToSuperset(menu) {
       if (!menu.active) return
       let path = `${window.location.origin}${menu.link}`
-      path = path.replace(/:18080/, ':26060')
+      // path = path.replace(/:18080/, ':26060')
       window.open(path, '_blank')
     },
     async getApplicationVersion() {
