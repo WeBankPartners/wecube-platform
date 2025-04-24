@@ -96,6 +96,7 @@ export default {
 
   methods: {
     async login() {
+      this.clearData()
       if (!this.username || !this.password) {
         return
       }
@@ -170,7 +171,7 @@ export default {
     }
   },
   mounted() {
-    this.clearData()
+    // this.clearData()
   }
 }
 </script>
