@@ -16,7 +16,7 @@
               {{ $t('name') }}
             </label>
             <Input v-model.trim="itemCustomInfo.name" @on-change="paramsChanged"></Input>
-            <span style="position: absolute; left: 320px; top: 2px; line-height: 30px; background: white">{{ (itemCustomInfo.name && itemCustomInfo.name.length) || 0 }}/30</span>
+            <span style="position: absolute; left: 320px; top: 2px; line-height: 28px; background: white">{{ (itemCustomInfo.name && itemCustomInfo.name.length) || 0 }}/30</span>
             <span
               v-if="
                 (itemCustomInfo.name && itemCustomInfo.name.length > 30) ||
