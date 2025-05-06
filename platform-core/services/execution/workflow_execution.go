@@ -1246,51 +1246,40 @@ func GetDynamicBindNodeWithFilters(ctx context.Context, procInsNode *models.Proc
 		dataBinding = parentDataBindDatas
 		return
 	}
-	var rootEntityDataId, rootExpr string
-	rootEntityDataId, _, rootExpr, err = database.GetProcInsRootEntityData(ctx, procInsNode.ProcInsId)
-	if err != nil {
-		return
+	var dataPackage, dataEntity string
+	filters := []*models.EntityQueryObj{}
+	for _, filterObj := range interfaceFilters {
+		filters = append(filters, &models.EntityQueryObj{
+			AttrName:  filterObj.Name,
+			Op:        filterObj.Operator,
+			Condition: filterObj.GetValue(),
+		})
 	}
-	nodeDataList := []*models.ProcPreviewEntityNode{}
-	nodeExpressionList := []string{procDefNode.RoutineExpression}
-	rootExprList, analyzeErr := remote.AnalyzeExpression(rootExpr)
-	if analyzeErr != nil {
-		err = analyzeErr
-		return
-	}
-	rootLastExprObj := rootExprList[len(rootExprList)-1]
-	rootFilter := models.QueryExpressionDataFilter{
-		Index:       len(rootExprList) - 1,
-		PackageName: rootLastExprObj.Package,
-		EntityName:  rootLastExprObj.Entity,
-		AttributeFilters: []*models.QueryExpressionDataAttrFilter{{
-			Name:     "id",
-			Operator: "eq",
-			Value:    rootEntityDataId,
-		}},
-	}
-	rootEntityNode := models.ProcPreviewEntityNode{DataId: rootEntityDataId, FullDataId: rootEntityDataId}
-	for _, nodeExpression := range nodeExpressionList {
-		tmpQueryDataParam := models.QueryExpressionDataParam{DataModelExpression: nodeExpression, Filters: []*models.QueryExpressionDataFilter{&rootFilter}}
-		tmpNodeDataList, tmpErr := QueryProcPreviewNodeData(ctx, &tmpQueryDataParam, &rootEntityNode, true, interfaceFilters)
-		if tmpErr != nil {
-			err = tmpErr
-			break
+	var parentDataIdList []string
+	for _, v := range parentDataBindDatas {
+		if dataPackage == "" {
+			tmpEntityType := strings.Split(v.EntityTypeId, ":")
+			if len(tmpEntityType) == 2 {
+				dataPackage = tmpEntityType[0]
+				dataEntity = tmpEntityType[1]
+			}
 		}
-		nodeDataList = append(nodeDataList, tmpNodeDataList...)
+		parentDataIdList = append(parentDataIdList, v.EntityDataId)
 	}
-	if err != nil {
+	filters = append(filters, &models.EntityQueryObj{AttrName: "id", Op: "in", Condition: parentDataIdList})
+	remoteQueryResult, remoteQueryErr := remote.RequestPluginModelData(ctx, dataPackage, dataEntity, remote.GetToken(), filters)
+	if remoteQueryErr != nil {
+		err = fmt.Errorf("remote query dynamic bind with filter fail,%s ", remoteQueryErr.Error())
 		return
 	}
-	log.Debug(nil, log.LOGGER_APP, "GetDynamicBindNodeWithFilters nodeData", zap.String("node", procInsNode.Id), log.JsonObj("data", nodeDataList))
+	log.Debug(nil, log.LOGGER_APP, "GetDynamicBindNodeWithFilters nodeData", zap.String("node", procInsNode.Id), log.JsonObj("remoteData", remoteQueryResult))
 	for _, parentData := range parentDataBindDatas {
 		matchFlag := false
-		for _, nodeDataObj := range nodeDataList {
-			if nodeDataObj.LastFlag {
-				if nodeDataObj.DataId == parentData.EntityDataId {
-					matchFlag = true
-					break
-				}
+		for _, rowData := range remoteQueryResult {
+			rowDataId := rowData["id"].(string)
+			if rowDataId == parentData.EntityDataId {
+				matchFlag = true
+				break
 			}
 		}
 		if matchFlag {
