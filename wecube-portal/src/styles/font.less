@@ -1,6 +1,18 @@
 @font-face {
-  font-family: 'SourceHanSans';  /* 自定义字体名称 */
-  src: url('./SourceHanSansCN-Normal.otf') format('opentype');  /* 格式声明为opentype */
+  font-family: 'SourceHanSans';  /* 思源黑体 */
+  src: url('./SourceHanSansCN-Normal.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
+}
+
+/* 基础字体设置 */
+* {
+  font-family: 'SourceHanSans', 'Times New Roman', sans-serif;
+}
+
+/*英文内容使用 Times New Roman */
+:lang(en)
+:lang(en-Us)
+:lang(en-GB) {
+  font-family: 'Times New Roman', 'SourceHanSans', sans-serif !important;
 }
