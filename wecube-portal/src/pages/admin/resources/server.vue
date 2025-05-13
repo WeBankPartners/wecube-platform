@@ -367,15 +367,17 @@ export default {
       const editAry = d.filter(_ => !_.isNewAddedRow)
       await this.getInputParamsEncryptKey()
       const key = CryptoJS.enc.Utf8.parse(this.encryptKey)
+      const timeTag = Math.trunc(new Date() / 100000) * 100000000
+      const iv = CryptoJS.enc.Utf8.parse(timeTag)
       const config = {
-        iv: CryptoJS.enc.Utf8.parse(Math.trunc(new Date() / 100000) * 100000000),
+        iv,
         mode: CryptoJS.mode.CBC
       }
       if (addObj) {
         const payload = {
           host: addObj.host,
           isAllocated: addObj.isAllocated === 'true',
-          loginPassword: CryptoJS.AES.encrypt(addObj.loginPassword, key, config).toString(),
+          loginPassword: CryptoJS.AES.encrypt(addObj.loginPassword, key, config).toString() + '&\u0001' + timeTag,
           loginUsername: addObj.loginUsername,
           name: addObj.name,
           port: addObj.port,
