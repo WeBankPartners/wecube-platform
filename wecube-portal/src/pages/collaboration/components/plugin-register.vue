@@ -151,13 +151,13 @@
           </div>
           <Row v-if="currentPluginObjKeysLength > 1" style="margin: 20px auto; margin-bottom: 0">
             <Col span="9" offset="8">
-              <Button type="primary" ghost v-if="currentPluginObj.status === 'DISABLED'" @click="pluginSave">{{
+              <Button style="margin-right: 5px" type="primary" ghost v-if="currentPluginObj.status === 'DISABLED'" @click="pluginSave">{{
                 $t('save')
               }}</Button>
-              <Button type="primary" ghost v-if="currentPluginObj.status === 'DISABLED'" @click="regist">{{
+              <Button style="margin-right: 5px" type="primary" ghost v-if="currentPluginObj.status === 'DISABLED'" @click="regist">{{
                 $t('regist')
               }}</Button>
-              <Button type="error" ghost v-if="currentPluginObj.status === 'DISABLED'" @click="deleteRegisterSource">{{
+              <Button style="margin-right: 5px" type="error" ghost v-if="currentPluginObj.status === 'DISABLED'" @click="deleteRegisterSource">{{
                 $t('delete')
               }}</Button>
               <Button type="error" ghost v-if="currentPluginObj.status === 'ENABLED'" @click="removePlugin">{{
