@@ -3,7 +3,7 @@
     <transition name="fade" mode="out-in">
       <router-view class="pages"></router-view>
     </transition>
-    <div class="floating-robot" @click="openChatRobot" title="wecube答疑机器人">
+    <div v-if="false" class="floating-robot" @click="openChatRobot" title="wecube答疑机器人">
       <img src="@/assets/robot.png" alt="Robot" />
     </div>
   </div>
