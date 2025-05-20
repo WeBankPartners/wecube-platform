@@ -214,11 +214,14 @@ type RegisterXML struct {
 			DisplayName string `xml:"displayName,attr"`
 			Description string `xml:"description,attr"`
 			Attribute   []struct {
-				Text        string `xml:",chardata"`
-				Name        string `xml:"name,attr"`
-				Datatype    string `xml:"datatype,attr"`
-				Description string `xml:"description,attr"`
-				Multiple    string `xml:"multiple,attr"`
+				Text             string `xml:",chardata"`
+				Name             string `xml:"name,attr"`
+				Datatype         string `xml:"datatype,attr"`
+				Description      string `xml:"description,attr"`
+				Multiple         string `xml:"multiple,attr"`
+				RefPackageName   string `xml:"refPackageName,attr"`
+				RefEntityName    string `xml:"refEntityName,attr"`
+				RefAttributeName string `xml:"refAttributeName,attr"`
 			} `xml:"attribute"`
 		} `xml:"entity"`
 	} `xml:"dataModel"`

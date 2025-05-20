@@ -36,7 +36,6 @@ export default {
       childBreadcrumb: '',
       expandSideMenu: false,
       fesUpIcon
-
     }
   },
   computed: {
@@ -51,14 +50,14 @@ export default {
     document.querySelectorAll('.maskDiv').forEach(element => {
       element.remove()
     })
-    watermark({
-      watermark_txt: 'WeCube: ' + localStorage.getItem('username') + ' ' + dayjs().format('YYYY-MM-DD HH:mm:ss'),
-      watermark_fontsize: '16px',
-      watermark_x_space: 300,
-      watermark_y_space: 100,
-      watermark_y: 200,
-      watermark_alpha: 0.2
-    })
+    this.generateWatermark()
+
+    // 添加窗口大小变化监听器
+    window.addEventListener('resize', this.debounce(this.handleResize, 200))
+  },
+  beforeDestroy() {
+    // 移除窗口大小变化监听器
+    window.removeEventListener('resize', this.debounce(this.handleResize, 200))
   },
   methods: {
     allMenus(data) {
@@ -104,6 +103,30 @@ export default {
     homePageClickHandler() {
       window.needReLoad = false
       this.$router.push('/homepage')
+    },
+    debounce(func, wait) {
+      let timeout
+      return function(...args) {
+        const context = this
+        clearTimeout(timeout)
+        timeout = setTimeout(() => func.apply(context, args), wait)
+      }
+    },
+    generateWatermark() {
+      document.querySelectorAll('.maskDiv').forEach(element => {
+        element.remove()
+      })
+      watermark({
+        watermark_txt: 'WeCube: ' + localStorage.getItem('username') + ' ' + dayjs().format('YYYY-MM-DD HH:mm:ss'),
+        watermark_fontsize: '16px',
+        watermark_x_space: 300,
+        watermark_y_space: 100,
+        watermark_y: 200,
+        watermark_alpha: 0.2
+      })
+    },
+    handleResize() {
+      this.generateWatermark()
     }
   },
   created() {
