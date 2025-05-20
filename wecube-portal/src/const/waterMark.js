@@ -11,7 +11,7 @@ export function watermark(settings) {
     watermark_color: '#aaa', // 水印字体颜色
     watermark_alpha: 0.4, // 水印透明度
     watermark_fontsize: '15px', // 水印字体大小
-    watermark_font: '微软雅黑', // 水印字体
+    watermark_font: 'SourceHanSans', // 水印字体
     watermark_width: 230, // 水印宽度
     watermark_height: 80, // 水印长度
     watermark_angle: 15 // 水印倾斜度数
@@ -28,38 +28,38 @@ export function watermark(settings) {
   // let pageHeight = document.body.scrollHeight+document.body.scrollTop;
   // 如果将水印列数设置为0，或水印列数设置过大，超过页面最大宽度，则重新计算水印列数和水印x轴间隔
   if (
-    defaultSettings.watermark_cols === 0
-    || parseInt(
-      defaultSettings.watermark_x
-        + defaultSettings.watermark_width * defaultSettings.watermark_cols
-        + defaultSettings.watermark_x_space * (defaultSettings.watermark_cols - 1)
+    defaultSettings.watermark_cols === 0 ||
+    parseInt(
+      defaultSettings.watermark_x +
+        defaultSettings.watermark_width * defaultSettings.watermark_cols +
+        defaultSettings.watermark_x_space * (defaultSettings.watermark_cols - 1)
     ) > pageWidth
   ) {
     defaultSettings.watermark_cols = parseInt(
-      (pageWidth - defaultSettings.watermark_x + defaultSettings.watermark_x_space)
-        / (defaultSettings.watermark_width + defaultSettings.watermark_x_space)
+      (pageWidth - defaultSettings.watermark_x + defaultSettings.watermark_x_space) /
+        (defaultSettings.watermark_width + defaultSettings.watermark_x_space)
     )
     defaultSettings.watermark_x_space = parseInt(
-      (pageWidth - defaultSettings.watermark_x - defaultSettings.watermark_width * defaultSettings.watermark_cols)
-        / (defaultSettings.watermark_cols - 1)
+      (pageWidth - defaultSettings.watermark_x - defaultSettings.watermark_width * defaultSettings.watermark_cols) /
+        (defaultSettings.watermark_cols - 1)
     )
   }
   // 如果将水印行数设置为0，或水印行数设置过大，超过页面最大长度，则重新计算水印行数和水印y轴间隔
   if (
-    defaultSettings.watermark_rows === 0
-    || parseInt(
-      defaultSettings.watermark_y
-        + defaultSettings.watermark_height * defaultSettings.watermark_rows
-        + defaultSettings.watermark_y_space * (defaultSettings.watermark_rows - 1)
+    defaultSettings.watermark_rows === 0 ||
+    parseInt(
+      defaultSettings.watermark_y +
+        defaultSettings.watermark_height * defaultSettings.watermark_rows +
+        defaultSettings.watermark_y_space * (defaultSettings.watermark_rows - 1)
     ) > pageHeight
   ) {
     defaultSettings.watermark_rows = parseInt(
-      (defaultSettings.watermark_y_space + pageHeight - defaultSettings.watermark_y)
-        / (defaultSettings.watermark_height + defaultSettings.watermark_y_space)
+      (defaultSettings.watermark_y_space + pageHeight - defaultSettings.watermark_y) /
+        (defaultSettings.watermark_height + defaultSettings.watermark_y_space)
     )
     defaultSettings.watermark_y_space = parseInt(
-      (pageHeight - defaultSettings.watermark_y - defaultSettings.watermark_height * defaultSettings.watermark_rows)
-        / (defaultSettings.watermark_rows - 1)
+      (pageHeight - defaultSettings.watermark_y - defaultSettings.watermark_height * defaultSettings.watermark_rows) /
+        (defaultSettings.watermark_rows - 1)
     )
   }
   let x

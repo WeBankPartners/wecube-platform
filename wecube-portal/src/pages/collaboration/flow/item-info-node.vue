@@ -28,7 +28,7 @@
                     {{ $t('name') }}
                   </label>
                   <Input v-model.trim="itemCustomInfo.customAttrs.name" @on-change="paramsChanged"></Input>
-                  <span style="position: absolute; left: 310px; top: 2px; line-height: 30px; background: #ffffff">{{ (itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length) || 0 }}/30</span>
+                  <span style="position: absolute; left: 310px; top: 2px; line-height: 28px; background: #ffffff">{{ (itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length) || 0 }}/30</span>
                   <span
                     v-if="itemCustomInfo.customAttrs.name && itemCustomInfo.customAttrs.name.length > 30"
                     style="color: red"
@@ -387,7 +387,7 @@
       <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive" @click="saveItem" type="primary">{{
         $t('save')
       }}</Button>
-      <Button v-if="editFlow !== 'false'" @click="hideItem">{{ $t('cancel') }}</Button>
+      <Button v-if="editFlow !== 'false'" @click="hideItem" class="btn-gap">{{ $t('cancel') }}</Button>
     </div>
   </div>
 </template>

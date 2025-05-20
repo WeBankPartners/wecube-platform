@@ -3,14 +3,15 @@ package database
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"go.uber.org/zap"
-	"strings"
-	"time"
 )
 
 func GetDataModels(ctx context.Context, pluginPackage string, withAttr bool) (result []*models.DataModel, err error) {
@@ -41,8 +42,10 @@ func GetDataModels(ctx context.Context, pluginPackage string, withAttr bool) (re
 	}
 	modelEntityMap := make(map[string][]*models.DataModelEntity)
 	entityIdMap := make(map[string]*models.DataModelEntity)
+	entityRefIdMap := make(map[string]string)
 	for _, row := range entityRows {
 		entityIdMap[row.Id] = &models.DataModelEntity{PluginPackageEntities: *row, ReferenceByEntityList: []*models.DataModelRefEntity{}, ReferenceToEntityList: []*models.DataModelRefEntity{}}
+		entityRefIdMap[fmt.Sprintf("%s__%s", row.PackageName, row.Name)] = row.Id
 	}
 	if withAttr {
 		var entityAttrRows []*models.PluginPackageAttributes
@@ -52,28 +55,34 @@ func GetDataModels(ctx context.Context, pluginPackage string, withAttr bool) (re
 			return
 		}
 		entityAttrMap := make(map[string][]*models.PluginPackageAttributes)
-		entityIdDataMap := make(map[string]string)
+		// entityIdDataMap := make(map[string]string)
 		for _, row := range entityAttrRows {
 			if mapData, ok := entityAttrMap[row.EntityId]; ok {
 				entityAttrMap[row.EntityId] = append(mapData, row)
 			} else {
 				entityAttrMap[row.EntityId] = []*models.PluginPackageAttributes{row}
 			}
-			if row.Name == "id" {
-				entityIdDataMap[row.Id] = row.EntityId
-			}
+			// if row.Name == "id" {
+			// 	entityIdDataMap[row.Id] = row.EntityId
+			// }
 		}
 		for _, entityObj := range entityIdMap {
 			if attrList, ok := entityAttrMap[entityObj.Id]; ok {
 				entityObj.Attributes = attrList
 				tmpRefToList := []*models.DataModelRefEntity{}
 				for _, attrObj := range attrList {
-					if attrObj.ReferenceId != "" {
-						if refEntity, refOk := entityIdMap[entityIdDataMap[attrObj.ReferenceId]]; refOk {
+					if attrObj.RefPackage != "" && attrObj.RefEntity != "" {
+						if refEntity, refOk := entityIdMap[entityRefIdMap[fmt.Sprintf("%s__%s", attrObj.RefPackage, attrObj.RefEntity)]]; refOk {
 							tmpRefToList = append(tmpRefToList, &models.DataModelRefEntity{PluginPackageEntities: refEntity.PluginPackageEntities, RelatedAttribute: attrObj})
 							refEntity.ReferenceByEntityList = append(refEntity.ReferenceByEntityList, &models.DataModelRefEntity{PluginPackageEntities: entityObj.PluginPackageEntities, RelatedAttribute: attrObj})
 						}
 					}
+					// if attrObj.ReferenceId != "" {
+					// 	if refEntity, refOk := entityIdMap[entityIdDataMap[attrObj.ReferenceId]]; refOk {
+					// 		tmpRefToList = append(tmpRefToList, &models.DataModelRefEntity{PluginPackageEntities: refEntity.PluginPackageEntities, RelatedAttribute: attrObj})
+					// 		refEntity.ReferenceByEntityList = append(refEntity.ReferenceByEntityList, &models.DataModelRefEntity{PluginPackageEntities: entityObj.PluginPackageEntities, RelatedAttribute: attrObj})
+					// 	}
+					// }
 				}
 				entityObj.ReferenceToEntityList = tmpRefToList
 			} else {
