@@ -6,11 +6,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"go.uber.org/zap"
-	"strings"
-	"time"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
@@ -198,25 +199,34 @@ func DecodeUIPassword(ctx context.Context, inputValue string) (output string, er
 	if seed, err = GetEncryptSeed(ctx); err != nil {
 		return
 	}
+	var specialAndChar = "&" + string([]byte{0x01})
+	var tmpPwdIV string
+	if splitCharList := strings.Split(inputValue, specialAndChar); len(splitCharList) > 1 {
+		inputValue = splitCharList[0]
+		tmpPwdIV = splitCharList[1]
+	}
 	if pwdBytes, pwdErr := base64.StdEncoding.DecodeString(inputValue); pwdErr == nil {
 		inputValue = hex.EncodeToString(pwdBytes)
 	} else {
 		err = fmt.Errorf("base64 decode input data fail,%s ", pwdErr.Error())
 		return
 	}
-	output, err = decodeUIAesPassword(seed, inputValue)
+	output, err = decodeAesPassword(seed, inputValue, tmpPwdIV)
 	return
 }
 
-func decodeUIAesPassword(seed, password string) (decodePwd string, err error) {
+func decodeAesPassword(seed, password, ivValue string) (decodePwd string, err error) {
+	if ivValue != "" {
+		decodePwd, err = cipher.AesDePasswordWithIV(seed, password, ivValue)
+		return
+	}
 	unixTime := time.Now().Unix() / 100
-	decodePwd, err = cipher.AesDePasswordWithIV(seed, password, fmt.Sprintf("%d", unixTime*100000000))
+	ivValue = fmt.Sprintf("%d", unixTime*100000000)
+	decodePwd, err = cipher.AesDePasswordWithIV(seed, password, ivValue)
 	if err != nil {
 		unixTime = unixTime - 1
-		decodePwd, err = cipher.AesDePasswordWithIV(seed, password, fmt.Sprintf("%d", unixTime*100000000))
-	}
-	if err != nil {
-		err = fmt.Errorf("aes decode with iv fail,%s ", err.Error())
+		ivValue = fmt.Sprintf("%d", unixTime*100000000)
+		decodePwd, err = cipher.AesDePasswordWithIV(seed, password, ivValue)
 	}
 	return
 }

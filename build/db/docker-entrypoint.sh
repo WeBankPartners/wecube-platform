@@ -157,6 +157,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION ;
 			${rootCreate}
 			DROP DATABASE IF EXISTS test ;
+			SET GLOBAL max_allowed_packet = 20971520;
 			FLUSH PRIVILEGES ;
 		EOSQL
 
