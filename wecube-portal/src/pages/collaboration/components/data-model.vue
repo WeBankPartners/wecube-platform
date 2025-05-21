@@ -76,31 +76,33 @@ export default {
           if (this.dataModel.dynamic) {
             this.isApplyBtnDisabled = false
           }
-          this.data = data.entities
-            .sort(function (a, b) {
-              const nameA = a.name.toUpperCase()
-              const nameB = b.name.toUpperCase()
-              if (nameA < nameB) {
-                return -1
-              }
-              if (nameA > nameB) {
-                return 1
-              }
-              return 0
-            })
-            .map(_ => ({
-              ..._,
-              id: '[' + _.packageName + ']' + _.name,
-              tos: _.referenceToEntityList.map(to => ({
-                ...to,
-                id: '[' + to.packageName + ']' + to.name
-              })),
-              bys: _.referenceByEntityList.map(by => ({
-                ...by,
-                id: '[' + by.packageName + ']' + by.name
+          if (data.entities) {
+            this.data = data.entities
+              .sort(function (a, b) {
+                const nameA = a.name.toUpperCase()
+                const nameB = b.name.toUpperCase()
+                if (nameA < nameB) {
+                  return -1
+                }
+                if (nameA > nameB) {
+                  return 1
+                }
+                return 0
+              })
+              .map(_ => ({
+                ..._,
+                id: '[' + _.packageName + ']' + _.name,
+                tos: _.referenceToEntityList.map(to => ({
+                  ...to,
+                  id: '[' + to.packageName + ']' + to.name
+                })),
+                bys: _.referenceByEntityList.map(by => ({
+                  ...by,
+                  id: '[' + by.packageName + ']' + by.name
+                }))
               }))
-            }))
-          this.initGraph()
+            this.initGraph()
+          }
         }
       }
     },

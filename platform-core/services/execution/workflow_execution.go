@@ -4,15 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
-	"strconv"
-	"strings"
-	"time"
+	"go.uber.org/zap"
 )
 
 /**
@@ -99,7 +101,7 @@ func WorkflowExecutionCallPluginService(ctx context.Context, param *models.ProcC
 			if pluginCallResult != nil && len(pluginCallResult.Outputs) > 0 {
 				_, errHandle = handleOutputData(ctx, remote.GetToken(), pluginCallResult.Outputs, param.PluginInterface.OutputParameters, &procInsNodeReq, true)
 				if errHandle != nil {
-					log.Logger.Error("handle error output data fail", log.Error(errHandle))
+					log.Error(nil, log.LOGGER_APP, "handle error output data fail", zap.Error(errHandle))
 				}
 			}
 		}
@@ -148,7 +150,7 @@ func RecordPluginRequestInfo(ctx context.Context, procIns *models.ProcIns, outpu
 			var newRequestInfo []byte
 			if procIns.RequestInfo != "" {
 				if err = json.Unmarshal([]byte(procIns.RequestInfo), &requestList); err != nil {
-					log.Logger.Error("json Unmarshal requestInfo err", log.Error(err))
+					log.Error(nil, log.LOGGER_APP, "json Unmarshal requestInfo err", zap.Error(err))
 				}
 			}
 			requestList = append(requestList, &models.SimpleRequestDto{
@@ -159,7 +161,7 @@ func RecordPluginRequestInfo(ctx context.Context, procIns *models.ProcIns, outpu
 			})
 			newRequestInfo, _ = json.Marshal(requestList)
 			if err = database.UpdateProcInstanceRequestInfo(ctx, procIns.Id, string(newRequestInfo)); err != nil {
-				log.Logger.Error("UpdateProcInstanceRequestInfo err", log.Error(err))
+				log.Error(nil, log.LOGGER_APP, "UpdateProcInstanceRequestInfo err", zap.Error(err))
 			}
 		}
 	}
@@ -195,6 +197,11 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 			err = fmt.Errorf("get node dynamic bind data fail,%s ", err.Error())
 			return
 		}
+		dataBindings, err = GetDynamicBindNodeWithFilters(ctx, procInsNode, procDefNode, dataBindings)
+		if err != nil {
+			err = fmt.Errorf("get node dynamic bind data with fitlers fail,%s ", err.Error())
+			return
+		}
 		if len(dataBindings) > 0 {
 			err = database.UpdateDynamicNodeBindData(ctx, procInsNode.ProcInsId, procInsNode.Id, procDefNode.ProcDefId, procDefNode.Id, dataBindings)
 			if err != nil {
@@ -217,7 +224,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 		}
 	}
 	if len(dataBindings) == 0 {
-		log.Logger.Warn("auto job return with empty binding data", log.String("procIns", procInsNode.ProcInsId), log.String("procInsNode", procInsNode.Id))
+		log.Warn(nil, log.LOGGER_APP, "auto job return with empty binding data", zap.String("procIns", procInsNode.ProcInsId), zap.String("procInsNode", procInsNode.Id))
 		// 无数据，空跑
 		return
 	}
@@ -270,7 +277,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 			}
 		}
 	}
-	log.Logger.Debug("DoWorkflowAutoJob data", log.String("procInsNode", procInsNode.Id), log.String("procDefNode", procDefNode.Id), log.String("interfaceId", pluginInterface.Id), log.JsonObj("inputConstantMap", inputConstantMap), log.JsonObj("inputContextMap", inputContextMap))
+	log.Debug(nil, log.LOGGER_APP, "DoWorkflowAutoJob data", zap.String("procInsNode", procInsNode.Id), zap.String("procDefNode", procDefNode.Id), zap.String("interfaceId", pluginInterface.Id), log.JsonObj("inputConstantMap", inputConstantMap), log.JsonObj("inputContextMap", inputContextMap))
 	callPluginServiceParam := models.ProcCallPluginServiceFuncParam{
 		PluginInterface:   pluginInterface,
 		EntityType:        procDefNode.RoutineExpression,
@@ -300,7 +307,7 @@ func DoWorkflowAutoJob(ctx context.Context, procRunNodeId, continueToken string)
 		//	err = fmt.Errorf(string(dangerousCheckResultBytes))
 		//}
 	}
-	log.Logger.Debug("WorkflowExecutionCallPluginService", log.JsonObj("output", callOutput), log.JsonObj("pluginCallParam", pluginCallParam))
+	log.Debug(nil, log.LOGGER_APP, "WorkflowExecutionCallPluginService", log.JsonObj("output", callOutput), log.JsonObj("pluginCallParam", pluginCallParam))
 	return
 }
 
@@ -415,7 +422,7 @@ func DoWorkflowDataJob(ctx context.Context, procRunNodeId string) (err error) {
 	// 纪录参数
 	if len(procInsNodeReq.Params) > 0 {
 		if recordErr := database.RecordCustomReq(ctx, &procInsNodeReq); recordErr != nil {
-			log.Logger.Error("Try to record DataJob req param fail", log.Error(recordErr))
+			log.Error(nil, log.LOGGER_APP, "Try to record DataJob req param fail", zap.Error(recordErr))
 		}
 	}
 	return
@@ -435,7 +442,7 @@ func buildDataWriteObj(cacheDataList []*models.ProcDataCache, ids []string) (dat
 		}
 		tmpDataObj := make(map[string]interface{})
 		if tmpErr := json.Unmarshal([]byte(matchDataValue), &tmpDataObj); tmpErr != nil {
-			log.Logger.Error("buildDataWriteObj json unmarshal data fail", log.String("matchDataValue", matchDataValue), log.Error(tmpErr))
+			log.Error(nil, log.LOGGER_APP, "buildDataWriteObj json unmarshal data fail", zap.String("matchDataValue", matchDataValue), zap.Error(tmpErr))
 		}
 		tmpDataObj["id"] = id
 		dataList = append(dataList, tmpDataObj)
@@ -522,6 +529,11 @@ func DoWorkflowHumanJob(ctx context.Context, procRunNodeId string, recoverFlag b
 		dataBindings, err = database.GetDynamicBindNodeData(ctx, procInsNode.ProcInsId, procDefNode.ProcDefId, procDefNode.BindNodeId)
 		if err != nil {
 			err = fmt.Errorf("get dynamic bind data fail,%s ", err.Error())
+			return
+		}
+		dataBindings, err = GetDynamicBindNodeWithFilters(ctx, procInsNode, procDefNode, dataBindings)
+		if err != nil {
+			err = fmt.Errorf("get node dynamic bind data with fitlers fail,%s ", err.Error())
 			return
 		}
 		if len(dataBindings) > 0 {
@@ -680,12 +692,12 @@ func CallDynamicFormReq(ctx context.Context, param *models.ProcCallPluginService
 		return
 	}
 	pluginCallResult, _, errCall := remote.PluginInterfaceApi(ctx, remote.GetToken(), param.PluginInterface, pluginCallParam)
-	log.Logger.Info("human job call plugin api response", log.JsonObj("result", pluginCallResult), log.String("error", fmt.Sprintf("%v", errCall)))
+	log.Info(nil, log.LOGGER_APP, "human job call plugin api response", log.JsonObj("result", pluginCallResult), zap.String("error", fmt.Sprintf("%v", errCall)))
 	if errCall != nil {
 		err = errCall
 		procInsNodeReq.ErrorMsg = err.Error()
 		if recordErr := database.RecordProcCallReq(ctx, &procInsNodeReq, false); recordErr != nil {
-			log.Logger.Error("try to record proc call req to database fail", log.Error(recordErr), log.JsonObj("req", procInsNodeReq))
+			log.Error(nil, log.LOGGER_APP, "try to record proc call req to database fail", zap.Error(recordErr), log.JsonObj("req", procInsNodeReq))
 		}
 		return
 	}
@@ -719,7 +731,7 @@ func buildTaskFormInput(ctx context.Context, taskFormMeta *models.TaskMetaResult
 	for _, dataBind := range param.DataBinding {
 		entityMsg := strings.Split(dataBind.EntityTypeId, ":")
 		if len(entityMsg) != 2 {
-			log.Logger.Warn("bind data entity type illegal", log.String("entityTypeId", dataBind.EntityTypeId), log.String("procInsId", param.ProcInsNode.ProcInsId))
+			log.Warn(nil, log.LOGGER_APP, "bind data entity type illegal", zap.String("entityTypeId", dataBind.EntityTypeId), zap.String("procInsId", param.ProcInsNode.ProcInsId))
 			continue
 		}
 		entityDataObj := models.PluginTaskFormEntity{
@@ -751,18 +763,18 @@ func getTaskFormItemValues(ctx context.Context, taskFormMeta *models.TaskMetaRes
 	dataValueMap := make(map[string]interface{})
 	if cacheObj.DataValue != "" {
 		if err := json.Unmarshal([]byte(cacheObj.DataValue), &dataValueMap); err != nil {
-			log.Logger.Error("getTaskFormItemValues,json unmarshal cache data value fail", log.String("entityTypeId", entityTypeId), log.String("entityDataId", entityDataObj.EntityDataId), log.String("dataValue", cacheObj.DataValue), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "getTaskFormItemValues,json unmarshal cache data value fail", zap.String("entityTypeId", entityTypeId), zap.String("entityDataId", entityDataObj.EntityDataId), zap.String("dataValue", cacheObj.DataValue), zap.Error(err))
 			return
 		}
 	} else {
 		queryFilter := []*models.EntityQueryObj{{AttrName: "id", Op: "eq", Condition: entityDataObj.EntityDataId}}
 		queryResult, queryErr := remote.RequestPluginModelData(ctx, entityDataObj.PackageName, entityDataObj.EntityName, remote.GetToken(), queryFilter)
 		if queryErr != nil {
-			log.Logger.Error("getTaskFormItemValues,query entity data fail", log.String("entityTypeId", entityTypeId), log.String("entityDataId", entityDataObj.EntityDataId), log.Error(queryErr))
+			log.Error(nil, log.LOGGER_APP, "getTaskFormItemValues,query entity data fail", zap.String("entityTypeId", entityTypeId), zap.String("entityDataId", entityDataObj.EntityDataId), zap.Error(queryErr))
 			return
 		}
 		if len(queryResult) != 1 {
-			log.Logger.Warn("getTaskFormItemValues,query entity data num illegal", log.Int("dataNum", len(queryResult)), log.String("entityTypeId", entityTypeId), log.String("entityDataId", entityDataObj.EntityDataId), log.JsonObj("filter", queryFilter), log.JsonObj("result", queryResult))
+			log.Warn(nil, log.LOGGER_APP, "getTaskFormItemValues,query entity data num illegal", zap.Int("dataNum", len(queryResult)), zap.String("entityTypeId", entityTypeId), zap.String("entityDataId", entityDataObj.EntityDataId), log.JsonObj("filter", queryFilter), log.JsonObj("result", queryResult))
 			return
 		}
 		dataValueMap = queryResult[0]
@@ -825,12 +837,12 @@ func HandleCallbackHumanJob(ctx context.Context, procRunNodeId string, callbackD
 		if output.ErrorCode == "0" {
 			tmpTaskFormObj := models.PluginTaskFormDto{}
 			if tmpUnmarshalErr := json.Unmarshal([]byte(output.TaskFormOutput), &tmpTaskFormObj); tmpUnmarshalErr != nil {
-				log.Logger.Error("human job callback output json unmarshal taskFormOutput fail", log.Error(tmpUnmarshalErr), log.String("reqId", callbackData.Results.RequestId), log.JsonObj("outputData", output))
+				log.Error(nil, log.LOGGER_APP, "human job callback output json unmarshal taskFormOutput fail", zap.Error(tmpUnmarshalErr), zap.String("reqId", callbackData.Results.RequestId), log.JsonObj("outputData", output))
 			} else {
 				taskFormList = append(taskFormList, &tmpTaskFormObj)
 			}
 		} else {
-			log.Logger.Warn("human job callback output fail", log.String("reqId", callbackData.Results.RequestId), log.JsonObj("outputData", output))
+			log.Warn(nil, log.LOGGER_APP, "human job callback output fail", zap.String("reqId", callbackData.Results.RequestId), log.JsonObj("outputData", output))
 		}
 	}
 	if len(taskFormList) > 0 {
@@ -863,7 +875,7 @@ func buildAutoNodeContextMap(ctx context.Context,
 	bindNodeDef *models.ProcDefNode,
 	targetNodeDataBindings []*models.ProcDataBinding,
 	bindParamType, bindParamName, paramName string) (err error) {
-	log.Logger.Debug("buildAutoNodeContextMap start", log.JsonObj("entityInstances", entityInstances), log.JsonObj("bindNodeDef", bindNodeDef), log.JsonObj("targetNodeDataBindings", targetNodeDataBindings), log.String("bindParamType", bindParamType), log.String("bindParamName", bindParamName), log.String("paramName", paramName))
+	log.Debug(nil, log.LOGGER_APP, "buildAutoNodeContextMap start", log.JsonObj("entityInstances", entityInstances), log.JsonObj("bindNodeDef", bindNodeDef), log.JsonObj("targetNodeDataBindings", targetNodeDataBindings), zap.String("bindParamType", bindParamType), zap.String("bindParamName", bindParamName), zap.String("paramName", paramName))
 	var sourceNodeDataBindings []*models.ProcDataBinding
 	//if bindNodeDef.DynamicBind {
 	//	sourceNodeDataBindings, err = database.GetDynamicBindNodeData(ctx, procIns.Id, procIns.ProcDefId, bindNodeDef.BindNodeId)
@@ -929,12 +941,12 @@ func buildAutoNodeContextMap(ctx context.Context,
 			}
 		}
 	}
-	log.Logger.Debug("buildAutoNodeContextMap done", log.JsonObj("entityInstances", entityInstances))
+	log.Debug(nil, log.LOGGER_APP, "buildAutoNodeContextMap done", log.JsonObj("entityInstances", entityInstances))
 	return
 }
 
 func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator string) (result *models.ProcPreviewData, err error) {
-	log.Logger.Debug("build procDefPreview data", log.String("procDefId", procDefId), log.String("entityDataId", entityDataId), log.String("operator", operator))
+	log.Debug(nil, log.LOGGER_APP, "build procDefPreview data", zap.String("procDefId", procDefId), zap.String("entityDataId", entityDataId), zap.String("operator", operator))
 	procOutlineData, getOutlineDataErr := database.ProcDefOutline(c, procDefId)
 	if getOutlineDataErr != nil {
 		err = getOutlineDataErr
@@ -968,7 +980,7 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 	entityNodeMap := make(map[string]*models.ProcPreviewEntityNode)
 	rootData := rootDataList[0]
 	result = &models.ProcPreviewData{ProcessSessionId: fmt.Sprintf("proc_session_" + guid.CreateGuid()), EntityTreeNodes: []*models.ProcPreviewEntityNode{}}
-	log.Logger.Debug("rootData", log.String("entityDataId", entityDataId), log.JsonObj("data", rootData))
+	log.Debug(nil, log.LOGGER_APP, "rootData", zap.String("entityDataId", entityDataId), log.JsonObj("data", rootData))
 	rootEntityNode := models.ProcPreviewEntityNode{LastFlag: true}
 	rootEntityNode.Parse(rootFilter.PackageName, rootFilter.EntityName, rootData)
 	rootEntityNode.FullDataId = rootEntityNode.DataId
@@ -1042,7 +1054,7 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 		if err != nil {
 			break
 		}
-		log.Logger.Debug("nodeData", log.String("node", node.NodeId), log.JsonObj("data", nodeDataList))
+		log.Debug(nil, log.LOGGER_APP, "nodeData", zap.String("node", node.NodeId), log.JsonObj("data", nodeDataList))
 		for _, nodeDataObj := range nodeDataList {
 			addPreviewFlag := false
 			if nodeDataObj.LastFlag {
@@ -1051,7 +1063,7 @@ func BuildProcPreviewData(c context.Context, procDefId, entityDataId, operator s
 					addPreviewFlag = false
 				} else {
 					if node.BindNodeId != "" {
-						log.Logger.Debug("bindNode match", log.String("currentNode", node.NodeId), log.String("bindNodeId", node.BindNodeId), log.JsonObj("bindMapData", nodeBindDataMap[node.BindNodeId]))
+						log.Debug(nil, log.LOGGER_APP, "bindNode match", zap.String("currentNode", node.NodeId), zap.String("bindNodeId", node.BindNodeId), log.JsonObj("bindMapData", nodeBindDataMap[node.BindNodeId]))
 						bindMatchFlag := false
 						for _, bindData := range nodeBindDataMap[node.BindNodeId] {
 							if nodeDataObj.DataId == bindData.DataId {
@@ -1188,7 +1200,7 @@ func DynamicBindNodeInRuntime(ctx context.Context, procInsNode *models.ProcInsNo
 	if err != nil {
 		return
 	}
-	log.Logger.Debug("dynamicBindNodeInRuntime nodeData", log.String("node", procInsNode.Id), log.JsonObj("data", nodeDataList))
+	log.Debug(nil, log.LOGGER_APP, "dynamicBindNodeInRuntime nodeData", zap.String("node", procInsNode.Id), log.JsonObj("data", nodeDataList))
 	nowTime := time.Now()
 	for _, nodeDataObj := range nodeDataList {
 		if nodeDataObj.LastFlag {
@@ -1207,6 +1219,71 @@ func DynamicBindNodeInRuntime(ctx context.Context, procInsNode *models.ProcInsNo
 				EntityData:     nodeDataObj.EntityData,
 			}
 			dataBinding = append(dataBinding, &tmpPreviewRow)
+		}
+	}
+	return
+}
+
+func GetDynamicBindNodeWithFilters(ctx context.Context, procInsNode *models.ProcInsNode, procDefNode *models.ProcDefNode, parentDataBindDatas []*models.ProcDataBinding) (dataBinding []*models.ProcDataBinding, err error) {
+	if len(parentDataBindDatas) == 0 {
+		return
+	}
+	interfaceFilters := []*models.Filter{}
+	if procDefNode.ServiceName != "" {
+		interfaceObj, getInterfaceErr := database.GetSimpleLastPluginInterface(ctx, procDefNode.ServiceName)
+		if getInterfaceErr != nil {
+			err = fmt.Errorf("get node plugin interface:%s fail,%s ", procDefNode.ServiceName, getInterfaceErr.Error())
+			return
+		}
+		if interfaceObj.FilterRule != "" {
+			if interfaceFilters, err = remote.AnalyzeExprFilters(interfaceObj.FilterRule); err != nil {
+				err = fmt.Errorf("analyze expr filters:%s fail,%s ", interfaceObj.FilterRule, err.Error())
+				return
+			}
+		}
+	}
+	if len(interfaceFilters) == 0 {
+		dataBinding = parentDataBindDatas
+		return
+	}
+	var dataPackage, dataEntity string
+	filters := []*models.EntityQueryObj{}
+	for _, filterObj := range interfaceFilters {
+		filters = append(filters, &models.EntityQueryObj{
+			AttrName:  filterObj.Name,
+			Op:        filterObj.Operator,
+			Condition: filterObj.GetValue(),
+		})
+	}
+	var parentDataIdList []string
+	for _, v := range parentDataBindDatas {
+		if dataPackage == "" {
+			tmpEntityType := strings.Split(v.EntityTypeId, ":")
+			if len(tmpEntityType) == 2 {
+				dataPackage = tmpEntityType[0]
+				dataEntity = tmpEntityType[1]
+			}
+		}
+		parentDataIdList = append(parentDataIdList, v.EntityDataId)
+	}
+	filters = append(filters, &models.EntityQueryObj{AttrName: "id", Op: "in", Condition: parentDataIdList})
+	remoteQueryResult, remoteQueryErr := remote.RequestPluginModelData(ctx, dataPackage, dataEntity, remote.GetToken(), filters)
+	if remoteQueryErr != nil {
+		err = fmt.Errorf("remote query dynamic bind with filter fail,%s ", remoteQueryErr.Error())
+		return
+	}
+	log.Debug(nil, log.LOGGER_APP, "GetDynamicBindNodeWithFilters nodeData", zap.String("node", procInsNode.Id), log.JsonObj("remoteData", remoteQueryResult))
+	for _, parentData := range parentDataBindDatas {
+		matchFlag := false
+		for _, rowData := range remoteQueryResult {
+			rowDataId := rowData["id"].(string)
+			if rowDataId == parentData.EntityDataId {
+				matchFlag = true
+				break
+			}
+		}
+		if matchFlag {
+			dataBinding = append(dataBinding, parentData)
 		}
 	}
 	return

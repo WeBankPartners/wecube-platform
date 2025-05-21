@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"sort"
@@ -454,7 +455,7 @@ func ExportProcessDefinition(c *gin.Context) {
 			fileName = procDef.Id
 		}
 		if procDef.Status == string(models.Draft) {
-			log.Logger.Info("procDef is draft", log.String("procDefId", procDef.Id))
+			log.Info(nil, log.LOGGER_APP, "procDef is draft", zap.String("procDefId", procDef.Id))
 			continue
 		}
 		procDefDto, err2 := database.GetProcDefDetailByProcDefId(c, procDef.Id)
@@ -1261,7 +1262,7 @@ func fetchRichPluginConfigInterfacesById(ctx context.Context, interfaceId string
 func enrichPluginConfigInterfaces(ctx context.Context, configInterface *models.PluginConfigInterfaces) *models.PluginConfigInterfaces {
 	inputParamEntities, err := database.GetPluginConfigInterfaceParameters(ctx, configInterface.Id, PluginParamTypeInput)
 	if err != nil {
-		log.Logger.Error("GetPluginConfigInterfaceParameters err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "GetPluginConfigInterfaceParameters err", zap.Error(err))
 		return nil
 	}
 	if len(inputParamEntities) > 0 {
@@ -1277,7 +1278,7 @@ func enrichPluginConfigInterfaces(ctx context.Context, configInterface *models.P
 
 	outputParamEntities, err := database.GetPluginConfigInterfaceParameters(ctx, configInterface.Id, PluginParamTypeOutput)
 	if err != nil {
-		log.Logger.Error("GetPluginConfigInterfaceParameters err", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "GetPluginConfigInterfaceParameters err", zap.Error(err))
 		return nil
 	}
 	if len(outputParamEntities) > 0 {
@@ -1379,7 +1380,7 @@ func ProcDefImport(param models.ProcDefImportDto) (importResult *models.ImportRe
 			if len(repeatNameList) > 0 {
 				procDefDto.ProcDef.Key = repeatNameList[0].Key
 				for _, repeatProcDef := range repeatNameList {
-					if repeatProcDef.Version <= procDefDto.ProcDef.Version {
+					if repeatProcDef.Version >= procDefDto.ProcDef.Version {
 						versionExist = true
 						importResult.ResultList = append(importResult.ResultList, &models.ImportResultItemDto{
 							ProcDefName:    procDefDto.ProcDef.Name,
@@ -1409,7 +1410,7 @@ func ProcDefImport(param models.ProcDefImportDto) (importResult *models.ImportRe
 				Message:        "Import Failed: Please refresh the page and try again later.",
 				ErrMsg:         fmt.Sprintf("workflow %s import fail %s", procDefDto.ProcDef.Name, err.Error()),
 			})
-			log.Logger.Error("CopyProcessDefinitionByDto err", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "CopyProcessDefinitionByDto err", zap.Error(err))
 			// 单个编排操作err,err置为空, code=3已经表示服务器错误
 			err = nil
 		} else {

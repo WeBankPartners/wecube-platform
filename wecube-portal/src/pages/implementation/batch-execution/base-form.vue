@@ -151,7 +151,7 @@
             <template v-if="searchParameters && searchParameters.length > 0">
               <Col v-for="(item, index) in searchParameters" :key="index" :span="24" class="item">
                 <span color="success">{{ item.packageName }}-{{ item.entityName }}:{{ item.name }}</span>
-                <span color="primary" style="margin-left: 10px; color: #2db7f5">{{ item.operator }}</span>
+                <span color="primary" style="margin-left: 10px; color: #5384ff">{{ item.operator }}</span>
                 <span color="primary" style="margin-left: 10px">{{ item.value }}</span>
               </Col>
             </template>
@@ -211,9 +211,9 @@
             <Col v-for="(item, index) in pluginInputParams" :key="index" :span="24" style="margin-bottom: 12px">
               <span
                 :class="{required: item.required === 'Y' && item.mappingType === 'constant'}"
-                style="display: inline-block; width: 100px"
+                style="display: inline-block; width: 200px;"
               >{{ item.name }}</span>
-              <Input v-if="item.mappingType === 'constant'" style="width: 600px" v-model="item.bindValue" />
+              <Input v-if="item.mappingType === 'constant'" style="width: 500px;" v-model="item.bindValue" />
               <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
             </Col>
           </Row>
@@ -661,7 +661,7 @@ export default {
       height: 24px;
       color: #fff;
       border-radius: 2px;
-      background: #2d8cf0;
+      background: #5384ff;
     }
     .name {
       font-size: 16px;
@@ -706,9 +706,8 @@ export default {
       display: inline-block;
       margin-right: 4px;
       line-height: 1;
-      font-family: SimSun;
       font-size: 14px;
-      color: #ed4014;
+      color: #ff4d4f;
     }
   }
 }

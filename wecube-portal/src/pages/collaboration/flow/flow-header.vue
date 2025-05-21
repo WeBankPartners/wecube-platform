@@ -13,11 +13,12 @@
             <Icon type="ios-paper-plane-outline" size="16"></Icon>
             {{ $t('release_flow') }}
           </Button>
-          <Button type="success" v-if="['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
-            <img src="../../../assets/icon/export.png" class="btn-img" alt="" />
-            {{ $t('export_flow') }}{{ editFlow }}
-          </Button>
-          <Button type="warning" v-if="['draft', 'deployed'].includes(itemCustomInfo.status)" @click="changePermission">
+          <Button
+            type="warning"
+            v-if="['draft', 'deployed'].includes(itemCustomInfo.status)"
+            @click="changePermission"
+            class="btn-gap"
+          >
             <Icon type="ios-person-outline" size="16"></Icon>
             {{ $t('config_permission') }}
           </Button>
@@ -25,6 +26,7 @@
             type="error"
             v-if="['deployed'].includes(itemCustomInfo.status)"
             @click="changeStatus('disabled', 'disable')"
+            class="btn-gap"
           >
             <img src="../../../assets/icon/disable.png" style="width: 16px; vertical-align: middle" alt="" />
             {{ $t('disable') }}
@@ -33,9 +35,14 @@
             type="success"
             v-if="['disabled'].includes(itemCustomInfo.status)"
             @click="changeStatus('enabled', 'enable')"
+            class="btn-gap"
           >
             <img src="../../../assets/icon/enable.png" style="width: 16px; vertical-align: middle" alt="" />
             {{ $t('enable') }}
+          </Button>
+          <Button class="btn-upload btn-gap" v-if="['deployed'].includes(itemCustomInfo.status)" @click="exportFlow">
+            <img src="@/assets/icon/DownloadOutlined.svg" class="upload-icon" />
+            {{ $t('export_flow') }}{{ editFlow }}
           </Button>
         </template>
       </div>
@@ -51,6 +58,13 @@ import dayjs from 'dayjs'
 import FlowAuth from '@/pages/components/auth.vue'
 import { getCookie } from '@/pages/util/cookie'
 import { flowBatchChangeStatus, flowRelease } from '@/api/server.js'
+
+export const custom_api_enum = [
+  {
+    "url": "/platform/v1/process/definitions/export",
+    "method": "post"
+  }
+]
 export default {
   components: {
     FlowAuth
@@ -227,7 +241,7 @@ export default {
   height: 24px;
   color: #fff;
   border-radius: 2px;
-  background: #2d8cf0;
+  background: #5384ff;
   margin-right: 8px;
 }
 .flow-name {

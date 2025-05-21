@@ -20,7 +20,7 @@
             @on-change="paramsChanged"
             :disabled="!itemCustomInfo.enableModifyName"
           ></Input>
-          <span style="position: absolute; left: 314px; top: 2px; line-height: 30px; background: #ffffff">{{ itemCustomInfo.label.length || 0 }}/30</span>
+          <span style="position: absolute; left: 314px; top: 2px; line-height: 28px; background: #ffffff">{{ itemCustomInfo.label.length || 0 }}/30</span>
           <span
             class="custom-error-tag"
             v-if="itemCustomInfo.label.length > 30 || itemCustomInfo.label.length === 0"
@@ -58,7 +58,7 @@
         </FormItem>
         <FormItem :label="$t('group')" prop="scene">
           <Input v-model="itemCustomInfo.scene" @on-change="paramsChanged"></Input>
-          <span style="position: absolute; left: 320px; top: 2px; line-height: 30px; background: #ffffff">{{ itemCustomInfo.scene.length || 0 }}/30</span>
+          <span style="position: absolute; left: 320px; top: 2px; line-height: 28px; background: #ffffff">{{ itemCustomInfo.scene.length || 0 }}/30</span>
           <span class="custom-error-tag" v-if="itemCustomInfo.scene.length > 30" style="color: red">{{ $t('group') }} {{ $t('cannotExceed') }} 30 {{ $t('characters') }}</span>
         </FormItem>
         <FormItem :label="$t('conflict_test')">
@@ -75,7 +75,7 @@
       <Button v-if="editFlow !== 'false'" :disabled="isSaveBtnActive()" @click="saveItem" type="primary">{{
         $t('save')
       }}</Button>
-      <Button v-if="editFlow !== 'false'" @click="hideItem">{{ $t('cancel') }}</Button>
+      <Button v-if="editFlow !== 'false'" @click="hideItem" class="btn-gap">{{ $t('cancel') }}</Button>
     </div>
   </div>
 </template>
@@ -263,7 +263,7 @@ export default {
   position: fixed;
   top: 400px;
   right: 500px;
-  color: #2db7f5;
+  color: #5384ff;
   cursor: pointer;
 }
 .item-footer {

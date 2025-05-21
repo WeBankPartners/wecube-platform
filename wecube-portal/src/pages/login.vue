@@ -96,17 +96,20 @@ export default {
 
   methods: {
     async login() {
+      this.clearData()
       if (!this.username || !this.password) {
         return
       }
       this.loading = true
       await this.getEncryptKey()
       const key = CryptoJS.enc.Utf8.parse(this.encryptKey)
+      const timeTag = Math.trunc(new Date() / 100000) * 100000000
+      const iv = CryptoJS.enc.Utf8.parse(timeTag)
       const config = {
-        iv: CryptoJS.enc.Utf8.parse(Math.trunc(new Date() / 100000) * 100000000),
+        iv,
         mode: CryptoJS.mode.CBC
       }
-      const encryptedPassword = CryptoJS.AES.encrypt(this.password, key, config).toString()
+      const encryptedPassword = CryptoJS.AES.encrypt(this.password, key, config).toString() + '&\u0001' + timeTag
       const payload = {
         username: this.username,
         password: encryptedPassword
@@ -168,7 +171,7 @@ export default {
     }
   },
   mounted() {
-    this.clearData()
+    // this.clearData()
   }
 }
 </script>

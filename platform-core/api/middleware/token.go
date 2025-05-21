@@ -7,6 +7,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"io"
 	"regexp"
 	"strings"
@@ -34,6 +35,12 @@ var (
 		"get-user":                               true,
 		"change-user-password":                   true,
 		"get-packages":                           true,
+		"query-roles":                            true,
+		"get-all-user":                           true,
+		"get-role-user":                          true,
+		"get-user-roles":                         true,
+		"get-process-ins-by-session-id":          true,
+		"get-web-running-packages":               true,
 	}
 )
 
@@ -174,13 +181,13 @@ func InitApiMenuMap(apiMenuCodeMap map[string]string) {
 			}
 		}
 		if !exist {
-			log.Logger.Info("InitApiMenuMap menu-api-json lack url", log.String("path", k))
+			log.Info(nil, log.LOGGER_APP, "InitApiMenuMap menu-api-json lack url", zap.String("path", k))
 		}
 	}
 	for _, menuApi := range models.MenuApiGlobalList {
 		for _, item := range menuApi.Urls {
 			if _, ok := matchUrlMap[item.Method+"_"+item.Url]; !ok {
-				log.Logger.Info("InitApiMenuMap can not match menuUrl", log.String("menu", menuApi.Menu), log.String("method", item.Method), log.String("url", item.Url))
+				log.Info(nil, log.LOGGER_APP, "InitApiMenuMap can not match menuUrl", zap.String("menu", menuApi.Menu), zap.String("method", item.Method), zap.String("url", item.Url))
 			}
 		}
 	}
@@ -189,7 +196,7 @@ func InitApiMenuMap(apiMenuCodeMap map[string]string) {
 			ApiMenuMap[k] = models.DistinctStringList(v, []string{})
 		}
 	}
-	log.Logger.Debug("InitApiMenuMap done", log.JsonObj("ApiMenuMap", ApiMenuMap))
+	log.Debug(nil, log.LOGGER_APP, "InitApiMenuMap done", log.JsonObj("ApiMenuMap", ApiMenuMap))
 }
 
 func compareStringList(from, target []string) bool {

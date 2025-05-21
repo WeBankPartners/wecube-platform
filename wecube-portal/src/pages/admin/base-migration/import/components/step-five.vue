@@ -125,7 +125,7 @@ export default {
       font-weight: 600;
       .number {
         font-size: 18px;
-        color: #2d8cf0;
+        color: #5384ff;
         margin-left: 6px;
       }
     }

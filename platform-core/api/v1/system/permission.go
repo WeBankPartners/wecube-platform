@@ -547,7 +547,7 @@ func updateRoleToMenusByRoleId(ctx context.Context, roleId, userToken, language 
 	}
 	for code := range menuCodeMap {
 		if _, ok := currentMenuCodeMap[code]; !ok {
-			log.Logger.Info(fmt.Sprintf("create menus:[%s]", code))
+			log.Info(nil, log.LOGGER_APP, fmt.Sprintf("create menus:[%s]", code))
 			roleMenu := models.RoleMenu{
 				Id:       guid.CreateGuid(),
 				RoleName: roleName,
@@ -574,6 +574,10 @@ func tryCalculateUmAuthContext(ctx context.Context) (authContext string, err err
 		return
 	}
 	for _, variables := range list {
+		if strings.TrimSpace(variables.Value) != "" {
+			authContext = variables.Value
+			return
+		}
 		if strings.TrimSpace(variables.DefaultValue) != "" {
 			authContext = variables.DefaultValue
 			return
