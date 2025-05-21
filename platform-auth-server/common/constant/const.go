@@ -33,7 +33,9 @@ const (
 	BearerTokenPrefix    = "Bearer "
 	DefaultJwtSigningKey = "Platform+Auth+Server+Secret"
 
-	DateTimeFormat = "2006-01-02 15:04:05"
+	DateTimeFormat     = "2006-01-02 15:04:05"
+	HEADER_BUSINESS_ID = "BusinessId" // 业务流水号
+	HEADER_REQUEST_ID  = "RequestId"  // 交易流水号
 )
 
 // UserRolePermissionStatus 用户角色权限状态

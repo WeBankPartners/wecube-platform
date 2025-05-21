@@ -4,14 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	"strings"
-	"time"
+	"go.uber.org/zap"
 )
 
 // ProcDefList
@@ -194,7 +196,7 @@ func ProcDefOutline(ctx context.Context, procDefId string) (result *models.ProcD
 		}
 		if strings.TrimSpace(node.ServiceName) != "" {
 			if interfaceObj, err2 := GetSimpleLastPluginInterface(ctx, node.ServiceName); err2 != nil {
-				log.Logger.Error("GetSimpleLastPluginInterface err", log.Error(err2))
+				log.Error(nil, log.LOGGER_APP, "GetSimpleLastPluginInterface err", zap.Error(err2))
 			} else if interfaceObj != nil {
 				nodeObj.FilterRule = interfaceObj.FilterRule
 			}
@@ -260,7 +262,7 @@ func CreateProcPreview(ctx context.Context, previewRows []*models.ProcDataPrevie
 		}})
 	}
 	if err = db.Transaction(actions, ctx); err != nil {
-		log.Logger.Error("CreateProcPreview fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "CreateProcPreview fail", zap.Error(err))
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
@@ -323,10 +325,21 @@ func ProcInsTaskNodeBindings(ctx context.Context, sessionId, taskNodeId string) 
 					nodeBindDataMap[bindRow.ProcDefNodeId] = []*models.ProcDataBinding{bindRow}
 				}
 			}
-			//log.Logger.Debug("nodeBinding", log.JsonObj("notStartNodeMap", notStartNodeMap), log.JsonObj("nodeBindDataMap", nodeBindDataMap))
+			//log.Debug(nil, log.LOGGER_APP,"nodeBinding", log.JsonObj("notStartNodeMap", notStartNodeMap), log.JsonObj("nodeBindDataMap", nodeBindDataMap))
 		}
 		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_preview where proc_session_id=?", sessionId).Find(&previewRows)
 	} else {
+		if strings.HasPrefix(taskNodeId, "pdef_node") {
+			queryRows, queryErr := db.MysqlEngine.Context(ctx).QueryString("select id from proc_def_node where node_id=? and proc_def_id in (select proc_def_id from proc_data_preview where proc_session_id=?)", taskNodeId, sessionId)
+			if queryErr != nil {
+				err = queryErr
+				err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+				return
+			}
+			if len(queryRows) > 0 {
+				taskNodeId = queryRows[0]["id"]
+			}
+		}
 		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_preview where proc_session_id=? and proc_def_node_id=?", sessionId, taskNodeId).Find(&previewRows)
 	}
 	if err != nil {
@@ -380,6 +393,7 @@ func ProcInsTaskNodeBindings(ctx context.Context, sessionId, taskNodeId string) 
 			OrderedNo:           row.OrderedNo,
 			SubPreviewSessionId: row.SubSessionId,
 			SubProcDefId:        subProcDefMap[row.ProcDefNodeId],
+			EntityDisplayName:   row.EntityDataName,
 		}
 		if !row.IsBound {
 			tmpBindingObj.Bound = "N"
@@ -446,19 +460,6 @@ func GetInstanceTaskNodeBindings(ctx context.Context, procInsId, procInsNodeId s
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
-	//if procDefNodeObj.DynamicBind && procInsNodeObj.Status != models.JobStatusRunning {
-	//	dataBindingRows, err = getRecurDynamicBindData(ctx, procInsId, procDefNodeObj.ProcDefId, procDefNodeObj.BindNodeId)
-	//} else {
-	//	if procInsNodeId != "" {
-	//		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_id=? and proc_ins_node_id=?", procInsId, procInsNodeId).Find(&dataBindingRows)
-	//	} else {
-	//		err = db.MysqlEngine.Context(ctx).SQL("select * from proc_data_binding where proc_ins_id=?", procInsId).Find(&dataBindingRows)
-	//	}
-	//	if err != nil {
-	//		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
-	//		return
-	//	}
-	//}
 	result = []*models.TaskNodeBindingObj{}
 	for _, row := range dataBindingRows {
 		if row.ProcDefNodeId == "" {
@@ -489,6 +490,17 @@ func GetInstanceTaskNodeBindings(ctx context.Context, procInsId, procInsNodeId s
 
 func UpdateProcNodeBindingData(ctx context.Context, param []*models.TaskNodeBindingObj, sessionId, taskNodeId, operator string) (err error) {
 	var previewRows []*models.ProcDataPreview
+	if strings.HasPrefix(taskNodeId, "pdef_node") {
+		queryRows, queryErr := db.MysqlEngine.Context(ctx).QueryString("select id from proc_def_node where node_id=? and proc_def_id in (select proc_def_id from proc_data_preview where proc_session_id=?)", taskNodeId, sessionId)
+		if queryErr != nil {
+			err = queryErr
+			err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+			return
+		}
+		if len(queryRows) > 0 {
+			taskNodeId = queryRows[0]["id"]
+		}
+	}
 	err = db.MysqlEngine.Context(ctx).SQL("select id,proc_def_node_id,entity_data_id,entity_data_name,entity_type_id,ordered_no,bind_type,is_bound from proc_data_preview where proc_session_id=? and proc_def_node_id=?", sessionId, taskNodeId).Find(&previewRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
@@ -509,7 +521,7 @@ func UpdateProcNodeBindingData(ctx context.Context, param []*models.TaskNodeBind
 		actions = append(actions, &db.ExecAction{Sql: "update proc_data_preview set is_bound=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{boundFlag, operator, nowTime, v.Id}})
 	}
 	if err = db.Transaction(actions, ctx); err != nil {
-		log.Logger.Error("UpdateProcNodeBindingData fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "UpdateProcNodeBindingData fail", zap.Error(err))
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
@@ -537,7 +549,7 @@ func UpdateProcInsNodeBindingData(ctx context.Context, param []*models.TaskNodeB
 		actions = append(actions, &db.ExecAction{Sql: "update proc_data_binding set bind_flag=?,updated_by=?,updated_time=? where id=?", Param: []interface{}{boundFlag, operator, nowTime, v.Id}})
 	}
 	if err = db.Transaction(actions, ctx); err != nil {
-		log.Logger.Error("UpdateProcInsNodeBindingData fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "UpdateProcInsNodeBindingData fail", zap.Error(err))
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
@@ -803,7 +815,7 @@ func CreateProcInstance(ctx context.Context, procStartParam *models.ProcInsStart
 		workLinks = append(workLinks, &workLinkObj)
 	}
 	if err = db.Transaction(actions, ctx); err != nil {
-		log.Logger.Error("CreateProcInstance fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "CreateProcInstance fail", zap.Error(err))
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
@@ -940,7 +952,7 @@ func CreatePublicProcInstance(ctx context.Context, startParam *models.RequestPro
 		workLinks = append(workLinks, &workLinkObj)
 	}
 	if err = db.Transaction(actions, ctx); err != nil {
-		log.Logger.Error("CreatePublicProcInstance fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "CreatePublicProcInstance fail", zap.Error(err))
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
@@ -1130,7 +1142,7 @@ func GetProcInstance(ctx context.Context, procInsId string) (result *models.Proc
 		defNodeIdNameMap[v.NodeId] = v.Name
 		defNodeAllowContinueMap[v.Id] = v.AllowContinue
 	}
-	log.Logger.Info("defNodeAllowContinueMap", log.JsonObj("data", defNodeAllowContinueMap))
+	log.Info(nil, log.LOGGER_APP, "defNodeAllowContinueMap", log.JsonObj("data", defNodeAllowContinueMap))
 	orderIndex := 1
 	for _, row := range procInsNodeRows {
 		nodeObj := models.ProcInsNodeDetail{
@@ -1249,7 +1261,7 @@ func UpdateDynamicNodeBindData(ctx context.Context, procInsId, procInsNodeId, pr
 	}
 	err = db.Transaction(actions, ctx)
 	if err != nil {
-		log.Logger.Error("UpdateDynamicNodeBindData fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "UpdateDynamicNodeBindData fail", zap.Error(err))
 	}
 	return
 }
@@ -1283,7 +1295,7 @@ func AddProcCacheData(ctx context.Context, procInsId string, dataBinding []*mode
 	if len(actions) > 0 {
 		err = db.Transaction(actions, ctx)
 		if err != nil {
-			log.Logger.Error("AddProcCacheData fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "AddProcCacheData fail", zap.Error(err))
 			err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		}
 	}
@@ -1405,7 +1417,7 @@ func RecordProcCallReq(ctx context.Context, param *models.ProcInsNodeReq, inputF
 	}
 	err = db.Transaction(actions, ctx)
 	if err != nil {
-		log.Logger.Error("RecordProcCallReq fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "RecordProcCallReq fail", zap.Error(err))
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
@@ -1424,7 +1436,7 @@ func RecordCustomReq(ctx context.Context, param *models.ProcInsNodeReq) (err err
 	}
 	err = db.Transaction(actions, ctx)
 	if err != nil {
-		log.Logger.Error("RecordProcCallReq fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "RecordProcCallReq fail", zap.Error(err))
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 	}
 	return
@@ -1653,7 +1665,7 @@ func getProcNodeOperator(ctx context.Context, procInsNodeId string, index int) (
 	var operationRows []*models.ProcRunOperation
 	err := db.MysqlEngine.Context(ctx).SQL("select * from proc_run_operation where node_id in (select id from proc_run_node where proc_ins_node_id=?) order by created_time desc", procInsNodeId).Find(&operationRows)
 	if err != nil {
-		log.Logger.Error("getProcNodeOperator query row fail", log.String("procInsNodeId", procInsNodeId), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "getProcNodeOperator query row fail", zap.String("procInsNodeId", procInsNodeId), zap.Error(err))
 		return
 	}
 	for j, row := range operationRows {
@@ -1665,7 +1677,7 @@ func getProcNodeOperator(ctx context.Context, procInsNodeId string, index int) (
 	// 用 proc_ins_node创建人兜底
 	if operator == "" {
 		if _, err = db.MysqlEngine.Context(ctx).SQL("select created_by from proc_ins_node  where id=?", procInsNodeId).Get(&operator); err != nil {
-			log.Logger.Error("getProcNodeOperator get proc_ins_node fail", log.String("procInsNodeId", procInsNodeId), log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "getProcNodeOperator get proc_ins_node fail", zap.String("procInsNodeId", procInsNodeId), zap.Error(err))
 			return
 		}
 	}
@@ -1702,7 +1714,7 @@ func getInterfaceDataByDataType(valueString, dataType, name string, multiple, is
 		output = valueString
 	}
 	if err != nil {
-		log.Logger.Error("getInterfaceDataByDataType error", log.String("value", valueString), log.String("dataType", dataType), log.String("name", name), log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "getInterfaceDataByDataType error", zap.String("value", valueString), zap.String("dataType", dataType), zap.String("name", name), zap.Error(err))
 	}
 	return
 }
@@ -1836,7 +1848,7 @@ func UpdateProcCacheDataByTaskForm(ctx context.Context, procInsId string, taskFo
 	if len(actions) > 0 {
 		err = db.Transaction(actions, ctx)
 		if err != nil {
-			log.Logger.Error("UpdateProcCacheData fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "UpdateProcCacheData fail", zap.Error(err))
 			err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		}
 	}
@@ -1913,7 +1925,7 @@ func RewriteProcInsEntityDataNew(ctx context.Context, procInsId string, rewriteD
 	if len(actions) > 0 {
 		err = db.Transaction(actions, ctx)
 		if err != nil {
-			log.Logger.Error("RewriteProcInsEntityDataNew fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "RewriteProcInsEntityDataNew fail", zap.Error(err))
 			err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		}
 	}
@@ -1948,7 +1960,9 @@ func QueryProcInsPage(ctx context.Context, param *models.QueryProcPageParam, use
 		filterParams = append(filterParams, param.ProcDefId)
 	}
 	if param.Status != "" {
-		if strings.HasPrefix(param.Status, "InProgress(") {
+		if param.Status == "InProgress(all)" {
+			param.Status = models.JobStatusRunning
+		} else if strings.HasPrefix(param.Status, "InProgress(") {
 			nodeStatus := param.Status[11 : len(param.Status)-1]
 			param.Status = models.JobStatusRunning
 			filterSqlList = append(filterSqlList, "id in (select proc_ins_id from proc_ins_node where status in (?))")
@@ -2257,7 +2271,7 @@ func UpdateProcRunNodeSubProc(ctx context.Context, procRunNodeId string, subProc
 	}
 	err = db.Transaction(actions, ctx)
 	if err != nil {
-		log.Logger.Error("UpdateProcRunNodeSubProc fail", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "UpdateProcRunNodeSubProc fail", zap.Error(err))
 	}
 	return
 }
@@ -2427,7 +2441,7 @@ func UpdateProcCacheData(ctx context.Context, procInsId string, dataBinding []*m
 						entityDataBytes, _ := json.Marshal(existMap)
 						actions = append(actions, &db.ExecAction{Sql: "update proc_data_cache set data_value=?,updated_time=? where id=?", Param: []interface{}{string(entityDataBytes), nowTime, existCacheId}})
 					} else {
-						log.Logger.Warn("json unmarshal proc data cache dataValue fail", log.String("dataValue", existCacheValue), log.Error(tmpUnmarshalErr))
+						log.Warn(nil, log.LOGGER_APP, "json unmarshal proc data cache dataValue fail", zap.String("dataValue", existCacheValue), zap.Error(tmpUnmarshalErr))
 					}
 				}
 			}
@@ -2436,7 +2450,7 @@ func UpdateProcCacheData(ctx context.Context, procInsId string, dataBinding []*m
 	if len(actions) > 0 {
 		err = db.Transaction(actions, ctx)
 		if err != nil {
-			log.Logger.Error("UpdateProcCacheData fail", log.Error(err))
+			log.Error(nil, log.LOGGER_APP, "UpdateProcCacheData fail", zap.Error(err))
 			err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		}
 	}
@@ -2452,6 +2466,32 @@ func CheckProcSubRunning(ctx context.Context, procRunNodeId string) (runningRows
 	err = db.MysqlEngine.Context(ctx).SQL("select t1.id,t1.workflow_id from proc_run_node_sub_proc t1 left join proc_run_workflow t2 on t1.workflow_id=t2.id where t1.proc_run_node_id=? and t2.status=?", procRunNodeId, models.JobStatusRunning).Find(&runningRows)
 	if err != nil {
 		err = fmt.Errorf("query proc run node sub proc table fail,%s ", err.Error())
+	}
+	return
+}
+
+func GetProcInstanceBySessionId(ctx context.Context, sessionId string) (procInsId string, err error) {
+	var result []string
+	err = db.MysqlEngine.Context(ctx).SQL("select id  from proc_ins where proc_session_id=?", sessionId).Find(&result)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(result) > 0 {
+		procInsId = result[0]
+	}
+	return
+}
+
+func GetProcDefBySessionId(ctx context.Context, sessionId string) (procDefId string) {
+	var rows []*models.ProcDataPreview
+	err := db.MysqlEngine.Context(ctx).SQL("select proc_def_id from proc_data_preview where proc_session_id=?", sessionId).Find(&rows)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "get proc def by proc session id fail", zap.String("sessionId", sessionId), zap.Error(err))
+		return
+	}
+	if len(rows) > 0 {
+		procDefId = rows[0].ProcDefId
 	}
 	return
 }

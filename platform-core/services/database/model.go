@@ -3,13 +3,15 @@ package database
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
-	"strings"
-	"time"
+	"go.uber.org/zap"
 )
 
 func GetDataModels(ctx context.Context, pluginPackage string, withAttr bool) (result []*models.DataModel, err error) {
@@ -40,8 +42,10 @@ func GetDataModels(ctx context.Context, pluginPackage string, withAttr bool) (re
 	}
 	modelEntityMap := make(map[string][]*models.DataModelEntity)
 	entityIdMap := make(map[string]*models.DataModelEntity)
+	entityRefIdMap := make(map[string]string)
 	for _, row := range entityRows {
 		entityIdMap[row.Id] = &models.DataModelEntity{PluginPackageEntities: *row, ReferenceByEntityList: []*models.DataModelRefEntity{}, ReferenceToEntityList: []*models.DataModelRefEntity{}}
+		entityRefIdMap[fmt.Sprintf("%s__%s", row.PackageName, row.Name)] = row.Id
 	}
 	if withAttr {
 		var entityAttrRows []*models.PluginPackageAttributes
@@ -51,28 +55,34 @@ func GetDataModels(ctx context.Context, pluginPackage string, withAttr bool) (re
 			return
 		}
 		entityAttrMap := make(map[string][]*models.PluginPackageAttributes)
-		entityIdDataMap := make(map[string]string)
+		// entityIdDataMap := make(map[string]string)
 		for _, row := range entityAttrRows {
 			if mapData, ok := entityAttrMap[row.EntityId]; ok {
 				entityAttrMap[row.EntityId] = append(mapData, row)
 			} else {
 				entityAttrMap[row.EntityId] = []*models.PluginPackageAttributes{row}
 			}
-			if row.Name == "id" {
-				entityIdDataMap[row.Id] = row.EntityId
-			}
+			// if row.Name == "id" {
+			// 	entityIdDataMap[row.Id] = row.EntityId
+			// }
 		}
 		for _, entityObj := range entityIdMap {
 			if attrList, ok := entityAttrMap[entityObj.Id]; ok {
 				entityObj.Attributes = attrList
 				tmpRefToList := []*models.DataModelRefEntity{}
 				for _, attrObj := range attrList {
-					if attrObj.ReferenceId != "" {
-						if refEntity, refOk := entityIdMap[entityIdDataMap[attrObj.ReferenceId]]; refOk {
+					if attrObj.RefPackage != "" && attrObj.RefEntity != "" {
+						if refEntity, refOk := entityIdMap[entityRefIdMap[fmt.Sprintf("%s__%s", attrObj.RefPackage, attrObj.RefEntity)]]; refOk {
 							tmpRefToList = append(tmpRefToList, &models.DataModelRefEntity{PluginPackageEntities: refEntity.PluginPackageEntities, RelatedAttribute: attrObj})
 							refEntity.ReferenceByEntityList = append(refEntity.ReferenceByEntityList, &models.DataModelRefEntity{PluginPackageEntities: entityObj.PluginPackageEntities, RelatedAttribute: attrObj})
 						}
 					}
+					// if attrObj.ReferenceId != "" {
+					// 	if refEntity, refOk := entityIdMap[entityIdDataMap[attrObj.ReferenceId]]; refOk {
+					// 		tmpRefToList = append(tmpRefToList, &models.DataModelRefEntity{PluginPackageEntities: refEntity.PluginPackageEntities, RelatedAttribute: attrObj})
+					// 		refEntity.ReferenceByEntityList = append(refEntity.ReferenceByEntityList, &models.DataModelRefEntity{PluginPackageEntities: entityObj.PluginPackageEntities, RelatedAttribute: attrObj})
+					// 	}
+					// }
 				}
 				entityObj.ReferenceToEntityList = tmpRefToList
 			} else {
@@ -293,7 +303,7 @@ func SyncPluginDataModels(ctx context.Context, packageName string, allModels []*
 func getLatestDataModelAttrId(ctx context.Context, packageName, entityName, attrName string) (attrId string) {
 	queryResult, queryErr := db.MysqlEngine.Context(ctx).QueryString("select t1.id from plugin_package_attributes t1 left join plugin_package_entities t2 on t1.entity_id=t2.id where t2.package_name=? and t2.name=? and t1.name=? order by t2.data_model_version desc limit 1", packageName, entityName, attrName)
 	if queryErr != nil {
-		log.Logger.Error("getLatestDataModelAttrId fail", log.String("package", packageName), log.String("entity", entityName), log.String("attr", attrName), log.Error(queryErr))
+		log.Error(nil, log.LOGGER_APP, "getLatestDataModelAttrId fail", zap.String("package", packageName), zap.String("entity", entityName), zap.String("attr", attrName), zap.Error(queryErr))
 		return
 	}
 	if len(queryResult) > 0 {

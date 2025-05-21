@@ -115,7 +115,6 @@ export default G6 => {
                 draggable: true,
                 className
               })
-
               icon.toFront()
               item = group.$getItem(className)
             }

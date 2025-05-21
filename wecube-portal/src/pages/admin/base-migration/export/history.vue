@@ -93,17 +93,17 @@ export default {
             {
               label: this.$t('fe_inProgress'),
               value: 'doing',
-              color: '#2d8cf0'
+              color: '#5384ff'
             },
             {
               label: this.$t('be_success'),
               value: 'success',
-              color: '#19be6b'
+              color: '#00cb91'
             },
             {
               label: this.$t('be_error'),
               value: 'fail',
-              color: '#ed4014'
+              color: '#ff4d4f'
             }
           ]
         },
@@ -174,17 +174,17 @@ export default {
               {
                 label: this.$t('fe_inProgress'),
                 value: 'doing',
-                color: '#2d8cf0'
+                color: '#5384ff'
               },
               {
                 label: this.$t('be_success'),
                 value: 'success',
-                color: '#19be6b'
+                color: '#00cb91'
               },
               {
                 label: this.$t('be_error'),
                 value: 'fail',
-                color: '#ed4014'
+                color: '#ff4d4f'
               }
             ]
             const findObj = list.find(item => item.value === params.row.status) || {}

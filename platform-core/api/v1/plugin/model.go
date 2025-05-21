@@ -2,15 +2,18 @@ package plugin
 
 import (
 	"fmt"
+	"net/http"
+	"reflect"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"reflect"
-	"strings"
 )
 
 // GetPluginModels 插件配置 - 数据模型
@@ -173,6 +176,79 @@ func QueryExpressionData(c *gin.Context) {
 	} else {
 		filterResult = result
 	}
+	// 对 filterResult 进行排序,默认按guid 或者id倒序
+	if param.Sorting == nil {
+		param.Sorting = []*models.QueryRequestSorting{
+			{
+				Asc:   false,
+				Field: "guid",
+			},
+			{
+				Asc:   false,
+				Field: "id",
+			},
+		}
+	}
+	sort.SliceStable(filterResult, func(i, j int) bool {
+		for _, sorting := range param.Sorting {
+			valueI := filterResult[i][sorting.Field]
+			valueJ := filterResult[j][sorting.Field]
+			if valueJ == nil || valueJ == nil {
+				continue
+			}
+			switch vI := valueI.(type) {
+			case string:
+				vJ, ok := valueJ.(string)
+				if !ok {
+					return false
+				}
+				// 时间类型
+				if ti, err := time.Parse(models.DateTimeFormat, vI); err == nil {
+					tj, _ := time.Parse(models.DateTimeFormat, vJ)
+					if (sorting.Asc && ti.Before(tj)) || (!sorting.Asc && ti.After(tj)) {
+						return true
+					} else {
+						return false
+					}
+				}
+				if sorting.Asc {
+					return vI < vJ
+				}
+				return vI > vJ
+			case int:
+				vJ, ok := valueJ.(int)
+				if !ok {
+					return false
+				}
+				if sorting.Asc {
+					return vI < vJ
+				}
+				return vI > vJ
+			case int64:
+				vJ, ok := valueJ.(int64)
+				if !ok {
+					return false
+				}
+				if sorting.Asc {
+					return vI < vJ
+				}
+				return vI > vJ
+			case float64:
+				vJ, ok := valueJ.(float64)
+				if !ok {
+					return false
+				}
+				if sorting.Asc {
+					return vI < vJ
+				}
+				return vI > vJ
+			default:
+				return false
+			}
+		}
+		return false
+	})
+
 	// 数据分页
 	if param.PageSize > 0 {
 		pageInfo := models.PageInfo{

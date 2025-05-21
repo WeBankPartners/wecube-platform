@@ -59,7 +59,7 @@
                   <div slot="content" style="padding: 3px 0px">
                     <div v-for="i in flowData.request" :key="i.id" style="padding: 3px 0">
                       <Icon type="md-person"></Icon>
-                      <span style="color: #2d8cf0; cursor: pointer" @click="handleLinkItsmDetail(i)">{{ i.name }}</span>
+                      <span style="color: #5384ff; cursor: pointer" @click="handleLinkItsmDetail(i)">{{ i.name }}</span>
                     </div>
                   </div>
                 </Poptip>
@@ -108,6 +108,7 @@
                   :loading="btnLoading"
                   type="info"
                   @click="excutionFlow"
+                  style="margin-left: 6px"
                 >{{ $t('execute') }}</Button>
               </FormItem>
             </Col>
@@ -183,7 +184,7 @@
       </template>
       <template slot="footer">
         <Button type="default" @click="flowNodesWithDataModalVisible = false">{{ $t('bc_cancel') }}</Button>
-        <Button type="primary" @click="flowNodesTargetModelConfirm">{{ $t('submit') }}</Button>
+        <Button type="primary" @click="flowNodesTargetModelConfirm" style="margin-left:8px;">{{ $t('submit') }}</Button>
       </template>
     </BaseDrawer>
     <!--右侧预览弹窗(新建、查看)-->
@@ -405,6 +406,7 @@
           type="primary"
           :disabled="isNodeCanBindData && !['Faulted', 'Timeouted'].includes(currentNodeStatus)"
           @click="retryTargetModelConfirm"
+          style="margin-left:8px;"
         >{{ $t('submit') }}</Button>
       </div>
     </Modal>
@@ -488,7 +490,7 @@
       </template>
       <template slot="footer">
         <Button @click="targetModalVisible = false">{{ $t('cancel') }}</Button>
-        <Button type="primary" :disabled="isNodeCanBindData" @click="targetModelConfirm(false)">{{
+        <Button type="primary" :disabled="isNodeCanBindData" @click="targetModelConfirm(false)" style="margin-left:8px;">{{
           $t('submit')
         }}</Button>
       </template>
@@ -514,11 +516,11 @@
         <pre style="margin-left: 44px; margin-top: 22px">{{ this.confirmModal.message }}</pre>
       </div>
       <div slot="footer">
-        <span style="margin-left: 30px; color: #ed4014; float: left; text-align: left">
+        <span style="margin-left: 30px; color: #ff4d4f; float: left; text-align: left">
           <Checkbox v-model="confirmModal.check">{{ $t('dangerous_confirm_tip') }}</Checkbox>
         </span>
         <Button type="text" @click="confirmModal.isShowConfirmModal = false">{{ $t('bc_cancel') }}</Button>
-        <Button type="warning" :disabled="!confirmModal.check" @click="confirmToExecution">{{
+        <Button type="warning" :disabled="!confirmModal.check" @click="confirmToExecution" style="margin-left:8px;">{{
           $t('bc_confirm')
         }}</Button>
       </div>
@@ -580,7 +582,7 @@
       </Form>
       <div slot="footer">
         <Button type="text" @click="timeConfig.isShow = false">{{ $t('bc_cancel') }}</Button>
-        <Button type="primary" @click="saveTime">{{ $t('save') }}</Button>
+        <Button type="primary" @click="saveTime" style="margin-left:8px;">{{ $t('save') }}</Button>
       </div>
     </Modal>
     <!--日志查看input列嵌套详情弹框(查看)-->
@@ -904,7 +906,7 @@ export default {
                         <Icon
                           type="md-search"
                           onClick={() => this.handleClick(key, value)}
-                          style="cursor:pointer;color:#2d8cf0"
+                          style="cursor:pointer;color:#5384ff"
                         />
                         {key}: <span style="color:#42b983;">{value}</span>
                       </div>
@@ -1776,33 +1778,33 @@ export default {
         this.isShowNonOwnerModal = true
       }
     },
-    queryHistory() {
-      this.selectedTarget = null
-      this.stop()
-      this.isEnqueryPage = true
-      this.showExcution = false
-      this.selectedFlow = ''
-      this.modelData = []
-      this.flowData = {}
-      this.$nextTick(() => {
-        this.initModelGraph()
-        this.initFlowGraph()
-      })
-    },
-    createHandler() {
-      this.selectedTarget = null
-      this.stop()
-      this.isEnqueryPage = false
-      this.selectedFlowInstance = ''
-      this.selectedFlow = ''
-      this.modelData = []
-      this.flowData = {}
-      this.showExcution = false
-      this.$nextTick(() => {
-        this.initModelGraph()
-        this.initFlowGraph()
-      })
-    },
+    // queryHistory() {
+    //   this.selectedTarget = null
+    //   this.stop()
+    //   this.isEnqueryPage = true
+    //   this.showExcution = false
+    //   this.selectedFlow = ''
+    //   this.modelData = []
+    //   this.flowData = {}
+    //   this.$nextTick(() => {
+    //     this.initModelGraph()
+    //     this.initFlowGraph()
+    //   })
+    // },
+    // createHandler() {
+    //   this.selectedTarget = null
+    //   this.stop()
+    //   this.isEnqueryPage = false
+    //   this.selectedFlowInstance = ''
+    //   this.selectedFlow = ''
+    //   this.modelData = []
+    //   this.flowData = {}
+    //   this.showExcution = false
+    //   this.$nextTick(() => {
+    //     this.initModelGraph()
+    //     this.initFlowGraph()
+    //   })
+    // },
     clearTarget() {
       this.isExecuteActive = false
       this.showExcution = false
@@ -1946,7 +1948,7 @@ export default {
         + genEdge()
         + '}'
       this.reloadGraph()
-      this.graph.graphviz.transition().renderDot(nodesString)
+      this.graph.graphviz.renderDot(nodesString)
       // .on('end', this.setFontSizeForText)
       removeEvent('.model text', 'click', this.modelGraphClickHandler)
       removeEvent('#graph svg', 'click', this.resetcurrentModelNodeRefs)
@@ -2098,7 +2100,7 @@ export default {
               excution
                 ? statusColor[_.status] || '#7F8A96'
                 : isModelClick
-                  ? '#ff9900'
+                  ? '#f29360'
                   : _.nodeId === this.currentFlowNodeId
                     ? '#5DB400'
                     : '#7F8A96'
@@ -2176,9 +2178,9 @@ export default {
             removeEvent('.time-node', 'click', this.timeNodeHandler)
             removeEvent('.decision-node', 'click', this.executeBranchHandler)
           }
+           // 新建执行-节点绑定事件
+           this.bindFlowEvent()
         })
-      // 新建执行-节点绑定事件
-      this.bindFlowEvent()
     },
     async excutionFlow() {
       // 区分已存在的flowInstance执行 和 新建的执行
@@ -2249,8 +2251,8 @@ export default {
         }
         if (previewRes.data && previewRes.data.length > 0) {
           this.$Modal.confirm({
-            title: '执行数据为空',
-            content: `编排节点:【${previewRes.data.join('，')}】数据为空，是否继续执行？`,
+            title: this.$t('workflow_empty_running'),
+            content: `${this.$t('workflow_task_node_aspect')}:【${previewRes.data.join('，')}】${this.$t('workflow_empty_running_tip')}`,
             'z-index': 1000000,
             loading: true,
             onOk: async () => {
@@ -2739,24 +2741,24 @@ export default {
       }
       initEvent()
     },
-    initModelGraph() {
-      const graphEl = document.getElementById('graph')
-      const initEvent = () => {
-        const graph = d3.select('#graph')
-        graph.on('dblclick.zoom', null).on('wheel.zoom', null)
-          .on('mousewheel.zoom', null)
-        this.graph.graphviz = graph
-          .graphviz()
-          .fit(true)
-          .zoom(true)
-          .height(graphEl.offsetHeight - 10)
-          .width(graphEl.offsetWidth - 10)
-      }
-      initEvent()
-      this.formatRefNodeIds()
-      this.renderModelGraph()
-    },
-    initFlowGraph(excution = false) {
+    // initModelGraph() {
+    //   const graphEl = document.getElementById('graph')
+    //   const initEvent = () => {
+    //     const graph = d3.select('#graph')
+    //     graph.on('dblclick.zoom', null).on('wheel.zoom', null)
+    //       .on('mousewheel.zoom', null)
+    //     this.graph.graphviz = graph
+    //       .graphviz()
+    //       .fit(true)
+    //       .zoom(true)
+    //       .height(graphEl.offsetHeight - 10)
+    //       .width(graphEl.offsetWidth - 10)
+    //   }
+    //   initEvent()
+    //   this.formatRefNodeIds()
+    //   this.renderModelGraph()
+    // },
+    initFlowGraph: debounce(function(excution = false) {
       const graphEl = document.getElementById('flow')
       const graph = d3.select('#flow')
       graph.on('dblclick.zoom', null)
@@ -2767,7 +2769,7 @@ export default {
         .height(graphEl.offsetHeight - 10)
         .width(graphEl.offsetWidth - 10)
       this.renderFlowGraph(excution)
-    },
+    }, 300),
     zoomModal() {
       this.tableMaxHeight = document.body.scrollHeight - 410
       this.nodeDetailFullscreen = true
@@ -2896,7 +2898,7 @@ export default {
       height: 24px;
       color: #fff;
       border-radius: 2px;
-      background: #2d8cf0;
+      background: #5384ff;
     }
     .name {
       font-size: 16px;

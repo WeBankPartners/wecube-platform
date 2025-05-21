@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"strconv"
 	"sync"
 	"time"
@@ -51,14 +52,14 @@ func Init() error {
 			select {
 			case t := <-loadRouteTicker.C:
 				startTime := time.Now()
-				log.Logger.Debug("loading routers", log.String("ticker", fmt.Sprintf("%v", t)))
+				log.Debug(nil, log.LOGGER_APP, "loading routers", zap.String("ticker", fmt.Sprintf("%v", t)))
 				DynamicRouteConfigurationServiceInstance.loadRoutes()
-				log.Logger.Debug("end of loading routers", log.String("ticker", fmt.Sprintf("%v", t)),
-					log.Int64("cost_ms", time.Now().Sub(startTime).Milliseconds()))
+				log.Debug(nil, log.LOGGER_APP, "end of loading routers", zap.String("ticker", fmt.Sprintf("%v", t)),
+					zap.Int64("cost_ms", time.Now().Sub(startTime).Milliseconds()))
 			}
 		}
 	}()
-	log.Logger.Info(fmt.Sprintf("loadRouterTicker is created (interval is %d secs)", retryIntervalOfSeconds))
+	log.Info(nil, log.LOGGER_APP, fmt.Sprintf("loadRouterTicker is created (interval is %d secs)", retryIntervalOfSeconds))
 
 	refreshTicker = time.NewTicker(time.Duration(refreshIntervalOfMinutes) * time.Minute)
 	go func() {
@@ -66,30 +67,30 @@ func Init() error {
 			select {
 			case t := <-refreshTicker.C:
 				startTime := time.Now()
-				log.Logger.Debug("refreshing routers", log.String("ticker", fmt.Sprintf("%v", t)))
+				log.Debug(nil, log.LOGGER_APP, "refreshing routers", zap.String("ticker", fmt.Sprintf("%v", t)))
 				DynamicRouteConfigurationServiceInstance.RefreshRoutes()
-				log.Logger.Debug("end of refreshing routers", log.String("ticker", fmt.Sprintf("%v", t)),
-					log.Int64("cost_ms", time.Now().Sub(startTime).Milliseconds()))
+				log.Debug(nil, log.LOGGER_APP, "end of refreshing routers", zap.String("ticker", fmt.Sprintf("%v", t)),
+					zap.Int64("cost_ms", time.Now().Sub(startTime).Milliseconds()))
 			}
 		}
 	}()
-	log.Logger.Info(fmt.Sprintf("refreshRouterTicker is created (interval is %d mins)", refreshIntervalOfMinutes))
+	log.Info(nil, log.LOGGER_APP, fmt.Sprintf("refreshRouterTicker is created (interval is %d mins)", refreshIntervalOfMinutes))
 
 	//return DynamicRouteConfigurationServiceInstance.doLoadRoutes()
 	return nil
 }
 
 func (d *DynamicRouteConfigurationService) loadRoutes() {
-	log.Logger.Info("load routes  ------  ")
+	log.Info(nil, log.LOGGER_APP, "load routes  ------  ")
 	//sync.Mutex is not reentrant
 	/*	if !d.loadLock.TryLock() {
-			log.Logger.Debug("cannot acquire the lock.")
+			log.Debug(nil, log.LOGGER_APP,"cannot acquire the lock.")
 			return
 		}
 		defer d.loadLock.Unlock()
 	*/
 	if d.isDynamicRouteLoaded {
-		log.Logger.Info(fmt.Sprintf("isDynamicRouteLoaded:%v", d.isDynamicRouteLoaded))
+		log.Info(nil, log.LOGGER_APP, fmt.Sprintf("isDynamicRouteLoaded:%v", d.isDynamicRouteLoaded))
 
 		loadRouteTicker.Stop()
 		/*if (!loadDisposable.isDisposed()) {
@@ -101,11 +102,11 @@ func (d *DynamicRouteConfigurationService) loadRoutes() {
 	}
 
 	if d.isDynamicRouteLoading {
-		log.Logger.Info("Routes is loading ...")
+		log.Info(nil, log.LOGGER_APP, "Routes is loading ...")
 		return
 	}
 
-	log.Logger.Info("try to do load routes --- ")
+	log.Info(nil, log.LOGGER_APP, "try to do load routes --- ")
 	if err := d.doLoadRoutes(); err != nil {
 		d.isDynamicRouteLoading = false
 		d.isDynamicRouteLoaded = false
@@ -366,17 +367,17 @@ type DynamicRouteConfigurationService struct {
 }
 
 func (d *DynamicRouteConfigurationService) DeleteRouteItem(routeContext string) {
-	log.Logger.Info(fmt.Sprintf("to delete route item:%v", routeContext))
+	log.Info(nil, log.LOGGER_APP, fmt.Sprintf("to delete route item:%v", routeContext))
 	routeId := routeContext //+ ROUTE_ID_SUFFIX
 
 	if _, found := d.loadedContexts.Load(routeId); !found {
-		log.Logger.Debug(fmt.Sprintf("such context route does not exist. context=%v", routeId))
+		log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("such context route does not exist. context=%v", routeId))
 		return
 	}
 
 	delete(routeContext)
 	d.loadedContexts.Delete(routeId)
-	log.Logger.Info(fmt.Sprintf("delete result:%v", routeId))
+	log.Info(nil, log.LOGGER_APP, fmt.Sprintf("delete result:%v", routeId))
 
 }
 
@@ -392,7 +393,7 @@ func (d *DynamicRouteConfigurationService) RefreshRoutes() {
 }
 
 func (d *DynamicRouteConfigurationService) doLoadRoutes() error {
-	log.Logger.Info("start to load routes...")
+	log.Info(nil, log.LOGGER_APP, "start to load routes...")
 
 	d.loadLock.Lock()
 	defer d.loadLock.Unlock()
@@ -400,7 +401,7 @@ func (d *DynamicRouteConfigurationService) doLoadRoutes() error {
 	d.isDynamicRouteLoading = true
 	routeItems, err := remote_route_config.FetchAllRouteItemsWithRestClient()
 	if err != nil {
-		log.Logger.Error("failed to fetch all route items", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to fetch all route items", zap.Error(err))
 		return err
 	}
 	d.handleLoadRouteConfigInfoResponseDto(routeItems)
@@ -409,10 +410,10 @@ func (d *DynamicRouteConfigurationService) doLoadRoutes() error {
 }
 
 func (d *DynamicRouteConfigurationService) doRefreshRoutes() {
-	log.Logger.Info("About to fetch route item")
+	log.Info(nil, log.LOGGER_APP, "About to fetch route item")
 	routeItems, err := remote_route_config.FetchAllRouteItemsWithRestClient()
 	if err != nil {
-		log.Logger.Error("failed to fetch all route items", log.Error(err))
+		log.Error(nil, log.LOGGER_APP, "failed to fetch all route items", zap.Error(err))
 		return
 	}
 	d.handleRefreshRouteConfigInfoResponse(routeItems)
@@ -436,7 +437,7 @@ func (d *DynamicRouteConfigurationService) initContextRouteConfigs() {
 	for _, contextRouteConfig := range contextRouteConfigs {
 		/*		_, ok := DynamicRouteConfigurationServiceInstance.loadedContexts.Load(contextRouteConfig.Context) // + ROUTE_ID_SUFFIX
 				if ok {
-					log.Logger.Debug("context route is already loaded ", log.String("context", contextRouteConfig.Context))
+					log.Debug(nil, log.LOGGER_APP,"context route is already loaded ", zap.String("context", contextRouteConfig.Context))
 					continue
 				}
 		*/
@@ -445,13 +446,13 @@ func (d *DynamicRouteConfigurationService) initContextRouteConfigs() {
 		}
 	}
 	d.refreshAllLoadedContexts()
-	log.Logger.Debug(fmt.Sprintf("add %v route definitions", count))
+	log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("add %v route definitions", count))
 }
 
 func initContextRouteConfig(contextRouteConfig *MvcContextRouteConfig) bool {
 	defaultHttpDestinations := contextRouteConfig.DefaultHttpDestinations
 	if len(defaultHttpDestinations) == 0 {
-		log.Logger.Warn("Cannot find default http destination for " + contextRouteConfig.Context)
+		log.Warn(nil, log.LOGGER_APP, "Cannot find default http destination for "+contextRouteConfig.Context)
 		return false
 	}
 
@@ -510,7 +511,7 @@ func (d *DynamicRouteConfigurationService) handleLoadRouteConfigInfoResponseDto(
 	/*	d.loadLock.Lock()
 		defer d.loadLock.Unlock()
 	*/
-	log.Logger.Debug(fmt.Sprintf("size:%v", len(routeItemInfoDtos)))
+	log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("size:%v", len(routeItemInfoDtos)))
 
 	routeItemInfos := parseRouteConfigInfoResponse(routeItemInfoDtos)
 
@@ -520,7 +521,7 @@ func (d *DynamicRouteConfigurationService) handleLoadRouteConfigInfoResponseDto(
 	d.isDynamicRouteLoading = false
 	d.isDynamicRouteLoaded = true
 
-	log.Logger.Info(fmt.Sprintf("ROUTES loaded successfully, total size:%v", len(routeItemInfoDtos)))
+	log.Info(nil, log.LOGGER_APP, fmt.Sprintf("ROUTES loaded successfully, total size:%v", len(routeItemInfoDtos)))
 }
 
 func (d *DynamicRouteConfigurationService) handleRefreshRouteConfigInfoResponse(routeItemDtos []*model.RouteItemInfoDto) {
@@ -538,7 +539,7 @@ func (d *DynamicRouteConfigurationService) handleRefreshRouteConfigInfoResponse(
 		contextRouteId := config.Context //+ ROUTE_ID_SUFFIX
 		if _, ok := DynamicRouteConfigurationServiceInstance.loadedContexts.Load(contextRouteId); ok {
 			delete(contextRouteId)
-			log.Logger.Info("outdated context route:" + contextRouteId)
+			log.Info(nil, log.LOGGER_APP, "outdated context route:"+contextRouteId)
 
 			DynamicRouteConfigurationServiceInstance.loadedContexts.Delete(contextRouteId)
 		}

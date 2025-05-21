@@ -1,4 +1,4 @@
-# github.com/WeBankPartners/go-common-lib v1.1.5
+# github.com/WeBankPartners/go-common-lib v1.1.8
 ## explicit; go 1.17
 github.com/WeBankPartners/go-common-lib/cipher
 github.com/WeBankPartners/go-common-lib/guid
@@ -132,7 +132,7 @@ github.com/pelletier/go-toml/v2/internal/characters
 github.com/pelletier/go-toml/v2/internal/danger
 github.com/pelletier/go-toml/v2/internal/tracker
 github.com/pelletier/go-toml/v2/unstable
-# github.com/petermattis/goid v0.0.0-20231126143041-f558c26febf5
+# github.com/petermattis/goid v0.0.0-20250121172306-05bcfb9a85dc
 ## explicit; go 1.17
 github.com/petermattis/goid
 # github.com/rs/xid v1.5.0

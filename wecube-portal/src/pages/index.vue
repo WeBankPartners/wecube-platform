@@ -11,7 +11,11 @@
       </Breadcrumb>
       <router-view class="pages" style="padding: 0"></router-view>
     </div>
-    <BackTop :height="100" :bottom="100" />
+    <BackTop :height="100" :bottom="100">
+      <div class="w-back-top">
+        <img :src="fesUpIcon" style="width: 24px" />
+      </div>
+    </BackTop>
   </div>
 </template>
 <script>
@@ -19,6 +23,7 @@ import Header from './components/header'
 import { MENUS } from '../const/menus.js'
 import { watermark } from '../const/waterMark.js'
 import dayjs from 'dayjs'
+import fesUpIcon from '@/assets/icon/fes_up.svg'
 export default {
   components: {
     Header
@@ -29,7 +34,8 @@ export default {
       allMenusAry: [],
       parentBreadcrumb: '-',
       childBreadcrumb: '',
-      expandSideMenu: false
+      expandSideMenu: false,
+      fesUpIcon
     }
   },
   computed: {
@@ -44,14 +50,14 @@ export default {
     document.querySelectorAll('.maskDiv').forEach(element => {
       element.remove()
     })
-    watermark({
-      watermark_txt: 'WeCube: ' + localStorage.getItem('username') + ' ' + dayjs().format('YYYY-MM-DD HH:mm:ss'),
-      watermark_fontsize: '16px',
-      watermark_x_space: 300,
-      watermark_y_space: 100,
-      watermark_y: 200,
-      watermark_alpha: 0.2
-    })
+    this.generateWatermark()
+
+    // 添加窗口大小变化监听器
+    window.addEventListener('resize', this.debounce(this.handleResize, 200))
+  },
+  beforeDestroy() {
+    // 移除窗口大小变化监听器
+    window.removeEventListener('resize', this.debounce(this.handleResize, 200))
   },
   methods: {
     allMenus(data) {
@@ -97,6 +103,30 @@ export default {
     homePageClickHandler() {
       window.needReLoad = false
       this.$router.push('/homepage')
+    },
+    debounce(func, wait) {
+      let timeout
+      return function(...args) {
+        const context = this
+        clearTimeout(timeout)
+        timeout = setTimeout(() => func.apply(context, args), wait)
+      }
+    },
+    generateWatermark() {
+      document.querySelectorAll('.maskDiv').forEach(element => {
+        element.remove()
+      })
+      watermark({
+        watermark_txt: 'WeCube: ' + localStorage.getItem('username') + ' ' + dayjs().format('YYYY-MM-DD HH:mm:ss'),
+        watermark_fontsize: '16px',
+        watermark_x_space: 300,
+        watermark_y_space: 100,
+        watermark_y: 200,
+        watermark_alpha: 0.2
+      })
+    },
+    handleResize() {
+      this.generateWatermark()
     }
   },
   created() {
@@ -181,7 +211,7 @@ html {
     margin-right: 4px;
     line-height: 1;
     font-size: 12px;
-    color: #ed4014;
+    color: #ff4d4f;
   }
 }
 // to show table x direction scroll bar
@@ -197,5 +227,19 @@ html {
 }
 .ivu-form-item {
   margin-bottom: 8px;
+}
+
+.w-back-top {
+  width: 44px;
+  height: 44px;
+  background-color: #fff;
+  border-radius: 22px;
+  box-shadow: 0 2px 8px 0 rgba(15, 18, 34, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  &:hover {
+    background-color: #f5f8ff;
+  }
 }
 </style>

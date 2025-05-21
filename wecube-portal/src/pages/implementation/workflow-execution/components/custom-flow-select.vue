@@ -2,7 +2,7 @@
  * @Author: wanghao7717 792974788@qq.com
  * @Date: 2024-10-14 15:05:46
  * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-01-10 15:20:21
+ * @LastEditTime: 2025-02-08 10:24:56
 -->
 <template>
   <div>
@@ -77,7 +77,7 @@
                   </div>
                 </div>
               </div>
-              <!-- <Icon v-if="item.checked" type="ios-checkmark" size="24" color="#2d8cf0e6" /> -->
+              <!-- <Icon v-if="item.checked" type="ios-checkmark" size="24" color="#5384ff" /> -->
             </div>
           </div>
           <div v-else class="no-data">{{ $t('noData') }}</div>
@@ -138,17 +138,17 @@ export default {
           {
             label: this.$t('fe_stop'),
             value: 'Stop',
-            color: '#ed4014'
+            color: '#ff4d4f'
           },
           {
             label: this.$t('fe_inProgressFaulted'),
             value: 'InProgress(Faulted)',
-            color: '#ed4014'
+            color: '#ff4d4f'
           },
           {
             label: this.$t('fe_inProgressTimeouted'),
             value: 'InProgress(Timeouted)',
-            color: '#ed4014'
+            color: '#ff4d4f'
           },
           {
             label: this.$t('fe_inProgress'),
@@ -368,7 +368,7 @@ export default {
           }
         }
         &-item-active {
-          color: #2d8cf0e6;
+          color: #5384ff;
         }
       }
     }
