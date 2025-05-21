@@ -574,6 +574,10 @@ func tryCalculateUmAuthContext(ctx context.Context) (authContext string, err err
 		return
 	}
 	for _, variables := range list {
+		if strings.TrimSpace(variables.Value) != "" {
+			authContext = variables.Value
+			return
+		}
 		if strings.TrimSpace(variables.DefaultValue) != "" {
 			authContext = variables.DefaultValue
 			return
