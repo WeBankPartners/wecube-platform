@@ -1,11 +1,3 @@
-/*
- * @Author: wanghao7717 792974788@qq.com
- * @Date: 2025-04-10 16:54:13
- * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-05-21 11:02:21
- * @FilePath: \wecube-platform\wecube-portal\src\pages\home-page.js
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 import defaultComp from './home.vue'
 import './home-page.scss'
 import { getGlobalMenus, deepClone } from '@/const/util.js'
