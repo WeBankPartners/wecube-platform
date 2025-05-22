@@ -32,8 +32,13 @@
               <template slot="title">{{ menu.title }}</template>
               <template v-for="submenu in menu.submenus">  
                 <!--superset页面单独跳转-->
-                <MenuItem v-if="submenu.code.startsWith('REPORT')" :key="submenu.code" :disabled="!submenu.active" :name="submenu.code">
-                  <span @click="handleJumpToSuperset(submenu)">{{ submenu.title }}</span>
+                <MenuItem
+                  v-if="submenu.code.startsWith('REPORT')"
+                  :key="submenu.code"
+                  :disabled="!submenu.active"
+                  :name="submenu.code"
+                >
+                  <div style="width:100%;" @click="handleJumpToSuperset(submenu)">{{ submenu.title }}</div>
                 </MenuItem>
                 <router-link
                   v-else
