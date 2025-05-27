@@ -39,7 +39,11 @@ export const MENUS = [
     cnName: '系统',
     enName: 'Admin'
   },
-
+  {
+    code: 'TASK',
+    cnName: '任务测试',
+    enName: 'TASK TEST'
+  },
   {
     code: 'COLLABORATION_PLUGIN_MANAGEMENT',
     cnName: '插件注册',
