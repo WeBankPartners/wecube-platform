@@ -1,6 +1,7 @@
 package system
 
 import (
+	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
@@ -72,6 +73,16 @@ func GetMyMenuItems(c *gin.Context) {
 			}
 		}
 	}
-	sort.Sort(models.MenuItemDtoSort(resultMenuItemDtoList))
-	middleware.ReturnData(c, resultMenuItemDtoList)
+	// 去重：id和code都相同的只保留一个
+	uniqueMap := make(map[string]bool)
+	var uniqueList []*models.MenuItemDto
+	for _, item := range resultMenuItemDtoList {
+		key := fmt.Sprintf("%v-%v", item.ID, item.Code)
+		if !uniqueMap[key] {
+			uniqueMap[key] = true
+			uniqueList = append(uniqueList, item)
+		}
+	}
+	sort.Sort(models.MenuItemDtoSort(uniqueList))
+	middleware.ReturnData(c, uniqueList)
 }
