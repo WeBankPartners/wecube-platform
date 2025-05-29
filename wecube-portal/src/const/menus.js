@@ -39,7 +39,17 @@ export const MENUS = [
     cnName: '系统',
     enName: 'Admin'
   },
-
+  {
+    code: 'REPORT',
+    cnName: '报表',
+    enName: 'Report'
+  },
+  {
+    code: 'ADMIN_BASE_MIGRATION',
+    cnName: '一键迁移',
+    enName: 'Base Migration',
+    link: '/admin/base-migration'
+  },
   {
     code: 'COLLABORATION_PLUGIN_MANAGEMENT',
     cnName: '插件注册',
