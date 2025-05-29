@@ -1,0 +1,1 @@
+INSERT INTO menu_items (id,parent_code,code,source,description,local_display_name) VALUES('REPORT',NULL,'REPORT','SYSTEM','','报表'),
