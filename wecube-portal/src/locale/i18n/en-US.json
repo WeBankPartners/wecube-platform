@@ -1059,5 +1059,7 @@
   "p_reigiter_tips": "[Service interface] and [system parameters] will be inherited together",
   "workflow_format_layout": "Format Layout",
   "workflow_empty_running": "Execution data is empty",
-  "workflow_empty_running_tip": "Data is empty, whether to continue execution?"
+  "workflow_empty_running_tip": "Data is empty, whether to continue execution?",
+  "platform_robot_title": "WeCube-AI Assistant",
+  "platform_robot_content": "Long press to drag"
 }

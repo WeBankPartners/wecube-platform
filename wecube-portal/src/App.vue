@@ -6,7 +6,7 @@
     <div
       class="floating-robot"
       @click="handleClick"
-      title="wecube答疑机器人"
+      :title="$t('platform_robot_title') + '\n' + $t('platform_robot_content')"
       @mousedown="handleMouseDown"
       @mouseup="handleMouseUp"
       @mousemove="handleMouseMove"
