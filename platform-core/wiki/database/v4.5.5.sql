@@ -1,0 +1,2 @@
+INSERT INTO system_variables (id,package_name,name,value,default_value,`scope`,source,status) VALUES('system__global__PLATFORM_ROBOT_ASSISTANT','','PLATFORM_ROBOT_ASSISTANT_SWITCH','','N','global','system','active'),
+INSERT INTO system_variables (id,package_name,name,value,default_value,`scope`,source,status) VALUES('system__global__PLATFORM_ROBOT_URL','','PLATFORM_ROBOT_ASSISTANT_URL','','','global','system','active'),
