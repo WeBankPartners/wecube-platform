@@ -13,10 +13,12 @@ func GetMyMenuItems(c *gin.Context) {
 	var resultMenuItemDtoList []*models.MenuItemDto
 	var userRoles = middleware.GetRequestRoles(c)
 	var menuCodeMap = make(map[string]bool)
+	var addedMenuMap = make(map[string]bool) // Track added menus to prevent duplicates
 	var roleMenus []*models.RoleMenu
 	var menuItems *models.MenuItems
 	var pluginPackageMenus []*models.PluginPackageMenus
 	var err error
+
 	// 1. 统计系统根菜单
 	rootSysMenuItemDtoList, err := database.GetAllRootMenus(c)
 	if err != nil {
@@ -24,7 +26,12 @@ func GetMyMenuItems(c *gin.Context) {
 		return
 	}
 	if len(rootSysMenuItemDtoList) > 0 {
-		resultMenuItemDtoList = append(resultMenuItemDtoList, rootSysMenuItemDtoList...)
+		for _, menuItem := range rootSysMenuItemDtoList {
+			if !addedMenuMap[menuItem.Code] {
+				resultMenuItemDtoList = append(resultMenuItemDtoList, menuItem)
+				addedMenuMap[menuItem.Code] = true
+			}
+		}
 	}
 
 	// 2. 计算当前账号角色拥有的菜单code
@@ -50,6 +57,11 @@ func GetMyMenuItems(c *gin.Context) {
 
 	//  3.根据menuCode 查询
 	for menuCode := range menuCodeMap {
+		// Skip if menu already added
+		if addedMenuMap[menuCode] {
+			continue
+		}
+
 		menuItems, err = database.GetMenuItemsByCode(c, menuCode)
 		if err != nil {
 			middleware.ReturnError(c, err)
@@ -57,7 +69,9 @@ func GetMyMenuItems(c *gin.Context) {
 		}
 		// 菜单项不为空直接 统计
 		if menuItems != nil {
-			resultMenuItemDtoList = append(resultMenuItemDtoList, models.ConvertMenuItem2Dto(menuItems))
+			menuDto := models.ConvertMenuItem2Dto(menuItems)
+			resultMenuItemDtoList = append(resultMenuItemDtoList, menuDto)
+			addedMenuMap[menuCode] = true
 		} else {
 			pluginPackageMenus, err = database.CalAssignedPluginPackageMenusByMenuCode(c, menuCode)
 			if err != nil {
@@ -68,7 +82,11 @@ func GetMyMenuItems(c *gin.Context) {
 				continue
 			}
 			for _, pluginPackageMenusEntity := range pluginPackageMenus {
-				resultMenuItemDtoList = append(resultMenuItemDtoList, database.BuildPackageMenuItemDto(c, pluginPackageMenusEntity))
+				menuDto := database.BuildPackageMenuItemDto(c, pluginPackageMenusEntity)
+				if !addedMenuMap[menuDto.Code] {
+					resultMenuItemDtoList = append(resultMenuItemDtoList, menuDto)
+					addedMenuMap[menuDto.Code] = true
+				}
 			}
 		}
 	}
