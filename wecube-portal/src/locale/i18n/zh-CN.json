@@ -1058,5 +1058,7 @@
   "p_reigiter_tips": "【服务接口】和【系统参数】都将会被一起继承",
   "workflow_format_layout": "格式化布局",
   "workflow_empty_running": "执行数据为空",
-  "workflow_empty_running_tip": "数据为空，是否继续执行？"
+  "workflow_empty_running_tip": "数据为空，是否继续执行？",
+  "platform_robot_title": "WeCube-AI助手",
+  "platform_robot_content": "长按可拖动"
 }
