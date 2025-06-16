@@ -4,6 +4,7 @@
       <router-view class="pages"></router-view>
     </transition>
     <div
+      v-show="robotConfig.isShow && robotConfig.url"
       class="floating-robot"
       @click="handleClick"
       :title="$t('platform_robot_title') + '\n' + $t('platform_robot_content')"
@@ -18,9 +19,14 @@
 </template>
 
 <script>
+import { globalRobotConfig } from '@/api/server'
 export default {
   data() {
     return {
+      robotConfig: {
+        url: '',
+        isShow: false
+      },
       dragObj: {
         top: window.innerHeight / 2, // 窗口高度减去图标高度和边距
         left: window.innerWidth - 68, // 窗口宽度减去图标宽度和边距
@@ -36,6 +42,7 @@ export default {
     }
   },
   mounted() {
+    this.getRobotConfig()
     // remove loading
     const boxLoading = document.getElementById('boxLoading')
     const boxTitle = document.getElementById('boxTitle')
@@ -49,6 +56,22 @@ export default {
     window.removeEventListener('resize', this.updatePosition)
   },
   methods: {
+    async getRobotConfig() {
+      const { status, data } = await globalRobotConfig()
+      if (status === 'OK') {
+        const configList = data || []
+        if (Array.isArray(configList) && configList.length > 0) {
+          configList.forEach(item => {
+            if (item.name === 'PLATFORM_ROBOT_ASSISTANT_SWITCH' && item.status === 'active') {
+              this.robotConfig.isShow = item.value === 'Y' ? true : false
+            }
+            if (item.name === 'PLATFORM_ROBOT_ASSISTANT_URL' && item.status === 'active') {
+              this.robotConfig.url = item.value || item.defaultValue
+            }
+          })
+        }
+      }
+    },
     updatePosition() {
       if (!this.dragObj.isDragging) {
         this.dragObj.top = window.innerHeight - 68
@@ -56,7 +79,8 @@ export default {
       }
     },
     openChatRobot() {
-      window.open('https://aigc.weoa.com/s/chatdoc/#/bots/BOTefe7ae80f972470086b2a0edfa47e18a/share', '_blank')
+      // window.open('https://aigc.weoa.com/s/chatdoc/#/bots/BOTefe7ae80f972470086b2a0edfa47e18a/share', '_blank')
+      window.open(this.robotConfig.url, '_blank')
     },
     handleMouseDown(event) {
       // 阻止默认事件和冒泡
