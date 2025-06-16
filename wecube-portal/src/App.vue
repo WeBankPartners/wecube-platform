@@ -5,9 +5,11 @@
     </transition>
     <div
       class="floating-robot"
-      @click="openChatRobot"
-      title="wecube答疑机器人"
-      @mousemove="startDrag"
+      @click="handleClick"
+      :title="$t('platform_robot_title') + '\n' + $t('platform_robot_content')"
+      @mousedown="handleMouseDown"
+      @mouseup="handleMouseUp"
+      @mousemove="handleMouseMove"
       :style="{ top: `${dragObj.top}px`, left: `${dragObj.left}px` }"
     >
       <img src="@/assets/robot.png" alt="Robot" />
@@ -26,7 +28,10 @@ export default {
         startX: 0, // 鼠标按下时的初始 X 坐标
         startY: 0, // 鼠标按下时的初始 Y 坐标
         startTop: 0, // 鼠标按下时元素的初始顶部位置
-        startLeft: 0 // 鼠标按下时元素的初始左侧位置
+        startLeft: 0, // 鼠标按下时元素的初始左侧位置
+        pressTimer: null,
+        isLongPress: false,
+        hasMoved: false  // 添加标记，用于判断是否发生了移动
       }
     }
   },
@@ -52,6 +57,47 @@ export default {
     },
     openChatRobot() {
       window.open('***REMOVED***', '_blank')
+    },
+    handleMouseDown(event) {
+      // 阻止默认事件和冒泡
+      event.preventDefault();
+      event.stopPropagation();
+      
+      this.dragObj.hasMoved = false;  // 重置移动标记
+      this.dragObj.pressTimer = setTimeout(() => {
+        this.dragObj.isLongPress = true;
+        this.startDrag(event);
+      }, 200); // 200ms长按触发
+    },
+    handleMouseUp(event) {
+      // 阻止默认事件和冒泡
+      event.preventDefault();
+      event.stopPropagation();
+      
+      clearTimeout(this.dragObj.pressTimer);
+      if (this.dragObj.isLongPress) {
+        this.stopDrag();
+        this.dragObj.isLongPress = false;
+      }
+    },
+    handleMouseMove(event) {
+      if (this.dragObj.isLongPress && this.dragObj.isDragging) {
+        // 阻止默认事件和冒泡
+        event.preventDefault();
+        event.stopPropagation();
+        
+        this.dragObj.hasMoved = true;  // 标记发生了移动
+        this.onDragging(event);
+      }
+    },
+    handleClick(event) {
+      // 如果发生了拖动，则不触发点击事件
+      if (this.dragObj.hasMoved) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      this.openChatRobot();
     },
     startDrag(event) {
       // 开始拖动
