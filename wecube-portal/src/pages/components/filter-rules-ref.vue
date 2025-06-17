@@ -377,7 +377,7 @@ export default {
               isRef = true
             }
           }
-          value = value.indexOf('[') > -1 && found.dataType === 'ref'
+          value = value.startsWith('[') && found.dataType === 'ref'
             ? value
               .slice(1, -1)
               .split(',')

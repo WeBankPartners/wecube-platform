@@ -416,3 +416,5 @@ export const pluginsRegister = data => req.post('/platform/v1/packages/ui/regist
 
 export const pluginsRegisterDone = data => req.post('/platform/v1/packages/register-done', data)
 
+// 添加机器人授权接口
+export const globalRobotConfig = () => req.get('/platform/v1/robot/config')

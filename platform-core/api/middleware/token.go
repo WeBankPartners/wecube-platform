@@ -62,6 +62,7 @@ func AuthToken(c *gin.Context) {
 		if strings.Contains(strings.Join(GetRequestRoles(c), ","), "SUB_SYSTEM") || strings.HasSuffix(c.Request.URL.Path, "/resource-files") ||
 			strings.HasSuffix(c.Request.URL.Path, "/appinfo/version") || strings.HasSuffix(c.Request.URL.Path, "/my-menus") ||
 			strings.HasPrefix(c.Request.URL.Path, models.UrlPrefix+"/v1/public") || strings.HasPrefix(c.Request.URL.Path, models.UrlPrefix+"/v2/public") ||
+			strings.HasPrefix(c.Request.URL.Path, models.UrlPrefix+"/v1/robot/config") ||
 			strings.HasSuffix(c.Request.URL.Path, "/health-check") {
 			c.Next()
 			return

@@ -139,6 +139,10 @@ func (f *Filter) GetValue() interface{} {
 			}
 		}
 		return valueList
+	} else if f.Operator == "eq" {
+		if strings.HasPrefix(f.Value, "@@") {
+			f.Value = strings.Split(f.Value[2:], "@@")[0]
+		}
 	}
 	return f.Value
 }
