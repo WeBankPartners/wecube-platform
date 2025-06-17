@@ -63,7 +63,8 @@ export default {
         if (Array.isArray(configList) && configList.length > 0) {
           configList.forEach(item => {
             if (item.name === 'PLATFORM_ROBOT_ASSISTANT_SWITCH' && item.status === 'active') {
-              this.robotConfig.isShow = item.value === 'Y' ? true : false
+              const isShow = item.value || item.defaultValue
+              this.robotConfig.isShow = isShow === 'Y' ? true : false
             }
             if (item.name === 'PLATFORM_ROBOT_ASSISTANT_URL' && item.status === 'active') {
               this.robotConfig.url = item.value || item.defaultValue
