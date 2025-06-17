@@ -270,6 +270,9 @@ func init() {
 		&handlerFuncObj{Url: "/data/transfer/import/list/options", Method: "GET", HandlerFunc: data_trans.GetImportListOptions, ApiCode: "data-transfer-import-options"},
 		&handlerFuncObj{Url: "/data/transfer/import/list", Method: "POST", HandlerFunc: data_trans.ImportList, ApiCode: "data-transfer-import-list"},
 		&handlerFuncObj{Url: "/data/transfer/import/status", Method: "POST", HandlerFunc: data_trans.UpdateImportStatus, ApiCode: "data-transfer-update-import-status"},
+
+		// 查询机器人配置
+		&handlerFuncObj{Url: "/robot/config", Method: "GET", HandlerFunc: system.GetRotConfig, ApiCode: "get-robot-config"},
 	)
 }
 

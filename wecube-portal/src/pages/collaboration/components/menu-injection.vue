@@ -53,12 +53,14 @@ export default {
         data.forEach(_ => {
           if (!_.category) {
             const found = MENUS.find(m => m.code === _.code)
-            allCats.push({
-              id: _.id,
-              code: _.code,
-              displayName: this.$i18n.locale === 'zh-CN' ? found.cnName : found.enName,
-              children: []
-            })
+            if (found) {
+              allCats.push({
+                id: _.id,
+                code: _.code,
+                displayName: this.$i18n.locale === 'zh-CN' ? found.cnName : found.enName,
+                children: []
+              })
+            }
           }
         })
         this.menus = allCats.map(_ => {

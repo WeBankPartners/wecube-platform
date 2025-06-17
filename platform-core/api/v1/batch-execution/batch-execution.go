@@ -5,10 +5,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"go.uber.org/zap"
 	"net/http"
 	"strings"
 	"time"
+
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
@@ -439,7 +440,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 					encryptText = encryptText[len(models.BatchExecEncryptPrefix):]
 				}
 
-				decryptData, tmpErr := decryptWithEncryptSeed(encryptText)
+				decryptData, tmpErr := decryptWithEncryptSeed(c, encryptText)
 				if tmpErr != nil {
 					err = fmt.Errorf("decrypt sensitive data of inputParameter id: %s failed: %s", pluginDefInputParams.ParamId, tmpErr.Error())
 					log.Error(nil, log.LOGGER_APP, err.Error())
@@ -591,14 +592,19 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 	return
 }
 
-func decryptWithEncryptSeed(data string) (decryptData string, err error) {
+func decryptWithEncryptSeed(ctx *gin.Context, data string) (decryptData string, err error) {
 	dataBytes, err := base64.StdEncoding.DecodeString(data)
 	if err != nil {
 		err = fmt.Errorf("base64 decode data failed: %s", err.Error())
 		return
 	}
 	dataHex := hex.EncodeToString(dataBytes)
-	decryptData, err = cipher.AesDePassword(models.Config.EncryptSeed, dataHex)
+	encryptSeed, getSeedErr := database.GetEncryptSeed(ctx)
+	if getSeedErr != nil {
+		err = fmt.Errorf("get seed fail:%s ", getSeedErr.Error())
+		return
+	}
+	decryptData, err = cipher.AesDePassword(encryptSeed, dataHex)
 	if err != nil {
 		err = fmt.Errorf("decrypt data failed: %s", err.Error())
 		return

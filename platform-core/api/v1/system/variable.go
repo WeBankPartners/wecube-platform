@@ -99,3 +99,28 @@ func DeleteSystemVariable(c *gin.Context) {
 		middleware.ReturnSuccess(c)
 	}
 }
+
+func GetRotConfig(c *gin.Context) {
+	var list []models.SystemVariablesQueryCondition
+	var dataRes []*models.SystemVariables
+	list = append(list, models.SystemVariablesQueryCondition{
+		Name:   "PLATFORM_ROBOT_ASSISTANT_SWITCH",
+		Scope:  "global",
+		Status: "active",
+	})
+
+	list = append(list, models.SystemVariablesQueryCondition{
+		Name:   "PLATFORM_ROBOT_ASSISTANT_URL",
+		Scope:  "global",
+		Status: "active",
+	})
+	for _, condition := range list {
+		result, err := database.QuerySystemVariablesByCondition(c, condition)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+		dataRes = append(dataRes, result...)
+	}
+	middleware.ReturnData(c, dataRes)
+}
