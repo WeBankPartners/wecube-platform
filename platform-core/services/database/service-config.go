@@ -3,9 +3,10 @@ package database
 import (
 	"context"
 	"fmt"
-	"go.uber.org/zap"
 	"strings"
 	"time"
+
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
@@ -1277,6 +1278,10 @@ func ImportPluginConfigs(ctx context.Context, pluginPackageId string, packagePlu
 	}
 	if !exists {
 		err = fmt.Errorf("pluginPackageId: %s is invalid", pluginPackageId)
+		return
+	}
+	if pluginPackageData.Name != packagePluginsXmlData.Name {
+		err = fmt.Errorf("plugin:%s xml can not import to plugin:%s config", packagePluginsXmlData.Name, pluginPackageData.Name)
 		return
 	}
 
