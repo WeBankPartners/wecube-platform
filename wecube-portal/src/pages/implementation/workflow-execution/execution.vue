@@ -668,6 +668,7 @@ export default {
   },
   data() {
     return {
+      tmpString: '',
       // 属性值展示
       attrValue: {
         attr: '',
@@ -1947,6 +1948,13 @@ export default {
         + nodesToString
         + genEdge()
         + '}'
+      if (this.tmpString === nodesString) {
+        console.log('相同的图，不重新渲染')
+        return
+      } else {
+        console.log('不同的图，重新渲染')
+        this.tmpString = nodesString
+      }
       this.reloadGraph()
       this.graph.graphviz.renderDot(nodesString)
       // .on('end', this.setFontSizeForText)
