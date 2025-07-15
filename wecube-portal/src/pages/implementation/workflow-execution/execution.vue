@@ -2148,6 +2148,7 @@ export default {
           .replace(/,/g, ';')
       }
       const nodesToString = Array.isArray(nodes) ? nodes.toString().replace(/,/g, ';') + ';' : ''
+      let tmp = ''
       const nodesString = 'digraph G {'
         + 'bgcolor="transparent";'
         + 'splines="polyline"'
@@ -2156,6 +2157,11 @@ export default {
         + nodesToString
         + genEdge()
         + '}'
+      if (nodesString === tmp) {
+        return
+      } else {
+        tmp = nodesString
+      }
       this.flowGraph.graphviz
         .transition()
         .renderDot(nodesString)
