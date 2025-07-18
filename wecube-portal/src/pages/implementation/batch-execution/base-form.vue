@@ -211,7 +211,7 @@
             <Col v-for="(item, index) in pluginInputParams" :key="index" :span="24" style="margin-bottom: 12px">
               <span
                 :class="{required: item.required === 'Y' && item.mappingType === 'constant'}"
-                style="display: inline-block; width: 200px;"
+                style="display: inline-block; width: 260px;"
               >{{ item.name }}</span>
               <Input v-if="item.mappingType === 'constant'" style="width: 500px;" v-model="item.bindValue" />
               <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
