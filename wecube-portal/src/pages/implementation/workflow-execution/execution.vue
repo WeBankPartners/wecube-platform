@@ -155,7 +155,7 @@
             type="primary"
             @click="showModelDataWithFlow"
           >{{ $t('fe_data_nodelist') }}</Button>
-          <Spin size="large" fix v-show="isLoading">
+          <Spin size="large" fix v-if="isLoading || intervalLoading">
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
             <div>{{ $t('loading') }}</div>
           </Spin>
@@ -689,6 +689,7 @@ export default {
       flowIndexArray: [0],
       btnLoading: false,
       loading: false,
+      intervalLoading: false, // 轮询时加载样式
       currentModelNodeRefs: [],
       showNodeDetail: false,
       nodeDetailFullscreen: false,
@@ -951,7 +952,7 @@ export default {
       modelDetailTimer: null,
       flowNodesBindings: [],
       flowDetailTimer: null,
-      isLoading: false,
+      isLoading: false, // 模型数据加载样式
       catchNodeTableList: [],
       retryCatchNodeTableList: [],
       processSessionId: '',
@@ -2288,7 +2289,9 @@ export default {
       if (!(found && found.id)) {
         return
       }
+      this.intervalLoading = true
       const { status, data } = await getProcessInstance(found.id)
+      this.intervalLoading = false
       if (status === 'OK') {
         this.currentInstanceStatusForNodeOperation = data.status
         // 定时刷新详情数据时，同步刷新执行历史下拉列表状态字段
@@ -2332,7 +2335,7 @@ export default {
           this.fetchCurrentInstanceStatus()
           this.refreshModelData()
         }
-        this.refreshModelData()
+        // this.refreshModelData()
       }
     },
     async refreshModelData() {
