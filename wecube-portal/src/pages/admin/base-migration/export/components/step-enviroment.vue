@@ -200,7 +200,9 @@ export default {
       })
     },
     onSelectionChange(selection) {
-      this.selectionList = selection
+      const tableIds = this.tableData.map(i => i.id)
+      const hiddenSelectionList = this.selectionList.filter(item => !tableIds.includes(item.id))
+      this.selectionList = [...selection, ...hiddenSelectionList]
     },
     // 获取环境列表
     async getEnviromentList() {
