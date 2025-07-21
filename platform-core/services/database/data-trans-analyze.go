@@ -677,6 +677,18 @@ func QueryBusinessList(c context.Context, userToken, language string, param mode
 	if dataTransVariableConfig == nil {
 		return
 	}
+	if strings.TrimSpace(dataTransVariableConfig.ApplicationDomainCiType) == "" {
+		err = fmt.Errorf("system variable PLATFORM_EXPORT_CI_APPLICATION_DOMAIN is not configured or is empty. Please check system parameters")
+		return
+	}
+	if strings.TrimSpace(dataTransVariableConfig.PrimaryProductCiType) == "" {
+		err = fmt.Errorf("system variable PLATFORM_EXPORT_CI_PRIMARY_PRODUCT is not configured or is empty. Please check system parameters")
+		return
+	}
+	if strings.TrimSpace(dataTransVariableConfig.BusinessCiType) == "" {
+		err = fmt.Errorf("system variable PLATFORM_EXPORT_CI_BUSINESS is not configured or is empty. Please check system parameters")
+		return
+	}
 
 	// 查询0级产品 application_domain
 	appDomainQuery := models.QueryBusinessListParam{
