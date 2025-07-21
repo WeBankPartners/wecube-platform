@@ -130,10 +130,13 @@ export default {
         exportNexusUrl: this.detail.exportNexusUrl,
         step: 1
       }
+      this.$emit('startLoading')
       const { data, status } = await saveImportData(params)
       if (status === 'OK') {
         // 执行导入，生成ID
         this.$emit('saveStepOne', data || '')
+      } else {
+        this.$emit('stopLoading')
       }
     }, 500)
   }

@@ -300,10 +300,13 @@ export default {
           transImportId: this.detailData.id,
           step: 2
         }
+        this.$emit('startLoading')
         const { status } = await saveImportData(params)
         if (status === 'OK') {
           // 执行导入
           this.$emit('saveStepTwo')
+        } else {
+          this.$emit('stopLoading')
         }
       }
     }, 500),
