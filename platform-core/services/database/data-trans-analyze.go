@@ -470,6 +470,16 @@ func GetDataTransVariableMap(ctx context.Context) (result *models.TransDataVaria
 			tmpValue = row.Value
 		}
 		switch row.Name {
+		case "PLATFORM_EXPORT_CI_PRIMARY_PRODUCT":
+			result.PrimaryProductCiType = tmpValue
+			if tmpValue == "" {
+				err = fmt.Errorf("PLATFORM_EXPORT_CI_PRIMARY_PRODUCT is empty")
+			}
+		case "PLATFORM_EXPORT_CI_APPLICATION_DOMAIN":
+			result.ApplicationDomainCiType = tmpValue
+			if tmpValue == "" {
+				err = fmt.Errorf("PLATFORM_EXPORT_CI_APPLICATION_DOMAIN is empty")
+			}
 		case "PLATFORM_EXPORT_CI_BUSINESS":
 			result.BusinessCiType = tmpValue
 			if tmpValue == "" {
@@ -644,22 +654,22 @@ func getInsertAnalyzeCMDBActions(transExportId string, ciTypeDataMap map[string]
 func getInsertTransExport(transExport models.TransExportTable) (actions []*db.ExecAction) {
 	nowTime := time.Now()
 	actions = []*db.ExecAction{}
-	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export(id,customer_id,customer_name,business,business_name,environment,environment_name,status,output_url,created_user,created_time,updated_user,updated_time,last_confirm_time) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-		transExport.Id, transExport.CustomerId, transExport.CustomerName, transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.Status, transExport.OutputUrl, transExport.CreatedUser, nowTime, transExport.UpdatedUser, nowTime, transExport.LastConfirmTime,
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export(id,customer_id,customer_name,business,business_name,environment,environment_name,status,output_url,created_user,created_time,updated_user,updated_time,last_confirm_time,selected_tree_json) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		transExport.Id, transExport.CustomerId, transExport.CustomerName, transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.Status, transExport.OutputUrl, transExport.CreatedUser, nowTime, transExport.UpdatedUser, nowTime, transExport.LastConfirmTime, transExport.SelectedTreeJson,
 	}})
 	return
 }
 
 func getUpdateTransExport(transExport models.TransExportTable) (actions []*db.ExecAction) {
 	actions = []*db.ExecAction{}
-	actions = append(actions, &db.ExecAction{Sql: "update trans_export set business=?,business_name=?,environment=?,environment_name=?,updated_user=?,updated_time=?,last_confirm_time=? where id=? ", Param: []interface{}{
-		transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.UpdatedUser, transExport.UpdatedTime, transExport.LastConfirmTime, transExport.Id,
+	actions = append(actions, &db.ExecAction{Sql: "update trans_export set business=?,business_name=?,environment=?,environment_name=?,updated_user=?,updated_time=?,last_confirm_time=?,selected_tree_json=? where id=? ", Param: []interface{}{
+		transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.UpdatedUser, transExport.UpdatedTime, transExport.LastConfirmTime, transExport.SelectedTreeJson, transExport.Id,
 	}})
 	return
 }
 
 func QueryBusinessList(c context.Context, userToken, language string, param models.QueryBusinessParam) (result []map[string]interface{}, err error) {
-	var query models.QueryBusinessListParam
+	// 获取配置
 	var dataTransVariableConfig *models.TransDataVariableConfig
 	if dataTransVariableConfig, err = GetDataTransVariableMap(c); err != nil {
 		return
@@ -667,39 +677,124 @@ func QueryBusinessList(c context.Context, userToken, language string, param mode
 	if dataTransVariableConfig == nil {
 		return
 	}
-	query = models.QueryBusinessListParam{
+
+	// 查询0级产品 application_domain
+	appDomainQuery := models.QueryBusinessListParam{
 		PackageName: "wecmdb",
 		UserToken:   userToken,
 		Language:    language,
+		Entity:      dataTransVariableConfig.ApplicationDomainCiType,
 		EntityQueryParam: models.EntityQueryParam{
 			AdditionalFilters: make([]*models.EntityQueryObj, 0),
 		},
 	}
-	if param.QueryMode == "env" {
-		query.Entity = dataTransVariableConfig.EnvCiType
-	} else {
-		query.Entity = dataTransVariableConfig.BusinessCiType
-		if strings.TrimSpace(param.ID) != "" {
-			query.EntityQueryParam.AdditionalFilters = append(query.EntityQueryParam.AdditionalFilters, &models.EntityQueryObj{
-				AttrName:  "id",
-				Op:        "like",
-				Condition: param.ID,
-			})
-		}
-		if strings.TrimSpace(param.DisplayName) != "" {
-			query.EntityQueryParam.AdditionalFilters = append(query.EntityQueryParam.AdditionalFilters, &models.EntityQueryObj{
-				AttrName:  "displayName",
-				Op:        "like",
-				Condition: param.DisplayName,
-			})
-		}
+	appDomains, err := remote.QueryBusinessList(appDomainQuery)
+	if err != nil {
+		return
 	}
-	// 系统初始化,DB都没有,隐藏掉 db查询报错展示
-	if result, err = remote.QueryBusinessList(query); err != nil && strings.Contains(err.Error(), "Query database fail") {
-		log.Error(nil, log.LOGGER_APP, "QueryBusinessList err", zap.Error(err))
-		err = nil
+
+	// 查询1级产品 primary_product
+	primaryProductQuery := models.QueryBusinessListParam{
+		PackageName: "wecmdb",
+		UserToken:   userToken,
+		Language:    language,
+		Entity:      dataTransVariableConfig.PrimaryProductCiType,
+		EntityQueryParam: models.EntityQueryParam{
+			AdditionalFilters: make([]*models.EntityQueryObj, 0),
+		},
 	}
+	primaryProducts, err := remote.QueryBusinessList(primaryProductQuery)
+	if err != nil {
+		return
+	}
+
+	// 查询2级产品（业务产品），用配置项，并保留原有模糊搜索逻辑
+	secondaryProductQuery := models.QueryBusinessListParam{
+		PackageName: "wecmdb",
+		UserToken:   userToken,
+		Language:    language,
+		Entity:      dataTransVariableConfig.BusinessCiType, // 用配置
+		EntityQueryParam: models.EntityQueryParam{
+			AdditionalFilters: make([]*models.EntityQueryObj, 0),
+		},
+	}
+	if strings.TrimSpace(param.ID) != "" {
+		secondaryProductQuery.EntityQueryParam.AdditionalFilters = append(secondaryProductQuery.EntityQueryParam.AdditionalFilters, &models.EntityQueryObj{
+			AttrName:  "id",
+			Op:        "like",
+			Condition: param.ID,
+		})
+	}
+	if strings.TrimSpace(param.DisplayName) != "" {
+		secondaryProductQuery.EntityQueryParam.AdditionalFilters = append(secondaryProductQuery.EntityQueryParam.AdditionalFilters, &models.EntityQueryObj{
+			AttrName:  "name",
+			Op:        "like",
+			Condition: param.DisplayName,
+		})
+	}
+	secondaryProducts, err := remote.QueryBusinessList(secondaryProductQuery)
+	if err != nil {
+		return
+	}
+
+	// 组装三级联动结构，二级产品所有属性都要带上
+	secondaryMap := make(map[string][]map[string]interface{})
+	for _, sp := range secondaryProducts {
+		primaryGuid, _ := sp["primary_product"].(string)
+		// 组装二级产品节点，所有属性原样保留，name字段用code
+		sec := make(map[string]interface{})
+		for k, v := range sp {
+			sec[k] = v
+		}
+		sec["name"] = toString(sp["code"]) // name字段用code
+		secondaryMap[primaryGuid] = append(secondaryMap[primaryGuid], sec)
+	}
+
+	primaryMap := make(map[string][]map[string]interface{})
+	for _, pp := range primaryProducts {
+		appDomainGuid, _ := pp["application_domain"].(string)
+		ppGuid := toString(pp["guid"])
+		p := make(map[string]interface{})
+		for k, v := range pp {
+			p[k] = v
+		}
+		p["name"] = toString(pp["code"]) // name字段用code
+		p["secondary_products"] = secondaryMap[ppGuid]
+		primaryMap[appDomainGuid] = append(primaryMap[appDomainGuid], p)
+	}
+
+	var finalList []map[string]interface{}
+	for _, ad := range appDomains {
+		adGuid := toString(ad["guid"])
+		app := make(map[string]interface{})
+		for k, v := range ad {
+			app[k] = v
+		}
+		app["name"] = toString(ad["code"]) // name字段用code
+		app["primary_products"] = primaryMap[adGuid]
+		finalList = append(finalList, app)
+	}
+
+	// 只返回 tree 结构
+	result = finalList
 	return
+}
+
+// 工具函数：安全转字符串
+func toString(val interface{}) string {
+	if val == nil {
+		return ""
+	}
+	switch v := val.(type) {
+	case string:
+		return v
+	case fmt.Stringer:
+		return v.String()
+	case float64:
+		return fmt.Sprintf("%.0f", v)
+	default:
+		return fmt.Sprintf("%v", v)
+	}
 }
 
 func checkArtifactCiTypeRefIllegal(sourceCiType, refCiType string, transConfig *models.TransDataVariableConfig, forwardRef bool, attr *models.SysCiTypeAttrTable) (illegal bool) {
