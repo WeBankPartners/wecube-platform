@@ -749,6 +749,25 @@ func QueryBusinessList(c context.Context, userToken, language string, param mode
 		return
 	}
 
+	// 查询 system_design 全量数据
+	systemDesignQuery := models.QueryBusinessListParam{
+		PackageName: "wecmdb",
+		UserToken:   userToken,
+		Language:    language,
+		Entity:      "system_design",
+		EntityQueryParam: models.EntityQueryParam{
+			AdditionalFilters: make([]*models.EntityQueryObj, 0),
+		},
+	}
+	systemDesigns, err := remote.QueryBusinessList(systemDesignQuery)
+	if err != nil {
+		return
+	}
+	systemDesignId2Code := map[string]string{}
+	for _, sd := range systemDesigns {
+		systemDesignId2Code[toString(sd["guid"])] = toString(sd["code"])
+	}
+
 	// 组装三级联动结构，二级产品所有属性都要带上
 	secondaryMap := make(map[string][]map[string]interface{})
 	for _, sp := range secondaryProducts {
@@ -759,6 +778,23 @@ func QueryBusinessList(c context.Context, userToken, language string, param mode
 			sec[k] = v
 		}
 		sec["name"] = toString(sp["code"]) // name字段用code
+		// 新增：system_design字段id转code
+		if v, ok := sec["system_design"]; ok {
+			switch vv := v.(type) {
+			case string:
+				if code, ok := systemDesignId2Code[vv]; ok {
+					sec["system_design"] = code
+				}
+			case []interface{}:
+				var codeArr []string
+				for _, id := range vv {
+					if code, ok := systemDesignId2Code[toString(id)]; ok {
+						codeArr = append(codeArr, code)
+					}
+				}
+				sec["system_design"] = codeArr
+			}
+		}
 		secondaryMap[primaryGuid] = append(secondaryMap[primaryGuid], sec)
 	}
 
