@@ -661,7 +661,7 @@ func exportFileUpload(ctx context.Context, param *models.TransExportJobParam) (r
 }
 
 func CreateExport(c context.Context, param models.CreateExportParam, operator string) (transExportId string, err error) {
-	var actions, addTransExportActions, addTransExportDetailActions []*db.ExecAction
+	var actions, addTransExportActions, addTransExportDetailActions, analyzeDataActions []*db.ExecAction
 	transExportId = fmt.Sprintf("tp_%s", guid.CreateGuid())
 	transExport := models.TransExportTable{
 		Id:               transExportId,
@@ -685,7 +685,7 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 	if addTransExportDetailActions = getInsertTransExportDetail(transExportId); len(addTransExportDetailActions) > 0 {
 		actions = append(actions, addTransExportDetailActions...)
 	}
-	/*dataTransParam := &models.AnalyzeDataTransParam{
+	dataTransParam := &models.AnalyzeDataTransParam{
 		TransExportId:   transExportId,
 		Business:        param.PIds,
 		Env:             param.Env,
@@ -700,13 +700,13 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 	if analyzeDataActions, err = AnalyzeCMDBDataExport(c, dataTransParam); err != nil {
 		return
 	}
-	actions = append(actions, analyzeDataActions...)*/
+	actions = append(actions, analyzeDataActions...)
 	err = db.Transaction(actions, c)
 	return
 }
 
 func UpdateExport(c context.Context, param models.UpdateExportParam, operator string) (err error) {
-	var actions, addTransExportActions []*db.ExecAction
+	var actions, addTransExportActions, deleteAnalyzeDataActions, analyzeDataActions []*db.ExecAction
 	transExport := models.TransExportTable{
 		Id:               param.TransExportId,
 		Environment:      param.Env,
@@ -723,7 +723,7 @@ func UpdateExport(c context.Context, param models.UpdateExportParam, operator st
 	if addTransExportActions = getUpdateTransExport(transExport); len(addTransExportActions) > 0 {
 		actions = append(actions, addTransExportActions...)
 	}
-	/*// 先删除分析数据
+	// 先删除分析数据
 	if deleteAnalyzeDataActions = getDeleteTransExportAnalyzeDataActions(param.TransExportId); len(deleteAnalyzeDataActions) > 0 {
 		actions = append(actions, deleteAnalyzeDataActions...)
 	}
@@ -742,7 +742,7 @@ func UpdateExport(c context.Context, param models.UpdateExportParam, operator st
 	if analyzeDataActions, err = AnalyzeCMDBDataExport(c, dataTransParam); err != nil {
 		return
 	}
-	actions = append(actions, analyzeDataActions...)*/
+	actions = append(actions, analyzeDataActions...)
 	err = db.Transaction(actions, c)
 	return
 }
