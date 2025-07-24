@@ -125,6 +125,7 @@ func ParseJsonData(jsonPath string, data interface{}) (err error) {
 }
 
 func GetBusinessList(localPath string) (result models.GetBusinessListRes, err error) {
+	var detail *models.TransExportDetail
 	if err = ParseJsonData(fmt.Sprintf("%s/export/env.json", localPath), &result.Environment); err != nil {
 		log.Error(nil, log.LOGGER_APP, "Environment json Unmarshal err", zap.Error(err))
 		return
@@ -132,6 +133,17 @@ func GetBusinessList(localPath string) (result models.GetBusinessListRes, err er
 	if err = ParseJsonData(fmt.Sprintf("%s/export/product.json", localPath), &result.BusinessList); err != nil {
 		log.Error(nil, log.LOGGER_APP, "Product json Unmarshal err", zap.Error(err))
 		return
+	}
+	if err = ParseJsonData(fmt.Sprintf("%s/export/ui-data.json", localPath), &detail); err != nil {
+		log.Error(nil, log.LOGGER_APP, "ui-data.json Unmarshal err", zap.Error(err))
+		return
+	}
+	if detail == nil {
+		err = fmt.Errorf("get TransExportDetail empty")
+		return
+	}
+	if detail.TransExport != nil {
+		result.SelectedTreeJson = detail.TransExport.SelectedTreeJson
 	}
 	return
 }
