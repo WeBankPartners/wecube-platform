@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="platform-role-apply">
     <Modal
       v-model="showModal"
       :mask-closable="false"
@@ -84,12 +84,14 @@
           <TabPane :label="$t('be_hasDenyed')" name="deny"></TabPane>
           <!--已删除-->
           <TabPane :label="$t('be_hasDeleted')" name="deleted"></TabPane>
+          <!--我的角色-->
+          <TabPane :label="$t('be_myRoles')" name="myRoles"></TabPane>
         </Tabs>
         <div>
           <Table
             :height="tableHeight"
             size="small"
-            :columns="this.activeTab === 'pending' ? pendingColumns : processedColumns"
+            :columns="getColumns"
             :data="tableData"
           ></Table>
         </div>
@@ -182,7 +184,25 @@ export default {
         }
       },
       pendingColumns: [],
-      processedColumns: []
+      processedColumns: [],
+      roleColumns: [
+        {
+          title: this.$t('be_role_name'),
+          key: 'roleName'
+        },
+        {
+          title: this.$t('be_role_administrator'),
+          key: 'roleAdministrator'
+        },
+        {
+          title: this.$t('be_expireTime'),
+          key: 'expireTime'
+        },
+        {
+          title: this.$t('be_menue_list'),
+          key: 'menuList'
+        }
+      ]
     }
   },
   computed: {
@@ -230,6 +250,15 @@ export default {
           }
         }
         return text
+      }
+    },
+    getColumns() {
+      if (this.activeTab === 'pending') {
+        return this.pendingColumns
+      } else if (this.activeTab === 'myRoles') {
+        return this.roleColumns
+      } else {
+        return this.processedColumns
       }
     }
   },
