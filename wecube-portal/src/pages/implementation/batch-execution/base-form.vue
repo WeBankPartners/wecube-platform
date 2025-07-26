@@ -671,7 +671,7 @@ export default {
     }
   }
   .dynamic-condition {
-    width: 800px;
+    width: 900px;
     min-height: 100px;
     border: 1px dashed #d7dadc;
     padding: 10px 20px 0px 20px;
@@ -688,10 +688,10 @@ export default {
     padding: 10px 20px 0px 20px;
   }
   .form-item {
-    width: 800px;
+    width: 900px;
   }
   .no-data {
-    width: 800px;
+    width: 900px;
     min-height: 100px;
     display: flex;
     justify-content: center;
