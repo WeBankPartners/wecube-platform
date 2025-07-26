@@ -175,9 +175,28 @@ export default {
     renderTreeContent(h, { data }) {
       return h(
         'span',
-        { style: {'color': data.matched ? 'red' : ''} },
-        data.title
+        {},
+        this.highlightMatch(data.title, this.searchParams.displayName, data.matched, h)
       )
+    },
+    highlightMatch(title, keyword, matched, h) {
+      if (!keyword) return title   
+      const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // 转义正则特殊字符
+      const regex = new RegExp(`(${escapedKeyword})`, 'gi') // 全局不区分大小写匹配
+      
+      return title.split(regex).map((part, index) => {
+        if (index % 2 === 0) {
+          // 非匹配部分
+          return part
+        } else {
+          // 匹配部分，添加高亮样式
+          return h(
+            'span',
+            { style: {'color': matched ? '#5384ff' : '', fontWeight: 'bold'} },
+            part
+          )
+        }
+      })
     },
     // 获取环境列表
     async getEnviromentList() {
