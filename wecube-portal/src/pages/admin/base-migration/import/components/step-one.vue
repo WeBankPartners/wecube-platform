@@ -17,8 +17,7 @@
         </div>
         <div class="item">
           <span class="title">{{ $t('pe_select_product') }}<span class="number">{{ detail.businessList.length }}</span></span>
-          <Table :border="false" size="small" :columns="tableColumns" :max-height="500" :data="detail.businessList">
-          </Table>
+          <Tree :data="getProductTree"></Tree>
         </div>
       </template>
       <Spin v-if="loading" size="large" fix></Spin>
@@ -49,48 +48,26 @@ export default {
       detail: {
         exportNexusUrl: '',
         environment: {},
-        businessList: []
+        businessList: [],
+        selectedTreeJson: '[]'
       },
       viewFlag: false,
-      envList: [],
-      tableColumns: [
-        {
-          title: this.$t('pe_business_product'),
-          minWidth: 180,
-          key: 'name',
-          render: (h, params) => (
-            <span
-              style="cursor:pointer;color:#5cadff;"
-              onClick={() => {
-                this.jumpToHistory(params.row)
-              }}
-            >
-              {params.row.displayName}
-            </span>
-          )
-        },
-        {
-          title: this.$t('pe_product_id'),
-          minWidth: 180,
-          key: 'id'
-        },
-        {
-          title: this.$t('pe_product_des'),
-          key: 'description',
-          minWidth: 140,
-          render: (h, params) => <span>{params.row.description || '-'}</span>
-        },
-        {
-          title: this.$t('updatedBy'),
-          key: 'update_user',
-          minWidth: 120
-        },
-        {
-          title: this.$t('table_updated_date'),
-          key: 'update_time',
-          minWidth: 150
-        }
-      ]
+      envList: []
+    }
+  },
+  computed: {
+    getProductTree() {
+      const data = JSON.parse(this.detail.selectedTreeJson)
+      // 过滤掉没有勾选的数据
+      const filterCheckedNodes = (data) => {
+        return data.filter(node => {
+          if (node.children && node.children.length) {
+            node.children = filterCheckedNodes(node.children)
+          }
+          return node.checked
+        })
+      }
+      return filterCheckedNodes(data)
     }
   },
   mounted() {
@@ -113,8 +90,9 @@ export default {
       if (status === 'OK') {
         this.detail = {
           exportNexusUrl: this.url,
+          environment: data.environment || {},
           businessList: data.businessList || [],
-          environment: data.environment || {}
+          selectedTreeJson: data.selectedTreeJson || '[]'
         }
         this.envList = [
           {
