@@ -172,9 +172,21 @@ func QueryRolesAndMenus(c *gin.Context) {
 
 		// Group menus by category and sort by MenuOrder
 		menuMap := make(map[string][]string)
+		menuSet := make(map[string]map[string]bool) // Track added menus to prevent duplicates
+
 		for _, menu := range roleMenuDto.MenuList {
 			category := menu.Category
-			menuMap[category] = append(menuMap[category], menu.LocalDisplayName)
+
+			// Initialize category set if not exists
+			if menuSet[category] == nil {
+				menuSet[category] = make(map[string]bool)
+			}
+
+			// Check if menu already exists in this category
+			if !menuSet[category][menu.LocalDisplayName] {
+				menuMap[category] = append(menuMap[category], menu.LocalDisplayName)
+				menuSet[category][menu.LocalDisplayName] = true
+			}
 		}
 
 		// Sort menus within each category by MenuOrder
