@@ -503,6 +503,8 @@ func (UserManagementService) getLocalRolesByUsername(username string) (*model.Sy
 	}
 
 	for _, userRole := range userRoles {
+		expireTime := ""
+		AdminUserName := ""
 		role := &model.SysRoleEntity{}
 		found, err := db.Engine.ID(userRole.RoleId).Get(role)
 		if err != nil {
@@ -520,7 +522,19 @@ func (UserManagementService) getLocalRolesByUsername(username string) (*model.Sy
 			log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("such role entity is deleted,role id %v", role.Id))
 			continue
 		}
-
+		if userRole.ExpireTime.Unix() > 0 {
+			expireTime = userRole.ExpireTime.Format(constant.DateTimeFormat)
+		}
+		if strings.TrimSpace(role.Administrator) != "" {
+			adminUser, err := db.UserRepositoryInstance.FindById(role.Administrator)
+			if err != nil {
+				log.Error(nil, log.LOGGER_APP, "failed to find administrator,not deleted user by userId", zap.String("userId", role.Administrator),
+					zap.Error(err))
+			}
+			if adminUser != nil {
+				AdminUserName = adminUser.Username
+			}
+		}
 		roleDto := &model.SimpleLocalRoleDto{
 			ID:            role.Id,
 			Name:          role.Name,
@@ -528,6 +542,8 @@ func (UserManagementService) getLocalRolesByUsername(username string) (*model.Sy
 			Email:         role.EmailAddress,
 			Status:        role.GetRoleDeletedStatus(),
 			Administrator: role.Administrator,
+			AdminUserName: AdminUserName,
+			ExpireTime:    expireTime,
 		}
 
 		roleDtos = append(roleDtos, roleDto)

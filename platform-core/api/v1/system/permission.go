@@ -151,6 +151,38 @@ func QueryRoles(c *gin.Context) {
 	middleware.Return(c, response)
 }
 
+// QueryRolesAndMenus 查询角色和菜单数据，返回格式化的角色菜单信息
+func QueryRolesAndMenus(c *gin.Context) {
+	token := c.GetHeader("Authorization")
+	language := c.GetHeader("Accept-Language")
+	response, err := remote.RetrieveAllLocalRoles("N", token, language, true)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	var result []*models.RoleAndMenuDto
+	// Process each role to get its menus
+	for _, role := range response.Data {
+		// Get menus for this role
+		roleMenuDto, err := retrieveMenusByRoleId(c, role.ID, token, language)
+		if err != nil {
+			middleware.ReturnError(c, err)
+			return
+		}
+
+		// Create role and menu data
+		roleAndMenu := &models.RoleAndMenuDto{
+			RoleName:          role.DisplayName,
+			RoleAdministrator: role.AdminUserName,
+			ValidityPeriod:    role.ExpireTime,
+			MenuList:          roleMenuDto.MenuList, // 直接返回菜单对象数组
+		}
+		result = append(result, roleAndMenu)
+	}
+
+	middleware.Return(c, result)
+}
+
 // AllMenus 查询所有菜单
 func AllMenus(c *gin.Context) {
 	allSysMenuList, err := database.GetAllSysMenus(c)

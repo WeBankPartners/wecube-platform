@@ -60,8 +60,10 @@ type SimpleLocalRoleDto struct {
 	Name          string `json:"name"`
 	DisplayName   string `json:"displayName"`
 	Email         string `json:"email"`
-	Status        string `json:"status"`        // Deleted, NotDeleted
-	Administrator string `json:"administrator"` // 角色管理员
+	Status        string `json:"status"`                // Deleted, NotDeleted
+	Administrator string `json:"administrator"`         // 角色管理员ID
+	AdminUserName string `json:"administratorUserName"` // 角色管理员名称
+	ExpireTime    string `json:"expireTime"`            // 角色过期时间
 }
 
 type SimpleLocalUserDto struct {
@@ -151,6 +153,14 @@ type RoleMenuDto struct {
 	RoleId   string         `json:"roleId"`
 	RoleName string         `json:"roleName"`
 	MenuList []*MenuItemDto `json:"menuList"`
+}
+
+// RoleAndMenuDto represents the role and menu data format for the screenshot
+type RoleAndMenuDto struct {
+	RoleName          string         `json:"roleName"`          // 角色名
+	RoleAdministrator string         `json:"roleAdministrator"` // 角色管理员
+	ValidityPeriod    string         `json:"validityPeriod"`    // 有效期
+	MenuList          []*MenuItemDto `json:"menuList"`          // 菜单列表
 }
 
 type MenuItemDtoSort []*MenuItemDto
