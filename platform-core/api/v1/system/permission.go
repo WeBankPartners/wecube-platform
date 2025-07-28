@@ -170,12 +170,54 @@ func QueryRolesAndMenus(c *gin.Context) {
 			return
 		}
 
+		// Group menus by category and sort by MenuOrder
+		menuMap := make(map[string][]string)
+		for _, menu := range roleMenuDto.MenuList {
+			category := menu.Category
+			menuMap[category] = append(menuMap[category], menu.LocalDisplayName)
+		}
+
+		// Sort menus within each category by MenuOrder
+		for category, menus := range menuMap {
+			sort.Slice(menus, func(i, j int) bool {
+				// Find original menu items to get MenuOrder
+				var menuI, menuJ *models.MenuItemDto
+				for _, originalMenu := range roleMenuDto.MenuList {
+					if originalMenu.Category == category && originalMenu.LocalDisplayName == menus[i] {
+						menuI = originalMenu
+					}
+					if originalMenu.Category == category && originalMenu.LocalDisplayName == menus[j] {
+						menuJ = originalMenu
+					}
+				}
+				if menuI != nil && menuJ != nil {
+					return menuI.MenuOrder < menuJ.MenuOrder
+				}
+				return menus[i] < menus[j]
+			})
+		}
+
+		// Convert map to ordered array
+		var categoryMenuList []*models.CategoryMenuDto
+		for category, menus := range menuMap {
+			categoryMenu := &models.CategoryMenuDto{
+				Category: category,
+				Menus:    menus,
+			}
+			categoryMenuList = append(categoryMenuList, categoryMenu)
+		}
+
+		// Sort categories by ASCII order
+		sort.Slice(categoryMenuList, func(i, j int) bool {
+			return categoryMenuList[i].Category < categoryMenuList[j].Category
+		})
+
 		// Create role and menu data
 		roleAndMenu := &models.RoleAndMenuDto{
 			RoleName:          role.DisplayName,
 			RoleAdministrator: role.AdminUserName,
 			ValidityPeriod:    role.ExpireTime,
-			MenuList:          roleMenuDto.MenuList, // 直接返回菜单对象数组
+			MenuList:          categoryMenuList,
 		}
 		result = append(result, roleAndMenu)
 	}
