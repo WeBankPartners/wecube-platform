@@ -45,21 +45,7 @@
             </div>
             <div class="content-list">
               <span>{{ $t('pe_select_busProduct') }}</span>
-              <Tag v-for="(i, index) in detailData.businessNameList" class="tag" :key="index">
-                {{ i }}
-              </Tag>
-            </div>
-            <div class="content-list">
-              <span>{{ $t('pe_relate_baseProduct') }}</span>
-              <Tag v-for="(i, index) in detailData.associationTechProducts" class="tag" :key="index">
-                {{ i }}
-              </Tag>
-            </div>
-            <div class="content-list">
-              <span>{{ $t('pe_relate_system') }}</span>
-              <Tag v-for="(i, index) in detailData.associationSystems" class="tag" :key="index">
-                {{ i }}
-              </Tag>
+              <Tree :data="getProductTree"></Tree>
             </div>
           </div>
         </card>
@@ -311,8 +297,20 @@ export default {
       }
     }
   },
-  data() {
-    return {}
+  computed: {
+    getProductTree() {
+      const data = JSON.parse(this.detailData.selectedTreeJson)
+      // 过滤掉没有勾选的数据
+      const filterCheckedNodes = (data) => {
+        return data.filter(node => {
+          if (node.children && node.children.length) {
+            node.children = filterCheckedNodes(node.children)
+          }
+          return node.checked
+        })
+      }
+      return filterCheckedNodes(data)
+    }
   },
   mounted() {
     // 去掉表格复选框

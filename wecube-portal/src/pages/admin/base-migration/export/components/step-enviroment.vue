@@ -46,21 +46,12 @@
       <span class="title">{{ $t('pe_select_product') }}<span class="number">{{ selectionList.length }}</span></span>
       <div>
         <BaseSearch
-          :onlyShowReset="true"
+           :onlyShowReset="true"
           :options="searchOptions"
           v-model="searchParams"
-          @search="handleSearchTable"
+          @search="filterProductData"
         ></BaseSearch>
-        <Table
-          :border="false"
-          size="small"
-          :loading="loading"
-          :columns="tableColumns"
-          :max-height="500"
-          :data="tableData"
-          @on-selection-change="onSelectionChange"
-        >
-        </Table>
+        <Tree :render="renderTreeContent" ref="productTree" :data="productData" show-checkbox @on-check-change="handleProductSelect"></Tree>
       </div>
     </div>
     <CustomManagement v-if="customVisible" v-model="customVisible" />
@@ -70,7 +61,7 @@
 <script>
 import CustomManagement from './custom-management.vue'
 import { getExportBusinessList, getCustomerList } from '@/api/server'
-import { deepClone } from '@/const/util'
+import { pick } from 'lodash'
 import dayjs from 'dayjs'
 export default {
   components: { CustomManagement },
@@ -84,68 +75,20 @@ export default {
       lastConfirmTime: dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss'), // 数据确认时间
       envList: [],
       searchParams: {
-        displayName: '',
-        id: ''
+        displayName: ''
       },
       searchOptions: [
         {
           key: 'displayName',
           placeholder: this.$t('pe_business_product'),
-          component: 'input'
-        },
-        {
-          key: 'id',
-          placeholder: this.$t('pe_product_id'),
-          component: 'input'
+          component: 'input',
+          width: '500px'
         }
       ],
-      tableColumns: [
-        {
-          type: 'selection',
-          width: 55,
-          align: 'center'
-        },
-        {
-          title: this.$t('pe_business_product'),
-          minWidth: 180,
-          key: 'name',
-          render: (h, params) => (
-            <span
-              style="cursor:pointer;color:#5cadff;"
-              onClick={() => {
-                this.jumpToHistory(params.row)
-              }}
-            >
-              {params.row.displayName}
-            </span>
-          )
-        },
-        {
-          title: this.$t('pe_product_id'),
-          minWidth: 180,
-          key: 'id'
-        },
-        {
-          title: this.$t('pe_product_des'),
-          key: 'description',
-          minWidth: 140,
-          render: (h, params) => <span>{params.row.description || '-'}</span>
-        },
-        {
-          title: this.$t('updatedBy'),
-          key: 'update_user',
-          minWidth: 120
-        },
-        {
-          title: this.$t('table_updated_date'),
-          key: 'update_time',
-          minWidth: 150
-        }
-      ],
-      tableData: [],
-      originTableData: [],
-      selectionList: [],
+      selectionList: [], // 勾选的二级产品
+      allSelectionList: [], // 所有勾选节点
       loading: false,
+      productData: [],
       customerId: '', // 目标客户
       customerList: [], // 客户列表
       customVisible: false
@@ -167,13 +110,13 @@ export default {
     await this.getEnviromentList()
     if (this.detailData && this.detailData.environment) {
       this.env = this.detailData.environment
-      const selectIds = this.detailData.business.split(',')
-      this.tableData.forEach(i => {
-        if (selectIds.includes(i.id)) {
-          this.$set(i, '_checked', true)
-        }
+      // 获取产品数据
+      this.productData = JSON.parse(this.detailData.selectedTreeJson || '{}')
+      this.$nextTick(() => {
+        const checkedTags = this.$refs.productTree.getCheckedNodes() || []
+        this.allSelectionList =checkedTags
+        this.selectionList = this.allSelectionList.filter(item => item.level === 2)
       })
-      this.selectionList = this.tableData.filter(i => i._checked)
       this.lastConfirmTime = this.detailData.lastConfirmTime
       // 目标客户
       this.customerId = this.detailData.customerId
@@ -184,25 +127,76 @@ export default {
   },
   methods: {
     // 表格搜索
-    handleSearchTable() {
-      this.tableData = this.originTableData.filter(item => {
-        const nameFlag = item.displayName.toLowerCase().indexOf(this.searchParams.displayName.toLowerCase()) > -1
-        const idFlag = item.id.indexOf(this.searchParams.id) > -1
-        if (nameFlag && idFlag) {
-          return true
+    filterProductData() {
+      if (!this.searchParams.displayName) {
+        const expandAllData = (data, flag) => {
+          data.forEach(x => {
+            x.expand = false
+            x.matched = false
+            if (x.children && x.children.length > 0) {
+              expandAllData(x.children, flag)
+            }
+          })
         }
-      })
-      const selectIds = this.selectionList.map(i => i.id)
-      this.tableData.forEach(i => {
-        if (selectIds.includes(i.id)) {
-          this.$set(i, '_checked', true)
-        }
-      })
+        expandAllData(this.productData, false)
+        return
+      }
+      const filterData = (data) => {
+        data.forEach(item => {
+          const nameFlag = item.title.toLowerCase().indexOf(this.searchParams.displayName.toLowerCase()) > -1
+          if (nameFlag) {
+            this.$set(item, 'expand', true)
+            this.$set(item, 'matched', true)
+          } else {
+            this.$set(item, 'expand', false)
+            this.$set(item, 'matched', false)
+          }
+          if (item.children && item.children.length > 0) {
+            filterData(item.children)
+          }
+        })
+      }
+      filterData(this.productData)
+      const expandData = (data) => {
+        data.forEach(x => {
+          if (x.children && x.children.length > 0) {
+            expandData(x.children)
+          }
+          if (x.children && x.children.length > 0) {
+            const hasExpand = x.children.some(y => y.expand)
+            if (hasExpand) {
+              this.$set(x, 'expand', true)
+            }
+          }
+        })
+      }
+      expandData(this.productData)
     },
-    onSelectionChange(selection) {
-      const tableIds = this.tableData.map(i => i.id)
-      const hiddenSelectionList = this.selectionList.filter(item => !tableIds.includes(item.id))
-      this.selectionList = [...selection, ...hiddenSelectionList]
+    renderTreeContent(h, { data }) {
+      return h(
+        'span',
+        {},
+        this.highlightMatch(data.title, this.searchParams.displayName, data.matched, h)
+      )
+    },
+    highlightMatch(title, keyword, matched, h) {
+      if (!keyword) return title   
+      const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // 转义正则特殊字符
+      const regex = new RegExp(`(${escapedKeyword})`, 'gi') // 全局不区分大小写匹配
+      
+      return title.split(regex).map((part, index) => {
+        if (index % 2 === 0) {
+          // 非匹配部分
+          return part
+        } else {
+          // 匹配部分，添加高亮样式
+          return h(
+            'span',
+            { style: {'color': matched ? '#5384ff' : '', fontWeight: 'bold'} },
+            part
+          )
+        }
+      })
     },
     // 获取环境列表
     async getEnviromentList() {
@@ -224,17 +218,100 @@ export default {
     // 获取产品列表
     async getProductList() {
       const params = {
-        id: this.searchParams.id,
-        displayName: this.searchParams.displayName,
         queryMode: '' // env代表查询环境，空代表查询产品
       }
       this.loading = true
       const { status, data } = await getExportBusinessList(params)
       this.loading = false
       if (status === 'OK') {
-        this.tableData = data || []
-        this.originTableData = deepClone(this.tableData)
+        this.productData = data || []
+        // 筛选出含有二级产品的数据
+        this.productData.forEach(item => {
+          if (Array.isArray(item.primary_products) && item.primary_products.length > 0) {
+            item.primary_products = item.primary_products.filter(pri => Array.isArray(pri.secondary_products) && pri.secondary_products.length > 0)
+          }
+        })
+        this.productData = this.productData.filter(item => Array.isArray(item.primary_products) && item.primary_products.length > 0)
+        // 0级产品
+        this.productData.forEach(x => {
+          const disabled = x.primary_products.some(y => {
+            return y.secondary_products.some(z => z.product_mandatory === 'true')
+          })
+          this.$set(x, 'title', x.name)
+          this.$set(x, 'expand', false)
+          this.$set(x, 'children', x.primary_products)
+          if (!this.detailData.id) {
+            this.$set(x, 'checked', true)
+          } else {
+            this.$set(x, 'checked', false)
+          }
+          this.$set(x, 'disabled', disabled)
+          this.$set(x, 'level', 0)
+          // 1级产品
+          x.children.forEach(y => {
+            const disabled = y.secondary_products.some(z => z.product_mandatory === 'true')
+            this.$set(y, 'title', y.name)
+            this.$set(y, 'expand', false)
+            this.$set(y, 'children', y.secondary_products)
+            if (!this.detailData.id) {
+              this.$set(y, 'checked', true)
+            } else {
+              this.$set(y, 'checked', false)
+            }
+            this.$set(y, 'disabled', disabled)
+            this.$set(y, 'level', 1)
+            // 2级产品
+            y.children.forEach(z => {
+              // 3级显示系统，禁用勾选
+              z.system_design = z.system_design.map(sys => {
+                return {
+                  title: sys,
+                  expand: false,
+                  disableCheckbox: true
+                }
+              })
+              this.$set(z, 'title', `${z.name}`)
+              this.$set(z, 'expand', false)
+              this.$set(z, 'children', z.system_design)
+              if (!this.detailData.id) {
+                this.$set(z, 'checked', true)
+              } else {
+                this.$set(z, 'checked', false)
+              }
+              this.$set(z, 'disabled', z.product_mandatory === 'true' ? true : false)
+              this.$set(z, 'level', 2)
+            })
+          })
+        })
+        // 过滤产品树数据属性，只保留以下属性
+        const pickAttrs = ['title', 'expand', 'children', 'checked', 'disabled', 'level', 'id', 'nodeKey', 'code', 'displayName']
+        this.productData.forEach(x => {
+          x.children.forEach(y => {
+            y.children = y.children.map(z => {
+              return pick(z, pickAttrs)
+            })
+          })
+        })
+        this.productData.forEach(x => {
+          x.children = x.children.map(y => {
+            return pick(y, pickAttrs)
+          })
+        })
+        this.productData = this.productData.map(x => {         
+            return pick(x, pickAttrs)
+        })
+        if (!this.detailData.id) {
+          this.$nextTick(() => {
+            const checkedTags = this.$refs.productTree.getCheckedNodes() || []
+            this.allSelectionList =checkedTags
+            this.selectionList = this.allSelectionList.filter(item => item.level === 2)
+          })
+        }
       }
+    },
+    handleProductSelect(arr) {
+      this.allSelectionList = arr
+      this.selectionList = this.allSelectionList.filter(item => item.level === 2)
     },
     jumpToHistory() {},
     // 打开目标客户弹窗
