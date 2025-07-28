@@ -504,7 +504,7 @@ func (UserManagementService) getLocalRolesByUsername(username string) (*model.Sy
 
 	for _, userRole := range userRoles {
 		expireTime := ""
-		AdminUserName := ""
+		adminUserName := ""
 		role := &model.SysRoleEntity{}
 		found, err := db.Engine.ID(userRole.RoleId).Get(role)
 		if err != nil {
@@ -532,7 +532,7 @@ func (UserManagementService) getLocalRolesByUsername(username string) (*model.Sy
 					zap.Error(err))
 			}
 			if adminUser != nil {
-				AdminUserName = adminUser.Username
+				adminUserName = adminUser.Username
 			}
 		}
 		roleDto := &model.SimpleLocalRoleDto{
@@ -542,7 +542,7 @@ func (UserManagementService) getLocalRolesByUsername(username string) (*model.Sy
 			Email:         role.EmailAddress,
 			Status:        role.GetRoleDeletedStatus(),
 			Administrator: role.Administrator,
-			AdminUserName: AdminUserName,
+			AdminUserName: adminUserName,
 			ExpireTime:    expireTime,
 		}
 
