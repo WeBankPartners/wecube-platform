@@ -234,7 +234,7 @@ func QueryRolesAndMenus(c *gin.Context) {
 		result = append(result, roleAndMenu)
 	}
 
-	middleware.Return(c, result)
+	middleware.ReturnData(c, result)
 }
 
 // AllMenus 查询所有菜单
