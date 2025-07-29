@@ -1265,6 +1265,24 @@ func (UserManagementService) ListRoleApplyByApplier(ctx context.Context, param *
 				content.Status = string(constant.UserRolePermissionStatusDeleted)
 			}
 		}
+		if content.Status == model.RoleApplyStatusInit {
+			// 如果是 init 状态，需要获取角色管理员信息作为审批人
+			if content.Role != nil && content.Role.Administrator != "" {
+				// 根据角色管理员ID查询用户信息
+				adminUser, err := UserManagementServiceInstance.RetireveLocalUserByUserid(content.Role.Administrator)
+				if err != nil {
+					log.Error(nil, log.LOGGER_APP, "failed to get role administrator user info",
+						zap.String("roleId", content.Role.ID),
+						zap.String("administratorId", content.Role.Administrator),
+						zap.Error(err))
+					// 如果查询失败，使用管理员ID作为备选
+					content.Approver = content.Role.Administrator
+				} else {
+					// 设置审批人为管理员用户名
+					content.Approver = adminUser.Username
+				}
+			}
+		}
 	}
 	return result, err
 }
