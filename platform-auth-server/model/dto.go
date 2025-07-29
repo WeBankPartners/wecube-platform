@@ -128,6 +128,7 @@ type RoleApplyDto struct {
 	EmailAddr    string              `json:"emailAddr"`
 	Role         *SimpleLocalRoleDto `json:"role"`
 	Status       string              `json:"status"`       // init,approve,deny,expire,preExpried
+	Approver     string              `json:"approver"`     // init 状态下才需要审批人
 	HandleStatus string              `json:"handleStatus"` //处理状态
 	ExpireTime   string              `json:"expireTime"`   //角色过期时间,""表示永久生效
 }
