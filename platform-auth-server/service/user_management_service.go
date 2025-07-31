@@ -871,14 +871,27 @@ func (UserManagementService) QueryUserPage(param model.QueryUserParam) (page mod
 		if len(userRoles) > 0 {
 			for _, userRole := range userRoles {
 				var found bool
+				var adminUserName string
 				role := &model.SysRoleEntity{}
 				if role, found = allRolesMap[userRole.RoleId]; found {
+					if strings.TrimSpace(role.Administrator) != "" {
+						adminUser, err := db.UserRepositoryInstance.FindById(role.Administrator)
+						if err != nil {
+							log.Error(nil, log.LOGGER_APP, "failed to find administrator,not deleted user by userId", zap.String("userId", role.Administrator),
+								zap.Error(err))
+						}
+						if adminUser != nil {
+							adminUserName = adminUser.Username
+						}
+					}
 					roleDto := &model.SimpleLocalRoleDto{
-						ID:          role.Id,
-						DisplayName: role.DisplayName,
-						Name:        role.Name,
-						Email:       role.EmailAddress,
-						Status:      role.GetRoleDeletedStatus(),
+						ID:            role.Id,
+						DisplayName:   role.DisplayName,
+						Name:          role.Name,
+						Email:         role.EmailAddress,
+						Administrator: role.Administrator,
+						AdminUserName: adminUserName,
+						Status:        role.GetRoleDeletedStatus(),
 					}
 					userDto.AddRoles([]*model.SimpleLocalRoleDto{roleDto})
 				}
