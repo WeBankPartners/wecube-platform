@@ -169,71 +169,89 @@ func QueryRolesAndMenus(c *gin.Context) {
 		return
 	}
 
-	var result []*models.RoleAndMenuDto
-	// Process each role to get its menus
+	// 并发获取每个角色的菜单信息
+	type roleMenuResult struct {
+		role    *models.SimpleLocalRoleDto
+		menuDto *models.RoleMenuDto
+		err     error
+	}
+
+	resultChan := make(chan roleMenuResult, len(response.Data))
+
+	// 启动并发协程获取菜单
 	for _, role := range response.Data {
-		// Get menus for this role
-		roleMenuDto, err := retrieveMenusByRoleId(c, role.ID, token, language)
-		if err != nil {
-			middleware.ReturnError(c, err)
+		go func(r *models.SimpleLocalRoleDto) {
+			menuDto, err := retrieveMenusByRoleId(c, r.ID, token, language)
+			resultChan <- roleMenuResult{
+				role:    r,
+				menuDto: menuDto,
+				err:     err,
+			}
+		}(role)
+	}
+
+	// 收集结果
+	var roleMenuResults []roleMenuResult
+	for i := 0; i < len(response.Data); i++ {
+		result := <-resultChan
+		if result.err != nil {
+			middleware.ReturnError(c, result.err)
 			return
 		}
+		roleMenuResults = append(roleMenuResults, result)
+	}
 
-		// Group menus by category and sort by MenuOrder
-		menuMap := make(map[string][]string)
-		menuSet := make(map[string]map[string]bool) // Track added menus to prevent duplicates
+	var result []*models.RoleAndMenuDto
 
+	// 处理每个角色的菜单数据
+	for _, roleResult := range roleMenuResults {
+		role := roleResult.role
+		roleMenuDto := roleResult.menuDto
+
+		// 优化：使用更高效的数据结构进行分组和排序
+		categoryMenus := make(map[string][]*models.MenuItemDto)
+
+		// 按分类分组菜单
 		for _, menu := range roleMenuDto.MenuList {
 			category := menu.Category
-
-			// Initialize category set if not exists
-			if menuSet[category] == nil {
-				menuSet[category] = make(map[string]bool)
-			}
-
-			// Check if menu already exists in this category
-			if !menuSet[category][menu.LocalDisplayName] {
-				menuMap[category] = append(menuMap[category], menu.LocalDisplayName)
-				menuSet[category][menu.LocalDisplayName] = true
-			}
+			categoryMenus[category] = append(categoryMenus[category], menu)
 		}
 
-		// Sort menus within each category by MenuOrder
-		for category, menus := range menuMap {
-			sort.Slice(menus, func(i, j int) bool {
-				// Find original menu items to get MenuOrder
-				var menuI, menuJ *models.MenuItemDto
-				for _, originalMenu := range roleMenuDto.MenuList {
-					if originalMenu.Category == category && originalMenu.LocalDisplayName == menus[i] {
-						menuI = originalMenu
-					}
-					if originalMenu.Category == category && originalMenu.LocalDisplayName == menus[j] {
-						menuJ = originalMenu
-					}
-				}
-				if menuI != nil && menuJ != nil {
-					return menuI.MenuOrder < menuJ.MenuOrder
-				}
-				return menus[i] < menus[j]
-			})
-		}
-
-		// Convert map to ordered array
+		// 处理每个分类的菜单
 		var categoryMenuList []*models.CategoryMenuDto
-		for category, menus := range menuMap {
+		for category, menus := range categoryMenus {
+			// 去重并排序
+			menuMap := make(map[string]*models.MenuItemDto)
+			for _, menu := range menus {
+				menuMap[menu.LocalDisplayName] = menu
+			}
+
+			// 转换为字符串数组并排序
+			var menuNames []string
+			for _, menu := range menuMap {
+				menuNames = append(menuNames, menu.LocalDisplayName)
+			}
+
+			// 按 MenuOrder 排序
+			sort.Slice(menuNames, func(i, j int) bool {
+				menuI := menuMap[menuNames[i]]
+				menuJ := menuMap[menuNames[j]]
+				return menuI.MenuOrder < menuJ.MenuOrder
+			})
+
 			categoryMenu := &models.CategoryMenuDto{
 				Category: category,
-				Menus:    menus,
+				Menus:    menuNames,
 			}
 			categoryMenuList = append(categoryMenuList, categoryMenu)
 		}
 
-		// Sort categories by ASCII order
+		// 按分类名称排序
 		sort.Slice(categoryMenuList, func(i, j int) bool {
 			return categoryMenuList[i].Category < categoryMenuList[j].Category
 		})
 
-		// Create role and menu data
+		// 创建角色和菜单数据
 		roleAndMenu := &models.RoleAndMenuDto{
 			RoleName:          role.DisplayName,
 			RoleAdministrator: role.AdminUserName,
@@ -541,41 +559,69 @@ func retrieveMenusByRoleId(ctx context.Context, roleId, userToken, language stri
 	var menuItemDtoList []*models.MenuItemDto
 	var roleRes models.QuerySingleRolesResponse
 	var roleMenuEntities []*models.RoleMenu
-	var menuItemsEntity *models.MenuItems
-	var pluginPackageMenusEntities []*models.PluginPackageMenus
+
+	// 获取角色信息
 	roleRes, err = remote.RetrieveRoleInfo(roleId, userToken, language)
 	if err != nil {
-		return
+		return nil, err
 	}
-	roleName := roleRes.Data.Name
-	roleMenuEntities, err = database.GetAllByRoleName(ctx, roleName)
+
+	// 获取角色菜单
+	roleMenuEntities, err = database.GetAllByRoleName(ctx, roleRes.Data.Name)
 	if err != nil {
-		return
+		return nil, err
 	}
+
+	roleName := roleRes.Data.Name
 	roleMenuDto.RoleId = roleId
 	roleMenuDto.RoleName = roleName
+
+	// 批量获取菜单项，减少数据库查询次数
+	menuCodeSet := make(map[string]bool)
+	for _, roleMenuEntity := range roleMenuEntities {
+		menuCodeSet[roleMenuEntity.MenuCode] = true
+	}
+
+	// 批量获取系统菜单项
+	menuCodes := make([]string, 0, len(menuCodeSet))
+	for menuCode := range menuCodeSet {
+		menuCodes = append(menuCodes, menuCode)
+	}
+
+	// 批量查询系统菜单
+	menuItemsMap, err := database.GetMenuItemsByCodes(ctx, menuCodes)
+	if err != nil {
+		return nil, err
+	}
+
+	// 批量查询插件菜单
+	pluginMenusMap, err := database.GetAllMenusByCodesAndPackageStatus(ctx, menuCodes, []string{"REGISTERED", "RUNNING", "STOPPED"})
+	if err != nil {
+		return nil, err
+	}
+
+	// 构建菜单列表
 	for _, roleMenuEntity := range roleMenuEntities {
 		menuCode := roleMenuEntity.MenuCode
-		menuItemsEntity, err = database.GetMenuItemsByCode(ctx, menuCode)
-		if err != nil {
-			return
-		}
-		if menuItemsEntity != nil && menuItemsEntity.Id != "" {
-			menuItemDtoList = append(menuItemDtoList, buildMenuItemDto(menuItemsEntity))
+
+		// 先查找系统菜单
+		if menuItem, exists := menuItemsMap[menuCode]; exists && menuItem != nil && menuItem.Id != "" {
+			menuItemDtoList = append(menuItemDtoList, buildMenuItemDto(menuItem))
 		} else {
-			pluginPackageMenusEntities, err = database.GetAllMenusByCodeAndPackageStatus(ctx, menuCode, []string{"REGISTERED", "RUNNING", "STOPPED"})
-			if err != nil {
-				return
-			}
-			for _, pluginPackageMenusEntity := range pluginPackageMenusEntities {
-				dto := database.BuildPackageMenuItemDto(ctx, pluginPackageMenusEntity)
-				if dto != nil {
-					menuItemDtoList = append(menuItemDtoList, dto)
+			// 查找插件菜单
+			if pluginMenus, exists := pluginMenusMap[menuCode]; exists {
+				for _, pluginPackageMenusEntity := range pluginMenus {
+					dto := database.BuildPackageMenuItemDto(ctx, pluginPackageMenusEntity)
+					if dto != nil {
+						menuItemDtoList = append(menuItemDtoList, dto)
+					}
 				}
 			}
 		}
 	}
+
 	roleMenuDto.MenuList = menuItemDtoList
+
 	// 菜单需要排序
 	if len(roleMenuDto.MenuList) == 0 {
 		// 空数据给默认值
