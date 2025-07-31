@@ -224,30 +224,25 @@ export default {
       const { status, data } = await getExportBusinessList(params)
       this.loading = false
       if (status === 'OK') {
-        this.productData = data || []
-        // 过滤数据为空的数据
-        this.productData = this.productData.filter(x => {
+        this.productData = data || []    
+        this.productData.forEach(x => {
           if (x.primary_products && x.primary_products.length > 0) {
             x.primary_products = x.primary_products.filter(y => {
-              if (y.secondary_products && y.secondary_products.length > 0) {
-                return true
-              } else {
-                return false
-              }
+              return y.secondary_products && y.secondary_products.length > 0
             })
-            return true
-          } else {
-            return false
           }
+        })
+        this.productData = this.productData.filter(x => {
+          return x.primary_products && x.primary_products.length > 0
         })
         // 0级产品
         this.productData.forEach(x => {
           const disabled = x.primary_products.some(y => {
-            return y.secondary_products.some(z => z.product_mandatory === 'true')
+            return y.secondary_products && y.secondary_products.some(z => z.product_mandatory === 'true')
           })
           this.$set(x, 'title', x.name)
           this.$set(x, 'expand', false)
-          this.$set(x, 'children', x.primary_products)
+          this.$set(x, 'children', x.primary_products || [])
           if (!this.detailData.id) {
             this.$set(x, 'checked', true)
           } else {
@@ -257,10 +252,10 @@ export default {
           this.$set(x, 'level', 0)
           // 1级产品
           x.children.forEach(y => {
-            const disabled = y.secondary_products.some(z => z.product_mandatory === 'true')
+            const disabled = y.secondary_products &&y.secondary_products.some(z => z.product_mandatory === 'true')
             this.$set(y, 'title', y.name)
             this.$set(y, 'expand', false)
-            this.$set(y, 'children', y.secondary_products)
+            this.$set(y, 'children', y.secondary_products || [])
             if (!this.detailData.id) {
               this.$set(y, 'checked', true)
             } else {
@@ -271,16 +266,16 @@ export default {
             // 2级产品
             y.children.forEach(z => {
               // 3级显示系统，禁用勾选
-              z.system_design = z.system_design.map(sys => {
+              z.system_design = z.system_design && z.system_design.map(sys => {
                 return {
                   title: sys,
                   expand: false,
                   disableCheckbox: true
                 }
-              })
+              }) || []
               this.$set(z, 'title', `${z.name}`)
               this.$set(z, 'expand', false)
-              this.$set(z, 'children', z.system_design)
+              this.$set(z, 'children', z.system_design || [])
               if (!this.detailData.id) {
                 this.$set(z, 'checked', true)
               } else {
