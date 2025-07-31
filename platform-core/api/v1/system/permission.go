@@ -157,34 +157,21 @@ func QueryRolesAndMenus(c *gin.Context) {
 	language := c.GetHeader("Accept-Language")
 	currentUser := middleware.GetRequestUser(c)
 
-	// 使用 QueryUser 获取当前用户的角色信息
-	queryParam := models.QueryUserParam{
-		UserName:   currentUser,
-		StartIndex: 0,
-		PageSize:   1000, // 设置一个较大的值以获取所有角色
-	}
-
-	_, userData, err := remote.QueryUser(queryParam, token, language)
+	// 使用 GetRolesByUsername 获取当前用户的角色信息
+	response, err := remote.GetRolesByUsername(currentUser, token, language)
 	if err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
 
-	if len(userData) == 0 {
-		middleware.ReturnData(c, []*models.RoleAndMenuDto{})
-		return
-	}
-
-	// 获取用户的角色列表
-	userRoles := userData[0].Roles
-	if len(userRoles) == 0 {
+	if len(response.Data) == 0 {
 		middleware.ReturnData(c, []*models.RoleAndMenuDto{})
 		return
 	}
 
 	var result []*models.RoleAndMenuDto
 	// Process each role to get its menus
-	for _, role := range userRoles {
+	for _, role := range response.Data {
 		// Get menus for this role
 		roleMenuDto, err := retrieveMenusByRoleId(c, role.ID, token, language)
 		if err != nil {
