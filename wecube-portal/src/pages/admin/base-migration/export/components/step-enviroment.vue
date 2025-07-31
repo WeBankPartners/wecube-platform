@@ -225,13 +225,21 @@ export default {
       this.loading = false
       if (status === 'OK') {
         this.productData = data || []
-        // 筛选出含有二级产品的数据
-        this.productData.forEach(item => {
-          if (Array.isArray(item.primary_products) && item.primary_products.length > 0) {
-            item.primary_products = item.primary_products.filter(pri => Array.isArray(pri.secondary_products) && pri.secondary_products.length > 0)
+        // 过滤数据为空的数据
+        this.productData = this.productData.filter(x => {
+          if (x.primary_products && x.primary_products.length > 0) {
+            x.primary_products = x.primary_products.filter(y => {
+              if (y.secondary_products && y.secondary_products.length > 0) {
+                return true
+              } else {
+                return false
+              }
+            })
+            return true
+          } else {
+            return false
           }
         })
-        this.productData = this.productData.filter(item => Array.isArray(item.primary_products) && item.primary_products.length > 0)
         // 0级产品
         this.productData.forEach(x => {
           const disabled = x.primary_products.some(y => {
