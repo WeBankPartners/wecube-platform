@@ -8,7 +8,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"go.uber.org/zap"
-	
+	"strings"
 )
 
 // GetAllRootMenus 查询所有根菜单
