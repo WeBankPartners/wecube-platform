@@ -236,3 +236,25 @@ func GetAllMenusByCodesAndPackageStatus(ctx context.Context, codes []string, sta
 	}
 	return
 }
+
+// GetAllByRoleNames 批量根据角色名称获取角色菜单
+func GetAllByRoleNames(ctx context.Context, roleNames []string) (list []*models.RoleMenu, err error) {
+	if len(roleNames) == 0 {
+		return make([]*models.RoleMenu, 0), nil
+	}
+
+	placeholders := make([]string, len(roleNames))
+	params := make([]interface{}, len(roleNames))
+	for i, roleName := range roleNames {
+		placeholders[i] = "?"
+		params[i] = roleName
+	}
+
+	sql := fmt.Sprintf("select id,role_name,menu_code from role_menu where role_name in (%s)", strings.Join(placeholders, ","))
+	err = db.MysqlEngine.Context(ctx).SQL(sql, params...).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
