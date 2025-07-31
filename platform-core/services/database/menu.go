@@ -2,11 +2,13 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"go.uber.org/zap"
+	
 )
 
 // GetAllRootMenus 查询所有根菜单
@@ -165,6 +167,72 @@ func AddRoleMenu(ctx context.Context, menu models.RoleMenu) (err error) {
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseExecuteError, err)
 		return
+	}
+	return
+}
+
+// GetMenuItemsByCodes 批量根据codes返回菜单
+func GetMenuItemsByCodes(ctx context.Context, codes []string) (result map[string]*models.MenuItems, err error) {
+	if len(codes) == 0 {
+		return make(map[string]*models.MenuItems), nil
+	}
+
+	var list []*models.MenuItems
+	placeholders := make([]string, len(codes))
+	params := make([]interface{}, len(codes))
+	for i, code := range codes {
+		placeholders[i] = "?"
+		params[i] = code
+	}
+
+	sql := fmt.Sprintf("select id,parent_code,code,source,description,local_display_name,menu_order from menu_items where code in (%s)", strings.Join(placeholders, ","))
+	err = db.MysqlEngine.Context(ctx).SQL(sql, params...).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	result = make(map[string]*models.MenuItems)
+	for _, item := range list {
+		result[item.Code] = item
+	}
+	return
+}
+
+// GetAllMenusByCodesAndPackageStatus 批量根据codes和包状态返回对应菜单列表
+func GetAllMenusByCodesAndPackageStatus(ctx context.Context, codes []string, statusArr []string) (result map[string][]*models.PluginPackageMenus, err error) {
+	if len(codes) == 0 {
+		return make(map[string][]*models.PluginPackageMenus), nil
+	}
+
+	var list []*models.PluginPackageMenus
+	codePlaceholders := make([]string, len(codes))
+	statusPlaceholders := make([]string, len(statusArr))
+	params := make([]interface{}, 0, len(codes)+len(statusArr))
+
+	for i, code := range codes {
+		codePlaceholders[i] = "?"
+		params = append(params, code)
+	}
+
+	for i, status := range statusArr {
+		statusPlaceholders[i] = "?"
+		params = append(params, status)
+	}
+
+	sql := fmt.Sprintf("select ppm.id,ppm.category,ppm.code,ppm.source,ppm.display_name,ppm.local_display_name,ppm.path,ppm.menu_order,ppm.active,pp.status from plugin_package_menus ppm left join plugin_packages pp on ppm.plugin_package_id = pp.id where ppm.code in (%s) and pp.status in (%s)",
+		strings.Join(codePlaceholders, ","),
+		strings.Join(statusPlaceholders, ","))
+
+	err = db.MysqlEngine.Context(ctx).SQL(sql, params...).Find(&list)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+
+	result = make(map[string][]*models.PluginPackageMenus)
+	for _, item := range list {
+		result[item.Code] = append(result[item.Code], item)
 	}
 	return
 }
