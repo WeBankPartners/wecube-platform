@@ -131,9 +131,14 @@
 </template>
 <script>
 import {
-  getApplyRoles, startApply, getApplyList, deleteApplyData
+  getApplyRoles,
+  startApply,
+  getApplyList,
+  deleteApplyData,
+  getUserRoleMenus
 } from '@/api/server.js'
 import dayjs from 'dayjs'
+import { MENUS } from '@/const/menus'
 export default {
   data() {
     return {
@@ -153,8 +158,9 @@ export default {
           render: (h, params) => {
             if (params.row.role.displayName) {
               return <div>{params.row.role.displayName}</div>
+            } else {
+              return <div style="color:#ff4d4f">{this.$t('be_roleDelete')}</div>
             }
-            return <div style="color:#ff4d4f">{this.$t('be_roleDelete')}</div>
           }
         },
         createdTime: {
@@ -185,7 +191,7 @@ export default {
       },
       pendingColumns: [],
       processedColumns: [],
-      roleColumns: [
+      myRoleColumns: [
         {
           title: this.$t('be_role_name'),
           key: 'roleName'
@@ -196,11 +202,18 @@ export default {
         },
         {
           title: this.$t('be_expireTime'),
-          key: 'expireTime'
+          key: 'validityPeriod',
+          render: (h, params) => {
+            return <div>{params.row.validityPeriod || this.$t('be_forever')}</div>
+          }
         },
         {
           title: this.$t('be_menue_list'),
-          key: 'menuList'
+          key: 'menuList',
+          minWidth: 240,
+          render: (h, params) => {
+            return <BaseScrollTag list={this.getMenuList(params.row.menuList)} />
+          }
         }
       ]
     }
@@ -256,9 +269,28 @@ export default {
       if (this.activeTab === 'pending') {
         return this.pendingColumns
       } else if (this.activeTab === 'myRoles') {
-        return this.roleColumns
+        return this.myRoleColumns
       } else {
         return this.processedColumns
+      }
+    },
+    // 获取角色对应的菜单列表
+    getMenuList() {
+      return function (menuList) {
+        return menuList.map(item => {
+          // 根据 category 代码找到对应的名称
+          const menuItem = MENUS.find(menu => menu.code === item.category)
+          let categoryName = item.category
+          if (menuItem) {
+            const currentLocale = this.$i18n.locale
+            if (currentLocale === 'zh-CN') {
+              categoryName = menuItem.cnName
+            } else {
+              categoryName = menuItem.enName
+            }
+          }
+          return categoryName + '：' + item.menus.join(' | ')
+        })
       }
     }
   },
@@ -266,9 +298,15 @@ export default {
     this.pendingColumns = [
       {
         title: this.$t('be_account'),
-        key: 'createdBy'
+        key: 'createdBy',
+        width: 160
       },
       this.baseColumn.roleId,
+      {
+        title: `${this.$t('be_approver')}(${this.$t('be_role_administrator')})`,
+        key: 'approver',
+        width: 210
+      },
       this.baseColumn.createdTime,
       this.baseColumn.expireTime
     ]
@@ -288,11 +326,19 @@ export default {
       this.showModal = true
       this.selectedRole = []
       this.expireTime = ''
+      this.activeTab = 'pending'
       this.getTableData()
     },
-    tabChange(val) {
+    async tabChange(val) {
       this.activeTab = val
-      this.getTableData()
+      if (val === 'myRoles') {
+        const { status, data } = await getUserRoleMenus()
+        if (status === 'OK') {
+          this.tableData = data || []
+        }
+      } else {
+        this.getTableData()
+      }
     },
     async getTableData() {
       this.tableData = []
