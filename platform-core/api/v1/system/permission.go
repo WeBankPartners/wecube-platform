@@ -151,6 +151,101 @@ func QueryRoles(c *gin.Context) {
 	middleware.Return(c, response)
 }
 
+// QueryRolesAndMenus 查询角色和菜单数据，返回格式化的角色菜单信息
+func QueryRolesAndMenus(c *gin.Context) {
+	token := c.GetHeader("Authorization")
+	language := c.GetHeader("Accept-Language")
+	currentUser := middleware.GetRequestUser(c)
+
+	// 使用 GetRolesByUsername 获取当前用户的角色信息
+	response, err := remote.GetRolesByUsername(currentUser, token, language)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	if len(response.Data) == 0 {
+		middleware.ReturnData(c, []*models.RoleAndMenuDto{})
+		return
+	}
+
+	// 批量获取所有角色的菜单信息
+	roleMenuMap, err := retrieveAllRoleMenusOptimized(c, response.Data, token, language)
+	if err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	var result []*models.RoleAndMenuDto
+
+	// 处理每个角色的菜单数据
+	for _, role := range response.Data {
+		roleMenuDto, exists := roleMenuMap[role.ID]
+		if !exists {
+			// 如果没有菜单数据，创建空的菜单列表
+			roleMenuDto = &models.RoleMenuDto{
+				RoleId:   role.ID,
+				RoleName: role.DisplayName,
+				MenuList: make([]*models.MenuItemDto, 0),
+			}
+		}
+
+		// 优化：使用更高效的数据结构进行分组和排序
+		categoryMenus := make(map[string][]*models.MenuItemDto)
+
+		// 按分类分组菜单
+		for _, menu := range roleMenuDto.MenuList {
+			category := menu.Category
+			categoryMenus[category] = append(categoryMenus[category], menu)
+		}
+
+		// 处理每个分类的菜单
+		var categoryMenuList []*models.CategoryMenuDto
+		for category, menus := range categoryMenus {
+			// 去重并排序
+			menuMap := make(map[string]*models.MenuItemDto)
+			for _, menu := range menus {
+				menuMap[menu.LocalDisplayName] = menu
+			}
+
+			// 转换为字符串数组并排序
+			var menuNames []string
+			for _, menu := range menuMap {
+				menuNames = append(menuNames, menu.LocalDisplayName)
+			}
+
+			// 按 MenuOrder 排序
+			sort.Slice(menuNames, func(i, j int) bool {
+				menuI := menuMap[menuNames[i]]
+				menuJ := menuMap[menuNames[j]]
+				return menuI.MenuOrder < menuJ.MenuOrder
+			})
+
+			categoryMenu := &models.CategoryMenuDto{
+				Category: category,
+				Menus:    menuNames,
+			}
+			categoryMenuList = append(categoryMenuList, categoryMenu)
+		}
+
+		// 按分类名称排序
+		sort.Slice(categoryMenuList, func(i, j int) bool {
+			return categoryMenuList[i].Category < categoryMenuList[j].Category
+		})
+
+		// 创建角色和菜单数据
+		roleAndMenu := &models.RoleAndMenuDto{
+			RoleName:          role.DisplayName,
+			RoleAdministrator: role.AdminUserName,
+			ValidityPeriod:    role.ExpireTime,
+			MenuList:          categoryMenuList,
+		}
+		result = append(result, roleAndMenu)
+	}
+
+	middleware.ReturnData(c, result)
+}
+
 // AllMenus 查询所有菜单
 func AllMenus(c *gin.Context) {
 	allSysMenuList, err := database.GetAllSysMenus(c)
@@ -446,41 +541,69 @@ func retrieveMenusByRoleId(ctx context.Context, roleId, userToken, language stri
 	var menuItemDtoList []*models.MenuItemDto
 	var roleRes models.QuerySingleRolesResponse
 	var roleMenuEntities []*models.RoleMenu
-	var menuItemsEntity *models.MenuItems
-	var pluginPackageMenusEntities []*models.PluginPackageMenus
+
+	// 获取角色信息
 	roleRes, err = remote.RetrieveRoleInfo(roleId, userToken, language)
 	if err != nil {
-		return
+		return nil, err
 	}
-	roleName := roleRes.Data.Name
-	roleMenuEntities, err = database.GetAllByRoleName(ctx, roleName)
+
+	// 获取角色菜单
+	roleMenuEntities, err = database.GetAllByRoleName(ctx, roleRes.Data.Name)
 	if err != nil {
-		return
+		return nil, err
 	}
+
+	roleName := roleRes.Data.Name
 	roleMenuDto.RoleId = roleId
 	roleMenuDto.RoleName = roleName
+
+	// 批量获取菜单项，减少数据库查询次数
+	menuCodeSet := make(map[string]bool)
+	for _, roleMenuEntity := range roleMenuEntities {
+		menuCodeSet[roleMenuEntity.MenuCode] = true
+	}
+
+	// 批量获取系统菜单项
+	menuCodes := make([]string, 0, len(menuCodeSet))
+	for menuCode := range menuCodeSet {
+		menuCodes = append(menuCodes, menuCode)
+	}
+
+	// 批量查询系统菜单
+	menuItemsMap, err := database.GetMenuItemsByCodes(ctx, menuCodes)
+	if err != nil {
+		return nil, err
+	}
+
+	// 批量查询插件菜单
+	pluginMenusMap, err := database.GetAllMenusByCodesAndPackageStatus(ctx, menuCodes, []string{"REGISTERED", "RUNNING", "STOPPED"})
+	if err != nil {
+		return nil, err
+	}
+
+	// 构建菜单列表
 	for _, roleMenuEntity := range roleMenuEntities {
 		menuCode := roleMenuEntity.MenuCode
-		menuItemsEntity, err = database.GetMenuItemsByCode(ctx, menuCode)
-		if err != nil {
-			return
-		}
-		if menuItemsEntity != nil && menuItemsEntity.Id != "" {
-			menuItemDtoList = append(menuItemDtoList, buildMenuItemDto(menuItemsEntity))
+
+		// 先查找系统菜单
+		if menuItem, exists := menuItemsMap[menuCode]; exists && menuItem != nil && menuItem.Id != "" {
+			menuItemDtoList = append(menuItemDtoList, buildMenuItemDto(menuItem))
 		} else {
-			pluginPackageMenusEntities, err = database.GetAllMenusByCodeAndPackageStatus(ctx, menuCode, []string{"REGISTERED", "RUNNING", "STOPPED"})
-			if err != nil {
-				return
-			}
-			for _, pluginPackageMenusEntity := range pluginPackageMenusEntities {
-				dto := database.BuildPackageMenuItemDto(ctx, pluginPackageMenusEntity)
-				if dto != nil {
-					menuItemDtoList = append(menuItemDtoList, dto)
+			// 查找插件菜单
+			if pluginMenus, exists := pluginMenusMap[menuCode]; exists {
+				for _, pluginPackageMenusEntity := range pluginMenus {
+					dto := database.BuildPackageMenuItemDto(ctx, pluginPackageMenusEntity)
+					if dto != nil {
+						menuItemDtoList = append(menuItemDtoList, dto)
+					}
 				}
 			}
 		}
 	}
+
 	roleMenuDto.MenuList = menuItemDtoList
+
 	// 菜单需要排序
 	if len(roleMenuDto.MenuList) == 0 {
 		// 空数据给默认值
@@ -489,6 +612,108 @@ func retrieveMenusByRoleId(ctx context.Context, roleId, userToken, language stri
 		sort.Sort(models.MenuItemDtoSort(roleMenuDto.MenuList))
 	}
 	return
+}
+
+func retrieveMenusByRoleIdOptimized(ctx context.Context, role *models.SimpleLocalRoleDto, userToken, language string) (roleMenuDto *models.RoleMenuDto, err error) {
+	roleMenuDto = &models.RoleMenuDto{}
+	var menuItemDtoList []*models.MenuItemDto
+	var roleMenuEntities []*models.RoleMenu
+
+	// 直接使用角色信息，避免重复查询
+	roleName := role.Name
+	roleMenuDto.RoleId = role.ID
+	roleMenuDto.RoleName = role.DisplayName
+
+	// 获取角色菜单
+	roleMenuEntities, err = database.GetAllByRoleName(ctx, roleName)
+	if err != nil {
+		return nil, err
+	}
+
+	// 批量获取菜单项，减少数据库查询次数
+	menuCodeSet := make(map[string]bool)
+	for _, roleMenuEntity := range roleMenuEntities {
+		menuCodeSet[roleMenuEntity.MenuCode] = true
+	}
+
+	// 批量获取系统菜单项
+	menuCodes := make([]string, 0, len(menuCodeSet))
+	for menuCode := range menuCodeSet {
+		menuCodes = append(menuCodes, menuCode)
+	}
+
+	// 批量查询系统菜单
+	menuItemsMap, err := database.GetMenuItemsByCodes(ctx, menuCodes)
+	if err != nil {
+		return nil, err
+	}
+
+	// 批量查询插件菜单
+	pluginMenusMap, err := database.GetAllMenusByCodesAndPackageStatus(ctx, menuCodes, []string{"REGISTERED", "RUNNING", "STOPPED"})
+	if err != nil {
+		return nil, err
+	}
+
+	// 构建菜单列表
+	for _, roleMenuEntity := range roleMenuEntities {
+		menuCode := roleMenuEntity.MenuCode
+
+		// 先查找系统菜单
+		if menuItem, exists := menuItemsMap[menuCode]; exists && menuItem != nil && menuItem.Id != "" {
+			menuItemDtoList = append(menuItemDtoList, buildMenuItemDto(menuItem))
+		} else {
+			// 查找插件菜单
+			if pluginMenus, exists := pluginMenusMap[menuCode]; exists {
+				for _, pluginPackageMenusEntity := range pluginMenus {
+					// 使用优化版本的 BuildPackageMenuItemDto，避免重复数据库查询
+					dto := buildPackageMenuItemDtoOptimized(pluginPackageMenusEntity, menuItemsMap)
+					if dto != nil {
+						menuItemDtoList = append(menuItemDtoList, dto)
+					}
+				}
+			}
+		}
+	}
+
+	roleMenuDto.MenuList = menuItemDtoList
+
+	// 菜单需要排序
+	if len(roleMenuDto.MenuList) == 0 {
+		// 空数据给默认值
+		roleMenuDto.MenuList = make([]*models.MenuItemDto, 0)
+	} else {
+		sort.Sort(models.MenuItemDtoSort(roleMenuDto.MenuList))
+	}
+	return
+}
+
+// buildPackageMenuItemDtoOptimized 优化版本的 BuildPackageMenuItemDto，避免重复数据库查询
+func buildPackageMenuItemDtoOptimized(menus *models.PluginPackageMenus, menuItemsMap map[string]*models.MenuItems) *models.MenuItemDto {
+	if menus == nil {
+		return nil
+	}
+
+	// 从缓存中获取系统菜单项，避免数据库查询
+	var result *models.MenuItems
+	if menuItem, exists := menuItemsMap[menus.Category]; exists {
+		result = menuItem
+	}
+
+	pluginPackageMenuDto := &models.MenuItemDto{
+		ID:               menus.Id,
+		Category:         menus.Category,
+		Code:             menus.Code,
+		Source:           menus.Source,
+		MenuOrder:        menus.MenuOrder,
+		DisplayName:      menus.DisplayName,
+		LocalDisplayName: menus.LocalDisplayName,
+		Path:             menus.Path,
+		Active:           menus.Active,
+	}
+	if result != nil {
+		pluginPackageMenuDto.MenuOrder = result.MenuOrder*10000 + menus.MenuOrder
+	}
+	return pluginPackageMenuDto
 }
 
 func convertList2Map(list []string) map[string]bool {
@@ -618,4 +843,100 @@ func UpdateUser(c *gin.Context) {
 	} else {
 		middleware.ReturnSuccess(c)
 	}
+}
+
+// retrieveAllRoleMenusOptimized 批量获取所有角色的菜单信息
+func retrieveAllRoleMenusOptimized(ctx context.Context, roles []*models.SimpleLocalRoleDto, userToken, language string) (roleMenuMap map[string]*models.RoleMenuDto, err error) {
+	roleMenuMap = make(map[string]*models.RoleMenuDto)
+
+	// 收集所有角色名称
+	roleNames := make([]string, 0, len(roles))
+	roleNameToId := make(map[string]string)
+	for _, role := range roles {
+		roleNames = append(roleNames, role.Name)
+		roleNameToId[role.Name] = role.ID
+	}
+
+	// 批量获取所有角色的菜单
+	allRoleMenus, err := database.GetAllByRoleNames(ctx, roleNames)
+	if err != nil {
+		return nil, err
+	}
+
+	// 按角色分组菜单
+	roleMenuGroups := make(map[string][]*models.RoleMenu)
+	for _, roleMenu := range allRoleMenus {
+		roleMenuGroups[roleMenu.RoleName] = append(roleMenuGroups[roleMenu.RoleName], roleMenu)
+	}
+
+	// 收集所有菜单代码
+	allMenuCodes := make(map[string]bool)
+	for _, roleMenus := range roleMenuGroups {
+		for _, roleMenu := range roleMenus {
+			allMenuCodes[roleMenu.MenuCode] = true
+		}
+	}
+
+	// 批量获取所有菜单代码
+	menuCodes := make([]string, 0, len(allMenuCodes))
+	for menuCode := range allMenuCodes {
+		menuCodes = append(menuCodes, menuCode)
+	}
+
+	// 批量查询系统菜单
+	menuItemsMap, err := database.GetMenuItemsByCodes(ctx, menuCodes)
+	if err != nil {
+		return nil, err
+	}
+
+	// 批量查询插件菜单
+	pluginMenusMap, err := database.GetAllMenusByCodesAndPackageStatus(ctx, menuCodes, []string{"REGISTERED", "RUNNING", "STOPPED"})
+	if err != nil {
+		return nil, err
+	}
+
+	// 为每个角色构建菜单列表
+	for _, role := range roles {
+		roleMenus := roleMenuGroups[role.Name]
+		var menuItemDtoList []*models.MenuItemDto
+
+		for _, roleMenu := range roleMenus {
+			menuCode := roleMenu.MenuCode
+
+			// 先查找系统菜单
+			if menuItem, exists := menuItemsMap[menuCode]; exists && menuItem != nil && menuItem.Id != "" {
+				menuItemDtoList = append(menuItemDtoList, buildMenuItemDto(menuItem))
+			} else {
+				// 查找插件菜单
+				if pluginMenus, exists := pluginMenusMap[menuCode]; exists {
+					for _, pluginPackageMenusEntity := range pluginMenus {
+						// 使用优化版本的 BuildPackageMenuItemDto，避免重复数据库查询
+						dto := buildPackageMenuItemDtoOptimized(pluginPackageMenusEntity, menuItemsMap)
+						if dto != nil {
+							menuItemDtoList = append(menuItemDtoList, dto)
+						}
+					}
+				}
+			}
+		}
+
+		// 创建角色菜单DTO
+		roleMenuDto := &models.RoleMenuDto{
+			RoleId:   role.ID,
+			RoleName: role.DisplayName,
+			MenuList: menuItemDtoList,
+		}
+
+		// 菜单需要排序
+		if len(roleMenuDto.MenuList) == 0 {
+			// 空数据给默认值
+			roleMenuDto.MenuList = make([]*models.MenuItemDto, 0)
+		} else {
+			sort.Sort(models.MenuItemDtoSort(roleMenuDto.MenuList))
+		}
+
+		roleMenuMap[role.ID] = roleMenuDto
+	}
+
+	return roleMenuMap, nil
 }
