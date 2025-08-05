@@ -664,17 +664,18 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 	var actions, addTransExportActions, addTransExportDetailActions, analyzeDataActions []*db.ExecAction
 	transExportId = fmt.Sprintf("tp_%s", guid.CreateGuid())
 	transExport := models.TransExportTable{
-		Id:              transExportId,
-		CustomerId:      param.CustomerId,
-		CustomerName:    param.CustomerName,
-		Environment:     param.Env,
-		EnvironmentName: param.EnvName,
-		Business:        strings.Join(param.PIds, ","),
-		BusinessName:    strings.Join(param.PNames, ","),
-		Status:          string(models.TransExportStatusStart),
-		CreatedUser:     operator,
-		UpdatedUser:     operator,
-		LastConfirmTime: param.LastConfirmTime,
+		Id:               transExportId,
+		CustomerId:       param.CustomerId,
+		CustomerName:     param.CustomerName,
+		Environment:      param.Env,
+		EnvironmentName:  param.EnvName,
+		Business:         strings.Join(param.PIds, ","),
+		BusinessName:     strings.Join(param.PNames, ","),
+		Status:           string(models.TransExportStatusStart),
+		CreatedUser:      operator,
+		UpdatedUser:      operator,
+		LastConfirmTime:  param.LastConfirmTime,
+		SelectedTreeJson: param.SelectedTreeJson, // 新增，保存tree结构json
 	}
 	// 新增导出记录
 	if addTransExportActions = getInsertTransExport(transExport); len(addTransExportActions) > 0 {
@@ -707,15 +708,16 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 func UpdateExport(c context.Context, param models.UpdateExportParam, operator string) (err error) {
 	var actions, addTransExportActions, deleteAnalyzeDataActions, analyzeDataActions []*db.ExecAction
 	transExport := models.TransExportTable{
-		Id:              param.TransExportId,
-		Environment:     param.Env,
-		EnvironmentName: param.EnvName,
-		Business:        strings.Join(param.PIds, ","),
-		BusinessName:    strings.Join(param.PNames, ","),
-		Status:          string(models.TransExportStatusStart),
-		UpdatedUser:     operator,
-		LastConfirmTime: param.LastConfirmTime,
-		UpdatedTime:     time.Now().Format(models.DateTimeFormat),
+		Id:               param.TransExportId,
+		Environment:      param.Env,
+		EnvironmentName:  param.EnvName,
+		Business:         strings.Join(param.PIds, ","),
+		BusinessName:     strings.Join(param.PNames, ","),
+		Status:           string(models.TransExportStatusStart),
+		UpdatedUser:      operator,
+		LastConfirmTime:  param.LastConfirmTime,
+		UpdatedTime:      time.Now().Format(models.DateTimeFormat),
+		SelectedTreeJson: param.SelectedTreeJson, // 新增，保存tree结构json
 	}
 	// 更新导出记录
 	if addTransExportActions = getUpdateTransExport(transExport); len(addTransExportActions) > 0 {

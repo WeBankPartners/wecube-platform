@@ -503,6 +503,8 @@ func (UserManagementService) getLocalRolesByUsername(username string) (*model.Sy
 	}
 
 	for _, userRole := range userRoles {
+		expireTime := ""
+		adminUserName := ""
 		role := &model.SysRoleEntity{}
 		found, err := db.Engine.ID(userRole.RoleId).Get(role)
 		if err != nil {
@@ -520,7 +522,19 @@ func (UserManagementService) getLocalRolesByUsername(username string) (*model.Sy
 			log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("such role entity is deleted,role id %v", role.Id))
 			continue
 		}
-
+		if userRole.ExpireTime.Unix() > 0 {
+			expireTime = userRole.ExpireTime.Format(constant.DateTimeFormat)
+		}
+		if strings.TrimSpace(role.Administrator) != "" {
+			adminUser, err := db.UserRepositoryInstance.FindById(role.Administrator)
+			if err != nil {
+				log.Error(nil, log.LOGGER_APP, "failed to find administrator,not deleted user by userId", zap.String("userId", role.Administrator),
+					zap.Error(err))
+			}
+			if adminUser != nil {
+				adminUserName = adminUser.Username
+			}
+		}
 		roleDto := &model.SimpleLocalRoleDto{
 			ID:            role.Id,
 			Name:          role.Name,
@@ -528,6 +542,8 @@ func (UserManagementService) getLocalRolesByUsername(username string) (*model.Sy
 			Email:         role.EmailAddress,
 			Status:        role.GetRoleDeletedStatus(),
 			Administrator: role.Administrator,
+			AdminUserName: adminUserName,
+			ExpireTime:    expireTime,
 		}
 
 		roleDtos = append(roleDtos, roleDto)
@@ -855,14 +871,27 @@ func (UserManagementService) QueryUserPage(param model.QueryUserParam) (page mod
 		if len(userRoles) > 0 {
 			for _, userRole := range userRoles {
 				var found bool
+				var adminUserName string
 				role := &model.SysRoleEntity{}
 				if role, found = allRolesMap[userRole.RoleId]; found {
+					if strings.TrimSpace(role.Administrator) != "" {
+						adminUser, err := db.UserRepositoryInstance.FindById(role.Administrator)
+						if err != nil {
+							log.Error(nil, log.LOGGER_APP, "failed to find administrator,not deleted user by userId", zap.String("userId", role.Administrator),
+								zap.Error(err))
+						}
+						if adminUser != nil {
+							adminUserName = adminUser.Username
+						}
+					}
 					roleDto := &model.SimpleLocalRoleDto{
-						ID:          role.Id,
-						DisplayName: role.DisplayName,
-						Name:        role.Name,
-						Email:       role.EmailAddress,
-						Status:      role.GetRoleDeletedStatus(),
+						ID:            role.Id,
+						DisplayName:   role.DisplayName,
+						Name:          role.Name,
+						Email:         role.EmailAddress,
+						Administrator: role.Administrator,
+						AdminUserName: adminUserName,
+						Status:        role.GetRoleDeletedStatus(),
 					}
 					userDto.AddRoles([]*model.SimpleLocalRoleDto{roleDto})
 				}
@@ -1247,6 +1276,24 @@ func (UserManagementService) ListRoleApplyByApplier(ctx context.Context, param *
 			// 删除状态
 			if param.Ext == string(constant.UserRolePermissionStatusDeleted) {
 				content.Status = string(constant.UserRolePermissionStatusDeleted)
+			}
+		}
+		if content.Status == model.RoleApplyStatusInit {
+			// 如果是 init 状态，需要获取角色管理员信息作为审批人
+			if content.Role != nil && content.Role.Administrator != "" {
+				// 根据角色管理员ID查询用户信息
+				adminUser, err := UserManagementServiceInstance.RetireveLocalUserByUserid(content.Role.Administrator)
+				if err != nil {
+					log.Error(nil, log.LOGGER_APP, "failed to get role administrator user info",
+						zap.String("roleId", content.Role.ID),
+						zap.String("administratorId", content.Role.Administrator),
+						zap.Error(err))
+					// 如果查询失败，使用管理员ID作为备选
+					content.Approver = content.Role.Administrator
+				} else {
+					// 设置审批人为管理员用户名
+					content.Approver = adminUser.Username
+				}
 			}
 		}
 	}

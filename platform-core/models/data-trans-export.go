@@ -98,8 +98,10 @@ type TransExportTable struct {
 	UpdatedUser             string   `json:"updatedUser" xorm:"updated_user"`
 	UpdatedTime             string   `json:"updatedTime" xorm:"updated_time"`
 	AssociationSystems      []string `json:"associationSystems" xorm:"-"`      // 关联系统
-	AssociationTechProducts []string `json:"associationTechProducts" xorm:"-"` // 关联产品
+	AssociationTechProducts []string `json:"associationTechProducts" xorm:"-"` // 关联系统
 	LastConfirmTime         string   `json:"lastConfirmTime" xorm:"last_confirm_time"`
+	// 新增字段，保存前端选中的tree结构json
+	SelectedTreeJson string `json:"selectedTreeJson" xorm:"selected_tree_json"`
 }
 
 type TransExportDetailTable struct {
@@ -149,6 +151,8 @@ func (q TransExportDetailTableSort) Swap(i, j int) {
 
 type TransDataVariableConfig struct {
 	BusinessCiType             string   `json:"businessCiType"`
+	PrimaryProductCiType       string   `json:"primaryProductCiType"`
+	ApplicationDomainCiType    string   `json:"applicationDomainCiType"`
 	EnvCiType                  string   `json:"envCiType"`
 	NexusUrl                   string   `json:"nexusUrl"`
 	NexusUser                  string   `json:"nexusUser"`
@@ -188,22 +192,24 @@ type QueryBusinessParam struct {
 }
 
 type CreateExportParam struct {
-	PIds            []string `json:"pIds"`       // 产品ID
-	PNames          []string `json:"pNames"`     // 产品名称
-	Env             string   `json:"env"`        // 环境
-	EnvName         string   `json:"envName"`    // 环境名称
-	CustomerId      string   `json:"customerId"` // 客户id
-	CustomerName    string   `json:"-"`          // 客户名称
-	LastConfirmTime string   `json:"lastConfirmTime"`
+	PIds             []string `json:"pIds"`       // 产品ID
+	PNames           []string `json:"pNames"`     // 产品名称
+	Env              string   `json:"env"`        // 环境
+	EnvName          string   `json:"envName"`    // 环境名称
+	CustomerId       string   `json:"customerId"` // 客户id
+	CustomerName     string   `json:"-"`          // 客户名称
+	LastConfirmTime  string   `json:"lastConfirmTime"`
+	SelectedTreeJson string   `json:"selectedTreeJson"` // 新增，保存前端tree结构json
 }
 
 type UpdateExportParam struct {
-	TransExportId   string   `json:"transExportId"` // 导出Id
-	PIds            []string `json:"pIds"`          // 产品ID
-	PNames          []string `json:"pNames"`        // 产品名称
-	Env             string   `json:"env"`           // 环境
-	EnvName         string   `json:"envName"`       // 环境名称
-	LastConfirmTime string   `json:"lastConfirmTime"`
+	TransExportId    string   `json:"transExportId"` // 导出Id
+	PIds             []string `json:"pIds"`          // 产品ID
+	PNames           []string `json:"pNames"`        // 产品名称
+	Env              string   `json:"env"`           // 环境
+	EnvName          string   `json:"envName"`       // 环境名称
+	LastConfirmTime  string   `json:"lastConfirmTime"`
+	SelectedTreeJson string   `json:"selectedTreeJson"` // 新增，保存前端tree结构json
 }
 
 type DataTransExportParam struct {

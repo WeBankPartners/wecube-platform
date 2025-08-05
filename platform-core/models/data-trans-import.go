@@ -67,8 +67,9 @@ type TransImportProcExecTable struct {
 }
 
 type GetBusinessListRes struct {
-	Environment  map[string]string        `json:"environment"`
-	BusinessList []map[string]interface{} `json:"businessList"`
+	Environment      map[string]string        `json:"environment"`
+	BusinessList     []map[string]interface{} `json:"businessList"`
+	SelectedTreeJson string                   `json:"selectedTreeJson"`
 }
 
 type TransImportJobParam struct {

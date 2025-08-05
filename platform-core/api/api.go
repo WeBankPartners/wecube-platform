@@ -128,6 +128,7 @@ func init() {
 		&handlerFuncObj{Url: "/users/query", Method: "POST", HandlerFunc: system.QueryUser, ApiCode: "query-user"},
 		&handlerFuncObj{Url: "/roles/create", Method: "POST", HandlerFunc: system.CreateRole, ApiCode: "create-roles"},
 		&handlerFuncObj{Url: "/roles/retrieve", Method: "GET", HandlerFunc: system.QueryRoles, ApiCode: "query-roles"},
+		&handlerFuncObj{Url: "/roles-and-menus", Method: "GET", HandlerFunc: system.QueryRolesAndMenus, ApiCode: "query-roles-and-menus"},
 		&handlerFuncObj{Url: "/roles/:role-id/menus", Method: "GET", HandlerFunc: system.GetMenusByRoleId, ApiCode: "get-role-menu"},
 		&handlerFuncObj{Url: "/roles/:role-id/users", Method: "GET", HandlerFunc: system.GetUsersByRoleId, ApiCode: "get-role-user"},
 		&handlerFuncObj{Url: "/roles/:role-id/update", Method: "POST", HandlerFunc: system.UpdateRole, ApiCode: "update-role"},
