@@ -1358,10 +1358,6 @@ func getPluginSystemVariableUpdateActions(systemVariablesList []*models.SystemVa
 
 func getImportSystemVariablesData(packagePluginsXmlData *models.PackagePluginsXML) (result []*models.SystemVariables) {
 	result = []*models.SystemVariables{}
-	// 新增：遇到 artifacts 包名直接跳过
-	if strings.ToLower(packagePluginsXmlData.Name) == "artifacts" {
-		return
-	}
 	for i := range packagePluginsXmlData.SystemParameters.SystemParameter {
 		sysParamInfo := packagePluginsXmlData.SystemParameters.SystemParameter[i]
 		systemVar := &models.SystemVariables{
