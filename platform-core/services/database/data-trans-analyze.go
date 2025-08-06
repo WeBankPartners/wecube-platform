@@ -690,6 +690,35 @@ func QueryBusinessList(c context.Context, userToken, language string, param mode
 		return
 	}
 
+	// 新增 env 查询逻辑
+	if param.QueryMode == "env" {
+		envQuery := models.QueryBusinessListParam{
+			PackageName: "wecmdb",
+			UserToken:   userToken,
+			Language:    language,
+			Entity:      dataTransVariableConfig.EnvCiType,
+			EntityQueryParam: models.EntityQueryParam{
+				AdditionalFilters: make([]*models.EntityQueryObj, 0),
+			},
+		}
+		if strings.TrimSpace(param.ID) != "" {
+			envQuery.EntityQueryParam.AdditionalFilters = append(envQuery.EntityQueryParam.AdditionalFilters, &models.EntityQueryObj{
+				AttrName:  "id",
+				Op:        "like",
+				Condition: param.ID,
+			})
+		}
+		if strings.TrimSpace(param.DisplayName) != "" {
+			envQuery.EntityQueryParam.AdditionalFilters = append(envQuery.EntityQueryParam.AdditionalFilters, &models.EntityQueryObj{
+				AttrName:  "name",
+				Op:        "like",
+				Condition: param.DisplayName,
+			})
+		}
+		result, err = remote.QueryBusinessList(envQuery)
+		return
+	}
+
 	// 查询0级产品 application_domain
 	appDomainQuery := models.QueryBusinessListParam{
 		PackageName: "wecmdb",
