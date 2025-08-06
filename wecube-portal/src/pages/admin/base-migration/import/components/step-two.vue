@@ -269,7 +269,7 @@ export default {
   },
   computed: {
     getProductTree() {
-      const data = JSON.parse(this.detailData.selectedTreeJson)
+      const data = JSON.parse(this.detailData.selectedTreeJson || '[]')
       // 过滤掉没有勾选的数据
       const filterCheckedNodes = (data) => {
         return data.filter(node => {

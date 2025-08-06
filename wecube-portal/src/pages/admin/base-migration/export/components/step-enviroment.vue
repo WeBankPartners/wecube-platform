@@ -111,7 +111,7 @@ export default {
     if (this.detailData && this.detailData.environment) {
       this.env = this.detailData.environment
       // 获取产品数据
-      this.productData = JSON.parse(this.detailData.selectedTreeJson || '{}')
+      this.productData = JSON.parse(this.detailData.selectedTreeJson || '[]')
       this.$nextTick(() => {
         const checkedTags = this.$refs.productTree.getCheckedNodes() || []
         this.allSelectionList =checkedTags
