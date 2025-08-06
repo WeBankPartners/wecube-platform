@@ -161,7 +161,7 @@ export default {
     }
   },
   beforeDestroy() {
-    clearInterval(this.interval)
+    clearTimeout(this.interval)
   },
   methods: {
     // 获取导出详情数据
@@ -275,13 +275,13 @@ export default {
           && this.detailData.status === 'doing'
         if (intervalFlag) {
           if (!this.interval) {
-            this.interval = setInterval(() => {
+            this.interval = setTimeout(() => {
               this.getDetailData()
             }, 5 * 1000)
           }
         } else {
           if (this.interval) {
-            clearInterval(this.interval)
+            clearTimeout(this.interval)
           }
         }
       }
