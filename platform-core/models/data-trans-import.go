@@ -261,18 +261,13 @@ func (q QueryImportEntityRows) Len() int {
 }
 
 func (q QueryImportEntityRows) Less(i, j int) bool {
-	if q[i].FirstOrder == 0 && q[j].FirstOrder == 0 {
-		if q[i].SecondOrder == 0 && q[j].SecondOrder == 0 {
+	if q[i].FirstOrder == q[j].FirstOrder {
+		if q[i].SecondOrder == q[j].SecondOrder {
 			return q[i].DisplayName < q[j].DisplayName
+		} else {
+			return q[i].SecondOrder < q[j].SecondOrder
 		}
-		if q[i].SecondOrder == 0 {
-			return false
-		}
-		return q[i].SecondOrder < q[j].SecondOrder
 	} else {
-		if q[i].FirstOrder == 0 {
-			return false
-		}
 		return q[i].FirstOrder < q[j].FirstOrder
 	}
 }
