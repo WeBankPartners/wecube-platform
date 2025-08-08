@@ -495,6 +495,9 @@ func execWorkflow(ctx context.Context, transImportParam *models.TransImportJobPa
 			}
 			importEntityRows := parseQueryImportEntityRows(queryEntityRows, batchSortAttr)
 			sort.Sort(importEntityRows)
+			if batchSortAttr != "" {
+				log.Info(nil, log.LOGGER_APP, "workflow batchSortAttr", zap.String("batchSortAttr", batchSortAttr), log.JsonObj("importEntityRows", importEntityRows))
+			}
 			for _, row := range importEntityRows {
 				tmpProcExecRow := models.TransImportProcExecTable{
 					Id:                "tm_exec_" + guid.CreateGuid(),
@@ -696,6 +699,12 @@ func parseQueryImportEntityRows(input []map[string]interface{}, orderAttr string
 			}
 			if ignoreOrderFlag {
 				continue
+			}
+			if tmpRow.FirstOrder == 0 {
+				tmpRow.FirstOrder = 100000
+			}
+			if tmpRow.SecondOrder == 0 {
+				tmpRow.SecondOrder = 100000
 			}
 		}
 		result = append(result, &tmpRow)
