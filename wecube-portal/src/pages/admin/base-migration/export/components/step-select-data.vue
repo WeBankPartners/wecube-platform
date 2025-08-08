@@ -264,16 +264,21 @@ export default {
   },
   computed: {
     getProductTree() {
-      const data = JSON.parse(this.detailData.selectedTreeJson || '[]')
-      // 过滤掉没有勾选的数据
-      const filterCheckedNodes = (data) => {
-        return data.filter(node => {
-          if (node.children && node.children.length) {
-            node.children = filterCheckedNodes(node.children)
-          }
-          return node.checked
+      const data = JSON.parse(this.detailData.selectedTreeJson || '[]')  
+      // 递归过滤函数：从最里层往最外层过滤
+      const filterCheckedNodes = (nodes) => {
+        if (!Array.isArray(nodes)) return []      
+        return nodes.filter(node => {
+          if (node.children && node.children.length > 0) {
+            const filteredChildren = filterCheckedNodes(node.children)            
+            if (filteredChildren.length > 0) {
+              node.children = filteredChildren
+              return true
+            }
+          }          
+          return node.checked === true
         })
-      }
+      }     
       return filterCheckedNodes(data)
     }
   },
