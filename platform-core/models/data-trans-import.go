@@ -14,6 +14,7 @@ type TransImportTable struct {
 	Status             string `json:"status" xorm:"status"`
 	AssociationSystem  string `json:"associationSystem" xorm:"association_system"`
 	AssociationProduct string `json:"associationProduct" xorm:"association_product"`
+	SelectedTreeJson   string `json:"selectedTreeJson" xorm:"selected_tree_json"`
 	CreatedUser        string `json:"createdUser" xorm:"created_user"`
 	CreatedTime        string `json:"createdTime" xorm:"created_time"`
 	UpdatedUser        string `json:"updatedUser" xorm:"updated_user"`

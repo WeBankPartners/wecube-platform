@@ -352,7 +352,7 @@ func InitTransImport(ctx context.Context, transImportId, ExportNexusUrl, localPa
 	var detail *models.TransExportDetail
 	var environmentMap map[string]string
 	var associationSystemList, associationProductList []string
-	var business, businessName string
+	var business, businessName, selectedTreeJson string
 	if err = ParseJsonData(fmt.Sprintf("%s/export/env.json", localPath), &environmentMap); err != nil {
 		log.Error(nil, log.LOGGER_APP, "Environment json Unmarshal err", zap.Error(err))
 		return
@@ -373,6 +373,7 @@ func InitTransImport(ctx context.Context, transImportId, ExportNexusUrl, localPa
 		associationProductList = detail.TransExport.AssociationTechProducts
 		business = detail.TransExport.Business
 		businessName = detail.TransExport.BusinessName
+		selectedTreeJson = detail.TransExport.SelectedTreeJson
 	}
 	now := time.Now().Format(models.DateTimeFormat)
 	// 新增导出记录
@@ -386,6 +387,7 @@ func InitTransImport(ctx context.Context, transImportId, ExportNexusUrl, localPa
 		Status:             string(models.TransImportStatusDoing),
 		AssociationSystem:  strings.Join(associationSystemList, ","),
 		AssociationProduct: strings.Join(associationProductList, ","),
+		SelectedTreeJson:   selectedTreeJson,
 		CreatedUser:        operator,
 		CreatedTime:        now,
 		UpdatedUser:        operator,
@@ -426,10 +428,10 @@ func getInsertTransImport(transImport models.TransImportTable) (actions []*db.Ex
 	nowTime := time.Now()
 	actions = []*db.ExecAction{}
 	actions = append(actions, &db.ExecAction{Sql: "insert into trans_import(id,business,business_name,environment,environment_name,status," +
-		"input_url,created_user,created_time,updated_user,updated_time,association_system,association_product) values (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		"input_url,created_user,created_time,updated_user,updated_time,association_system,association_product,selected_tree_json) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 		Param: []interface{}{transImport.Id, transImport.Business, transImport.BusinessName, transImport.Environment, transImport.EnvironmentName,
 			transImport.Status, transImport.InputUrl, transImport.CreatedUser, nowTime, transImport.UpdatedUser, nowTime, transImport.AssociationSystem,
-			transImport.AssociationProduct}})
+			transImport.AssociationProduct, transImport.SelectedTreeJson}})
 	return
 }
 
