@@ -490,10 +490,10 @@ export default {
       if (data.order === 'normal') {
         delete this.payload.sorting
       } else {
-        this.payload.sorting = {
+        this.payload.sorting = [{
           asc: data.order === 'asc',
           field: data.key
-        }
+        }]
       }
       this.queryData()
     },

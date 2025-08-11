@@ -17,8 +17,7 @@
         </div>
         <div class="item">
           <span class="title">{{ $t('pe_select_product') }}<span class="number">{{ detail.businessList.length }}</span></span>
-          <Table :border="false" size="small" :columns="tableColumns" :max-height="500" :data="detail.businessList">
-          </Table>
+          <Tree :data="getProductTree"></Tree>
         </div>
       </template>
       <Spin v-if="loading" size="large" fix></Spin>
@@ -49,48 +48,31 @@ export default {
       detail: {
         exportNexusUrl: '',
         environment: {},
-        businessList: []
+        businessList: [],
+        selectedTreeJson: '[]'
       },
       viewFlag: false,
-      envList: [],
-      tableColumns: [
-        {
-          title: this.$t('pe_business_product'),
-          minWidth: 180,
-          key: 'name',
-          render: (h, params) => (
-            <span
-              style="cursor:pointer;color:#5cadff;"
-              onClick={() => {
-                this.jumpToHistory(params.row)
-              }}
-            >
-              {params.row.displayName}
-            </span>
-          )
-        },
-        {
-          title: this.$t('pe_product_id'),
-          minWidth: 180,
-          key: 'id'
-        },
-        {
-          title: this.$t('pe_product_des'),
-          key: 'description',
-          minWidth: 140,
-          render: (h, params) => <span>{params.row.description || '-'}</span>
-        },
-        {
-          title: this.$t('updatedBy'),
-          key: 'update_user',
-          minWidth: 120
-        },
-        {
-          title: this.$t('table_updated_date'),
-          key: 'update_time',
-          minWidth: 150
-        }
-      ]
+      envList: []
+    }
+  },
+  computed: {
+    getProductTree() {
+      const data = JSON.parse(this.detailData.selectedTreeJson || '[]')  
+      // 递归过滤函数：从最里层往最外层过滤
+      const filterCheckedNodes = (nodes) => {
+        if (!Array.isArray(nodes)) return []      
+        return nodes.filter(node => {
+          if (node.children && node.children.length > 0) {
+            const filteredChildren = filterCheckedNodes(node.children)            
+            if (filteredChildren.length > 0) {
+              node.children = filteredChildren
+              return true
+            }
+          }          
+          return node.checked === true
+        })
+      }     
+      return filterCheckedNodes(data)
     }
   },
   mounted() {
@@ -113,8 +95,9 @@ export default {
       if (status === 'OK') {
         this.detail = {
           exportNexusUrl: this.url,
+          environment: data.environment || {},
           businessList: data.businessList || [],
-          environment: data.environment || {}
+          selectedTreeJson: data.selectedTreeJson || '[]'
         }
         this.envList = [
           {
@@ -130,10 +113,13 @@ export default {
         exportNexusUrl: this.detail.exportNexusUrl,
         step: 1
       }
+      this.$emit('startLoading')
       const { data, status } = await saveImportData(params)
       if (status === 'OK') {
         // 执行导入，生成ID
         this.$emit('saveStepOne', data || '')
+      } else {
+        this.$emit('stopLoading')
       }
     }, 500)
   }

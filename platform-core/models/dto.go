@@ -60,8 +60,10 @@ type SimpleLocalRoleDto struct {
 	Name          string `json:"name"`
 	DisplayName   string `json:"displayName"`
 	Email         string `json:"email"`
-	Status        string `json:"status"`        // Deleted, NotDeleted
-	Administrator string `json:"administrator"` // 角色管理员
+	Status        string `json:"status"`                // Deleted, NotDeleted
+	Administrator string `json:"administrator"`         // 角色管理员ID
+	AdminUserName string `json:"administratorUserName"` // 角色管理员名称
+	ExpireTime    string `json:"expireTime"`            // 角色过期时间
 }
 
 type SimpleLocalUserDto struct {
@@ -153,6 +155,20 @@ type RoleMenuDto struct {
 	MenuList []*MenuItemDto `json:"menuList"`
 }
 
+// CategoryMenuDto 分类菜单结构
+type CategoryMenuDto struct {
+	Category string   `json:"category"` // 菜单分类
+	Menus    []string `json:"menus"`    // 该分类下的菜单列表
+}
+
+// RoleAndMenuDto represents the role and menu data format for the screenshot
+type RoleAndMenuDto struct {
+	RoleName          string             `json:"roleName"`          // 角色名
+	RoleAdministrator string             `json:"roleAdministrator"` // 角色管理员
+	ValidityPeriod    string             `json:"validityPeriod"`    // 有效期
+	MenuList          []*CategoryMenuDto `json:"menuList"`          // 菜单列表，按分类分组
+}
+
 type MenuItemDtoSort []*MenuItemDto
 
 func (q MenuItemDtoSort) Len() int {
@@ -170,4 +186,9 @@ func (q MenuItemDtoSort) Swap(i, j int) {
 type RegisterSubSysResponse struct {
 	HttpResponseMeta
 	Data *SimpleSubSystemDto `json:"data"`
+}
+
+// SimpleMenuItemDto 简化版菜单项，只包含必要字段
+type SimpleMenuItemDto struct {
+	LocalDisplayName string `json:"localDisplayName"` // 本地化显示名称
 }

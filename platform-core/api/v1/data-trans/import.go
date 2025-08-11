@@ -5,15 +5,16 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/plugin"
-	"github.com/WeBankPartners/wecube-platform/platform-core/services/execution"
-	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
-	"go.uber.org/zap"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/plugin"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/execution"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/workflow"
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
@@ -494,6 +495,9 @@ func execWorkflow(ctx context.Context, transImportParam *models.TransImportJobPa
 			}
 			importEntityRows := parseQueryImportEntityRows(queryEntityRows, batchSortAttr)
 			sort.Sort(importEntityRows)
+			if batchSortAttr != "" {
+				log.Info(nil, log.LOGGER_APP, "workflow batchSortAttr", zap.String("batchSortAttr", batchSortAttr), log.JsonObj("importEntityRows", importEntityRows))
+			}
 			for _, row := range importEntityRows {
 				tmpProcExecRow := models.TransImportProcExecTable{
 					Id:                "tm_exec_" + guid.CreateGuid(),
@@ -668,14 +672,40 @@ func startExecWorkflow(ctx context.Context, procExecRow *models.TransImportProcE
 func parseQueryImportEntityRows(input []map[string]interface{}, orderAttr string) (result models.QueryImportEntityRows) {
 	result = models.QueryImportEntityRows{}
 	for _, v := range input {
-		tmpRow := models.QueryImportEntityRow{Id: fmt.Sprintf("%s", v["id"]), DisplayName: fmt.Sprintf("%s", v["displayName"]), Order: 0}
+		tmpRow := models.QueryImportEntityRow{Id: fmt.Sprintf("%s", v["id"]), DisplayName: fmt.Sprintf("%s", v["displayName"]), FirstOrder: 0, SecondOrder: 0}
 		if orderAttr != "" {
-			if orderValue, ok := v[orderAttr]; ok {
-				tmpRow.Order, _ = strconv.Atoi(fmt.Sprintf("%s", orderValue))
+			ignoreOrderFlag := false
+			orderAttrList := strings.Split(orderAttr, ",")
+			for i, attr := range orderAttrList {
+				tmpOrderValue := 0
+				if orderValue, ok := v[attr]; ok {
+					tmpOrderValue, _ = strconv.Atoi(fmt.Sprintf("%s", orderValue))
+					if tmpOrderValue < 0 {
+						ignoreOrderFlag = true
+						break
+					}
+				}
+				if tmpOrderValue > 0 {
+					if len(orderAttrList) == 1 {
+						tmpRow.SecondOrder = tmpOrderValue
+					} else {
+						if i == 0 {
+							tmpRow.FirstOrder = tmpOrderValue
+						} else if i == 1 {
+							tmpRow.SecondOrder = tmpOrderValue
+						}
+					}
+				}
 			}
-		}
-		if tmpRow.Order < 0 {
-			continue
+			if ignoreOrderFlag {
+				continue
+			}
+			if tmpRow.FirstOrder == 0 {
+				tmpRow.FirstOrder = 100000
+			}
+			if tmpRow.SecondOrder == 0 {
+				tmpRow.SecondOrder = 100000
+			}
 		}
 		result = append(result, &tmpRow)
 	}

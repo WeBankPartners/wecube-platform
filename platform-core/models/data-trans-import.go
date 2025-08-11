@@ -14,6 +14,7 @@ type TransImportTable struct {
 	Status             string `json:"status" xorm:"status"`
 	AssociationSystem  string `json:"associationSystem" xorm:"association_system"`
 	AssociationProduct string `json:"associationProduct" xorm:"association_product"`
+	SelectedTreeJson   string `json:"selectedTreeJson" xorm:"selected_tree_json"`
 	CreatedUser        string `json:"createdUser" xorm:"created_user"`
 	CreatedTime        string `json:"createdTime" xorm:"created_time"`
 	UpdatedUser        string `json:"updatedUser" xorm:"updated_user"`
@@ -67,8 +68,9 @@ type TransImportProcExecTable struct {
 }
 
 type GetBusinessListRes struct {
-	Environment  map[string]string        `json:"environment"`
-	BusinessList []map[string]interface{} `json:"businessList"`
+	Environment      map[string]string        `json:"environment"`
+	BusinessList     []map[string]interface{} `json:"businessList"`
+	SelectedTreeJson string                   `json:"selectedTreeJson"`
 }
 
 type TransImportJobParam struct {
@@ -249,7 +251,8 @@ type TransDataImportConfig struct {
 type QueryImportEntityRow struct {
 	Id          string `json:"id"`
 	DisplayName string `json:"displayName"`
-	Order       int    `json:"order"`
+	FirstOrder  int    `json:"firstOrder"`
+	SecondOrder int    `json:"secondOrder"`
 }
 
 type QueryImportEntityRows []*QueryImportEntityRow
@@ -259,13 +262,15 @@ func (q QueryImportEntityRows) Len() int {
 }
 
 func (q QueryImportEntityRows) Less(i, j int) bool {
-	if q[i].Order == 0 && q[j].Order == 0 {
-		return q[i].DisplayName < q[j].DisplayName
+	if q[i].FirstOrder == q[j].FirstOrder {
+		if q[i].SecondOrder == q[j].SecondOrder {
+			return q[i].DisplayName < q[j].DisplayName
+		} else {
+			return q[i].SecondOrder < q[j].SecondOrder
+		}
+	} else {
+		return q[i].FirstOrder < q[j].FirstOrder
 	}
-	if q[i].Order == 0 {
-		return false
-	}
-	return q[i].Order < q[j].Order
 }
 
 func (q QueryImportEntityRows) Swap(i, j int) {
