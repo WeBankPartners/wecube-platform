@@ -89,9 +89,12 @@ export default {
         transImportId: this.detailData.id,
         status: 'completed'
       }
+      this.$emit('startLoading')
       const { status } = await updateImportStatus(params)
       if (status === 'OK') {
         this.$emit('saveStepFive')
+      } else {
+        this.$emit('stopLoading')
       }
     }, 500),
     // 上一步

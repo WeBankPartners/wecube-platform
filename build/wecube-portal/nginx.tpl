@@ -31,7 +31,7 @@ http {
     client_max_body_size  9999999m;
     client_header_timeout 99999999999s;
     keepalive_timeout     999999999s;
-    proxy_read_timeout    180s;
+    proxy_read_timeout    600s;
     access_log            /var/log/nginx/access.log  main;
     add_header "X-XSS-Protection" "1; mode=block";
     add_header X-Frame-Options SAMEORIGIN;

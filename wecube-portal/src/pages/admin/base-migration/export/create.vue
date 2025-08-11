@@ -103,7 +103,7 @@ export default {
     }
   },
   beforeDestroy() {
-    clearInterval(this.interval)
+    clearTimeout(this.interval)
   },
   methods: {
     // 获取导出详情数据
@@ -234,14 +234,20 @@ export default {
         this.detailData.failMsg = `${failObj.title}：${failObj.errMsg}`
         // 成功或失败，取消轮询查状态
         if (['success', 'fail'].includes(this.detailData.status)) {
-          clearInterval(this.interval)
+          if (this.interval) {
+            clearTimeout(this.interval)
+          }
+        } else {
+          this.interval = setTimeout(() => {
+            this.getDetailData()
+          }, 10 * 1000)
         }
       }
     },
     // 保存or更新环境和产品
     handleSaveEnvBusiness: debounce(async function () {
       const {
-        customerId, env, lastConfirmTime, envList, selectionList
+        customerId, env, lastConfirmTime, envList, selectionList, productData
       } = this.$refs.env
       const pIds = selectionList.map(item => item.id)
       const pNames = selectionList.map(item => item.displayName)
@@ -261,7 +267,8 @@ export default {
         env,
         envName,
         lastConfirmTime,
-        customerId
+        customerId,
+        selectedTreeJson: JSON.stringify(productData)
       }
       this.loading = true
       const { status, data } = await (this.id && this.type !== 'republish'
@@ -315,10 +322,6 @@ export default {
         this.activeStep++
         this.getDetailData()
         this.$refs.scrollView.scrollTop = 0
-        // 定时查询导出状态
-        this.interval = setInterval(() => {
-          this.getDetailData()
-        }, 5 * 1000)
       }
     }, 500),
     // 跳转到历史列表

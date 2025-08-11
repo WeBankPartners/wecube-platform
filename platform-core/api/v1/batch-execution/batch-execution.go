@@ -386,6 +386,14 @@ func RunJob(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
+	if reqParam.PluginConfigInterface.ServiceName != "" {
+		pluginInterfaceObj, getPluginInterfaceErr := database.GetLastEnablePluginInterface(c, reqParam.PluginConfigInterface.ServiceName)
+		if getPluginInterfaceErr != nil {
+			middleware.ReturnError(c, fmt.Errorf("Try to get plugin interface with serviceName:%s fail,%s ", reqParam.PluginConfigInterface.ServiceName, getPluginInterfaceErr.Error()))
+			return
+		}
+		reqParam.PluginConfigInterface = pluginInterfaceObj
+	}
 
 	err = ValidateRunJobPermission(c, middleware.GetRequestRoles(c), reqParam.PluginConfigInterface.PluginConfigId)
 	if err != nil {

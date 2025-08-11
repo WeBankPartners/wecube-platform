@@ -41,6 +41,7 @@ var (
 		"get-user-roles":                         true,
 		"get-process-ins-by-session-id":          true,
 		"get-web-running-packages":               true,
+		"query-roles-and-menus":                  true,
 	}
 )
 

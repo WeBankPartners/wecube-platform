@@ -364,6 +364,9 @@ INSERT INTO system_variables (id,package_name,name,value,default_value,`scope`,s
       ('system__global__S3_ACCESS_KEY',NULL,'S3_ACCESS_KEY','','access_key','global','system','active'),
       ('system__global__S3_SECRET_KEY',NULL,'S3_SECRET_KEY','','secret_key','global','system','active'),
       ('system__global__S3_SERVER_URL',NULL,'S3_SERVER_URL','','http://127.0.0.1:9000','global','system','active'),
+      ('system__global__PLATFORM_EXPORT_CI_APPLICATION_DOMAIN',NULL,'PLATFORM_EXPORT_CI_APPLICATION_DOMAIN','','application_domain','global','system','active'),
+      ('system__global__PLATFORM_EXPORT_CI_PRIMARY_PRODUCT',NULL,'PLATFORM_EXPORT_CI_PRIMARY_PRODUCT','','primary_product','global','system','active'),
+      ('system__global__PLATFORM_EXPORT_CI_BUSINESS',NULL,'PLATFORM_EXPORT_CI_BUSINESS','','business_product','global','system','active'),
       ('system__global__UM_AUTH_CONTEXT',NULL,'UM_AUTH_CONTEXT','','protocol=http;host=127.0.0.1;port=18080;appid=;appname=;','global','system','inactive');
 
 

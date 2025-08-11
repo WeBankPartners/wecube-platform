@@ -328,7 +328,7 @@ export default {
           minWidth: 130,
           key: 'mgmtRoles',
           render: (h, params) => {
-            const list = (params.row.mgmtRoles && params.row.mgmtRoles.map(item => item.displayName)) || []
+            const list = (params.row.mgmtRoles && params.row.mgmtRoles.map(item => (item && item.displayName) || '')) || []
             return <BaseScrollTag list={list} />
           }
         },
@@ -337,7 +337,7 @@ export default {
           minWidth: 130,
           key: 'mgmtRoles',
           render: (h, params) => {
-            const list = (params.row.useRoles && params.row.useRoles.map(item => item.displayName)) || []
+            const list = (params.row.useRoles && params.row.useRoles.map(item => (item && item.displayName) || '')) || []
             return <BaseScrollTag list={list} />
           }
         },

@@ -76,10 +76,14 @@ func CreateResourceServer(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	err = database.CreateResourceServer(c, params)
+	var withHostServer bool
+	withHostServer, err = database.CreateResourceServer(c, params)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
+		if withHostServer {
+			go bash.InitPluginDockerHostSSH()
+		}
 		middleware.ReturnData(c, params)
 	}
 }
@@ -100,10 +104,14 @@ func UpdateResourceServer(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
-	err = database.UpdateResourceServer(c, params)
+	var withHostServer bool
+	withHostServer, err = database.UpdateResourceServer(c, params)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
+		if withHostServer {
+			go bash.InitPluginDockerHostSSH()
+		}
 		middleware.ReturnData(c, params)
 	}
 }

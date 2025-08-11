@@ -106,7 +106,7 @@
     <Drawer
       :title="$t('be_input_output')"
       v-model="visible"
-      width="800"
+      width="900"
       :mask-closable="true"
       :lock-scroll="true"
       @on-close="handleCancel"
@@ -316,7 +316,7 @@ export default {
             key: item.name,
             render: (h, params) => {
               const returnJson = JSON.parse(params.row.returnJson)
-              return <span>{returnJson[item.name] || '--'}</span>
+              return <BaseEllipsis content={returnJson[item.name] || '--'}></BaseEllipsis>
             }
           })
         })
@@ -422,7 +422,7 @@ export default {
     overflow-y: auto;
   }
   .no-data {
-    width: 800px;
+    width: 900px;
     min-height: 100px;
     border: 1px dashed #d7dadc;
     display: flex;

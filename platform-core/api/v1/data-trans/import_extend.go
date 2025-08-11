@@ -21,9 +21,6 @@ import (
 
 var importFuncList []func(context.Context, *models.TransImportJobParam) (string, error)
 
-// defaultRoles 系统默认角色列表
-var defaultRoles = []string{"SUB_SYSTEM", "IFA_OPS", "APP_DEV", "IFA_ARC", "APP_ARC", "STG_OPS", "PRD_OPS", "MONITOR_ADMIN", "CMDB_ADMIN", "SUPER_ADMIN"}
-
 const (
 	strategyServiceGroupConst  = "strategy_service_group_"
 	strategyEndpointGroupConst = "strategy_endpoint_group_"
@@ -210,19 +207,25 @@ func importRole(ctx context.Context, transImportParam *models.TransImportJobPara
 	log.Info(nil, log.LOGGER_APP, "1. importRole start!!!")
 	var roleList []*models.SimpleLocalRoleDto
 	var response models.QuerySingleRolesResponse
-	var defaultRoleMap = make(map[string]bool)
+	var existRoleMap = make(map[string]bool)
 	if err = database.ParseJsonData(fmt.Sprintf("%s/role.json", transImportParam.DirPath), &roleList); err != nil {
 		return
 	}
-	for _, role := range defaultRoles {
-		defaultRoleMap[role] = true
+	// 动态获取系统已有角色
+	rolesResp, getErr := remote.RetrieveAllLocalRoles("Y", remote.GetToken(), transImportParam.Language, false)
+	if getErr != nil {
+		err = getErr
+		return
+	}
+	for _, r := range rolesResp.Data {
+		existRoleMap[r.Name] = true
 	}
 	for _, role := range roleList {
-		if defaultRoleMap[role.Name] {
-			// 系统默认角色不需要导入
+		if existRoleMap[role.Name] {
+			// 已有角色不需要导入
 			continue
 		}
-		if response, err = remote.RegisterLocalRole(role, transImportParam.Token, transImportParam.Language); err != nil {
+		if response, err = remote.RegisterLocalRole(role, remote.GetToken(), transImportParam.Language); err != nil {
 			log.Error(nil, log.LOGGER_APP, "RegisterLocalRole err", zap.Error(err))
 			return
 		}

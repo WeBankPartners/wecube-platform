@@ -3,9 +3,10 @@ package database
 import (
 	"context"
 	"fmt"
-	"go.uber.org/zap"
 	"strings"
 	"time"
+
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
@@ -1279,6 +1280,10 @@ func ImportPluginConfigs(ctx context.Context, pluginPackageId string, packagePlu
 		err = fmt.Errorf("pluginPackageId: %s is invalid", pluginPackageId)
 		return
 	}
+	if pluginPackageData.Name != packagePluginsXmlData.Name {
+		err = fmt.Errorf("plugin:%s xml can not import to plugin:%s config", packagePluginsXmlData.Name, pluginPackageData.Name)
+		return
+	}
 
 	// get save plugin config list
 	savePluginConfigList := getImportPluginConfigData(pluginPackageId, packagePluginsXmlData)
@@ -1353,8 +1358,18 @@ func getPluginSystemVariableUpdateActions(systemVariablesList []*models.SystemVa
 
 func getImportSystemVariablesData(packagePluginsXmlData *models.PackagePluginsXML) (result []*models.SystemVariables) {
 	result = []*models.SystemVariables{}
+	// 特殊处理,物料插件不导入nexus环境相关参数
+	isArtifactsPlugin := false
+	if strings.ToLower(packagePluginsXmlData.Name) == "artifacts" {
+		isArtifactsPlugin = true
+	}
 	for i := range packagePluginsXmlData.SystemParameters.SystemParameter {
 		sysParamInfo := packagePluginsXmlData.SystemParameters.SystemParameter[i]
+		if isArtifactsPlugin {
+			if strings.Contains(sysParamInfo.Name, "NEXUS") {
+				continue
+			}
+		}
 		systemVar := &models.SystemVariables{
 			Id:           models.IdPrefixSysVar + guid.CreateGuid(),
 			PackageName:  sysParamInfo.PackageName,

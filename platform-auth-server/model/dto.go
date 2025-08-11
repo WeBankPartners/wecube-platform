@@ -62,8 +62,10 @@ type SimpleLocalRoleDto struct {
 	Name          string `json:"name"`
 	DisplayName   string `json:"displayName"`
 	Email         string `json:"email"`
-	Status        string `json:"status"`        // Deleted, NotDeleted
-	Administrator string `json:"administrator"` // 角色管理员
+	Status        string `json:"status"`                // Deleted, NotDeleted
+	Administrator string `json:"administrator"`         // 角色管理员ID
+	AdminUserName string `json:"administratorUserName"` // 角色管理员名称
+	ExpireTime    string `json:"expireTime"`            // 角色过期时间
 }
 
 type SimpleLocalUserDto struct {
@@ -126,6 +128,7 @@ type RoleApplyDto struct {
 	EmailAddr    string              `json:"emailAddr"`
 	Role         *SimpleLocalRoleDto `json:"role"`
 	Status       string              `json:"status"`       // init,approve,deny,expire,preExpried
+	Approver     string              `json:"approver"`     // init 状态下才需要审批人
 	HandleStatus string              `json:"handleStatus"` //处理状态
 	ExpireTime   string              `json:"expireTime"`   //角色过期时间,""表示永久生效
 }

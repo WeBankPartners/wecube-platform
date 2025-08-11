@@ -78,7 +78,6 @@ func StartSendProcScheduleMail() {
 }
 
 func doSendProcScheduleMail() {
-	log.Info(nil, log.LOGGER_APP, "start check proc schedule job mail")
 	// 更新 mail status是sending状态但更新时间小于当前1分钟的，可能是之前实例占用了但没发送成功
 	lastMinuteTime := time.Unix(time.Now().Unix()-60, 0)
 	if _, resetErr := db.MysqlEngine.Exec("update proc_schedule_job set mail_status='wait' where mail_status='sending' and updated_time<?", lastMinuteTime); resetErr != nil {
@@ -140,7 +139,6 @@ func doSendProcScheduleMail() {
 			}
 		}
 	}
-	log.Info(nil, log.LOGGER_APP, "done check proc schedule job mail")
 }
 
 func tryUpdateScheduleJobMail(input *models.ScheduleJobMailQueryObj) bool {

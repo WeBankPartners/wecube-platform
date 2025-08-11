@@ -17,21 +17,7 @@
             </div>
             <div class="content-list">
               <span>{{ $t('pe_select_busProduct') }}</span>
-              <Tag v-for="(i, index) in detailData.businessNameList" class="tag" :key="index">
-                {{ i }}
-              </Tag>
-            </div>
-            <div class="content-list">
-              <span>{{ $t('pe_relate_baseProduct') }}</span>
-              <Tag v-for="(i, index) in detailData.associationTechProducts || []" class="tag" :key="index">
-                {{ i }}
-              </Tag>
-            </div>
-            <div class="content-list">
-              <span>{{ $t('pe_relate_system') }}</span>
-              <Tag v-for="(i, index) in detailData.associationSystems || []" class="tag" :key="index">
-                {{ i }}
-              </Tag>
+              <Tree :data="getProductTree"></Tree>
             </div>
           </div>
         </card>
@@ -274,6 +260,26 @@ export default {
       itsmOriginTableData: [],
       flowOriginTableData: [],
       batchOriginTableData: []
+    }
+  },
+  computed: {
+    getProductTree() {
+      const data = JSON.parse(this.detailData.selectedTreeJson || '[]')  
+      // 递归过滤函数：从最里层往最外层过滤
+      const filterCheckedNodes = (nodes) => {
+        if (!Array.isArray(nodes)) return []      
+        return nodes.filter(node => {
+          if (node.children && node.children.length > 0) {
+            const filteredChildren = filterCheckedNodes(node.children)            
+            if (filteredChildren.length > 0) {
+              node.children = filteredChildren
+              return true
+            }
+          }          
+          return node.checked === true
+        })
+      }     
+      return filterCheckedNodes(data)
     }
   },
   mounted() {

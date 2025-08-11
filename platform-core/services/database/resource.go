@@ -90,7 +90,7 @@ func QueryResourceItem(ctx context.Context, param *models.QueryRequestParam) (re
 	return
 }
 
-func CreateResourceServer(ctx context.Context, params []*models.ResourceServer) (err error) {
+func CreateResourceServer(ctx context.Context, params []*models.ResourceServer) (withHostServer bool, err error) {
 	var actions []*db.ExecAction
 	nowTime := time.Now()
 	for _, v := range params {
@@ -107,12 +107,15 @@ func CreateResourceServer(ctx context.Context, params []*models.ResourceServer) 
 		actions = append(actions, &db.ExecAction{Sql: "insert into resource_server (id,created_by,created_date,host,is_allocated,login_password,login_username,name,port,purpose,status,`type`,updated_by,updated_date,login_mode) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 			v.Id, v.CreatedBy, nowTime, v.Host, v.IsAllocated, v.LoginPassword, v.LoginUsername, v.Name, v.Port, v.Purpose, v.Status, v.Type, v.UpdatedBy, nowTime, v.LoginMode,
 		}})
+		if v.Type == "docker" {
+			withHostServer = true
+		}
 	}
 	err = db.Transaction(actions, ctx)
 	return
 }
 
-func UpdateResourceServer(ctx context.Context, params []*models.ResourceServer) (err error) {
+func UpdateResourceServer(ctx context.Context, params []*models.ResourceServer) (withHostServer bool, err error) {
 	var actions []*db.ExecAction
 	nowTime := time.Now()
 	for _, v := range params {
@@ -128,6 +131,9 @@ func UpdateResourceServer(ctx context.Context, params []*models.ResourceServer) 
 		actions = append(actions, &db.ExecAction{Sql: "update resource_server set host=?,is_allocated=?,login_password=?,login_username=?,name=?,port=?,purpose=?,status=?,`type`=?,updated_by=?,updated_date=?,login_mode=? where id=?", Param: []interface{}{
 			v.Host, v.IsAllocated, v.LoginPassword, v.LoginUsername, v.Name, v.Port, v.Purpose, v.Status, v.Type, v.UpdatedBy, nowTime, v.LoginMode, v.Id,
 		}})
+		if v.Type == "docker" {
+			withHostServer = true
+		}
 	}
 	err = db.Transaction(actions, ctx)
 	return

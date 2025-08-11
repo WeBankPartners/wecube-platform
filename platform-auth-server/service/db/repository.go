@@ -196,6 +196,20 @@ var UserRepositoryInstance UserRepository
 type UserRepository struct {
 }
 
+func (UserRepository) FindById(id string) (*model.SysUserEntity, error) {
+	user := &model.SysUserEntity{}
+	found, err := Engine.Where("id = ?", id).And("is_deleted = ?", false).Get(user)
+	if err != nil {
+		return nil, err
+	}
+
+	if found {
+		return user, nil
+	} else {
+		return nil, nil
+	}
+}
+
 func (UserRepository) FindNotDeletedUserByUsername(username string) (*model.SysUserEntity, error) {
 	user := &model.SysUserEntity{}
 	found, err := Engine.Where("username = ?", username).And("is_deleted = ?", false).Get(user)

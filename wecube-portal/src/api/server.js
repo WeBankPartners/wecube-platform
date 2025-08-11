@@ -115,6 +115,7 @@ export const getApplyRoles = data => req.get(`/auth/v1/roles?all=${data.all}&rol
 export const startApply = data => req.post('/auth/v1/roles/apply', data)
 export const deleteApplyData = params => req.delete('/auth/v1/roles/apply', params)
 export const registerUser = data => req.post('/auth/v1/users/register', data)
+export const getUserRoleMenus = () => req.get('/platform/v1/roles-and-menus')
 
 export const deletePluginPkg = id => req.post(`/platform/v1/packages/decommission/${id}`)
 export const getPluginPkgDataModel = id => req.get(`/platform/v1/packages/${id}/models`)

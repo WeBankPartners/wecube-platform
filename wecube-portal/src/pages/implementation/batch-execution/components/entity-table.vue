@@ -198,7 +198,7 @@ export default {
     }
   }
   .no-data {
-    width: 800px;
+    width: 900px;
     min-height: 100px;
     border: 1px dashed #d7dadc;
     display: flex;

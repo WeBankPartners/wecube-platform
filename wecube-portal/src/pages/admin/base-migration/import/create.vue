@@ -32,7 +32,13 @@
       <div class="content" ref="scrollView">
         <!--导入产品-->
         <BaseHeaderTitle v-if="activeStep === 0" :title="$t('pi_import_product')" :showExpand="false">
-          <StepOne :detailData="detailData" @saveStepOne="handleSaveStepOne" @nextStep="activeStep++"></StepOne>
+          <StepOne
+            :detailData="detailData"
+            @saveStepOne="handleSaveStepOne"
+            @nextStep="activeStep++"
+            @startLoading="startLoading"
+            @stopLoading="stopLoading"
+          ></StepOne>
         </BaseHeaderTitle>
         <!--导入数据-->
         <BaseHeaderTitle v-if="activeStep === 1" :title="$t('pi_import_step2')" :showExpand="false">
@@ -41,6 +47,8 @@
             @saveStepTwo="handleSaveStepTwo"
             @lastStep="activeStep--"
             @nextStep="activeStep++"
+            @startLoading="startLoading"
+            @stopLoading="stopLoading"
           ></StepTwo>
         </BaseHeaderTitle>
         <!--修改数据-->
@@ -50,6 +58,8 @@
             @saveStepThree="handleSaveStepThree"
             @lastStep="activeStep--"
             @nextStep="activeStep++"
+            @startLoading="startLoading"
+            @stopLoading="stopLoading"
           ></StepThree>
         </BaseHeaderTitle>
         <!--执行自动化编排-->
@@ -59,11 +69,19 @@
             @saveStepFour="handleSaveStepFour"
             @lastStep="activeStep--"
             @nextStep="activeStep++"
+            @startLoading="startLoading"
+            @stopLoading="stopLoading"
           ></StepFour>
         </BaseHeaderTitle>
         <!--监控配置-->
         <BaseHeaderTitle v-if="activeStep === 4" :title="$t('pi_import_step5')" :showExpand="false">
-          <StepFive :detailData="detailData" @saveStepFive="handleSaveStepFive" @lastStep="activeStep--"></StepFive>
+          <StepFive
+            :detailData="detailData"
+            @saveStepFive="handleSaveStepFive"
+            @lastStep="activeStep--"
+            @startLoading="startLoading"
+            @stopLoading="stopLoading"
+          ></StepFive>
         </BaseHeaderTitle>
       </div>
     </div>
@@ -143,7 +161,7 @@ export default {
     }
   },
   beforeDestroy() {
-    clearInterval(this.interval)
+    clearTimeout(this.interval)
   },
   methods: {
     // 获取导出详情数据
@@ -256,14 +274,12 @@ export default {
             || !['success', 'fail'].includes(this.detailData.monitorBusinessRes.status))
           && this.detailData.status === 'doing'
         if (intervalFlag) {
-          if (!this.interval) {
-            this.interval = setInterval(() => {
-              this.getDetailData()
-            }, 5 * 1000)
-          }
+          this.interval = setTimeout(() => {
+            this.getDetailData()
+          }, 10 * 1000)
         } else {
           if (this.interval) {
-            clearInterval(this.interval)
+            clearTimeout(this.interval)
           }
         }
       }
@@ -278,6 +294,12 @@ export default {
           timestamp: new Date().getTime() // 解决页面fullpath一样，不刷新问题
         }
       })
+    },
+    startLoading() {
+      this.loading = true
+    },
+    stopLoading() {
+      this.loading = false
     },
     async handleSaveStepTwo() {
       this.loading = true

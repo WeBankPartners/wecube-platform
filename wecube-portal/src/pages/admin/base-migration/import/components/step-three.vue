@@ -178,10 +178,13 @@ export default {
               step: 3,
               importCustomFormData: this.importCustomFormData
             }
+            this.$emit('startLoading')
             const { status } = await saveImportData(params)
             if (status === 'OK') {
               // 执行导入，生成ID
               this.$emit('saveStepThree')
+            } else {
+              this.$emit('stopLoading')
             }
           }
         })
