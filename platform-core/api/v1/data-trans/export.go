@@ -2,13 +2,15 @@ package data_trans
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/gin-gonic/gin"
-	"strings"
 )
 
 // QueryBusinessList 查询产品、环境列表
@@ -21,7 +23,9 @@ func QueryBusinessList(c *gin.Context) {
 		return
 	}
 	if result, err = database.QueryBusinessList(c, c.GetHeader("Authorization"), c.GetHeader(middleware.AcceptLanguageHeader), param); err != nil {
-		middleware.ReturnError(c, err)
+		log.Error(c, log.LOGGER_APP, "QueryBusinessList", err.Error())
+		// middleware.ReturnError(c, err)
+		middleware.ReturnData(c, []map[string]interface{}{})
 		return
 	}
 	middleware.ReturnData(c, result)
