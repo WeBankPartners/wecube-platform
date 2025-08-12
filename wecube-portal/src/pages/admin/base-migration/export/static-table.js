@@ -113,6 +113,11 @@ export default {
           )
         },
         {
+          title: this.$t('package_name'),
+          key: 'name',
+          minWidth: 150
+        },
+        {
           title: this.$t('pe_total_package'),
           key: 'artifactLen',
           width: 120,
