@@ -165,6 +165,12 @@
           <span v-if="detailData.artifactsRes.status === 'success'" class="success">({{ $t('pi_import_success') }})</span>
           <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">({{ $t('pi_import_fail') }}：<span>{{ detailData.artifactsRes.errMsg }}</span>)</span>
         </div>
+        <BaseSearch
+          :onlyShowReset="true"
+          :options="artifactsSearchOptions"
+          v-model="artifactsSearchParams"
+          @search="handleSearchArtifacts"
+        ></BaseSearch>
         <Row :gutter="10">
           <Col :span="16">
             <Card>
@@ -173,7 +179,7 @@
                 size="small"
                 :columns="artifactsColumns"
                 :max-height="400"
-                :data="detailData.artifactsRes.data"
+                :data="artifactsTableData"
               />
             </Card>
           </Col>

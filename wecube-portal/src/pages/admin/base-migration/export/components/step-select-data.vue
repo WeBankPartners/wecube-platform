@@ -187,6 +187,12 @@
         <div slot="sub-title" class="title">
           {{ $t('pe_select') }}<span class="number">{{ detailData.artifactsCount }}</span>
         </div>
+        <BaseSearch
+          :onlyShowReset="true"
+          :options="artifactsSearchOptions"
+          v-model="artifactsSearchParams"
+          @search="handleSearchArtifacts"
+        ></BaseSearch>
         <Row :gutter="10">
           <Col :span="16">
             <Card>
@@ -195,7 +201,7 @@
                 size="small"
                 :columns="artifactsColumns"
                 :max-height="500"
-                :data="detailData.artifactsRes.data"
+                :data="artifactsTableData"
               />
             </Card>
           </Col>
