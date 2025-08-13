@@ -149,8 +149,9 @@ func doUploadFile(reqParam *NexusReqParam, uploadFileParam *NexusFileParam) (sto
 	}
 	defer file.Close()
 
-	// 创建 HTTP 请求
-	reqUrl := fmt.Sprintf("%s/repository/%s/%s", reqParam.RepoUrl, reqParam.Repository, uploadFileParam.DestFilePath)
+	// 创建 HTTP 请求 - 修复双斜杠问题
+	repoUrl := strings.TrimRight(reqParam.RepoUrl, "/")
+	reqUrl := fmt.Sprintf("%s/repository/%s/%s", repoUrl, reqParam.Repository, uploadFileParam.DestFilePath)
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Duration(reqParam.TimeoutSec)*time.Second)
 	defer cancelFunc()
 
@@ -178,7 +179,7 @@ func doUploadFile(reqParam *NexusReqParam, uploadFileParam *NexusFileParam) (sto
 		return
 	}
 	fmt.Printf("upload file: %s successfully: %s\n", srcFilePath, bodyBytes)
-	storePath = fmt.Sprintf("%s/repository/%s/%s", reqParam.RepoUrl, reqParam.Repository, uploadFileParam.DestFilePath)
+	storePath = fmt.Sprintf("%s/repository/%s/%s", repoUrl, reqParam.Repository, uploadFileParam.DestFilePath)
 	return
 }
 

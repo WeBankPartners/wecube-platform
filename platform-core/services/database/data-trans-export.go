@@ -108,7 +108,11 @@ func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActi
 	transDataVariableConfig.NexusUser = transExportCustomerList[0].NexusAccount
 	transDataVariableConfig.NexusPwd = transExportCustomerList[0].NexusPwd
 	transDataVariableConfig.NexusRepo = transExportCustomerList[0].NexusRepo
-
+	// 更新导出状态为执行中
+	err = updateTransExportStatus(ctx, callParam.TransExportId, models.TransExportStatusDoing)
+	if err != nil {
+		return err
+	}
 	transExportJobParam := &models.TransExportJobParam{
 		DataTransExportParam:    &callParam.DataTransExportParam,
 		UserToken:               callParam.UserToken,
