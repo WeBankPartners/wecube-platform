@@ -3,11 +3,12 @@ package workflow
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"go.uber.org/zap"
-	"time"
 )
 
 func StartCronJob() {
@@ -299,10 +300,19 @@ func isWorkflowNeedSleep(ctx context.Context, workflowRow *models.ProcRunWorkflo
 		return
 	}
 	currentNodes := []*models.ProcRunNode{}
+	// 有失败的子编排节点的话不sleep
+	failSubProcNodes := []*models.ProcRunNode{}
 	for _, row := range procRunNodeRows {
 		if row.Status == models.JobStatusRunning {
 			currentNodes = append(currentNodes, row)
+		} else if row.Status == models.JobStatusFail {
+			if row.JobType == models.JobSubProcType {
+				failSubProcNodes = append(failSubProcNodes, row)
+			}
 		}
+	}
+	if len(failSubProcNodes) > 0 {
+		return
 	}
 	// 没有正在运行的节点
 	if len(currentNodes) == 0 {

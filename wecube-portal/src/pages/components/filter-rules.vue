@@ -90,7 +90,7 @@
             filterable
             v-if="rule.isRef && !(rule.op === 'is' || rule.op === 'isnot')"
             v-model="rule.value"
-            :multiple="rule.op === 'in' || rule.op === 'like'"
+            :multiple="rule.op === 'in' || rule.op === 'like' || rule.op === 'notLike'"
           >
             <Option v-for="(e, i) in rule.enums" :key="i" :value="'@@' + e.id + '@@' + e.key_name">{{
               e.key_name
@@ -111,7 +111,7 @@ export default {
   name: 'FilterRules',
   data() {
     return {
-      filterRuleOp: ['eq', 'neq', 'in', 'like', 'gt', 'lt', 'is', 'isnot'],
+      filterRuleOp: ['eq', 'neq', 'in', 'like', 'notLike', 'gt', 'lt', 'is', 'isnot'],
       pathList: [],
       currentPathFilterRules: [],
       currentOptiongs: [],
@@ -316,7 +316,7 @@ export default {
       }
     },
     opChangeHandler(v, rule) {
-      const multiple = (v === 'in' || v === 'like') && rule.isRef
+      const multiple = (v === 'in' || v === 'like' || v === 'notLike') && rule.isRef
       rule.value = multiple ? [] : ''
     },
     deleteFilterRule(index) {

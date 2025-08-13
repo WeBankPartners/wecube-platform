@@ -1,3 +1,4 @@
+import { deepClone } from '@/const/util'
 export default {
   data() {
     return {
@@ -100,6 +101,7 @@ export default {
       artifactsColumns: [
         {
           title: this.$t('pe_unit_design'),
+          minWidth: 120,
           key: 'unitDesignName',
           render: (h, params) => (
             <span
@@ -113,9 +115,24 @@ export default {
           )
         },
         {
+          title: this.$t('package_name'),
+          key: 'name',
+          minWidth: 600,
+          render: (h, params) => {
+            const names = params.row.artifactRows && params.row.artifactRows.map(item => item.name) || []
+            return <div>
+              {
+                names.map(name => {
+                  return <Tag>{name}</Tag>
+                })
+              }
+            </div>
+          }
+        },
+        {
           title: this.$t('pe_total_package'),
           key: 'artifactLen',
-          width: 120,
+          width: 100,
           render: (h, params) => (
             <span style="display:flex;align-items:center;">
               <div style="width:25px">{params.row.artifactLen}</div>
@@ -131,6 +148,19 @@ export default {
           )
         }
       ],
+      artifactsTableData: [],
+      artifactsOriginTableData: [],
+      artifactsSearchOptions: [
+        {
+          key: 'keyword',
+          placeholder: this.$t('pi_search_artifacts'),
+          component: 'input',
+          width: '350px'
+        }
+      ],
+      artifactsSearchParams: {
+        keyword: ''
+      },
       // 监控配置
       monitorColumns: [
         {
@@ -307,7 +337,32 @@ export default {
       detailTitle: ''
     }
   },
+  watch: {
+    'detailData.artifactsRes.data': {
+      handler(val) {
+        const list = Array.isArray(val) ? val : []
+        this.artifactsOriginTableData = deepClone(list)
+        this.artifactsTableData = deepClone(list)
+      },
+      immediate: true,
+      deep: true
+    }
+  },
   methods: {
+    handleSearchArtifacts () {
+      const keyword = (this.artifactsSearchParams.keyword || '').toLowerCase().trim()
+      if (!keyword) {
+        this.artifactsTableData = deepClone(this.artifactsOriginTableData)
+        return
+      }
+      this.artifactsTableData = this.artifactsOriginTableData.filter(item => {
+        const unitName = (item.unitDesignName || '').toLowerCase()
+        const unitMatch = unitName.indexOf(keyword) > -1
+        const rows = Array.isArray(item.artifactRows) ? item.artifactRows : []
+        const artifactMatch = rows.some(r => ((r && r.name) || '').toLowerCase().indexOf(keyword) > -1)
+        return unitMatch || artifactMatch
+      })
+    },
     handleStaticTableLink(row, type) {
       let path = ''
       if (type === 'cmdb-ci-level') {
