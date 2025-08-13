@@ -274,11 +274,9 @@ export default {
             || !['success', 'fail'].includes(this.detailData.monitorBusinessRes.status))
           && this.detailData.status === 'doing'
         if (intervalFlag) {
-          if (!this.interval) {
-            this.interval = setTimeout(() => {
-              this.getDetailData()
-            }, 5 * 1000)
-          }
+          this.interval = setTimeout(() => {
+            this.getDetailData()
+          }, 10 * 1000)
         } else {
           if (this.interval) {
             clearTimeout(this.interval)

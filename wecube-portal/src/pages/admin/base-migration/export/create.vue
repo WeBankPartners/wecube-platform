@@ -240,7 +240,7 @@ export default {
         } else {
           this.interval = setTimeout(() => {
             this.getDetailData()
-          }, 5 * 1000)
+          }, 10 * 1000)
         }
       }
     },

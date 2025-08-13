@@ -1358,8 +1358,18 @@ func getPluginSystemVariableUpdateActions(systemVariablesList []*models.SystemVa
 
 func getImportSystemVariablesData(packagePluginsXmlData *models.PackagePluginsXML) (result []*models.SystemVariables) {
 	result = []*models.SystemVariables{}
+	// 特殊处理,物料插件不导入nexus环境相关参数
+	isArtifactsPlugin := false
+	if strings.ToLower(packagePluginsXmlData.Name) == "artifacts" {
+		isArtifactsPlugin = true
+	}
 	for i := range packagePluginsXmlData.SystemParameters.SystemParameter {
 		sysParamInfo := packagePluginsXmlData.SystemParameters.SystemParameter[i]
+		if isArtifactsPlugin {
+			if strings.Contains(sysParamInfo.Name, "NEXUS") {
+				continue
+			}
+		}
 		systemVar := &models.SystemVariables{
 			Id:           models.IdPrefixSysVar + guid.CreateGuid(),
 			PackageName:  sysParamInfo.PackageName,
