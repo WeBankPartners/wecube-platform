@@ -45,13 +45,7 @@
     <div class="item">
       <span class="title">{{ $t('pe_select_product') }}<span class="number">{{ selectionList.length }}</span></span>
       <div>
-        <BaseSearch
-           :onlyShowReset="true"
-          :options="searchOptions"
-          v-model="searchParams"
-          @search="filterProductData"
-        ></BaseSearch>
-        <Tree :render="renderTreeContent" ref="productTree" :data="productData" show-checkbox @on-check-change="handleProductSelect"></Tree>
+        <ProductTree ref="productTree" :data="productData" @checkChange="handleProductSelect" />
       </div>
     </div>
     <CustomManagement v-if="customVisible" v-model="customVisible" />
@@ -60,11 +54,12 @@
 
 <script>
 import CustomManagement from './custom-management.vue'
+import ProductTree from '../../components/product-tree.vue'
 import { getExportBusinessList, getCustomerList } from '@/api/server'
 import { pick } from 'lodash'
 import dayjs from 'dayjs'
 export default {
-  components: { CustomManagement },
+  components: { CustomManagement, ProductTree },
   props: {
     detailData: Object,
     from: String
@@ -74,19 +69,7 @@ export default {
       env: '', // 选择环境
       lastConfirmTime: dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss'), // 数据确认时间
       envList: [],
-      searchParams: {
-        displayName: ''
-      },
-      searchOptions: [
-        {
-          key: 'displayName',
-          placeholder: this.$t('pe_business_product'),
-          component: 'input',
-          width: '500px'
-        }
-      ],
       selectionList: [], // 勾选的二级产品
-      allSelectionList: [], // 所有勾选节点
       loading: false,
       productData: [],
       customerId: '', // 目标客户
@@ -113,9 +96,8 @@ export default {
       // 获取产品数据
       this.productData = JSON.parse(this.detailData.selectedTreeJson || '[]')
       this.$nextTick(() => {
-        const checkedTags = this.$refs.productTree.getCheckedNodes() || []
-        this.allSelectionList =checkedTags
-        this.selectionList = this.allSelectionList.filter(item => item.level === 2)
+        const checkedTags = this.$refs.productTree.$refs.tree.getCheckedNodes() || []
+        this.selectionList = checkedTags.filter(item => item.level === 2)
       })
       this.lastConfirmTime = this.detailData.lastConfirmTime
       // 目标客户
@@ -126,78 +108,6 @@ export default {
     }
   },
   methods: {
-    // 表格搜索
-    filterProductData() {
-      if (!this.searchParams.displayName) {
-        const expandAllData = (data, flag) => {
-          data.forEach(x => {
-            x.expand = false
-            x.matched = false
-            if (x.children && x.children.length > 0) {
-              expandAllData(x.children, flag)
-            }
-          })
-        }
-        expandAllData(this.productData, false)
-        return
-      }
-      const filterData = (data) => {
-        data.forEach(item => {
-          const nameFlag = item.title.toLowerCase().indexOf(this.searchParams.displayName.toLowerCase()) > -1
-          if (nameFlag) {
-            this.$set(item, 'expand', true)
-            this.$set(item, 'matched', true)
-          } else {
-            this.$set(item, 'expand', false)
-            this.$set(item, 'matched', false)
-          }
-          if (item.children && item.children.length > 0) {
-            filterData(item.children)
-          }
-        })
-      }
-      filterData(this.productData)
-      const expandData = (data) => {
-        data.forEach(x => {
-          if (x.children && x.children.length > 0) {
-            expandData(x.children)
-          }
-          if (x.children && x.children.length > 0) {
-            const hasExpand = x.children.some(y => y.expand)
-            if (hasExpand) {
-              this.$set(x, 'expand', true)
-            }
-          }
-        })
-      }
-      expandData(this.productData)
-    },
-    renderTreeContent(h, { data }) {
-      return h(
-        'span',
-        {},
-        this.highlightMatch(data.title, this.searchParams.displayName, data.matched, h)
-      )
-    },
-    highlightMatch(title, keyword, matched, h) {
-      if (!keyword) return title   
-      const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // 转义正则特殊字符
-      const regex = new RegExp(`(${escapedKeyword})`, 'gi') // 全局不区分大小写匹配
-      
-      return title.split(regex).map((part, index) => {
-        if (index % 2 === 0) {
-          // 非匹配部分
-          return part
-        } else {
-          // 匹配部分，添加高亮样式
-          return h(
-            'span',
-            { style: {'color': matched ? '#5384ff' : '', fontWeight: 'bold'} },
-            part
-          )
-        }
-      })
-    },
     // 获取环境列表
     async getEnviromentList() {
       const params = {
@@ -214,6 +124,10 @@ export default {
           this.env = this.envList[0].value
         }
       }
+    },
+    handleProductSelect(selectionList, productData) {
+      this.selectionList = selectionList
+      this.productData = productData
     },
     // 获取产品列表
     async getProductList() {
@@ -305,16 +219,11 @@ export default {
         })
         if (!this.detailData.id) {
           this.$nextTick(() => {
-            const checkedTags = this.$refs.productTree.getCheckedNodes() || []
-            this.allSelectionList =checkedTags
-            this.selectionList = this.allSelectionList.filter(item => item.level === 2)
+            const checkedTags = this.$refs.productTree.$refs.tree.getCheckedNodes() || []
+            this.selectionList = checkedTags.filter(item => item.level === 2)
           })
         }
       }
-    },
-    handleProductSelect(arr) {
-      this.allSelectionList = arr
-      this.selectionList = this.allSelectionList.filter(item => item.level === 2)
     },
     jumpToHistory() {},
     // 打开目标客户弹窗
