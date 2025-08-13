@@ -113,8 +113,6 @@ func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActi
 	if err != nil {
 		return err
 	}
-	// 测试一下
-	time.Sleep(20 * time.Second)
 	transExportJobParam := &models.TransExportJobParam{
 		DataTransExportParam:    &callParam.DataTransExportParam,
 		UserToken:               callParam.UserToken,
