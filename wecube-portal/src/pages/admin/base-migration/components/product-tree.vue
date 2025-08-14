@@ -9,7 +9,7 @@
     <Tree
       :render="renderTreeContent"
       ref="tree"
-      :data="searchParams.displayName ? filterProductData : productData"
+      :data="currentTreeData"
       show-checkbox
       @on-check-change="handleProductSelect"
     ></Tree>
@@ -39,19 +39,29 @@ export default {
       ],
       selectionList: [],
       productData: [],
-      filterProductData: []
+      filterProductData: [],
+      currentTreeData: []
     }
   },
   watch: {
     data: {
       handler(val) {
         this.productData = val
+        this.updateCurrentTreeData()
       },
       immediate: true,
       deep: true
     }
   },
   methods: {
+    // 更新当前树形数据
+    updateCurrentTreeData() {
+      if (this.searchParams.displayName) {
+        this.currentTreeData = this.filterProductData
+      } else {
+        this.currentTreeData = this.productData
+      }
+    },
     // 表格搜索
     handleFilterProductData() {
       // 清空搜索词时，默认折叠所有节点
@@ -66,6 +76,7 @@ export default {
           })
         }
         expandAllData(this.productData, false)
+        this.updateCurrentTreeData()
         return
       }
       // 搜索关键字命中时，给节点打标记
@@ -108,7 +119,7 @@ export default {
           const hasChildren = Array.isArray(node.children) && node.children.length > 0
           if (node.matched) {
             // 命中节点：自身与其所有后代全部展示
-            const kept = Object.assign({}, node)
+            const kept = this.deepCloneNode(node)
             kept.expand = true
             kept.children = hasChildren ? node.children : []
             result.push(kept)
@@ -116,7 +127,7 @@ export default {
             // 未命中：若后代存在需要展示的节点，则保留当前节点并过滤其子节点
             const filteredChildren = hasChildren ? filterWithRelations(node.children) : []
             if (filteredChildren.length > 0) {
-              const kept = Object.assign({}, node)
+              const kept = this.deepCloneNode(node)
               kept.expand = true
               kept.children = filteredChildren
               result.push(kept)
@@ -126,6 +137,19 @@ export default {
         return result
       }
       this.filterProductData = filterWithRelations(this.productData)
+      this.updateCurrentTreeData()
+    },
+    // 深拷贝节点数据，保持引用关系
+    deepCloneNode(node) {
+      const cloned = { ...node }
+      // 保持原有的勾选状态
+      if (Object.prototype.hasOwnProperty.call(node, 'checked')) {
+        cloned.checked = node.checked
+      }
+      if (Object.prototype.hasOwnProperty.call(node, 'indeterminate')) {
+        cloned.indeterminate = node.indeterminate
+      }
+      return cloned
     },
     renderTreeContent(h, { data }) {
       return h(
@@ -154,7 +178,10 @@ export default {
       })
     },
     handleProductSelect() {
-      this.syncCheckState(this.filterProductData, this.productData)
+      // 根据当前使用的数据源同步状态
+      if (this.searchParams.displayName) {
+        this.syncCheckState(this.filterProductData, this.productData)
+      }
       this.selectionList = this.getCheckedLevel2Nodes(this.productData)
       this.$emit('checkChange', this.selectionList, this.productData)
     },
@@ -167,6 +194,9 @@ export default {
         if (targetNode) {
           // 同步勾选状态
           this.$set(targetNode, 'checked', sourceNode.checked)
+          if (Object.prototype.hasOwnProperty.call(sourceNode, 'indeterminate')) {
+            this.$set(targetNode, 'indeterminate', sourceNode.indeterminate)
+          }
           // 递归同步子节点
           if (sourceNode.children && targetNode.children) {
             this.syncCheckState(sourceNode.children, targetNode.children)
