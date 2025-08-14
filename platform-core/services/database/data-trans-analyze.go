@@ -7,6 +7,11 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"os"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
@@ -14,10 +19,6 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote/monitor"
 	"go.uber.org/zap"
-	"os"
-	"sort"
-	"strings"
-	"time"
 	"xorm.io/xorm"
 	"xorm.io/xorm/schemas"
 )
@@ -1439,12 +1440,16 @@ func DataTransExportArtifactData(ctx context.Context, transExportId string) (err
 	for _, unitDesign := range dataList {
 		for _, deployPackage := range unitDesign.ArtifactRows {
 			if deployPackage["guid"] != "" {
-				pushPackageResult, pushErr := remote.PushPackage(ctx, remote.GetToken(), unitDesign.UnitDesign, deployPackage["guid"], fmt.Sprintf("/%s/%s/", transExportId, models.TransArtifactPackageDirName))
-				if pushErr != nil {
-					err = fmt.Errorf("push artifact package %s fail,%s ", deployPackage["key_name"], pushErr.Error())
-					break
+				for i := 0; i < 3; i++ {
+					pushPackageResult, pushErr := remote.PushPackage(ctx, remote.GetToken(), unitDesign.UnitDesign, deployPackage["guid"], fmt.Sprintf("/%s/%s/", transExportId, models.TransArtifactPackageDirName))
+					if pushErr != nil {
+						err = fmt.Errorf("push artifact package %s fail,%s ", deployPackage["key_name"], pushErr.Error())
+					} else {
+						err = nil
+						deployPackage[models.TransArtifactNewPackageName] = pushPackageResult.Name
+						break
+					}
 				}
-				deployPackage[models.TransArtifactNewPackageName] = pushPackageResult.Name
 			}
 		}
 		if err != nil {
