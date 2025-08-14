@@ -194,7 +194,7 @@
           @search="handleSearchArtifacts"
         ></BaseSearch>
         <Row :gutter="10">
-          <Col :span="16">
+          <Col :span="20">
             <Card>
               <Table
                 :border="false"
@@ -216,7 +216,7 @@
           <span class="name">{{ $t('pe_total') }}</span><span class="number">{{ detailData.monitorCount }}</span>
         </div>
         <Row :gutter="10">
-          <Col :span="16">
+          <Col :span="20">
             <Card>
               <Table
                 :border="false"
