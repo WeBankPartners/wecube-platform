@@ -130,7 +130,52 @@ func ExportDetail(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+
+	// 默认精简 cmdbCI 数据，减少传输量
+	simplifyExportCmdbCIData(detail)
+
 	middleware.ReturnData(c, detail)
+}
+
+// simplifyExportCmdbCIData 精简导出 cmdbCI 数据，只保留必要字段
+func simplifyExportCmdbCIData(detail *models.TransExportDetail) {
+	for _, ci := range detail.CmdbCI {
+		if ci.Data != nil {
+			// 将完整的 CI 数据转换为精简版本
+			simplifiedData := convertToSimplifiedCIData(ci.Data)
+			ci.Data = simplifiedData
+		}
+	}
+}
+
+// convertToSimplifiedCIData 将完整的 CI 数据转换为精简版本
+func convertToSimplifiedCIData(originalData interface{}) map[string]map[string]string {
+	simplifiedData := make(map[string]map[string]string)
+
+	// 尝试将 interface{} 转换为 map[string]interface{}
+	if dataMap, ok := originalData.(map[string]interface{}); ok {
+		for guid, ciData := range dataMap {
+			if ciMap, ok := ciData.(map[string]interface{}); ok {
+				simplifiedData[guid] = map[string]string{
+					"key_name":    getStringValue(ciMap, "key_name"),
+					"create_time": getStringValue(ciMap, "create_time"),
+					"create_user": getStringValue(ciMap, "create_user"),
+				}
+			}
+		}
+	}
+
+	return simplifiedData
+}
+
+// getStringValue 安全地从 map 中获取字符串值
+func getStringValue(data map[string]interface{}, key string) string {
+	if value, exists := data[key]; exists {
+		if str, ok := value.(string); ok {
+			return str
+		}
+	}
+	return ""
 }
 
 func GetExportListOptions(c *gin.Context) {

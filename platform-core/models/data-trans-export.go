@@ -346,12 +346,49 @@ type TransExportDetail struct {
 	CreateAndUploadFile    *CommonOutput         `json:"createAndUploadFile"`
 }
 
+// TransExportDetailSimplified 精简版的 TransExportDetail，用于减少数据传输量
+type TransExportDetailSimplified struct {
+	TransExport            *TransExportTable            `json:"transExport"`
+	CmdbCI                 []*CommonNameCountSimplified `json:"cmdbCI"` // 使用精简版本
+	CmdbView               []*CommonNameCreator         `json:"cmdbView"`
+	CmdbViewCount          int                          `json:"cmdbViewCount"`
+	CmdbReportForm         []*CommonNameCreator         `json:"cmdbReportForm"`
+	CmdbReportFormCount    int                          `json:"cmdbReportFormCount"`
+	Roles                  *CommonOutput                `json:"roles"`
+	Workflows              *ExportWorkflowOutput        `json:"workflows"`
+	BatchExecution         *CommonOutput                `json:"batchExecutions"`
+	RequestTemplates       *CommonOutput                `json:"requestTemplates"`
+	ComponentLibrary       *CommonOutput                `json:"componentLibrary"`
+	ExportComponentLibrary bool                         `json:"exportComponentLibrary"`
+	Artifacts              *CommonOutput                `json:"artifacts"`
+	Monitor                *CommonOutput                `json:"monitor"`
+	Plugins                *CommonOutput                `json:"plugins"`
+	Cmdb                   *CommonOutput                `json:"cmdb"`
+	CreateAndUploadFile    *CommonOutput                `json:"createAndUploadFile"`
+}
+
 type CommonNameCount struct {
 	Name     string      `json:"name"`
 	Count    int         `json:"count"`
 	Group    string      `json:"group"`
 	DataType string      `json:"dataType"`
 	Data     interface{} `json:"data"`
+}
+
+// SimplifiedCIData 精简的 CI 数据结构，只包含必要字段
+type SimplifiedCIData struct {
+	KeyName    string `json:"key_name"`    // 关键名称
+	CreateTime string `json:"create_time"` // 创建时间
+	CreateUser string `json:"create_user"` // 创建用户
+}
+
+// CommonNameCountSimplified 精简版的 CommonNameCount，用于 cmdbCI
+type CommonNameCountSimplified struct {
+	Name     string                      `json:"name"`
+	Count    int                         `json:"count"`
+	Group    string                      `json:"group"`
+	DataType string                      `json:"dataType"`
+	Data     map[string]SimplifiedCIData `json:"data"` // 使用精简数据结构
 }
 
 type PluginPackageCount struct {
@@ -551,4 +588,70 @@ func (t TransExportWorkflowList) Parse(input []string) {
 			}
 		}
 	}
+}
+
+// ConvertToSimplifiedCIData 将完整的 CI 数据转换为精简版本
+func ConvertToSimplifiedCIData(originalData interface{}) map[string]SimplifiedCIData {
+	simplifiedData := make(map[string]SimplifiedCIData)
+
+	// 尝试将 interface{} 转换为 map[string]interface{}
+	if dataMap, ok := originalData.(map[string]interface{}); ok {
+		for guid, ciData := range dataMap {
+			if ciMap, ok := ciData.(map[string]interface{}); ok {
+				simplifiedData[guid] = SimplifiedCIData{
+					KeyName:    getStringValue(ciMap, "key_name"),
+					CreateTime: getStringValue(ciMap, "create_time"),
+					CreateUser: getStringValue(ciMap, "create_user"),
+				}
+			}
+		}
+	}
+
+	return simplifiedData
+}
+
+// getStringValue 安全地从 map 中获取字符串值
+func getStringValue(data map[string]interface{}, key string) string {
+	if value, exists := data[key]; exists {
+		if str, ok := value.(string); ok {
+			return str
+		}
+	}
+	return ""
+}
+
+// ConvertToSimplifiedDetail 将完整的 TransExportDetail 转换为精简版本
+func ConvertToSimplifiedDetail(detail *TransExportDetail) *TransExportDetailSimplified {
+	simplified := &TransExportDetailSimplified{
+		TransExport:            detail.TransExport,
+		CmdbView:               detail.CmdbView,
+		CmdbViewCount:          detail.CmdbViewCount,
+		CmdbReportForm:         detail.CmdbReportForm,
+		CmdbReportFormCount:    detail.CmdbReportFormCount,
+		Roles:                  detail.Roles,
+		Workflows:              detail.Workflows,
+		BatchExecution:         detail.BatchExecution,
+		RequestTemplates:       detail.RequestTemplates,
+		ComponentLibrary:       detail.ComponentLibrary,
+		ExportComponentLibrary: detail.ExportComponentLibrary,
+		Artifacts:              detail.Artifacts,
+		Monitor:                detail.Monitor,
+		Plugins:                detail.Plugins,
+		Cmdb:                   detail.Cmdb,
+		CreateAndUploadFile:    detail.CreateAndUploadFile,
+	}
+
+	// 转换 CmdbCI 数据
+	for _, ci := range detail.CmdbCI {
+		simplifiedCI := &CommonNameCountSimplified{
+			Name:     ci.Name,
+			Count:    ci.Count,
+			Group:    ci.Group,
+			DataType: ci.DataType,
+			Data:     ConvertToSimplifiedCIData(ci.Data),
+		}
+		simplified.CmdbCI = append(simplified.CmdbCI, simplifiedCI)
+	}
+
+	return simplified
 }
