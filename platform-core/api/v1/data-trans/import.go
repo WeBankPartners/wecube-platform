@@ -153,7 +153,22 @@ func ImportDetail(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+
+	// 默认精简 cmdbCI 数据，减少传输量
+	simplifyImportCmdbCIData(detail)
+
 	middleware.ReturnData(c, detail)
+}
+
+// simplifyImportCmdbCIData 精简导入 cmdbCI 数据，只保留必要字段
+func simplifyImportCmdbCIData(detail *models.TransImportDetail) {
+	for _, ci := range detail.CmdbCI {
+		if ci.Data != nil {
+			// 将完整的 CI 数据转换为精简版本
+			simplifiedData := convertToSimplifiedCIData(ci.Data)
+			ci.Data = simplifiedData
+		}
+	}
 }
 
 func GetImportListOptions(c *gin.Context) {
