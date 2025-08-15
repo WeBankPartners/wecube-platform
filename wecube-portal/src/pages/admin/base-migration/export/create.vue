@@ -93,7 +93,9 @@ export default {
     }
     // 重新发起
     if (_id && _type === 'republish') {
+      this.loading = true
       await this.getDetailData()
+      this.loading = false
       this.detailData.lastConfirmTime = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss')
       this.activeStep = 0
     }
@@ -233,7 +235,7 @@ export default {
         const failObj = exportData.find(i => i.status === 'fail') || {}
         this.detailData.failMsg = `${failObj.title}：${failObj.errMsg}`
         // 成功或失败，取消轮询查状态
-        if (['success', 'fail'].includes(this.detailData.status)) {
+        if (['success', 'fail', 'start'].includes(this.detailData.status)) {
           if (this.interval) {
             clearTimeout(this.interval)
           }
@@ -320,7 +322,9 @@ export default {
       this.loading = false
       if (status === 'OK') {
         this.activeStep++
-        this.getDetailData()
+        this.loading = true
+        await this.getDetailData()
+        this.loading = false
         this.$refs.scrollView.scrollTop = 0
       }
     }, 500),
