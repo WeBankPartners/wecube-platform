@@ -1,9 +1,3 @@
-<!--
- * @Author: wanghao7717 792974788@qq.com
- * @Date: 2024-10-16 15:32:21
- * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-02-08 17:29:38
--->
 <template>
   <div class="base-migration-import-three">
     <Form ref="form" :model="importCustomFormData" :label-width="250">
