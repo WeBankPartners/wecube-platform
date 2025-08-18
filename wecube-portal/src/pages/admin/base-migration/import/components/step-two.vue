@@ -172,7 +172,7 @@
           @search="handleSearchArtifacts"
         ></BaseSearch>
         <Row :gutter="10">
-          <Col :span="20">
+          <Col :xxl="20" :xl="24">
             <Card>
               <Table
                 :border="false"
@@ -196,7 +196,7 @@
           <span v-if="detailData.monitorRes.status === 'fail'" class="fail">({{ $t('pi_import_fail') }}：<span>{{ detailData.monitorRes.errMsg }}</span>)</span>
         </div>
         <Row :gutter="10">
-          <Col :span="20">
+          <Col :xxl="20" :xl="24">
             <Card>
               <Table
                 :border="false"
