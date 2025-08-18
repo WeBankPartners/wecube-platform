@@ -1,9 +1,3 @@
-<!--
- * @Author: wanghao7717 792974788@qq.com
- * @Date: 2025-01-07 20:01:01
- * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-01-17 10:20:42
--->
 <template>
   <BaseDrawer
     :title="form.id ? $t('pi_edit_custom') : $t('pi_add_custom')"
