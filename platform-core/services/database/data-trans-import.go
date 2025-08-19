@@ -5,12 +5,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/go-common-lib/cipher"
-	"go.uber.org/zap"
 	"io"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/go-common-lib/cipher"
+	"go.uber.org/zap"
 	"xorm.io/xorm"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
@@ -1010,7 +1011,7 @@ func UpdateTransImportCMDBData(ctx context.Context, transImportParam *models.Tra
 
 func execTransImportCMDBData(session *xorm.Session, transImportParam *models.TransImportJobParam, transImportConfig *models.TransDataImportConfig, encryptSeed string) (err error) {
 	if transImportConfig.WecubeHostCode != "" {
-		queryRows, queryErr := session.QueryString("select guid from host_resource where code=?", transImportConfig.WecubeHostCode)
+		queryRows, queryErr := session.QueryString("select guid,ip_address from host_resource where code=?", transImportConfig.WecubeHostCode)
 		if queryErr != nil {
 			err = queryErr
 			return
@@ -1024,6 +1025,24 @@ func execTransImportCMDBData(session *xorm.Session, transImportParam *models.Tra
 			}
 			if _, err = session.Exec("update host_resource set asset_id=?,root_user_password=? where guid=?", transImportParam.ImportCustomFormData.WecubeHost1AssetId, encryptPwd, rowGuid); err != nil {
 				return
+			}
+			oldWecubeIp := queryRows[0]["ip_address"]
+			if transImportParam.ImportCustomFormData.WecubeHost1Ip != "" && transImportParam.ImportCustomFormData.WecubeHost1Ip != oldWecubeIp {
+				if _, err = session.Exec("update host_resource set ip_address=? where guid=?", transImportParam.ImportCustomFormData.WecubeHost1Ip, rowGuid); err != nil {
+					return
+				}
+				var sysVariableRows []*models.SystemVariables
+				err = db.MysqlEngine.SQL("select id,name,`value`,default_value from system_variables where name='HOST_EXPORTER_S3_PATH' and status='active'").Find(&sysVariableRows)
+				if err != nil {
+					err = fmt.Errorf("query s3 exporter system variables fail,%s ", err.Error())
+					return
+				}
+				for _, row := range sysVariableRows {
+					_, tmpErr := db.MysqlEngine.Exec("update system_variables set `value`=?,default_value=? where id=?", strings.ReplaceAll(row.Value, oldWecubeIp, transImportParam.ImportCustomFormData.WecubeHost1Ip), strings.ReplaceAll(row.DefaultValue, oldWecubeIp, transImportParam.ImportCustomFormData.WecubeHost1Ip), row.Id)
+					if tmpErr != nil {
+						log.Error(nil, log.LOGGER_APP, "update s3 exporter system variable fail", zap.String("id", row.Id), zap.Error(tmpErr))
+					}
+				}
 			}
 		}
 	}
