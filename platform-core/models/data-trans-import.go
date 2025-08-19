@@ -221,8 +221,10 @@ type ImportCustomFormData struct {
 	NetworkSubZone2AssetId  string `json:"networkSubZone2AssetId"`  //网络子区域2 MGMT_APP -资产ID
 	RouteTableAssetId       string `json:"routeTableAssetId"`       //路由表 默认路由表-资产ID
 	WecubeHost1AssetId      string `json:"wecubeHost1AssetId"`      //wecube主机1的资产ID
+	WecubeHost1Ip           string `json:"wecubeHost1Ip"`           //wecube主机1的IP
 	WecubeHost1Password     string `json:"wecubeHost1Password"`     //wecube主机1的管理员密码
 	WecubeHost2AssetId      string `json:"wecubeHost2AssetId"`      //wecube主机2的资产ID
+	WecubeHost2Ip           string `json:"wecubeHost2Ip"`           //wecube主机1的IP
 	WecubeHost2Password     string `json:"wecubeHost2Password"`     //wecube主机2的管理员密码
 	WecubeHost1Pwd          string `json:"-"`
 	WecubeHost2Pwd          string `json:"-"`
