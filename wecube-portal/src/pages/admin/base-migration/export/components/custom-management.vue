@@ -95,6 +95,13 @@
           >
             <Input v-model.trim="form.nexusRepo" :maxlength="50" />
           </FormItem>
+          <FormItem
+            :label="$t('execute_workflow_ids')"
+            prop="execWorkflowIds"
+            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur, change'}"
+          >
+            <Input v-model.trim="form.execWorkflowIds" />
+          </FormItem>
         </Form>
       </BaseHeaderTitle>
     </div>
@@ -124,7 +131,8 @@ export default {
         nexusAddr: '',
         nexusAccount: '',
         nexusPwd: '',
-        nexusRepo: ''
+        nexusRepo: '',
+        execWorkflowIds: ''
       },
       customerList: [],
       selected: ''
@@ -171,7 +179,8 @@ export default {
         nexusAddr: '',
         nexusAccount: '',
         nexusPwd: '',
-        nexusRepo: ''
+        nexusRepo: '',
+        execWorkflowIds: ''
       }
     },
     handleEdit(row) {
@@ -183,7 +192,8 @@ export default {
         nexusAddr: row.nexusAddr,
         nexusAccount: row.nexusAccount,
         nexusPwd: row.nexusPwd,
-        nexusRepo: row.nexusRepo
+        nexusRepo: row.nexusRepo,
+        execWorkflowIds: row.execWorkflowIds
       })
     },
     handleDelete(e, row) {
@@ -204,7 +214,8 @@ export default {
                 nexusAddr: '',
                 nexusAccount: '',
                 nexusPwd: '',
-                nexusRepo: ''
+                nexusRepo: '',
+                execWorkflowIds: ''
               }
             }
             this.getCustomerList()
