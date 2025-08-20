@@ -477,15 +477,16 @@ type SysViewTable struct {
 }
 
 type DataTransExportCustomerTable struct {
-	Id           string `json:"id" xorm:"id"`
-	Name         string `json:"name" xorm:"name"`
-	NexusAddr    string `json:"nexusAddr" xorm:"nexus_addr"`
-	NexusAccount string `json:"nexusAccount" xorm:"nexus_account"`
-	NexusPwd     string `json:"nexusPwd" xorm:"nexus_pwd"`
-	NexusRepo    string `json:"nexusRepo" xorm:"nexus_repo"`
-	CreatedUser  string `json:"createdUser" xorm:"created_user"`
-	CreatedTime  string `json:"createdTime" xorm:"created_time"`
-	UpdateTime   string `json:"updateTime" xorm:"updated_time"`
+	Id              string `json:"id" xorm:"id"`
+	Name            string `json:"name" xorm:"name"`
+	NexusAddr       string `json:"nexusAddr" xorm:"nexus_addr"`
+	NexusAccount    string `json:"nexusAccount" xorm:"nexus_account"`
+	NexusPwd        string `json:"nexusPwd" xorm:"nexus_pwd"`
+	NexusRepo       string `json:"nexusRepo" xorm:"nexus_repo"`
+	ExecWorkflowIds string `json:"execWorkflowIds" xorm:"exec_workflow_ids"`
+	CreatedUser     string `json:"createdUser" xorm:"created_user"`
+	CreatedTime     string `json:"createdTime" xorm:"created_time"`
+	UpdateTime      string `json:"updateTime" xorm:"updated_time"`
 }
 
 type ExportCustomerDto struct {
@@ -494,12 +495,13 @@ type ExportCustomerDto struct {
 }
 
 type DataTransExportCustomerParam struct {
-	Id           string `json:"id"`
-	Name         string `json:"name"`
-	NexusAddr    string `json:"nexusAddr"`
-	NexusAccount string `json:"nexusAccount"`
-	NexusPwd     string `json:"nexusPwd"`
-	NexusRepo    string `json:"nexusRepo"`
+	Id              string `json:"id"`
+	Name            string `json:"name"`
+	NexusAddr       string `json:"nexusAddr"`
+	NexusAccount    string `json:"nexusAccount"`
+	NexusPwd        string `json:"nexusPwd"`
+	NexusRepo       string `json:"nexusRepo"`
+	ExecWorkflowIds string `json:"execWorkflowIds"`
 }
 
 type DataTransPluginExportData struct {

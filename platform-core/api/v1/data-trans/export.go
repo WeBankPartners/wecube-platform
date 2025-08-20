@@ -232,12 +232,13 @@ func CreateOrUpdateExportCustomer(c *gin.Context) {
 			}
 		}
 		exportCustomer := &models.DataTransExportCustomerTable{
-			Id:           param.Id,
-			Name:         param.Name,
-			NexusAddr:    param.NexusAddr,
-			NexusAccount: param.NexusAccount,
-			NexusPwd:     param.NexusPwd,
-			NexusRepo:    param.NexusRepo,
+			Id:              param.Id,
+			Name:            param.Name,
+			NexusAddr:       param.NexusAddr,
+			NexusAccount:    param.NexusAccount,
+			NexusPwd:        param.NexusPwd,
+			NexusRepo:       param.NexusRepo,
+			ExecWorkflowIds: param.ExecWorkflowIds,
 		}
 		if err = database.UpdateTransExportCustomer(c, exportCustomer); err != nil {
 			middleware.ReturnError(c, err)
@@ -250,13 +251,14 @@ func CreateOrUpdateExportCustomer(c *gin.Context) {
 			return
 		}
 		exportCustomer := &models.DataTransExportCustomerTable{
-			Id:           guid.CreateGuid(),
-			Name:         param.Name,
-			NexusAddr:    param.NexusAddr,
-			NexusAccount: param.NexusAccount,
-			NexusPwd:     param.NexusPwd,
-			NexusRepo:    param.NexusRepo,
-			CreatedUser:  middleware.GetRequestUser(c),
+			Id:              guid.CreateGuid(),
+			Name:            param.Name,
+			NexusAddr:       param.NexusAddr,
+			NexusAccount:    param.NexusAccount,
+			NexusPwd:        param.NexusPwd,
+			NexusRepo:       param.NexusRepo,
+			ExecWorkflowIds: param.ExecWorkflowIds,
+			CreatedUser:     middleware.GetRequestUser(c),
 		}
 		if err = database.AddTransExportCustomer(c, exportCustomer); err != nil {
 			middleware.ReturnError(c, err)
