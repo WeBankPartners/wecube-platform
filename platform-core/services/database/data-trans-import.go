@@ -852,6 +852,7 @@ func DownloadImportArtifactPackages(ctx context.Context, nexusUrl, transImportId
 	if len(fileNameList) == 0 {
 		return
 	}
+	log.Info(nil, log.LOGGER_APP, "import artifact packages md5 map", log.JsonObj("md5Map", fileMd5Map))
 	// 建临时目录
 	tmpImportDir := fmt.Sprintf(models.TransImportTmpDir, transImportId) + "/" + models.TransArtifactPackageDirName
 	if err = os.MkdirAll(tmpImportDir, 0755); err != nil {
@@ -871,10 +872,12 @@ func DownloadImportArtifactPackages(ctx context.Context, nexusUrl, transImportId
 		if expectMd5, ok := fileMd5Map[remoteFileName]; ok {
 			downloadParam.FileParams[0].ExpectMd5 = expectMd5
 		}
+		log.Info(nil, log.LOGGER_APP, "start download nexus package file", zap.String("fileName", remoteFileName), log.JsonObj("downloadParam", downloadParam))
 		if err = tools.DownloadFile(&downloadParam); err != nil {
 			err = fmt.Errorf("donwload nexus artifact file:%s fail,%s ", remoteFileName, err.Error())
 			break
 		}
+		log.Info(nil, log.LOGGER_APP, "done download nexus package file", zap.String("fileName", remoteFileName))
 	}
 	if err != nil {
 		if clearErr := os.RemoveAll(tmpImportDir); clearErr != nil {
