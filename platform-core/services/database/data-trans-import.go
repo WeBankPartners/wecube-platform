@@ -834,14 +834,16 @@ func DownloadImportArtifactPackages(ctx context.Context, nexusUrl, transImportId
 	if lastIndex := strings.LastIndex(nexusUrl, "/"); lastIndex > 0 {
 		nexusUrlPrefix = nexusUrl[:lastIndex]
 	}
+	fileMd5Map := make(map[string]string)
 	// 查nexus目录下的文件列表
 	fileNameList, err = tools.ListFilesInRepo(&tools.NexusReqParam{
-		UserName:   nexusConfig.NexusUser,
-		Password:   nexusConfig.NexusPwd,
-		RepoUrl:    nexusConfig.NexusUrl,
-		Repository: nexusConfig.NexusRepo,
-		TimeoutSec: 60,
-		DirPath:    fmt.Sprintf("/%s/%s", transExportId, models.TransArtifactPackageDirName),
+		UserName:     nexusConfig.NexusUser,
+		Password:     nexusConfig.NexusPwd,
+		RepoUrl:      nexusConfig.NexusUrl,
+		Repository:   nexusConfig.NexusRepo,
+		TimeoutSec:   60,
+		DirPath:      fmt.Sprintf("/%s/%s", transExportId, models.TransArtifactPackageDirName),
+		ExpectMd5Map: fileMd5Map,
 	})
 	if err != nil {
 		err = fmt.Errorf("list nexus artifact dir file list fail,%s ", err.Error())
@@ -865,6 +867,9 @@ func DownloadImportArtifactPackages(ctx context.Context, nexusUrl, transImportId
 			Repository: nexusConfig.NexusRepo,
 			TimeoutSec: 60,
 			FileParams: []*tools.NexusFileParam{{SourceFilePath: fmt.Sprintf("%s/%s/%s", nexusUrlPrefix, models.TransArtifactPackageDirName, remoteFileName), DestFilePath: fmt.Sprintf("%s/%s", tmpImportDir, remoteFileName)}},
+		}
+		if expectMd5, ok := fileMd5Map[remoteFileName]; ok {
+			downloadParam.FileParams[0].ExpectMd5 = expectMd5
 		}
 		if err = tools.DownloadFile(&downloadParam); err != nil {
 			err = fmt.Errorf("donwload nexus artifact file:%s fail,%s ", remoteFileName, err.Error())
