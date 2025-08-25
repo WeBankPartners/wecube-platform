@@ -49,6 +49,7 @@
             @nextStep="activeStep++"
             @startLoading="startLoading"
             @stopLoading="stopLoading"
+            @fetchDetail="getDetailData"
           ></StepTwo>
         </BaseHeaderTitle>
         <!--修改数据-->
