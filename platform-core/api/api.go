@@ -267,6 +267,7 @@ func init() {
 
 		&handlerFuncObj{Url: "/data/transfer/import/business", Method: "GET", HandlerFunc: data_trans.GetBusinessList, ApiCode: "data-transfer-get-business-list"},
 		&handlerFuncObj{Url: "/data/transfer/import", Method: "POST", HandlerFunc: data_trans.ExecImport, ApiCode: "data-transfer-exec-import"},
+		&handlerFuncObj{Url: "/data/transfer/import_retry", Method: "POST", HandlerFunc: data_trans.ExecImportRetry, ApiCode: "data-transfer-exec-artifacts-import"},
 		&handlerFuncObj{Url: "/data/transfer/import/detail", Method: "GET", HandlerFunc: data_trans.ImportDetail, ApiCode: "data-transfer-import-detail"},
 		&handlerFuncObj{Url: "/data/transfer/import/list/options", Method: "GET", HandlerFunc: data_trans.GetImportListOptions, ApiCode: "data-transfer-import-options"},
 		&handlerFuncObj{Url: "/data/transfer/import/list", Method: "POST", HandlerFunc: data_trans.ImportList, ApiCode: "data-transfer-import-list"},
