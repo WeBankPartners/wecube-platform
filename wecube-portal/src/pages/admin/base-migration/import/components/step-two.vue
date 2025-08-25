@@ -216,7 +216,10 @@
         <div slot="sub-title" class="title">
           {{ $t('pe_select') }}<span class="number">{{ detailData.itsmRes.data.length }}</span>
           <span v-if="detailData.itsmRes.status === 'success'" class="success">({{ $t('pi_import_success') }})</span>
-          <span v-if="detailData.itsmRes.status === 'fail'" class="fail">({{ $t('pi_import_fail') }}：<span>{{ detailData.itsmRes.errMsg }}</span>)</span>
+          <span v-if="detailData.itsmRes.status === 'fail'" class="fail">
+            ({{ $t('pi_import_fail') }}：<span>{{ detailData.itsmRes.errMsg }}</span>)
+            <Button @click="handleRetry" type="error">{{ $t('partial_retry') }}</Button>
+          </span>
         </div>
         <div style="margin: 10px 0">
           {{ $t('pe_export_library') }}：<i-switch
@@ -265,7 +268,7 @@
 <script>
 import selectTableConfig from '../../export/selection-table'
 import staticTableConfig from '../../export/static-table'
-import { saveImportData } from '@/api/server'
+import { saveImportData, importRetry } from '@/api/server'
 import { debounce } from '@/const/util'
 
 export default {
@@ -322,6 +325,20 @@ export default {
     // 上一步
     handleLast() {
       this.$emit('lastStep')
+    },
+    // 物料包失败，可以执行重试
+    async handleRetry() {
+      const params = {
+        transImportId: this.detailData.id,
+        step: 2
+      }
+      this.$emit('startLoading')
+      const { status } = await importRetry(params)
+      if (status === 'OK') {
+        this.$emit('fetchDetail')
+      } else {
+        this.$emit('stopLoading')
+      }
     }
   }
 }

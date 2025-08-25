@@ -1123,6 +1123,11 @@
         "method": "post"
       },
       {
+        "key": "importRetry",
+        "url": "/platform/v1/data/transfer/import_retry",
+        "method": "post"
+      },
+      {
         "key": "getBaseMigrationImportList",
         "url": "/platform/v1/data/transfer/import/list",
         "method": "post"
