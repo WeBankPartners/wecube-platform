@@ -307,3 +307,13 @@ type PluginCiDataOperationOutputObj struct {
 	ErrorMessage      string `json:"errorMessage"`
 	ErrorDetail       string `json:"errorDetail,omitempty"`
 }
+
+type ArtifactPackageImportOutputData struct {
+	Guid           string `json:"guid"`
+	Name           string `json:"name"`
+	KeyName        string `json:"keyName"`
+	UnitDesign     string `json:"unitDesign"`
+	UnitDesignName string `json:"unitDesignName"`
+	ExpectMd5      string `json:"expectMd5"`
+	Status         string `json:"status"` // notStart未开始,doing执行中,success成功,fail失败
+}

@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/encrypt"
-	"go.uber.org/zap"
 	"io/fs"
 	"os"
 	"strings"
+
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/encrypt"
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
@@ -52,12 +53,12 @@ func StartTransImport(ctx context.Context, param models.ExecImportParam) (err er
 		return
 	}
 	if transImport == nil || transImport.Id == "" {
-		// 下载物料包
-		_, _, err = database.DownloadImportArtifactPackages(ctx, param.ExportNexusUrl, param.TransImportId)
-		if err != nil {
-			log.Error(nil, log.LOGGER_APP, "download import artifact packages fail", zap.String("url", param.ExportNexusUrl), zap.Error(err))
-			return
-		}
+		// 下载物料包 (移动到物料包导入里去挨个下载导入)
+		// _, _, err = database.DownloadImportArtifactPackages(ctx, param.ExportNexusUrl, param.TransImportId)
+		// if err != nil {
+		// 	log.Error(nil, log.LOGGER_APP, "download import artifact packages fail", zap.String("url", param.ExportNexusUrl), zap.Error(err))
+		// 	return
+		// }
 		// 文件解压
 		if localPath, err = database.DecompressExportZip(ctx, param.ExportNexusUrl, param.TransImportId); err != nil {
 			log.Error(nil, log.LOGGER_APP, "DecompressExportZip err", zap.Error(err))
