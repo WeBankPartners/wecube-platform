@@ -805,7 +805,7 @@ func UpdateTransImportDetailStatus(ctx context.Context, transImportId, transImpo
 	return
 }
 
-func RecordTransImportAction(ctx context.Context, callParam *models.CallTransImportActionParam) (err error) {
+func RecordTransImportAction(ctx context.Context, callParam *models.CallTransImportActionParam) (actionId string, err error) {
 	if callParam.ActionId == "" {
 		callParam.ActionId = "t_imp_action_" + guid.CreateGuid()
 		_, err = db.MysqlEngine.Context(ctx).Exec("insert into trans_import_action(id,trans_import,trans_import_detail,`action`,created_user,updated_time) values (?,?,?,?,?,?)",
@@ -813,6 +813,7 @@ func RecordTransImportAction(ctx context.Context, callParam *models.CallTransImp
 	} else {
 		_, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_action set error_msg=?,updated_time=? where id=?", callParam.ErrorMsg, time.Now(), callParam.ActionId)
 	}
+	actionId = callParam.ActionId
 	return
 }
 

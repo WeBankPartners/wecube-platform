@@ -82,6 +82,7 @@ type TransImportJobParam struct {
 	Token                string                    `json:"token"`    // token
 	Language             string                    `json:"language"` // language
 	Operator             string                    `json:"operator"`
+	ActionId             string                    `json:"actionId"`
 }
 
 type CallTransImportActionParam struct {
@@ -105,6 +106,7 @@ type ExecImportParam struct {
 	Token                string                `json:"token"`    // token
 	Language             string                `json:"language"` // language
 	WebStep              int                   `json:"step"`     // web 第几步,2,3,4,5
+	Action               string                `json:"-"`        // Action
 	ImportCustomFormData *ImportCustomFormData `json:"importCustomFormData"`
 }
 

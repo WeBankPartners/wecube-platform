@@ -79,6 +79,26 @@ func ExecImport(c *gin.Context) {
 	param.Operator = middleware.GetRequestUser(c)
 	param.Token = c.GetHeader("Authorization")
 	param.Language = c.GetHeader("Accept-Language")
+	param.Action = string(models.TransImportStatusStart)
+	if err = StartTransImport(c, param); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+	middleware.ReturnData(c, param.TransImportId)
+}
+
+// ExecImportRetry 重试导入
+func ExecImportRetry(c *gin.Context) {
+	var param models.ExecImportParam
+	var err error
+	if err = c.ShouldBindJSON(&param); err != nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
+		return
+	}
+	param.Operator = middleware.GetRequestUser(c)
+	param.Token = c.GetHeader("Authorization")
+	param.Language = c.GetHeader("Accept-Language")
+	param.Action = string(models.TransImportActionRetry)
 	if err = StartTransImport(c, param); err != nil {
 		middleware.ReturnError(c, err)
 		return
@@ -425,9 +445,7 @@ func importArtifactPackage(ctx context.Context, transImportParam *models.TransIm
 			}
 		}
 	}
-	nowTime := time.Now()
-	dataLastIndex := len(artifactDataList) - 1
-	for i, artifactData := range artifactDataList {
+	for _, artifactData := range artifactDataList {
 		for _, artifactRow := range artifactData.ArtifactRows {
 			tmpPackageName := artifactRow[models.TransArtifactNewPackageName]
 			if tmpPackageName == "" {
@@ -469,12 +487,9 @@ func importArtifactPackage(ctx context.Context, transImportParam *models.TransIm
 			os.RemoveAll(tmpImportDirPath)
 			artifactOutputObj.Status = "success"
 		}
-		if time.Since(nowTime).Seconds() > 10 || i == dataLastIndex {
-			tmpOutputBytes, _ := json.Marshal(&artifactOutputList)
-			if tmpUpdateOutputErr := database.UpdateTransImportDetailOutput(ctx, transImportParam.TransImport.Id, models.TransImportStep(transImportParam.CurrentDetail.Step), string(tmpOutputBytes)); tmpUpdateOutputErr != nil {
-				log.Error(nil, log.LOGGER_APP, "update trans import artifact output status fail", zap.String("unitDesign", artifactData.UnitDesignName), zap.Error(tmpUpdateOutputErr))
-			}
-			nowTime = time.Now()
+		tmpOutputBytes, _ := json.Marshal(&artifactOutputList)
+		if tmpUpdateOutputErr := database.UpdateTransImportDetailOutput(ctx, transImportParam.TransImport.Id, models.TransImportStep(transImportParam.CurrentDetail.Step), string(tmpOutputBytes)); tmpUpdateOutputErr != nil {
+			log.Error(nil, log.LOGGER_APP, "update trans import artifact output status fail", zap.String("unitDesign", artifactData.UnitDesignName), zap.Error(tmpUpdateOutputErr))
 		}
 		if err != nil {
 			break
