@@ -772,6 +772,12 @@ func UpdateTransImportDetailInput(ctx context.Context, transImportId string, ste
 	return
 }
 
+func UpdateTransImportDetailOutput(ctx context.Context, transImportId string, step models.TransImportStep, output string) (err error) {
+	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_detail set output=?,status=?,end_time=? where trans_import=? and step=?", output,
+		models.TransImportStatusSuccess, time.Now().Format(models.DateTimeFormat), transImportId, step)
+	return
+}
+
 func UpdateTransImportDetailStatus(ctx context.Context, transImportId, transImportDetailId, status, output, errorMsg string) (err error) {
 	var actions []*db.ExecAction
 	nowTime := time.Now()
@@ -887,6 +893,72 @@ func DownloadImportArtifactPackages(ctx context.Context, nexusUrl, transImportId
 	return
 }
 
+func ListImportNexusArtifactPackages(ctx context.Context, nexusUrl string) (fileMd5Map map[string]string, err error) {
+	// 获取nexus配置
+	nexusConfig, getNexusConfigErr := GetDataTransImportConfig(ctx)
+	if getNexusConfigErr != nil {
+		err = getNexusConfigErr
+		return
+	}
+	// 提取导出id来拼物料包的url路径
+	var transExportId string
+	urlSplitList := strings.Split(nexusUrl, "/")
+	if len(urlSplitList) > 2 {
+		transExportId = urlSplitList[len(urlSplitList)-2]
+	}
+	fileMd5Map = make(map[string]string)
+	// 查nexus目录下的文件列表
+	_, err = tools.ListFilesInRepo(&tools.NexusReqParam{
+		UserName:     nexusConfig.NexusUser,
+		Password:     nexusConfig.NexusPwd,
+		RepoUrl:      nexusConfig.NexusUrl,
+		Repository:   nexusConfig.NexusRepo,
+		TimeoutSec:   60,
+		DirPath:      fmt.Sprintf("/%s/%s", transExportId, models.TransArtifactPackageDirName),
+		ExpectMd5Map: fileMd5Map,
+	})
+	if err != nil {
+		err = fmt.Errorf("list nexus artifact dir file list fail,%s ", err.Error())
+		return
+	}
+	log.Info(nil, log.LOGGER_APP, "import artifact packages md5 map", log.JsonObj("md5Map", fileMd5Map))
+	return
+}
+
+func DownloadImportArtifactPackage(ctx context.Context, nexusConfig *models.TransDataImportConfig, nexusUrl, transImportId, remoteFileName, expectMd5 string) (localFilePath, dirPath string, err error) {
+	// 提取导出id来拼物料包的url路径
+	var nexusUrlPrefix string
+	if lastIndex := strings.LastIndex(nexusUrl, "/"); lastIndex > 0 {
+		nexusUrlPrefix = nexusUrl[:lastIndex]
+	}
+	// 建临时目录
+	dirPath = fmt.Sprintf(models.TransImportTmpDir, transImportId) + "/" + models.TransArtifactPackageDirName + "/" + guid.CreateGuid()
+	if err = os.MkdirAll(dirPath, 0755); err != nil {
+		err = fmt.Errorf("make tmp import dir fail,%s ", err.Error())
+		return
+	}
+	localFilePath = fmt.Sprintf("%s/%s", dirPath, remoteFileName)
+	// 从nexus下载
+	downloadParam := tools.NexusReqParam{
+		UserName:   nexusConfig.NexusUser,
+		Password:   nexusConfig.NexusPwd,
+		RepoUrl:    nexusConfig.NexusUrl,
+		Repository: nexusConfig.NexusRepo,
+		TimeoutSec: 60,
+		FileParams: []*tools.NexusFileParam{{SourceFilePath: fmt.Sprintf("%s/%s/%s", nexusUrlPrefix, models.TransArtifactPackageDirName, remoteFileName), DestFilePath: localFilePath, ExpectMd5: expectMd5}},
+	}
+	log.Info(nil, log.LOGGER_APP, "start download nexus package file", zap.String("fileName", remoteFileName), log.JsonObj("downloadParam", downloadParam))
+	if err = tools.DownloadFile(&downloadParam); err != nil {
+		if clearErr := os.RemoveAll(dirPath); clearErr != nil {
+			log.Error(nil, log.LOGGER_APP, "download nexus artifact fail,try to clear artifact tmp dir fail ", zap.String("file", remoteFileName), zap.Error(clearErr))
+		}
+		err = fmt.Errorf("donwload nexus artifact file:%s fail,%s ", remoteFileName, err.Error())
+		return
+	}
+	log.Info(nil, log.LOGGER_APP, "done download nexus package file", zap.String("fileName", remoteFileName))
+	return
+}
+
 func GetTransImportDetailInput(ctx context.Context, transImportDetailId string) (result string, err error) {
 	queryRows, queryErr := db.MysqlEngine.Context(ctx).QueryString("select `input` from trans_import_detail where id=?", transImportDetailId)
 	if queryErr != nil {
@@ -895,6 +967,18 @@ func GetTransImportDetailInput(ctx context.Context, transImportDetailId string) 
 	}
 	if len(queryRows) > 0 {
 		result = queryRows[0]["input"]
+	}
+	return
+}
+
+func GetTransImportDetailOutput(ctx context.Context, transImportDetailId string) (result string, err error) {
+	queryRows, queryErr := db.MysqlEngine.Context(ctx).QueryString("select `output` from trans_import_detail where id=?", transImportDetailId)
+	if queryErr != nil {
+		err = fmt.Errorf("query trans import detail output data fail,%s ", queryErr.Error())
+		return
+	}
+	if len(queryRows) > 0 {
+		result = queryRows[0]["output"]
 	}
 	return
 }

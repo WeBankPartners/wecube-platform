@@ -388,9 +388,19 @@ func RestartPluginInstance(ctx context.Context, pluginPackageId string) (err err
 
 // 6、导入物料包
 func importArtifactPackage(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-	var input string
+	var input, detailOutput string
 	input, err = database.GetTransImportDetailInput(ctx, transImportParam.CurrentDetail.Id)
 	if err != nil {
+		return
+	}
+	detailOutput, err = database.GetTransImportDetailOutput(ctx, transImportParam.CurrentDetail.Id)
+	if err != nil {
+		return
+	}
+	// 获取nexus配置
+	nexusConfig, getNexusConfigErr := database.GetDataTransImportConfig(ctx)
+	if getNexusConfigErr != nil {
+		err = getNexusConfigErr
 		return
 	}
 	var artifactDataList []*models.AnalyzeArtifactDisplayData
@@ -399,20 +409,67 @@ func importArtifactPackage(ctx context.Context, transImportParam *models.TransIm
 		log.Error(nil, log.LOGGER_APP, "importArtifactPackageFunc", zap.String("inputData", input), zap.Error(err))
 		return
 	}
+	fileMd5Map, listErr := database.ListImportNexusArtifactPackages(ctx, transImportParam.TransImport.InputUrl)
+	if listErr != nil {
+		err = fmt.Errorf("try to list import nexus artifact dir file list fail,%s ", listErr.Error())
+		return
+	}
+	artifactOutputList := []*models.ArtifactPackageImportOutputData{}
+	packageOutputMap := make(map[string]*models.ArtifactPackageImportOutputData)
+	if detailOutput != "" {
+		if tmpErr := json.Unmarshal([]byte(detailOutput), &artifactOutputList); tmpErr != nil {
+			log.Warn(nil, log.LOGGER_APP, "importArtifactPackageFunc", zap.String("outputData", detailOutput), zap.Error(tmpErr))
+		} else {
+			for _, v := range artifactOutputList {
+				packageOutputMap[v.Guid] = v
+			}
+		}
+	}
 	for _, artifactData := range artifactDataList {
 		for _, artifactRow := range artifactData.ArtifactRows {
 			tmpPackageName := artifactRow[models.TransArtifactNewPackageName]
 			if tmpPackageName == "" {
 				continue
 			}
-			tmpImportFilePath := fmt.Sprintf(models.TransImportTmpDir, transImportParam.TransImport.Id) + "/" + models.TransArtifactPackageDirName + "/" + tmpPackageName
+			artifactOutputObj := &models.ArtifactPackageImportOutputData{}
+			if existRecord, existStatus := packageOutputMap[artifactRow["guid"]]; existStatus {
+				if existRecord.Status == "success" {
+					// 之前已经导入成功过的包
+					continue
+				}
+				artifactOutputObj = existRecord
+			} else {
+				artifactOutputObj.Guid = artifactRow["guid"]
+				artifactOutputObj.Name = artifactRow["name"]
+				artifactOutputObj.KeyName = artifactRow["key_name"]
+				artifactOutputObj.UnitDesign = artifactData.UnitDesign
+				artifactOutputObj.UnitDesignName = artifactData.UnitDesignName
+				artifactOutputObj.ExpectMd5 = fileMd5Map[tmpPackageName]
+				artifactOutputObj.Status = "notStart"
+				artifactOutputList = append(artifactOutputList, artifactOutputObj)
+			}
+			tmpImportFilePath, tmpImportDirPath, downloadErr := database.DownloadImportArtifactPackage(ctx, nexusConfig, transImportParam.TransImport.InputUrl, transImportParam.TransImport.Id, tmpPackageName, artifactOutputObj.ExpectMd5)
+			if downloadErr != nil {
+				err = fmt.Errorf("download artifact package from nexus fail,package name:%s ,error:%s ", tmpPackageName, downloadErr.Error())
+				artifactOutputObj.Status = "fail"
+				break
+			}
+			// tmpImportFilePath := fmt.Sprintf(models.TransImportTmpDir, transImportParam.TransImport.Id) + "/" + models.TransArtifactPackageDirName + "/" + tmpPackageName
 			tmpDeployPackageGuid, tmpErr := remote.UploadArtifactPackageNew(ctx, remote.GetToken(), artifactData.UnitDesign, tmpImportFilePath)
 			if tmpErr != nil {
 				err = fmt.Errorf("upload artifact package to artifacts plugin fail,tmpPath:%s ,error:%s ", tmpImportFilePath, tmpErr.Error())
+				artifactOutputObj.Status = "fail"
+				os.RemoveAll(tmpImportDirPath)
 				break
 			} else {
 				log.Info(nil, log.LOGGER_APP, "upload artifact package to artifacts plugin done", zap.String("packageName", tmpPackageName), zap.String("deployPackageGuid", tmpDeployPackageGuid))
 			}
+			os.RemoveAll(tmpImportDirPath)
+			artifactOutputObj.Status = "success"
+		}
+		tmpOutputBytes, _ := json.Marshal(&artifactOutputList)
+		if tmpUpdateOutputErr := database.UpdateTransImportDetailOutput(ctx, transImportParam.TransImport.Id, models.TransImportStep(transImportParam.CurrentDetail.Step), string(tmpOutputBytes)); tmpUpdateOutputErr != nil {
+			log.Error(nil, log.LOGGER_APP, "update trans import artifact output status fail", zap.String("unitDesign", artifactData.UnitDesignName), zap.Error(tmpUpdateOutputErr))
 		}
 		if err != nil {
 			break
