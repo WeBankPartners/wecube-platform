@@ -163,7 +163,10 @@
         <div slot="sub-title" class="title">
           {{ $t('pe_select') }}<span class="number">{{ detailData.artifactsCount }}</span>
           <span v-if="detailData.artifactsRes.status === 'success'" class="success">({{ $t('pi_import_success') }})</span>
-          <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">({{ $t('pi_import_fail') }}：<span>{{ detailData.artifactsRes.errMsg }}</span>)</span>
+          <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">
+            ({{ $t('pi_import_fail') }}：<span>{{ detailData.artifactsRes.errMsg }}</span>)
+            <Button @click="handleRetry" type="error" size="small" class="ml-1">{{ $t('partial_retry') }}</Button>
+          </span>
         </div>
         <BaseSearch
           :onlyShowReset="true"
@@ -218,7 +221,6 @@
           <span v-if="detailData.itsmRes.status === 'success'" class="success">({{ $t('pi_import_success') }})</span>
           <span v-if="detailData.itsmRes.status === 'fail'" class="fail">
             ({{ $t('pi_import_fail') }}：<span>{{ detailData.itsmRes.errMsg }}</span>)
-            <Button @click="handleRetry" type="error">{{ $t('partial_retry') }}</Button>
           </span>
         </div>
         <div style="margin: 10px 0">
