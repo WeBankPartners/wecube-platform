@@ -11,7 +11,6 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/encrypt"
 	"go.uber.org/zap"
 
-	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
@@ -249,61 +248,6 @@ func importRole(ctx context.Context, transImportParam *models.TransImportJobPara
 
 // 4、导入编排
 func importWorkflow(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
-	// 解析workflow.json,导入编排
-	log.Info(nil, log.LOGGER_APP, "4. importWorkflow start!!!")
-	var procDefList []*models.ProcessDefinitionDto
-	var importResult *models.ImportResultDto
-	var procDef *models.ProcDef
-	var exist bool
-	var errMsg string
-	workflowPath := fmt.Sprintf("%s/workflow.json", transImportParam.DirPath)
-	if exist, err = tools.PathExist(workflowPath); err != nil {
-		return
-	}
-	if !exist {
-		log.Info(nil, log.LOGGER_APP, "importWorkflow data empty!")
-		return
-	}
-	if err = database.ParseJsonData(workflowPath, &procDefList); err != nil {
-		return
-	}
-	if len(procDefList) > 0 {
-		param := models.ProcDefImportDto{
-			Ctx:           ctx,
-			InputList:     procDefList,
-			Operator:      transImportParam.Operator,
-			UserToken:     transImportParam.Token,
-			Language:      transImportParam.Language,
-			IsTransImport: true,
-		}
-		if importResult, err = process.ProcDefImport(param); err != nil {
-			return
-		}
-		if importResult != nil && len(importResult.ResultList) > 0 {
-			for _, data := range importResult.ResultList {
-				errMsg = data.ErrMsg
-				if errMsg == "" {
-					errMsg = data.Message
-				}
-				if data.Code > 0 {
-					err = fmt.Errorf("importWorkflow【%s】fail,%s", data.ProcDefName, errMsg)
-					log.Error(nil, log.LOGGER_APP, "importWorkflow fail", zap.String("name", data.ProcDefName), zap.String("errMsg", errMsg))
-					return
-				}
-			}
-			// 发布导入的编排
-			for _, dto := range importResult.ResultList {
-				if procDef, err = database.GetProcessDefinition(ctx, dto.ProcDefId); err != nil {
-					return
-				}
-				if err = process.ExecDeployedProcDef(ctx, procDef, transImportParam.Operator); err != nil {
-					err = fmt.Errorf("deployed【%s】fail,%s", procDef.Name, err.Error())
-					log.Error(nil, log.LOGGER_APP, "importWorkflow Deployed fail", zap.String("name", procDef.Name), zap.String("errMsg", errMsg))
-					return
-				}
-			}
-		}
-	}
 	log.Info(nil, log.LOGGER_APP, "4. importWorkflow success end!!!")
 	return
 }
