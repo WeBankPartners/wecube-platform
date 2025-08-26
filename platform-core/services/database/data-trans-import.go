@@ -773,8 +773,7 @@ func UpdateTransImportDetailInput(ctx context.Context, transImportId string, ste
 }
 
 func UpdateTransImportDetailOutput(ctx context.Context, transImportId string, step models.TransImportStep, output string) (err error) {
-	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_detail set output=?,status=?,end_time=? where trans_import=? and step=?", output,
-		models.TransImportStatusSuccess, time.Now().Format(models.DateTimeFormat), transImportId, step)
+	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_detail set output=? where trans_import=? and step=?", output, transImportId, step)
 	return
 }
 
