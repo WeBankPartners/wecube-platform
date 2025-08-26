@@ -134,6 +134,13 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 		if checkImportHasExit(ctx, callParam.TransImportId) {
 			return
 		}
+		if callParam.Action == string(models.TransImportActionRetry) {
+			// 更新 导入状态为doing
+			if err = database.UpdateTransImport(ctx, callParam.TransImportId, string(models.TransImportStatusDoing)); err != nil {
+				log.Error(nil, log.LOGGER_APP, "UpdateTransImport err", zap.Error(err))
+				return
+			}
+		}
 		var currentStep int
 		for _, detailRow := range transImportJobParam.Details {
 			if detailRow.Status == string(models.TransImportStatusNotStart) || detailRow.Status == string(models.TransImportStatusFail) {
