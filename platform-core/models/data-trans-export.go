@@ -517,6 +517,7 @@ type AnalyzeArtifactDisplayData struct {
 	UnitDesignName string              `json:"unitDesignName"`
 	ArtifactRows   []map[string]string `json:"artifactRows"`
 	ArtifactLen    int                 `json:"artifactLen"`
+	Status         string              `json:"status"`
 }
 
 type ExportMetricListDto struct {
