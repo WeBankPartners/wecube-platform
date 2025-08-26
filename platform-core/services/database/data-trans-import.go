@@ -235,6 +235,47 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 				ErrMsg: transImportDetail.ErrorMsg,
 			}
 		case models.TransImportStepArtifacts:
+			// 尝试将 data 转换成 []*models.AnalyzeArtifactDisplayData 结构
+			var artifactDisplayDataList []*models.AnalyzeArtifactDisplayData
+			if data != nil {
+				if dataBytes, marshalErr := json.Marshal(data); marshalErr == nil {
+					if unmarshalErr := json.Unmarshal(dataBytes, &artifactDisplayDataList); unmarshalErr == nil {
+						// 转换成功，检查 transImportDetail.output 是否为空
+						if strings.TrimSpace(transImportDetail.Output) != "" {
+							var artifactOutputList []*models.ArtifactPackageImportOutputData
+							if outputUnmarshalErr := json.Unmarshal([]byte(transImportDetail.Output), &artifactOutputList); outputUnmarshalErr == nil {
+								// 遍历 AnalyzeArtifactDisplayData 数组和 ArtifactPackageImportOutputData 数组
+								for _, artifactDisplayData := range artifactDisplayDataList {
+									for _, artifactOutput := range artifactOutputList {
+										// 如果 unitDesign 相等，就把 ArtifactPackageImportOutputData 的 status 值给 AnalyzeArtifactDisplayData
+										if artifactDisplayData.UnitDesign == artifactOutput.UnitDesign {
+											artifactDisplayData.Status = artifactOutput.Status
+											break
+										}
+									}
+								}
+							} else {
+								log.Warn(nil, log.LOGGER_APP, "Failed to unmarshal transImportDetail.output to ArtifactPackageImportOutputData", zap.Error(outputUnmarshalErr))
+							}
+						}
+
+						// 检查每个 AnalyzeArtifactDisplayData 的 status 字段，如果为空则设置默认值 notStart
+						for _, artifactDisplayData := range artifactDisplayDataList {
+							if strings.TrimSpace(artifactDisplayData.Status) == "" {
+								artifactDisplayData.Status = "notStart"
+							}
+						}
+
+						// 更新 data 为转换后的数据
+						data = artifactDisplayDataList
+					} else {
+						log.Warn(nil, log.LOGGER_APP, "Failed to unmarshal data to AnalyzeArtifactDisplayData", zap.Error(unmarshalErr))
+					}
+				} else {
+					log.Warn(nil, log.LOGGER_APP, "Failed to marshal data", zap.Error(marshalErr))
+				}
+			}
+
 			detail.Artifacts = &models.CommonOutput{
 				Status: transImportDetail.Status,
 				Output: data,
