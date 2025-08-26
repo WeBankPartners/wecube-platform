@@ -798,7 +798,7 @@ func UpdateTransImportDetailStatus(ctx context.Context, transImportId, transImpo
 			status, nowTime, transImportId,
 		}})
 	} else if status == "doing" {
-		actions = append(actions, &db.ExecAction{Sql: "update trans_import_detail set status=?,start_time=? where id=?", Param: []interface{}{
+		actions = append(actions, &db.ExecAction{Sql: "update trans_import_detail set status=?,error_msg='',start_time=? where id=?", Param: []interface{}{
 			status, nowTime, transImportDetailId,
 		}})
 	}
