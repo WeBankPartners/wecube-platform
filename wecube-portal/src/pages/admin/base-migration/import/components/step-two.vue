@@ -336,10 +336,9 @@ export default {
       }
       this.$emit('startLoading')
       const { status } = await importRetry(params)
+      this.$emit('stopLoading')
       if (status === 'OK') {
         this.$emit('fetchDetail')
-      } else {
-        this.$emit('stopLoading')
       }
     }
   }
