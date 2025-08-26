@@ -57,7 +57,7 @@ export default {
   },
   computed: {
     getProductTree() {
-      const data = JSON.parse(this.detailData.selectedTreeJson || '[]')  
+      const data = JSON.parse(this.detail.selectedTreeJson || '[]')  
       // 递归过滤函数：从最里层往最外层过滤
       const filterCheckedNodes = (nodes) => {
         if (!Array.isArray(nodes)) return []      
