@@ -49,7 +49,7 @@
             @nextStep="activeStep++"
             @startLoading="startLoading"
             @stopLoading="stopLoading"
-            @fetchDetail="getDetailData"
+            @fetchDetail="handleFetchDetail"
           ></StepTwo>
         </BaseHeaderTitle>
         <!--修改数据-->
@@ -300,6 +300,11 @@ export default {
       this.loading = true
     },
     stopLoading() {
+      this.loading = false
+    },
+    async handleFetchDetail() {
+      this.loading = true
+      await this.getDetailData()
       this.loading = false
     },
     async handleSaveStepTwo() {
