@@ -436,6 +436,12 @@ func getInsertTransImport(transImport models.TransImportTable) (actions []*db.Ex
 	return
 }
 
+func UpdateTransImport(ctx context.Context, transImportId, status string) (err error) {
+	nowTime := time.Now()
+	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_import set status=?, updated_time=? where id=?", status, nowTime, transImportId)
+	return
+}
+
 func GetTransImportDetail(ctx context.Context, transImportId string) (result []*models.TransImportDetailTable, err error) {
 	err = db.MysqlEngine.Context(ctx).SQL("select * from trans_import_detail where trans_import=? order by step", transImportId).Find(&result)
 	return
