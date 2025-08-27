@@ -48,6 +48,18 @@
         <ProductTree ref="productTree" :data="productData" @checkChange="handleProductSelect" />
       </div>
     </div>
+    <!--选择区域-->
+    <div class="item">
+      <span class="title">{{ $t('pe_select_area') }}<span class="number">{{ excludeDeployZone.length }}</span></span>
+      <Select
+        v-model="excludeDeployZone"
+        clearable
+        multiple
+        style="width: 600px"
+      >
+        <Option v-for="i in zoneList" :key="i.guid" :label="i.displayName" :value="i.guid"></Option>
+      </Select>
+    </div>
     <CustomManagement v-if="customVisible" v-model="customVisible" />
   </div>
 </template>
@@ -55,7 +67,7 @@
 <script>
 import CustomManagement from './custom-management.vue'
 import ProductTree from '../../components/product-tree.vue'
-import { getExportBusinessList, getCustomerList } from '@/api/server'
+import { getExportBusinessList, getCustomerList, getExportZoneList } from '@/api/server'
 import { pick } from 'lodash'
 import dayjs from 'dayjs'
 export default {
@@ -74,7 +86,9 @@ export default {
       productData: [],
       customerId: '', // 目标客户
       customerList: [], // 客户列表
-      customVisible: false
+      customVisible: false,
+      excludeDeployZone: [], // 排除的区域列表
+      zoneList: []
     }
   },
   watch: {
@@ -91,6 +105,7 @@ export default {
   async mounted() {
     await this.getProductList()
     await this.getEnviromentList()
+    await this.getZoneList()
     if (this.detailData && this.detailData.environment) {
       this.env = this.detailData.environment
       // 获取产品数据
@@ -235,6 +250,15 @@ export default {
       const { status, data } = await getCustomerList()
       if (status === 'OK') {
         this.customerList = data || []
+      }
+    },
+    async getZoneList() {
+      const { status, data } = await getExportZoneList()
+      if (status === 'OK') {
+        this.zoneList = data || []
+        this.zoneList = this.zoneList.map(item => {
+          item.displayName = `${item.deploy_zone_design.key_name}/${item.name}`
+        })
       }
     }
   }
