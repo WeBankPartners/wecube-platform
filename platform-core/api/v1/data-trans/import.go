@@ -445,6 +445,7 @@ func importArtifactPackage(ctx context.Context, transImportParam *models.TransIm
 			}
 		}
 	}
+	nowTime := time.Now()
 	for _, artifactData := range artifactDataList {
 		for _, artifactRow := range artifactData.ArtifactRows {
 			tmpPackageName := artifactRow[models.TransArtifactNewPackageName]
@@ -487,14 +488,19 @@ func importArtifactPackage(ctx context.Context, transImportParam *models.TransIm
 			os.RemoveAll(tmpImportDirPath)
 			artifactOutputObj.Status = "success"
 		}
-		tmpOutputBytes, _ := json.Marshal(&artifactOutputList)
-		if tmpUpdateOutputErr := database.UpdateTransImportDetailOutput(ctx, transImportParam.TransImport.Id, models.TransImportStep(transImportParam.CurrentDetail.Step), string(tmpOutputBytes)); tmpUpdateOutputErr != nil {
-			log.Error(nil, log.LOGGER_APP, "update trans import artifact output status fail", zap.String("unitDesign", artifactData.UnitDesignName), zap.Error(tmpUpdateOutputErr))
+		if time.Since(nowTime).Seconds() > 10 {
+			tmpOutputBytes, _ := json.Marshal(&artifactOutputList)
+			if tmpUpdateOutputErr := database.UpdateTransImportDetailOutput(ctx, transImportParam.TransImport.Id, models.TransImportStep(transImportParam.CurrentDetail.Step), string(tmpOutputBytes)); tmpUpdateOutputErr != nil {
+				log.Error(nil, log.LOGGER_APP, "update trans import artifact output status fail", zap.String("unitDesign", artifactData.UnitDesignName), zap.Error(tmpUpdateOutputErr))
+			}
+			nowTime = time.Now()
 		}
 		if err != nil {
 			break
 		}
 	}
+	outputBytes, _ := json.Marshal(&artifactOutputList)
+	output = string(outputBytes)
 	return
 }
 
