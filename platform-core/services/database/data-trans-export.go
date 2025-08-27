@@ -691,10 +691,11 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 		actions = append(actions, addTransExportDetailActions...)
 	}
 	dataTransParam := &models.AnalyzeDataTransParam{
-		TransExportId:   transExportId,
-		Business:        param.PIds,
-		Env:             param.Env,
-		LastConfirmTime: param.LastConfirmTime,
+		TransExportId:     transExportId,
+		Business:          param.PIds,
+		Env:               param.Env,
+		LastConfirmTime:   param.LastConfirmTime,
+		ExcludeDeployZone: param.ExcludeDeployZone,
 	}
 	pluginExportActions, analyzePluginErr := AnalyzePluginConfigDataExport(c, transExportId)
 	if analyzePluginErr != nil {
@@ -713,16 +714,17 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 func UpdateExport(c context.Context, param models.UpdateExportParam, operator string) (err error) {
 	var actions, addTransExportActions, deleteAnalyzeDataActions, analyzeDataActions []*db.ExecAction
 	transExport := models.TransExportTable{
-		Id:               param.TransExportId,
-		Environment:      param.Env,
-		EnvironmentName:  param.EnvName,
-		Business:         strings.Join(param.PIds, ","),
-		BusinessName:     strings.Join(param.PNames, ","),
-		Status:           string(models.TransExportStatusStart),
-		UpdatedUser:      operator,
-		LastConfirmTime:  param.LastConfirmTime,
-		UpdatedTime:      time.Now().Format(models.DateTimeFormat),
-		SelectedTreeJson: param.SelectedTreeJson, // 新增，保存tree结构json
+		Id:                param.TransExportId,
+		Environment:       param.Env,
+		EnvironmentName:   param.EnvName,
+		Business:          strings.Join(param.PIds, ","),
+		BusinessName:      strings.Join(param.PNames, ","),
+		Status:            string(models.TransExportStatusStart),
+		UpdatedUser:       operator,
+		LastConfirmTime:   param.LastConfirmTime,
+		UpdatedTime:       time.Now().Format(models.DateTimeFormat),
+		SelectedTreeJson:  param.SelectedTreeJson, // 新增，保存tree结构json
+		ExcludeDeployZone: strings.Join(param.ExcludeDeployZone, ","),
 	}
 	// 更新导出记录
 	if addTransExportActions = getUpdateTransExport(transExport); len(addTransExportActions) > 0 {
@@ -739,10 +741,11 @@ func UpdateExport(c context.Context, param models.UpdateExportParam, operator st
 	}
 	actions = append(actions, pluginExportActions...)
 	dataTransParam := &models.AnalyzeDataTransParam{
-		TransExportId:   param.TransExportId,
-		Business:        param.PIds,
-		Env:             param.Env,
-		LastConfirmTime: param.LastConfirmTime,
+		TransExportId:     param.TransExportId,
+		Business:          param.PIds,
+		Env:               param.Env,
+		LastConfirmTime:   param.LastConfirmTime,
+		ExcludeDeployZone: param.ExcludeDeployZone,
 	}
 	if analyzeDataActions, err = AnalyzeCMDBDataExport(c, dataTransParam); err != nil {
 		return

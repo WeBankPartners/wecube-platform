@@ -36,6 +36,18 @@ func QueryBusinessList(c *gin.Context) {
 func GetDeploymentAreaList(c *gin.Context) {
 	var err error
 	var result models.CmdbPageData
+
+	var dataTransVariableConfig *models.TransDataVariableConfig
+	if dataTransVariableConfig, err = database.GetDataTransVariableMap(c); err != nil {
+		return
+	}
+	if dataTransVariableConfig == nil {
+		return
+	}
+	if strings.TrimSpace(dataTransVariableConfig.DeployZoneGroupCiType) == "" {
+		err = fmt.Errorf("system variable PLATFORM_EXPORT_DEPLOY_ZONE_GROUP is not configured or is empty. Please check system parameters")
+		return
+	}
 	requestParam := models.QueryRequestParam{
 		Paging: false,
 		ResultColumns: []string{
@@ -44,7 +56,7 @@ func GetDeploymentAreaList(c *gin.Context) {
 			"name",
 		},
 	}
-	if result, err = remote.RpcQueryCiData("deploy_zone_group", requestParam); err != nil {
+	if result, err = remote.RpcQueryCiData(dataTransVariableConfig.DeployZoneGroupCiType, requestParam); err != nil {
 		middleware.ReturnError(c, err)
 		return
 	}
