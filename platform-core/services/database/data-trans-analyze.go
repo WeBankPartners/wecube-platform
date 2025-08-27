@@ -531,6 +531,10 @@ func GetDataTransVariableMap(ctx context.Context) (result *models.TransDataVaria
 			if tmpValue != "" {
 				result.WorkflowExecList = strings.Split(tmpValue, ",")
 			}
+		case "PLATFORM_EXPORT_IGNORE_ZONE_REPORT":
+			result.IgnoreDeployZoneReportId = tmpValue
+		case "PLATFORM_EXPORT_DEPLOY_ZONE_GROUP":
+			result.DeployZoneGroupCiType = tmpValue
 		}
 	}
 	return
@@ -1554,4 +1558,32 @@ func DataTransExportPluginConfig(ctx context.Context, transExportId, path string
 		}
 	}
 	return
+}
+
+// extractGUIDs 递归函数，用于从任意 JSON 结构中提取所有 "guid" 字段的值
+func extractGUIDs(data interface{}) []string {
+	var guids []string
+
+	switch v := data.(type) {
+	case map[string]interface{}:
+		// 如果是对象，遍历所有键值对
+		for key, value := range v {
+			if key == "guid" {
+				// 如果键是 "guid"，将其值添加到结果切片中
+				if guid, ok := value.(string); ok {
+					guids = append(guids, guid)
+				}
+			} else {
+				// 否则，递归处理值
+				guids = append(guids, extractGUIDs(value)...)
+			}
+		}
+	case []interface{}:
+		// 如果是数组，遍历所有元素
+		for _, item := range v {
+			// 递归处理每个元素
+			guids = append(guids, extractGUIDs(item)...)
+		}
+	}
+	return guids
 }

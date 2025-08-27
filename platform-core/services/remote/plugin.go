@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/network"
-	"go.uber.org/zap"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -15,6 +13,9 @@ import (
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/network"
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
@@ -1251,6 +1252,34 @@ func ConfirmCMDBDataList(ctx context.Context, ciTypeEntity string, dataGuidList 
 	}
 	if response.ResultCode != "0" {
 		err = fmt.Errorf(response.ResultMessage)
+		return
+	}
+	return
+}
+
+func QueryCMDBReportData(ctx context.Context, reportId string, rootDataGuidList []string) (err error) {
+	if reportId == "" || len(rootDataGuidList) == 0 {
+		return
+	}
+	requestParam := models.PluginViewDataQueryParam{ReportId: reportId, RootCiList: rootDataGuidList, WithoutChildren: false}
+	var responseBodyBytes []byte
+	var response models.PluginViewDataQueryResponse
+	uri := fmt.Sprintf("%s/wecmdb/api/v1/view-data", models.Config.Gateway.Url)
+	postBytes, _ := json.Marshal(requestParam)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	if responseBodyBytes, err = network.HttpPost(uri, GetToken(), models.DefaultLanguage, postBytes); err != nil {
+		return
+	}
+	if err = json.Unmarshal(responseBodyBytes, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+	if response.StatusCode != "OK" {
+		err = fmt.Errorf(response.StatusMessage)
 		return
 	}
 	return
