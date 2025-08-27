@@ -253,6 +253,7 @@ func init() {
 		&handlerFuncObj{Url: "/statistics/process/definitions/executions/plugin/report-details/query", Method: "POST", HandlerFunc: process.StatisticsPluginExecDetails, ApiCode: "statistics-plugin-exec-details"},
 
 		// 底座导入导出
+		&handlerFuncObj{Url: "/data/transfer/deployment_area/list", Method: "GET", HandlerFunc: data_trans.GetDeploymentAreaList, ApiCode: "data-transfer-deployment-area-list"},
 		&handlerFuncObj{Url: "/data/transfer/business/list", Method: "POST", HandlerFunc: data_trans.QueryBusinessList, ApiCode: "data-transfer-business-list"},
 		&handlerFuncObj{Url: "/data/transfer/export/customer", Method: "POST", HandlerFunc: data_trans.CreateOrUpdateExportCustomer, ApiCode: "data-transfer-export-customer-add"},
 		&handlerFuncObj{Url: "/data/transfer/export/nexus", Method: "GET", HandlerFunc: data_trans.GetExportNexusInfo, ApiCode: "data-transfer-export-nexus"},

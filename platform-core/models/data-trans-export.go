@@ -101,7 +101,8 @@ type TransExportTable struct {
 	AssociationTechProducts []string `json:"associationTechProducts" xorm:"-"` // 关联系统
 	LastConfirmTime         string   `json:"lastConfirmTime" xorm:"last_confirm_time"`
 	// 新增字段，保存前端选中的tree结构json
-	SelectedTreeJson string `json:"selectedTreeJson" xorm:"selected_tree_json"`
+	SelectedTreeJson  string `json:"selectedTreeJson" xorm:"selected_tree_json"`
+	ExcludeDeployZone string `json:"excludeDeployZone" xorm:"exclude_deploy_zone"` // 排除的部署区域
 }
 
 type TransExportDetailTable struct {
@@ -194,14 +195,15 @@ type QueryBusinessParam struct {
 }
 
 type CreateExportParam struct {
-	PIds             []string `json:"pIds"`       // 产品ID
-	PNames           []string `json:"pNames"`     // 产品名称
-	Env              string   `json:"env"`        // 环境
-	EnvName          string   `json:"envName"`    // 环境名称
-	CustomerId       string   `json:"customerId"` // 客户id
-	CustomerName     string   `json:"-"`          // 客户名称
-	LastConfirmTime  string   `json:"lastConfirmTime"`
-	SelectedTreeJson string   `json:"selectedTreeJson"` // 新增，保存前端tree结构json
+	PIds              []string `json:"pIds"`       // 产品ID
+	PNames            []string `json:"pNames"`     // 产品名称
+	Env               string   `json:"env"`        // 环境
+	EnvName           string   `json:"envName"`    // 环境名称
+	CustomerId        string   `json:"customerId"` // 客户id
+	CustomerName      string   `json:"-"`          // 客户名称
+	LastConfirmTime   string   `json:"lastConfirmTime"`
+	SelectedTreeJson  string   `json:"selectedTreeJson"`  // 新增，保存前端tree结构json
+	ExcludeDeployZone []string `json:"excludeDeployZone"` // 排除的部署区域
 }
 
 type UpdateExportParam struct {

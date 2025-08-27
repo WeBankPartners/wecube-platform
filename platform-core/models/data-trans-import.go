@@ -335,3 +335,15 @@ type PluginViewDataQueryResponse struct {
 	StatusMessage string                   `json:"statusMessage"`
 	Data          []map[string]interface{} `json:"data"`
 }
+
+type QueryCmdbResponse struct {
+	Code          int          `json:"code"`
+	StatusCode    string       `json:"statusCode"`
+	StatusMessage string       `json:"statusMessage"`
+	Data          CmdbPageData `json:"data"`
+}
+
+type CmdbPageData struct {
+	Contents []map[string]interface{} `json:"contents"`
+	PageInfo PageInfo                 `json:"pageInfo"`
+}
