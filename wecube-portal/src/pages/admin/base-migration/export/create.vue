@@ -249,7 +249,7 @@ export default {
     // 保存or更新环境和产品
     handleSaveEnvBusiness: debounce(async function () {
       const {
-        customerId, env, lastConfirmTime, envList, selectionList, productData
+        customerId, env, lastConfirmTime, envList, selectionList, productData, excludeDeployZone
       } = this.$refs.env
       const pIds = selectionList.map(item => item.id)
       const pNames = selectionList.map(item => item.displayName)
@@ -270,7 +270,8 @@ export default {
         envName,
         lastConfirmTime,
         customerId,
-        selectedTreeJson: JSON.stringify(productData)
+        selectedTreeJson: JSON.stringify(productData),
+        excludeDeployZone
       }
       this.loading = true
       const { status, data } = await (this.id && this.type !== 'republish'

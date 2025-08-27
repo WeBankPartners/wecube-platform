@@ -946,6 +946,7 @@
 
   "pe_select_env": "选择环境" ,
   "pe_select_product": "选择产品",
+  "pe_select_area": "选择区域",
   "pe_business_product": "产品名",
   "pe_product_id": "产品ID",
   "pe_product_des": "产品描述",

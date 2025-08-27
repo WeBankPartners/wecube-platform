@@ -947,6 +947,7 @@
 
   "pe_select_env": "Select Environment",
   "pe_select_product": "Select Product",
+  "pe_select_area": "Select Area",
   "pe_business_product": "Product Name",
   "pe_product_id": "Product ID",
   "pe_product_des": "Product Description",
