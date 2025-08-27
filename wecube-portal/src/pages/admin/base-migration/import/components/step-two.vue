@@ -168,13 +168,11 @@
             <Button loading shape="circle" type="primary"></Button>
             <span>导入中...</span>
           </span>
-        </div>
-        <Row>
           <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">
             ({{ $t('pi_import_fail') }}：<span>{{ detailData.artifactsRes.errMsg }}</span>)
             <Button @click="handleRetry" type="error" size="small" class="ml-1">{{ $t('partial_retry') }}</Button>
           </span>
-        </Row>
+        </div>
         <BaseSearch
           :onlyShowReset="true"
           :options="artifactsSearchOptions"
@@ -407,6 +405,7 @@ export default {
       }
       .fail {
         color: #ff4d4f;
+        word-break: break-all;
       }
       .sucess-count {
         margin-left: 10px;
