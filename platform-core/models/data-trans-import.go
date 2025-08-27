@@ -319,3 +319,19 @@ type ArtifactPackageImportOutputData struct {
 	ExpectMd5      string `json:"expectMd5"`
 	Status         string `json:"status"` // notStart未开始,doing执行中,success成功,fail失败
 }
+
+type PluginViewDataQueryParam struct {
+	ViewId          string   `json:"viewId" xorm:"view_id"`
+	RootCi          string   `json:"rootCi" xorm:"root_ci"`
+	ReportId        string   `json:"reportId"`
+	ConfirmTime     string   `json:"confirmTime" xorm:"confirm_time"`
+	RootCiList      []string `json:"rootCiList"`
+	WithoutChildren bool     `json:"withoutChildren"`
+	RootCiKeyName   string   `json:"rootCiKeyName"`
+}
+
+type PluginViewDataQueryResponse struct {
+	StatusCode    string                   `json:"statusCode"`
+	StatusMessage string                   `json:"statusMessage"`
+	Data          []map[string]interface{} `json:"data"`
+}

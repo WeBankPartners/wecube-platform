@@ -170,6 +170,8 @@ type TransDataVariableConfig struct {
 	IgnoreSearchAttrList       []string `json:"ignoreSearchAttrList"`
 	ResetEmptyAttrList         []string `json:"resetEmptyAttrList"`
 	WorkflowExecList           []string `json:"workflowExecList"`
+	IgnoreDeployZoneReportId   string   `json:"ignoreDeployZoneReportId"`
+	DeployZoneGroupCiType      string   `json:"deployZoneGroupCiType"`
 }
 
 type CiTypeData struct {
