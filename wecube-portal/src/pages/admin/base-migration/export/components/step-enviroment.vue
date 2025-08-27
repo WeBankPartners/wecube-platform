@@ -50,9 +50,9 @@
     </div>
     <!--选择区域-->
     <div class="item">
-      <span class="title">{{ $t('pe_select_area') }}<span class="number">{{ excludeDeployZone.length }}</span></span>
+      <span class="title">{{ $t('pe_select_area') }}<span class="number">{{ deployZone.length }}</span></span>
       <Select
-        v-model="excludeDeployZone"
+        v-model="deployZone"
         clearable
         multiple
         style="width: 600px"
@@ -88,6 +88,7 @@ export default {
       customerList: [], // 客户列表
       customVisible: false,
       excludeDeployZone: [], // 排除的区域列表
+      deployZone: [], // 选中的区域列表
       zoneList: []
     }
   },
@@ -258,6 +259,8 @@ export default {
         this.zoneList = data || []
         this.zoneList = this.zoneList.map(item => {
           item.displayName = `${item.deploy_zone_design.key_name}/${item.name}`
+          this.deployZone.push(item.guid)
+          return item
         })
       }
     }
