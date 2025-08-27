@@ -130,6 +130,11 @@ export default {
           }
         },
         {
+          title: this.$t('status'),
+          key: 'status',
+          width: 120
+        },
+        {
           title: this.$t('pe_total_package'),
           key: 'artifactLen',
           width: 100,
