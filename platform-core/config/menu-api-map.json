@@ -1058,6 +1058,11 @@
         "method": "get"
       },
       {
+        "key": "getExportZoneList",
+        "url": "/platform/v1/data/transfer/deployment_area/list",
+        "method": "get"
+      },
+      {
         "key": "addCustomer",
         "url": "/platform/v1/data/transfer/export/customer",
         "method": "post"
