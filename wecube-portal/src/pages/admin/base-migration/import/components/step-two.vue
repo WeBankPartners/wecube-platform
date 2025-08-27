@@ -163,11 +163,18 @@
         <div slot="sub-title" class="title">
           {{ $t('pe_select') }}<span class="number">{{ detailData.artifactsCount }}</span>
           <span v-if="detailData.artifactsRes.status === 'success'" class="success">({{ $t('pi_import_success') }})</span>
+          <span class="sucess-count">已成功：<span class="success-number">{{ getArtifactsSuccessCount }}</span></span>
+          <span v-if="detailData.artifactsRes.status === 'doing'" class="loading">
+            <Button loading shape="circle" type="primary"></Button>
+            <span>导入中...</span>
+          </span>
+        </div>
+        <Row>
           <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">
             ({{ $t('pi_import_fail') }}：<span>{{ detailData.artifactsRes.errMsg }}</span>)
             <Button @click="handleRetry" type="error" size="small" class="ml-1">{{ $t('partial_retry') }}</Button>
           </span>
-        </div>
+        </Row>
         <BaseSearch
           :onlyShowReset="true"
           :options="artifactsSearchOptions"
@@ -296,6 +303,14 @@ export default {
         })
       }     
       return filterCheckedNodes(data)
+    },
+    getArtifactsSuccessCount() {
+      const list = this.detailData.artifactsRes.data || []
+      let successCount = 0
+      list.forEach(item => {
+        successCount += item.artifactLen
+      })
+      return successCount
     }
   },
   mounted() {
@@ -390,6 +405,20 @@ export default {
       }
       .fail {
         color: #ff4d4f;
+      }
+      .sucess-count {
+        margin-left: 10px;
+      }
+      .success-number {
+        font-size: 18px;
+        color: #00cb91;
+      }
+      .loading {
+        margin-left: 10px;
+        span {
+          font-size: 16px;
+          font-weight: normal;
+        }
       }
     }
     .content {
