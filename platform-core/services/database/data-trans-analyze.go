@@ -659,8 +659,10 @@ func getInsertAnalyzeCMDBActions(transExportId string, ciTypeDataMap map[string]
 func getInsertTransExport(transExport models.TransExportTable) (actions []*db.ExecAction) {
 	nowTime := time.Now()
 	actions = []*db.ExecAction{}
-	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export(id,customer_id,customer_name,business,business_name,environment,environment_name,status,output_url,created_user,created_time,updated_user,updated_time,last_confirm_time,selected_tree_json) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-		transExport.Id, transExport.CustomerId, transExport.CustomerName, transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.Status, transExport.OutputUrl, transExport.CreatedUser, nowTime, transExport.UpdatedUser, nowTime, transExport.LastConfirmTime, transExport.SelectedTreeJson,
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export(id,customer_id,customer_name,business,business_name,environment,environment_name,status," +
+		"output_url,created_user,created_time,updated_user,updated_time,last_confirm_time,selected_tree_json,exclude_deploy_zone) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		transExport.Id, transExport.CustomerId, transExport.CustomerName, transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.Status,
+		transExport.OutputUrl, transExport.CreatedUser, nowTime, transExport.UpdatedUser, nowTime, transExport.LastConfirmTime, transExport.SelectedTreeJson, transExport.ExcludeDeployZone,
 	}})
 	return
 }

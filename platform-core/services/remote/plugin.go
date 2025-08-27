@@ -1257,6 +1257,31 @@ func ConfirmCMDBDataList(ctx context.Context, ciTypeEntity string, dataGuidList 
 	return
 }
 
+func RpcQueryCiData(ciType string, requestParam models.QueryRequestParam) (result models.CmdbPageData, err error) {
+	var res []byte
+	var response models.QueryCmdbResponse
+	uri := fmt.Sprintf("%s/wecmdb/api/v1/ci-data/query/%s", models.Config.Gateway.Url, ciType)
+	postBytes, _ := json.Marshal(requestParam)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	if res, err = network.HttpPost(uri, GetToken(), models.DefaultLanguage, postBytes); err != nil {
+		return
+	}
+	if err = json.Unmarshal(res, &response); err != nil {
+		return
+	}
+	log.Logger.Info("RpcQueryCiData ", log.JsonObj("request", requestParam), log.JsonObj("response", response))
+	if response.Code != 0 || response.StatusCode != "OK" {
+		err = fmt.Errorf("RpcQueryCiData error,code:%d,message:%s", response.Code, response.StatusMessage)
+		return
+	}
+	result = response.Data
+	return
+}
+
 func QueryCMDBReportData(ctx context.Context, reportId string, rootDataGuidList []string) (err error) {
 	if reportId == "" || len(rootDataGuidList) == 0 {
 		return

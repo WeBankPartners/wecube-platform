@@ -2,6 +2,7 @@ package data_trans
 
 import (
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"strings"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
@@ -26,6 +27,25 @@ func QueryBusinessList(c *gin.Context) {
 		log.Error(c, log.LOGGER_APP, "QueryBusinessList", err.Error())
 		// middleware.ReturnError(c, err)
 		middleware.ReturnData(c, []map[string]interface{}{})
+		return
+	}
+	middleware.ReturnData(c, result)
+}
+
+// GetDeploymentAreaList 查询部署区域列表
+func GetDeploymentAreaList(c *gin.Context) {
+	var err error
+	var result models.CmdbPageData
+	requestParam := models.QueryRequestParam{
+		Paging: false,
+		ResultColumns: []string{
+			"deploy_zone_design",
+			"guid",
+			"name",
+		},
+	}
+	if result, err = remote.RpcQueryCiData("deploy_zone_group", requestParam); err != nil {
+		middleware.ReturnError(c, err)
 		return
 	}
 	middleware.ReturnData(c, result)
