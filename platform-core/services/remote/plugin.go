@@ -1282,7 +1282,7 @@ func RpcQueryCiData(ciType string, requestParam models.QueryRequestParam) (resul
 	return
 }
 
-func QueryCMDBReportData(ctx context.Context, reportId string, rootDataGuidList []string) (err error) {
+func QueryCMDBReportData(reportId string, rootDataGuidList []string) (err error) {
 	if reportId == "" || len(rootDataGuidList) == 0 {
 		return
 	}

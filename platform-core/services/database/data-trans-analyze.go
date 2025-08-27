@@ -230,8 +230,16 @@ func analyzeCMDB(param *models.AnalyzeDataTransParam, ciTypeAttrMap map[string][
 		err = fmt.Errorf("can not find any system data with business and env")
 		return
 	}
+	// 根据 排除区域调用报表,拿到所有需要排除数据的guid
+	if len(param.ExcludeDeployZone) > 0 && strings.TrimSpace(transConfig.IgnoreDeployZoneReportId) == "" {
+		err = fmt.Errorf("system variable PLATFORM_EXPORT_IGNORE_ZONE_REPORT is not configured or is empty. Please check system parameters")
+		return
+	}
+	if err = remote.QueryCMDBReportData(transConfig.IgnoreDeployZoneReportId, param.ExcludeDeployZone); err != nil {
+		log.Error(nil, log.LOGGER_APP, "QueryCMDBReportData failed", zap.Error(err))
+		return
+	}
 	// 从系统数据出发，正向查找数据，反向通过配置里的反向属性查找
-	//err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime, ciTypeStateMap)
 	nowTime := time.Now().Format(models.DateTimeFormat)
 	err = analyzeCMDBData(transConfig.SystemCiType, systemGuidList, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime, nowTime, ciTypeStateMap)
 	return
@@ -540,35 +548,6 @@ func GetDataTransVariableMap(ctx context.Context) (result *models.TransDataVaria
 	return
 }
 
-func getCMDBFilterSql(ciTypeAttributes []*models.SysCiTypeAttrTable, filter *models.CiTypeDataFilter, cmdbEngine *xorm.Engine, lastConfirmTime string) (filterSql string, err error) {
-	matchAttr := &models.SysCiTypeAttrTable{}
-	for _, attr := range ciTypeAttributes {
-		if attr.RefCiType == filter.CiType {
-			matchAttr = attr
-			break
-		}
-	}
-	if matchAttr.Id == "" {
-		return
-	}
-	condition := "in"
-	if filter.Condition == "notIn" {
-		condition = "not in"
-	}
-	if matchAttr.InputType == "multiRef" {
-		var fromGuidList []string
-		if fromGuidList, _, err = getCMDBMultiRefGuidList(matchAttr.CiType, matchAttr.Name, condition, []string{}, filter.GuidList, cmdbEngine, lastConfirmTime, nil); err != nil {
-			return
-		}
-		filterSql = fmt.Sprintf("guid in ('%s')", strings.Join(fromGuidList, "','"))
-	} else if matchAttr.InputType == "ref" {
-		filterSql = fmt.Sprintf("%s %s ('%s')", matchAttr.Name, condition, strings.Join(filter.GuidList, "','"))
-	} else {
-		err = fmt.Errorf("ciTypeAttr:%s refCiType:%s illegal with inputType:%s ", matchAttr.Id, filter.CiType, matchAttr.InputType)
-	}
-	return
-}
-
 func getCMDBMultiRefGuidList(ciType, attrName, condition string, fromGuidList, toGuidList []string, cmdbEngine *xorm.Engine, lastConfirmTime string, guidHistoryTimeMap map[string]string) (resultGuidList []string, resultRefMap map[string][]string, err error) {
 	var filterColumn, filterSql string
 	if len(fromGuidList) > 0 {
@@ -669,8 +648,8 @@ func getInsertTransExport(transExport models.TransExportTable) (actions []*db.Ex
 
 func getUpdateTransExport(transExport models.TransExportTable) (actions []*db.ExecAction) {
 	actions = []*db.ExecAction{}
-	actions = append(actions, &db.ExecAction{Sql: "update trans_export set business=?,business_name=?,environment=?,environment_name=?,updated_user=?,updated_time=?,last_confirm_time=?,selected_tree_json=? where id=? ", Param: []interface{}{
-		transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.UpdatedUser, transExport.UpdatedTime, transExport.LastConfirmTime, transExport.SelectedTreeJson, transExport.Id,
+	actions = append(actions, &db.ExecAction{Sql: "update trans_export set business=?,business_name=?,environment=?,environment_name=?,updated_user=?,updated_time=?,last_confirm_time=?,selected_tree_json=?,exclude_deploy_zone=? where id=? ", Param: []interface{}{
+		transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.UpdatedUser, transExport.UpdatedTime, transExport.LastConfirmTime, transExport.SelectedTreeJson, transExport.ExcludeDeployZone, transExport.Id,
 	}})
 	return
 }

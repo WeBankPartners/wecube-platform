@@ -25,10 +25,11 @@ type CallTransExportActionParam struct {
 }
 
 type AnalyzeDataTransParam struct {
-	TransExportId   string   `json:"transExportId"`
-	Business        []string `json:"business"`
-	Env             string   `json:"env"`
-	LastConfirmTime string   `json:"lastConfirmTime"`
+	TransExportId     string   `json:"transExportId"`
+	Business          []string `json:"business"`
+	Env               string   `json:"env"`
+	LastConfirmTime   string   `json:"lastConfirmTime"`
+	ExcludeDeployZone []string `json:"excludeDeployZone"`
 }
 
 type SysCiTypeTable struct {
@@ -207,13 +208,14 @@ type CreateExportParam struct {
 }
 
 type UpdateExportParam struct {
-	TransExportId    string   `json:"transExportId"` // 导出Id
-	PIds             []string `json:"pIds"`          // 产品ID
-	PNames           []string `json:"pNames"`        // 产品名称
-	Env              string   `json:"env"`           // 环境
-	EnvName          string   `json:"envName"`       // 环境名称
-	LastConfirmTime  string   `json:"lastConfirmTime"`
-	SelectedTreeJson string   `json:"selectedTreeJson"` // 新增，保存前端tree结构json
+	TransExportId     string   `json:"transExportId"` // 导出Id
+	PIds              []string `json:"pIds"`          // 产品ID
+	PNames            []string `json:"pNames"`        // 产品名称
+	Env               string   `json:"env"`           // 环境
+	EnvName           string   `json:"envName"`       // 环境名称
+	LastConfirmTime   string   `json:"lastConfirmTime"`
+	SelectedTreeJson  string   `json:"selectedTreeJson"`  // 新增，保存前端tree结构json
+	ExcludeDeployZone []string `json:"excludeDeployZone"` // 排除的部署区域
 }
 
 type DataTransExportParam struct {
