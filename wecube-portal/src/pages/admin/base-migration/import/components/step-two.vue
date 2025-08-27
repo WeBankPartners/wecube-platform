@@ -308,7 +308,9 @@ export default {
       const list = this.detailData.artifactsRes.data || []
       let successCount = 0
       list.forEach(item => {
-        successCount += item.artifactLen
+        if (item.status === 'success') {
+          successCount += item.artifactLen
+        }
       })
       return successCount
     }
