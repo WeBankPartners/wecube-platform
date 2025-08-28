@@ -249,11 +249,15 @@ export default {
     // 保存or更新环境和产品
     handleSaveEnvBusiness: debounce(async function () {
       const {
-        customerId, env, lastConfirmTime, envList, selectionList, productData, excludeDeployZone
+        customerId, env, lastConfirmTime, envList, selectionList,
+        productData, excludeDeployZone, deployZone, zoneList
       } = this.$refs.env
       const pIds = selectionList.map(item => item.id)
       const pNames = selectionList.map(item => item.displayName)
       const envName = envList.find(item => item.value === env).label
+      // 选中的区域名称
+      const selectedZoneNames = zoneList.filter(item => deployZone.includes(item.guid))
+        .map(item => item.displayName) || []
       if (!customerId) {
         return this.$Message.warning(this.$t('pi_target_custom') + this.$t('required'))
       }
@@ -271,7 +275,8 @@ export default {
         lastConfirmTime,
         customerId,
         selectedTreeJson: JSON.stringify(productData),
-        excludeDeployZone
+        excludeDeployZone,
+        deployZones: selectedZoneNames.join(',')
       }
       this.loading = true
       const { status, data } = await (this.id && this.type !== 'republish'
