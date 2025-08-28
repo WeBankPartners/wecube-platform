@@ -104,6 +104,7 @@ type TransExportTable struct {
 	// 新增字段，保存前端选中的tree结构json
 	SelectedTreeJson  string `json:"selectedTreeJson" xorm:"selected_tree_json"`
 	ExcludeDeployZone string `json:"excludeDeployZone" xorm:"exclude_deploy_zone"` // 排除的部署区域
+	DeployZones       string `json:"deployZones" xorm:"deploy_zones"`              // 部署区域名称
 }
 
 type TransExportDetailTable struct {
@@ -205,6 +206,7 @@ type CreateExportParam struct {
 	LastConfirmTime   string   `json:"lastConfirmTime"`
 	SelectedTreeJson  string   `json:"selectedTreeJson"`  // 新增，保存前端tree结构json
 	ExcludeDeployZone []string `json:"excludeDeployZone"` // 排除的部署区域
+	DeployZones       []string `json:"deployZones"`       // 部署区域名称列表
 }
 
 type UpdateExportParam struct {
@@ -216,6 +218,7 @@ type UpdateExportParam struct {
 	LastConfirmTime   string   `json:"lastConfirmTime"`
 	SelectedTreeJson  string   `json:"selectedTreeJson"`  // 新增，保存前端tree结构json
 	ExcludeDeployZone []string `json:"excludeDeployZone"` // 排除的部署区域
+	DeployZones       []string `json:"deployZones"`       // 部署区域名称列表
 }
 
 type DataTransExportParam struct {

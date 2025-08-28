@@ -656,17 +656,17 @@ func getInsertTransExport(transExport models.TransExportTable) (actions []*db.Ex
 	nowTime := time.Now()
 	actions = []*db.ExecAction{}
 	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export(id,customer_id,customer_name,business,business_name,environment,environment_name,status," +
-		"output_url,created_user,created_time,updated_user,updated_time,last_confirm_time,selected_tree_json,exclude_deploy_zone) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		"output_url,created_user,created_time,updated_user,updated_time,last_confirm_time,selected_tree_json,exclude_deploy_zone,deploy_zones) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 		transExport.Id, transExport.CustomerId, transExport.CustomerName, transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.Status,
-		transExport.OutputUrl, transExport.CreatedUser, nowTime, transExport.UpdatedUser, nowTime, transExport.LastConfirmTime, transExport.SelectedTreeJson, transExport.ExcludeDeployZone,
+		transExport.OutputUrl, transExport.CreatedUser, nowTime, transExport.UpdatedUser, nowTime, transExport.LastConfirmTime, transExport.SelectedTreeJson, transExport.ExcludeDeployZone, transExport.DeployZones,
 	}})
 	return
 }
 
 func getUpdateTransExport(transExport models.TransExportTable) (actions []*db.ExecAction) {
 	actions = []*db.ExecAction{}
-	actions = append(actions, &db.ExecAction{Sql: "update trans_export set business=?,business_name=?,environment=?,environment_name=?,updated_user=?,updated_time=?,last_confirm_time=?,selected_tree_json=?,exclude_deploy_zone=? where id=? ", Param: []interface{}{
-		transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.UpdatedUser, transExport.UpdatedTime, transExport.LastConfirmTime, transExport.SelectedTreeJson, transExport.ExcludeDeployZone, transExport.Id,
+	actions = append(actions, &db.ExecAction{Sql: "update trans_export set business=?,business_name=?,environment=?,environment_name=?,updated_user=?,updated_time=?,last_confirm_time=?,selected_tree_json=?,exclude_deploy_zone=?,deploy_zones=? where id=? ", Param: []interface{}{
+		transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.UpdatedUser, transExport.UpdatedTime, transExport.LastConfirmTime, transExport.SelectedTreeJson, transExport.ExcludeDeployZone, transExport.DeployZones, transExport.Id,
 	}})
 	return
 }
