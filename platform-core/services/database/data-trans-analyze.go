@@ -231,21 +231,30 @@ func analyzeCMDB(param *models.AnalyzeDataTransParam, ciTypeAttrMap map[string][
 		return
 	}
 	// 根据 排除区域调用报表,拿到所有需要排除数据的guid
+	var result []map[string]interface{}
 	if len(param.ExcludeDeployZone) > 0 && strings.TrimSpace(transConfig.IgnoreDeployZoneReportId) == "" {
 		err = fmt.Errorf("system variable PLATFORM_EXPORT_IGNORE_ZONE_REPORT is not configured or is empty. Please check system parameters")
 		return
 	}
-	if err = remote.QueryCMDBReportData(transConfig.IgnoreDeployZoneReportId, param.ExcludeDeployZone); err != nil {
+	if result, err = remote.QueryCMDBReportData(transConfig.IgnoreDeployZoneReportId, param.ExcludeDeployZone); err != nil {
 		log.Error(nil, log.LOGGER_APP, "QueryCMDBReportData failed", zap.Error(err))
 		return
 	}
+	var excludeGuidMap = make(map[string]bool)
+	tmpExcludeGuids := extractGUIDs(result)
+	if len(tmpExcludeGuids) > 0 {
+		for _, excludeGuid := range tmpExcludeGuids {
+			excludeGuidMap[excludeGuid] = true
+		}
+	}
+	log.Debug(nil, log.LOGGER_APP, "QueryCMDBReportData done", log.JsonObj("excludeGuidMap", excludeGuidMap))
 	// 从系统数据出发，正向查找数据，反向通过配置里的反向属性查找
 	nowTime := time.Now().Format(models.DateTimeFormat)
-	err = analyzeCMDBData(transConfig.SystemCiType, systemGuidList, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime, nowTime, ciTypeStateMap)
+	err = analyzeCMDBData(transConfig.SystemCiType, systemGuidList, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime, nowTime, ciTypeStateMap, excludeGuidMap)
 	return
 }
 
-func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig, parentMap map[string]string, lastConfirmTime, nowTime string, ciTypeStateMap map[string]string) (err error) {
+func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig, parentMap map[string]string, lastConfirmTime, nowTime string, ciTypeStateMap map[string]string, excludeGuidMap map[string]bool) (err error) {
 	log.Info(nil, log.LOGGER_APP, "analyzeCMDBData", zap.String("ciType", ciType), zap.Strings("guidList", ciDataGuidList))
 	if len(ciDataGuidList) == 0 {
 		return
@@ -287,6 +296,9 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 				}
 			}
 			tmpRowGuid := row["guid"]
+			if excludeGuidMap[tmpRowGuid] {
+				continue
+			}
 			existData.DataMap[tmpRowGuid] = row
 			existData.DataChainMap[tmpRowGuid] = fmt.Sprintf("%s -> %s[%s]", parentMap[tmpRowGuid], row["guid"], row["key_name"])
 			newRowsGuidList = append(newRowsGuidList, tmpRowGuid)
@@ -297,6 +309,9 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 		dataChainMap := make(map[string]string)
 		for _, row := range queryCiDataResult {
 			tmpRowGuid := row["guid"]
+			if excludeGuidMap[tmpRowGuid] {
+				continue
+			}
 			for _, emptyAttr := range transConfig.ResetEmptyAttrList {
 				row[emptyAttr] = ""
 			}
@@ -332,7 +347,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 				}
 			}
 			if len(refCiTypeGuidList) > 0 {
-				if err = analyzeCMDBData(attr.RefCiType, refCiTypeGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, nowTime, ciTypeStateMap); err != nil {
+				if err = analyzeCMDBData(attr.RefCiType, refCiTypeGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, nowTime, ciTypeStateMap, excludeGuidMap); err != nil {
 					break
 				}
 			}
@@ -353,7 +368,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 					}
 					ciTypeDataMap[ciType].DataMap[tmpFromGuid][attr.Name] = strings.Join(models.DistinctStringList(tmpToGuidList, []string{}), ",")
 				}
-				if err = analyzeCMDBData(attr.RefCiType, toGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, nowTime, ciTypeStateMap); err != nil {
+				if err = analyzeCMDBData(attr.RefCiType, toGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, nowTime, ciTypeStateMap, excludeGuidMap); err != nil {
 					break
 				}
 			}
@@ -396,7 +411,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 							depCiGuidList = append(depCiGuidList, row["guid"])
 							tmpParentMap[row["guid"]] = ciTypeDataMap[ciType].DataChainMap[row[depCiAttr.Name]]
 						}
-						if err = analyzeCMDBData(depCiType, depCiGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, nowTime, ciTypeStateMap); err != nil {
+						if err = analyzeCMDBData(depCiType, depCiGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, nowTime, ciTypeStateMap, excludeGuidMap); err != nil {
 							break
 						}
 					}
@@ -419,7 +434,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 								tmpParentMap[tmpFromGuid] = ciTypeDataMap[ciType].DataChainMap[tmpToGuid]
 							}
 						}
-						if err = analyzeCMDBData(depCiType, depFromGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, nowTime, ciTypeStateMap); err != nil {
+						if err = analyzeCMDBData(depCiType, depFromGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, nowTime, ciTypeStateMap, excludeGuidMap); err != nil {
 							break
 						}
 					}
@@ -1543,6 +1558,9 @@ func DataTransExportPluginConfig(ctx context.Context, transExportId, path string
 
 // extractGUIDs 递归函数，用于从任意 JSON 结构中提取所有 "guid" 字段的值
 func extractGUIDs(data interface{}) []string {
+	if data == nil {
+		return []string{}
+	}
 	var guids []string
 
 	switch v := data.(type) {
