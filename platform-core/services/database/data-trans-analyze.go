@@ -247,7 +247,7 @@ func analyzeCMDB(param *models.AnalyzeDataTransParam, ciTypeAttrMap map[string][
 			excludeGuidMap[excludeGuid] = true
 		}
 	}
-	log.Debug(nil, log.LOGGER_APP, "QueryCMDBReportData done", log.JsonObj("excludeGuidMap", excludeGuidMap))
+	log.Info(nil, log.LOGGER_APP, "QueryCMDBReportData done", log.JsonObj("excludeGuidMap", excludeGuidMap))
 	// 从系统数据出发，正向查找数据，反向通过配置里的反向属性查找
 	nowTime := time.Now().Format(models.DateTimeFormat)
 	err = analyzeCMDBData(transConfig.SystemCiType, systemGuidList, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime, nowTime, ciTypeStateMap, excludeGuidMap)
@@ -297,6 +297,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 			}
 			tmpRowGuid := row["guid"]
 			if excludeGuidMap[tmpRowGuid] {
+				log.Error(nil, log.LOGGER_APP, "analyzeCMDBData filter guid", zap.String("guid", tmpRowGuid))
 				continue
 			}
 			existData.DataMap[tmpRowGuid] = row
@@ -310,6 +311,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 		for _, row := range queryCiDataResult {
 			tmpRowGuid := row["guid"]
 			if excludeGuidMap[tmpRowGuid] {
+				log.Error(nil, log.LOGGER_APP, "analyzeCMDBData filter guid", zap.String("guid", tmpRowGuid))
 				continue
 			}
 			for _, emptyAttr := range transConfig.ResetEmptyAttrList {
