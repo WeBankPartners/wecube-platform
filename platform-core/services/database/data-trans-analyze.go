@@ -240,11 +240,11 @@ func analyzeCMDB(param *models.AnalyzeDataTransParam, ciTypeAttrMap map[string][
 		log.Error(nil, log.LOGGER_APP, "QueryCMDBReportData failed", zap.Error(err))
 		return
 	}
-	var excludeGuidMap = make(map[string]bool)
+	var excludeGuidMap = make(map[string]string)
 	tmpExcludeGuids := extractGUIDs(result)
 	if len(tmpExcludeGuids) > 0 {
 		for _, excludeGuid := range tmpExcludeGuids {
-			excludeGuidMap[excludeGuid] = true
+			excludeGuidMap[excludeGuid] = param.TransExportId
 		}
 	}
 	log.Info(nil, log.LOGGER_APP, "QueryCMDBReportData done", log.JsonObj("excludeGuidMap", excludeGuidMap))
@@ -254,7 +254,7 @@ func analyzeCMDB(param *models.AnalyzeDataTransParam, ciTypeAttrMap map[string][
 	return
 }
 
-func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig, parentMap map[string]string, lastConfirmTime, nowTime string, ciTypeStateMap map[string]string, excludeGuidMap map[string]bool) (err error) {
+func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig, parentMap map[string]string, lastConfirmTime, nowTime string, ciTypeStateMap map[string]string, excludeGuidMap map[string]string) (err error) {
 	log.Info(nil, log.LOGGER_APP, "analyzeCMDBData", zap.String("ciType", ciType), zap.Strings("guidList", ciDataGuidList))
 	if len(ciDataGuidList) == 0 {
 		return
@@ -296,8 +296,8 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 				}
 			}
 			tmpRowGuid := row["guid"]
-			if excludeGuidMap[tmpRowGuid] {
-				log.Error(nil, log.LOGGER_APP, "analyzeCMDBData filter guid", zap.String("guid", tmpRowGuid))
+			if v, ok := excludeGuidMap[tmpRowGuid]; ok {
+				log.Info(nil, log.LOGGER_APP, "analyzeCMDBData filter success", zap.String("transExportId", v), zap.String("guid", tmpRowGuid))
 				continue
 			}
 			existData.DataMap[tmpRowGuid] = row
@@ -310,8 +310,8 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 		dataChainMap := make(map[string]string)
 		for _, row := range queryCiDataResult {
 			tmpRowGuid := row["guid"]
-			if excludeGuidMap[tmpRowGuid] {
-				log.Error(nil, log.LOGGER_APP, "analyzeCMDBData filter guid", zap.String("guid", tmpRowGuid))
+			if v, ok := excludeGuidMap[tmpRowGuid]; ok {
+				log.Info(nil, log.LOGGER_APP, "analyzeCMDBData filter success", zap.String("transExportId", v), zap.String("guid", tmpRowGuid))
 				continue
 			}
 			for _, emptyAttr := range transConfig.ResetEmptyAttrList {
