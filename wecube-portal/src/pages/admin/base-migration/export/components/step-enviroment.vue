@@ -58,7 +58,14 @@
         multiple
         style="width: 600px"
       >
-        <Option v-for="i in zoneList" :key="i.guid" :label="i.displayName" :value="i.guid" :disabled="isZoneDisabled(i.displayName)"></Option>
+        <Option
+          v-for="i in zoneList"
+          :key="i.guid"
+          :label="i.displayName"
+          :value="i.guid"
+          :disabled="isZoneDisabled(i.displayName)"
+        >
+        </Option>
       </Select>
     </div>
     <CustomManagement v-if="customVisible" v-model="customVisible" />
@@ -90,7 +97,7 @@ export default {
       customVisible: false,
       excludeDeployZone: [], // 排除的区域列表
       deployZone: [], // 选中的区域列表
-      zoneList: []
+      zoneList: [] // 区域下拉列表
     }
   },
   watch: {

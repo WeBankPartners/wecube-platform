@@ -20,6 +20,13 @@
               <Tree :data="getProductTree"></Tree>
             </div>
           </div>
+          <div class="content-list">
+            <span>{{ $t('pe_select_area') }}</span>
+            <template v-if="detailData.deployZones">
+              <Tag v-for="(i, index) in detailData.deployZones.split(',')" :key="index">{{ i }}</Tag>
+            </template>
+            <span v-else class="no-data">{{ $t('no_data') }}</span>
+          </div>
         </card>
       </BaseHeaderTitle>
     </div>
@@ -440,11 +447,14 @@ export default {
       &-list {
         display: flex;
         flex-direction: column;
-        width: 220px;
+        width: 240px;
         margin-right: 20px;
         span {
           margin-bottom: 2px;
         }
+      }
+      .no-data {
+        font-size: 14px;
       }
     }
   }
