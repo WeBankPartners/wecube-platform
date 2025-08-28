@@ -1282,7 +1282,7 @@ func RpcQueryCiData(ciType string, requestParam models.QueryRequestParam) (resul
 	return
 }
 
-func QueryCMDBReportData(reportId string, rootDataGuidList []string) (err error) {
+func QueryCMDBReportData(reportId string, rootDataGuidList []string) (result []map[string]interface{}, err error) {
 	if reportId == "" || len(rootDataGuidList) == 0 {
 		return
 	}
@@ -1307,5 +1307,6 @@ func QueryCMDBReportData(reportId string, rootDataGuidList []string) (err error)
 		err = fmt.Errorf(response.StatusMessage)
 		return
 	}
+	result = response.Data
 	return
 }
