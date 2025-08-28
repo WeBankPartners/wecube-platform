@@ -58,7 +58,7 @@
         multiple
         style="width: 600px"
       >
-        <Option v-for="i in zoneList" :key="i.guid" :label="i.displayName" :value="i.guid"></Option>
+        <Option v-for="i in zoneList" :key="i.guid" :label="i.displayName" :value="i.guid" :disabled="isZoneDisabled(i.displayName)"></Option>
       </Select>
     </div>
     <CustomManagement v-if="customVisible" v-model="customVisible" />
@@ -272,6 +272,10 @@ export default {
     handleSelectZone() {
       const allZoneIds = this.zoneList.map(item => item.guid)
       this.excludeDeployZone = allZoneIds.filter(item => !this.deployZone.includes(item))
+    },
+    // 判断区域是否应该被禁用
+    isZoneDisabled(displayName) {
+      return displayName && (displayName.includes('MGMT') || displayName.includes('VDI'))
     }
   }
 }
