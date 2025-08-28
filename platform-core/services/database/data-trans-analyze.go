@@ -1585,6 +1585,11 @@ func extractGUIDs(data interface{}) []string {
 			// 递归处理每个元素
 			guids = append(guids, extractGUIDs(item)...)
 		}
+	case []map[string]interface{}:
+		// 如果是对象数组（例如 []map[string]interface{}），遍历所有元素
+		for _, item := range v {
+			guids = append(guids, extractGUIDs(item)...)
+		}
 	}
 	return guids
 }
