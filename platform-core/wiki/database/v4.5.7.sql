@@ -10,3 +10,4 @@ INSERT INTO system_variables (id, package_name, name, value, default_value, `sco
 INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__PLATFORM_EXPORT_DEPLOY_ZONE_GROUP', '', 'PLATFORM_EXPORT_DEPLOY_ZONE_GROUP', '', 'deploy_zone_group', 'global','system', 'active');
 
 ALTER TABLE trans_export add column exclude_deploy_zone varchar(500) DEFAULT NULL COMMENT '排除的部署区域';
+ALTER TABLE trans_export add column deploy_zones varchar(1000) DEFAULT NULL COMMENT '部署区域名称';

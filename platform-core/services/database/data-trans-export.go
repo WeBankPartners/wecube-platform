@@ -680,6 +680,7 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 		UpdatedUser:       operator,
 		LastConfirmTime:   param.LastConfirmTime,
 		ExcludeDeployZone: strings.Join(param.ExcludeDeployZone, ","),
+		DeployZones:       strings.Join(param.DeployZones, ","),
 		SelectedTreeJson:  param.SelectedTreeJson, // 新增，保存tree结构json
 	}
 	// 新增导出记录
@@ -725,6 +726,7 @@ func UpdateExport(c context.Context, param models.UpdateExportParam, operator st
 		UpdatedTime:       time.Now().Format(models.DateTimeFormat),
 		SelectedTreeJson:  param.SelectedTreeJson, // 新增，保存tree结构json
 		ExcludeDeployZone: strings.Join(param.ExcludeDeployZone, ","),
+		DeployZones:       strings.Join(param.DeployZones, ","),
 	}
 	// 更新导出记录
 	if addTransExportActions = getUpdateTransExport(transExport); len(addTransExportActions) > 0 {
