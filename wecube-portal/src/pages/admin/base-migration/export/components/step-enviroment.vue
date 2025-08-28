@@ -53,6 +53,7 @@
       <span class="title">{{ $t('pe_select_area') }}<span class="number">{{ deployZone.length }}</span></span>
       <Select
         v-model="deployZone"
+        @on-change="handleSelectZone"
         clearable
         multiple
         style="width: 600px"
@@ -118,6 +119,10 @@ export default {
       this.lastConfirmTime = this.detailData.lastConfirmTime
       // 目标客户
       this.customerId = this.detailData.customerId
+      // 勾选区域
+      this.excludeDeployZone = this.detailData.excludeDeployZone || []
+      const allZoneIds = this.zoneList.map(item => item.guid)
+      this.deployZone = allZoneIds.filter(item => !this.excludeDeployZone.includes(item))
       if (this.customerId) {
         this.getCustomerList()
       }
@@ -256,13 +261,17 @@ export default {
     async getZoneList() {
       const { status, data } = await getExportZoneList()
       if (status === 'OK') {
-        this.zoneList = data || []
+        this.zoneList = data.contents || []
         this.zoneList = this.zoneList.map(item => {
-          item.displayName = `${item.deploy_zone_design.key_name}/${item.name}`
+          item.displayName = `${item.deploy_zone_design && item.deploy_zone_design.key_name}/${item.name}`
           this.deployZone.push(item.guid)
           return item
         })
       }
+    },
+    handleSelectZone() {
+      const allZoneIds = this.zoneList.map(item => item.guid)
+      this.excludeDeployZone = allZoneIds.filter(item => !this.deployZone.includes(item))
     }
   }
 }

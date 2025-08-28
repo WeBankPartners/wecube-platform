@@ -1360,13 +1360,22 @@ func getImportSystemVariablesData(packagePluginsXmlData *models.PackagePluginsXM
 	result = []*models.SystemVariables{}
 	// 特殊处理,物料插件不导入nexus环境相关参数
 	isArtifactsPlugin := false
+	isTerminalPlugin := false
 	if strings.ToLower(packagePluginsXmlData.Name) == "artifacts" {
+		isTerminalPlugin = true
+	}
+	if strings.ToLower(packagePluginsXmlData.Name) == "terminal" {
 		isArtifactsPlugin = true
 	}
 	for i := range packagePluginsXmlData.SystemParameters.SystemParameter {
 		sysParamInfo := packagePluginsXmlData.SystemParameters.SystemParameter[i]
 		if isArtifactsPlugin {
 			if strings.Contains(sysParamInfo.Name, "NEXUS") {
+				continue
+			}
+		}
+		if isTerminalPlugin {
+			if strings.Contains(sysParamInfo.Name, "TERMINAL_WEBSOCKET_URL") {
 				continue
 			}
 		}
