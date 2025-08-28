@@ -46,6 +46,7 @@ func GetDeploymentAreaList(c *gin.Context) {
 	}
 	if strings.TrimSpace(dataTransVariableConfig.DeployZoneGroupCiType) == "" {
 		err = fmt.Errorf("system variable PLATFORM_EXPORT_DEPLOY_ZONE_GROUP is not configured or is empty. Please check system parameters")
+		middleware.ReturnError(c, err)
 		return
 	}
 	requestParam := models.QueryRequestParam{
