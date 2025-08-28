@@ -1291,6 +1291,8 @@ func QueryCMDBReportData(reportId string, rootDataGuidList []string) (result []m
 	var response models.PluginViewDataQueryResponse
 	uri := fmt.Sprintf("%s/wecmdb/api/v1/view-data", models.Config.Gateway.Url)
 	postBytes, _ := json.Marshal(requestParam)
+	// info-level log for request input
+	log.Logger.Info("QueryCMDBReportData request", log.JsonObj("request", requestParam))
 	if models.Config.HttpsEnable == "true" {
 		uri = "https://" + uri
 	} else {
@@ -1303,6 +1305,8 @@ func QueryCMDBReportData(reportId string, rootDataGuidList []string) (result []m
 		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
 		return
 	}
+	// info-level log for response output
+	log.Logger.Info("QueryCMDBReportData response", log.JsonObj("response", response))
 	if response.StatusCode != "OK" {
 		err = fmt.Errorf(response.StatusMessage)
 		return
