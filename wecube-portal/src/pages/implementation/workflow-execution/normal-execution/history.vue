@@ -51,6 +51,7 @@ import {
 } from '@/api/server'
 import dayjs from 'dayjs'
 import CustomFlowSelect from '../components/custom-flow-select.vue'
+import { updateTimeBasedOnDateType } from '@/const/util'
 export default {
   components: { CustomFlowSelect },
   data() {
@@ -521,6 +522,8 @@ export default {
           vm.searchOptions = searchOptions
           vm.allFlowInstances = allFlowInstances
           vm.pageable = pageable
+          // 确保时间是最新的
+          updateTimeBasedOnDateType(vm.searchOptions, vm.searchConfig, 'time')
         }
       }
       // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数

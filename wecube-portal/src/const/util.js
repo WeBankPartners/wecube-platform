@@ -1,6 +1,7 @@
 import { getMyMenus } from '@/api/server.js'
 import { MENUS } from './menus.js'
 import { i18n } from '../locale/i18n/index.js'
+import dayjs from 'dayjs'
 
 // 防抖函数
 export const debounce1 = (fn, delay) => {
@@ -147,4 +148,23 @@ export const pluginNameMap = {
   '/implementation': 'fd_platform',
   '/collaboration': 'fd_platform',
   '/admin': 'fd_platform'
+}
+
+// 根据dateRange的type值更新time数组
+export const updateTimeBasedOnDateType = (searchOptions, searchParams, timeField = 'time') => {
+  const timeOption = searchOptions.find(option => option.key === timeField)
+  if (timeOption && timeOption.dateRange) {
+    // 找到当前选中的dateType
+    const currentDateType = timeOption.dateRange.find(item => 
+      item.dateType === timeOption.dateType
+    )
+    
+    // 如果dateType为1、2、3，则实时计算时间
+    if (currentDateType && [1, 2, 3].includes(currentDateType.dateType)) {
+      const { type, value } = currentDateType
+      const cur = dayjs().format('YYYY-MM-DD')
+      const pre = dayjs().subtract(value, type).format('YYYY-MM-DD')
+      searchParams[timeField] = [pre, cur]
+    }
+  }
 }

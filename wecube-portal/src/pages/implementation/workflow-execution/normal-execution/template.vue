@@ -40,6 +40,7 @@
 <script>
 import { debounce, deepClone } from '@/const/util'
 import { flowList, collectFlow, unCollectFlow } from '@/api/server'
+import { updateTimeBasedOnDateType } from '@/const/util'
 export default {
   props: {
     from: {
@@ -279,6 +280,8 @@ export default {
           const { searchParams, searchOptions } = JSON.parse(storage)
           vm.searchParams = searchParams
           vm.searchOptions = searchOptions
+          // 确保时间是最新的
+          updateTimeBasedOnDateType(vm.searchOptions, vm.searchParams, 'createdTime')
         }
       }
       // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数

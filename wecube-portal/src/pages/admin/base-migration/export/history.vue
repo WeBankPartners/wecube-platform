@@ -25,6 +25,7 @@
 <script>
 import dayjs from 'dayjs'
 import { getBaseMigrationExportList, getBaseMigrationExportQuery } from '@/api/server'
+import { updateTimeBasedOnDateType } from '@/const/util'
 export default {
   data() {
     return {
@@ -281,6 +282,8 @@ export default {
           const { searchParams, searchOptions, pageable } = JSON.parse(storage)
           vm.searchParams = searchParams
           vm.searchOptions = searchOptions
+          // 确保时间是最新的
+          updateTimeBasedOnDateType(vm.searchOptions, vm.searchParams, 'time')
           // 多选下拉框有默认值自动触发onSearch事件，导致页数被重置，采用延时方法解决这个问题
           setTimeout(() => {
             vm.pageable = pageable
