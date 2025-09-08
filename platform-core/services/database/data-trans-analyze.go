@@ -1356,10 +1356,10 @@ func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableNa
 	}
 	nowTime := time.Now().Format(models.DateTimeFormat)
 	for _, v := range rowValueList {
-		bf.WriteString("INSERT INTO " + tableName + " (`" + strings.Join(columnNameList, "`,`") + "`) VALUES (" + v + ");\n")
+		bf.WriteString("INSERT INTO `" + tableName + "` (`" + strings.Join(columnNameList, "`,`") + "`) VALUES (" + v + ");\n")
 		if ciDataTableFlag {
 			historyRowValue := v + ",'insert','" + nowTime + "','0'"
-			bf.WriteString("INSERT INTO history_" + tableName + " (`" + strings.Join(historyColumnNameList, "`,`") + "`) VALUES (" + historyRowValue + ");\n")
+			bf.WriteString("INSERT INTO `history_" + tableName + "` (`" + strings.Join(historyColumnNameList, "`,`") + "`) VALUES (" + historyRowValue + ");\n")
 		}
 	}
 	distinctMultiMap := make(map[string]int)
