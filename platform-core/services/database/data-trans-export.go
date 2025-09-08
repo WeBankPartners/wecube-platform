@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go.uber.org/zap"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
@@ -362,7 +363,7 @@ func exportCmdb(ctx context.Context, param *models.TransExportJobParam) (result 
 // exportArtifacts 8.导出物料包
 func exportArtifacts(ctx context.Context, param *models.TransExportJobParam) (result models.ExportResult, err error) {
 	log.Info(nil, log.LOGGER_APP, "8. export artifact start!!!!")
-	if err = DataTransExportArtifactData(ctx, param.TransExportId); err != nil {
+	if err = DataTransExportArtifactData(ctx, param); err != nil {
 		log.Error(nil, log.LOGGER_APP, "DataTransExportArtifactData error", zap.Error(err))
 	}
 	return

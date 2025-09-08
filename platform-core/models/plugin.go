@@ -918,7 +918,11 @@ type PluginArtifactsPushResult struct {
 }
 
 type PushArtifactPluginPackageParam struct {
-	Path string `json:"path"`
+	Path       string `json:"path"`
+	Server     string `json:"server"`
+	Repository string `json:"repository"`
+	Username   string `json:"username"`
+	Password   string `json:"password"`
 }
 
 type PushArtifactPluginPackageData struct {
