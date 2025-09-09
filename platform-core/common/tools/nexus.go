@@ -12,6 +12,9 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
+	"go.uber.org/zap"
 )
 
 type NexusReqParam struct {
@@ -143,7 +146,7 @@ func DownloadFile(reqParam *NexusReqParam) (err error) {
 					break
 				} else {
 					os.Remove(downloadFileParam.DestFilePath)
-					fmt.Printf("file:%s md5:%s not eq expect md5:%s ,remove and retry", downloadFileParam.DestFilePath, tmpMd5, downloadFileParam.ExpectMd5)
+					log.Warn(nil, log.LOGGER_ACCESS, "download nexus fail with illegal md5,retry", zap.String("file", downloadFileParam.DestFilePath), zap.String("expect", downloadFileParam.ExpectMd5), zap.String("real", tmpMd5))
 					if i == 2 {
 						err = fmt.Errorf("doDownloadFile for %s failed with md5 illegal,expect:%s real:%s ", downloadFileParam.SourceFilePath, downloadFileParam.ExpectMd5, tmpMd5)
 						return

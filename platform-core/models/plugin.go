@@ -2,10 +2,10 @@ package models
 
 import (
 	"encoding/xml"
+	"math"
+	"strconv"
 	"strings"
 	"time"
-
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 )
 
 const (
@@ -630,7 +630,7 @@ func (q RichPluginConfigInterfacesSort) Len() int {
 }
 
 func (q RichPluginConfigInterfacesSort) Less(i, j int) bool {
-	return tools.CompareVersion(q[j].PluginPackageVersion, q[i].PluginPackageVersion)
+	return compareVersion(q[j].PluginPackageVersion, q[i].PluginPackageVersion)
 }
 
 func (q RichPluginConfigInterfacesSort) Swap(i, j int) {
@@ -948,4 +948,22 @@ type PluginArtifactsUploadResult struct {
 type PluginS3ResourceFileObj struct {
 	Source string `json:"source"`
 	Target string `json:"target"`
+}
+
+func compareVersion(v1, v2 string) bool {
+	return parseVersionToNum(v1) > parseVersionToNum(v2)
+}
+
+func parseVersionToNum(input string) float64 {
+	if input == "" {
+		return 0
+	}
+	input = strings.ToLower(input)
+	input = strings.TrimPrefix(input, "v")
+	var num float64
+	for i, v := range strings.Split(input, ".") {
+		intV, _ := strconv.Atoi(v)
+		num += float64(intV) * math.Pow(100, float64(4-i))
+	}
+	return num
 }
