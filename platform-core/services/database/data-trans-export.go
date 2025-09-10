@@ -1020,12 +1020,21 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			}
 		case models.TransExportStepWorkflow:
 			tmpWorkflowList := models.TransExportWorkflowList{}
+			var exportCustomer *models.DataTransExportCustomerTable
+			if exportCustomer, err = GetTransExportCustomer(ctx, transExport.CustomerId); err != nil {
+				log.Error(nil, log.LOGGER_APP, "GetTransExportCustomer err", zap.Error(err))
+				return
+			}
+			if exportCustomer == nil {
+				log.Error(nil, log.LOGGER_APP, "exportCustomer is empty", zap.Error(err))
+				return
+			}
 			if transExportDetail.Input != "" {
 				if err = json.Unmarshal([]byte(transExportDetail.Input), &tmpWorkflowList); err != nil {
 					log.Error(nil, log.LOGGER_APP, "json unmarshal workflow input fail", zap.Error(err))
 					continue
 				}
-				tmpWorkflowList.Parse(dataTransVariableConfig.WorkflowExecList)
+				tmpWorkflowList.Parse(strings.Split(exportCustomer.ExecWorkflowIds, ","))
 			}
 			workflowOutput := models.ExportWorkflowOutput{CommonOutput: *output, WorkflowList: tmpWorkflowList}
 			detail.Workflows = &workflowOutput
