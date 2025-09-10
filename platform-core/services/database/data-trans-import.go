@@ -71,7 +71,7 @@ func DecompressExportZip(ctx context.Context, nexusUrl, transImportId string) (l
 		Password:   nexusConfig.NexusPwd,
 		RepoUrl:    nexusConfig.NexusUrl,
 		Repository: nexusConfig.NexusRepo,
-		TimeoutSec: 60,
+		TimeoutSec: 600,
 		FileParams: []*tools.NexusFileParam{{SourceFilePath: nexusUrl, DestFilePath: localExportFilePath}},
 	}
 	if err = tools.DownloadFile(&downloadParam); err != nil {
@@ -919,7 +919,7 @@ func DownloadImportArtifactPackages(ctx context.Context, nexusUrl, transImportId
 			Password:   nexusConfig.NexusPwd,
 			RepoUrl:    nexusConfig.NexusUrl,
 			Repository: nexusConfig.NexusRepo,
-			TimeoutSec: 60,
+			TimeoutSec: 600,
 			FileParams: []*tools.NexusFileParam{{SourceFilePath: fmt.Sprintf("%s/%s/%s", nexusUrlPrefix, models.TransArtifactPackageDirName, remoteFileName), DestFilePath: fmt.Sprintf("%s/%s", tmpImportDir, remoteFileName)}},
 		}
 		if expectMd5, ok := fileMd5Map[remoteFileName]; ok {
@@ -991,7 +991,7 @@ func DownloadImportArtifactPackage(ctx context.Context, nexusConfig *models.Tran
 		Password:   nexusConfig.NexusPwd,
 		RepoUrl:    nexusConfig.NexusUrl,
 		Repository: nexusConfig.NexusRepo,
-		TimeoutSec: 60,
+		TimeoutSec: 600,
 		FileParams: []*tools.NexusFileParam{{SourceFilePath: fmt.Sprintf("%s/%s/%s", nexusUrlPrefix, models.TransArtifactPackageDirName, remoteFileName), DestFilePath: localFilePath, ExpectMd5: expectMd5}},
 	}
 	log.Info(nil, log.LOGGER_APP, "start download nexus package file", zap.String("fileName", remoteFileName), log.JsonObj("downloadParam", downloadParam))

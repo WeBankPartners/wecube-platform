@@ -1356,10 +1356,10 @@ func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableNa
 	}
 	nowTime := time.Now().Format(models.DateTimeFormat)
 	for _, v := range rowValueList {
-		bf.WriteString("INSERT INTO " + tableName + " (`" + strings.Join(columnNameList, "`,`") + "`) VALUES (" + v + ");\n")
+		bf.WriteString("INSERT INTO `" + tableName + "` (`" + strings.Join(columnNameList, "`,`") + "`) VALUES (" + v + ");\n")
 		if ciDataTableFlag {
 			historyRowValue := v + ",'insert','" + nowTime + "','0'"
-			bf.WriteString("INSERT INTO history_" + tableName + " (`" + strings.Join(historyColumnNameList, "`,`") + "`) VALUES (" + historyRowValue + ");\n")
+			bf.WriteString("INSERT INTO `history_" + tableName + "` (`" + strings.Join(historyColumnNameList, "`,`") + "`) VALUES (" + historyRowValue + ");\n")
 		}
 	}
 	distinctMultiMap := make(map[string]int)
@@ -1423,10 +1423,10 @@ func DataTransImportCMDBData(ctx context.Context, inputFile string) (err error) 
 }
 
 // DataTransExportArtifactData 把物料包直接迁到物料插件配置好的nexus上
-func DataTransExportArtifactData(ctx context.Context, transExportId string) (err error) {
+func DataTransExportArtifactData(ctx context.Context, transExportParam *models.TransExportJobParam) (err error) {
 	// 读analyze表cmdb数据
 	var transExportAnalyzeRows []*models.TransExportAnalyzeDataTable
-	err = db.MysqlEngine.Context(ctx).SQL("select id,source,data_type,`data` from trans_export_analyze_data where trans_export=? and source='artifact'", transExportId).Find(&transExportAnalyzeRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select id,source,data_type,`data` from trans_export_analyze_data where trans_export=? and source='artifact'", transExportParam.TransExportId).Find(&transExportAnalyzeRows)
 	if err != nil {
 		err = fmt.Errorf("query trans export analyze table data fail,%s ", err.Error())
 		return
@@ -1442,8 +1442,15 @@ func DataTransExportArtifactData(ctx context.Context, transExportId string) (err
 	for _, unitDesign := range dataList {
 		for _, deployPackage := range unitDesign.ArtifactRows {
 			if deployPackage["guid"] != "" {
+				pushParam := models.PushArtifactPluginPackageParam{
+					Path:       fmt.Sprintf("/%s/%s/", transExportParam.TransExportId, models.TransArtifactPackageDirName),
+					Server:     transExportParam.DataTransVariableConfig.NexusUrl,
+					Repository: transExportParam.DataTransVariableConfig.NexusRepo,
+					Username:   transExportParam.DataTransVariableConfig.NexusUser,
+					Password:   transExportParam.DataTransVariableConfig.NexusPwd,
+				}
 				for i := 0; i < 3; i++ {
-					pushPackageResult, pushErr := remote.PushPackage(ctx, remote.GetToken(), unitDesign.UnitDesign, deployPackage["guid"], fmt.Sprintf("/%s/%s/", transExportId, models.TransArtifactPackageDirName))
+					pushPackageResult, pushErr := remote.PushPackage(ctx, remote.GetToken(), unitDesign.UnitDesign, deployPackage["guid"], pushParam)
 					if pushErr != nil {
 						err = fmt.Errorf("push artifact package %s fail,%s ", deployPackage["key_name"], pushErr.Error())
 					} else {
