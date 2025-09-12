@@ -175,10 +175,10 @@
             <Button loading shape="circle" type="primary"></Button>
             <span>导入中...</span>
           </span>
-          <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">
+          <!-- <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">
             ({{ $t('pi_import_fail') }}：<span>{{ detailData.artifactsRes.errMsg }}</span>)
             <Button @click="handleRetry" type="error" size="small" class="ml-1">{{ $t('partial_retry') }}</Button>
-          </span>
+          </span> -->
         </div>
         <BaseSearch
           :onlyShowReset="true"
@@ -282,7 +282,7 @@
 <script>
 import selectTableConfig from '../../export/selection-table'
 import staticTableConfig from '../../export/static-table'
-import { saveImportData, importRetry } from '@/api/server'
+import { saveImportData } from '@/api/server'
 import { debounce } from '@/const/util'
 
 export default {
@@ -349,20 +349,6 @@ export default {
     // 上一步
     handleLast() {
       this.$emit('lastStep')
-    },
-    // 物料包失败，可以执行重试
-    async handleRetry() {
-      const params = {
-        transImportId: this.detailData.id,
-        step: 2
-      }
-      this.$emit('startLoading')
-      const { status } = await importRetry(params)
-      if (status === 'OK') {
-        this.$emit('fetchDetail')
-      } else {
-        this.$emit('stopLoading')
-      }
     }
   }
 }

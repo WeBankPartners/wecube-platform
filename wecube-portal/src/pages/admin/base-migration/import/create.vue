@@ -19,6 +19,10 @@
             <Button v-if="['success', 'exit'].includes(detailData.status)" type="success" @click="handleReLauch">{{
               $t('be_republish')
             }}</Button>
+            <!--重试-->
+            <Button v-if="['fail'].includes(detailData.status) && activeStep === 1" type="success" @click="handleRetry">{{
+              $t('be_retry')
+            }}</Button>
           </div>
           <Steps :current="activeStep" direction="vertical">
             <Step :title="$t('pi_import_step1')" :content="$t('pi_import_step1_tips')"></Step>
@@ -97,7 +101,7 @@ import StepThree from './components/step-three.vue'
 import StepFour from './components/step-four.vue'
 import StepFive from './components/step-five.vue'
 import { groupArrayByKey } from '@/const/util'
-import { getImportDetail, updateImportStatus } from '@/api/server'
+import { getImportDetail, updateImportStatus, importRetry } from '@/api/server'
 export default {
   components: {
     StepOne,
@@ -359,6 +363,20 @@ export default {
           id: this.id
         }
       })
+    },
+    // 物料包失败，可以执行重试
+    async handleRetry() {
+      const params = {
+        transImportId: this.detailData.id,
+        step: 2
+      }
+      this.loading = true
+      const { status } = await importRetry(params)
+      if (status === 'OK') {
+        this.handleFetchDetail()
+      } else {
+        this.loading = false
+      }
     },
     handleBack() {
       return this.$router.push({
