@@ -446,6 +446,9 @@ func importArtifactPackage(ctx context.Context, transImportParam *models.TransIm
 		}
 	}
 	portalUrl, _ := database.GetSystemVariable(ctx, "WECUBE_PORTAL_URL")
+	if httpIndex := strings.Index(portalUrl, "//"); httpIndex > 0 {
+		portalUrl = portalUrl[httpIndex+2:]
+	}
 	nowTime := time.Now()
 	for _, artifactData := range artifactDataList {
 		for _, artifactRow := range artifactData.ArtifactRows {

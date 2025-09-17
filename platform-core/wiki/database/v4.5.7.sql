@@ -11,3 +11,5 @@ INSERT INTO system_variables (id, package_name, name, value, default_value, `sco
 
 ALTER TABLE trans_export add column exclude_deploy_zone varchar(500) DEFAULT NULL COMMENT '排除的部署区域';
 ALTER TABLE trans_export add column deploy_zones varchar(1000) DEFAULT NULL COMMENT '部署区域名称';
+
+INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status) VALUES ('system__global__WECUBE_PORTAL_URL', '', 'WECUBE_PORTAL_URL', '', 'http://127.0.0.1:8080', 'global','system', 'active');
