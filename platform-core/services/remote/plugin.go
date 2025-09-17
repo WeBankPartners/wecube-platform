@@ -936,6 +936,17 @@ func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId st
 			pw.Close()         // 关闭管道写入端，通知读取端结束
 		}()
 
+		// 添加其他表单字段(package_type)
+		packageTypeWriter, err := bodyWriter.CreateFormField("package_type")
+		if err != nil {
+			pw.CloseWithError(fmt.Errorf("创建package_type字段失败: %v", err))
+			return
+		}
+		if _, err := packageTypeWriter.Write([]byte("APP&DB")); err != nil {
+			pw.CloseWithError(fmt.Errorf("写入package_type字段失败: %v", err))
+			return
+		}
+
 		// 打开本地文件
 		fileObj, err := os.Open(localPackagePath)
 		if err != nil {
@@ -960,17 +971,6 @@ func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId st
 		// 流式复制文件内容到表单(关键：不加载整个文件到内存)
 		if _, err := io.Copy(tmpWriter, fileObj); err != nil {
 			pw.CloseWithError(fmt.Errorf("文件内容复制失败: %v", err))
-			return
-		}
-
-		// 添加其他表单字段(package_type)
-		packageTypeWriter, err := bodyWriter.CreateFormField("package_type")
-		if err != nil {
-			pw.CloseWithError(fmt.Errorf("创建package_type字段失败: %v", err))
-			return
-		}
-		if _, err := packageTypeWriter.Write([]byte("APP&DB")); err != nil {
-			pw.CloseWithError(fmt.Errorf("写入package_type字段失败: %v", err))
 			return
 		}
 	}()
