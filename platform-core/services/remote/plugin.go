@@ -920,39 +920,68 @@ func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId st
 	} else {
 		uri = "http://" + uri
 	}
-	urlObj, _ := url.Parse(uri)
-	buf := new(bytes.Buffer)
-	bodyWriter := multipart.NewWriter(buf)
-	if fileObj, tmpErr := os.Open(localPackagePath); tmpErr != nil {
-		err = fmt.Errorf("can not read multipart form file:%s ,err:%s", localPackagePath, tmpErr.Error())
-		return
-	} else {
+	urlObj, err := url.Parse(uri)
+	if err != nil {
+		return "", fmt.Errorf("解析URL失败: %v", err)
+	}
+
+	// 创建一个管道(pipe)作为请求体，实现流式传输
+	pr, pw := io.Pipe()
+	bodyWriter := multipart.NewWriter(pw)
+
+	// 启动goroutine处理表单数据写入，避免阻塞
+	go func() {
+		defer func() {
+			bodyWriter.Close() // 关闭multipart writer，写入结束边界
+			pw.Close()         // 关闭管道写入端，通知读取端结束
+		}()
+
+		// 打开本地文件
+		fileObj, err := os.Open(localPackagePath)
+		if err != nil {
+			pw.CloseWithError(fmt.Errorf("无法打开文件: %v", err))
+			return
+		}
+		defer fileObj.Close()
+
+		// 提取文件名
 		fileName := localPackagePath
 		if lastPathIndex := strings.LastIndex(localPackagePath, "/"); lastPathIndex > 0 {
 			fileName = localPackagePath[lastPathIndex+1:]
 		}
-		tmpWriter, ffErr := bodyWriter.CreateFormFile("file", fileName)
-		if ffErr != nil {
-			err = fmt.Errorf("create multipart form file fail,key:file,%s ", err.Error())
+
+		// 创建表单文件字段，获取写入器
+		tmpWriter, err := bodyWriter.CreateFormFile("file", fileName)
+		if err != nil {
+			pw.CloseWithError(fmt.Errorf("创建表单文件字段失败: %v", err))
 			return
 		}
-		if _, err = io.Copy(tmpWriter, fileObj); err != nil {
-			err = fmt.Errorf("io copy multipart file fail,%s ", err.Error())
+
+		// 流式复制文件内容到表单(关键：不加载整个文件到内存)
+		if _, err := io.Copy(tmpWriter, fileObj); err != nil {
+			pw.CloseWithError(fmt.Errorf("文件内容复制失败: %v", err))
 			return
 		}
-		packageTypeWriter, _ := bodyWriter.CreateFormField("package_type")
-		_, writeErr := packageTypeWriter.Write([]byte("APP&DB"))
-		if writeErr != nil {
-			err = fmt.Errorf("create form field package type value fail,%s ", writeErr.Error())
+
+		// 添加其他表单字段(package_type)
+		packageTypeWriter, err := bodyWriter.CreateFormField("package_type")
+		if err != nil {
+			pw.CloseWithError(fmt.Errorf("创建package_type字段失败: %v", err))
 			return
 		}
+		if _, err := packageTypeWriter.Write([]byte("APP&DB")); err != nil {
+			pw.CloseWithError(fmt.Errorf("写入package_type字段失败: %v", err))
+			return
+		}
+	}()
+
+	// 创建请求，请求体使用管道的读取端
+	req, err := http.NewRequest(http.MethodPost, urlObj.String(), pr)
+	if err != nil {
+		return "", fmt.Errorf("创建请求失败: %v", err)
 	}
-	bodyWriter.Close()
-	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), buf)
-	if reqErr != nil {
-		err = fmt.Errorf("new http request to %s fail,%s ", urlObj.String(), reqErr.Error())
-		return
-	}
+
+	// 设置请求头
 	req.Header.Set("Content-Type", bodyWriter.FormDataContentType())
 	reqId := "req_" + guid.CreateGuid()
 	var transId string
