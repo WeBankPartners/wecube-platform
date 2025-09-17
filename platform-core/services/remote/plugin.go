@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/network"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
@@ -914,7 +915,12 @@ func PushPackage(ctx context.Context, token string, unitDesignId string, deployP
 }
 
 func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId string, localPackagePath string) (deployPackageGuid string, err error) {
-	uri := fmt.Sprintf("%s/%s/unit-designs/%s/packages/upload", models.Config.Gateway.Url, models.PluginNameArtifacts, unitDesignId)
+	portalUrl, _ := database.GetSystemVariable(ctx, "WECUBE_PORTAL_URL")
+	urlPrefix := models.Config.Gateway.Url
+	if portalUrl != "" {
+		urlPrefix = portalUrl
+	}
+	uri := fmt.Sprintf("%s/%s/unit-designs/%s/packages/upload", urlPrefix, models.PluginNameArtifacts, unitDesignId)
 	if models.Config.HttpsEnable == "true" {
 		uri = "https://" + uri
 	} else {
