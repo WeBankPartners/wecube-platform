@@ -928,6 +928,8 @@ func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId st
 	// 创建一个管道(pipe)作为请求体，实现流式传输
 	pr, pw := io.Pipe()
 	bodyWriter := multipart.NewWriter(pw)
+	// 提前获取Content-Type（包含正确的boundary）
+	contentType := bodyWriter.FormDataContentType()
 
 	// 启动goroutine处理表单数据写入，避免阻塞
 	go func() {
@@ -936,8 +938,12 @@ func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId st
 			pw.Close()         // 关闭管道写入端，通知读取端结束
 		}()
 
-		// 添加其他表单字段(package_type)
-		packageTypeWriter, err := bodyWriter.CreateFormField("package_type")
+		// 1. 先写入普通字段（关键步骤）
+		// 显式指定字段的MIME类型为application/x-www-form-urlencoded
+		packageTypeWriter, err := bodyWriter.CreatePart(map[string][]string{
+			"Content-Disposition": {"form-data; name=\"package_type\""},
+			"Content-Type":        {"application/x-www-form-urlencoded"},
+		})
 		if err != nil {
 			pw.CloseWithError(fmt.Errorf("创建package_type字段失败: %v", err))
 			return
@@ -947,7 +953,7 @@ func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId st
 			return
 		}
 
-		// 打开本地文件
+		// 2. 写入文件字段
 		fileObj, err := os.Open(localPackagePath)
 		if err != nil {
 			pw.CloseWithError(fmt.Errorf("无法打开文件: %v", err))
@@ -955,21 +961,24 @@ func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId st
 		}
 		defer fileObj.Close()
 
-		// 提取文件名
 		fileName := localPackagePath
 		if lastPathIndex := strings.LastIndex(localPackagePath, "/"); lastPathIndex > 0 {
 			fileName = localPackagePath[lastPathIndex+1:]
 		}
 
-		// 创建表单文件字段，获取写入器
-		tmpWriter, err := bodyWriter.CreateFormFile("file", fileName)
+		// 创建文件表单字段，显式指定MIME类型
+		fileWriter, err := bodyWriter.CreatePart(map[string][]string{
+			"Content-Disposition": {fmt.Sprintf("form-data; name=\"file\"; filename=\"%s\"", fileName)},
+			"Content-Type":        {"application/octet-stream"}, // 通用二进制类型
+		})
 		if err != nil {
-			pw.CloseWithError(fmt.Errorf("创建表单文件字段失败: %v", err))
+			pw.CloseWithError(fmt.Errorf("创建文件字段失败: %v", err))
 			return
 		}
 
-		// 流式复制文件内容到表单(关键：不加载整个文件到内存)
-		if _, err := io.Copy(tmpWriter, fileObj); err != nil {
+		// 使用带缓冲的复制，提高大文件传输效率
+		buf := make([]byte, 128*1024) // 128KB缓冲区
+		if _, err := io.CopyBuffer(fileWriter, fileObj, buf); err != nil {
 			pw.CloseWithError(fmt.Errorf("文件内容复制失败: %v", err))
 			return
 		}
@@ -982,7 +991,7 @@ func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId st
 	}
 
 	// 设置请求头
-	req.Header.Set("Content-Type", bodyWriter.FormDataContentType())
+	req.Header.Set("Content-Type", contentType)
 	reqId := "req_" + guid.CreateGuid()
 	var transId string
 	if ctx.Value(models.TransactionIdHeader) != nil {
