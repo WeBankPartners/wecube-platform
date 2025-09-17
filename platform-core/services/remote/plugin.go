@@ -926,66 +926,60 @@ func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId st
 	}
 
 	// 创建一个管道(pipe)作为请求体，实现流式传输
-	pr, pw := io.Pipe()
-	bodyWriter := multipart.NewWriter(pw)
-	// 提前获取Content-Type（包含正确的boundary）
+	pipeR, pipeW := io.Pipe()
+	defer pipeR.Close()
+
+	bodyWriter := multipart.NewWriter(pipeW)
 	contentType := bodyWriter.FormDataContentType()
-
-	// 启动goroutine处理表单数据写入，避免阻塞
+	// 表单构建协程
 	go func() {
-		defer func() {
-			bodyWriter.Close() // 关闭multipart writer，写入结束边界
-			pw.Close()         // 关闭管道写入端，通知读取端结束
-		}()
+		defer pipeW.Close()
+		// 关闭 bodyWriter，确保 multipart 表单数据写入完成
+		defer bodyWriter.Close()
 
-		// 1. 先写入普通字段（关键步骤）
-		// 显式指定字段的MIME类型为application/x-www-form-urlencoded
-		packageTypeWriter, err := bodyWriter.CreatePart(map[string][]string{
-			"Content-Disposition": {"form-data; name=\"package_type\""},
-			"Content-Type":        {"application/x-www-form-urlencoded"},
-		})
+		// 写入表单字段
+		err = bodyWriter.WriteField("package_type", "APP&DB")
 		if err != nil {
-			pw.CloseWithError(fmt.Errorf("创建package_type字段失败: %v", err))
-			return
-		}
-		if _, err := packageTypeWriter.Write([]byte("APP&DB")); err != nil {
-			pw.CloseWithError(fmt.Errorf("写入package_type字段失败: %v", err))
+			err = fmt.Errorf("write field: package_type failed: %s", err.Error())
+			pipeW.CloseWithError(err)
+			log.Error(nil, log.LOGGER_APP, err.Error())
 			return
 		}
 
-		// 2. 写入文件字段
-		fileObj, err := os.Open(localPackagePath)
-		if err != nil {
-			pw.CloseWithError(fmt.Errorf("无法打开文件: %v", err))
-			return
-		}
-		defer fileObj.Close()
-
+		// 添加 file 字段到 multipart 表单中
+		var formFileWriter io.Writer
 		fileName := localPackagePath
 		if lastPathIndex := strings.LastIndex(localPackagePath, "/"); lastPathIndex > 0 {
 			fileName = localPackagePath[lastPathIndex+1:]
 		}
-
-		// 创建文件表单字段，显式指定MIME类型
-		fileWriter, err := bodyWriter.CreatePart(map[string][]string{
-			"Content-Disposition": {fmt.Sprintf("form-data; name=\"file\"; filename=\"%s\"", fileName)},
-			"Content-Type":        {"application/octet-stream"}, // 通用二进制类型
-		})
+		formFileWriter, err = bodyWriter.CreateFormFile("file", fileName)
 		if err != nil {
-			pw.CloseWithError(fmt.Errorf("创建文件字段失败: %v", err))
+			err = fmt.Errorf("create form file writer for field:file failed: %s", err.Error())
+			pipeW.CloseWithError(err)
+			log.Error(nil, log.LOGGER_APP, err.Error())
 			return
 		}
-
-		// 使用带缓冲的复制，提高大文件传输效率
-		buf := make([]byte, 128*1024) // 128KB缓冲区
-		if _, err := io.CopyBuffer(fileWriter, fileObj, buf); err != nil {
-			pw.CloseWithError(fmt.Errorf("文件内容复制失败: %v", err))
+		// 2. 写入文件字段
+		fileObj, err := os.Open(localPackagePath)
+		if err != nil {
+			err = fmt.Errorf("can not open file:%s ,%s ", localPackagePath, err.Error())
+			pipeW.CloseWithError(err)
+			log.Error(nil, log.LOGGER_APP, err.Error())
+			return
+		}
+		defer fileObj.Close()
+		// 将上传的文件内容复制到 form file writer
+		_, err = io.Copy(formFileWriter, fileObj)
+		if err != nil {
+			err = fmt.Errorf("copy file to formFileWriter failed: %s", err.Error())
+			pipeW.CloseWithError(err)
+			log.Error(nil, log.LOGGER_APP, err.Error())
 			return
 		}
 	}()
 
 	// 创建请求，请求体使用管道的读取端
-	req, err := http.NewRequest(http.MethodPost, urlObj.String(), pr)
+	req, err := http.NewRequest(http.MethodPost, urlObj.String(), pipeR)
 	if err != nil {
 		return "", fmt.Errorf("创建请求失败: %v", err)
 	}
