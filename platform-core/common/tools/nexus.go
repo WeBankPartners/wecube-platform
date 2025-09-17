@@ -208,11 +208,12 @@ func doDownloadFile(reqParam *NexusReqParam, downloadFileParam *NexusFileParam) 
 	//log.Info(nil, log.LOGGER_APP, fmt.Sprintf("start to download file: %s", srcFilePath))
 
 	// 创建 HTTP 请求
-	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Duration(reqParam.TimeoutSec)*time.Second)
-	defer cancelFunc()
+	// ctx, cancelFunc := context.WithTimeout(context.Background(), time.Duration(reqParam.TimeoutSec)*time.Second)
+	// defer cancelFunc()
 
 	reqUrl := srcFilePath
-	req, tmpErr := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl, nil)
+	req, tmpErr := http.NewRequest(http.MethodGet, reqUrl, nil)
+	// req, tmpErr := http.NewRequestWithContext(context.Background(), http.MethodGet, reqUrl, nil)
 	if tmpErr != nil {
 		err = fmt.Errorf("create request for reqUrl: %s failed: %s", reqUrl, tmpErr.Error())
 		return
