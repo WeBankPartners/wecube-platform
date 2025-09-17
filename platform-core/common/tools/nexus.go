@@ -1,9 +1,7 @@
 package tools
 
 import (
-	"bytes"
 	"context"
-	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -228,8 +226,8 @@ func doDownloadFile(reqParam *NexusReqParam, downloadFileParam *NexusFileParam) 
 		err = fmt.Errorf("do request: %s failed: %s", reqUrl, tmpErr.Error())
 		return
 	}
-	bodyBytes, _ := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
+	// bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
 
 	// 检查响应状态
 	if resp.StatusCode != http.StatusOK {
@@ -247,12 +245,14 @@ func doDownloadFile(reqParam *NexusReqParam, downloadFileParam *NexusFileParam) 
 	defer out.Close()
 
 	// 将响应内容写入本地文件
-	_, tmpErr = io.Copy(out, bytes.NewReader(bodyBytes))
+	_, tmpErr = io.Copy(out, resp.Body)
 	if tmpErr != nil {
+		os.Remove(destFilePath)
 		err = fmt.Errorf("copy content to output file: %s failed: %s", destFilePath, tmpErr.Error())
 		return
 	}
-	md5Value = fmt.Sprintf("%x", md5.Sum(bodyBytes))
+	md5Value, _ = GetFileMD5Value(destFilePath)
+	// md5Value = fmt.Sprintf("%x", md5.Sum(bodyBytes))
 
 	//log.Info(nil, log.LOGGER_APP, fmt.Sprintf("download file: %s successfully", srcFilePath))
 	return
