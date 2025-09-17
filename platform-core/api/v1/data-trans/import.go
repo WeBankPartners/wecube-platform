@@ -445,6 +445,7 @@ func importArtifactPackage(ctx context.Context, transImportParam *models.TransIm
 			}
 		}
 	}
+	portalUrl, _ := database.GetSystemVariable(ctx, "WECUBE_PORTAL_URL")
 	nowTime := time.Now()
 	for _, artifactData := range artifactDataList {
 		for _, artifactRow := range artifactData.ArtifactRows {
@@ -476,7 +477,7 @@ func importArtifactPackage(ctx context.Context, transImportParam *models.TransIm
 				break
 			}
 			// tmpImportFilePath := fmt.Sprintf(models.TransImportTmpDir, transImportParam.TransImport.Id) + "/" + models.TransArtifactPackageDirName + "/" + tmpPackageName
-			tmpDeployPackageGuid, tmpErr := remote.UploadArtifactPackageNew(ctx, remote.GetToken(), artifactData.UnitDesign, tmpImportFilePath)
+			tmpDeployPackageGuid, tmpErr := remote.UploadArtifactPackageNew(ctx, remote.GetToken(), artifactData.UnitDesign, tmpImportFilePath, portalUrl)
 			if tmpErr != nil {
 				err = fmt.Errorf("upload artifact package to artifacts plugin fail,tmpPath:%s ,error:%s ", tmpImportFilePath, tmpErr.Error())
 				artifactOutputObj.Status = "fail"

@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/network"
-	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
@@ -914,8 +913,7 @@ func PushPackage(ctx context.Context, token string, unitDesignId string, deployP
 	return
 }
 
-func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId string, localPackagePath string) (deployPackageGuid string, err error) {
-	portalUrl, _ := database.GetSystemVariable(ctx, "WECUBE_PORTAL_URL")
+func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId string, localPackagePath, portalUrl string) (deployPackageGuid string, err error) {
 	urlPrefix := models.Config.Gateway.Url
 	if portalUrl != "" {
 		urlPrefix = portalUrl
