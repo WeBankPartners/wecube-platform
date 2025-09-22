@@ -138,7 +138,9 @@ export default {
     },
     handleClearData() {
       this.selectData = []
-      this.$refs.table.selectAll(false)
+      if (this.$refs.table) {
+        this.$refs.table.selectAll(false)
+      }
       this.$emit('select', this.selectData)
     },
     handleSearch: debounce(function () {
