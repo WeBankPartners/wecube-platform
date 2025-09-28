@@ -344,6 +344,11 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 			for _, row := range newRows {
 				tmpRefCiDataGuid := row[attr.Name]
 				if tmpRefCiDataGuid != "" {
+					if _, ok := excludeGuidMap[tmpRefCiDataGuid]; ok {
+						// 把行属性值匹配上例外的给清空,不然会带个空引用数据过去
+						row[attr.Name] = ""
+						continue
+					}
 					refCiTypeGuidList = append(refCiTypeGuidList, tmpRefCiDataGuid)
 					tmpParentMap[tmpRefCiDataGuid] = ciTypeDataMap[ciType].DataChainMap[row["guid"]]
 				}
@@ -365,6 +370,16 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 			if len(toGuidList) > 0 {
 				tmpParentMap := make(map[string]string)
 				for tmpFromGuid, tmpToGuidList := range toGuidRefMap {
+					if len(excludeGuidMap) > 0 {
+						newTmpToGuidList := []string{}
+						for _, tmpToGuid := range tmpToGuidList {
+							if _, ok := excludeGuidMap[tmpToGuid]; ok {
+								continue
+							}
+							newTmpToGuidList = append(newTmpToGuidList, tmpToGuid)
+						}
+						tmpToGuidList = newTmpToGuidList
+					}
 					for _, tmpToGuid := range tmpToGuidList {
 						tmpParentMap[tmpToGuid] = ciTypeDataMap[ciType].DataChainMap[tmpFromGuid]
 					}
