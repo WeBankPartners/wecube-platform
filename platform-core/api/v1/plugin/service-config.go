@@ -3,12 +3,13 @@ package plugin
 import (
 	"encoding/xml"
 	"fmt"
-	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
-	"go.uber.org/zap"
 	"net/http"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
@@ -396,6 +397,7 @@ func QueryPluginByTargetEntity(c *gin.Context) {
 		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, err))
 		return
 	}
+	param.TargetEntityFilterRule = ""
 	// 不为空,表示查询 插件参数,可能没权限,此处使用编排设计创建人的角色
 	if strings.TrimSpace(param.ProcDefId) != "" {
 		roles = []string{}
