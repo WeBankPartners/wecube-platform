@@ -30,6 +30,13 @@
               <span>{{ $t('pe_select_busProduct') }}</span>
               <Tree :data="getProductTree"></Tree>
             </div>
+            <div class="content-list">
+              <span>{{ $t('pe_select_area') }}</span>
+              <template v-if="detailData.deployZones">
+                <Tag v-for="(i, index) in detailData.deployZones.split(',')" :key="index">{{ i }}</Tag>
+              </template>
+              <span v-else class="no-data">{{ $t('no_data') }}</span>
+            </div>
           </div>
         </card>
       </BaseHeaderTitle>
@@ -163,17 +170,31 @@
         <div slot="sub-title" class="title">
           {{ $t('pe_select') }}<span class="number">{{ detailData.artifactsCount }}</span>
           <span v-if="detailData.artifactsRes.status === 'success'" class="success">({{ $t('pi_import_success') }})</span>
-          <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">({{ $t('pi_import_fail') }}：<span>{{ detailData.artifactsRes.errMsg }}</span>)</span>
+          <span class="sucess-count">已成功：<span class="success-number">{{ getArtifactsSuccessCount }}</span></span>
+          <span v-if="detailData.artifactsRes.status === 'doing'" class="loading">
+            <Button loading shape="circle" type="primary"></Button>
+            <span>导入中...</span>
+          </span>
+          <!-- <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">
+            ({{ $t('pi_import_fail') }}：<span>{{ detailData.artifactsRes.errMsg }}</span>)
+            <Button @click="handleRetry" type="error" size="small" class="ml-1">{{ $t('partial_retry') }}</Button>
+          </span> -->
         </div>
+        <BaseSearch
+          :onlyShowReset="true"
+          :options="artifactsSearchOptions"
+          v-model="artifactsSearchParams"
+          @search="handleSearchArtifacts"
+        ></BaseSearch>
         <Row :gutter="10">
-          <Col :span="16">
+          <Col :xxl="20" :xl="24">
             <Card>
               <Table
                 :border="false"
                 size="small"
                 :columns="artifactsColumns"
                 :max-height="400"
-                :data="detailData.artifactsRes.data"
+                :data="artifactsTableData"
               />
             </Card>
           </Col>
@@ -190,7 +211,7 @@
           <span v-if="detailData.monitorRes.status === 'fail'" class="fail">({{ $t('pi_import_fail') }}：<span>{{ detailData.monitorRes.errMsg }}</span>)</span>
         </div>
         <Row :gutter="10">
-          <Col :span="16">
+          <Col :xxl="20" :xl="24">
             <Card>
               <Table
                 :border="false"
@@ -210,7 +231,9 @@
         <div slot="sub-title" class="title">
           {{ $t('pe_select') }}<span class="number">{{ detailData.itsmRes.data.length }}</span>
           <span v-if="detailData.itsmRes.status === 'success'" class="success">({{ $t('pi_import_success') }})</span>
-          <span v-if="detailData.itsmRes.status === 'fail'" class="fail">({{ $t('pi_import_fail') }}：<span>{{ detailData.itsmRes.errMsg }}</span>)</span>
+          <span v-if="detailData.itsmRes.status === 'fail'" class="fail">
+            ({{ $t('pi_import_fail') }}：<span>{{ detailData.itsmRes.errMsg }}</span>)
+          </span>
         </div>
         <div style="margin: 10px 0">
           {{ $t('pe_export_library') }}：<i-switch
@@ -285,6 +308,16 @@ export default {
         })
       }     
       return filterCheckedNodes(data)
+    },
+    getArtifactsSuccessCount() {
+      const list = this.detailData.artifactsRes.data || []
+      let successCount = 0
+      list.forEach(item => {
+        if (item.status === 'success') {
+          successCount += item.artifactLen
+        }
+      })
+      return successCount
     }
   },
   mounted() {
@@ -365,6 +398,21 @@ export default {
       }
       .fail {
         color: #ff4d4f;
+        word-break: break-all;
+      }
+      .sucess-count {
+        margin-left: 10px;
+      }
+      .success-number {
+        font-size: 18px;
+        color: #00cb91;
+      }
+      .loading {
+        margin-left: 10px;
+        span {
+          font-size: 16px;
+          font-weight: normal;
+        }
       }
     }
     .content {
@@ -374,11 +422,14 @@ export default {
       &-list {
         display: flex;
         flex-direction: column;
-        width: 220px;
+        width: 240px;
         margin-right: 20px;
         span {
           margin-bottom: 2px;
         }
+      }
+      .no-data {
+        font-size: 14px;
       }
     }
   }

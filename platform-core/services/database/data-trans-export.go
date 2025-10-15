@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go.uber.org/zap"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
@@ -108,7 +109,11 @@ func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActi
 	transDataVariableConfig.NexusUser = transExportCustomerList[0].NexusAccount
 	transDataVariableConfig.NexusPwd = transExportCustomerList[0].NexusPwd
 	transDataVariableConfig.NexusRepo = transExportCustomerList[0].NexusRepo
-
+	// 更新导出状态为执行中
+	err = updateTransExportStatus(ctx, callParam.TransExportId, models.TransExportStatusDoing)
+	if err != nil {
+		return err
+	}
 	transExportJobParam := &models.TransExportJobParam{
 		DataTransExportParam:    &callParam.DataTransExportParam,
 		UserToken:               callParam.UserToken,
@@ -358,7 +363,7 @@ func exportCmdb(ctx context.Context, param *models.TransExportJobParam) (result 
 // exportArtifacts 8.导出物料包
 func exportArtifacts(ctx context.Context, param *models.TransExportJobParam) (result models.ExportResult, err error) {
 	log.Info(nil, log.LOGGER_APP, "8. export artifact start!!!!")
-	if err = DataTransExportArtifactData(ctx, param.TransExportId); err != nil {
+	if err = DataTransExportArtifactData(ctx, param); err != nil {
 		log.Error(nil, log.LOGGER_APP, "DataTransExportArtifactData error", zap.Error(err))
 	}
 	return
@@ -664,18 +669,20 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 	var actions, addTransExportActions, addTransExportDetailActions, analyzeDataActions []*db.ExecAction
 	transExportId = fmt.Sprintf("tp_%s", guid.CreateGuid())
 	transExport := models.TransExportTable{
-		Id:               transExportId,
-		CustomerId:       param.CustomerId,
-		CustomerName:     param.CustomerName,
-		Environment:      param.Env,
-		EnvironmentName:  param.EnvName,
-		Business:         strings.Join(param.PIds, ","),
-		BusinessName:     strings.Join(param.PNames, ","),
-		Status:           string(models.TransExportStatusStart),
-		CreatedUser:      operator,
-		UpdatedUser:      operator,
-		LastConfirmTime:  param.LastConfirmTime,
-		SelectedTreeJson: param.SelectedTreeJson, // 新增，保存tree结构json
+		Id:                transExportId,
+		CustomerId:        param.CustomerId,
+		CustomerName:      param.CustomerName,
+		Environment:       param.Env,
+		EnvironmentName:   param.EnvName,
+		Business:          strings.Join(param.PIds, ","),
+		BusinessName:      strings.Join(param.PNames, ","),
+		Status:            string(models.TransExportStatusStart),
+		CreatedUser:       operator,
+		UpdatedUser:       operator,
+		LastConfirmTime:   param.LastConfirmTime,
+		ExcludeDeployZone: strings.Join(param.ExcludeDeployZone, ","),
+		DeployZones:       strings.Join(param.DeployZones, ","),
+		SelectedTreeJson:  param.SelectedTreeJson, // 新增，保存tree结构json
 	}
 	// 新增导出记录
 	if addTransExportActions = getInsertTransExport(transExport); len(addTransExportActions) > 0 {
@@ -686,10 +693,11 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 		actions = append(actions, addTransExportDetailActions...)
 	}
 	dataTransParam := &models.AnalyzeDataTransParam{
-		TransExportId:   transExportId,
-		Business:        param.PIds,
-		Env:             param.Env,
-		LastConfirmTime: param.LastConfirmTime,
+		TransExportId:     transExportId,
+		Business:          param.PIds,
+		Env:               param.Env,
+		LastConfirmTime:   param.LastConfirmTime,
+		ExcludeDeployZone: param.ExcludeDeployZone,
 	}
 	pluginExportActions, analyzePluginErr := AnalyzePluginConfigDataExport(c, transExportId)
 	if analyzePluginErr != nil {
@@ -708,16 +716,18 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 func UpdateExport(c context.Context, param models.UpdateExportParam, operator string) (err error) {
 	var actions, addTransExportActions, deleteAnalyzeDataActions, analyzeDataActions []*db.ExecAction
 	transExport := models.TransExportTable{
-		Id:               param.TransExportId,
-		Environment:      param.Env,
-		EnvironmentName:  param.EnvName,
-		Business:         strings.Join(param.PIds, ","),
-		BusinessName:     strings.Join(param.PNames, ","),
-		Status:           string(models.TransExportStatusStart),
-		UpdatedUser:      operator,
-		LastConfirmTime:  param.LastConfirmTime,
-		UpdatedTime:      time.Now().Format(models.DateTimeFormat),
-		SelectedTreeJson: param.SelectedTreeJson, // 新增，保存tree结构json
+		Id:                param.TransExportId,
+		Environment:       param.Env,
+		EnvironmentName:   param.EnvName,
+		Business:          strings.Join(param.PIds, ","),
+		BusinessName:      strings.Join(param.PNames, ","),
+		Status:            string(models.TransExportStatusStart),
+		UpdatedUser:       operator,
+		LastConfirmTime:   param.LastConfirmTime,
+		UpdatedTime:       time.Now().Format(models.DateTimeFormat),
+		SelectedTreeJson:  param.SelectedTreeJson, // 新增，保存tree结构json
+		ExcludeDeployZone: strings.Join(param.ExcludeDeployZone, ","),
+		DeployZones:       strings.Join(param.DeployZones, ","),
 	}
 	// 更新导出记录
 	if addTransExportActions = getUpdateTransExport(transExport); len(addTransExportActions) > 0 {
@@ -734,10 +744,11 @@ func UpdateExport(c context.Context, param models.UpdateExportParam, operator st
 	}
 	actions = append(actions, pluginExportActions...)
 	dataTransParam := &models.AnalyzeDataTransParam{
-		TransExportId:   param.TransExportId,
-		Business:        param.PIds,
-		Env:             param.Env,
-		LastConfirmTime: param.LastConfirmTime,
+		TransExportId:     param.TransExportId,
+		Business:          param.PIds,
+		Env:               param.Env,
+		LastConfirmTime:   param.LastConfirmTime,
+		ExcludeDeployZone: param.ExcludeDeployZone,
 	}
 	if analyzeDataActions, err = AnalyzeCMDBDataExport(c, dataTransParam); err != nil {
 		return
@@ -1010,12 +1021,21 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 			}
 		case models.TransExportStepWorkflow:
 			tmpWorkflowList := models.TransExportWorkflowList{}
+			var exportCustomer *models.DataTransExportCustomerTable
+			if exportCustomer, err = GetTransExportCustomer(ctx, transExport.CustomerId); err != nil {
+				log.Error(nil, log.LOGGER_APP, "GetTransExportCustomer err", zap.Error(err))
+				return
+			}
+			if exportCustomer == nil {
+				log.Error(nil, log.LOGGER_APP, "exportCustomer is empty", zap.Error(err))
+				return
+			}
 			if transExportDetail.Input != "" {
 				if err = json.Unmarshal([]byte(transExportDetail.Input), &tmpWorkflowList); err != nil {
 					log.Error(nil, log.LOGGER_APP, "json unmarshal workflow input fail", zap.Error(err))
 					continue
 				}
-				tmpWorkflowList.Parse(dataTransVariableConfig.WorkflowExecList)
+				tmpWorkflowList.Parse(strings.Split(exportCustomer.ExecWorkflowIds, ","))
 			}
 			workflowOutput := models.ExportWorkflowOutput{CommonOutput: *output, WorkflowList: tmpWorkflowList}
 			detail.Workflows = &workflowOutput

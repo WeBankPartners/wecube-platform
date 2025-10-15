@@ -253,6 +253,7 @@ func init() {
 		&handlerFuncObj{Url: "/statistics/process/definitions/executions/plugin/report-details/query", Method: "POST", HandlerFunc: process.StatisticsPluginExecDetails, ApiCode: "statistics-plugin-exec-details"},
 
 		// 底座导入导出
+		&handlerFuncObj{Url: "/data/transfer/deployment_area/list", Method: "GET", HandlerFunc: data_trans.GetDeploymentAreaList, ApiCode: "data-transfer-deployment-area-list"},
 		&handlerFuncObj{Url: "/data/transfer/business/list", Method: "POST", HandlerFunc: data_trans.QueryBusinessList, ApiCode: "data-transfer-business-list"},
 		&handlerFuncObj{Url: "/data/transfer/export/customer", Method: "POST", HandlerFunc: data_trans.CreateOrUpdateExportCustomer, ApiCode: "data-transfer-export-customer-add"},
 		&handlerFuncObj{Url: "/data/transfer/export/nexus", Method: "GET", HandlerFunc: data_trans.GetExportNexusInfo, ApiCode: "data-transfer-export-nexus"},
@@ -267,6 +268,7 @@ func init() {
 
 		&handlerFuncObj{Url: "/data/transfer/import/business", Method: "GET", HandlerFunc: data_trans.GetBusinessList, ApiCode: "data-transfer-get-business-list"},
 		&handlerFuncObj{Url: "/data/transfer/import", Method: "POST", HandlerFunc: data_trans.ExecImport, ApiCode: "data-transfer-exec-import"},
+		&handlerFuncObj{Url: "/data/transfer/import_retry", Method: "POST", HandlerFunc: data_trans.ExecImportRetry, ApiCode: "data-transfer-exec-artifacts-import"},
 		&handlerFuncObj{Url: "/data/transfer/import/detail", Method: "GET", HandlerFunc: data_trans.ImportDetail, ApiCode: "data-transfer-import-detail"},
 		&handlerFuncObj{Url: "/data/transfer/import/list/options", Method: "GET", HandlerFunc: data_trans.GetImportListOptions, ApiCode: "data-transfer-import-options"},
 		&handlerFuncObj{Url: "/data/transfer/import/list", Method: "POST", HandlerFunc: data_trans.ImportList, ApiCode: "data-transfer-import-list"},

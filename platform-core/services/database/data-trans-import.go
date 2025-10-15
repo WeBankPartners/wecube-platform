@@ -5,12 +5,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/go-common-lib/cipher"
-	"go.uber.org/zap"
 	"io"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/go-common-lib/cipher"
+	"go.uber.org/zap"
 	"xorm.io/xorm"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
@@ -70,7 +71,7 @@ func DecompressExportZip(ctx context.Context, nexusUrl, transImportId string) (l
 		Password:   nexusConfig.NexusPwd,
 		RepoUrl:    nexusConfig.NexusUrl,
 		Repository: nexusConfig.NexusRepo,
-		TimeoutSec: 60,
+		TimeoutSec: 600,
 		FileParams: []*tools.NexusFileParam{{SourceFilePath: nexusUrl, DestFilePath: localExportFilePath}},
 	}
 	if err = tools.DownloadFile(&downloadParam); err != nil {
@@ -234,6 +235,47 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 				ErrMsg: transImportDetail.ErrorMsg,
 			}
 		case models.TransImportStepArtifacts:
+			// 尝试将 data 转换成 []*models.AnalyzeArtifactDisplayData 结构
+			var artifactDisplayDataList []*models.AnalyzeArtifactDisplayData
+			if data != nil {
+				if dataBytes, marshalErr := json.Marshal(data); marshalErr == nil {
+					if unmarshalErr := json.Unmarshal(dataBytes, &artifactDisplayDataList); unmarshalErr == nil {
+						// 转换成功，检查 transImportDetail.output 是否为空
+						if strings.TrimSpace(transImportDetail.Output) != "" {
+							var artifactOutputList []*models.ArtifactPackageImportOutputData
+							if outputUnmarshalErr := json.Unmarshal([]byte(transImportDetail.Output), &artifactOutputList); outputUnmarshalErr == nil {
+								// 遍历 AnalyzeArtifactDisplayData 数组和 ArtifactPackageImportOutputData 数组
+								for _, artifactDisplayData := range artifactDisplayDataList {
+									for _, artifactOutput := range artifactOutputList {
+										// 如果 unitDesign 相等，就把 ArtifactPackageImportOutputData 的 status 值给 AnalyzeArtifactDisplayData
+										if artifactDisplayData.UnitDesign == artifactOutput.UnitDesign {
+											artifactDisplayData.Status = artifactOutput.Status
+											break
+										}
+									}
+								}
+							} else {
+								log.Warn(nil, log.LOGGER_APP, "Failed to unmarshal transImportDetail.output to ArtifactPackageImportOutputData", zap.Error(outputUnmarshalErr))
+							}
+						}
+
+						// 检查每个 AnalyzeArtifactDisplayData 的 status 字段，如果为空则设置默认值 notStart
+						for _, artifactDisplayData := range artifactDisplayDataList {
+							if strings.TrimSpace(artifactDisplayData.Status) == "" {
+								artifactDisplayData.Status = "notStart"
+							}
+						}
+
+						// 更新 data 为转换后的数据
+						data = artifactDisplayDataList
+					} else {
+						log.Warn(nil, log.LOGGER_APP, "Failed to unmarshal data to AnalyzeArtifactDisplayData", zap.Error(unmarshalErr))
+					}
+				} else {
+					log.Warn(nil, log.LOGGER_APP, "Failed to marshal data", zap.Error(marshalErr))
+				}
+			}
+
 			detail.Artifacts = &models.CommonOutput{
 				Status: transImportDetail.Status,
 				Output: data,
@@ -432,6 +474,12 @@ func getInsertTransImport(transImport models.TransImportTable) (actions []*db.Ex
 		Param: []interface{}{transImport.Id, transImport.Business, transImport.BusinessName, transImport.Environment, transImport.EnvironmentName,
 			transImport.Status, transImport.InputUrl, transImport.CreatedUser, nowTime, transImport.UpdatedUser, nowTime, transImport.AssociationSystem,
 			transImport.AssociationProduct, transImport.SelectedTreeJson}})
+	return
+}
+
+func UpdateTransImport(ctx context.Context, transImportId, status string) (err error) {
+	nowTime := time.Now()
+	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_import set status=?, updated_time=? where id=?", status, nowTime, transImportId)
 	return
 }
 
@@ -771,6 +819,11 @@ func UpdateTransImportDetailInput(ctx context.Context, transImportId string, ste
 	return
 }
 
+func UpdateTransImportDetailOutput(ctx context.Context, transImportId string, step models.TransImportStep, output string) (err error) {
+	_, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_detail set output=? where trans_import=? and step=?", output, transImportId, step)
+	return
+}
+
 func UpdateTransImportDetailStatus(ctx context.Context, transImportId, transImportDetailId, status, output, errorMsg string) (err error) {
 	var actions []*db.ExecAction
 	nowTime := time.Now()
@@ -786,7 +839,7 @@ func UpdateTransImportDetailStatus(ctx context.Context, transImportId, transImpo
 			status, nowTime, transImportId,
 		}})
 	} else if status == "doing" {
-		actions = append(actions, &db.ExecAction{Sql: "update trans_import_detail set status=?,start_time=? where id=?", Param: []interface{}{
+		actions = append(actions, &db.ExecAction{Sql: "update trans_import_detail set status=?,error_msg='',start_time=? where id=?", Param: []interface{}{
 			status, nowTime, transImportDetailId,
 		}})
 	}
@@ -798,7 +851,7 @@ func UpdateTransImportDetailStatus(ctx context.Context, transImportId, transImpo
 	return
 }
 
-func RecordTransImportAction(ctx context.Context, callParam *models.CallTransImportActionParam) (err error) {
+func RecordTransImportAction(ctx context.Context, callParam *models.CallTransImportActionParam) (actionId string, err error) {
 	if callParam.ActionId == "" {
 		callParam.ActionId = "t_imp_action_" + guid.CreateGuid()
 		_, err = db.MysqlEngine.Context(ctx).Exec("insert into trans_import_action(id,trans_import,trans_import_detail,`action`,created_user,updated_time) values (?,?,?,?,?,?)",
@@ -806,6 +859,7 @@ func RecordTransImportAction(ctx context.Context, callParam *models.CallTransImp
 	} else {
 		_, err = db.MysqlEngine.Context(ctx).Exec("update trans_import_action set error_msg=?,updated_time=? where id=?", callParam.ErrorMsg, time.Now(), callParam.ActionId)
 	}
+	actionId = callParam.ActionId
 	return
 }
 
@@ -833,14 +887,16 @@ func DownloadImportArtifactPackages(ctx context.Context, nexusUrl, transImportId
 	if lastIndex := strings.LastIndex(nexusUrl, "/"); lastIndex > 0 {
 		nexusUrlPrefix = nexusUrl[:lastIndex]
 	}
+	fileMd5Map := make(map[string]string)
 	// 查nexus目录下的文件列表
 	fileNameList, err = tools.ListFilesInRepo(&tools.NexusReqParam{
-		UserName:   nexusConfig.NexusUser,
-		Password:   nexusConfig.NexusPwd,
-		RepoUrl:    nexusConfig.NexusUrl,
-		Repository: nexusConfig.NexusRepo,
-		TimeoutSec: 60,
-		DirPath:    fmt.Sprintf("/%s/%s", transExportId, models.TransArtifactPackageDirName),
+		UserName:     nexusConfig.NexusUser,
+		Password:     nexusConfig.NexusPwd,
+		RepoUrl:      nexusConfig.NexusUrl,
+		Repository:   nexusConfig.NexusRepo,
+		TimeoutSec:   60,
+		DirPath:      fmt.Sprintf("/%s/%s", transExportId, models.TransArtifactPackageDirName),
+		ExpectMd5Map: fileMd5Map,
 	})
 	if err != nil {
 		err = fmt.Errorf("list nexus artifact dir file list fail,%s ", err.Error())
@@ -849,6 +905,7 @@ func DownloadImportArtifactPackages(ctx context.Context, nexusUrl, transImportId
 	if len(fileNameList) == 0 {
 		return
 	}
+	log.Info(nil, log.LOGGER_APP, "import artifact packages md5 map", log.JsonObj("md5Map", fileMd5Map))
 	// 建临时目录
 	tmpImportDir := fmt.Sprintf(models.TransImportTmpDir, transImportId) + "/" + models.TransArtifactPackageDirName
 	if err = os.MkdirAll(tmpImportDir, 0755); err != nil {
@@ -862,19 +919,90 @@ func DownloadImportArtifactPackages(ctx context.Context, nexusUrl, transImportId
 			Password:   nexusConfig.NexusPwd,
 			RepoUrl:    nexusConfig.NexusUrl,
 			Repository: nexusConfig.NexusRepo,
-			TimeoutSec: 60,
+			TimeoutSec: 600,
 			FileParams: []*tools.NexusFileParam{{SourceFilePath: fmt.Sprintf("%s/%s/%s", nexusUrlPrefix, models.TransArtifactPackageDirName, remoteFileName), DestFilePath: fmt.Sprintf("%s/%s", tmpImportDir, remoteFileName)}},
 		}
+		if expectMd5, ok := fileMd5Map[remoteFileName]; ok {
+			downloadParam.FileParams[0].ExpectMd5 = expectMd5
+		}
+		log.Info(nil, log.LOGGER_APP, "start download nexus package file", zap.String("fileName", remoteFileName), log.JsonObj("downloadParam", downloadParam))
 		if err = tools.DownloadFile(&downloadParam); err != nil {
 			err = fmt.Errorf("donwload nexus artifact file:%s fail,%s ", remoteFileName, err.Error())
 			break
 		}
+		log.Info(nil, log.LOGGER_APP, "done download nexus package file", zap.String("fileName", remoteFileName))
 	}
 	if err != nil {
 		if clearErr := os.RemoveAll(tmpImportDir); clearErr != nil {
 			log.Error(nil, log.LOGGER_APP, "download nexus artifact fail,try to clear artifact tmp dir fail ", zap.Error(clearErr))
 		}
 	}
+	return
+}
+
+func ListImportNexusArtifactPackages(ctx context.Context, nexusUrl string) (fileMd5Map map[string]string, err error) {
+	// 获取nexus配置
+	nexusConfig, getNexusConfigErr := GetDataTransImportConfig(ctx)
+	if getNexusConfigErr != nil {
+		err = getNexusConfigErr
+		return
+	}
+	// 提取导出id来拼物料包的url路径
+	var transExportId string
+	urlSplitList := strings.Split(nexusUrl, "/")
+	if len(urlSplitList) > 2 {
+		transExportId = urlSplitList[len(urlSplitList)-2]
+	}
+	fileMd5Map = make(map[string]string)
+	// 查nexus目录下的文件列表
+	_, err = tools.ListFilesInRepo(&tools.NexusReqParam{
+		UserName:     nexusConfig.NexusUser,
+		Password:     nexusConfig.NexusPwd,
+		RepoUrl:      nexusConfig.NexusUrl,
+		Repository:   nexusConfig.NexusRepo,
+		TimeoutSec:   60,
+		DirPath:      fmt.Sprintf("/%s/%s", transExportId, models.TransArtifactPackageDirName),
+		ExpectMd5Map: fileMd5Map,
+	})
+	if err != nil {
+		err = fmt.Errorf("list nexus artifact dir file list fail,%s ", err.Error())
+		return
+	}
+	log.Info(nil, log.LOGGER_APP, "import artifact packages md5 map", log.JsonObj("md5Map", fileMd5Map))
+	return
+}
+
+func DownloadImportArtifactPackage(ctx context.Context, nexusConfig *models.TransDataImportConfig, nexusUrl, transImportId, remoteFileName, expectMd5 string) (localFilePath, dirPath string, err error) {
+	// 提取导出id来拼物料包的url路径
+	var nexusUrlPrefix string
+	if lastIndex := strings.LastIndex(nexusUrl, "/"); lastIndex > 0 {
+		nexusUrlPrefix = nexusUrl[:lastIndex]
+	}
+	// 建临时目录
+	dirPath = fmt.Sprintf(models.TransImportTmpDir, transImportId) + "/" + models.TransArtifactPackageDirName + "/" + guid.CreateGuid()
+	if err = os.MkdirAll(dirPath, 0755); err != nil {
+		err = fmt.Errorf("make tmp import dir fail,%s ", err.Error())
+		return
+	}
+	localFilePath = fmt.Sprintf("%s/%s", dirPath, remoteFileName)
+	// 从nexus下载
+	downloadParam := tools.NexusReqParam{
+		UserName:   nexusConfig.NexusUser,
+		Password:   nexusConfig.NexusPwd,
+		RepoUrl:    nexusConfig.NexusUrl,
+		Repository: nexusConfig.NexusRepo,
+		TimeoutSec: 600,
+		FileParams: []*tools.NexusFileParam{{SourceFilePath: fmt.Sprintf("%s/%s/%s", nexusUrlPrefix, models.TransArtifactPackageDirName, remoteFileName), DestFilePath: localFilePath, ExpectMd5: expectMd5}},
+	}
+	log.Info(nil, log.LOGGER_APP, "start download nexus package file", zap.String("fileName", remoteFileName), log.JsonObj("downloadParam", downloadParam))
+	if err = tools.DownloadFile(&downloadParam); err != nil {
+		if clearErr := os.RemoveAll(dirPath); clearErr != nil {
+			log.Error(nil, log.LOGGER_APP, "download nexus artifact fail,try to clear artifact tmp dir fail ", zap.String("file", remoteFileName), zap.Error(clearErr))
+		}
+		err = fmt.Errorf("donwload nexus artifact file:%s fail,%s ", remoteFileName, err.Error())
+		return
+	}
+	log.Info(nil, log.LOGGER_APP, "done download nexus package file", zap.String("fileName", remoteFileName))
 	return
 }
 
@@ -886,6 +1014,18 @@ func GetTransImportDetailInput(ctx context.Context, transImportDetailId string) 
 	}
 	if len(queryRows) > 0 {
 		result = queryRows[0]["input"]
+	}
+	return
+}
+
+func GetTransImportDetailOutput(ctx context.Context, transImportDetailId string) (result string, err error) {
+	queryRows, queryErr := db.MysqlEngine.Context(ctx).QueryString("select `output` from trans_import_detail where id=?", transImportDetailId)
+	if queryErr != nil {
+		err = fmt.Errorf("query trans import detail output data fail,%s ", queryErr.Error())
+		return
+	}
+	if len(queryRows) > 0 {
+		result = queryRows[0]["output"]
 	}
 	return
 }
@@ -1010,7 +1150,7 @@ func UpdateTransImportCMDBData(ctx context.Context, transImportParam *models.Tra
 
 func execTransImportCMDBData(session *xorm.Session, transImportParam *models.TransImportJobParam, transImportConfig *models.TransDataImportConfig, encryptSeed string) (err error) {
 	if transImportConfig.WecubeHostCode != "" {
-		queryRows, queryErr := session.QueryString("select guid from host_resource where code=?", transImportConfig.WecubeHostCode)
+		queryRows, queryErr := session.QueryString("select guid,ip_address from host_resource where code=?", transImportConfig.WecubeHostCode)
 		if queryErr != nil {
 			err = queryErr
 			return
@@ -1024,6 +1164,24 @@ func execTransImportCMDBData(session *xorm.Session, transImportParam *models.Tra
 			}
 			if _, err = session.Exec("update host_resource set asset_id=?,root_user_password=? where guid=?", transImportParam.ImportCustomFormData.WecubeHost1AssetId, encryptPwd, rowGuid); err != nil {
 				return
+			}
+			oldWecubeIp := queryRows[0]["ip_address"]
+			if transImportParam.ImportCustomFormData.WecubeHost1Ip != "" && transImportParam.ImportCustomFormData.WecubeHost1Ip != oldWecubeIp {
+				if _, err = session.Exec("update host_resource set ip_address=? where guid=?", transImportParam.ImportCustomFormData.WecubeHost1Ip, rowGuid); err != nil {
+					return
+				}
+				var sysVariableRows []*models.SystemVariables
+				err = db.MysqlEngine.SQL("select id,name,`value`,default_value from system_variables where name='HOST_EXPORTER_S3_PATH' and status='active'").Find(&sysVariableRows)
+				if err != nil {
+					err = fmt.Errorf("query s3 exporter system variables fail,%s ", err.Error())
+					return
+				}
+				for _, row := range sysVariableRows {
+					_, tmpErr := db.MysqlEngine.Exec("update system_variables set `value`=?,default_value=? where id=?", strings.ReplaceAll(row.Value, oldWecubeIp, transImportParam.ImportCustomFormData.WecubeHost1Ip), strings.ReplaceAll(row.DefaultValue, oldWecubeIp, transImportParam.ImportCustomFormData.WecubeHost1Ip), row.Id)
+					if tmpErr != nil {
+						log.Error(nil, log.LOGGER_APP, "update s3 exporter system variable fail", zap.String("id", row.Id), zap.Error(tmpErr))
+					}
+				}
 			}
 		}
 	}

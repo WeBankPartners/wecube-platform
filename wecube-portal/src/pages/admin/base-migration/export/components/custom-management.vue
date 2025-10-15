@@ -1,9 +1,3 @@
-<!--
- * @Author: wanghao7717 792974788@qq.com
- * @Date: 2025-01-07 20:01:01
- * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-01-17 10:20:42
--->
 <template>
   <BaseDrawer
     :title="form.id ? $t('pi_edit_custom') : $t('pi_add_custom')"
@@ -101,6 +95,13 @@
           >
             <Input v-model.trim="form.nexusRepo" :maxlength="50" />
           </FormItem>
+          <FormItem
+            :label="$t('execute_workflow_ids')"
+            prop="execWorkflowIds"
+            :rules="{required: true, message: $t('fe_can_not_be_empty'), trigger: 'blur, change'}"
+          >
+            <Input v-model.trim="form.execWorkflowIds" />
+          </FormItem>
         </Form>
       </BaseHeaderTitle>
     </div>
@@ -130,7 +131,8 @@ export default {
         nexusAddr: '',
         nexusAccount: '',
         nexusPwd: '',
-        nexusRepo: ''
+        nexusRepo: '',
+        execWorkflowIds: ''
       },
       customerList: [],
       selected: ''
@@ -177,7 +179,8 @@ export default {
         nexusAddr: '',
         nexusAccount: '',
         nexusPwd: '',
-        nexusRepo: ''
+        nexusRepo: '',
+        execWorkflowIds: ''
       }
     },
     handleEdit(row) {
@@ -189,7 +192,8 @@ export default {
         nexusAddr: row.nexusAddr,
         nexusAccount: row.nexusAccount,
         nexusPwd: row.nexusPwd,
-        nexusRepo: row.nexusRepo
+        nexusRepo: row.nexusRepo,
+        execWorkflowIds: row.execWorkflowIds
       })
     },
     handleDelete(e, row) {
@@ -210,7 +214,8 @@ export default {
                 nexusAddr: '',
                 nexusAccount: '',
                 nexusPwd: '',
-                nexusRepo: ''
+                nexusRepo: '',
+                execWorkflowIds: ''
               }
             }
             this.getCustomerList()

@@ -47,6 +47,13 @@
               <span>{{ $t('pe_select_busProduct') }}</span>
               <Tree :data="getProductTree"></Tree>
             </div>
+            <div class="content-list">
+              <span>{{ $t('pe_select_area') }}</span>
+              <template v-if="detailData.deployZones">
+                <Tag v-for="(i, index) in detailData.deployZones.split(',')" :key="index">{{ i }}</Tag>
+              </template>
+              <span v-else class="no-data">{{ $t('no_data') }}</span>
+            </div>
           </div>
         </card>
       </BaseHeaderTitle>
@@ -205,15 +212,21 @@
           <span v-if="detailData.artifactsRes.status === 'success'" class="success">({{ $t('pe_export_success') }})</span>
           <span v-if="detailData.artifactsRes.status === 'fail'" class="fail">({{ $t('pe_export_fail') }}：<span>{{ detailData.artifactsRes.errMsg }}</span>)</span>
         </div>
+        <BaseSearch
+          :onlyShowReset="true"
+          :options="artifactsSearchOptions"
+          v-model="artifactsSearchParams"
+          @search="handleSearchArtifacts"
+        ></BaseSearch>
         <Row :gutter="10">
-          <Col :span="16">
+          <Col :xxl="20" :xl="24">
             <Card>
               <Table
                 :border="false"
                 size="small"
                 :columns="artifactsColumns"
                 :max-height="500"
-                :data="detailData.artifactsRes.data"
+                :data="artifactsTableData"
               />
             </Card>
           </Col>
@@ -230,7 +243,7 @@
           <span v-if="detailData.monitorRes.status === 'fail'" class="fail">({{ $t('pe_export_fail') }}：<span>{{ detailData.monitorRes.errMsg }}</span>)</span>
         </div>
         <Row :gutter="10">
-          <Col :span="16">
+          <Col :xxl="20" :xl="24">
             <Card>
               <Table
                 :border="false"
@@ -398,11 +411,14 @@ export default {
       &-list {
         display: flex;
         flex-direction: column;
-        width: 220px;
+        width: 240px;
         margin-right: 20px;
         span {
           margin-bottom: 2px;
         }
+      }
+      .no-data {
+        font-size: 14px;
       }
     }
   }

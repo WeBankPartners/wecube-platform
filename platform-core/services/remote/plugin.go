@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/network"
-	"go.uber.org/zap"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -15,6 +13,9 @@ import (
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/network"
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
@@ -842,14 +843,14 @@ func UpdatentityDataWithExpr(ctx context.Context, authToken, packageName, entity
 }
 
 // nexus 推送物料包
-func PushPackage(ctx context.Context, token string, unitDesignId string, deployPackageId string, subDirPath string) (result *models.PushArtifactPluginPackageData, err error) {
+func PushPackage(ctx context.Context, token string, unitDesignId string, deployPackageId string, postData models.PushArtifactPluginPackageParam) (result *models.PushArtifactPluginPackageData, err error) {
 	uri := fmt.Sprintf("%s/%s/unit-designs/%s/packages/%s/push", models.Config.Gateway.Url, models.PluginNameArtifacts, unitDesignId, deployPackageId)
 	if models.Config.HttpsEnable == "true" {
 		uri = "https://" + uri
 	} else {
 		uri = "http://" + uri
 	}
-	postData := models.PushArtifactPluginPackageParam{Path: subDirPath}
+	// postData := models.PushArtifactPluginPackageParam{Path: subDirPath}
 	postBytes, _ := json.Marshal(postData)
 	urlObj, _ := url.Parse(uri)
 	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), bytes.NewReader(postBytes))
@@ -912,47 +913,83 @@ func PushPackage(ctx context.Context, token string, unitDesignId string, deployP
 	return
 }
 
-func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId string, localPackagePath string) (deployPackageGuid string, err error) {
-	uri := fmt.Sprintf("%s/%s/unit-designs/%s/packages/upload", models.Config.Gateway.Url, models.PluginNameArtifacts, unitDesignId)
+func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId string, localPackagePath, portalUrl string) (deployPackageGuid string, err error) {
+	urlPrefix := models.Config.Gateway.Url
+	if portalUrl != "" {
+		urlPrefix = portalUrl
+	}
+	uri := fmt.Sprintf("%s/%s/unit-designs/%s/packages/upload", urlPrefix, models.PluginNameArtifacts, unitDesignId)
 	if models.Config.HttpsEnable == "true" {
 		uri = "https://" + uri
 	} else {
 		uri = "http://" + uri
 	}
-	urlObj, _ := url.Parse(uri)
-	buf := new(bytes.Buffer)
-	bodyWriter := multipart.NewWriter(buf)
-	if fileObj, tmpErr := os.Open(localPackagePath); tmpErr != nil {
-		err = fmt.Errorf("can not read multipart form file:%s ,err:%s", localPackagePath, tmpErr.Error())
-		return
-	} else {
+	urlObj, err := url.Parse(uri)
+	if err != nil {
+		return "", fmt.Errorf("解析URL失败: %v", err)
+	}
+
+	// 创建一个管道(pipe)作为请求体，实现流式传输
+	pipeR, pipeW := io.Pipe()
+	defer pipeR.Close()
+
+	bodyWriter := multipart.NewWriter(pipeW)
+	contentType := bodyWriter.FormDataContentType()
+	// 表单构建协程
+	go func() {
+		defer pipeW.Close()
+		// 关闭 bodyWriter，确保 multipart 表单数据写入完成
+		defer bodyWriter.Close()
+
+		// 写入表单字段
+		err = bodyWriter.WriteField("package_type", "APP&DB")
+		if err != nil {
+			err = fmt.Errorf("write field: package_type failed: %s", err.Error())
+			pipeW.CloseWithError(err)
+			log.Error(nil, log.LOGGER_APP, err.Error())
+			return
+		}
+
+		// 添加 file 字段到 multipart 表单中
+		var formFileWriter io.Writer
 		fileName := localPackagePath
 		if lastPathIndex := strings.LastIndex(localPackagePath, "/"); lastPathIndex > 0 {
 			fileName = localPackagePath[lastPathIndex+1:]
 		}
-		tmpWriter, ffErr := bodyWriter.CreateFormFile("file", fileName)
-		if ffErr != nil {
-			err = fmt.Errorf("create multipart form file fail,key:file,%s ", err.Error())
+		formFileWriter, err = bodyWriter.CreateFormFile("file", fileName)
+		if err != nil {
+			err = fmt.Errorf("create form file writer for field:file failed: %s", err.Error())
+			pipeW.CloseWithError(err)
+			log.Error(nil, log.LOGGER_APP, err.Error())
 			return
 		}
-		if _, err = io.Copy(tmpWriter, fileObj); err != nil {
-			err = fmt.Errorf("io copy multipart file fail,%s ", err.Error())
+		// 2. 写入文件字段
+		fileObj, err := os.Open(localPackagePath)
+		if err != nil {
+			err = fmt.Errorf("can not open file:%s ,%s ", localPackagePath, err.Error())
+			pipeW.CloseWithError(err)
+			log.Error(nil, log.LOGGER_APP, err.Error())
 			return
 		}
-		packageTypeWriter, _ := bodyWriter.CreateFormField("package_type")
-		_, writeErr := packageTypeWriter.Write([]byte("APP&DB"))
-		if writeErr != nil {
-			err = fmt.Errorf("create form field package type value fail,%s ", writeErr.Error())
+		defer fileObj.Close()
+		// 将上传的文件内容复制到 form file writer
+		_, err = io.Copy(formFileWriter, fileObj)
+		if err != nil {
+			err = fmt.Errorf("copy file to formFileWriter failed: %s", err.Error())
+			pipeW.CloseWithError(err)
+			log.Error(nil, log.LOGGER_APP, err.Error())
 			return
 		}
+	}()
+
+	// 创建请求，请求体使用管道的读取端
+	req, err := http.NewRequest(http.MethodPost, urlObj.String(), pipeR)
+	if err != nil {
+		return "", fmt.Errorf("创建请求失败: %v", err)
 	}
-	bodyWriter.Close()
-	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), buf)
-	if reqErr != nil {
-		err = fmt.Errorf("new http request to %s fail,%s ", urlObj.String(), reqErr.Error())
-		return
-	}
-	req.Header.Set("Content-Type", bodyWriter.FormDataContentType())
+
+	// 设置请求头
+	req.Header.Set("Content-Type", contentType)
 	reqId := "req_" + guid.CreateGuid()
 	var transId string
 	if ctx.Value(models.TransactionIdHeader) != nil {
@@ -1253,5 +1290,63 @@ func ConfirmCMDBDataList(ctx context.Context, ciTypeEntity string, dataGuidList 
 		err = fmt.Errorf(response.ResultMessage)
 		return
 	}
+	return
+}
+
+func RpcQueryCiData(ciType string, requestParam models.QueryRequestParam) (result models.CmdbPageData, err error) {
+	var res []byte
+	var response models.QueryCmdbResponse
+	uri := fmt.Sprintf("%s/wecmdb/api/v1/ci-data/query/%s", models.Config.Gateway.Url, ciType)
+	postBytes, _ := json.Marshal(requestParam)
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	if res, err = network.HttpPost(uri, GetToken(), models.DefaultLanguage, postBytes); err != nil {
+		return
+	}
+	if err = json.Unmarshal(res, &response); err != nil {
+		return
+	}
+	log.Logger.Info("RpcQueryCiData ", log.JsonObj("request", requestParam), log.JsonObj("response", response))
+	if response.Code != 0 || response.StatusCode != "OK" {
+		err = fmt.Errorf("RpcQueryCiData error,code:%d,message:%s", response.Code, response.StatusMessage)
+		return
+	}
+	result = response.Data
+	return
+}
+
+func QueryCMDBReportData(reportId string, rootDataGuidList []string) (result []map[string]interface{}, err error) {
+	if reportId == "" || len(rootDataGuidList) == 0 {
+		return
+	}
+	requestParam := models.PluginViewDataQueryParam{ReportId: reportId, RootCiList: rootDataGuidList, WithoutChildren: false}
+	var responseBodyBytes []byte
+	var response models.PluginViewDataQueryResponse
+	uri := fmt.Sprintf("%s/wecmdb/api/v1/view-data", models.Config.Gateway.Url)
+	postBytes, _ := json.Marshal(requestParam)
+	// info-level log for request input
+	log.Logger.Info("QueryCMDBReportData request", log.JsonObj("request", requestParam))
+	if models.Config.HttpsEnable == "true" {
+		uri = "https://" + uri
+	} else {
+		uri = "http://" + uri
+	}
+	if responseBodyBytes, err = network.HttpPost(uri, GetToken(), models.DefaultLanguage, postBytes); err != nil {
+		return
+	}
+	if err = json.Unmarshal(responseBodyBytes, &response); err != nil {
+		err = fmt.Errorf("json unmarshal response body fail,%s ", err.Error())
+		return
+	}
+	// info-level log for response output
+	log.Logger.Info("QueryCMDBReportData response", log.JsonObj("response", response))
+	if response.StatusCode != "OK" {
+		err = fmt.Errorf(response.StatusMessage)
+		return
+	}
+	result = response.Data
 	return
 }

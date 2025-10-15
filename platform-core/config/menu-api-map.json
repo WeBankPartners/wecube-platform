@@ -1058,6 +1058,11 @@
         "method": "get"
       },
       {
+        "key": "getExportZoneList",
+        "url": "/platform/v1/data/transfer/deployment_area/list",
+        "method": "get"
+      },
+      {
         "key": "addCustomer",
         "url": "/platform/v1/data/transfer/export/customer",
         "method": "post"
@@ -1120,6 +1125,11 @@
       {
         "key": "saveImportData",
         "url": "/platform/v1/data/transfer/import",
+        "method": "post"
+      },
+      {
+        "key": "importRetry",
+        "url": "/platform/v1/data/transfer/import_retry",
         "method": "post"
       },
       {

@@ -93,7 +93,9 @@ export default {
     }
     // 重新发起
     if (_id && _type === 'republish') {
+      this.loading = true
       await this.getDetailData()
+      this.loading = false
       this.detailData.lastConfirmTime = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss')
       this.activeStep = 0
     }
@@ -233,7 +235,7 @@ export default {
         const failObj = exportData.find(i => i.status === 'fail') || {}
         this.detailData.failMsg = `${failObj.title}：${failObj.errMsg}`
         // 成功或失败，取消轮询查状态
-        if (['success', 'fail'].includes(this.detailData.status)) {
+        if (['success', 'fail', 'start'].includes(this.detailData.status)) {
           if (this.interval) {
             clearTimeout(this.interval)
           }
@@ -247,11 +249,15 @@ export default {
     // 保存or更新环境和产品
     handleSaveEnvBusiness: debounce(async function () {
       const {
-        customerId, env, lastConfirmTime, envList, selectionList, productData
+        customerId, env, lastConfirmTime, envList, selectionList,
+        productData, excludeDeployZone, deployZone, zoneList
       } = this.$refs.env
       const pIds = selectionList.map(item => item.id)
       const pNames = selectionList.map(item => item.displayName)
       const envName = envList.find(item => item.value === env).label
+      // 选中的区域名称
+      const selectedZoneNames = zoneList.filter(item => deployZone.includes(item.guid))
+        .map(item => item.displayName) || []
       if (!customerId) {
         return this.$Message.warning(this.$t('pi_target_custom') + this.$t('required'))
       }
@@ -268,7 +274,9 @@ export default {
         envName,
         lastConfirmTime,
         customerId,
-        selectedTreeJson: JSON.stringify(productData)
+        selectedTreeJson: JSON.stringify(productData),
+        excludeDeployZone,
+        deployZones: selectedZoneNames.join(',')
       }
       this.loading = true
       const { status, data } = await (this.id && this.type !== 'republish'
@@ -320,7 +328,9 @@ export default {
       this.loading = false
       if (status === 'OK') {
         this.activeStep++
-        this.getDetailData()
+        this.loading = true
+        await this.getDetailData()
+        this.loading = false
         this.$refs.scrollView.scrollTop = 0
       }
     }, 500),

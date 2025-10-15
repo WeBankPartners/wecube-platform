@@ -20,6 +20,13 @@
               <Tree :data="getProductTree"></Tree>
             </div>
           </div>
+          <div class="content-list">
+            <span>{{ $t('pe_select_area') }}</span>
+            <template v-if="detailData.deployZones">
+              <Tag v-for="(i, index) in detailData.deployZones.split(',')" :key="index">{{ i }}</Tag>
+            </template>
+            <span v-else class="no-data">{{ $t('no_data') }}</span>
+          </div>
         </card>
       </BaseHeaderTitle>
     </div>
@@ -187,15 +194,21 @@
         <div slot="sub-title" class="title">
           {{ $t('pe_select') }}<span class="number">{{ detailData.artifactsCount }}</span>
         </div>
+        <BaseSearch
+          :onlyShowReset="true"
+          :options="artifactsSearchOptions"
+          v-model="artifactsSearchParams"
+          @search="handleSearchArtifacts"
+        ></BaseSearch>
         <Row :gutter="10">
-          <Col :span="16">
+          <Col :xxl="20" :xl="24">
             <Card>
               <Table
                 :border="false"
                 size="small"
                 :columns="artifactsColumns"
                 :max-height="500"
-                :data="detailData.artifactsRes.data"
+                :data="artifactsTableData"
               />
             </Card>
           </Col>
@@ -210,7 +223,7 @@
           <span class="name">{{ $t('pe_total') }}</span><span class="number">{{ detailData.monitorCount }}</span>
         </div>
         <Row :gutter="10">
-          <Col :span="16">
+          <Col :xxl="20" :xl="24">
             <Card>
               <Table
                 :border="false"
@@ -434,11 +447,14 @@ export default {
       &-list {
         display: flex;
         flex-direction: column;
-        width: 220px;
+        width: 240px;
         margin-right: 20px;
         span {
           margin-bottom: 2px;
         }
+      }
+      .no-data {
+        font-size: 14px;
       }
     }
   }

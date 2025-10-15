@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 func GetPath(path string) (newPath string, err error) {
@@ -113,4 +115,13 @@ func WriteJsonData2File(path string, inter interface{}) (err error) {
 		return
 	}
 	return
+}
+
+func GetFileMD5Value(filePath string) (string, error) {
+	output, err := exec.Command("/bin/bash", "-c", fmt.Sprintf("md5sum %s", filePath)).Output()
+	if err != nil {
+		return "", fmt.Errorf("Try to get md5 value fail,output=%s,error=%s ", string(output), err.Error())
+	}
+	outputSplit := strings.Split(string(output), " ")
+	return outputSplit[0], nil
 }

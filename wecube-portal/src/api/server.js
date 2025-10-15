@@ -398,7 +398,11 @@ export const addCustomer = data => req.post('/platform/v1/data/transfer/export/c
 export const deleteCustomer = id => req.delete(`/platform/v1/data/transfer/export/customer?id=${id}`)
 // 获取nexus配置详情
 export const getNexusConfig = () => req.get('/platform/v1/data/transfer/export/nexus')
-
+// 物料包失败重试接口
+export const importRetry = data => req.post('/platform/v1/data/transfer/import_retry', data)
+// 获取部署区域
+export const getExportZoneList = () => req.get('/platform/v1/data/transfer/deployment_area/list')
+ 
 // 资源管理-资源实例重构
 // 新增资源实例
 export const addResourceInstance = data => req.post('/platform/resource/items/create', data)

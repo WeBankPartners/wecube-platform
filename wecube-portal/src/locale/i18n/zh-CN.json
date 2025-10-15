@@ -946,6 +946,7 @@
 
   "pe_select_env": "选择环境" ,
   "pe_select_product": "选择产品",
+  "pe_select_area": "选择区域",
   "pe_business_product": "产品名",
   "pe_product_id": "产品ID",
   "pe_product_des": "产品描述",
@@ -1057,11 +1058,13 @@
   "pi_nexus_password": "nexus密码",
   "pi_custom_default_config": "填充默认配置",
   "pi_reset_data": "清空选项",
+  "pi_search_artifacts": "根据单元名称或包名模糊搜索",
   "server_404_error": "加载失败:当前插件已注销，请刷新页面重试",
   "p_reigiter_tips": "【服务接口】和【系统参数】都将会被一起继承",
   "workflow_format_layout": "格式化布局",
   "workflow_empty_running": "执行数据为空",
   "workflow_empty_running_tip": "数据为空，是否继续执行？",
   "platform_robot_title": "WeCube-AI助手",
-  "platform_robot_content": "长按可拖动"
+  "platform_robot_content": "长按可拖动",
+  "execute_workflow_ids": "执行编排ID列表"
 }

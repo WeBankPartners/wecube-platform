@@ -25,10 +25,11 @@ type CallTransExportActionParam struct {
 }
 
 type AnalyzeDataTransParam struct {
-	TransExportId   string   `json:"transExportId"`
-	Business        []string `json:"business"`
-	Env             string   `json:"env"`
-	LastConfirmTime string   `json:"lastConfirmTime"`
+	TransExportId     string   `json:"transExportId"`
+	Business          []string `json:"business"`
+	Env               string   `json:"env"`
+	LastConfirmTime   string   `json:"lastConfirmTime"`
+	ExcludeDeployZone []string `json:"excludeDeployZone"`
 }
 
 type SysCiTypeTable struct {
@@ -101,7 +102,9 @@ type TransExportTable struct {
 	AssociationTechProducts []string `json:"associationTechProducts" xorm:"-"` // 关联系统
 	LastConfirmTime         string   `json:"lastConfirmTime" xorm:"last_confirm_time"`
 	// 新增字段，保存前端选中的tree结构json
-	SelectedTreeJson string `json:"selectedTreeJson" xorm:"selected_tree_json"`
+	SelectedTreeJson  string `json:"selectedTreeJson" xorm:"selected_tree_json"`
+	ExcludeDeployZone string `json:"excludeDeployZone" xorm:"exclude_deploy_zone"` // 排除的部署区域
+	DeployZones       string `json:"deployZones" xorm:"deploy_zones"`              // 部署区域名称
 }
 
 type TransExportDetailTable struct {
@@ -170,6 +173,8 @@ type TransDataVariableConfig struct {
 	IgnoreSearchAttrList       []string `json:"ignoreSearchAttrList"`
 	ResetEmptyAttrList         []string `json:"resetEmptyAttrList"`
 	WorkflowExecList           []string `json:"workflowExecList"`
+	IgnoreDeployZoneReportId   string   `json:"ignoreDeployZoneReportId"`
+	DeployZoneGroupCiType      string   `json:"deployZoneGroupCiType"`
 }
 
 type CiTypeData struct {
@@ -192,24 +197,28 @@ type QueryBusinessParam struct {
 }
 
 type CreateExportParam struct {
-	PIds             []string `json:"pIds"`       // 产品ID
-	PNames           []string `json:"pNames"`     // 产品名称
-	Env              string   `json:"env"`        // 环境
-	EnvName          string   `json:"envName"`    // 环境名称
-	CustomerId       string   `json:"customerId"` // 客户id
-	CustomerName     string   `json:"-"`          // 客户名称
-	LastConfirmTime  string   `json:"lastConfirmTime"`
-	SelectedTreeJson string   `json:"selectedTreeJson"` // 新增，保存前端tree结构json
+	PIds              []string `json:"pIds"`       // 产品ID
+	PNames            []string `json:"pNames"`     // 产品名称
+	Env               string   `json:"env"`        // 环境
+	EnvName           string   `json:"envName"`    // 环境名称
+	CustomerId        string   `json:"customerId"` // 客户id
+	CustomerName      string   `json:"-"`          // 客户名称
+	LastConfirmTime   string   `json:"lastConfirmTime"`
+	SelectedTreeJson  string   `json:"selectedTreeJson"`  // 新增，保存前端tree结构json
+	ExcludeDeployZone []string `json:"excludeDeployZone"` // 排除的部署区域
+	DeployZones       []string `json:"deployZones"`       // 部署区域名称列表
 }
 
 type UpdateExportParam struct {
-	TransExportId    string   `json:"transExportId"` // 导出Id
-	PIds             []string `json:"pIds"`          // 产品ID
-	PNames           []string `json:"pNames"`        // 产品名称
-	Env              string   `json:"env"`           // 环境
-	EnvName          string   `json:"envName"`       // 环境名称
-	LastConfirmTime  string   `json:"lastConfirmTime"`
-	SelectedTreeJson string   `json:"selectedTreeJson"` // 新增，保存前端tree结构json
+	TransExportId     string   `json:"transExportId"` // 导出Id
+	PIds              []string `json:"pIds"`          // 产品ID
+	PNames            []string `json:"pNames"`        // 产品名称
+	Env               string   `json:"env"`           // 环境
+	EnvName           string   `json:"envName"`       // 环境名称
+	LastConfirmTime   string   `json:"lastConfirmTime"`
+	SelectedTreeJson  string   `json:"selectedTreeJson"`  // 新增，保存前端tree结构json
+	ExcludeDeployZone []string `json:"excludeDeployZone"` // 排除的部署区域
+	DeployZones       []string `json:"deployZones"`       // 部署区域名称列表
 }
 
 type DataTransExportParam struct {
@@ -346,12 +355,49 @@ type TransExportDetail struct {
 	CreateAndUploadFile    *CommonOutput         `json:"createAndUploadFile"`
 }
 
+// TransExportDetailSimplified 精简版的 TransExportDetail，用于减少数据传输量
+type TransExportDetailSimplified struct {
+	TransExport            *TransExportTable            `json:"transExport"`
+	CmdbCI                 []*CommonNameCountSimplified `json:"cmdbCI"` // 使用精简版本
+	CmdbView               []*CommonNameCreator         `json:"cmdbView"`
+	CmdbViewCount          int                          `json:"cmdbViewCount"`
+	CmdbReportForm         []*CommonNameCreator         `json:"cmdbReportForm"`
+	CmdbReportFormCount    int                          `json:"cmdbReportFormCount"`
+	Roles                  *CommonOutput                `json:"roles"`
+	Workflows              *ExportWorkflowOutput        `json:"workflows"`
+	BatchExecution         *CommonOutput                `json:"batchExecutions"`
+	RequestTemplates       *CommonOutput                `json:"requestTemplates"`
+	ComponentLibrary       *CommonOutput                `json:"componentLibrary"`
+	ExportComponentLibrary bool                         `json:"exportComponentLibrary"`
+	Artifacts              *CommonOutput                `json:"artifacts"`
+	Monitor                *CommonOutput                `json:"monitor"`
+	Plugins                *CommonOutput                `json:"plugins"`
+	Cmdb                   *CommonOutput                `json:"cmdb"`
+	CreateAndUploadFile    *CommonOutput                `json:"createAndUploadFile"`
+}
+
 type CommonNameCount struct {
 	Name     string      `json:"name"`
 	Count    int         `json:"count"`
 	Group    string      `json:"group"`
 	DataType string      `json:"dataType"`
 	Data     interface{} `json:"data"`
+}
+
+// SimplifiedCIData 精简的 CI 数据结构，只包含必要字段
+type SimplifiedCIData struct {
+	KeyName    string `json:"key_name"`    // 关键名称
+	CreateTime string `json:"create_time"` // 创建时间
+	CreateUser string `json:"create_user"` // 创建用户
+}
+
+// CommonNameCountSimplified 精简版的 CommonNameCount，用于 cmdbCI
+type CommonNameCountSimplified struct {
+	Name     string                      `json:"name"`
+	Count    int                         `json:"count"`
+	Group    string                      `json:"group"`
+	DataType string                      `json:"dataType"`
+	Data     map[string]SimplifiedCIData `json:"data"` // 使用精简数据结构
 }
 
 type PluginPackageCount struct {
@@ -440,15 +486,16 @@ type SysViewTable struct {
 }
 
 type DataTransExportCustomerTable struct {
-	Id           string `json:"id" xorm:"id"`
-	Name         string `json:"name" xorm:"name"`
-	NexusAddr    string `json:"nexusAddr" xorm:"nexus_addr"`
-	NexusAccount string `json:"nexusAccount" xorm:"nexus_account"`
-	NexusPwd     string `json:"nexusPwd" xorm:"nexus_pwd"`
-	NexusRepo    string `json:"nexusRepo" xorm:"nexus_repo"`
-	CreatedUser  string `json:"createdUser" xorm:"created_user"`
-	CreatedTime  string `json:"createdTime" xorm:"created_time"`
-	UpdateTime   string `json:"updateTime" xorm:"updated_time"`
+	Id              string `json:"id" xorm:"id"`
+	Name            string `json:"name" xorm:"name"`
+	NexusAddr       string `json:"nexusAddr" xorm:"nexus_addr"`
+	NexusAccount    string `json:"nexusAccount" xorm:"nexus_account"`
+	NexusPwd        string `json:"nexusPwd" xorm:"nexus_pwd"`
+	NexusRepo       string `json:"nexusRepo" xorm:"nexus_repo"`
+	ExecWorkflowIds string `json:"execWorkflowIds" xorm:"exec_workflow_ids"`
+	CreatedUser     string `json:"createdUser" xorm:"created_user"`
+	CreatedTime     string `json:"createdTime" xorm:"created_time"`
+	UpdateTime      string `json:"updateTime" xorm:"updated_time"`
 }
 
 type ExportCustomerDto struct {
@@ -457,12 +504,13 @@ type ExportCustomerDto struct {
 }
 
 type DataTransExportCustomerParam struct {
-	Id           string `json:"id"`
-	Name         string `json:"name"`
-	NexusAddr    string `json:"nexusAddr"`
-	NexusAccount string `json:"nexusAccount"`
-	NexusPwd     string `json:"nexusPwd"`
-	NexusRepo    string `json:"nexusRepo"`
+	Id              string `json:"id"`
+	Name            string `json:"name"`
+	NexusAddr       string `json:"nexusAddr"`
+	NexusAccount    string `json:"nexusAccount"`
+	NexusPwd        string `json:"nexusPwd"`
+	NexusRepo       string `json:"nexusRepo"`
+	ExecWorkflowIds string `json:"execWorkflowIds"`
 }
 
 type DataTransPluginExportData struct {
@@ -478,6 +526,7 @@ type AnalyzeArtifactDisplayData struct {
 	UnitDesignName string              `json:"unitDesignName"`
 	ArtifactRows   []map[string]string `json:"artifactRows"`
 	ArtifactLen    int                 `json:"artifactLen"`
+	Status         string              `json:"status"`
 }
 
 type ExportMetricListDto struct {
@@ -551,4 +600,70 @@ func (t TransExportWorkflowList) Parse(input []string) {
 			}
 		}
 	}
+}
+
+// ConvertToSimplifiedCIData 将完整的 CI 数据转换为精简版本
+func ConvertToSimplifiedCIData(originalData interface{}) map[string]SimplifiedCIData {
+	simplifiedData := make(map[string]SimplifiedCIData)
+
+	// 尝试将 interface{} 转换为 map[string]interface{}
+	if dataMap, ok := originalData.(map[string]interface{}); ok {
+		for guid, ciData := range dataMap {
+			if ciMap, ok := ciData.(map[string]interface{}); ok {
+				simplifiedData[guid] = SimplifiedCIData{
+					KeyName:    getStringValue(ciMap, "key_name"),
+					CreateTime: getStringValue(ciMap, "create_time"),
+					CreateUser: getStringValue(ciMap, "create_user"),
+				}
+			}
+		}
+	}
+
+	return simplifiedData
+}
+
+// getStringValue 安全地从 map 中获取字符串值
+func getStringValue(data map[string]interface{}, key string) string {
+	if value, exists := data[key]; exists {
+		if str, ok := value.(string); ok {
+			return str
+		}
+	}
+	return ""
+}
+
+// ConvertToSimplifiedDetail 将完整的 TransExportDetail 转换为精简版本
+func ConvertToSimplifiedDetail(detail *TransExportDetail) *TransExportDetailSimplified {
+	simplified := &TransExportDetailSimplified{
+		TransExport:            detail.TransExport,
+		CmdbView:               detail.CmdbView,
+		CmdbViewCount:          detail.CmdbViewCount,
+		CmdbReportForm:         detail.CmdbReportForm,
+		CmdbReportFormCount:    detail.CmdbReportFormCount,
+		Roles:                  detail.Roles,
+		Workflows:              detail.Workflows,
+		BatchExecution:         detail.BatchExecution,
+		RequestTemplates:       detail.RequestTemplates,
+		ComponentLibrary:       detail.ComponentLibrary,
+		ExportComponentLibrary: detail.ExportComponentLibrary,
+		Artifacts:              detail.Artifacts,
+		Monitor:                detail.Monitor,
+		Plugins:                detail.Plugins,
+		Cmdb:                   detail.Cmdb,
+		CreateAndUploadFile:    detail.CreateAndUploadFile,
+	}
+
+	// 转换 CmdbCI 数据
+	for _, ci := range detail.CmdbCI {
+		simplifiedCI := &CommonNameCountSimplified{
+			Name:     ci.Name,
+			Count:    ci.Count,
+			Group:    ci.Group,
+			DataType: ci.DataType,
+			Data:     ConvertToSimplifiedCIData(ci.Data),
+		}
+		simplified.CmdbCI = append(simplified.CmdbCI, simplifiedCI)
+	}
+
+	return simplified
 }

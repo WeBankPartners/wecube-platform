@@ -194,7 +194,7 @@ CREATE TABLE `trans_import_proc_exec`
 (
     `id`                  varchar(64) COLLATE utf8_bin  NOT NULL,
     `trans_import_detail` varchar(64) COLLATE utf8_bin  NOT NULL COMMENT '记录详情表',
-    `proc_ins`            varchar(64) COLLATE utf8_bin  NOT NULL COMMENT '编排实例ID',
+    `proc_ins`            varchar(64) COLLATE utf8_bin  DEFAULT NULL COMMENT '编排实例ID',
     `proc_def`            varchar(64) COLLATE utf8_bin  NOT NULL COMMENT '编排定义ID',
     `proc_def_key`        varchar(64) COLLATE utf8_bin  NOT NULL COMMENT '编排定义KEY',
     `proc_def_name`       varchar(255) COLLATE utf8_bin NOT NULL COMMENT '编排定义名称',

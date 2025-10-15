@@ -48,6 +48,7 @@
 
 <script>
 import ExecuteResult from '../components/execute-result.vue'
+import { updateTimeBasedOnDateType } from '@/const/util'
 import { getBatchExecuteList } from '@/api/server'
 import dayjs from 'dayjs'
 export default {
@@ -201,6 +202,8 @@ export default {
           vm.form = searchParams
           vm.searchOptions = searchOptions
           vm.pagination = pageable
+          // 确保时间是最新的
+          updateTimeBasedOnDateType(vm.searchOptions, vm.form, 'createdTimeT')
         }
       }
       // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数

@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/encrypt"
-	"go.uber.org/zap"
 	"io/fs"
 	"os"
 	"strings"
+
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/encrypt"
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/v1/process"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
@@ -52,12 +53,6 @@ func StartTransImport(ctx context.Context, param models.ExecImportParam) (err er
 		return
 	}
 	if transImport == nil || transImport.Id == "" {
-		// 下载物料包
-		_, _, err = database.DownloadImportArtifactPackages(ctx, param.ExportNexusUrl, param.TransImportId)
-		if err != nil {
-			log.Error(nil, log.LOGGER_APP, "download import artifact packages fail", zap.String("url", param.ExportNexusUrl), zap.Error(err))
-			return
-		}
 		// 文件解压
 		if localPath, err = database.DecompressExportZip(ctx, param.ExportNexusUrl, param.TransImportId); err != nil {
 			log.Error(nil, log.LOGGER_APP, "DecompressExportZip err", zap.Error(err))
@@ -77,7 +72,7 @@ func StartTransImport(ctx context.Context, param models.ExecImportParam) (err er
 	}
 	actionParam := &models.CallTransImportActionParam{
 		TransImportId:        param.TransImportId,
-		Action:               string(models.TransImportStatusStart),
+		Action:               param.Action,
 		Operator:             param.Operator,
 		ActionId:             transImportAction.Id,
 		DirPath:              localPath,
@@ -86,7 +81,12 @@ func StartTransImport(ctx context.Context, param models.ExecImportParam) (err er
 		WebStep:              param.WebStep,
 		ImportCustomFormData: param.ImportCustomFormData,
 	}
-	go doImportAction(ctx, actionParam)
+	go func() {
+		err := doImportAction(ctx, actionParam)
+		if err != nil {
+			log.Error(nil, log.LOGGER_APP, "doImportAction err", zap.Error(err))
+		}
+	}()
 	return
 }
 
@@ -109,13 +109,14 @@ func StartTransImport(ctx context.Context, param models.ExecImportParam) (err er
 // 继续导入
 // 12、导入监控业务配置、层级对象指标、层级对象阈值配置、自定义看板、关键字层级对象
 func doImportAction(ctx context.Context, callParam *models.CallTransImportActionParam) (err error) {
+	var actionId string
 	transImportJobParam, getConfigErr := database.GetTransImportWithDetail(ctx, callParam.TransImportId, false)
 	if getConfigErr != nil {
 		err = getConfigErr
 		log.Error(nil, log.LOGGER_APP, "GetTransImportWithDetail err", zap.Error(err))
 		return
 	}
-	if err = database.RecordTransImportAction(ctx, callParam); err != nil {
+	if actionId, err = database.RecordTransImportAction(ctx, callParam); err != nil {
 		err = fmt.Errorf("record trans import action table fail,%s ", err.Error())
 		log.Error(nil, log.LOGGER_APP, "RecordTransImportAction err", zap.Error(err))
 		return
@@ -125,13 +126,21 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 	transImportJobParam.Language = callParam.Language
 	transImportJobParam.Operator = callParam.Operator
 	transImportJobParam.ImportCustomFormData = callParam.ImportCustomFormData
-	if callParam.Action == string(models.TransImportActionStart) {
+	transImportJobParam.ActionId = actionId
+	if callParam.Action == string(models.TransImportActionStart) || callParam.Action == string(models.TransImportActionRetry) {
 		if checkImportHasExit(ctx, callParam.TransImportId) {
 			return
 		}
+		if callParam.Action == string(models.TransImportActionRetry) {
+			// 更新 导入状态为doing
+			if err = database.UpdateTransImport(ctx, callParam.TransImportId, string(models.TransImportStatusDoing)); err != nil {
+				log.Error(nil, log.LOGGER_APP, "UpdateTransImport err", zap.Error(err))
+				return
+			}
+		}
 		var currentStep int
 		for _, detailRow := range transImportJobParam.Details {
-			if detailRow.Status == string(models.TransImportStatusNotStart) {
+			if detailRow.Status == string(models.TransImportStatusNotStart) || detailRow.Status == string(models.TransImportStatusFail) {
 				currentStep = detailRow.Step
 				break
 			}
@@ -177,11 +186,6 @@ func doImportAction(ctx context.Context, callParam *models.CallTransImportAction
 			}
 		}
 	}
-	if err != nil {
-		callParam.ErrorMsg = err.Error()
-		log.Error(nil, log.LOGGER_APP, "doImportAction fail", log.JsonObj("callParam", callParam), zap.Error(err))
-		database.RecordTransImportAction(ctx, callParam)
-	}
 	return
 }
 
@@ -193,6 +197,13 @@ func callImportFunc(ctx context.Context, transImportJobParam *models.TransImport
 	output, err = funcObj(ctx, transImportJobParam)
 	if err != nil {
 		database.UpdateTransImportDetailStatus(ctx, transImportJobParam.TransImport.Id, transImportJobParam.CurrentDetail.Id, "fail", output, err.Error())
+		callParam := &models.CallTransImportActionParam{
+			ErrorMsg: err.Error(),
+			ActionId: transImportJobParam.ActionId,
+		}
+		// 记录这次导入失败,后面重试也能看到这次失败信息
+		log.Error(nil, log.LOGGER_APP, "doImportAction fail", log.JsonObj("callParam", callParam), zap.Error(err))
+		database.RecordTransImportAction(ctx, callParam)
 	} else {
 		if transImportJobParam.CurrentDetail.Step != int(models.TransImportStepInitWorkflow) {
 			database.UpdateTransImportDetailStatus(ctx, transImportJobParam.TransImport.Id, transImportJobParam.CurrentDetail.Id, "success", output, "")

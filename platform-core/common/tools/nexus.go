@@ -1,7 +1,6 @@
 package tools
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,21 +10,26 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
+	"go.uber.org/zap"
 )
 
 type NexusReqParam struct {
-	UserName   string            `json:"userName"`   // 用户名
-	Password   string            `json:"password"`   // 密码
-	RepoUrl    string            `json:"repoUrl"`    // repo 的 url: http://127.0.0.1:8081
-	Repository string            `json:"repository"` // repo 名称: test
-	TimeoutSec int64             `json:"timeoutSec"` // 超时时间, 单位:s
-	FileParams []*NexusFileParam `json:"fileParams"` // 文件的参数列表
-	DirPath    string            `json:"dirPath"`    // 查询文件列表的目录路径: /test/t1
+	UserName     string            `json:"userName"`   // 用户名
+	Password     string            `json:"password"`   // 密码
+	RepoUrl      string            `json:"repoUrl"`    // repo 的 url: http://127.0.0.1:8081
+	Repository   string            `json:"repository"` // repo 名称: test
+	TimeoutSec   int64             `json:"timeoutSec"` // 超时时间, 单位:s
+	FileParams   []*NexusFileParam `json:"fileParams"` // 文件的参数列表
+	DirPath      string            `json:"dirPath"`    // 查询文件列表的目录路径: /test/t1
+	ExpectMd5Map map[string]string `json:"expectMd5Map"`
 }
 
 type NexusFileParam struct {
 	SourceFilePath string `json:"sourceFilePath"` // 源文件的路径
 	DestFilePath   string `json:"destFilePath"`   // 目标文件的路径
+	ExpectMd5      string `json:"expectMd5"`      // 文件预期的md5
 }
 
 type NexusUploadFileRet struct {
@@ -129,10 +133,26 @@ func DownloadFile(reqParam *NexusReqParam) (err error) {
 	}
 
 	for _, downloadFileParam := range reqParam.FileParams {
-		tmpErr := doDownloadFile(reqParam, downloadFileParam)
-		if tmpErr != nil {
-			err = fmt.Errorf("doDownloadFile for %s failed: %s", downloadFileParam.SourceFilePath, tmpErr.Error())
-			return
+		for i := 0; i < 3; i++ {
+			tmpMd5, tmpErr := doDownloadFile(reqParam, downloadFileParam)
+			if tmpErr != nil {
+				err = fmt.Errorf("doDownloadFile for %s failed: %s", downloadFileParam.SourceFilePath, tmpErr.Error())
+				return
+			}
+			if downloadFileParam.ExpectMd5 != "" {
+				if tmpMd5 == downloadFileParam.ExpectMd5 {
+					break
+				} else {
+					os.Remove(downloadFileParam.DestFilePath)
+					log.Warn(nil, log.LOGGER_ACCESS, "download nexus fail with illegal md5,retry", zap.String("file", downloadFileParam.DestFilePath), zap.String("expect", downloadFileParam.ExpectMd5), zap.String("real", tmpMd5))
+					if i == 2 {
+						err = fmt.Errorf("doDownloadFile for %s failed with md5 illegal,expect:%s real:%s ", downloadFileParam.SourceFilePath, downloadFileParam.ExpectMd5, tmpMd5)
+						return
+					}
+				}
+			} else {
+				break
+			}
 		}
 	}
 	return
@@ -149,8 +169,9 @@ func doUploadFile(reqParam *NexusReqParam, uploadFileParam *NexusFileParam) (sto
 	}
 	defer file.Close()
 
-	// 创建 HTTP 请求
-	reqUrl := fmt.Sprintf("%s/repository/%s/%s", reqParam.RepoUrl, reqParam.Repository, uploadFileParam.DestFilePath)
+	// 创建 HTTP 请求 - 修复双斜杠问题
+	repoUrl := strings.TrimRight(reqParam.RepoUrl, "/")
+	reqUrl := fmt.Sprintf("%s/repository/%s/%s", repoUrl, reqParam.Repository, uploadFileParam.DestFilePath)
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Duration(reqParam.TimeoutSec)*time.Second)
 	defer cancelFunc()
 
@@ -178,20 +199,21 @@ func doUploadFile(reqParam *NexusReqParam, uploadFileParam *NexusFileParam) (sto
 		return
 	}
 	fmt.Printf("upload file: %s successfully: %s\n", srcFilePath, bodyBytes)
-	storePath = fmt.Sprintf("%s/repository/%s/%s", reqParam.RepoUrl, reqParam.Repository, uploadFileParam.DestFilePath)
+	storePath = fmt.Sprintf("%s/repository/%s/%s", repoUrl, reqParam.Repository, uploadFileParam.DestFilePath)
 	return
 }
 
-func doDownloadFile(reqParam *NexusReqParam, downloadFileParam *NexusFileParam) (err error) {
+func doDownloadFile(reqParam *NexusReqParam, downloadFileParam *NexusFileParam) (md5Value string, err error) {
 	srcFilePath := downloadFileParam.SourceFilePath
 	//log.Info(nil, log.LOGGER_APP, fmt.Sprintf("start to download file: %s", srcFilePath))
 
 	// 创建 HTTP 请求
-	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Duration(reqParam.TimeoutSec)*time.Second)
-	defer cancelFunc()
+	// ctx, cancelFunc := context.WithTimeout(context.Background(), time.Duration(reqParam.TimeoutSec)*time.Second)
+	// defer cancelFunc()
 
 	reqUrl := srcFilePath
-	req, tmpErr := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl, nil)
+	req, tmpErr := http.NewRequest(http.MethodGet, reqUrl, nil)
+	// req, tmpErr := http.NewRequestWithContext(context.Background(), http.MethodGet, reqUrl, nil)
 	if tmpErr != nil {
 		err = fmt.Errorf("create request for reqUrl: %s failed: %s", reqUrl, tmpErr.Error())
 		return
@@ -205,8 +227,8 @@ func doDownloadFile(reqParam *NexusReqParam, downloadFileParam *NexusFileParam) 
 		err = fmt.Errorf("do request: %s failed: %s", reqUrl, tmpErr.Error())
 		return
 	}
-	bodyBytes, _ := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
+	// bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
 
 	// 检查响应状态
 	if resp.StatusCode != http.StatusOK {
@@ -224,11 +246,14 @@ func doDownloadFile(reqParam *NexusReqParam, downloadFileParam *NexusFileParam) 
 	defer out.Close()
 
 	// 将响应内容写入本地文件
-	_, tmpErr = io.Copy(out, bytes.NewReader(bodyBytes))
+	_, tmpErr = io.Copy(out, resp.Body)
 	if tmpErr != nil {
+		os.Remove(destFilePath)
 		err = fmt.Errorf("copy content to output file: %s failed: %s", destFilePath, tmpErr.Error())
 		return
 	}
+	md5Value, _ = GetFileMD5Value(destFilePath)
+	// md5Value = fmt.Sprintf("%x", md5.Sum(bodyBytes))
 
 	//log.Info(nil, log.LOGGER_APP, fmt.Sprintf("download file: %s successfully", srcFilePath))
 	return
@@ -281,7 +306,9 @@ func ListFilesInRepo(reqParam *NexusReqParam) (fileNameList []string, err error)
 		err = fmt.Errorf("validate ListFilesInRepo params failed: %s", err.Error())
 		return
 	}
-
+	if reqParam.ExpectMd5Map == nil {
+		reqParam.ExpectMd5Map = make(map[string]string)
+	}
 	continuationToken := ""
 	for {
 		queryParams := make(map[string]string)
@@ -303,6 +330,11 @@ func ListFilesInRepo(reqParam *NexusReqParam) (fileNameList []string, err error)
 				if len(tmpList) > 0 {
 					fileName := tmpList[len(tmpList)-1]
 					fileNameList = append(fileNameList, fileName)
+					if item.Checksum != nil {
+						if item.Checksum.Md5 != "" {
+							reqParam.ExpectMd5Map[fileName] = item.Checksum.Md5
+						}
+					}
 				}
 			}
 		}

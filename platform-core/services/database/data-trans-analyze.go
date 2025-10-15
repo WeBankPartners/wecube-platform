@@ -7,6 +7,11 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"os"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
@@ -14,10 +19,6 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote/monitor"
 	"go.uber.org/zap"
-	"os"
-	"sort"
-	"strings"
-	"time"
 	"xorm.io/xorm"
 	"xorm.io/xorm/schemas"
 )
@@ -229,14 +230,31 @@ func analyzeCMDB(param *models.AnalyzeDataTransParam, ciTypeAttrMap map[string][
 		err = fmt.Errorf("can not find any system data with business and env")
 		return
 	}
+	// 根据 排除区域调用报表,拿到所有需要排除数据的guid
+	var result []map[string]interface{}
+	if len(param.ExcludeDeployZone) > 0 && strings.TrimSpace(transConfig.IgnoreDeployZoneReportId) == "" {
+		err = fmt.Errorf("system variable PLATFORM_EXPORT_IGNORE_ZONE_REPORT is not configured or is empty. Please check system parameters")
+		return
+	}
+	if result, err = remote.QueryCMDBReportData(transConfig.IgnoreDeployZoneReportId, param.ExcludeDeployZone); err != nil {
+		log.Error(nil, log.LOGGER_APP, "QueryCMDBReportData failed", zap.Error(err))
+		return
+	}
+	var excludeGuidMap = make(map[string]string)
+	tmpExcludeGuids := extractGUIDs(result)
+	if len(tmpExcludeGuids) > 0 {
+		for _, excludeGuid := range tmpExcludeGuids {
+			excludeGuidMap[excludeGuid] = param.TransExportId
+		}
+	}
+	log.Info(nil, log.LOGGER_APP, "QueryCMDBReportData done", log.JsonObj("excludeGuidMap", excludeGuidMap))
 	// 从系统数据出发，正向查找数据，反向通过配置里的反向属性查找
-	//err = analyzeCMDBData(transConfig.BusinessCiType, param.Business, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime, ciTypeStateMap)
 	nowTime := time.Now().Format(models.DateTimeFormat)
-	err = analyzeCMDBData(transConfig.SystemCiType, systemGuidList, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime, nowTime, ciTypeStateMap)
+	err = analyzeCMDBData(transConfig.SystemCiType, systemGuidList, []*models.CiTypeDataFilter{}, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, make(map[string]string), param.LastConfirmTime, nowTime, ciTypeStateMap, excludeGuidMap)
 	return
 }
 
-func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig, parentMap map[string]string, lastConfirmTime, nowTime string, ciTypeStateMap map[string]string) (err error) {
+func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.CiTypeDataFilter, ciTypeAttrMap map[string][]*models.SysCiTypeAttrTable, ciTypeDataMap map[string]*models.CiTypeData, cmdbEngine *xorm.Engine, transConfig *models.TransDataVariableConfig, parentMap map[string]string, lastConfirmTime, nowTime string, ciTypeStateMap map[string]string, excludeGuidMap map[string]string) (err error) {
 	log.Info(nil, log.LOGGER_APP, "analyzeCMDBData", zap.String("ciType", ciType), zap.Strings("guidList", ciDataGuidList))
 	if len(ciDataGuidList) == 0 {
 		return
@@ -278,6 +296,10 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 				}
 			}
 			tmpRowGuid := row["guid"]
+			if v, ok := excludeGuidMap[tmpRowGuid]; ok {
+				log.Info(nil, log.LOGGER_APP, "analyzeCMDBData filter success", zap.String("transExportId", v), zap.String("guid", tmpRowGuid))
+				continue
+			}
 			existData.DataMap[tmpRowGuid] = row
 			existData.DataChainMap[tmpRowGuid] = fmt.Sprintf("%s -> %s[%s]", parentMap[tmpRowGuid], row["guid"], row["key_name"])
 			newRowsGuidList = append(newRowsGuidList, tmpRowGuid)
@@ -288,6 +310,10 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 		dataChainMap := make(map[string]string)
 		for _, row := range queryCiDataResult {
 			tmpRowGuid := row["guid"]
+			if v, ok := excludeGuidMap[tmpRowGuid]; ok {
+				log.Info(nil, log.LOGGER_APP, "analyzeCMDBData filter success", zap.String("transExportId", v), zap.String("guid", tmpRowGuid))
+				continue
+			}
 			for _, emptyAttr := range transConfig.ResetEmptyAttrList {
 				row[emptyAttr] = ""
 			}
@@ -318,12 +344,17 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 			for _, row := range newRows {
 				tmpRefCiDataGuid := row[attr.Name]
 				if tmpRefCiDataGuid != "" {
+					if _, ok := excludeGuidMap[tmpRefCiDataGuid]; ok {
+						// 把行属性值匹配上例外的给清空,不然会带个空引用数据过去
+						row[attr.Name] = ""
+						continue
+					}
 					refCiTypeGuidList = append(refCiTypeGuidList, tmpRefCiDataGuid)
 					tmpParentMap[tmpRefCiDataGuid] = ciTypeDataMap[ciType].DataChainMap[row["guid"]]
 				}
 			}
 			if len(refCiTypeGuidList) > 0 {
-				if err = analyzeCMDBData(attr.RefCiType, refCiTypeGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, nowTime, ciTypeStateMap); err != nil {
+				if err = analyzeCMDBData(attr.RefCiType, refCiTypeGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, nowTime, ciTypeStateMap, excludeGuidMap); err != nil {
 					break
 				}
 			}
@@ -339,12 +370,22 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 			if len(toGuidList) > 0 {
 				tmpParentMap := make(map[string]string)
 				for tmpFromGuid, tmpToGuidList := range toGuidRefMap {
+					if len(excludeGuidMap) > 0 {
+						newTmpToGuidList := []string{}
+						for _, tmpToGuid := range tmpToGuidList {
+							if _, ok := excludeGuidMap[tmpToGuid]; ok {
+								continue
+							}
+							newTmpToGuidList = append(newTmpToGuidList, tmpToGuid)
+						}
+						tmpToGuidList = newTmpToGuidList
+					}
 					for _, tmpToGuid := range tmpToGuidList {
 						tmpParentMap[tmpToGuid] = ciTypeDataMap[ciType].DataChainMap[tmpFromGuid]
 					}
 					ciTypeDataMap[ciType].DataMap[tmpFromGuid][attr.Name] = strings.Join(models.DistinctStringList(tmpToGuidList, []string{}), ",")
 				}
-				if err = analyzeCMDBData(attr.RefCiType, toGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, nowTime, ciTypeStateMap); err != nil {
+				if err = analyzeCMDBData(attr.RefCiType, toGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, nowTime, ciTypeStateMap, excludeGuidMap); err != nil {
 					break
 				}
 			}
@@ -387,7 +428,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 							depCiGuidList = append(depCiGuidList, row["guid"])
 							tmpParentMap[row["guid"]] = ciTypeDataMap[ciType].DataChainMap[row[depCiAttr.Name]]
 						}
-						if err = analyzeCMDBData(depCiType, depCiGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, nowTime, ciTypeStateMap); err != nil {
+						if err = analyzeCMDBData(depCiType, depCiGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, nowTime, ciTypeStateMap, excludeGuidMap); err != nil {
 							break
 						}
 					}
@@ -410,7 +451,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 								tmpParentMap[tmpFromGuid] = ciTypeDataMap[ciType].DataChainMap[tmpToGuid]
 							}
 						}
-						if err = analyzeCMDBData(depCiType, depFromGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, nowTime, ciTypeStateMap); err != nil {
+						if err = analyzeCMDBData(depCiType, depFromGuidList, filters, ciTypeAttrMap, ciTypeDataMap, cmdbEngine, transConfig, tmpParentMap, lastConfirmTime, nowTime, ciTypeStateMap, excludeGuidMap); err != nil {
 							break
 						}
 					}
@@ -530,36 +571,11 @@ func GetDataTransVariableMap(ctx context.Context) (result *models.TransDataVaria
 			if tmpValue != "" {
 				result.WorkflowExecList = strings.Split(tmpValue, ",")
 			}
+		case "PLATFORM_EXPORT_IGNORE_ZONE_REPORT":
+			result.IgnoreDeployZoneReportId = tmpValue
+		case "PLATFORM_EXPORT_DEPLOY_ZONE_GROUP":
+			result.DeployZoneGroupCiType = tmpValue
 		}
-	}
-	return
-}
-
-func getCMDBFilterSql(ciTypeAttributes []*models.SysCiTypeAttrTable, filter *models.CiTypeDataFilter, cmdbEngine *xorm.Engine, lastConfirmTime string) (filterSql string, err error) {
-	matchAttr := &models.SysCiTypeAttrTable{}
-	for _, attr := range ciTypeAttributes {
-		if attr.RefCiType == filter.CiType {
-			matchAttr = attr
-			break
-		}
-	}
-	if matchAttr.Id == "" {
-		return
-	}
-	condition := "in"
-	if filter.Condition == "notIn" {
-		condition = "not in"
-	}
-	if matchAttr.InputType == "multiRef" {
-		var fromGuidList []string
-		if fromGuidList, _, err = getCMDBMultiRefGuidList(matchAttr.CiType, matchAttr.Name, condition, []string{}, filter.GuidList, cmdbEngine, lastConfirmTime, nil); err != nil {
-			return
-		}
-		filterSql = fmt.Sprintf("guid in ('%s')", strings.Join(fromGuidList, "','"))
-	} else if matchAttr.InputType == "ref" {
-		filterSql = fmt.Sprintf("%s %s ('%s')", matchAttr.Name, condition, strings.Join(filter.GuidList, "','"))
-	} else {
-		err = fmt.Errorf("ciTypeAttr:%s refCiType:%s illegal with inputType:%s ", matchAttr.Id, filter.CiType, matchAttr.InputType)
 	}
 	return
 }
@@ -654,16 +670,18 @@ func getInsertAnalyzeCMDBActions(transExportId string, ciTypeDataMap map[string]
 func getInsertTransExport(transExport models.TransExportTable) (actions []*db.ExecAction) {
 	nowTime := time.Now()
 	actions = []*db.ExecAction{}
-	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export(id,customer_id,customer_name,business,business_name,environment,environment_name,status,output_url,created_user,created_time,updated_user,updated_time,last_confirm_time,selected_tree_json) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-		transExport.Id, transExport.CustomerId, transExport.CustomerName, transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.Status, transExport.OutputUrl, transExport.CreatedUser, nowTime, transExport.UpdatedUser, nowTime, transExport.LastConfirmTime, transExport.SelectedTreeJson,
+	actions = append(actions, &db.ExecAction{Sql: "insert into trans_export(id,customer_id,customer_name,business,business_name,environment,environment_name,status," +
+		"output_url,created_user,created_time,updated_user,updated_time,last_confirm_time,selected_tree_json,exclude_deploy_zone,deploy_zones) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+		transExport.Id, transExport.CustomerId, transExport.CustomerName, transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.Status,
+		transExport.OutputUrl, transExport.CreatedUser, nowTime, transExport.UpdatedUser, nowTime, transExport.LastConfirmTime, transExport.SelectedTreeJson, transExport.ExcludeDeployZone, transExport.DeployZones,
 	}})
 	return
 }
 
 func getUpdateTransExport(transExport models.TransExportTable) (actions []*db.ExecAction) {
 	actions = []*db.ExecAction{}
-	actions = append(actions, &db.ExecAction{Sql: "update trans_export set business=?,business_name=?,environment=?,environment_name=?,updated_user=?,updated_time=?,last_confirm_time=?,selected_tree_json=? where id=? ", Param: []interface{}{
-		transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.UpdatedUser, transExport.UpdatedTime, transExport.LastConfirmTime, transExport.SelectedTreeJson, transExport.Id,
+	actions = append(actions, &db.ExecAction{Sql: "update trans_export set business=?,business_name=?,environment=?,environment_name=?,updated_user=?,updated_time=?,last_confirm_time=?,selected_tree_json=?,exclude_deploy_zone=?,deploy_zones=? where id=? ", Param: []interface{}{
+		transExport.Business, transExport.BusinessName, transExport.Environment, transExport.EnvironmentName, transExport.UpdatedUser, transExport.UpdatedTime, transExport.LastConfirmTime, transExport.SelectedTreeJson, transExport.ExcludeDeployZone, transExport.DeployZones, transExport.Id,
 	}})
 	return
 }
@@ -1353,10 +1371,10 @@ func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableNa
 	}
 	nowTime := time.Now().Format(models.DateTimeFormat)
 	for _, v := range rowValueList {
-		bf.WriteString("INSERT INTO " + tableName + " (`" + strings.Join(columnNameList, "`,`") + "`) VALUES (" + v + ");\n")
+		bf.WriteString("INSERT INTO `" + tableName + "` (`" + strings.Join(columnNameList, "`,`") + "`) VALUES (" + v + ");\n")
 		if ciDataTableFlag {
 			historyRowValue := v + ",'insert','" + nowTime + "','0'"
-			bf.WriteString("INSERT INTO history_" + tableName + " (`" + strings.Join(historyColumnNameList, "`,`") + "`) VALUES (" + historyRowValue + ");\n")
+			bf.WriteString("INSERT INTO `history_" + tableName + "` (`" + strings.Join(historyColumnNameList, "`,`") + "`) VALUES (" + historyRowValue + ");\n")
 		}
 	}
 	distinctMultiMap := make(map[string]int)
@@ -1420,10 +1438,10 @@ func DataTransImportCMDBData(ctx context.Context, inputFile string) (err error) 
 }
 
 // DataTransExportArtifactData 把物料包直接迁到物料插件配置好的nexus上
-func DataTransExportArtifactData(ctx context.Context, transExportId string) (err error) {
+func DataTransExportArtifactData(ctx context.Context, transExportParam *models.TransExportJobParam) (err error) {
 	// 读analyze表cmdb数据
 	var transExportAnalyzeRows []*models.TransExportAnalyzeDataTable
-	err = db.MysqlEngine.Context(ctx).SQL("select id,source,data_type,`data` from trans_export_analyze_data where trans_export=? and source='artifact'", transExportId).Find(&transExportAnalyzeRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select id,source,data_type,`data` from trans_export_analyze_data where trans_export=? and source='artifact'", transExportParam.TransExportId).Find(&transExportAnalyzeRows)
 	if err != nil {
 		err = fmt.Errorf("query trans export analyze table data fail,%s ", err.Error())
 		return
@@ -1439,12 +1457,23 @@ func DataTransExportArtifactData(ctx context.Context, transExportId string) (err
 	for _, unitDesign := range dataList {
 		for _, deployPackage := range unitDesign.ArtifactRows {
 			if deployPackage["guid"] != "" {
-				pushPackageResult, pushErr := remote.PushPackage(ctx, remote.GetToken(), unitDesign.UnitDesign, deployPackage["guid"], fmt.Sprintf("/%s/%s/", transExportId, models.TransArtifactPackageDirName))
-				if pushErr != nil {
-					err = fmt.Errorf("push artifact package %s fail,%s ", deployPackage["key_name"], pushErr.Error())
-					break
+				pushParam := models.PushArtifactPluginPackageParam{
+					Path:       fmt.Sprintf("/%s/%s/", transExportParam.TransExportId, models.TransArtifactPackageDirName),
+					Server:     transExportParam.DataTransVariableConfig.NexusUrl,
+					Repository: transExportParam.DataTransVariableConfig.NexusRepo,
+					Username:   transExportParam.DataTransVariableConfig.NexusUser,
+					Password:   transExportParam.DataTransVariableConfig.NexusPwd,
 				}
-				deployPackage[models.TransArtifactNewPackageName] = pushPackageResult.Name
+				for i := 0; i < 3; i++ {
+					pushPackageResult, pushErr := remote.PushPackage(ctx, remote.GetToken(), unitDesign.UnitDesign, deployPackage["guid"], pushParam)
+					if pushErr != nil {
+						err = fmt.Errorf("push artifact package %s fail,%s ", deployPackage["key_name"], pushErr.Error())
+					} else {
+						err = nil
+						deployPackage[models.TransArtifactNewPackageName] = pushPackageResult.Name
+						break
+					}
+				}
 			}
 		}
 		if err != nil {
@@ -1549,4 +1578,40 @@ func DataTransExportPluginConfig(ctx context.Context, transExportId, path string
 		}
 	}
 	return
+}
+
+// extractGUIDs 递归函数，用于从任意 JSON 结构中提取所有 "guid" 字段的值
+func extractGUIDs(data interface{}) []string {
+	if data == nil {
+		return []string{}
+	}
+	var guids []string
+
+	switch v := data.(type) {
+	case map[string]interface{}:
+		// 如果是对象，遍历所有键值对
+		for key, value := range v {
+			if key == "guid" {
+				// 如果键是 "guid"，将其值添加到结果切片中
+				if guid, ok := value.(string); ok {
+					guids = append(guids, guid)
+				}
+			} else {
+				// 否则，递归处理值
+				guids = append(guids, extractGUIDs(value)...)
+			}
+		}
+	case []interface{}:
+		// 如果是数组，遍历所有元素
+		for _, item := range v {
+			// 递归处理每个元素
+			guids = append(guids, extractGUIDs(item)...)
+		}
+	case []map[string]interface{}:
+		// 如果是对象数组（例如 []map[string]interface{}），遍历所有元素
+		for _, item := range v {
+			guids = append(guids, extractGUIDs(item)...)
+		}
+	}
+	return guids
 }

@@ -81,6 +81,13 @@ export default {
           templateData: data
         }
         this.detailData.name = `${this.detailData.name}${new Date().getTime()}`
+        
+        // 清空预先勾选的操作实例数据
+        this.$nextTick(() => {
+          if (this.$refs.form && this.$refs.form.clearSelectedRows) {
+            this.$refs.form.clearSelectedRows()
+          }
+        })
       }
     },
     // 获取执行详情

@@ -1,9 +1,3 @@
-<!--
- * @Author: wanghao7717 792974788@qq.com
- * @Date: 2024-10-16 15:32:21
- * @LastEditors: wanghao7717 792974788@qq.com
- * @LastEditTime: 2025-02-08 17:29:38
--->
 <template>
   <div class="base-migration-import-three">
     <Form ref="form" :model="importCustomFormData" :label-width="250">
@@ -78,8 +72,10 @@ export default {
         routeTableAssetId: '',
         wecubeHost1AssetId: '',
         wecubeHost1Password: '',
+        wecubeHost1Ip: '',
         wecubeHost2AssetId: '',
-        wecubeHost2Password: ''
+        wecubeHost2Password: '',
+        wecubeHost2Ip: ''
       },
       options: [
         {
@@ -119,13 +115,21 @@ export default {
           key: 'wecubeHost1Password'
         },
         {
+          label: '主机资源 wecube主机1-IP地址',
+          key: 'wecubeHost1Ip'
+        },
+        {
           label: '主机资源 wecube主机2-资产ID',
           key: 'wecubeHost2AssetId'
         },
         {
           label: '主机资源 wecube主机2-管理员密码',
           key: 'wecubeHost2Password'
-        }
+        },
+        {
+          label: '主机资源 wecube主机2-IP地址',
+          key: 'wecubeHost2Ip'
+        },
       ]
     }
   },

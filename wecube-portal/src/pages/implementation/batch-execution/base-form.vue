@@ -171,6 +171,7 @@
         <!--勾选操作实例-->
         <FormItem :label="$t('be_choose_instance')" required>
           <EntityTable
+            ref="entityTable"
             :data="tableData"
             :initSelectedRows="initSelectedRows"
             :columns="tableColumns"
@@ -418,6 +419,14 @@ export default {
     // 获取批量执行结果
     getExecuteResult(id) {
       this.$refs.executeResult.getList(id)
+    },
+    // 清空选中的操作实例数据
+    clearSelectedRows() {
+      this.seletedRows = []
+      this.initSelectedRows = []
+      if (this.$refs.entityTable) {
+        this.$refs.entityTable.handleClearData()
+      }
     },
     async getAllDataModels() {
       this.selectedEntityType = null

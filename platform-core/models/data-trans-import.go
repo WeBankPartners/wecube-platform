@@ -82,6 +82,7 @@ type TransImportJobParam struct {
 	Token                string                    `json:"token"`    // token
 	Language             string                    `json:"language"` // language
 	Operator             string                    `json:"operator"`
+	ActionId             string                    `json:"actionId"`
 }
 
 type CallTransImportActionParam struct {
@@ -105,6 +106,7 @@ type ExecImportParam struct {
 	Token                string                `json:"token"`    // token
 	Language             string                `json:"language"` // language
 	WebStep              int                   `json:"step"`     // web 第几步,2,3,4,5
+	Action               string                `json:"-"`        // Action
 	ImportCustomFormData *ImportCustomFormData `json:"importCustomFormData"`
 }
 
@@ -221,8 +223,10 @@ type ImportCustomFormData struct {
 	NetworkSubZone2AssetId  string `json:"networkSubZone2AssetId"`  //网络子区域2 MGMT_APP -资产ID
 	RouteTableAssetId       string `json:"routeTableAssetId"`       //路由表 默认路由表-资产ID
 	WecubeHost1AssetId      string `json:"wecubeHost1AssetId"`      //wecube主机1的资产ID
+	WecubeHost1Ip           string `json:"wecubeHost1Ip"`           //wecube主机1的IP
 	WecubeHost1Password     string `json:"wecubeHost1Password"`     //wecube主机1的管理员密码
 	WecubeHost2AssetId      string `json:"wecubeHost2AssetId"`      //wecube主机2的资产ID
+	WecubeHost2Ip           string `json:"wecubeHost2Ip"`           //wecube主机1的IP
 	WecubeHost2Password     string `json:"wecubeHost2Password"`     //wecube主机2的管理员密码
 	WecubeHost1Pwd          string `json:"-"`
 	WecubeHost2Pwd          string `json:"-"`
@@ -304,4 +308,42 @@ type PluginCiDataOperationOutputObj struct {
 	ErrorCode         string `json:"errorCode"`
 	ErrorMessage      string `json:"errorMessage"`
 	ErrorDetail       string `json:"errorDetail,omitempty"`
+}
+
+type ArtifactPackageImportOutputData struct {
+	Guid           string `json:"guid"`
+	Name           string `json:"name"`
+	KeyName        string `json:"keyName"`
+	UnitDesign     string `json:"unitDesign"`
+	UnitDesignName string `json:"unitDesignName"`
+	ExpectMd5      string `json:"expectMd5"`
+	Status         string `json:"status"` // notStart未开始,doing执行中,success成功,fail失败
+}
+
+type PluginViewDataQueryParam struct {
+	ViewId          string   `json:"viewId" xorm:"view_id"`
+	RootCi          string   `json:"rootCi" xorm:"root_ci"`
+	ReportId        string   `json:"reportId"`
+	ConfirmTime     string   `json:"confirmTime" xorm:"confirm_time"`
+	RootCiList      []string `json:"rootCiList"`
+	WithoutChildren bool     `json:"withoutChildren"`
+	RootCiKeyName   string   `json:"rootCiKeyName"`
+}
+
+type PluginViewDataQueryResponse struct {
+	StatusCode    string                   `json:"statusCode"`
+	StatusMessage string                   `json:"statusMessage"`
+	Data          []map[string]interface{} `json:"data"`
+}
+
+type QueryCmdbResponse struct {
+	Code          int          `json:"code"`
+	StatusCode    string       `json:"statusCode"`
+	StatusMessage string       `json:"statusMessage"`
+	Data          CmdbPageData `json:"data"`
+}
+
+type CmdbPageData struct {
+	Contents []map[string]interface{} `json:"contents"`
+	PageInfo PageInfo                 `json:"pageInfo"`
 }

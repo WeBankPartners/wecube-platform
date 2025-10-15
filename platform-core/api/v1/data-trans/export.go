@@ -2,6 +2,7 @@ package data_trans
 
 import (
 	"fmt"
+	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"strings"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
@@ -26,6 +27,38 @@ func QueryBusinessList(c *gin.Context) {
 		log.Error(c, log.LOGGER_APP, "QueryBusinessList", err.Error())
 		// middleware.ReturnError(c, err)
 		middleware.ReturnData(c, []map[string]interface{}{})
+		return
+	}
+	middleware.ReturnData(c, result)
+}
+
+// GetDeploymentAreaList 查询部署区域列表
+func GetDeploymentAreaList(c *gin.Context) {
+	var err error
+	var result models.CmdbPageData
+
+	var dataTransVariableConfig *models.TransDataVariableConfig
+	if dataTransVariableConfig, err = database.GetDataTransVariableMap(c); err != nil {
+		return
+	}
+	if dataTransVariableConfig == nil {
+		return
+	}
+	if strings.TrimSpace(dataTransVariableConfig.DeployZoneGroupCiType) == "" {
+		err = fmt.Errorf("system variable PLATFORM_EXPORT_DEPLOY_ZONE_GROUP is not configured or is empty. Please check system parameters")
+		middleware.ReturnError(c, err)
+		return
+	}
+	requestParam := models.QueryRequestParam{
+		Paging: false,
+		ResultColumns: []string{
+			"deploy_zone_design",
+			"guid",
+			"name",
+		},
+	}
+	if result, err = remote.RpcQueryCiData(dataTransVariableConfig.DeployZoneGroupCiType, requestParam); err != nil {
+		middleware.ReturnError(c, err)
 		return
 	}
 	middleware.ReturnData(c, result)
@@ -130,7 +163,52 @@ func ExportDetail(c *gin.Context) {
 		middleware.ReturnError(c, err)
 		return
 	}
+
+	// 默认精简 cmdbCI 数据，减少传输量
+	simplifyExportCmdbCIData(detail)
+
 	middleware.ReturnData(c, detail)
+}
+
+// simplifyExportCmdbCIData 精简导出 cmdbCI 数据，只保留必要字段
+func simplifyExportCmdbCIData(detail *models.TransExportDetail) {
+	for _, ci := range detail.CmdbCI {
+		if ci.Data != nil {
+			// 将完整的 CI 数据转换为精简版本
+			simplifiedData := convertToSimplifiedCIData(ci.Data)
+			ci.Data = simplifiedData
+		}
+	}
+}
+
+// convertToSimplifiedCIData 将完整的 CI 数据转换为精简版本
+func convertToSimplifiedCIData(originalData interface{}) map[string]map[string]string {
+	simplifiedData := make(map[string]map[string]string)
+
+	// 尝试将 interface{} 转换为 map[string]interface{}
+	if dataMap, ok := originalData.(map[string]interface{}); ok {
+		for guid, ciData := range dataMap {
+			if ciMap, ok := ciData.(map[string]interface{}); ok {
+				simplifiedData[guid] = map[string]string{
+					"key_name":    getStringValue(ciMap, "key_name"),
+					"create_time": getStringValue(ciMap, "create_time"),
+					"create_user": getStringValue(ciMap, "create_user"),
+				}
+			}
+		}
+	}
+
+	return simplifiedData
+}
+
+// getStringValue 安全地从 map 中获取字符串值
+func getStringValue(data map[string]interface{}, key string) string {
+	if value, exists := data[key]; exists {
+		if str, ok := value.(string); ok {
+			return str
+		}
+	}
+	return ""
 }
 
 func GetExportListOptions(c *gin.Context) {
@@ -187,12 +265,13 @@ func CreateOrUpdateExportCustomer(c *gin.Context) {
 			}
 		}
 		exportCustomer := &models.DataTransExportCustomerTable{
-			Id:           param.Id,
-			Name:         param.Name,
-			NexusAddr:    param.NexusAddr,
-			NexusAccount: param.NexusAccount,
-			NexusPwd:     param.NexusPwd,
-			NexusRepo:    param.NexusRepo,
+			Id:              param.Id,
+			Name:            param.Name,
+			NexusAddr:       param.NexusAddr,
+			NexusAccount:    param.NexusAccount,
+			NexusPwd:        param.NexusPwd,
+			NexusRepo:       param.NexusRepo,
+			ExecWorkflowIds: param.ExecWorkflowIds,
 		}
 		if err = database.UpdateTransExportCustomer(c, exportCustomer); err != nil {
 			middleware.ReturnError(c, err)
@@ -205,13 +284,14 @@ func CreateOrUpdateExportCustomer(c *gin.Context) {
 			return
 		}
 		exportCustomer := &models.DataTransExportCustomerTable{
-			Id:           guid.CreateGuid(),
-			Name:         param.Name,
-			NexusAddr:    param.NexusAddr,
-			NexusAccount: param.NexusAccount,
-			NexusPwd:     param.NexusPwd,
-			NexusRepo:    param.NexusRepo,
-			CreatedUser:  middleware.GetRequestUser(c),
+			Id:              guid.CreateGuid(),
+			Name:            param.Name,
+			NexusAddr:       param.NexusAddr,
+			NexusAccount:    param.NexusAccount,
+			NexusPwd:        param.NexusPwd,
+			NexusRepo:       param.NexusRepo,
+			ExecWorkflowIds: param.ExecWorkflowIds,
+			CreatedUser:     middleware.GetRequestUser(c),
 		}
 		if err = database.AddTransExportCustomer(c, exportCustomer); err != nil {
 			middleware.ReturnError(c, err)
