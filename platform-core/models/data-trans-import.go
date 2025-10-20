@@ -119,24 +119,16 @@ type CmdbData struct {
 }
 
 type TransImportDetail struct {
-	TransImport         *TransImportTable       `json:"transExport"`
-	CmdbCI              []*CommonNameCount      `json:"cmdbCI"`
-	CmdbView            []*CommonNameCreator    `json:"cmdbView"`
-	CmdbViewCount       int                     `json:"cmdbViewCount"`
-	CmdbReportForm      []*CommonNameCreator    `json:"cmdbReportForm"`
-	CmdbReportFormCount int                     `json:"cmdbReportFormCount"`
-	Roles               *CommonOutput           `json:"roles"`
-	Workflows           *CommonOutput           `json:"workflows"`
-	BatchExecution      *CommonOutput           `json:"batchExecutions"`
-	RequestTemplates    *CommonOutput           `json:"requestTemplates"`
-	ComponentLibrary    *ExportComponentLibrary `json:"componentLibrary"` // 组件库
-	Artifacts           *CommonOutput           `json:"artifacts"`
-	MonitorBase         *CommonOutput           `json:"monitorBase"`     // 监控基础配置
-	MonitorBusiness     *CommonOutput           `json:"monitorBusiness"` // 监控业务配置
-	Plugins             *CommonOutput           `json:"plugins"`
-	Cmdb                *CommonOutput           `json:"cmdb"`
-	ProcInstance        *CommonOutput           `json:"procInstance"`     // 编排执行
-	ModifyNewEnvData    *CommonOutput           `json:"modifyNewEnvData"` // 修改新环境数据
+	TransImport *TransImportTable `json:"transExport"`
+	// 通用导入明细字段（与导出复用）
+	TransDetailCommon
+	// 保留导入特有字段
+	ProcInstance     *CommonOutput `json:"procInstance"`     // 编排执行
+	ModifyNewEnvData *CommonOutput `json:"modifyNewEnvData"` // 修改新环境数据
+	MonitorBase      *CommonOutput `json:"monitorBase"`      // 监控基础配置
+	MonitorBusiness  *CommonOutput `json:"monitorBusiness"`  // 监控业务配置
+	// 新增增量字段
+	IncrementalData *TransDetailCommon `json:"incrementalData"` // 增量数据
 }
 
 type TransImportHistoryParam struct {

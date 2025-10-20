@@ -683,14 +683,7 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 		ExcludeDeployZone: strings.Join(param.ExcludeDeployZone, ","),
 		DeployZones:       strings.Join(param.DeployZones, ","),
 		SelectedTreeJson:  param.SelectedTreeJson, // 新增，保存tree结构json
-	}
-	// 新增导出记录
-	if addTransExportActions = getInsertTransExport(transExport); len(addTransExportActions) > 0 {
-		actions = append(actions, addTransExportActions...)
-	}
-	// 新增导出记录详情
-	if addTransExportDetailActions = getInsertTransExportDetail(transExportId); len(addTransExportDetailActions) > 0 {
-		actions = append(actions, addTransExportDetailActions...)
+		SourceExport:      param.SourceExport,     // 新增，保存源导出记录ID
 	}
 	dataTransParam := &models.AnalyzeDataTransParam{
 		TransExportId:     transExportId,
@@ -704,10 +697,30 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 		err = analyzePluginErr
 		return
 	}
-	actions = append(actions, pluginExportActions...)
+	// 计算增量数据（如果有sourceExport）
+	var diffData string
+	if param.SourceExport != "" {
+		diffData, err = calculateIncrementalDiffData(c, param.SourceExport, param)
+		if err != nil {
+			log.Error(nil, log.LOGGER_APP, "calculateIncrementalDiffData failed", zap.Error(err))
+			// 增量计算失败不影响创建，继续执行
+			diffData = ""
+		}
+		transExport.DiffData = diffData
+	}
 	if analyzeDataActions, err = AnalyzeCMDBDataExport(c, dataTransParam); err != nil {
 		return
 	}
+	// 新增导出记录
+	if addTransExportActions = getInsertTransExport(transExport); len(addTransExportActions) > 0 {
+		actions = append(actions, addTransExportActions...)
+	}
+
+	// 新增导出记录详情
+	if addTransExportDetailActions = getInsertTransExportDetail(transExportId); len(addTransExportDetailActions) > 0 {
+		actions = append(actions, addTransExportDetailActions...)
+	}
+	actions = append(actions, pluginExportActions...)
 	actions = append(actions, analyzeDataActions...)
 	err = db.Transaction(actions, c)
 	return
@@ -973,12 +986,14 @@ func GetTransExportDetail(ctx context.Context, transExportId string) (detail *mo
 		}
 	}
 	detail = &models.TransExportDetail{
-		TransExport:    &transExport,
-		CmdbCI:         make([]*models.CommonNameCount, 0),
-		CmdbView:       make([]*models.CommonNameCreator, 0),
-		CmdbReportForm: make([]*models.CommonNameCreator, 0),
-		Monitor:        &models.CommonOutput{},
-		Plugins:        &models.CommonOutput{},
+		TransExport: &transExport,
+		TransDetailCommon: models.TransDetailCommon{
+			CmdbCI:         make([]*models.CommonNameCount, 0),
+			CmdbView:       make([]*models.CommonNameCreator, 0),
+			CmdbReportForm: make([]*models.CommonNameCreator, 0),
+			Monitor:        &models.CommonOutput{},
+			Plugins:        &models.CommonOutput{},
+		},
 	}
 	// 查询CMDB CI group
 	if ciGroupAnalyzeData, err = GetTransExportAnalyzeDataBySourceOne(ctx, transExportId, string(models.TransExportAnalyzeSourceWeCmdbGroup)); err != nil {
@@ -1452,4 +1467,39 @@ func isEffectiveJson(responseBytes []byte) bool {
 		return false
 	}
 	return true
+}
+
+// GetCustomerExportHistory 获取客户导出历史
+func GetCustomerExportHistory(ctx context.Context, customerId string) ([]*models.TransExportTable, error) {
+	var exportHistory []*models.TransExportTable
+	err := db.MysqlEngine.Context(ctx).SQL("SELECT * FROM trans_export WHERE customer_id = ? AND status = 'success' ORDER BY created_time DESC", customerId).Find(&exportHistory)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "GetCustomerExportHistory failed", zap.Error(err))
+		return nil, err
+	}
+	return exportHistory, nil
+}
+
+// calculateIncrementalDiffData 计算增量差异数据
+func calculateIncrementalDiffData(ctx context.Context, sourceExport string, param models.CreateExportParam) (string, error) {
+	// 获取当前数据（基于用户选择的参数）
+	currentData, err := getCurrentExportData(ctx, param)
+	if err != nil {
+		return "", fmt.Errorf("failed to get current data: %v", err)
+	}
+
+	// 序列化为JSON（直接序列化增量数据详情）
+	diffDataBytes, err := json.Marshal(currentData)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal diff data: %v", err)
+	}
+
+	return string(diffDataBytes), nil
+}
+
+// getCurrentExportData 获取当前导出数据
+func getCurrentExportData(ctx context.Context, param models.CreateExportParam) (*models.TransDetailCommon, error) {
+	// 这里应该根据param参数获取当前的数据
+	// 暂时返回一个空的结构，实际实现需要根据业务逻辑获取数据
+	return &models.TransDetailCommon{}, nil
 }

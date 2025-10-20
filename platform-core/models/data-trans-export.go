@@ -105,6 +105,9 @@ type TransExportTable struct {
 	SelectedTreeJson  string `json:"selectedTreeJson" xorm:"selected_tree_json"`
 	ExcludeDeployZone string `json:"excludeDeployZone" xorm:"exclude_deploy_zone"` // 排除的部署区域
 	DeployZones       string `json:"deployZones" xorm:"deploy_zones"`              // 部署区域名称
+	// 增量相关字段
+	SourceExport string `json:"sourceExport" xorm:"source_export"`
+	DiffData     string `json:"diffData" xorm:"diff_data"`
 }
 
 type TransExportDetailTable struct {
@@ -207,6 +210,9 @@ type CreateExportParam struct {
 	SelectedTreeJson  string   `json:"selectedTreeJson"`  // 新增，保存前端tree结构json
 	ExcludeDeployZone []string `json:"excludeDeployZone"` // 排除的部署区域
 	DeployZones       []string `json:"deployZones"`       // 部署区域名称列表
+
+	// 新增增量字段
+	SourceExport string `json:"sourceExport"` // 源导出记录ID
 }
 
 type UpdateExportParam struct {
@@ -335,8 +341,8 @@ type RequestTemplateDto struct {
 	BackDesc         string `json:"rollbackDesc"`     // 退回理由
 }
 
-type TransExportDetail struct {
-	TransExport            *TransExportTable     `json:"transExport"`
+// TransDetailCommon  通用数据
+type TransDetailCommon struct {
 	CmdbCI                 []*CommonNameCount    `json:"cmdbCI"`
 	CmdbView               []*CommonNameCreator  `json:"cmdbView"`
 	CmdbViewCount          int                   `json:"cmdbViewCount"`
@@ -347,12 +353,19 @@ type TransExportDetail struct {
 	BatchExecution         *CommonOutput         `json:"batchExecutions"`
 	RequestTemplates       *CommonOutput         `json:"requestTemplates"`
 	ComponentLibrary       *CommonOutput         `json:"componentLibrary"`
-	ExportComponentLibrary bool                  `json:"exportComponentLibrary"` // 是否导出组件库
+	ExportComponentLibrary bool                  `json:"exportComponentLibrary"`
 	Artifacts              *CommonOutput         `json:"artifacts"`
 	Monitor                *CommonOutput         `json:"monitor"`
 	Plugins                *CommonOutput         `json:"plugins"`
 	Cmdb                   *CommonOutput         `json:"cmdb"`
-	CreateAndUploadFile    *CommonOutput         `json:"createAndUploadFile"`
+}
+
+type TransExportDetail struct {
+	TransExport         *TransExportTable `json:"transExport"`
+	CreateAndUploadFile *CommonOutput     `json:"createAndUploadFile"`
+	TransDetailCommon
+	// 新增增量字段
+	IncrementalData *TransDetailCommon `json:"incrementalData"` // 增量数据
 }
 
 // TransExportDetailSimplified 精简版的 TransExportDetail，用于减少数据传输量

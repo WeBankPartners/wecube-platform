@@ -160,12 +160,12 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 		return
 	}
 	detail = &models.TransImportDetail{
-		TransImport:         transImport,
-		CmdbCI:              make([]*models.CommonNameCount, 0),
-		CmdbView:            make([]*models.CommonNameCreator, 0),
-		CmdbViewCount:       0,
-		CmdbReportForm:      make([]*models.CommonNameCreator, 0),
-		CmdbReportFormCount: 0,
+		TransImport: transImport,
+		TransDetailCommon: models.TransDetailCommon{
+			CmdbCI:         make([]*models.CommonNameCount, 0),
+			CmdbView:       make([]*models.CommonNameCreator, 0),
+			CmdbReportForm: make([]*models.CommonNameCreator, 0),
+		},
 	}
 	for _, transImportDetail := range transImportDetailList {
 		var data interface{}
@@ -189,26 +189,24 @@ func GetImportDetail(ctx context.Context, transImportId string) (detail *models.
 			}
 		case models.TransImportStepComponentLibrary:
 			if transImportDetail.Input == "true" {
-				detail.ComponentLibrary = &models.ExportComponentLibrary{
-					CommonOutput: models.CommonOutput{
-						Status: transImportDetail.Status,
-						ErrMsg: transImportDetail.ErrorMsg,
-					},
-					ExportComponentLibrary: true,
+				detail.ExportComponentLibrary = true
+				detail.ComponentLibrary = &models.CommonOutput{
+					Status: transImportDetail.Status,
+					ErrMsg: transImportDetail.ErrorMsg,
 				}
 			} else {
-				detail.ComponentLibrary = &models.ExportComponentLibrary{
-					CommonOutput: models.CommonOutput{
-						Status: string(models.TransImportStatusSuccess),
-					},
-					ExportComponentLibrary: false,
+				detail.ExportComponentLibrary = false
+				detail.ComponentLibrary = &models.CommonOutput{
+					Status: string(models.TransImportStatusSuccess),
 				}
 			}
 		case models.TransImportStepWorkflow:
-			detail.Workflows = &models.CommonOutput{
-				Status: transImportDetail.Status,
-				Output: data,
-				ErrMsg: transImportDetail.ErrorMsg,
+			detail.Workflows = &models.ExportWorkflowOutput{
+				CommonOutput: models.CommonOutput{
+					Status: transImportDetail.Status,
+					Output: data,
+					ErrMsg: transImportDetail.ErrorMsg,
+				},
 			}
 		case models.TransImportStepBatchExecution:
 			detail.BatchExecution = &models.CommonOutput{

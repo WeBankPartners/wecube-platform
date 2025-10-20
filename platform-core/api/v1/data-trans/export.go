@@ -1,6 +1,7 @@
 package data_trans
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"strings"
@@ -166,6 +167,14 @@ func ExportDetail(c *gin.Context) {
 
 	// 默认精简 cmdbCI 数据，减少传输量
 	simplifyExportCmdbCIData(detail)
+
+	// 解析已存储的增量数据（直接反序列化为增量数据详情）
+	if detail.TransExport.DiffData != "" {
+		var incr models.TransDetailCommon
+		if err := json.Unmarshal([]byte(detail.TransExport.DiffData), &incr); err == nil {
+			detail.IncrementalData = &incr
+		}
+	}
 
 	middleware.ReturnData(c, detail)
 }
@@ -333,4 +342,24 @@ func GetExportNexusInfo(c *gin.Context) {
 		return
 	}
 	middleware.ReturnData(c, transDataVariableConfig)
+}
+
+// GetCustomerExportHistory 获取客户导出历史
+func GetCustomerExportHistory(c *gin.Context) {
+	customerId := c.Query("customerId")
+	if strings.TrimSpace(customerId) == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("customerId is empty")))
+		return
+	}
+
+	var exportHistory []*models.TransExportTable
+	var err error
+	if exportHistory, err = database.GetCustomerExportHistory(c, customerId); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	middleware.ReturnData(c, map[string]interface{}{
+		"exportHistory": exportHistory,
+	})
 }
