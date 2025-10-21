@@ -678,6 +678,11 @@ func getInsertTransExport(transExport models.TransExportTable) (actions []*db.Ex
 	return
 }
 
+func updateTransExportDiffDataById(context context.Context, transExportId string, diffData string) (err error) {
+	_, err = db.MysqlEngine.Context(context).Exec("update trans_export set diff_data =? where id=?", diffData, transExportId)
+	return
+}
+
 func getUpdateTransExport(transExport models.TransExportTable) (actions []*db.ExecAction) {
 	actions = []*db.ExecAction{}
 	actions = append(actions, &db.ExecAction{Sql: "update trans_export set business=?,business_name=?,environment=?,environment_name=?,updated_user=?,updated_time=?,last_confirm_time=?,selected_tree_json=?,exclude_deploy_zone=?,deploy_zones=? where id=? ", Param: []interface{}{

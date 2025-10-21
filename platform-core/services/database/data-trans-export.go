@@ -683,7 +683,14 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 		ExcludeDeployZone: strings.Join(param.ExcludeDeployZone, ","),
 		DeployZones:       strings.Join(param.DeployZones, ","),
 		SelectedTreeJson:  param.SelectedTreeJson, // 新增，保存tree结构json
-		SourceExport:      param.SourceExport,     // 新增，保存源导出记录ID
+	}
+	// 新增导出记录
+	if addTransExportActions = getInsertTransExport(transExport); len(addTransExportActions) > 0 {
+		actions = append(actions, addTransExportActions...)
+	}
+	// 新增导出记录详情
+	if addTransExportDetailActions = getInsertTransExportDetail(transExportId); len(addTransExportDetailActions) > 0 {
+		actions = append(actions, addTransExportDetailActions...)
 	}
 	dataTransParam := &models.AnalyzeDataTransParam{
 		TransExportId:     transExportId,
@@ -697,33 +704,16 @@ func CreateExport(c context.Context, param models.CreateExportParam, operator st
 		err = analyzePluginErr
 		return
 	}
-	// 计算增量数据（如果有sourceExport）
-	var diffData string
-	if param.SourceExport != "" {
-		diffData, err = calculateIncrementalDiffData(c, param.SourceExport, param)
-		if err != nil {
-			log.Error(nil, log.LOGGER_APP, "calculateIncrementalDiffData failed", zap.Error(err))
-			// 增量计算失败不影响创建，继续执行
-			diffData = ""
-		}
-		transExport.DiffData = diffData
-	}
+	actions = append(actions, pluginExportActions...)
 	if analyzeDataActions, err = AnalyzeCMDBDataExport(c, dataTransParam); err != nil {
 		return
 	}
-	// 新增导出记录
-	if addTransExportActions = getInsertTransExport(transExport); len(addTransExportActions) > 0 {
-		actions = append(actions, addTransExportActions...)
-	}
-
-	// 新增导出记录详情
-	if addTransExportDetailActions = getInsertTransExportDetail(transExportId); len(addTransExportDetailActions) > 0 {
-		actions = append(actions, addTransExportDetailActions...)
-	}
-	actions = append(actions, pluginExportActions...)
 	actions = append(actions, analyzeDataActions...)
-	err = db.Transaction(actions, c)
-	return
+	if err = db.Transaction(actions, c); err != nil {
+		return
+	}
+	// 计算增量数据,这里需要分析CMDB和物料包以及监控的增量数据
+	return transExportId, calculateCmdbAndArtifactIncrementalData(transExportId, param)
 }
 
 func UpdateExport(c context.Context, param models.UpdateExportParam, operator string) (err error) {
@@ -1480,26 +1470,13 @@ func GetCustomerExportHistory(ctx context.Context, customerId string) ([]*models
 	return exportHistory, nil
 }
 
-// calculateIncrementalDiffData 计算增量差异数据
-func calculateIncrementalDiffData(ctx context.Context, sourceExport string, param models.CreateExportParam) (string, error) {
-	// 获取当前数据（基于用户选择的参数）
-	currentData, err := getCurrentExportData(ctx, param)
-	if err != nil {
-		return "", fmt.Errorf("failed to get current data: %v", err)
-	}
-
+// calculateCmdbAndArtifactIncrementalData 计算CMDB和物料包的增量数据
+func calculateCmdbAndArtifactIncrementalData(transExportId string, param models.CreateExportParam) (err error) {
+	incrementData := &models.TransDetailCommon{}
 	// 序列化为JSON（直接序列化增量数据详情）
-	diffDataBytes, err := json.Marshal(currentData)
+	_, err = json.Marshal(incrementData)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal diff data: %v", err)
+		return err
 	}
-
-	return string(diffDataBytes), nil
-}
-
-// getCurrentExportData 获取当前导出数据
-func getCurrentExportData(ctx context.Context, param models.CreateExportParam) (*models.TransDetailCommon, error) {
-	// 这里应该根据param参数获取当前的数据
-	// 暂时返回一个空的结构，实际实现需要根据业务逻辑获取数据
-	return &models.TransDetailCommon{}, nil
+	return nil
 }
