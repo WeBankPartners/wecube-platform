@@ -2332,6 +2332,10 @@ export default {
         if (['Completed', 'InternallyTerminated', 'Faulted'].includes(data.status)) {
           this.stopSuccess = true
           this.stop()
+          // 解决执行完成后，左侧编排流程图不渲染的问题
+          this.$nextTick(() => {
+            this.initFlowGraph(true)
+          })
           this.fetchCurrentInstanceStatus()
           this.refreshModelData()
         }
