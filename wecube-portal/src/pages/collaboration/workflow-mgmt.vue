@@ -1,7 +1,11 @@
 <template>
   <div class="root">
-    <FlowHeader @openCanvasPanel="openCanvasPanel" @updateAuth="updateAuth" @updateFlowData="updateFlowData"
-      ref="headerInfoRef"></FlowHeader>
+    <FlowHeader
+      @openCanvasPanel="openCanvasPanel"
+      @updateAuth="updateAuth"
+      @updateFlowData="updateFlowData"
+      ref="headerInfoRef"
+    ></FlowHeader>
     <!-- v-show="isShowGraph" -->
     <div class="canvas-zone">
       <!-- 左侧按钮 -->
@@ -15,13 +19,26 @@
       <!-- 挂载节点 -->
       <div id="canvasPanel" ref="canvasPanel" @dragover.prevent></div>
       <!-- 信息配置 -->
-      <ItemInfoCanvas v-show="itemInfoType === 'canvas'" ref="itemInfoCanvasRef" @sendItemInfo="setCanvasInfo"
-        @hideItemInfo="hideItemInfo"></ItemInfoCanvas>
-      <ItemInfoNode v-if="itemInfoType === 'node'" ref="itemInfoNodeRef" @sendItemInfo="setNodeInfo"
-        @hideItemInfo="hideItemInfo" @hideReleaseBtn="hideReleaseBtn">
+      <ItemInfoCanvas
+        v-show="itemInfoType === 'canvas'"
+        ref="itemInfoCanvasRef"
+        @sendItemInfo="setCanvasInfo"
+        @hideItemInfo="hideItemInfo"
+      ></ItemInfoCanvas>
+      <ItemInfoNode
+        v-if="itemInfoType === 'node'"
+        ref="itemInfoNodeRef"
+        @sendItemInfo="setNodeInfo"
+        @hideItemInfo="hideItemInfo"
+        @hideReleaseBtn="hideReleaseBtn"
+      >
       </ItemInfoNode>
-      <ItemInfoEdge v-show="itemInfoType === 'edge'" ref="itemInfoEdgeRef" @sendItemInfo="setEdgeInfo"
-        @hideItemInfo="hideItemInfo">
+      <ItemInfoEdge
+        v-show="itemInfoType === 'edge'"
+        ref="itemInfoEdgeRef"
+        @sendItemInfo="setEdgeInfo"
+        @hideItemInfo="hideItemInfo"
+      >
       </ItemInfoEdge>
     </div>
   </div>
