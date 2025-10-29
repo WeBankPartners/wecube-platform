@@ -1066,5 +1066,6 @@
   "workflow_empty_running_tip": "数据为空，是否继续执行？",
   "platform_robot_title": "WeCube-AI助手",
   "platform_robot_content": "长按可拖动",
-  "execute_workflow_ids": "执行编排ID列表"
+  "execute_workflow_ids": "执行编排ID列表",
+  "workflow_format_layout_save": "保存布局"
 }
