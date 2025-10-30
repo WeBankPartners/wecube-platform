@@ -626,6 +626,7 @@ import {
   createFlowInstance,
   getProcessInstances,
   getProcessInstance,
+  instancesWithPaging,
   retryProcessInstance,
   getModelNodeDetail,
   getNodeBindings,
@@ -1632,10 +1633,16 @@ export default {
         const hasFlag = this.allFlowInstances.some(i => i.id === id)
         // 没有这条记录数据，则根据ID查询拼接起来
         if (!hasFlag && Object.keys(form).length === 0) {
-          params.params.search = id
-          const { status, data } = await getProcessInstances(params)
-          if (status === 'OK' && data && data[0]) {
-            this.allFlowInstances.unshift(data[0])
+          const params = {
+            id: id,
+            pageable: {
+              startIndex: 0,
+              pageSize: 5000
+            }
+          }
+          const { status, data } = await instancesWithPaging(params)
+          if (status === 'OK' && data.contents && data.contents[0]) {
+            this.allFlowInstances.unshift(data.contents[0])
           }
         }
       }
