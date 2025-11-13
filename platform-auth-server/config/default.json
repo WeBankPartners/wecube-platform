@@ -1,6 +1,6 @@
 {
   "server_address": "",
-  "server_port": "8080",
+  "server_port": "8002",
   "error_template_dir":"config/i18n",
   "error_detail_return": true,
   "log": {

@@ -9,7 +9,7 @@ services:
       - [#path]/platform-auth-server/logs:/app/platform-auth-server/logs
       - [#path]/platform-auth-server/certs:/app/platform-auth-server/config/certs
     ports:
-      - "[@HOSTIP]:[#http_port]:8080"
+      - "[@HOSTIP]:[#http_port]:8002"
     environment:
       - LOG_LEVEL=[#LOG_LEVEL]
       - PASSWORD_PRIVATE_KEY_PATH=/app/platform-auth-server/config/certs/[#WECUBE_PRIVATE_KEY]
