@@ -23,7 +23,7 @@ build_core_arm64:
 image_core: build_core
 	docker build -t platform-core:$(version) platform-core/.
 
-image_core_arm64:
+image_core_arm64: build_core_arm64
 	docker buildx build -f platform-core/Dockerfile-arm64 -t platform-core:$(version) --platform linux/arm64 platform-core/.
 
 push_core: image_core
