@@ -15,10 +15,22 @@ build_core:
 	chmod +x platform-core/build/*.sh
 	docker run --rm -v $(current_dir)/platform-core:/go/src/github.com/WeBankPartners/wecube-platform/platform-core golang:1.19.1 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/platform-core/build/build-server.sh
 
+build_core_arm64:
+	rm -f platform-core/platform-core
+	chmod +x platform-core/build/*.sh
+	docker run --rm -v $(current_dir)/platform-core:/go/src/github.com/WeBankPartners/wecube-platform/platform-core golang:1.25.4-arm64 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/platform-core/build/build-server-arm64.sh
+
 image_core: build_core
 	docker build -t platform-core:$(version) platform-core/.
 
+image_core_arm64:
+	docker buildx build -f platform-core/Dockerfile-arm64 -t platform-core:$(version) --platform linux/arm64 platform-core/.
+
 push_core: image_core
+	docker tag  platform-core:$(version) $(tencent_cloud_docker_image_registry)/platform-core:$(version)
+	docker push $(tencent_cloud_docker_image_registry)/platform-core:$(version)
+
+push_core_arm64: image_core_arm64
 	docker tag  platform-core:$(version) $(tencent_cloud_docker_image_registry)/platform-core:$(version)
 	docker push $(tencent_cloud_docker_image_registry)/platform-core:$(version)
 
