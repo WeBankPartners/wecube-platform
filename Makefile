@@ -18,7 +18,7 @@ build_core:
 build_core_arm64:
 	rm -f platform-core/platform-core
 	chmod +x platform-core/build/*.sh
-	docker run --rm -v $(current_dir)/platform-core:/go/src/github.com/WeBankPartners/wecube-platform/platform-core golang:1.25.4-arm64 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/platform-core/build/build-server-arm64.sh
+	docker run --rm -v $(current_dir)/platform-core:/go/src/github.com/WeBankPartners/wecube-platform/platform-core --platform linux/arm64 golang:1.25.4-arm64 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/platform-core/build/build-server-arm64.sh
 
 image_core: build_core
 	docker build -t platform-core:$(version) platform-core/.
@@ -30,17 +30,21 @@ push_core: image_core
 	docker tag  platform-core:$(version) $(tencent_cloud_docker_image_registry)/platform-core:$(version)
 	docker push $(tencent_cloud_docker_image_registry)/platform-core:$(version)
 
-push_core_arm64: image_core_arm64
-	docker tag  platform-core:$(version) $(tencent_cloud_docker_image_registry)/platform-core:$(version)
-	docker push $(tencent_cloud_docker_image_registry)/platform-core:$(version)
-
 build_auth_server:
 	rm -f platform-auth-server/platform-auth-server
 	chmod +x platform-auth-server/build/*.sh
 	docker run --rm -v $(current_dir)/platform-auth-server:/go/src/github.com/WeBankPartners/wecube-platform/platform-auth-server golang:1.19.1 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/platform-auth-server/build/build-server.sh
 
+build_auth_server_arm64:
+	rm -f platform-auth-server/platform-auth-server
+	chmod +x platform-auth-server/build/*.sh
+	docker run --rm -v $(current_dir)/platform-auth-server:/go/src/github.com/WeBankPartners/wecube-platform/platform-auth-server --platform linux/arm64 golang:1.25.4-arm64 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/platform-auth-server/build/build-server-arm64.sh
+
 image_auth_server: build_auth_server
 	docker build -t platform-auth-server:$(version) platform-auth-server/.
+
+image_auth_server_arm64: build_auth_server_arm64
+	docker buildx build -f platform-auth-server/Dockerfile-arm64 -t platform-auth-server:$(version) --platform linux/arm64 platform-auth-server/.
 
 push_auth_server: image_auth_server
 	docker tag  platform-auth-server:$(version) $(tencent_cloud_docker_image_registry)/platform-auth-server:$(version)
@@ -51,8 +55,16 @@ build_gateway:
 	chmod +x platform-gateway/build/*.sh
 	docker run --rm -v $(current_dir)/platform-gateway:/go/src/github.com/WeBankPartners/wecube-platform/platform-gateway golang:1.19.1 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/platform-gateway/build/build-server.sh
 
+build_gateway_arm64:
+	rm -f platform-gateway/platform-gateway
+	chmod +x platform-gateway/build/*.sh
+	docker run --rm -v $(current_dir)/platform-gateway:/go/src/github.com/WeBankPartners/wecube-platform/platform-gateway --platform linux/arm64 golang:1.25.4-arm64 /bin/bash /go/src/github.com/WeBankPartners/wecube-platform/platform-gateway/build/build-server-arm64.sh
+
 image_gateway: build_gateway
 	docker build -t platform-gateway:$(version) platform-gateway/.
+
+image_gateway_arm64: build_gateway_arm64
+	docker buildx build -f platform-gateway/Dockerfile-arm64 -t platform-gateway:$(version) --platform linux/arm64 platform-gateway/.
 
 push_gateway: image_gateway
 	docker tag  platform-gateway:$(version) $(tencent_cloud_docker_image_registry)/platform-gateway:$(version)
@@ -66,6 +78,9 @@ build_portal:
 
 image_portal: build_portal
 	docker build -t wecube-portal:$(version) -f build/wecube-portal/Dockerfile .
+
+image_portal_arm64: build_portal
+	docker buildx build -t wecube-portal:$(version) -f build/wecube-portal/Dockerfile-arm64 --platform linux/arm64 .
 
 push_portal: image_portal
 	docker tag  wecube-portal:$(version) $(tencent_cloud_docker_image_registry)/wecube-portal:$(version)

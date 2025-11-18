@@ -1,3 +1,4 @@
+#!/bin/bash
 set -e -x
 cd /home/node/app/wecube-portal
 # npm --registry https://registry.npmmirror.com install --unsafe-perm --force
