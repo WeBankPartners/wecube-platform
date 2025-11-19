@@ -1,0 +1,3 @@
+FROM --platform=linux/arm64 golang:1.24.6-bullseye
+
+RUN apt-get update && apt-get install -y libpcre3-dev

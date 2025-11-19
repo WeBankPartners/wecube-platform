@@ -1,0 +1,12 @@
+FROM --platform=linux/arm64 alpine:3.22.2
+
+# 设置 LANG 环境变量以支持 UTF-8
+ENV LANG=C.UTF-8
+
+# 在有网络的情况下，安装 bash 和 tzdata
+RUN apk update && \
+    apk add --no-cache bash openssh sshpass tzdata && \
+    rm -rf /var/cache/apk/*
+
+# 设置时区
+ENV TZ=Asia/Shanghai
