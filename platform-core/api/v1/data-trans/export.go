@@ -154,6 +154,7 @@ func ExecExport(c *gin.Context) {
 
 func ExportDetail(c *gin.Context) {
 	transExportId := c.Query("transExportId")
+	excludeCmdbAndArtifact := c.Query("excludeCmdbAndArtifact") // 新增参数，默认为N，Y时不返回cmdb和物料包以及监控相关配置
 	var detail *models.TransExportDetail
 	var err error
 	if strings.TrimSpace(transExportId) == "" {
@@ -174,6 +175,11 @@ func ExportDetail(c *gin.Context) {
 		if err := json.Unmarshal([]byte(detail.TransExport.DiffData), &incr); err == nil {
 			detail.IncrementalData = &incr
 		}
+	}
+
+	// 如果excludeCmdbAndArtifact=Y，则不返回cmdb和物料包以及监控相关配置
+	if excludeCmdbAndArtifact == "Y" {
+		excludeConfigData(detail)
 	}
 
 	middleware.ReturnData(c, detail)
@@ -218,6 +224,35 @@ func getStringValue(data map[string]interface{}, key string) string {
 		}
 	}
 	return ""
+}
+
+// excludeConfigData 排除配置数据，当excludeConfig=Y时不返回cmdb和物料包以及监控相关配置
+func excludeConfigData(detail *models.TransExportDetail) {
+	// 清空CMDB相关数据
+	detail.CmdbCI = nil
+	detail.CmdbView = nil
+	detail.CmdbViewCount = 0
+	detail.CmdbReportForm = nil
+	detail.CmdbReportFormCount = 0
+	detail.Cmdb = nil
+
+	// 清空物料包相关数据
+	detail.Artifacts = nil
+
+	// 清空监控相关数据
+	detail.Monitor = nil
+
+	// 清空增量数据中的相关配置
+	if detail.IncrementalData != nil {
+		detail.IncrementalData.CmdbCI = nil
+		detail.IncrementalData.CmdbView = nil
+		detail.IncrementalData.CmdbViewCount = 0
+		detail.IncrementalData.CmdbReportForm = nil
+		detail.IncrementalData.CmdbReportFormCount = 0
+		detail.IncrementalData.Cmdb = nil
+		detail.IncrementalData.Artifacts = nil
+		detail.IncrementalData.Monitor = nil
+	}
 }
 
 func GetExportListOptions(c *gin.Context) {
@@ -362,4 +397,43 @@ func GetCustomerExportHistory(c *gin.Context) {
 	middleware.ReturnData(c, map[string]interface{}{
 		"exportHistory": exportHistory,
 	})
+}
+
+// GetIncrementalExportInfo 获取增量导出信息
+func GetIncrementalExportInfo(c *gin.Context) {
+	transExportId := c.Query("transExportId")
+	if strings.TrimSpace(transExportId) == "" {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("transExportId is empty")))
+		return
+	}
+
+	var transExport *models.TransExportTable
+	var err error
+	if transExport, err = database.GetTransExport(c, transExportId); err != nil {
+		middleware.ReturnError(c, err)
+		return
+	}
+
+	if transExport == nil {
+		middleware.ReturnError(c, exterror.Catch(exterror.New().RequestParamValidateError, fmt.Errorf("export not found")))
+		return
+	}
+
+	// 返回增量导出信息
+	incrementalInfo := map[string]interface{}{
+		"id":                     transExport.Id,
+		"incrementalDescription": transExport.IncrementalDescription,
+		"sourceExport":           transExport.SourceExport,
+		"customerId":             transExport.CustomerId,
+		"customerName":           transExport.CustomerName,
+		"environment":            transExport.Environment,
+		"environmentName":        transExport.EnvironmentName,
+		"business":               transExport.Business,
+		"businessName":           transExport.BusinessName,
+		"status":                 transExport.Status,
+		"createdTime":            transExport.CreatedTime,
+		"createdUser":            transExport.CreatedUser,
+	}
+
+	middleware.ReturnData(c, incrementalInfo)
 }

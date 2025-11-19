@@ -168,7 +168,7 @@ func init() {
 		{Url: "/v1/users", Method: http.MethodPost, HandlerFunc: RegisterLocalUser,
 			ApiCode: "users-post"},
 		{Url: "/v1/users/reset-password", Method: http.MethodPost, HandlerFunc: ResetLocalUserPassword,
-			ApiCode: "users-reset-password", Authorities: []string{"SUPER_ADMIN"}},
+			ApiCode: "users-reset-password"}, // 移除SUPER_ADMIN权限要求，与change-password保持一致，权限控制由platform-core的菜单权限管理
 		{Url: "/v1/users/change-password", Method: http.MethodPost, HandlerFunc: ModifyLocalUserPassword,
 			ApiCode: "users-change-password"},
 		{Url: "/v1/users/usernames/:username", Method: http.MethodPost, HandlerFunc: ModifyLocalUserInfomation,

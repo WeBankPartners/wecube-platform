@@ -12,6 +12,8 @@ type TransExportJobParam struct {
 	AllRoles                                                        []*SimpleLocalRoleDto
 	RoleDisplayNameMap                                              map[string]string
 	DataTransVariableConfig                                         *TransDataVariableConfig
+	BaselineExport                                                  *TransExportTable         // 基线版本导出
+	BaselineExportDetails                                           []*TransExportDetailTable // 基线版本导出详情
 }
 
 type ExportResult struct {
@@ -106,22 +108,23 @@ type TransExportTable struct {
 	ExcludeDeployZone string `json:"excludeDeployZone" xorm:"exclude_deploy_zone"` // 排除的部署区域
 	DeployZones       string `json:"deployZones" xorm:"deploy_zones"`              // 部署区域名称
 	// 增量相关字段
-	SourceExport string `json:"sourceExport" xorm:"source_export"`
-	DiffData     string `json:"diffData" xorm:"diff_data"`
+	SourceExport           string `json:"sourceExport" xorm:"source_export"`                     // 源导出记录ID
+	DiffData               string `json:"diffData" xorm:"diff_data"`                             // 增量数据JSON
+	IncrementalDescription string `json:"incrementalDescription" xorm:"incremental_description"` // 增量导出描述
 }
 
 type TransExportDetailTable struct {
-	Id          string  `json:"id" xorm:"id"`
-	TransExport *string `json:"transExport" xorm:"trans_export"`
-	Name        string  `json:"name" xorm:"name"`
-	AnalyzeData *string `json:"analyzeData" xorm:"analyze_data"`
-	Step        int     `json:"step" xorm:"step"`
-	Status      string  `json:"status" xorm:"status"`
-	Input       string  `json:"input" xorm:"input"`
-	Output      string  `json:"output" xorm:"output"`
-	ErrorMsg    string  `json:"errorMsg" xorm:"error_msg"`
-	StartTime   string  `json:"startTime" xorm:"start_time"`
-	EndTime     string  `json:"endTime" xorm:"end_time"`
+	Id                string  `json:"id" xorm:"id"`
+	TransExport       *string `json:"transExport" xorm:"trans_export"`
+	Name              string  `json:"name" xorm:"name"`
+	AnalyzeDataSource string  `json:"analyzeDataSource" xorm:"analyze_data_source"`
+	Step              int     `json:"step" xorm:"step"`
+	Status            string  `json:"status" xorm:"status"`
+	Input             string  `json:"input" xorm:"input"`
+	Output            string  `json:"output" xorm:"output"`
+	ErrorMsg          string  `json:"errorMsg" xorm:"error_msg"`
+	StartTime         string  `json:"startTime" xorm:"start_time"`
+	EndTime           string  `json:"endTime" xorm:"end_time"`
 }
 
 type TransExportAnalyzeDataTable struct {
@@ -212,7 +215,8 @@ type CreateExportParam struct {
 	DeployZones       []string `json:"deployZones"`       // 部署区域名称列表
 
 	// 新增增量字段
-	SourceExport string `json:"sourceExport"` // 源导出记录ID
+	SourceExport           string `json:"sourceExport"`           // 源导出记录ID
+	IncrementalDescription string `json:"incrementalDescription"` // 增量导出描述
 }
 
 type UpdateExportParam struct {
@@ -358,6 +362,12 @@ type TransDetailCommon struct {
 	Monitor                *CommonOutput         `json:"monitor"`
 	Plugins                *CommonOutput         `json:"plugins"`
 	Cmdb                   *CommonOutput         `json:"cmdb"`
+}
+
+type TransIncrDetail struct {
+	Business   map[string]string `json:"business"` // key为已选产品Id,value 已选产品名称
+	DeployArea []string          //部署区域
+	TransDetailCommon
 }
 
 type TransExportDetail struct {
@@ -643,40 +653,4 @@ func getStringValue(data map[string]interface{}, key string) string {
 		}
 	}
 	return ""
-}
-
-// ConvertToSimplifiedDetail 将完整的 TransExportDetail 转换为精简版本
-func ConvertToSimplifiedDetail(detail *TransExportDetail) *TransExportDetailSimplified {
-	simplified := &TransExportDetailSimplified{
-		TransExport:            detail.TransExport,
-		CmdbView:               detail.CmdbView,
-		CmdbViewCount:          detail.CmdbViewCount,
-		CmdbReportForm:         detail.CmdbReportForm,
-		CmdbReportFormCount:    detail.CmdbReportFormCount,
-		Roles:                  detail.Roles,
-		Workflows:              detail.Workflows,
-		BatchExecution:         detail.BatchExecution,
-		RequestTemplates:       detail.RequestTemplates,
-		ComponentLibrary:       detail.ComponentLibrary,
-		ExportComponentLibrary: detail.ExportComponentLibrary,
-		Artifacts:              detail.Artifacts,
-		Monitor:                detail.Monitor,
-		Plugins:                detail.Plugins,
-		Cmdb:                   detail.Cmdb,
-		CreateAndUploadFile:    detail.CreateAndUploadFile,
-	}
-
-	// 转换 CmdbCI 数据
-	for _, ci := range detail.CmdbCI {
-		simplifiedCI := &CommonNameCountSimplified{
-			Name:     ci.Name,
-			Count:    ci.Count,
-			Group:    ci.Group,
-			DataType: ci.DataType,
-			Data:     ConvertToSimplifiedCIData(ci.Data),
-		}
-		simplified.CmdbCI = append(simplified.CmdbCI, simplifiedCI)
-	}
-
-	return simplified
 }

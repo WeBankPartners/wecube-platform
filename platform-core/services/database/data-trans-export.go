@@ -41,6 +41,22 @@ var transExportDetailMap = map[models.TransExportStep]string{
 	models.TransExportUIData:                  "ui_data",
 }
 
+// IncrementalCalculator 增量计算函数类型定义
+type IncrementalCalculator func(ctx context.Context, currentData interface{}, baselineData interface{}) (interface{}, error)
+
+// incrementalCalculatorMap 增量计算器映射
+var incrementalCalculatorMap = map[models.TransExportStep]IncrementalCalculator{
+	models.TransExportStepRole:             calculateRoleIncremental,
+	models.TransExportStepWorkflow:         calculateWorkflowIncremental,
+	models.TransExportStepComponentLibrary: calculateComponentLibraryIncremental,
+	models.TransExportStepBatchExecution:   calculateBatchExecutionIncremental,
+	models.TransExportStepRequestTemplate:  calculateRequestTemplateIncremental,
+	models.TransExportStepCmdb:             calculateCmdbIncremental,
+	models.TransExportStepArtifacts:        calculateArtifactsIncremental,
+	models.TransExportStepMonitor:          calculateMonitorIncremental,
+	models.TransExportStepPluginConfig:     calculatePluginConfigIncremental,
+}
+
 // exportFuncList  inputData 用户选择数据, outputData 回显数据, exportData 导出数据
 var exportFuncList []func(ctx context.Context, exportParam *models.TransExportJobParam) (result models.ExportResult, err error)
 
@@ -59,11 +75,11 @@ func init() {
 }
 
 func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActionParam) (err error) {
-	var transExportDetails []*models.TransExportDetailTable
+	var transExportDetails, baselineExportDetails []*models.TransExportDetailTable
 	var queryRolesResponse models.QueryRolesResponse
 	var transDataVariableConfig *models.TransDataVariableConfig
 	var path, zipPath, monitorPath, exportDataPath string
-	var transExport *models.TransExportTable
+	var transExport, baselineExport *models.TransExportTable
 	var transExportCustomerList []*models.DataTransExportCustomerTable
 	if transExport, err = GetTransExport(ctx, callParam.TransExportId); err != nil {
 		return
@@ -109,6 +125,24 @@ func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActi
 	transDataVariableConfig.NexusUser = transExportCustomerList[0].NexusAccount
 	transDataVariableConfig.NexusPwd = transExportCustomerList[0].NexusPwd
 	transDataVariableConfig.NexusRepo = transExportCustomerList[0].NexusRepo
+	// 检查是否为增量导出，如果是则计算增量数据
+	if transExport.SourceExport != "" {
+		// 获取历史导出数据作为基准
+		if baselineExport, err = GetTransExport(ctx, transExport.SourceExport); err != nil {
+			log.Error(nil, log.LOGGER_APP, "GetTransExport baseline failed", zap.Error(err))
+			return err
+		}
+		if baselineExport == nil {
+			log.Error(nil, log.LOGGER_APP, "baseline export not found", zap.String("sourceExport", transExport.SourceExport))
+			return fmt.Errorf("baseline export not found: %s", transExport.SourceExport)
+		}
+		// 获取基线导出,计算增量数据
+		if baselineExportDetails, err = getTransExportDetail(ctx, transExport.SourceExport); err != nil {
+			log.Error(nil, log.LOGGER_APP, "getTransExportDetail baseline failed", zap.Error(err))
+			return err
+		}
+	}
+
 	// 更新导出状态为执行中
 	err = updateTransExportStatus(ctx, callParam.TransExportId, models.TransExportStatusDoing)
 	if err != nil {
@@ -125,19 +159,53 @@ func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActi
 		AllRoles:                queryRolesResponse.Data,
 		RoleDisplayNameMap:      make(map[string]string),
 		DataTransVariableConfig: transDataVariableConfig,
+		BaselineExport:          baselineExport,
+		BaselineExportDetails:   baselineExportDetails,
 	}
 	if len(queryRolesResponse.Data) > 0 {
 		for _, role := range queryRolesResponse.Data {
 			transExportJobParam.RoleDisplayNameMap[role.Name] = role.DisplayName
 		}
 	}
+	// 存储所有步骤的增量数据
+	var allStepIncrementalData map[string]interface{}
+
 	for _, detail := range transExportDetails {
 		if detail.Step > len(exportFuncList) {
 			break
 		}
 		transExportJobParam.Step = detail.Step
-		if err = callExportFunc(ctx, transExportJobParam, exportFuncList[detail.Step-1]); err != nil {
+		var stepIncrementalData interface{}
+		if stepIncrementalData, err = callExportFunc(ctx, transExportJobParam, exportFuncList[detail.Step-1]); err != nil {
 			break
+		}
+
+		// 收集当前步骤的增量数据
+		if stepIncrementalData != nil {
+			stepName := transExportDetailMap[models.TransExportStep(detail.Step)]
+			if allStepIncrementalData == nil {
+				allStepIncrementalData = make(map[string]interface{})
+			}
+			allStepIncrementalData[stepName] = stepIncrementalData
+		}
+	}
+
+	// 如果有基线数据，将收集到的增量数据存储到数据库
+	if baselineExport != nil && baselineExportDetails != nil && allStepIncrementalData != nil {
+		// 读取现有的diff_data数据
+		existingDiffData, err := getTransExportDiffData(transExport)
+		if err != nil {
+			log.Error(nil, log.LOGGER_APP, "getTransExportDiffData failed", zap.Error(err))
+		} else {
+			// 合并增量数据
+			mergedDiffData := mergeIncrementalData(existingDiffData, allStepIncrementalData)
+
+			// 将合并后的增量数据序列化并存储到数据库
+			if diffDataBytes, err := json.Marshal(mergedDiffData); err == nil {
+				if err = updateTransExportDiffData(ctx, transExportJobParam.TransExportId, string(diffDataBytes)); err != nil {
+					log.Error(nil, log.LOGGER_APP, "updateTransExportDiffData failed", zap.Error(err))
+				}
+			}
 		}
 	}
 	// 删除导出目录
@@ -154,8 +222,7 @@ func ExecExportAction(ctx context.Context, callParam *models.CallTransExportActi
 	return
 }
 
-func callExportFunc(ctx context.Context, transExportJobParam *models.TransExportJobParam, funcObj func(context.Context, *models.TransExportJobParam) (result models.ExportResult, err error)) (err error) {
-	var result models.ExportResult
+func callExportFunc(ctx context.Context, transExportJobParam *models.TransExportJobParam, funcObj func(context.Context, *models.TransExportJobParam) (result models.ExportResult, err error)) (incrementalData interface{}, err error) {
 	now := time.Now().Format(models.DateTimeFormat)
 	transExportMonitorDetail := models.TransExportDetailTable{
 		TransExport: &transExportJobParam.TransExportId,
@@ -165,7 +232,7 @@ func callExportFunc(ctx context.Context, transExportJobParam *models.TransExport
 	}
 	// 设置成 doing
 	updateTransExportDetail(ctx, transExportMonitorDetail)
-	result, err = funcObj(ctx, transExportJobParam)
+	result, err := funcObj(ctx, transExportJobParam)
 	if result.InputData != nil {
 		inputByteArr, _ := json.Marshal(result.InputData)
 		if string(inputByteArr) != "null" {
@@ -180,7 +247,7 @@ func callExportFunc(ctx context.Context, transExportJobParam *models.TransExport
 		updateTransExportDetail(ctx, transExportMonitorDetail)
 		// 导出记录设置为失败
 		updateTransExportStatus(ctx, transExportJobParam.TransExportId, models.TransExportStatusFail)
-		return
+		return nil, err
 	}
 	if result.OutputData != nil {
 		outputByteArr, _ := json.Marshal(result.OutputData)
@@ -192,9 +259,21 @@ func callExportFunc(ctx context.Context, transExportJobParam *models.TransExport
 		// 导出数据不为空,即执行导出
 		if err = tools.WriteJsonData2File(getExportJsonFile(transExportJobParam.Path, transExportDetailMap[models.TransExportStep(transExportJobParam.Step)]), result.ExportData); err != nil {
 			log.Error(nil, log.LOGGER_APP, "WriteJsonData2File error", zap.String("name", transExportDetailMap[models.TransExportStep(transExportJobParam.Step)]), zap.Error(err))
-			return
+			return nil, err
 		}
 	}
+	// 计算增量数据
+	var stepIncrementalData interface{}
+	if transExportJobParam.BaselineExport != nil && transExportJobParam.BaselineExportDetails != nil {
+		if calculator, exists := incrementalCalculatorMap[models.TransExportStep(transExportJobParam.Step)]; exists {
+			// 从基线数据中提取对应步骤的数据
+			baselineData := extractBaselineDataForStep(transExportJobParam.BaselineExportDetails, models.TransExportStep(transExportJobParam.Step))
+			if calcIncrementalData, calcErr := calculator(ctx, result.OutputData, baselineData); calcErr == nil && calcIncrementalData != nil {
+				stepIncrementalData = calcIncrementalData
+			}
+		}
+	}
+
 	transExportMonitorDetail.EndTime = time.Now().Format(models.DateTimeFormat)
 	log.Info(nil, log.LOGGER_APP, fmt.Sprintf("%d. export %s success!!!", transExportJobParam.Step, transExportDetailMap[models.TransExportStep(transExportJobParam.Step)]))
 	transExportMonitorDetail.Status = string(models.TransImportStatusSuccess)
@@ -203,10 +282,10 @@ func callExportFunc(ctx context.Context, transExportJobParam *models.TransExport
 	if result.UploadUrl != "" {
 		if err = updateTransExportSuccess(ctx, transExportJobParam.TransExportId, result.UploadUrl); err != nil {
 			log.Error(nil, log.LOGGER_APP, "updateTransExportSuccess fail", zap.Error(err))
-			return
+			return nil, err
 		}
 	}
-	return
+	return stepIncrementalData, nil
 }
 
 // exportRole  1.导出角色
@@ -667,22 +746,43 @@ func exportFileUpload(ctx context.Context, param *models.TransExportJobParam) (r
 
 func CreateExport(c context.Context, param models.CreateExportParam, operator string) (transExportId string, err error) {
 	var actions, addTransExportActions, addTransExportDetailActions, analyzeDataActions []*db.ExecAction
+	var baselineTransExport *models.TransExportTable
 	transExportId = fmt.Sprintf("tp_%s", guid.CreateGuid())
 	transExport := models.TransExportTable{
-		Id:                transExportId,
-		CustomerId:        param.CustomerId,
-		CustomerName:      param.CustomerName,
-		Environment:       param.Env,
-		EnvironmentName:   param.EnvName,
-		Business:          strings.Join(param.PIds, ","),
-		BusinessName:      strings.Join(param.PNames, ","),
-		Status:            string(models.TransExportStatusStart),
-		CreatedUser:       operator,
-		UpdatedUser:       operator,
-		LastConfirmTime:   param.LastConfirmTime,
-		ExcludeDeployZone: strings.Join(param.ExcludeDeployZone, ","),
-		DeployZones:       strings.Join(param.DeployZones, ","),
-		SelectedTreeJson:  param.SelectedTreeJson, // 新增，保存tree结构json
+		Id:                     transExportId,
+		CustomerId:             param.CustomerId,
+		CustomerName:           param.CustomerName,
+		Environment:            param.Env,
+		EnvironmentName:        param.EnvName,
+		Business:               strings.Join(param.PIds, ","),
+		BusinessName:           strings.Join(param.PNames, ","),
+		Status:                 string(models.TransExportStatusStart),
+		CreatedUser:            operator,
+		UpdatedUser:            operator,
+		LastConfirmTime:        param.LastConfirmTime,
+		ExcludeDeployZone:      strings.Join(param.ExcludeDeployZone, ","),
+		DeployZones:            strings.Join(param.DeployZones, ","),
+		SelectedTreeJson:       param.SelectedTreeJson,       // 新增，保存tree结构json
+		SourceExport:           param.SourceExport,           // 新增，源导出记录ID
+		IncrementalDescription: param.IncrementalDescription, // 新增，增量导出描述
+	}
+	// 选择产品&部署区域的增量,写入 DiffData 里面 deployArea,selectProducts
+	if param.SourceExport != "" {
+		diffData := &models.TransIncrDetail{}
+		if baselineTransExport, err = GetTransExport(c, param.SourceExport); err != nil {
+			log.Error(nil, log.LOGGER_APP, "GetTransExport err", zap.Error(err))
+			return
+		}
+		// 对比部署区域增量, 用param.DeployZones 对比基线版本部署区域: baselineTransExport.DeployZones,两者数据都是逗号隔开
+		diffData.DeployArea = calculateDeployAreaIncremental(strings.Split(baselineTransExport.DeployZones, ","), param.DeployZones)
+
+		// 对比选中产品的增量, 用 param.PIds,param.PNames 分别对比 baselineTransExport.Business(逗号隔开)和 BusinessBusinessName(逗号隔开)
+		diffData.Business = calculateBusinessIncremental(strings.Split(baselineTransExport.Business, ","), param.PIds, param.PNames)
+
+		// 将增量数据序列化并存储到transExport的DiffData字段
+		if diffDataBytes, err := json.Marshal(diffData); err == nil {
+			transExport.DiffData = string(diffDataBytes)
+		}
 	}
 	// 新增导出记录
 	if addTransExportActions = getInsertTransExport(transExport); len(addTransExportActions) > 0 {
@@ -1248,6 +1348,92 @@ func filterRepeatWorkflowId(ids []string) []string {
 	return newIds
 }
 
+// getTransExportDiffData 获取TransExportTable的DiffData属性
+func getTransExportDiffData(transExport *models.TransExportTable) (*models.TransIncrDetail, error) {
+	if transExport == nil || transExport.DiffData == "" {
+		return &models.TransIncrDetail{}, nil
+	}
+
+	// 解析JSON为TransIncrDetail结构
+	var transIncrDetail models.TransIncrDetail
+	if err := json.Unmarshal([]byte(transExport.DiffData), &transIncrDetail); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal diff_data: %v", err)
+	}
+
+	return &transIncrDetail, nil
+}
+
+// mergeIncrementalData 合并增量数据
+func mergeIncrementalData(existingDiffData *models.TransIncrDetail, newIncrementalData map[string]interface{}) *models.TransIncrDetail {
+	// 如果现有数据为空，创建新的
+	if existingDiffData == nil {
+		existingDiffData = &models.TransIncrDetail{}
+	}
+
+	// 合并各个步骤的增量数据
+	for stepName, stepData := range newIncrementalData {
+		switch stepName {
+		case "role":
+			if roleData, ok := stepData.(*models.CommonOutput); ok {
+				existingDiffData.Roles = roleData
+			}
+		case "workflow":
+			if workflowData, ok := stepData.(*models.ExportWorkflowOutput); ok {
+				existingDiffData.Workflows = workflowData
+			}
+		case "component_library":
+			if componentData, ok := stepData.(map[string]interface{}); ok {
+				if exportComponentLibrary, exists := componentData["exportComponentLibrary"]; exists {
+					if val, ok := exportComponentLibrary.(bool); ok {
+						existingDiffData.ExportComponentLibrary = val
+					}
+				}
+				if componentLibrary, exists := componentData["componentLibrary"]; exists {
+					if val, ok := componentLibrary.(*models.CommonOutput); ok {
+						existingDiffData.ComponentLibrary = val
+					}
+				}
+			}
+		case "batch_execution":
+			if batchData, ok := stepData.(*models.CommonOutput); ok {
+				existingDiffData.BatchExecution = batchData
+			}
+		case "request_template":
+			if requestTemplateData, ok := stepData.(*models.CommonOutput); ok {
+				existingDiffData.RequestTemplates = requestTemplateData
+			}
+		case "wecmdb":
+			if cmdbData, ok := stepData.(*models.CommonOutput); ok {
+				existingDiffData.Cmdb = cmdbData
+			}
+		case "artifacts":
+			if artifactsData, ok := stepData.(*models.CommonOutput); ok {
+				existingDiffData.Artifacts = artifactsData
+			}
+		case "monitor":
+			if monitorData, ok := stepData.(*models.CommonOutput); ok {
+				existingDiffData.Monitor = monitorData
+			}
+		case "plugin_config":
+			if pluginData, ok := stepData.(*models.CommonOutput); ok {
+				existingDiffData.Plugins = pluginData
+			}
+		}
+	}
+
+	return existingDiffData
+}
+
+// updateTransExportDiffData 更新TransExportTable的DiffData属性
+func updateTransExportDiffData(ctx context.Context, transExportId, diffData string) error {
+	_, err := db.MysqlEngine.Context(ctx).Exec(`
+		UPDATE trans_export 
+		SET diff_data = ? 
+		WHERE id = ?
+	`, diffData, transExportId)
+	return err
+}
+
 func GetExportDashboardMap(ctx context.Context, transExportId, userToken string) (exportDashboardMap map[int][]string, err error) {
 	var dashboardAnalyze models.TransExportAnalyzeDataTable
 	var dashboardList []string
@@ -1468,4 +1654,518 @@ func GetCustomerExportHistory(ctx context.Context, customerId string) ([]*models
 		return nil, err
 	}
 	return exportHistory, nil
+}
+
+// calculateDeployAreaIncremental 计算部署区域增量
+func calculateDeployAreaIncremental(baselineDeployZones, currentDeployZones []string) []string {
+	// 构建基线部署区域映射
+	baselineMap := make(map[string]bool)
+	for _, area := range baselineDeployZones {
+		if strings.TrimSpace(area) != "" {
+			baselineMap[strings.TrimSpace(area)] = true
+		}
+	}
+
+	// 计算增量部署区域
+	var incrementalAreas []string
+	for _, area := range currentDeployZones {
+		trimmedArea := strings.TrimSpace(area)
+		if trimmedArea != "" && !baselineMap[trimmedArea] {
+			incrementalAreas = append(incrementalAreas, trimmedArea)
+		}
+	}
+
+	return incrementalAreas
+}
+
+// calculateBusinessIncremental 计算产品增量
+func calculateBusinessIncremental(baselineBusiness, currentPIds, currentPNames []string) map[string]string {
+	// 构建基线产品映射
+	baselineMap := make(map[string]bool)
+	for _, id := range baselineBusiness {
+		if strings.TrimSpace(id) != "" {
+			baselineMap[strings.TrimSpace(id)] = true
+		}
+	}
+
+	// 计算增量产品
+	incrementalBusiness := make(map[string]string)
+	for i, id := range currentPIds {
+		trimmedId := strings.TrimSpace(id)
+		if trimmedId != "" && !baselineMap[trimmedId] {
+			// 确保名称数组有对应的元素
+			if i < len(currentPNames) {
+				incrementalBusiness[trimmedId] = strings.TrimSpace(currentPNames[i])
+			} else {
+				incrementalBusiness[trimmedId] = ""
+			}
+		}
+	}
+
+	return incrementalBusiness
+}
+
+// calculateRoleIncremental 计算角色增量
+func calculateRoleIncremental(ctx context.Context, currentData interface{}, baselineData interface{}) (interface{}, error) {
+	// 当前角色数据
+	currentRoles, ok := currentData.([]*models.SimpleLocalRoleDto)
+	if !ok {
+		return nil, fmt.Errorf("invalid current data type for roles")
+	}
+
+	// 基线角色数据
+	baselineRoles, ok := baselineData.([]*models.SimpleLocalRoleDto)
+	if !ok {
+		return nil, fmt.Errorf("invalid baseline data type for roles")
+	}
+
+	// 构建基线角色ID映射
+	baselineRoleMap := make(map[string]bool)
+	for _, role := range baselineRoles {
+		baselineRoleMap[role.Name] = true
+	}
+
+	// 计算增量：找出新增的角色
+	var newRoles []*models.SimpleLocalRoleDto
+	for _, role := range currentRoles {
+		if !baselineRoleMap[role.Name] {
+			newRoles = append(newRoles, role)
+		}
+	}
+
+	// 提取新增角色的ID列表
+	var newRoleIds []string
+	for _, role := range newRoles {
+		newRoleIds = append(newRoleIds, role.Name)
+	}
+
+	// 返回增量数据，只包含新增的角色ID
+	return &models.CommonOutput{
+		Ids:    newRoleIds,
+		Status: "success", // 增量数据状态固定为success
+	}, nil
+}
+
+// calculateWorkflowIncremental 计算编排增量
+func calculateWorkflowIncremental(ctx context.Context, currentData interface{}, baselineData interface{}) (interface{}, error) {
+	// 当前编排数据
+	currentWorkflows, ok := currentData.([]*models.ProcessDefinitionDto)
+	if !ok {
+		return nil, fmt.Errorf("invalid current data type for workflows")
+	}
+
+	// 基线编排数据
+	baselineWorkflows, ok := baselineData.([]*models.ProcessDefinitionDto)
+	if !ok {
+		return nil, fmt.Errorf("invalid baseline data type for workflows")
+	}
+
+	// 构建基线编排ID映射
+	baselineWorkflowMap := make(map[string]bool)
+	for _, workflow := range baselineWorkflows {
+		if workflow != nil && workflow.ProcDef != nil {
+			baselineWorkflowMap[workflow.ProcDef.Id] = true
+		}
+	}
+
+	// 计算增量：找出新增的编排
+	var newWorkflows []*models.ProcessDefinitionDto
+	for _, workflow := range currentWorkflows {
+		if workflow != nil && workflow.ProcDef != nil && !baselineWorkflowMap[workflow.ProcDef.Id] {
+			newWorkflows = append(newWorkflows, workflow)
+		}
+	}
+
+	// 提取新增编排的ID列表
+	var newWorkflowIds []string
+	for _, workflow := range newWorkflows {
+		if workflow != nil && workflow.ProcDef != nil {
+			newWorkflowIds = append(newWorkflowIds, workflow.ProcDef.Id)
+		}
+	}
+
+	// 返回增量数据，只包含新增的编排ID
+	return &models.CommonOutput{
+		Ids:    newWorkflowIds,
+		Status: "success", // 增量数据状态固定为success
+	}, nil
+}
+
+// calculateComponentLibraryIncremental 计算组件库增量
+func calculateComponentLibraryIncremental(ctx context.Context, currentData interface{}, baselineData interface{}) (interface{}, error) {
+	// 当前组件库数据
+	currentComponentData, ok := currentData.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid current data type for component library")
+	}
+
+	// 基线组件库数据
+	baselineComponentData, ok := baselineData.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid baseline data type for component library")
+	}
+
+	// 检查基线是否导出了组件库
+	baselineExportComponentLibrary, _ := baselineComponentData["exportComponentLibrary"].(bool)
+	currentExportComponentLibrary, _ := currentComponentData["exportComponentLibrary"].(bool)
+
+	// 如果基线没有导出，当前要导出，则为增量
+	if !baselineExportComponentLibrary && currentExportComponentLibrary {
+		return map[string]interface{}{
+			"exportComponentLibrary": true,
+			"componentLibrary":       &models.CommonOutput{Ids: []string{}, Status: "success"},
+		}, nil
+	}
+
+	// 如果基线已经导出，当前也导出，检查组件库内容是否有变化
+	if baselineExportComponentLibrary && currentExportComponentLibrary {
+		baselineComponentLibrary, _ := baselineComponentData["componentLibrary"].(*models.CommonOutput)
+		currentComponentLibrary, _ := currentComponentData["componentLibrary"].(*models.CommonOutput)
+
+		if baselineComponentLibrary != nil && currentComponentLibrary != nil {
+			// 计算组件库的增量
+			newComponentIds := calculateNewIdsFromArrays(baselineComponentLibrary.Ids, currentComponentLibrary.Ids)
+			if len(newComponentIds) > 0 {
+				return map[string]interface{}{
+					"exportComponentLibrary": true,
+					"componentLibrary": &models.CommonOutput{
+						Ids:    newComponentIds,
+						Status: "success",
+					},
+				}, nil
+			}
+		}
+	}
+
+	return nil, nil
+}
+
+// calculateBatchExecutionIncremental 计算批量执行增量
+func calculateBatchExecutionIncremental(ctx context.Context, currentData interface{}, baselineData interface{}) (interface{}, error) {
+	// 当前批量执行数据
+	currentBatchExecutions, ok := currentData.([]*models.BatchExecutionTemplate)
+	if !ok {
+		return nil, fmt.Errorf("invalid current data type for batch execution")
+	}
+
+	// 基线批量执行数据
+	baselineBatchExecutions, ok := baselineData.([]*models.BatchExecutionTemplate)
+	if !ok {
+		return nil, fmt.Errorf("invalid baseline data type for batch execution")
+	}
+
+	// 构建基线批量执行ID映射
+	baselineBatchExecutionMap := make(map[string]bool)
+	for _, batchExecution := range baselineBatchExecutions {
+		baselineBatchExecutionMap[batchExecution.Id] = true
+	}
+
+	// 计算增量：找出新增的批量执行
+	var newBatchExecutions []*models.BatchExecutionTemplate
+	for _, batchExecution := range currentBatchExecutions {
+		if !baselineBatchExecutionMap[batchExecution.Id] {
+			newBatchExecutions = append(newBatchExecutions, batchExecution)
+		}
+	}
+
+	// 提取新增批量执行的ID列表
+	var newBatchExecutionIds []string
+	for _, batchExecution := range newBatchExecutions {
+		newBatchExecutionIds = append(newBatchExecutionIds, batchExecution.Id)
+	}
+
+	// 返回增量数据，只包含新增的批量执行ID
+	return &models.CommonOutput{
+		Ids:    newBatchExecutionIds,
+		Status: "success", // 增量数据状态固定为success
+	}, nil
+}
+
+// calculateRequestTemplateIncremental 计算请求模板增量
+func calculateRequestTemplateIncremental(ctx context.Context, currentData interface{}, baselineData interface{}) (interface{}, error) {
+	// 当前请求模板数据
+	currentRequestTemplates, ok := currentData.([]*models.RequestTemplateSimpleQuery)
+	if !ok {
+		return nil, fmt.Errorf("invalid current data type for request template")
+	}
+
+	// 基线请求模板数据
+	baselineRequestTemplates, ok := baselineData.([]*models.RequestTemplateSimpleQuery)
+	if !ok {
+		return nil, fmt.Errorf("invalid baseline data type for request template")
+	}
+
+	// 构建基线请求模板ID映射
+	baselineRequestTemplateMap := make(map[string]bool)
+	for _, requestTemplate := range baselineRequestTemplates {
+		baselineRequestTemplateMap[requestTemplate.Id] = true
+	}
+
+	// 计算增量：找出新增的请求模板
+	var newRequestTemplates []*models.RequestTemplateSimpleQuery
+	for _, requestTemplate := range currentRequestTemplates {
+		if !baselineRequestTemplateMap[requestTemplate.Id] {
+			newRequestTemplates = append(newRequestTemplates, requestTemplate)
+		}
+	}
+
+	// 提取新增请求模板的ID列表
+	var newRequestTemplateIds []string
+	for _, requestTemplate := range newRequestTemplates {
+		newRequestTemplateIds = append(newRequestTemplateIds, requestTemplate.Id)
+	}
+
+	// 返回增量数据，只包含新增的请求模板ID
+	return &models.CommonOutput{
+		Ids:    newRequestTemplateIds,
+		Status: "success", // 增量数据状态固定为success
+	}, nil
+}
+
+// calculateCmdbIncremental 计算CMDB增量
+func calculateCmdbIncremental(ctx context.Context, currentData interface{}, baselineData interface{}) (interface{}, error) {
+	// 当前CMDB数据
+	currentCmdb, ok := currentData.(*models.CommonOutput)
+	if !ok {
+		return nil, fmt.Errorf("invalid current data type for CMDB")
+	}
+
+	// 基线CMDB数据
+	baselineCmdb, ok := baselineData.(*models.CommonOutput)
+	if !ok {
+		return nil, fmt.Errorf("invalid baseline data type for CMDB")
+	}
+
+	// 计算增量：找出新增的CMDB ID
+	newCmdbIds := calculateNewIdsFromArrays(baselineCmdb.Ids, currentCmdb.Ids)
+
+	// 返回增量数据，只包含新增的CMDB
+	return &models.CommonOutput{
+		Ids:    newCmdbIds,
+		Status: "success", // 增量数据状态固定为success
+	}, nil
+}
+
+// calculateArtifactsIncremental 计算物料包增量
+func calculateArtifactsIncremental(ctx context.Context, currentData interface{}, baselineData interface{}) (interface{}, error) {
+	// 当前物料包数据
+	currentArtifacts, ok := currentData.(*models.CommonOutput)
+	if !ok {
+		return nil, fmt.Errorf("invalid current data type for artifacts")
+	}
+
+	// 基线物料包数据
+	baselineArtifacts, ok := baselineData.(*models.CommonOutput)
+	if !ok {
+		return nil, fmt.Errorf("invalid baseline data type for artifacts")
+	}
+
+	// 计算增量：找出新增的物料包ID
+	newArtifactIds := calculateNewIdsFromArrays(baselineArtifacts.Ids, currentArtifacts.Ids)
+
+	// 返回增量数据，只包含新增的物料包
+	return &models.CommonOutput{
+		Ids:    newArtifactIds,
+		Status: "success", // 增量数据状态固定为success
+	}, nil
+}
+
+// calculateMonitorIncremental 计算监控增量
+func calculateMonitorIncremental(ctx context.Context, currentData interface{}, baselineData interface{}) (interface{}, error) {
+	// 当前监控数据
+	currentMonitor, ok := currentData.(*models.CommonOutput)
+	if !ok {
+		return nil, fmt.Errorf("invalid current data type for monitor")
+	}
+
+	// 基线监控数据
+	baselineMonitor, ok := baselineData.(*models.CommonOutput)
+	if !ok {
+		return nil, fmt.Errorf("invalid baseline data type for monitor")
+	}
+
+	// 计算增量：找出新增的监控ID
+	newMonitorIds := calculateNewIdsFromArrays(baselineMonitor.Ids, currentMonitor.Ids)
+
+	// 返回增量数据，只包含新增的监控
+	return &models.CommonOutput{
+		Ids:    newMonitorIds,
+		Status: "success", // 增量数据状态固定为success
+	}, nil
+}
+
+// calculatePluginConfigIncremental 计算插件配置增量
+func calculatePluginConfigIncremental(ctx context.Context, currentData interface{}, baselineData interface{}) (interface{}, error) {
+	// 当前插件配置数据
+	currentPlugins, ok := currentData.(*models.CommonOutput)
+	if !ok {
+		return nil, fmt.Errorf("invalid current data type for plugin config")
+	}
+
+	// 基线插件配置数据
+	baselinePlugins, ok := baselineData.(*models.CommonOutput)
+	if !ok {
+		return nil, fmt.Errorf("invalid baseline data type for plugin config")
+	}
+
+	// 计算增量：找出新增的插件配置ID
+	newPluginIds := calculateNewIdsFromArrays(baselinePlugins.Ids, currentPlugins.Ids)
+
+	// 返回增量数据，只包含新增的插件配置
+	return &models.CommonOutput{
+		Ids:    newPluginIds,
+		Status: "success", // 增量数据状态固定为success
+	}, nil
+}
+
+// extractBaselineDataForStep 从基线数据中提取指定步骤的数据
+func extractBaselineDataForStep(baselineDetails []*models.TransExportDetailTable, step models.TransExportStep) interface{} {
+	for _, detail := range baselineDetails {
+		if models.TransExportStep(detail.Step) == step {
+			// 解析Output数据
+			if detail.Output != "" {
+				switch step {
+				case models.TransExportStepRole:
+					// 角色数据存储的是 []*models.SimpleLocalRoleDto 的JSON
+					var roleOutput []*models.SimpleLocalRoleDto
+					if err := json.Unmarshal([]byte(detail.Output), &roleOutput); err == nil {
+						return roleOutput
+					}
+				case models.TransExportStepWorkflow:
+					// 工作流数据存储的是 []*models.ProcessDefinitionDto 的JSON
+					var workflowOutput []*models.ProcessDefinitionDto
+					if err := json.Unmarshal([]byte(detail.Output), &workflowOutput); err == nil {
+						return workflowOutput
+					}
+				case models.TransExportStepComponentLibrary:
+					// 组件库数据存储的是 map[string]interface{} 的JSON
+					var componentData map[string]interface{}
+					if err := json.Unmarshal([]byte(detail.Output), &componentData); err == nil {
+						return componentData
+					}
+				case models.TransExportStepBatchExecution:
+					// 批量执行数据存储的是 []*models.BatchExecutionTemplate 的JSON
+					var batchOutput []*models.BatchExecutionTemplate
+					if err := json.Unmarshal([]byte(detail.Output), &batchOutput); err == nil {
+						return batchOutput
+					}
+				case models.TransExportStepRequestTemplate:
+					// 请求模板数据存储的是 []*models.RequestTemplateSimpleQuery 的JSON
+					var requestTemplateOutput []*models.RequestTemplateSimpleQuery
+					if err := json.Unmarshal([]byte(detail.Output), &requestTemplateOutput); err == nil {
+						return requestTemplateOutput
+					}
+				case models.TransExportStepCmdb:
+					// CMDB数据存储的是 CommonOutput 的JSON
+					var cmdbOutput models.CommonOutput
+					if err := json.Unmarshal([]byte(detail.Output), &cmdbOutput); err == nil {
+						return &cmdbOutput
+					}
+				case models.TransExportStepArtifacts:
+					// 物料包数据存储的是 CommonOutput 的JSON
+					var artifactsOutput models.CommonOutput
+					if err := json.Unmarshal([]byte(detail.Output), &artifactsOutput); err == nil {
+						return &artifactsOutput
+					}
+				case models.TransExportStepMonitor:
+					// 监控数据存储的是 CommonOutput 的JSON
+					var monitorOutput models.CommonOutput
+					if err := json.Unmarshal([]byte(detail.Output), &monitorOutput); err == nil {
+						return &monitorOutput
+					}
+				case models.TransExportStepPluginConfig:
+					// 插件配置数据存储的是 CommonOutput 的JSON
+					var pluginOutput models.CommonOutput
+					if err := json.Unmarshal([]byte(detail.Output), &pluginOutput); err == nil {
+						return &pluginOutput
+					}
+				}
+			}
+			break
+		}
+	}
+	return nil
+}
+
+// 辅助函数：从基线数据中提取各种ID列表
+func extractBaselineRoles(baselineDetails []*models.TransExportDetailTable) []string {
+	for _, detail := range baselineDetails {
+		if models.TransExportStep(detail.Step) == models.TransExportStepRole {
+			var ids []string
+			if strings.TrimSpace(detail.Input) != "" {
+				json.Unmarshal([]byte(detail.Input), &ids)
+			}
+			return ids
+		}
+	}
+	return []string{}
+}
+
+func extractBaselineWorkflows(baselineDetails []*models.TransExportDetailTable) []string {
+	for _, detail := range baselineDetails {
+		if models.TransExportStep(detail.Step) == models.TransExportStepWorkflow {
+			var ids []string
+			if strings.TrimSpace(detail.Input) != "" {
+				json.Unmarshal([]byte(detail.Input), &ids)
+			}
+			return ids
+		}
+	}
+	return []string{}
+}
+
+func extractBaselineComponentLibrary(baselineDetails []*models.TransExportDetailTable) bool {
+	for _, detail := range baselineDetails {
+		if models.TransExportStep(detail.Step) == models.TransExportStepComponentLibrary {
+			return detail.Input == "true"
+		}
+	}
+	return false
+}
+
+func extractBaselineBatchExecutions(baselineDetails []*models.TransExportDetailTable) []string {
+	for _, detail := range baselineDetails {
+		if models.TransExportStep(detail.Step) == models.TransExportStepBatchExecution {
+			var ids []string
+			if strings.TrimSpace(detail.Input) != "" {
+				json.Unmarshal([]byte(detail.Input), &ids)
+			}
+			return ids
+		}
+	}
+	return []string{}
+}
+
+func extractBaselineRequestTemplates(baselineDetails []*models.TransExportDetailTable) []string {
+	for _, detail := range baselineDetails {
+		if models.TransExportStep(detail.Step) == models.TransExportStepRequestTemplate {
+			var ids []string
+			if strings.TrimSpace(detail.Input) != "" {
+				json.Unmarshal([]byte(detail.Input), &ids)
+			}
+			return ids
+		}
+	}
+	return []string{}
+}
+
+// calculateNewIdsFromArrays 计算新增的ID列表（数组版本）
+func calculateNewIdsFromArrays(baselineIds, currentIds []string) []string {
+	if len(baselineIds) == 0 {
+		return currentIds
+	}
+
+	baselineMap := make(map[string]bool)
+	for _, id := range baselineIds {
+		baselineMap[id] = true
+	}
+
+	var newIds []string
+	for _, id := range currentIds {
+		if !baselineMap[id] {
+			newIds = append(newIds, id)
+		}
+	}
+
+	return newIds
 }

@@ -34,6 +34,7 @@ var (
 		"get-process-definition-node-link":       true,
 		"get-user":                               true,
 		"change-user-password":                   true,
+		"reset-user-password":                    true, // 重置密码接口，添加到白名单
 		"get-packages":                           true,
 		"query-roles":                            true,
 		"get-all-user":                           true,
