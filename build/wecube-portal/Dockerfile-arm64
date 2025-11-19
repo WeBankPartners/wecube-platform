@@ -1,4 +1,4 @@
-FROM nginx:stable-perl-arm64
+FROM ccr.ccs.tencentyun.com/webankpartners/nginx:stable-perl
 LABEL maintainer = "Webank CTB Team"
 RUN mkdir -p /root/app/ui-resources
 # RUN mkdir -p /root/wecube-docs
