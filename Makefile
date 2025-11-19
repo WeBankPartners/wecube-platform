@@ -80,7 +80,7 @@ image_portal: build_portal
 	docker build -t wecube-portal:$(version) -f build/wecube-portal/Dockerfile .
 
 image_portal_arm64: build_portal
-	docker buildx build -t wecube-portal:$(version) -f build/wecube-portal/Dockerfile-arm64 --platform linux/arm64 .
+	docker buildx build -t wecube-portal:$(version) -f build/wecube-portal/Dockerfile-arm64 --platform linux/arm64 . --load
 
 push_portal: image_portal
 	docker tag  wecube-portal:$(version) $(tencent_cloud_docker_image_registry)/wecube-portal:$(version)
