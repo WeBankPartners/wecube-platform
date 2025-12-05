@@ -95,6 +95,10 @@
 </template>
 
 <script>
+/**
+ * 导入创建页面组件
+ * 提供五步导入流程：导入产品、导入数据、修改数据、执行自动化编排、监控配置
+ */
 import StepOne from './components/step-one.vue'
 import StepTwo from './components/step-two.vue'
 import StepThree from './components/step-three.vue'
@@ -112,12 +116,19 @@ export default {
   },
   data() {
     return {
+      // 导入记录ID
       id: this.$route.query.id || '',
+      // 操作类型：edit编辑、detail查看、republish重新发起
       type: this.$route.query.type || '',
+      // 当前激活的步骤索引
       activeStep: -1,
+      // 加载状态
       loading: false,
+      // 导入详情数据
       detailData: {},
+      // 当前状态对象
       statusObj: {},
+      // 状态列表配置
       statusList: [
         {
           label: this.$t('fe_inProgress'), // 执行中
@@ -142,8 +153,12 @@ export default {
       ]
     }
   },
+  /**
+   * 组件挂载后初始化
+   * 根据路由参数判断是新建、编辑还是查看，并设置对应的步骤
+   */
   async mounted() {
-    // 查看编辑操作
+    // 查看或编辑操作
     if (this.id && this.type !== 'republish') {
       this.loading = true
       await this.getDetailData()
@@ -165,11 +180,19 @@ export default {
       this.activeStep = 0
     }
   },
+  /**
+   * 组件销毁前清理定时器
+   */
   beforeDestroy() {
     clearTimeout(this.interval)
   },
   methods: {
-    // 获取导出详情数据
+    /**
+     * 获取导入详情数据
+     * 从接口获取导入任务的详细信息，包括各模块的导入状态和数据
+     * 处理数据格式化、统计、错误信息提取等逻辑
+     * 如果任务正在执行中，会设置定时器轮询查询状态
+     */
     async getDetailData() {
       const params = {
         params: {
@@ -234,10 +257,10 @@ export default {
           (sum, cur) => sum + cur.count,
           0
         )
-        // cmdbCI分组展示
+        // CMDB CI 数据按分组展示
         this.detailData.cmdbCIData = groupArrayByKey(this.detailData.cmdbCIData, 'group')
         this.detailData.cmdbCIData = this.detailData.cmdbCIData.flat()
-        // 第二步导入状态判断
+        // 判断第二步导入状态：所有模块都成功则为成功，任一失败则为失败
         const {
           artifactsRes,
           batchRes,
@@ -273,7 +296,7 @@ export default {
         if (fail) {
           this.detailData.stepTwoRes.status = 'fail'
         }
-        // 进行态，轮询查询
+        // 如果任务正在执行中，设置定时器轮询查询状态
         const intervalFlag = (!['success', 'fail'].includes(this.detailData.stepTwoRes.status)
             || !['success', 'fail'].includes(this.detailData.initWorkflowRes.status)
             || !['success', 'fail'].includes(this.detailData.monitorBusinessRes.status))
@@ -289,6 +312,10 @@ export default {
         }
       }
     },
+    /**
+     * 保存第一步数据
+     * @param {string} id - 导入记录ID
+     */
     async handleSaveStepOne(id) {
       this.id = id
       this.$router.replace({
@@ -296,45 +323,68 @@ export default {
         query: {
           type: 'edit',
           id: this.id,
-          timestamp: new Date().getTime() // 解决页面fullpath一样，不刷新问题
+          timestamp: new Date().getTime() // 解决页面 fullpath 一样，不刷新问题
         }
       })
     },
+    /**
+     * 开始加载
+     */
     startLoading() {
       this.loading = true
     },
+    /**
+     * 停止加载
+     */
     stopLoading() {
       this.loading = false
     },
+    /**
+     * 获取详情数据
+     */
     async handleFetchDetail() {
       this.loading = true
       await this.getDetailData()
       this.loading = false
     },
+    /**
+     * 保存第二步数据并进入下一步
+     */
     async handleSaveStepTwo() {
       this.loading = true
       await this.getDetailData()
       this.loading = false
       this.activeStep++
     },
+    /**
+     * 保存第三步数据并进入下一步
+     */
     async handleSaveStepThree() {
       this.loading = true
       await this.getDetailData()
       this.loading = false
       this.activeStep++
     },
+    /**
+     * 保存第四步数据并进入下一步
+     */
     async handleSaveStepFour() {
       this.loading = true
       await this.getDetailData()
       this.loading = false
       this.activeStep++
     },
+    /**
+     * 保存第五步数据
+     */
     async handleSaveStepFive() {
       this.loading = true
       await this.getDetailData()
       this.loading = false
     },
-    // 终止
+    /**
+     * 终止导入任务
+     */
     handleStop() {
       this.$Modal.confirm({
         title: this.$t('pi_tips'),
@@ -354,7 +404,9 @@ export default {
         onCancel: () => {}
       })
     },
-    // 重新发起
+    /**
+     * 重新发起导入
+     */
     handleReLauch() {
       this.$router.replace({
         path: '/admin/base-migration/import',
@@ -364,7 +416,10 @@ export default {
         }
       })
     },
-    // 物料包失败，可以执行重试
+    /**
+     * 重试导入
+     * 物料包失败时可以执行重试
+     */
     async handleRetry() {
       const params = {
         transImportId: this.detailData.id,
@@ -378,12 +433,19 @@ export default {
         this.loading = false
       }
     },
+    /**
+     * 返回历史列表
+     */
     handleBack() {
       return this.$router.push({
         path: '/admin/base-migration/import-history'
       })
     }
   },
+  /**
+   * 路由离开前处理
+   * 如果监控配置导入成功且任务正在执行中，需要用户确认完成导入
+   */
   beforeRouteLeave(to, from, next) {
     if (
       this.detailData.monitorBusinessRes

@@ -52,28 +52,48 @@
 </template>
 
 <script>
+/**
+ * 报表详情弹窗组件
+ * 展示执行参数详情，支持隐藏相同参数、高亮不同参数、列筛选等功能
+ */
 export default {
   name: '',
   data() {
     return {
+      // 是否显示弹窗
       showModal: false,
+      // 表格最大高度
       MODALHEIGHT: 200,
+      // 是否全屏
       fullscreen: false,
-
+      // 原始表格列配置
       oriDetailTableColums: [],
+      // 当前表格列配置
       detailTableColums: [],
+      // 原始表格数据
       oriDetailTableData: [],
+      // 当前表格数据
       detailTableData: [],
+      // 禁用的列（默认显示）
       disabledGroup: ['#', 'type', 'title'],
+      // 参数组选择
       paramsGroup: [],
+      // 过滤列
       filterCol: []
     }
   },
+  /**
+   * 组件挂载后设置表格高度
+   */
   mounted() {
     this.MODALHEIGHT = document.body.scrollHeight - 200
     document.getElementById('detailTable').classList.add('wer')
   },
   methods: {
+    /**
+     * 处理参数组变化
+     * 根据选择显示/隐藏相同参数，高亮不同参数
+     */
     changeParamsGroup() {
       this.detailTableData = JSON.parse(JSON.stringify(this.oriDetailTableData))
       const filterCol = []

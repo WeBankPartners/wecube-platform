@@ -1,8 +1,12 @@
+/**
+ * 静态表格混入
+ * 提供 CMDB、物料包、监控配置、插件服务等静态展示表格的列配置和方法
+ */
 import { deepClone } from '@/const/util'
 export default {
   data() {
     return {
-      // cmdb CI
+      // CMDB CI 表格列配置
       cmdbCIColumns: [
         {
           title: this.$t('pe_ci_level'),
@@ -51,7 +55,7 @@ export default {
           )
         }
       ],
-      // cmdb视图
+      // CMDB 视图表格列配置
       cmdbViewColumns: [
         {
           title: this.$t('pe_view_name'),
@@ -74,7 +78,7 @@ export default {
           render: (h, params) => <span>{params.row.creator || '-'}</span>
         }
       ],
-      // cmdb报表
+      // CMDB 报表表格列配置
       cmdbReportColumns: [
         {
           title: this.$t('pe_report_name'),
@@ -97,7 +101,7 @@ export default {
           render: (h, params) => <span>{params.row.creator || '-'}</span>
         }
       ],
-      // 物料包
+      // 物料包表格列配置
       artifactsColumns: [
         {
           title: this.$t('pe_unit_design'),
@@ -166,7 +170,7 @@ export default {
       artifactsSearchParams: {
         keyword: ''
       },
-      // 监控配置
+      // 监控配置表格列配置
       monitorColumns: [
         {
           title: this.$t('data_type'),
@@ -234,7 +238,7 @@ export default {
           )
         }
       ],
-      // 插件服务
+      // 插件服务表格列配置
       pluginColumns: [
         {
           title: this.$t('data_type'),
@@ -262,7 +266,7 @@ export default {
           )
         }
       ],
-      // 导入监控基础配置
+      // 导入监控基础配置表格列配置
       importMonitorColumns: [
         {
           title: this.$t('data_type'),
@@ -343,6 +347,9 @@ export default {
     }
   },
   watch: {
+    /**
+     * 监听物料包数据变化，同步到表格数据
+     */
     'detailData.artifactsRes.data': {
       handler(val) {
         const list = Array.isArray(val) ? val : []
@@ -354,6 +361,10 @@ export default {
     }
   },
   methods: {
+    /**
+     * 搜索物料包
+     * 根据关键词过滤物料包数据，支持按单元设计名称和物料包名称搜索
+     */
     handleSearchArtifacts () {
       const keyword = (this.artifactsSearchParams.keyword || '').toLowerCase().trim()
       if (!keyword) {
@@ -368,6 +379,12 @@ export default {
         return unitMatch || artifactMatch
       })
     },
+    /**
+     * 处理静态表格链接跳转
+     * 根据类型和行数据跳转到对应的管理页面
+     * @param {Object} row - 当前行数据
+     * @param {string} type - 类型：cmdb-ci-level、cmdb-ci-name、cmdb-view、cmdb-report、artifacts、monitor
+     */
     handleStaticTableLink(row, type) {
       let path = ''
       if (type === 'cmdb-ci-level') {
@@ -413,6 +430,12 @@ export default {
       window.sessionStorage.currentPath = ''
       window.open(path, '_blank')
     },
+    /**
+     * 打开详情弹窗
+     * 根据类型显示对应的详情数据
+     * @param {Object} row - 当前行数据
+     * @param {string} type - 类型：cmdb-ci、artifacts、monitor
+     */
     handleOpenDetail(row, type) {
       if (type === 'cmdb-ci') {
         this.detailTitle = row.name

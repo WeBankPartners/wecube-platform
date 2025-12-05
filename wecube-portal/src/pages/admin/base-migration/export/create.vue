@@ -55,6 +55,10 @@
 </template>
 
 <script>
+/**
+ * 导出创建页面组件
+ * 提供三步导出流程：选择产品、选择数据、查看结果
+ */
 import StepEnviroment from './components/step-enviroment.vue'
 import StepSelectData from './components/step-select-data.vue'
 import StepResult from './components/step-result.vue'
@@ -71,31 +75,43 @@ export default {
   },
   data() {
     return {
+      // 导出记录ID
       id: this.$route.query.id || '',
+      // 操作类型：edit编辑、detail查看、republish重新发起
       type: this.$route.query.type || '',
+      // 当前激活的步骤索引
       activeStep: -1,
+      // 加载状态
       loading: false,
-      detailData: {} // 导出状态start草稿、doing执行中、success成功、fail失败
+      // 导出详情数据，状态包括：start草稿、doing执行中、success成功、fail失败
+      detailData: {}
     }
   },
+  /**
+   * 组件挂载后初始化
+   * 根据路由参数判断是新建、编辑还是查看，并设置对应的步骤
+   */
   async mounted() {
     const _id = this.$route.query.id
     const _type = this.$route.query.type
+    // 编辑或查看操作
     if (_id && _type !== 'republish') {
       this.loading = true
       await this.getDetailData()
       this.loading = false
+      // 根据状态设置步骤：草稿状态显示第二步，执行中/成功/失败显示第三步
       if (this.detailData.status === 'start') {
         this.activeStep = 1
       } else if (['doing', 'success', 'fail'].includes(this.detailData.status)) {
         this.activeStep = 2
       }
     }
-    // 重新发起
+    // 重新发起操作
     if (_id && _type === 'republish') {
       this.loading = true
       await this.getDetailData()
       this.loading = false
+      // 重置确认时间为当前时间
       this.detailData.lastConfirmTime = dayjs(new Date()).format('YYYY-MM-DD HH:mm:ss')
       this.activeStep = 0
     }
@@ -104,11 +120,19 @@ export default {
       this.activeStep = 0
     }
   },
+  /**
+   * 组件销毁前清理定时器
+   */
   beforeDestroy() {
     clearTimeout(this.interval)
   },
   methods: {
-    // 获取导出详情数据
+    /**
+     * 获取导出详情数据
+     * 从接口获取导出任务的详细信息，包括各模块的导出状态和数据
+     * 处理数据格式化、统计、错误信息提取等逻辑
+     * 如果任务正在执行中，会设置定时器轮询查询状态
+     */
     async getDetailData() {
       const params = {
         params: {
@@ -157,20 +181,21 @@ export default {
         this.detailData.businessName = this.detailData.businessName || ''
         this.detailData.businessNameList = (this.detailData.businessName && this.detailData.businessName.split(',')) || []
         this.detailData.business = this.detailData.business || ''
+        // 统计各模块的数据数量
         this.detailData.cmdbCICount = this.detailData.cmdbCIData.reduce((sum, cur) => sum + cur.count, 0)
         this.detailData.monitorCount = this.detailData.monitorRes.data.reduce((sum, cur) => sum + cur.count, 0)
         this.detailData.artifactsCount = this.detailData.artifactsRes.data.reduce(
           (sum, cur) => sum + cur.artifactLen,
           0
         )
-        // cmdbCI分组展示
+        // CMDB CI 数据按分组展示
         this.detailData.cmdbCIData = groupArrayByKey(this.detailData.cmdbCIData, 'group')
         this.detailData.cmdbCIData = this.detailData.cmdbCIData.flat()
-        // 处理时间为空
+        // 处理无效的时间格式
         if (this.detailData.lastConfirmTime === '0000-00-00 00:00:00') {
           this.detailData.lastConfirmTime = ''
         }
-        // 合并monitor数据
+        // 合并监控数据：将多个相关的监控配置项合并为统一的展示项
         const metric_list_obj = {
           name: 'metric_list',
           data: [],
@@ -199,6 +224,7 @@ export default {
         const strategyIndex = this.detailData.monitorRes.data.findIndex(i => i.name === 'strategy_service_group')
         this.detailData.monitorRes.data.splice(metricIndex, 0, metric_list_obj)
         this.detailData.monitorRes.data.splice(strategyIndex, 0, strategy_list_obj)
+        // 过滤掉已合并的原始监控配置项
         this.detailData.monitorRes.data = this.detailData.monitorRes.data.filter(
           i =>
             ![
@@ -209,7 +235,7 @@ export default {
               'custom_metric_monitor_type'
             ].includes(i.name)
         )
-        // 错误信息提取
+        // 提取失败模块的错误信息
         const {
           artifactsRes,
           batchRes,
@@ -234,7 +260,7 @@ export default {
         ]
         const failObj = exportData.find(i => i.status === 'fail') || {}
         this.detailData.failMsg = `${failObj.title}：${failObj.errMsg}`
-        // 成功或失败，取消轮询查状态
+        // 如果导出已完成（成功/失败/草稿），取消轮询；否则每10秒轮询一次查询状态
         if (['success', 'fail', 'start'].includes(this.detailData.status)) {
           if (this.interval) {
             clearTimeout(this.interval)
@@ -246,7 +272,10 @@ export default {
         }
       }
     },
-    // 保存or更新环境和产品
+    /**
+     * 保存或更新环境和产品信息
+     * 防抖处理，避免重复提交
+     */
     handleSaveEnvBusiness: debounce(async function () {
       const {
         customerId, env, lastConfirmTime, envList, selectionList,
@@ -302,11 +331,16 @@ export default {
         })
       }
     }, 500),
-    // 上一步
+    /**
+     * 返回上一步
+     */
     handleLast() {
       this.activeStep--
     },
-    // 执行导出
+    /**
+     * 执行导出操作
+     * 防抖处理，避免重复提交
+     */
     handleSaveExport: debounce(async function () {
       const {
         roleSelectionList, itsmSelectionList, flowSelectionList, batchSelectionList, exportComponentLibrary
@@ -334,13 +368,17 @@ export default {
         this.$refs.scrollView.scrollTop = 0
       }
     }, 500),
-    // 跳转到历史列表
+    /**
+     * 跳转到历史列表页面
+     */
     handleToHistory() {
       this.$router.push({
         path: '/admin/base-migration/export-history'
       })
     },
-    // 重新发起
+    /**
+     * 重新发起导出
+     */
     handleReLauch() {
       this.$router.replace({
         path: '/admin/base-migration/export',
@@ -350,6 +388,9 @@ export default {
         }
       })
     },
+    /**
+     * 返回历史列表
+     */
     handleBack() {
       return this.$router.push({
         path: '/admin/base-migration/export-history'

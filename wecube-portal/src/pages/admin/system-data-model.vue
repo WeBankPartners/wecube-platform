@@ -32,6 +32,10 @@
   </div>
 </template>
 <script>
+/**
+ * 系统数据模型可视化组件
+ * 使用 D3.js 和 Graphviz 展示数据模型的关系图，支持节点点击查看属性详情
+ */
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
@@ -40,24 +44,41 @@ import { addEvent } from '../util/event.js'
 export default {
   data() {
     return {
+      // 所有实体数据
       data: [],
+      // 所有实体类型
       allEntityType: [],
+      // 图形对象
       graph: {},
+      // 是否显示抽屉
       drawerVisible: false,
+      // 当前节点名称
       nodeName: '',
+      // 是否正在处理节点点击
       isHandleNodeClick: false,
+      // 当前节点的属性列表
       currentAttrs: []
     }
   },
+  /**
+   * 组件挂载后获取数据模型
+   */
   mounted() {
     this.getAllDataModels()
   },
   methods: {
+    /**
+     * 重置模型缩放
+     */
     ResetModel() {
       if (this.graph.graphviz) {
         this.graph.graphviz.resetZoom()
       }
     },
+    /**
+     * 获取所有数据模型
+     * 处理实体数据，构建关系图所需的数据结构
+     */
     async getAllDataModels() {
       const { data, status } = await getAllDataModels()
       if (status === 'OK') {
@@ -95,6 +116,11 @@ export default {
         this.initGraph()
       }
     },
+    /**
+     * 生成 DOT 语言格式的图形描述
+     * 用于 Graphviz 渲染关系图
+     * @returns {string} DOT 格式的字符串
+     */
     genDOT() {
       const dots = [
         'digraph  {',
@@ -156,6 +182,10 @@ export default {
       dots.push('}')
       return dots.join('')
     },
+    /**
+     * 渲染图形
+     * 使用 Graphviz 渲染 DOT 字符串，并绑定事件
+     */
     renderGraph() {
       const nodesString = this.genDOT()
       this.graph.graphviz.renderDot(nodesString)
@@ -168,6 +198,10 @@ export default {
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
       addEvent('.node', 'click', this.handleNodeClick)
     },
+    /**
+     * 处理节点点击事件
+     * 显示节点属性详情抽屉
+     */
     handleNodeClick() {
       this.currentAttrs = this.data.find(_ => _.id === this.nodeName).attributes
       this.drawerVisible = true
@@ -179,6 +213,11 @@ export default {
         this.isHandleNodeClick = false
       }, 500)
     },
+    /**
+     * 处理节点鼠标悬停事件
+     * 高亮当前节点及其关联节点
+     * @param {Event} e - 鼠标事件
+     */
     handleNodeMouseover(e) {
       e.preventDefault()
       e.stopPropagation()
@@ -188,6 +227,9 @@ export default {
       this.shadeAll()
       this.colorNode(this.nodeName)
     },
+    /**
+     * 将所有节点和边设置为灰色（低亮状态）
+     */
     shadeAll() {
       d3.selectAll('g path').attr('stroke', '#7f8fa6')
         .attr('stroke-opacity', '.2')

@@ -16,6 +16,10 @@
 </template>
 
 <script>
+/**
+ * 系统参数管理页面组件
+ * 提供系统变量的增删改查、导入导出功能
+ */
 import {
   retrieveSystemVariables,
   createSystemVariables,
@@ -31,6 +35,7 @@ import { formatData } from '../util/format.js'
 export default {
   data() {
     return {
+      // 查询参数
       payload: {
         filters: [],
         pageable: {
@@ -39,12 +44,15 @@ export default {
         },
         paging: true
       },
+      // 分页配置
       pagination: {
         pageSize: 10,
         currentPage: 1,
         total: 0
       },
+      // 外部操作按钮配置
       outerActions,
+      // 表格数据
       tableData: [],
       tableColumns: [
         {
@@ -113,6 +121,10 @@ export default {
     }
   },
   methods: {
+    /**
+     * 获取插件列表
+     * 用于填充作用域（scope）下拉选项
+     */
     async getPluginList() {
       const { status, data } = await getAllPluginPkgs()
       if (status === 'OK') {

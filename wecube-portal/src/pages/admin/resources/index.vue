@@ -10,6 +10,10 @@
 </template>
 
 <script>
+/**
+ * 资源管理主页面组件
+ * 通过标签页展示资源服务器和资源实例两个管理页面
+ */
 import { retrieveServers } from '@/api/server.js'
 import WeServer from './server'
 import WeService from './service'
@@ -21,11 +25,17 @@ export default {
   },
   data() {
     return {
+      // 当前激活的标签页
       currentTab: 'resource',
+      // 服务器列表（传递给资源实例组件）
       servers: []
     }
   },
   methods: {
+    /**
+     * 处理标签页点击
+     * @param {string} tab - 标签页名称
+     */
     handleTabClick(tab) {
       this.$refs[tab].queryData()
     },

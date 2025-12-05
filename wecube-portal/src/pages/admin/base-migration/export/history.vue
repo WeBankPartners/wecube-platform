@@ -23,15 +23,21 @@
 </template>
 
 <script>
+/**
+ * 导出历史列表页面组件
+ * 展示导出任务的历史记录，支持搜索、分页、查看详情、重新发起等操作
+ */
 import dayjs from 'dayjs'
 import { getBaseMigrationExportList, getBaseMigrationExportQuery } from '@/api/server'
 import { updateTimeBasedOnDateType } from '@/const/util'
 export default {
   data() {
     return {
+      // 表格最大高度
       MODALHEIGHT: 0,
+      // 搜索配置选项
       searchOptions: [
-        // 创建时间
+        // 创建时间搜索
         {
           key: 'time',
           label: this.$t('table_created_date'),
@@ -58,12 +64,12 @@ export default {
             {
               label: this.$t('be_auto'),
               dateType: 4
-            } // 自定义
+            } // 自定义时间范围
           ],
           labelWidth: 110,
           component: 'custom-time'
         },
-        // 目标客户
+        // 目标客户搜索
         {
           key: 'customerIds',
           placeholder: this.$t('pi_target_custom'),
@@ -71,7 +77,7 @@ export default {
           component: 'select',
           list: []
         },
-        // 导出产品
+        // 导出产品搜索
         {
           key: 'business',
           placeholder: this.$t('pe_export_product'),
@@ -79,7 +85,7 @@ export default {
           component: 'select',
           list: []
         },
-        // 导出状态
+        // 导出状态搜索
         {
           key: 'status',
           placeholder: this.$t('pe_export_status'),
@@ -108,13 +114,13 @@ export default {
             }
           ]
         },
-        // 记录ID
+        // 记录ID搜索
         {
           key: 'id',
           placeholder: this.$t('pe_record_id'),
           component: 'input'
         },
-        // 创建人
+        // 创建人搜索
         {
           key: 'operators',
           placeholder: this.$t('createdBy'),
@@ -123,6 +129,7 @@ export default {
           list: []
         }
       ],
+      // 搜索参数
       searchParams: {
         id: '',
         time: [dayjs(new Date()).subtract(3, 'month')
@@ -134,23 +141,27 @@ export default {
         business: [],
         operators: []
       },
+      // 分页信息
       pageable: {
         pageSize: 10,
         startIndex: 1,
         current: 1,
         total: 0
       },
+      // 表格数据
       tableData: [],
+      // 加载状态
       loading: false,
+      // 表格列配置
       tableColumns: [
-        // 目标客户
+        // 目标客户列
         {
           title: this.$t('pi_target_custom'),
           key: 'customerName',
           minWidth: 200,
           render: (h, params) => <span>{params.row.customerName || '-'}</span>
         },
-        // 导出产品
+        // 导出产品列
         {
           title: this.$t('pe_export_product'),
           key: 'businessName',
@@ -160,7 +171,7 @@ export default {
             return <BaseScrollTag list={productList} />
           }
         },
-        // 导出状态
+        // 导出状态列
         {
           title: this.$t('pe_export_status'),
           key: 'status',
@@ -273,18 +284,22 @@ export default {
       users: []
     }
   },
+  /**
+   * 路由进入前处理
+   * 从详情页返回时恢复搜索条件和分页状态
+   */
   beforeRouteEnter(to, from, next) {
     next(vm => {
       if (from.path === '/admin/base-migration/export' && Object.keys(from.query).length > 0) {
-        // 读取列表搜索参数
+        // 从 sessionStorage 读取缓存的搜索参数
         const storage = window.sessionStorage.getItem('platform_export_baseMigration') || ''
         if (storage) {
           const { searchParams, searchOptions, pageable } = JSON.parse(storage)
           vm.searchParams = searchParams
           vm.searchOptions = searchOptions
-          // 确保时间是最新的
+          // 更新时间范围到最新值
           updateTimeBasedOnDateType(vm.searchOptions, vm.searchParams, 'time')
-          // 多选下拉框有默认值自动触发onSearch事件，导致页数被重置，采用延时方法解决这个问题
+          // 多选下拉框有默认值会自动触发 onSearch 事件，导致页数被重置，采用延时方法解决
           setTimeout(() => {
             vm.pageable = pageable
             vm.initData()
@@ -293,13 +308,17 @@ export default {
           vm.initData()
         }
       } else {
-        // 列表刷新不能放在mounted, mounted会先执行，导致拿不到缓存参数
+        // 列表刷新不能放在 mounted，mounted 会先执行，导致拿不到缓存参数
         vm.initData()
       }
     })
   },
+  /**
+   * 组件销毁前缓存搜索条件
+   * 保存当前的搜索参数、搜索选项和分页信息到 sessionStorage
+   */
   beforeDestroy() {
-    // 缓存列表搜索条件
+    // 缓存列表搜索条件到 sessionStorage
     const storage = {
       searchParams: this.searchParams,
       searchOptions: this.searchOptions,
@@ -308,15 +327,27 @@ export default {
     window.sessionStorage.setItem('platform_export_baseMigration', JSON.stringify(storage))
   },
   methods: {
+    /**
+     * 初始化数据
+     * 设置表格高度、获取列表数据和搜索参数选项
+     */
     initData() {
       this.MODALHEIGHT = document.body.scrollHeight - 220
       this.getList()
       this.getSearchParams()
     },
+    /**
+     * 处理搜索查询
+     * 重置到第一页并重新获取列表数据
+     */
     handleQuery() {
       this.pageable.current = 1
       this.getList()
     },
+    /**
+     * 获取搜索参数选项
+     * 从接口获取下拉选项数据（客户、产品、创建人等）
+     */
     async getSearchParams() {
       const { status, data } = await getBaseMigrationExportQuery()
       if (status === 'OK') {
@@ -346,6 +377,10 @@ export default {
         })
       }
     },
+    /**
+     * 获取导出列表数据
+     * 根据搜索条件和分页参数查询导出任务列表
+     */
     async getList() {
       const params = {
         id: this.searchParams.id,
@@ -366,16 +401,27 @@ export default {
         this.pageable.total = data.pageInfo.totalRows || 0
       }
     },
+    /**
+     * 改变每页显示数量
+     * @param {number} pageSize - 每页显示数量
+     */
     changePageSize(pageSize) {
       this.pageable.current = 1
       this.pageable.pageSize = pageSize
       this.getList()
     },
+    /**
+     * 切换页码
+     * @param {number} current - 当前页码
+     */
     changPage(current) {
       this.pageable.current = current
       this.getList()
     },
-    // 查看
+    /**
+     * 查看导出详情
+     * @param {Object} row - 当前行数据
+     */
     handleView(row) {
       this.$router.push({
         path: '/admin/base-migration/export',
@@ -385,6 +431,10 @@ export default {
         }
       })
     },
+    /**
+     * 编辑导出任务
+     * @param {Object} row - 当前行数据
+     */
     handleEdit(row) {
       this.$router.push({
         path: '/admin/base-migration/export',
@@ -394,7 +444,10 @@ export default {
         }
       })
     },
-    // 重新发起
+    /**
+     * 重新发起导出
+     * @param {Object} row - 当前行数据
+     */
     handleRepub(row) {
       this.$router.push({
         path: '/admin/base-migration/export',

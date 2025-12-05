@@ -69,6 +69,10 @@
 </template>
 
 <script>
+/**
+ * 资源实例管理组件
+ * 提供资源实例的增删改查功能，支持密码加密存储
+ */
 import {
   getResourceItemStatus,
   getResourceItemType,
@@ -83,6 +87,9 @@ import { outerActions } from '@/const/actions.js'
 import CryptoJS from 'crypto-js'
 import moment from 'moment'
 
+/**
+ * 布尔值选项
+ */
 const booleanOptions = [
   {
     label: 'true',
