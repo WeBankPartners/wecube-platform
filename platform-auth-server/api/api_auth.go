@@ -15,8 +15,41 @@ func Login(c *gin.Context) {
 	var credential model.CredentialDto
 	if c.ShouldBindJSON(&credential) == nil {
 		if authResp, err := service.AuthServiceInstance.Login(&credential, false); err == nil {
-			setupTokenHeaders(authResp.Tokens, c)
+			if len(authResp.Tokens) > 0 {
+				setupTokenHeaders(authResp.Tokens, c)
+				support.ReturnData(c, authResp.Tokens)
+				return
+			}
+			if len(authResp.TempToken) > 0 && len(authResp.QrCodeUrl) > 0 {
+				support.ReturnData(c, gin.H{
+					"qrCodeUrl":   authResp.QrCodeUrl,
+					"qrCodeImage": authResp.QrCodeImage,
+					"tempToken":   authResp.TempToken,
+				})
+				return
+			}
+			if len(authResp.TempToken) > 0 && authResp.NeedMfaCode {
+				support.ReturnData(c, gin.H{
+					"needMfaCode": true,
+					"tempToken":   authResp.TempToken,
+				})
+				return
+			}
 			support.ReturnData(c, authResp.Tokens)
+		} else {
+			support.ReturnError(c, err)
+		}
+	} else {
+		support.ReturnError(c, errors.New("invalid request"))
+	}
+}
+
+func VerifyMfaCode(c *gin.Context) {
+	var request model.MfaVerifyRequest
+	if c.ShouldBindJSON(&request) == nil {
+		if jwts, err := service.AuthServiceInstance.VerifyMfaCode(&request); err == nil {
+			setupTokenHeaders(jwts, c)
+			support.ReturnData(c, jwts)
 		} else {
 			support.ReturnError(c, err)
 		}

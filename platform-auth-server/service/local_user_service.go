@@ -1,6 +1,8 @@
 package service
 
 import (
+	"encoding/base64"
+
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/db"
@@ -36,11 +38,23 @@ func (LocalUserService) loadUserByUsername(username string) (*model.SysUser, err
 		return nil, nil
 	}
 
+	// 解密 MFA secret（如果存在）
+	mfaSecret := ""
+	if userEntity.MfaSecret != "" {
+		if decodedBytes, decodeErr := base64.StdEncoding.DecodeString(userEntity.MfaSecret); decodeErr == nil {
+			mfaSecret = string(decodedBytes)
+		} else {
+			// 如果解密失败，可能是旧数据未加密，直接使用原值
+			mfaSecret = userEntity.MfaSecret
+		}
+	}
+
 	user := &model.SysUser{
 		Username:    userEntity.Username,
 		Password:    userEntity.Password,
 		AuthSource:  userEntity.AuthSource,
 		AuthContext: userEntity.AuthContext,
+		MfaSecret:   mfaSecret,
 	}
 
 	userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByUserId(userEntity.Id)

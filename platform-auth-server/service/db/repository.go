@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"encoding/base64"
 	"strings"
 
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
@@ -231,6 +232,14 @@ func (UserRepository) FindAllActiveUsers() ([]*model.SysUserEntity, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+func (UserRepository) UpdateMfaSecret(username, secret string) error {
+	// 使用 base64 加密存储 secret
+	encodedSecret := base64.StdEncoding.EncodeToString([]byte(secret))
+	user := &model.SysUserEntity{MfaSecret: encodedSecret}
+	_, err := Engine.Where("username = ?", username).Cols("mfa_secret").Update(user)
+	return err
 }
 
 func (UserRepository) QueryUsers(param model.QueryUserParam) (int, []*model.SysUserEntity, error) {

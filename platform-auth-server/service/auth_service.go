@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image/png"
 	"io/ioutil"
 	"math/big"
 	"strconv"
@@ -27,6 +28,8 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/remote/api_platform"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/remote/api_um"
 	"github.com/golang-jwt/jwt"
+	"github.com/pquerna/otp"
+	"github.com/pquerna/otp/totp"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -43,6 +46,69 @@ const DelimiterSystemCodeAndNonce = ":"
 var AuthServiceInstance AuthService
 
 type AuthService struct {
+}
+
+const (
+	mfaEnabledVariable      = "MFA_ENABLED"
+	mfaIssuerVariable       = "MFA_ISSUER_NAME"
+	mfaPeriodVariable       = "MFA_TOTP_PERIOD"
+	defaultMfaIssuer        = "WeCube Login"
+	defaultMfaPeriod        = 60
+	defaultMfaTempTokenMins = 5
+)
+
+type mfaConfig struct {
+	enabled bool
+	issuer  string
+	period  uint
+}
+
+// 加载MFA配置，包含开关、Issuer与周期
+func loadMfaConfig(username string) (*mfaConfig, error) {
+	values, err := fetchSystemVariables(username, []string{mfaEnabledVariable, mfaIssuerVariable, mfaPeriodVariable})
+	if err != nil {
+		return &mfaConfig{enabled: false, issuer: defaultMfaIssuer, period: defaultMfaPeriod}, err
+	}
+	cfg := &mfaConfig{issuer: defaultMfaIssuer, period: defaultMfaPeriod}
+	if val, ok := values[mfaEnabledVariable]; ok && strings.EqualFold(val, "true") {
+		cfg.enabled = true
+	}
+	if val, ok := values[mfaIssuerVariable]; ok && strings.TrimSpace(val) != "" {
+		cfg.issuer = val
+	}
+	if val, ok := values[mfaPeriodVariable]; ok {
+		if v, parseErr := strconv.Atoi(val); parseErr == nil && v > 0 {
+			cfg.period = uint(v)
+		}
+	}
+	return cfg, nil
+}
+
+// 查询指定系统变量集合，返回变量名->值（优先值，其次默认值）
+func fetchSystemVariables(username string, names []string) (map[string]string, error) {
+	result := make(map[string]string)
+	accessToken, _, err := buildAccessToken(username, []string{}, []string{"ADMIN_SYSTEM_PARAMS"}, false)
+	if err != nil {
+		return result, err
+	}
+	param := &model.QueryRequestParam{
+		Filters: []*model.QueryRequestFilterObj{
+			{Name: "name", Operator: "in", Value: names},
+		},
+		Paging: false,
+	}
+	resp, err := api_platform.QuerySystemVariables(accessToken, "", param)
+	if err != nil {
+		return result, err
+	}
+	for _, item := range resp.Contents {
+		val := item.Value
+		if strings.TrimSpace(val) == "" {
+			val = item.DefaultValue
+		}
+		result[item.Name] = val
+	}
+	return result, nil
 }
 
 func (AuthService) InitKey() error {
@@ -302,8 +368,39 @@ func authenticateUser(credential *model.CredentialDto, taskLogin bool) (*model.A
 		authorities = append(authorities, authority.Authority)
 	}
 
-	authResp, err := createAuthenticationResponse(credential, authorities, false)
-	return authResp, err
+	return AuthServiceInstance.handleMfaLogin(user, credential, authorities)
+}
+
+// 处理MFA登录逻辑，按开关与绑定状态返回二维码或验证码提示
+func (AuthService) handleMfaLogin(user *model.SysUser, credential *model.CredentialDto, authorities []string) (*model.AuthenticationResponse, error) {
+	cfg, err := loadMfaConfig(credential.Username)
+	if err != nil || !cfg.enabled {
+		return createAuthenticationResponse(credential, authorities, false)
+	}
+
+	tempToken, err := buildMfaTempToken(credential.Username)
+	if err != nil {
+		return createAuthenticationResponse(credential, authorities, false)
+	}
+
+	if isBlank(user.MfaSecret) {
+		genResp, genErr := generateMfaSecretAndQr(credential.Username, cfg)
+		if genErr != nil {
+			return createAuthenticationResponse(credential, authorities, false)
+		}
+		return &model.AuthenticationResponse{
+			UserId:      credential.Username,
+			QrCodeUrl:   genResp.QrCodeUrl,
+			QrCodeImage: genResp.QrCodeImage,
+			TempToken:   tempToken,
+		}, nil
+	}
+
+	return &model.AuthenticationResponse{
+		UserId:      credential.Username,
+		NeedMfaCode: true,
+		TempToken:   tempToken,
+	}, nil
 }
 
 func packJwtTokens(loginId string, roles []string, authorities []string, needRegister bool) []*model.Jwt {
@@ -333,11 +430,7 @@ func buildAccessToken(loginId string, roles []string, authorities []string, need
 		Roles:        roles,
 		Authority:    utils.BuildArrayString(authorities),
 		NeedRegister: needRegister,
-		/*		LoginType:   loginType,
-				Auth:        aggAuths,
-				AdminType:   adminType,
-				UserName:    userName,
-		*/})
+	})
 	if tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes); err == nil {
 		return tokenString, exp, nil
 	} else {
@@ -372,6 +465,76 @@ func buildRefreshToken(loginId string, needRegister bool) (string, int64, error)
 		log.Error(nil, log.LOGGER_APP, "Failed to build refresh token", zap.Error(err))
 		return "", 0, errors.New("failed to build access token")
 	}
+}
+
+// 生成临时MFA Token，仅用于二次验证
+func buildMfaTempToken(username string) (string, error) {
+	if model.Config.Auth.SigningKeyBytes == nil {
+		return "", errors.New("jwt key is invalid")
+	}
+	issueAt := time.Now().UTC().Unix()
+	exp := time.Now().Add(time.Minute * defaultMfaTempTokenMins).UTC().Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, model.AuthClaims{
+		Subject:   username,
+		IssuedAt:  issueAt,
+		ExpiresAt: exp,
+		Type:      constant.TypeMfaTempToken,
+	})
+	return token.SignedString(model.Config.Auth.SigningKeyBytes)
+}
+
+type mfaQrResp struct {
+	QrCodeUrl   string
+	QrCodeImage string
+	Secret      string
+}
+
+// 生成用户专属MFA密钥与二维码
+func generateMfaSecretAndQr(username string, cfg *mfaConfig) (*mfaQrResp, error) {
+	key, err := totp.Generate(totp.GenerateOpts{
+		Issuer:      cfg.issuer,
+		AccountName: username,
+		Period:      cfg.period,
+		Digits:      otp.DigitsSix,
+		Algorithm:   otp.AlgorithmSHA1,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if err = db.UserRepositoryInstance.UpdateMfaSecret(username, key.Secret()); err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	if img, imgErr := key.Image(200, 200); imgErr == nil && img != nil {
+		_ = png.Encode(&buf, img)
+	}
+	return &mfaQrResp{
+		QrCodeUrl:   key.URL(),
+		QrCodeImage: base64.StdEncoding.EncodeToString(buf.Bytes()),
+		Secret:      key.Secret(),
+	}, nil
+}
+
+// 校验临时MFA Token有效性
+func validateMfaTempToken(tempToken, username string) error {
+	jwtToken, err := jwt.ParseWithClaims(tempToken, &model.AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return model.Config.Auth.SigningKeyBytes, nil
+	})
+	if err != nil {
+		return err
+	}
+	claim, ok := jwtToken.Claims.(*model.AuthClaims)
+	if !ok || !jwtToken.Valid {
+		return errors.New("invalid temp token")
+	}
+	if claim.Type != constant.TypeMfaTempToken {
+		return errors.New("invalid token type")
+	}
+	if claim.Subject != username {
+		return errors.New("username mismatch")
+	}
+	return nil
 }
 
 func createAuthenticationResponse(credential *model.CredentialDto, authorities []string, needRegister bool) (*model.AuthenticationResponse, error) {
@@ -504,4 +667,43 @@ func decodeAesPassword(seed, password, ivValue string) (decodePwd string, err er
 		decodePwd, err = cipher.AesDePasswordWithIV(seed, password, ivValue)
 	}
 	return
+}
+
+// VerifyMfaCode 校验用户提交的TOTP验证码
+func (AuthService) VerifyMfaCode(request *model.MfaVerifyRequest) ([]*model.Jwt, error) {
+	if request == nil || isBlank(request.Username) || isBlank(request.Code) || isBlank(request.TempToken) {
+		return nil, exterror.NewBadCredentialsError("invalid request")
+	}
+	if err := validateMfaTempToken(request.TempToken, request.Username); err != nil {
+		return nil, exterror.NewBadCredentialsError("Please complete the first step login verification")
+	}
+
+	user, err := LocalUserServiceInstance.loadUserByUsername(request.Username)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil || isBlank(user.MfaSecret) {
+		return nil, exterror.NewBadCredentialsError("Please bind MFA first")
+	}
+
+	cfg, _ := loadMfaConfig(request.Username)
+	period := cfg.period
+	if period == 0 {
+		period = defaultMfaPeriod
+	}
+	validateOk, _ := totp.ValidateCustom(request.Code, user.MfaSecret, time.Now(), totp.ValidateOpts{
+		Period:    period,
+		Skew:      1,
+		Digits:    otp.DigitsSix,
+		Algorithm: otp.AlgorithmSHA1,
+	})
+	if !validateOk {
+		return nil, exterror.NewBadCredentialsError("Invalid verification code")
+	}
+
+	authorities := make([]string, 0)
+	for _, authority := range user.CompositeAuthorities {
+		authorities = append(authorities, authority.Authority)
+	}
+	return packJwtTokens(request.Username, []string{}, authorities, false), nil
 }
