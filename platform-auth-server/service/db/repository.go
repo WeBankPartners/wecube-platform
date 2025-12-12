@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"encoding/base64"
 	"strings"
 
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
@@ -235,10 +234,8 @@ func (UserRepository) FindAllActiveUsers() ([]*model.SysUserEntity, error) {
 }
 
 func (UserRepository) UpdateMfaSecret(username, secret string) error {
-	// 使用 base64 加密存储 secret
-	encodedSecret := base64.StdEncoding.EncodeToString([]byte(secret))
-	// 初始化时设置为未绑定状态
-	user := &model.SysUserEntity{MfaSecret: encodedSecret, MfaBound: false}
+	// 初始化时设置为未绑定状态，直接存储明文 secret
+	user := &model.SysUserEntity{MfaSecret: secret, MfaBound: false}
 	_, err := Engine.Where("username = ?", username).Cols("mfa_secret", "mfa_bound").Update(user)
 	return err
 }

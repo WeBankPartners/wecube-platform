@@ -53,7 +53,7 @@ const (
 	mfaIssuerVariable         = "MFA_ISSUER_NAME"
 	mfaPeriodVariable         = "MFA_TOTP_PERIOD"
 	defaultMfaIssuer          = "WeCube Login"
-	defaultMfaPeriod          = 60
+	defaultMfaPeriod          = 30
 	defaultMfaTempTokenMins   = 5  // 已绑定用户的有效期（5分钟）
 	firstBindMfaTempTokenMins = 30 // 第一次绑定用户的有效期（30分钟）
 )
@@ -720,7 +720,7 @@ func (AuthService) VerifyMfaCode(request *model.MfaVerifyRequest) ([]*model.Jwt,
 	if period == 0 {
 		period = defaultMfaPeriod
 	}
-	validateOk, _ := totp.ValidateCustom(request.Code, user.MfaSecret, time.Now(), totp.ValidateOpts{
+	validateOk, _ := totp.ValidateCustom(request.Code, user.MfaSecret, time.Now().UTC(), totp.ValidateOpts{
 		Period:    period,
 		Skew:      1,
 		Digits:    otp.DigitsSix,
