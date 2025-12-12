@@ -63,6 +63,15 @@ type mfaConfig struct {
 	period  uint
 }
 
+// isMfaEnabled 检查MFA是否启用，支持 true, Y, yes, y 等值
+func isMfaEnabled(val string) bool {
+	val = strings.TrimSpace(val)
+	return strings.EqualFold(val, "true") ||
+		strings.EqualFold(val, "Y") ||
+		strings.EqualFold(val, "yes") ||
+		strings.EqualFold(val, "y")
+}
+
 // 加载MFA配置，包含开关、Issuer与周期
 func loadMfaConfig(username string) (*mfaConfig, error) {
 	values, err := fetchSystemVariables(username, []string{mfaEnabledVariable, mfaIssuerVariable, mfaPeriodVariable})
@@ -70,16 +79,21 @@ func loadMfaConfig(username string) (*mfaConfig, error) {
 		return &mfaConfig{enabled: false, issuer: defaultMfaIssuer, period: defaultMfaPeriod}, err
 	}
 	cfg := &mfaConfig{issuer: defaultMfaIssuer, period: defaultMfaPeriod}
-	if val, ok := values[mfaEnabledVariable]; ok && strings.EqualFold(val, "true") {
+	if val, ok := values[mfaEnabledVariable]; ok && isMfaEnabled(val) {
 		cfg.enabled = true
 	}
 	if val, ok := values[mfaIssuerVariable]; ok && strings.TrimSpace(val) != "" {
 		cfg.issuer = val
+	} else {
+		cfg.issuer = defaultMfaIssuer
 	}
 	if val, ok := values[mfaPeriodVariable]; ok {
 		if v, parseErr := strconv.Atoi(val); parseErr == nil && v > 0 {
 			cfg.period = uint(v)
 		}
+	}
+	if cfg.period == 0 {
+		cfg.period = defaultMfaPeriod
 	}
 	return cfg, nil
 }
