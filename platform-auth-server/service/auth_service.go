@@ -49,12 +49,13 @@ type AuthService struct {
 }
 
 const (
-	mfaEnabledVariable      = "MFA_ENABLED"
-	mfaIssuerVariable       = "MFA_ISSUER_NAME"
-	mfaPeriodVariable       = "MFA_TOTP_PERIOD"
-	defaultMfaIssuer        = "WeCube Login"
-	defaultMfaPeriod        = 60
-	defaultMfaTempTokenMins = 5
+	mfaEnabledVariable        = "MFA_ENABLED"
+	mfaIssuerVariable         = "MFA_ISSUER_NAME"
+	mfaPeriodVariable         = "MFA_TOTP_PERIOD"
+	defaultMfaIssuer          = "WeCube Login"
+	defaultMfaPeriod          = 60
+	defaultMfaTempTokenMins   = 5  // 已绑定用户的有效期（5分钟）
+	firstBindMfaTempTokenMins = 30 // 第一次绑定用户的有效期（30分钟）
 )
 
 type mfaConfig struct {
@@ -392,7 +393,16 @@ func (AuthService) handleMfaLogin(user *model.SysUser, credential *model.Credent
 		return createAuthenticationResponse(credential, authorities, false)
 	}
 
-	tempToken, err := buildMfaTempToken(credential.Username)
+	// 根据是否已绑定 secret 设置不同的有效期
+	// 第一次绑定：1小时，已绑定：5分钟
+	var tokenMins int
+	if isBlank(user.MfaSecret) {
+		tokenMins = firstBindMfaTempTokenMins
+	} else {
+		tokenMins = defaultMfaTempTokenMins
+	}
+
+	tempToken, err := buildMfaTempToken(credential.Username, tokenMins)
 	if err != nil {
 		return createAuthenticationResponse(credential, authorities, false)
 	}
@@ -482,12 +492,13 @@ func buildRefreshToken(loginId string, needRegister bool) (string, int64, error)
 }
 
 // 生成临时MFA Token，仅用于二次验证
-func buildMfaTempToken(username string) (string, error) {
+// durationMins: Token有效期（分钟）
+func buildMfaTempToken(username string, durationMins int) (string, error) {
 	if model.Config.Auth.SigningKeyBytes == nil {
 		return "", errors.New("jwt key is invalid")
 	}
 	issueAt := time.Now().UTC().Unix()
-	exp := time.Now().Add(time.Minute * defaultMfaTempTokenMins).UTC().Unix()
+	exp := time.Now().Add(time.Minute * time.Duration(durationMins)).UTC().Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, model.AuthClaims{
 		Subject:   username,
 		IssuedAt:  issueAt,
