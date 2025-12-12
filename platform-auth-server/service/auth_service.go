@@ -393,10 +393,13 @@ func (AuthService) handleMfaLogin(user *model.SysUser, credential *model.Credent
 		return createAuthenticationResponse(credential, authorities, false)
 	}
 
+	// 判断是否已绑定：需要同时检查 mfa_secret 和绑定状态
+	isBound := !isBlank(user.MfaSecret) && user.MfaBound
+
 	// 根据是否已绑定 secret 设置不同的有效期
-	// 第一次绑定：1小时，已绑定：5分钟
+	// 第一次绑定：30分钟，已绑定：5分钟
 	var tokenMins int
-	if isBlank(user.MfaSecret) {
+	if !isBound {
 		tokenMins = firstBindMfaTempTokenMins
 	} else {
 		tokenMins = defaultMfaTempTokenMins
@@ -407,7 +410,7 @@ func (AuthService) handleMfaLogin(user *model.SysUser, credential *model.Credent
 		return createAuthenticationResponse(credential, authorities, false)
 	}
 
-	if isBlank(user.MfaSecret) {
+	if !isBound {
 		genResp, genErr := generateMfaSecretAndQr(credential.Username, cfg)
 		if genErr != nil {
 			return createAuthenticationResponse(credential, authorities, false)
@@ -707,6 +710,7 @@ func (AuthService) VerifyMfaCode(request *model.MfaVerifyRequest) ([]*model.Jwt,
 	if err != nil {
 		return nil, err
 	}
+	// 判断是否已绑定：需要同时检查 mfa_secret 和绑定状态
 	if user == nil || isBlank(user.MfaSecret) {
 		return nil, exterror.NewBadCredentialsError("Please bind MFA first")
 	}
@@ -724,6 +728,13 @@ func (AuthService) VerifyMfaCode(request *model.MfaVerifyRequest) ([]*model.Jwt,
 	})
 	if !validateOk {
 		return nil, exterror.NewBadCredentialsError("Invalid verification code")
+	}
+
+	// 验证成功后，设置绑定状态为已绑定
+	if !user.MfaBound {
+		if err = db.UserRepositoryInstance.UpdateMfaBound(request.Username, true); err != nil {
+			log.Warn(nil, log.LOGGER_APP, "failed to update mfa bound status", zap.String("username", request.Username), zap.Error(err))
+		}
 	}
 
 	authorities := make([]string, 0)

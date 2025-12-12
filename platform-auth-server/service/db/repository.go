@@ -237,8 +237,15 @@ func (UserRepository) FindAllActiveUsers() ([]*model.SysUserEntity, error) {
 func (UserRepository) UpdateMfaSecret(username, secret string) error {
 	// 使用 base64 加密存储 secret
 	encodedSecret := base64.StdEncoding.EncodeToString([]byte(secret))
-	user := &model.SysUserEntity{MfaSecret: encodedSecret}
-	_, err := Engine.Where("username = ?", username).Cols("mfa_secret").Update(user)
+	// 初始化时设置为未绑定状态
+	user := &model.SysUserEntity{MfaSecret: encodedSecret, MfaBound: false}
+	_, err := Engine.Where("username = ?", username).Cols("mfa_secret", "mfa_bound").Update(user)
+	return err
+}
+
+func (UserRepository) UpdateMfaBound(username string, bound bool) error {
+	user := &model.SysUserEntity{MfaBound: bound}
+	_, err := Engine.Where("username = ?", username).Cols("mfa_bound").Update(user)
 	return err
 }
 

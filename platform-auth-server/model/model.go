@@ -66,6 +66,7 @@ type SysUser struct {
 	AuthSource           string
 	AuthContext          string
 	MfaSecret            string
+	MfaBound             bool
 }
 
 type CompositeAuthority struct {
