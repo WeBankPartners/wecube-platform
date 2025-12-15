@@ -1084,7 +1084,7 @@
   "totp_error": "Error",
   "totp_qr_generate_fail": "Failed to generate QR code, please try again",
   "totp_tip": "Tip",
-  "totp_code_required": "Please enter a 6-digit verification code",
+  "totp_code_required": "Please get the verification code from the app",
   "totp_verify_fail": "Verification failed",
   "totp_code_error": "Verification code error, please try again",
   "totp_success": "Success",

@@ -1083,7 +1083,7 @@
   "totp_error": "错误",
   "totp_qr_generate_fail": "生成二维码失败，请重试",
   "totp_tip": "提示",
-  "totp_code_required": "请输入6位验证码",
+  "totp_code_required": "请从APP查询验证码",
   "totp_verify_fail": "验证失败",
   "totp_code_error": "验证码错误，请重试",
   "totp_success": "成功",
