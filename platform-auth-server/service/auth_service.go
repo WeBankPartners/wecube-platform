@@ -217,31 +217,16 @@ func (AuthService) RefreshToken(refreshToken string) ([]*model.Jwt, error) {
 		authorities = append(authorities, constant.AuthoritySubsystem)
 	}
 	authorities = utils.DistinctArrayString(authorities)
-	jwts := packJwtTokens(claim.Subject, []string{}, authorities, claim.NeedRegister)
+	jwts, err := packJwtTokens(claim.Subject, []string{}, authorities, claim.NeedRegister)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Failed to refresh token: pack JWT tokens failed",
+			zap.String("subject", claim.Subject),
+			zap.Strings("authorities", authorities),
+			zap.Error(err))
+		return nil, err
+	}
 	return jwts, nil
 }
-
-// func validateSubsystemClaimForRefresh(claim *model.AuthClaims) ([]*model.Jwt, error) {
-// 	systemCode := claim.Subject
-// 	if isBlank(systemCode) {
-// 		log.Warn(nil, log.LOGGER_APP, "system code is blank")
-// 		return nil, exterror.NewBadCredentialsError("system code is blank")
-// 	}
-
-// 	systemInfo, err := SubSystemInfoDataServiceImplInstance.retrieveSysSubSystemInfoWithSystemCode(systemCode)
-// 	if err != nil {
-// 		log.Error(nil, log.LOGGER_APP, "failed to retrieve sub system info", zap.String("systemCode", systemCode), zap.Error(err))
-// 		return nil, err
-// 	}
-
-// 	if systemInfo == nil {
-// 		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("such sub system %s is not available.", systemCode))
-// 		return nil, errors.New("such sub system is not available")
-// 	}
-
-// 	jwts := packJwtTokens(systemCode, []string{}, systemInfo.Authorities, claim.NeedRegister)
-// 	return jwts, nil
-// }
 
 func validateCredential(c *model.CredentialDto) error {
 	if c == nil {
@@ -430,22 +415,53 @@ func (AuthService) handleMfaLogin(user *model.SysUser, credential *model.Credent
 	}, nil
 }
 
-func packJwtTokens(loginId string, roles []string, authorities []string, needRegister bool) []*model.Jwt {
-	jwts := make([]*model.Jwt, 2)
-	if accessToken, exp, err := buildAccessToken(loginId, roles, authorities, needRegister); err == nil {
-		jwts[0] = &model.Jwt{Expiration: strconv.Itoa(int(exp)), Token: accessToken, TokenType: constant.TypeAccessToken}
-	}
-	if refreshToken, exp, err := buildRefreshToken(loginId, needRegister); err == nil {
-		jwts[1] = &model.Jwt{Expiration: strconv.Itoa(int(exp)), Token: refreshToken, TokenType: constant.TypeRefreshToken}
-	}
+func packJwtTokens(loginId string, roles []string, authorities []string, needRegister bool) ([]*model.Jwt, error) {
+	jwts := make([]*model.Jwt, 0, 2)
 
-	return jwts
+	// 生成 Access Token
+	accessToken, exp, err := buildAccessToken(loginId, roles, authorities, needRegister)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Failed to pack JWT tokens: access token generation failed",
+			zap.String("loginId", loginId),
+			zap.Strings("roles", roles),
+			zap.Strings("authorities", authorities),
+			zap.Bool("needRegister", needRegister),
+			zap.Error(err))
+		return nil, fmt.Errorf("failed to build access token: %w", err)
+	}
+	jwts = append(jwts, &model.Jwt{
+		Expiration: strconv.Itoa(int(exp)),
+		Token:      accessToken,
+		TokenType:  constant.TypeAccessToken,
+	})
+
+	// 生成 Refresh Token
+	refreshToken, exp, err := buildRefreshToken(loginId, needRegister)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Failed to pack JWT tokens: refresh token generation failed",
+			zap.String("loginId", loginId),
+			zap.Bool("needRegister", needRegister),
+			zap.Error(err))
+		return nil, fmt.Errorf("failed to build refresh token: %w", err)
+	}
+	jwts = append(jwts, &model.Jwt{
+		Expiration: strconv.Itoa(int(exp)),
+		Token:      refreshToken,
+		TokenType:  constant.TypeRefreshToken,
+	})
+
+	log.Debug(nil, log.LOGGER_APP, "Successfully packed JWT tokens",
+		zap.String("loginId", loginId),
+		zap.Int("tokenCount", len(jwts)))
+
+	return jwts, nil
 }
 
 func buildAccessToken(loginId string, roles []string, authorities []string, needRegister bool) (string, int64, error) {
 	if model.Config.Auth.SigningKeyBytes == nil {
-		log.Error(nil, log.LOGGER_APP, "jwt key is invalid")
-		return "", 0, errors.New("failed to build refresh token")
+		log.Error(nil, log.LOGGER_APP, "Failed to build access token: JWT signing key is nil",
+			zap.String("loginId", loginId))
+		return "", 0, errors.New("JWT signing key is not configured")
 	}
 	issueAt := time.Now().UTC().Unix()
 	exp := time.Now().Add(time.Minute * time.Duration(model.Config.Auth.AccessTokenMins)).UTC().Unix()
@@ -458,18 +474,24 @@ func buildAccessToken(loginId string, roles []string, authorities []string, need
 		Authority:    utils.BuildArrayString(authorities),
 		NeedRegister: needRegister,
 	})
-	if tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes); err == nil {
-		return tokenString, exp, nil
-	} else {
-		log.Error(nil, log.LOGGER_APP, "Failed to build access token", zap.Error(err))
-		return "", 0, errors.New("failed to build access token")
+	tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Failed to build access token: signing failed",
+			zap.String("loginId", loginId),
+			zap.Strings("roles", roles),
+			zap.Strings("authorities", authorities),
+			zap.Bool("needRegister", needRegister),
+			zap.Error(err))
+		return "", 0, fmt.Errorf("failed to sign access token: %w", err)
 	}
+	return tokenString, exp, nil
 }
 
 func buildRefreshToken(loginId string, needRegister bool) (string, int64, error) {
 	if model.Config.Auth.SigningKeyBytes == nil {
-		log.Error(nil, log.LOGGER_APP, "jwt key is invalid")
-		return "", 0, errors.New("failed to build refresh token")
+		log.Error(nil, log.LOGGER_APP, "Failed to build refresh token: JWT signing key is nil",
+			zap.String("loginId", loginId))
+		return "", 0, errors.New("JWT signing key is not configured")
 	}
 
 	issueAt := time.Now().UTC().Unix()
@@ -486,12 +508,15 @@ func buildRefreshToken(loginId string, needRegister bool) (string, int64, error)
 				AdminType: adminType,
 				UserName:  userName,
 		*/})
-	if tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes); err == nil {
-		return tokenString, exp, nil
-	} else {
-		log.Error(nil, log.LOGGER_APP, "Failed to build refresh token", zap.Error(err))
-		return "", 0, errors.New("failed to build access token")
+	tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Failed to build refresh token: signing failed",
+			zap.String("loginId", loginId),
+			zap.Bool("needRegister", needRegister),
+			zap.Error(err))
+		return "", 0, fmt.Errorf("failed to sign refresh token: %w", err)
 	}
+	return tokenString, exp, nil
 }
 
 // 生成临时MFA Token，仅用于二次验证
@@ -567,7 +592,15 @@ func validateMfaTempToken(tempToken, username string) error {
 
 func createAuthenticationResponse(credential *model.CredentialDto, authorities []string, needRegister bool) (*model.AuthenticationResponse, error) {
 	authorities = utils.DistinctArrayString(authorities)
-	jwts := packJwtTokens(credential.Username, []string{}, authorities, needRegister)
+	jwts, err := packJwtTokens(credential.Username, []string{}, authorities, needRegister)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Failed to create authentication response: pack JWT tokens failed",
+			zap.String("username", credential.Username),
+			zap.Strings("authorities", authorities),
+			zap.Bool("needRegister", needRegister),
+			zap.Error(err))
+		return nil, err
+	}
 	return &model.AuthenticationResponse{
 		UserId:       credential.Username,
 		NeedRegister: needRegister,
@@ -741,5 +774,14 @@ func (AuthService) VerifyMfaCode(request *model.MfaVerifyRequest) ([]*model.Jwt,
 	for _, authority := range user.CompositeAuthorities {
 		authorities = append(authorities, authority.Authority)
 	}
-	return packJwtTokens(request.Username, []string{}, authorities, false), nil
+
+	jwts, err := packJwtTokens(request.Username, []string{}, authorities, false)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Failed to verify MFA code: pack JWT tokens failed",
+			zap.String("username", request.Username),
+			zap.Strings("authorities", authorities),
+			zap.Error(err))
+		return nil, fmt.Errorf("failed to generate authentication tokens: %w", err)
+	}
+	return jwts, nil
 }
