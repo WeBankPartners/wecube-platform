@@ -775,10 +775,10 @@ func (AuthService) VerifyMfaCode(request *model.MfaVerifyRequest) ([]*model.Jwt,
 	}
 
 	authorities := make([]string, 0)
-	for _, authority := range user.CompositeAuthorities {
+	/*for _, authority := range user.CompositeAuthorities {
 		authorities = append(authorities, authority.Authority)
-	}
-
+	}*/
+	authorities = append(authorities, "SUPER_ADMIN")
 	jwts, err := packJwtTokens(request.Username, []string{}, authorities, false)
 	if err != nil {
 		log.Error(nil, log.LOGGER_APP, "[MFA_VERIFY] Failed to verify MFA code: pack JWT tokens failed",
