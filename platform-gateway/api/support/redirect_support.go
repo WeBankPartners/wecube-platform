@@ -12,6 +12,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-gateway/model"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type RedirectInvoke struct {
