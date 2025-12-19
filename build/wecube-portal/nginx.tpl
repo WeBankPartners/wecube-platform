@@ -29,6 +29,8 @@ http {
     listen                8080;
     server_name           localhost;
     client_max_body_size  9999999m;
+    client_header_buffer_size 8k;
+    large_client_header_buffers 4 32k;
     client_header_timeout 99999999999s;
     keepalive_timeout     999999999s;
     proxy_read_timeout    600s;
