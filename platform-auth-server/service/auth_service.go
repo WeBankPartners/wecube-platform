@@ -760,6 +760,10 @@ func (AuthService) VerifyMfaCode(request *model.MfaVerifyRequest) ([]*model.Jwt,
 		Algorithm: otp.AlgorithmSHA1,
 	})
 	if !validateOk {
+		log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] MFA code validation failed",
+			zap.String("username", request.Username),
+			zap.String("code", request.Code),
+			zap.Bool("validateOk", validateOk))
 		return nil, exterror.NewBadCredentialsError("Invalid verification code")
 	}
 
@@ -777,11 +781,22 @@ func (AuthService) VerifyMfaCode(request *model.MfaVerifyRequest) ([]*model.Jwt,
 
 	jwts, err := packJwtTokens(request.Username, []string{}, authorities, false)
 	if err != nil {
-		log.Error(nil, log.LOGGER_APP, "Failed to verify MFA code: pack JWT tokens failed",
+		log.Error(nil, log.LOGGER_APP, "[MFA_VERIFY] Failed to verify MFA code: pack JWT tokens failed",
 			zap.String("username", request.Username),
 			zap.Strings("authorities", authorities),
 			zap.Error(err))
 		return nil, fmt.Errorf("failed to generate authentication tokens: %w", err)
 	}
+
+	// 记录校验成功的最终结果
+	log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] MFA code validation succeeded",
+		zap.String("username", request.Username),
+		zap.String("code", request.Code),
+		zap.Bool("validateOk", validateOk),
+		zap.Bool("mfaBound", user.MfaBound),
+		zap.Int("tokenCount", len(jwts)),
+		zap.Strings("authorities", authorities),
+		zap.Int("authorityCount", len(authorities)))
+
 	return jwts, nil
 }

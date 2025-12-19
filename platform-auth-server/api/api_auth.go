@@ -1,13 +1,16 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/WeBankPartners/go-common-lib/cipher"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/api/support"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/constant"
+	"github.com/WeBankPartners/wecube-platform/platform-auth-server/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/model"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"strings"
 )
 
@@ -49,11 +52,31 @@ func VerifyMfaCode(c *gin.Context) {
 	if c.ShouldBindJSON(&request) == nil {
 		if jwts, err := service.AuthServiceInstance.VerifyMfaCode(&request); err == nil {
 			setupTokenHeaders(jwts, c)
+
+			// 记录最终返回结果（校验成功）
+			responseData := model.ResponseWrap{
+				Status:  model.ResponseStatusOk,
+				Message: model.ResponseMessageOk,
+				Data:    jwts,
+			}
+			responseBytes, _ := json.Marshal(responseData)
+			log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] API handler: MFA verification succeeded, returning tokens",
+				zap.String("username", request.Username),
+				zap.Int("tokenCount", len(jwts)),
+				zap.String("responseBody", string(responseBytes)))
+
 			support.ReturnData(c, jwts)
 		} else {
+			// 记录校验失败的结果
+			log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] API handler: MFA verification failed",
+				zap.String("username", request.Username),
+				zap.String("code", request.Code),
+				zap.Error(err))
 			support.ReturnError(c, err)
 		}
 	} else {
+		log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] API handler: Invalid request body",
+			zap.String("username", request.Username))
 		support.ReturnError(c, errors.New("invalid request"))
 	}
 }

@@ -266,19 +266,37 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 			return fmt.Errorf("failed to read response body: %w", readErr)
 		}
 
+		// 记录响应体内容（对于 MFA verify 请求，记录完整内容；其他请求只记录摘要）
+		var responseBodyPreview string
+		if len(respBody) > 0 {
+			if isMfaVerify {
+				// MFA verify 请求记录完整响应体
+				responseBodyPreview = string(respBody)
+			} else {
+				// 其他请求只记录前 500 字符
+				if len(respBody) > 500 {
+					responseBodyPreview = string(respBody[:500]) + "...(truncated)"
+				} else {
+					responseBodyPreview = string(respBody)
+				}
+			}
+		}
+
 		if isMfaVerify {
 			log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Read response body successfully",
 				zap.String("targetUrl", invoke.TargetUrl),
 				zap.Int("statusCode", response.StatusCode),
 				zap.Int("bodySize", len(respBody)),
 				zap.String("readDuration", readDuration.String()),
-				zap.Int64("readDurationMs", readDuration.Milliseconds()))
+				zap.Int64("readDurationMs", readDuration.Milliseconds()),
+				zap.String("responseBody", responseBodyPreview))
 		} else {
 			log.Debug(nil, log.LOGGER_APP, "Read response body successfully",
 				zap.String("targetUrl", invoke.TargetUrl),
 				zap.Int("statusCode", response.StatusCode),
 				zap.Int("bodySize", len(respBody)),
-				zap.Duration("readDuration", readDuration))
+				zap.Duration("readDuration", readDuration),
+				zap.String("responseBody", responseBodyPreview))
 		}
 
 		if strings.EqualFold(model.Config.Log.Level, "debug") {
@@ -342,6 +360,7 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 				zap.Int("bodySize", len(respBody)),
 				zap.String("writeDuration", writeDuration.String()),
 				zap.Int64("writeDurationMs", writeDuration.Milliseconds()),
+				zap.String("responseBody", responseBodyPreview),
 				zap.Any("writtenHeaders", writtenHeaders))
 
 			// 检查状态码是否匹配
@@ -355,7 +374,8 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 				zap.String("targetUrl", invoke.TargetUrl),
 				zap.Int("statusCode", response.StatusCode),
 				zap.Int("bodySize", len(respBody)),
-				zap.Duration("writeDuration", writeDuration))
+				zap.Duration("writeDuration", writeDuration),
+				zap.String("responseBody", responseBodyPreview))
 		}
 	} else {
 		if isMfaVerify {
