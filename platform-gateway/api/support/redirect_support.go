@@ -66,11 +66,20 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 		}
 		responseContentType := response.Header.Get("Content-Type")
 		if strings.Contains(responseContentType, "application/json") {
-			respBody, _ := ioutil.ReadAll(response.Body)
+			respBody, readErr := ioutil.ReadAll(response.Body)
 			defer response.Body.Close()
 
+			if readErr != nil {
+				log.Error(nil, log.LOGGER_APP, "Failed to read response body from downstream system",
+					zap.String("targetUrl", invoke.TargetUrl),
+					zap.Int("statusCode", response.StatusCode),
+					zap.String("contentType", responseContentType),
+					zap.Error(readErr))
+				return fmt.Errorf("failed to read response body: %w", readErr)
+			}
+
 			if strings.EqualFold(model.Config.Log.Level, "debug") {
-				responseDump, _ := httputil.DumpResponse(response, true)
+				responseDump, _ := httputil.DumpResponse(response, false)
 				log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("Response from downstream system: %s  [body size]: %d", string(responseDump), len(respBody)))
 			}
 			c.Data(response.StatusCode, response.Header.Get("Content-Type"), respBody)
