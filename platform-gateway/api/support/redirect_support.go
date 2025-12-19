@@ -132,6 +132,7 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 		zap.Int("headerSize", headerSize),
 		zap.Strings("headerNames", headerNames))
 
+	responseContentType := response.Header.Get("Content-Type")
 	if strings.Contains(responseContentType, "application/json") {
 		log.Debug(nil, log.LOGGER_APP, "Reading JSON response body",
 			zap.String("targetUrl", invoke.TargetUrl),
@@ -195,8 +196,9 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 
 		streamStartTime := time.Now()
 		totalBytes := 0
+		streamError := false
 		// 使用 c.Stream() 逐步转发数据流
-		streamErr := c.Stream(func(w io.Writer) bool {
+		clientDisconnected := c.Stream(func(w io.Writer) bool {
 			// 缓冲区（可根据实际情况调整大小）
 			buf := make([]byte, 32*1024) // 32KB 缓冲区
 			for {
@@ -209,6 +211,7 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 							zap.String("targetUrl", invoke.TargetUrl),
 							zap.Int("bytesWritten", totalBytes),
 							zap.Error(writeErr))
+						streamError = true
 						return false // 发生错误，停止传输
 					}
 				}
@@ -220,20 +223,26 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 						zap.String("targetUrl", invoke.TargetUrl),
 						zap.Int("bytesRead", totalBytes),
 						zap.Error(readErr))
+					streamError = true
 					return false // 发生错误，停止传输
 				}
 			}
 		})
 		streamDuration := time.Since(streamStartTime)
 
-		if streamErr != nil {
-			log.Error(nil, log.LOGGER_APP, "Failed to stream response",
+		if clientDisconnected {
+			log.Warn(nil, log.LOGGER_APP, "Client disconnected during stream",
 				zap.String("targetUrl", invoke.TargetUrl),
 				zap.Int("statusCode", response.StatusCode),
 				zap.Int("totalBytes", totalBytes),
-				zap.Duration("streamDuration", streamDuration),
-				zap.Error(streamErr))
-			return fmt.Errorf("failed to stream response: %w", streamErr)
+				zap.Duration("streamDuration", streamDuration))
+		} else if streamError {
+			log.Error(nil, log.LOGGER_APP, "Error occurred during stream",
+				zap.String("targetUrl", invoke.TargetUrl),
+				zap.Int("statusCode", response.StatusCode),
+				zap.Int("totalBytes", totalBytes),
+				zap.Duration("streamDuration", streamDuration))
+			return fmt.Errorf("error occurred during stream response")
 		}
 
 		log.Debug(nil, log.LOGGER_APP, "Successfully streamed response to client",
