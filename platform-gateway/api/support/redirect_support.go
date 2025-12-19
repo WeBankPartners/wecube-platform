@@ -28,7 +28,18 @@ type ResponseHandlerFunc func(body *[]byte, c *gin.Context) error
 func (invoke RedirectInvoke) Do(c *gin.Context) error {
 	startTime := time.Now()
 
-	log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("Redirecting request to downstream system: [Method: %s] [URL: %s] [ContentLength: %d]", c.Request.Method, invoke.TargetUrl, c.Request.ContentLength))
+	// 判断是否是 mfa/verify 请求，用于决定日志级别
+	isMfaVerify := strings.Contains(c.Request.URL.Path, "mfa/verify") || strings.Contains(invoke.TargetUrl, "mfa/verify")
+
+	if isMfaVerify {
+		log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Start redirecting request to downstream system",
+			zap.String("method", c.Request.Method),
+			zap.String("url", c.Request.URL.Path),
+			zap.String("targetUrl", invoke.TargetUrl),
+			zap.Int64("contentLength", c.Request.ContentLength))
+	} else {
+		log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("Redirecting request to downstream system: [Method: %s] [URL: %s] [ContentLength: %d]", c.Request.Method, invoke.TargetUrl, c.Request.ContentLength))
+	}
 	cloneRequest := c.Request.Clone(c.Request.Context()) // deep copy original request
 	newRequest, _ := http.NewRequest(cloneRequest.Method, invoke.TargetUrl, cloneRequest.Body)
 	newRequest.Header = cloneRequest.Header
@@ -56,31 +67,55 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 	}
 	log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("Sending request to downstream system: [Method: %s] [URL: %s]", newRequest.Method, invoke.TargetUrl))
 
-	log.Debug(nil, log.LOGGER_APP, "Sending request to downstream system",
-		zap.String("targetUrl", invoke.TargetUrl),
-		zap.String("method", newRequest.Method),
-		zap.Int64("contentLength", newRequest.ContentLength))
+	if isMfaVerify {
+		log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Sending request to downstream system",
+			zap.String("targetUrl", invoke.TargetUrl),
+			zap.String("method", newRequest.Method),
+			zap.Int64("contentLength", newRequest.ContentLength))
+	} else {
+		log.Debug(nil, log.LOGGER_APP, "Sending request to downstream system",
+			zap.String("targetUrl", invoke.TargetUrl),
+			zap.String("method", newRequest.Method),
+			zap.Int64("contentLength", newRequest.ContentLength))
+	}
 
 	requestStartTime := time.Now()
 	response, err := client.Do(newRequest)
 	requestDuration := time.Since(requestStartTime)
 
 	if err != nil {
-		log.Error(nil, log.LOGGER_APP, "Failed to send request to downstream system",
-			zap.String("targetUrl", invoke.TargetUrl),
-			zap.String("method", newRequest.Method),
-			zap.Duration("duration", requestDuration),
-			zap.Error(err))
+		if isMfaVerify {
+			log.Error(nil, log.LOGGER_APP, "[MFA_VERIFY] Failed to send request to downstream system",
+				zap.String("targetUrl", invoke.TargetUrl),
+				zap.String("method", newRequest.Method),
+				zap.Duration("duration", requestDuration),
+				zap.Error(err))
+		} else {
+			log.Error(nil, log.LOGGER_APP, "Failed to send request to downstream system",
+				zap.String("targetUrl", invoke.TargetUrl),
+				zap.String("method", newRequest.Method),
+				zap.Duration("duration", requestDuration),
+				zap.Error(err))
+		}
 		return fmt.Errorf("failed to send request to downstream system: %w", err)
 	}
 	defer response.Body.Close()
 
-	log.Debug(nil, log.LOGGER_APP, "Received response from downstream system",
-		zap.String("targetUrl", invoke.TargetUrl),
-		zap.Int("statusCode", response.StatusCode),
-		zap.String("contentType", response.Header.Get("Content-Type")),
-		zap.String("contentLength", response.Header.Get("Content-Length")),
-		zap.Duration("requestDuration", requestDuration))
+	if isMfaVerify {
+		log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Received response from downstream system",
+			zap.String("targetUrl", invoke.TargetUrl),
+			zap.Int("statusCode", response.StatusCode),
+			zap.String("contentType", response.Header.Get("Content-Type")),
+			zap.String("contentLength", response.Header.Get("Content-Length")),
+			zap.Duration("requestDuration", requestDuration))
+	} else {
+		log.Debug(nil, log.LOGGER_APP, "Received response from downstream system",
+			zap.String("targetUrl", invoke.TargetUrl),
+			zap.Int("statusCode", response.StatusCode),
+			zap.String("contentType", response.Header.Get("Content-Type")),
+			zap.String("contentLength", response.Header.Get("Content-Length")),
+			zap.Duration("requestDuration", requestDuration))
+	}
 
 	// 复制响应头（排除不应该复制的系统级响应头）
 	skipHeaders := map[string]bool{
@@ -126,18 +161,33 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 		headerNames = append(headerNames, k)
 	}
 
-	log.Debug(nil, log.LOGGER_APP, "Copied response headers",
-		zap.String("targetUrl", invoke.TargetUrl),
-		zap.Int("headerCount", headerCount),
-		zap.Int("headerSize", headerSize),
-		zap.Strings("headerNames", headerNames))
+	if isMfaVerify {
+		log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Copied response headers",
+			zap.String("targetUrl", invoke.TargetUrl),
+			zap.Int("headerCount", headerCount),
+			zap.Int("headerSize", headerSize),
+			zap.Strings("headerNames", headerNames))
+	} else {
+		log.Debug(nil, log.LOGGER_APP, "Copied response headers",
+			zap.String("targetUrl", invoke.TargetUrl),
+			zap.Int("headerCount", headerCount),
+			zap.Int("headerSize", headerSize),
+			zap.Strings("headerNames", headerNames))
+	}
 
 	responseContentType := response.Header.Get("Content-Type")
 	if strings.Contains(responseContentType, "application/json") {
-		log.Debug(nil, log.LOGGER_APP, "Reading JSON response body",
-			zap.String("targetUrl", invoke.TargetUrl),
-			zap.Int("statusCode", response.StatusCode),
-			zap.String("contentType", responseContentType))
+		if isMfaVerify {
+			log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Reading JSON response body",
+				zap.String("targetUrl", invoke.TargetUrl),
+				zap.Int("statusCode", response.StatusCode),
+				zap.String("contentType", responseContentType))
+		} else {
+			log.Debug(nil, log.LOGGER_APP, "Reading JSON response body",
+				zap.String("targetUrl", invoke.TargetUrl),
+				zap.Int("statusCode", response.StatusCode),
+				zap.String("contentType", responseContentType))
+		}
 
 		readStartTime := time.Now()
 		respBody, readErr := ioutil.ReadAll(response.Body)
@@ -145,47 +195,88 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 		defer response.Body.Close()
 
 		if readErr != nil {
-			log.Error(nil, log.LOGGER_APP, "Failed to read response body from downstream system",
-				zap.String("targetUrl", invoke.TargetUrl),
-				zap.Int("statusCode", response.StatusCode),
-				zap.String("contentType", responseContentType),
-				zap.Duration("readDuration", readDuration),
-				zap.Error(readErr))
+			if isMfaVerify {
+				log.Error(nil, log.LOGGER_APP, "[MFA_VERIFY] Failed to read response body from downstream system",
+					zap.String("targetUrl", invoke.TargetUrl),
+					zap.Int("statusCode", response.StatusCode),
+					zap.String("contentType", responseContentType),
+					zap.Duration("readDuration", readDuration),
+					zap.Error(readErr))
+			} else {
+				log.Error(nil, log.LOGGER_APP, "Failed to read response body from downstream system",
+					zap.String("targetUrl", invoke.TargetUrl),
+					zap.Int("statusCode", response.StatusCode),
+					zap.String("contentType", responseContentType),
+					zap.Duration("readDuration", readDuration),
+					zap.Error(readErr))
+			}
 			return fmt.Errorf("failed to read response body: %w", readErr)
 		}
 
-		log.Debug(nil, log.LOGGER_APP, "Read response body successfully",
-			zap.String("targetUrl", invoke.TargetUrl),
-			zap.Int("statusCode", response.StatusCode),
-			zap.Int("bodySize", len(respBody)),
-			zap.Duration("readDuration", readDuration))
+		if isMfaVerify {
+			log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Read response body successfully",
+				zap.String("targetUrl", invoke.TargetUrl),
+				zap.Int("statusCode", response.StatusCode),
+				zap.Int("bodySize", len(respBody)),
+				zap.Duration("readDuration", readDuration))
+		} else {
+			log.Debug(nil, log.LOGGER_APP, "Read response body successfully",
+				zap.String("targetUrl", invoke.TargetUrl),
+				zap.Int("statusCode", response.StatusCode),
+				zap.Int("bodySize", len(respBody)),
+				zap.Duration("readDuration", readDuration))
+		}
 
 		if strings.EqualFold(model.Config.Log.Level, "debug") {
 			responseDump, _ := httputil.DumpResponse(response, false)
 			log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("Response from downstream system: %s  [body size]: %d", string(responseDump), len(respBody)))
 		}
 
-		log.Debug(nil, log.LOGGER_APP, "Writing response to client",
-			zap.String("targetUrl", invoke.TargetUrl),
-			zap.Int("statusCode", response.StatusCode),
-			zap.String("contentType", responseContentType),
-			zap.Int("bodySize", len(respBody)))
+		if isMfaVerify {
+			log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Writing response to client",
+				zap.String("targetUrl", invoke.TargetUrl),
+				zap.Int("statusCode", response.StatusCode),
+				zap.String("contentType", responseContentType),
+				zap.Int("bodySize", len(respBody)))
+		} else {
+			log.Debug(nil, log.LOGGER_APP, "Writing response to client",
+				zap.String("targetUrl", invoke.TargetUrl),
+				zap.Int("statusCode", response.StatusCode),
+				zap.String("contentType", responseContentType),
+				zap.Int("bodySize", len(respBody)))
+		}
 
 		writeStartTime := time.Now()
 		c.Data(response.StatusCode, responseContentType, respBody)
 		writeDuration := time.Since(writeStartTime)
 
-		log.Debug(nil, log.LOGGER_APP, "Successfully wrote JSON response to client",
-			zap.String("targetUrl", invoke.TargetUrl),
-			zap.Int("statusCode", response.StatusCode),
-			zap.Int("bodySize", len(respBody)),
-			zap.Duration("writeDuration", writeDuration))
+		if isMfaVerify {
+			log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Successfully wrote JSON response to client",
+				zap.String("targetUrl", invoke.TargetUrl),
+				zap.Int("statusCode", response.StatusCode),
+				zap.Int("bodySize", len(respBody)),
+				zap.Duration("writeDuration", writeDuration))
+		} else {
+			log.Debug(nil, log.LOGGER_APP, "Successfully wrote JSON response to client",
+				zap.String("targetUrl", invoke.TargetUrl),
+				zap.Int("statusCode", response.StatusCode),
+				zap.Int("bodySize", len(respBody)),
+				zap.Duration("writeDuration", writeDuration))
+		}
 	} else {
-		log.Debug(nil, log.LOGGER_APP, "Handling non-JSON response",
-			zap.String("targetUrl", invoke.TargetUrl),
-			zap.Int("statusCode", response.StatusCode),
-			zap.String("contentType", responseContentType),
-			zap.String("contentLength", response.Header.Get("Content-Length")))
+		if isMfaVerify {
+			log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Handling non-JSON response",
+				zap.String("targetUrl", invoke.TargetUrl),
+				zap.Int("statusCode", response.StatusCode),
+				zap.String("contentType", responseContentType),
+				zap.String("contentLength", response.Header.Get("Content-Length")))
+		} else {
+			log.Debug(nil, log.LOGGER_APP, "Handling non-JSON response",
+				zap.String("targetUrl", invoke.TargetUrl),
+				zap.Int("statusCode", response.StatusCode),
+				zap.String("contentType", responseContentType),
+				zap.String("contentLength", response.Header.Get("Content-Length")))
+		}
 
 		c.Status(response.StatusCode)
 		c.Header("Content-Type", responseContentType)
@@ -245,18 +336,34 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 			return fmt.Errorf("error occurred during stream response")
 		}
 
-		log.Debug(nil, log.LOGGER_APP, "Successfully streamed response to client",
-			zap.String("targetUrl", invoke.TargetUrl),
-			zap.Int("statusCode", response.StatusCode),
-			zap.Int("totalBytes", totalBytes),
-			zap.Duration("streamDuration", streamDuration))
+		if isMfaVerify {
+			log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Successfully streamed response to client",
+				zap.String("targetUrl", invoke.TargetUrl),
+				zap.Int("statusCode", response.StatusCode),
+				zap.Int("totalBytes", totalBytes),
+				zap.Duration("streamDuration", streamDuration))
+		} else {
+			log.Debug(nil, log.LOGGER_APP, "Successfully streamed response to client",
+				zap.String("targetUrl", invoke.TargetUrl),
+				zap.Int("statusCode", response.StatusCode),
+				zap.Int("totalBytes", totalBytes),
+				zap.Duration("streamDuration", streamDuration))
+		}
 	}
 
 	totalDuration := time.Since(startTime)
-	log.Debug(nil, log.LOGGER_APP, "Completed redirect request",
-		zap.String("targetUrl", invoke.TargetUrl),
-		zap.Int("statusCode", response.StatusCode),
-		zap.Duration("totalDuration", totalDuration))
+	if isMfaVerify {
+		log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Completed redirect request",
+			zap.String("targetUrl", invoke.TargetUrl),
+			zap.Int("statusCode", response.StatusCode),
+			zap.Duration("totalDuration", totalDuration),
+			zap.Duration("requestDuration", requestDuration))
+	} else {
+		log.Debug(nil, log.LOGGER_APP, "Completed redirect request",
+			zap.String("targetUrl", invoke.TargetUrl),
+			zap.Int("statusCode", response.StatusCode),
+			zap.Duration("totalDuration", totalDuration))
+	}
 
 	return nil
 }
