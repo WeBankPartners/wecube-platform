@@ -60,23 +60,12 @@ func Redirect() gin.HandlerFunc {
 			invoke := support.RedirectInvoke{
 				TargetUrl: targetUrl,
 			}
-			if err := invoke.Do(c); err != nil {
-				log.Error(nil, log.LOGGER_APP, "Failed to redirect request to platform service",
-					zap.String("targetUrl", targetUrl),
-					zap.String("uri", uri),
-					zap.Error(err))
-				c.Abort()
-				return
-			}
-			// 响应已写入，中止后续处理
-			c.Abort()
-			return
+			invoke.Do(c)
 		} else {
 			requestKey := BuildRequestKey(context)
 
 			if val, has := redirectRuleMap.Load(requestKey); has {
 				rules := val.([]RedirectRule)
-				redirectSuccess := false
 				for _, i := range genRandIntList(len(rules)) {
 					targetUrl := rules[i].TargetPath + uri
 					invoke := support.RedirectInvoke{
@@ -86,19 +75,11 @@ func Redirect() gin.HandlerFunc {
 					if err != nil {
 						log.Warn(nil, log.LOGGER_APP, "failed to request", zap.String("targetUrl", targetUrl), zap.Error(err))
 					} else {
-						redirectSuccess = true
 						break
 					}
 				}
 
-				if redirectSuccess {
-					// 响应已写入，中止后续处理
-					c.Abort()
-					return
-				} else if len(rules) > 0 {
-					log.Warn(nil, log.LOGGER_APP, "All redirect attempts failed for context", zap.String("context", context))
-					c.Abort()
-					return
+				if len(rules) > 0 {
 				} else {
 					log.Warn(nil, log.LOGGER_APP, "can not find redirect rule for context:"+context)
 				}

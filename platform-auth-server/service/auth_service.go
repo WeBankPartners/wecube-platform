@@ -775,6 +775,8 @@ func (AuthService) VerifyMfaCode(request *model.MfaVerifyRequest) ([]*model.Jwt,
 		authorities = append(authorities, authority.Authority)
 	}
 
+	authorities = utils.DistinctArrayString(authorities)
+
 	jwts, err := packJwtTokens(request.Username, []string{}, authorities, false)
 	if err != nil {
 		log.Error(nil, log.LOGGER_APP, "Failed to verify MFA code: pack JWT tokens failed",
