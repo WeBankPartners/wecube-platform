@@ -107,7 +107,8 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 			zap.Int("statusCode", response.StatusCode),
 			zap.String("contentType", response.Header.Get("Content-Type")),
 			zap.String("contentLength", response.Header.Get("Content-Length")),
-			zap.Duration("requestDuration", requestDuration))
+			zap.String("requestDuration", requestDuration.String()),
+			zap.Int64("requestDurationMs", requestDuration.Milliseconds()))
 	} else {
 		log.Debug(nil, log.LOGGER_APP, "Received response from downstream system",
 			zap.String("targetUrl", invoke.TargetUrl),
@@ -129,6 +130,7 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 	headerCount := 0
 	headerSize := 0
 	headerNames := make([]string, 0)
+	headerDetails := make(map[string]int) // 记录每个响应头的大小
 
 	// 先处理业务响应头（Api-Code, Error-Code），使用 Set 确保只有一个值
 	for k, v := range response.Header {
@@ -138,12 +140,22 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 		if (k == "Api-Code" || k == "Error-Code") && len(v) > 0 {
 			c.Writer.Header().Set(k, v[0])
 			headerCount++
-			headerSize += len(k) + len(v[0]) + 4
+			size := len(k) + len(v[0]) + 4 // key + value + ": " + "\r\n"
+			headerSize += size
+			headerDetails[k] = size
 			headerNames = append(headerNames, k)
 		}
 	}
 
 	// 再处理其他响应头
+	// 对于某些关键 header（如 Authorization），应该使用 Set 确保只有一个值
+	singleValueHeaders := map[string]bool{
+		"Authorization":      true,
+		"Authorization-Info": true,
+		"Set-Cookie":         true,
+		"Location":           true,
+	}
+
 	for k, v := range response.Header {
 		if skipHeaders[k] {
 			continue
@@ -152,21 +164,60 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 		if k == "Api-Code" || k == "Error-Code" {
 			continue
 		}
-		// 正确复制响应头：遍历值数组，每个值单独添加
-		for _, val := range v {
-			c.Writer.Header().Add(k, val)
+
+		// 对于单值 header，使用 Set；对于多值 header，使用 Add
+		if singleValueHeaders[k] && len(v) > 0 {
+			c.Writer.Header().Set(k, v[0])
 			headerCount++
-			headerSize += len(k) + len(val) + 4
+			size := len(k) + len(v[0]) + 4 // key + value + ": " + "\r\n"
+			headerSize += size
+			headerDetails[k] = size
+			headerNames = append(headerNames, k)
+		} else {
+			// 正确复制响应头：遍历值数组，每个值单独添加
+			for _, val := range v {
+				c.Writer.Header().Add(k, val)
+				headerCount++
+				size := len(k) + len(val) + 4 // key + value + ": " + "\r\n"
+				headerSize += size
+				if existingSize, exists := headerDetails[k]; exists {
+					headerDetails[k] = existingSize + size
+				} else {
+					headerDetails[k] = size
+				}
+			}
+			headerNames = append(headerNames, k)
 		}
-		headerNames = append(headerNames, k)
 	}
 
 	if isMfaVerify {
+		// 特别记录 Authorization header 的大小
+		authHeader := response.Header.Get("Authorization")
+		authHeaderSize := 0
+		if authHeader != "" {
+			authHeaderSize = len(authHeader)
+		}
+
+		// 检查是否超过 Nginx proxy_buffer_size (128k = 131072 bytes)
+		nginxBufferSize := 128 * 1024 // 128k
+		exceedsNginxLimit := headerSize > nginxBufferSize
+
 		log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Copied response headers",
 			zap.String("targetUrl", invoke.TargetUrl),
 			zap.Int("headerCount", headerCount),
 			zap.Int("headerSize", headerSize),
-			zap.Strings("headerNames", headerNames))
+			zap.Int("nginxBufferSize", nginxBufferSize),
+			zap.Bool("exceedsNginxLimit", exceedsNginxLimit),
+			zap.Int("authHeaderSize", authHeaderSize),
+			zap.Strings("headerNames", headerNames),
+			zap.Any("headerDetails", headerDetails))
+
+		if exceedsNginxLimit {
+			log.Warn(nil, log.LOGGER_APP, "[MFA_VERIFY] Response header size exceeds Nginx proxy_buffer_size limit",
+				zap.Int("headerSize", headerSize),
+				zap.Int("nginxBufferSize", nginxBufferSize),
+				zap.Int("excessSize", headerSize-nginxBufferSize))
+		}
 	} else {
 		log.Debug(nil, log.LOGGER_APP, "Copied response headers",
 			zap.String("targetUrl", invoke.TargetUrl),
@@ -176,6 +227,7 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 	}
 
 	responseContentType := response.Header.Get("Content-Type")
+	var respBodySize int
 	if strings.Contains(responseContentType, "application/json") {
 		if isMfaVerify {
 			log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Reading JSON response body",
@@ -192,6 +244,7 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 		readStartTime := time.Now()
 		respBody, readErr := ioutil.ReadAll(response.Body)
 		readDuration := time.Since(readStartTime)
+		respBodySize = len(respBody)
 		defer response.Body.Close()
 
 		if readErr != nil {
@@ -218,7 +271,8 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 				zap.String("targetUrl", invoke.TargetUrl),
 				zap.Int("statusCode", response.StatusCode),
 				zap.Int("bodySize", len(respBody)),
-				zap.Duration("readDuration", readDuration))
+				zap.String("readDuration", readDuration.String()),
+				zap.Int64("readDurationMs", readDuration.Milliseconds()))
 		} else {
 			log.Debug(nil, log.LOGGER_APP, "Read response body successfully",
 				zap.String("targetUrl", invoke.TargetUrl),
@@ -232,12 +286,35 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 			log.Debug(nil, log.LOGGER_APP, fmt.Sprintf("Response from downstream system: %s  [body size]: %d", string(responseDump), len(respBody)))
 		}
 
+		// 在写入响应之前，记录实际要写入的响应头（用于调试）
 		if isMfaVerify {
+			// 记录所有响应头的实际值
+			actualHeaders := make(map[string][]string)
+			for k, v := range c.Writer.Header() {
+				actualHeaders[k] = v
+			}
+
+			// 检查响应头中是否有特殊字符
+			hasInvalidChars := false
+			invalidHeaderNames := make([]string, 0)
+			for k, v := range actualHeaders {
+				for _, val := range v {
+					// 检查是否包含换行符、回车符等控制字符
+					if strings.Contains(val, "\n") || strings.Contains(val, "\r") || strings.Contains(k, "\n") || strings.Contains(k, "\r") {
+						hasInvalidChars = true
+						invalidHeaderNames = append(invalidHeaderNames, k)
+					}
+				}
+			}
+
 			log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Writing response to client",
 				zap.String("targetUrl", invoke.TargetUrl),
 				zap.Int("statusCode", response.StatusCode),
 				zap.String("contentType", responseContentType),
-				zap.Int("bodySize", len(respBody)))
+				zap.Int("bodySize", len(respBody)),
+				zap.Any("actualHeaders", actualHeaders),
+				zap.Bool("hasInvalidChars", hasInvalidChars),
+				zap.Strings("invalidHeaderNames", invalidHeaderNames))
 		} else {
 			log.Debug(nil, log.LOGGER_APP, "Writing response to client",
 				zap.String("targetUrl", invoke.TargetUrl),
@@ -250,12 +327,29 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 		c.Data(response.StatusCode, responseContentType, respBody)
 		writeDuration := time.Since(writeStartTime)
 
+		// 检查写入后的状态
+		writtenStatusCode := c.Writer.Status()
+		writtenHeaders := make(map[string][]string)
+		for k, v := range c.Writer.Header() {
+			writtenHeaders[k] = v
+		}
+
 		if isMfaVerify {
 			log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Successfully wrote JSON response to client",
 				zap.String("targetUrl", invoke.TargetUrl),
-				zap.Int("statusCode", response.StatusCode),
+				zap.Int("expectedStatusCode", response.StatusCode),
+				zap.Int("writtenStatusCode", writtenStatusCode),
 				zap.Int("bodySize", len(respBody)),
-				zap.Duration("writeDuration", writeDuration))
+				zap.String("writeDuration", writeDuration.String()),
+				zap.Int64("writeDurationMs", writeDuration.Milliseconds()),
+				zap.Any("writtenHeaders", writtenHeaders))
+
+			// 检查状态码是否匹配
+			if writtenStatusCode != response.StatusCode {
+				log.Warn(nil, log.LOGGER_APP, "[MFA_VERIFY] Status code mismatch",
+					zap.Int("expectedStatusCode", response.StatusCode),
+					zap.Int("writtenStatusCode", writtenStatusCode))
+			}
 		} else {
 			log.Debug(nil, log.LOGGER_APP, "Successfully wrote JSON response to client",
 				zap.String("targetUrl", invoke.TargetUrl),
@@ -353,11 +447,24 @@ func (invoke RedirectInvoke) Do(c *gin.Context) error {
 
 	totalDuration := time.Since(startTime)
 	if isMfaVerify {
+		// 记录响应头详情（特别是 Authorization header 的大小）
+		authHeader := c.Writer.Header().Get("Authorization")
+		authHeaderSize := 0
+		if authHeader != "" {
+			authHeaderSize = len(authHeader)
+		}
+
 		log.Info(nil, log.LOGGER_APP, "[MFA_VERIFY] Completed redirect request",
 			zap.String("targetUrl", invoke.TargetUrl),
 			zap.Int("statusCode", response.StatusCode),
-			zap.Duration("totalDuration", totalDuration),
-			zap.Duration("requestDuration", requestDuration))
+			zap.String("totalDuration", totalDuration.String()),
+			zap.Int64("totalDurationMs", totalDuration.Milliseconds()),
+			zap.String("requestDuration", requestDuration.String()),
+			zap.Int64("requestDurationMs", requestDuration.Milliseconds()),
+			zap.Int("headerSize", headerSize),
+			zap.Int("authHeaderSize", authHeaderSize),
+			zap.Int("bodySize", respBodySize),
+			zap.String("contentType", responseContentType))
 	} else {
 		log.Debug(nil, log.LOGGER_APP, "Completed redirect request",
 			zap.String("targetUrl", invoke.TargetUrl),
