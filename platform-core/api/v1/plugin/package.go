@@ -781,6 +781,9 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 					SchemaName:      mysqlResource.SchemaName,
 					Username:        resourceItemList[0].Username,
 				}
+				if resourceItemList[0].SchemaName != "" {
+					mysqlInstance.SchemaName = resourceItemList[0].SchemaName
+				}
 				if err = database.NewPluginMysqlInstance(ctx, mysqlServer, mysqlInstance, operator, false); err != nil {
 					return
 				}

@@ -274,8 +274,8 @@ func CreateResourceItem(ctx context.Context, params []*models.ResourceItem, oper
 		}
 		properties := models.MysqlResourceItemProperties{Username: v.Username, Password: v.Password}
 		propertiesBytes, _ := json.Marshal(&properties)
-		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO resource_item (id,additional_properties,created_by,created_date,is_allocated,name,purpose,resource_server_id,status,`type`,`username`,`password`,updated_by,updated_date) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-			v.Id, string(propertiesBytes), operator, nowTime, 1, v.Name, v.Purpose, v.ResourceServerId, "created", "mysql_database", v.Username, v.Password, operator, nowTime,
+		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO resource_item (id,additional_properties,created_by,created_date,is_allocated,name,purpose,resource_server_id,status,`type`,`username`,`password`,`schema_name`,updated_by,updated_date) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			v.Id, string(propertiesBytes), operator, nowTime, 1, v.Name, v.Purpose, v.ResourceServerId, "created", "mysql_database", v.Username, v.Password, v.SchemaName, operator, nowTime,
 		}})
 	}
 	err = db.Transaction(actions, ctx)
@@ -302,8 +302,8 @@ func UpdateResourceItem(ctx context.Context, params []*models.ResourceItem, oper
 		}
 		properties := models.MysqlResourceItemProperties{Username: v.Username, Password: v.Password}
 		propertiesBytes, _ := json.Marshal(&properties)
-		actions = append(actions, &db.ExecAction{Sql: "update resource_item set resource_server_id=?,name=?,additional_properties=?,`username`=?,`password`=?,is_allocated=?,purpose=?,updated_by=?,updated_date=? where id=?", Param: []interface{}{
-			v.ResourceServerId, v.Name, string(propertiesBytes), v.Username, v.Password, v.IsAllocated, v.Purpose, operator, nowTime, v.Id,
+		actions = append(actions, &db.ExecAction{Sql: "update resource_item set resource_server_id=?,name=?,additional_properties=?,`username`=?,`password`=?,`schema_name`=?,is_allocated=?,purpose=?,updated_by=?,updated_date=? where id=?", Param: []interface{}{
+			v.ResourceServerId, v.Name, string(propertiesBytes), v.Username, v.Password, v.SchemaName, v.IsAllocated, v.Purpose, operator, nowTime, v.Id,
 		}})
 		pluginMysqlInstanceRow, getMysqlInstanceErr := getPluginMysqlInstanceByItem(ctx, v.Id)
 		if getMysqlInstanceErr != nil {
