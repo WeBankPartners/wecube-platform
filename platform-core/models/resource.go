@@ -35,7 +35,7 @@ type ResourceItem struct {
 	UpdatedDate          time.Time `json:"-" xorm:"updated_date"`                             // 更新时间
 	Username             string    `json:"username" xorm:"username"`                          // 连接用户名
 	Password             string    `json:"password" xorm:"password"`                          // 连接用户密码
-	SchemaName           string    `json:"schema_name" xorm:"schema_name"`                    // 数据库名
+	SchemaName           string    `json:"schemaName" xorm:"schema_name"`                     // 数据库名
 }
 
 type ResourceItemQueryRow struct {
