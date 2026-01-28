@@ -58,6 +58,10 @@
             <input type="password" autocomplete="new-password" style="display: none" />
             <Input v-model.trim="form.password" type="password" autocomplete="off" password :maxlength="100" />
           </FormItem>
+          <!--数据库名-->
+          <FormItem :label="$t('be_schema_name')" prop="schemaName">
+            <Input v-model.trim="form.schemaName" :maxlength="100" show-word-limit clearable></Input>
+          </FormItem>
         </Form>
       </template>
       <template slot="footer">
@@ -129,6 +133,7 @@ export default {
         resourceServerId: '',
         type: '',
         name: '',
+        schemaName: '', // 数据库名
         purpose: '',
         isAllocated: true,
         username: '',
@@ -193,11 +198,21 @@ export default {
           options: booleanOptions
         },
         {
+          title: this.$t('be_schema_name'),
+          key: 'schemaName',
+          inputKey: 'schemaName',
+          searchSeqNo: 6,
+          displaySeqNo: 6,
+          component: 'Input',
+          inputType: 'text',
+          placeholder: this.$t('be_schema_name')
+        },
+        {
           title: this.$t('table_purpose'),
           key: 'purpose',
           inputKey: 'purpose',
-          searchSeqNo: 6,
-          displaySeqNo: 6,
+          searchSeqNo: 7,
+          displaySeqNo: 7,
           component: 'Input',
           inputType: 'text',
           placeholder: this.$t('table_purpose')
@@ -206,8 +221,8 @@ export default {
           title: this.$t('table_status'),
           key: 'status',
           inputKey: 'status',
-          searchSeqNo: 7,
-          displaySeqNo: 7,
+          searchSeqNo: 8,
+          displaySeqNo: 8,
           component: 'WeSelect',
           inputType: 'select',
           placeholder: this.$t('table_status')
@@ -216,8 +231,8 @@ export default {
           title: this.$t('table_created_date'),
           key: 'createdDate',
           inputKey: 'createdDate',
-          searchSeqNo: 8,
-          displaySeqNo: 8,
+          searchSeqNo: 9,
+          displaySeqNo: 9,
           component: 'DatePicker',
           type: 'datetimerange',
           inputType: 'date',
@@ -227,8 +242,8 @@ export default {
           title: this.$t('table_updated_date'),
           key: 'updatedDate',
           inputKey: 'updatedDate',
-          searchSeqNo: 9,
-          displaySeqNo: 9,
+          searchSeqNo: 10,
+          displaySeqNo: 10,
           component: 'DatePicker',
           type: 'datetimerange',
           inputType: 'date',
@@ -238,8 +253,8 @@ export default {
           title: this.$t('table_port'),
           key: 'port',
           inputKey: 'port',
-          searchSeqNo: 10,
-          displaySeqNo: 10,
+          searchSeqNo: 11,
+          displaySeqNo: 11,
           component: 'Input',
           inputType: 'text',
           placeholder: this.$t('table_port')
@@ -264,6 +279,13 @@ export default {
           {
             required: true,
             message: this.$t('please_input') + this.$t('name'),
+            trigger: 'blur'
+          }
+        ],
+        schemaName: [
+          {
+            required: true,
+            message: this.$t('please_input') + this.$t('be_schema_name'),
             trigger: 'blur'
           }
         ],
@@ -415,6 +437,7 @@ export default {
         resourceServerId: '',
         type: '',
         name: '',
+        schemaName: '',
         purpose: '',
         isAllocated: true,
         username: '',
@@ -448,7 +471,7 @@ export default {
       this.visible = true
       this.operator = 'edit'
       let {
-        id, resourceServerId, type, name, purpose, isAllocated, username, password
+        id, resourceServerId, type, name, schemaName, purpose, isAllocated, username, password
       } = row[0]
       isAllocated = isAllocated === 'true' ? true : false
       this.form = Object.assign({}, this.form, {
@@ -456,6 +479,7 @@ export default {
         resourceServerId,
         type,
         name,
+        schemaName,
         purpose,
         isAllocated,
         username,

@@ -738,6 +738,7 @@
   "be_apply_roles": "申请角色",
   "be_role_name": "角色名",
   "be_account": "账号",
+  "be_schema_name": "数据库名",
   "be_application_time": "申请时间",
   "be_approver": "审批人",
   "be_role_administrator": "角色管理员",
