@@ -739,6 +739,7 @@
   "be_apply_roles": "Apply Roles",
   "be_role_name": "Role Name",
   "be_account": "Account",
+  "be_schema_name": "Schema Name",
   "be_application_time": "Application Time",
   "be_approver": "Approver",
   "be_role_administrator": "Role Administrator",

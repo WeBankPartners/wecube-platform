@@ -604,8 +604,8 @@ func NewPluginMysqlInstance(ctx context.Context, mysqlServer *models.ResourceSer
 	properties := models.MysqlResourceItemProperties{Username: mysqlInstance.Username, Password: instancePassword}
 	propertiesBytes, _ := json.Marshal(&properties)
 	if withResourceItem {
-		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO resource_item (id,additional_properties,created_by,created_date,is_allocated,name,purpose,resource_server_id,status,`type`,`username`,`password`,updated_by,updated_date) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-			mysqlInstance.ResourceItemId, string(propertiesBytes), operator, nowTime, 1, mysqlInstance.SchemaName, fmt.Sprintf("Create MySQL database for plugin[%s]", mysqlInstance.SchemaName), mysqlServer.Id, "created", "mysql_database", properties.Username, properties.Password, operator, nowTime,
+		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO resource_item (id,additional_properties,created_by,created_date,is_allocated,name,purpose,resource_server_id,status,`type`,`username`,`password`,`schema_name`,updated_by,updated_date) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			mysqlInstance.ResourceItemId, string(propertiesBytes), operator, nowTime, 1, mysqlInstance.SchemaName, fmt.Sprintf("Create MySQL database for plugin[%s]", mysqlInstance.SchemaName), mysqlServer.Id, "created", "mysql_database", properties.Username, properties.Password, mysqlInstance.SchemaName, operator, nowTime,
 		}})
 	}
 	actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_mysql_instances (id,password,plugun_package_id,plugin_package_id,resource_item_id,schema_name,status,username,pre_version,created_time) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
