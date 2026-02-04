@@ -415,6 +415,21 @@ func GetResourceItem(ctx context.Context, resourceType, name string, isAllocated
 	return
 }
 
+func GetResourceItemById(resId string) (resourceItem *models.ResourceItem, err error) {
+	var resourceRows []*models.ResourceItem
+	err = db.MysqlEngine.SQL("select * from resource_item where `id`=?", resId).Find(&resourceRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(resourceRows) == 0 {
+		err = exterror.Catch(exterror.New().DatabaseQueryEmptyError, err)
+		return
+	}
+	resourceItem = resourceRows[0]
+	return
+}
+
 func ValidateResourceServer(ctx context.Context, resourceServer *models.ResourceServer) (err error) {
 	if resourceServer.Type == "docker" {
 		return

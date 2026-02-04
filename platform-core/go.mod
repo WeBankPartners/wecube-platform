@@ -2,7 +2,6 @@ module github.com/WeBankPartners/wecube-platform/platform-core
 
 go 1.22.0
 
-toolchain go1.23.12
 
 require (
 	github.com/WeBankPartners/go-common-lib v1.1.8
