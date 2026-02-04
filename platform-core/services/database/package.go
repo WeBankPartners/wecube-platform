@@ -263,6 +263,11 @@ func GetPluginRuntimeResources(ctx context.Context, pluginPackageId string) (res
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
 	}
+	err = db.MysqlEngine.Context(ctx).SQL("select * from plugin_package_runtime_resources_volume where plugin_package_id=?", pluginPackageId).Find(&result.Volume)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
 	return
 }
 
@@ -350,6 +355,11 @@ func UploadPackage(ctx context.Context, registerConfig *models.RegisterXML, with
 		fileAdditionBytes, _ := json.Marshal(fileAdditionList)
 		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_package_runtime_resources_s3 (id,plugin_package_id,bucket_name,additional_properties) values  (?,?,?,?)", Param: []interface{}{
 			"p_res_s3_" + guid.CreateGuid(), pluginPackageId, registerConfig.ResourceDependencies.S3.BucketName, string(fileAdditionBytes),
+		}})
+	}
+	for _, vol := range registerConfig.ResourceDependencies.Volume {
+		actions = append(actions, &db.ExecAction{Sql: "insert into plugin_package_runtime_resources_volume (id,plugin_package_id,name,size,mount_path) values (?,?,?,?,?)", Param: []interface{}{
+			"p_res_vol_" + guid.CreateGuid(), pluginPackageId, vol.Name, vol.Size, vol.MountPath,
 		}})
 	}
 	if registerConfig.Authorities.Authority.SystemRoleName != "" && len(registerConfig.Authorities.Authority.Menu) > 0 {
@@ -745,7 +755,7 @@ func GetPluginInstance(pluginInstanceId, instanceName, host, pluginPackageId str
 
 func GetPluginDockerRunningResource(dockerInstanceResourceId string) (pluginResourceServer *models.ResourceServer, err error) {
 	var resourceServerRows []*models.ResourceServer
-	err = db.MysqlEngine.SQL("select id,name,host,login_username,login_password,port,login_mode,is_allocated from resource_server where id in (select resource_server_id from resource_item where id=?)", dockerInstanceResourceId).Find(&resourceServerRows)
+	err = db.MysqlEngine.SQL("select id,name,host,login_username,login_password,port,login_mode,is_allocated,`type` from resource_server where id in (select resource_server_id from resource_item where id=?)", dockerInstanceResourceId).Find(&resourceServerRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return

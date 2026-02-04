@@ -14,6 +14,7 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/exterror"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/tools"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/try"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/bash"
@@ -369,11 +370,19 @@ func DeletePlugin(c *gin.Context) {
 	if pluginPackage.UiPackageIncluded {
 		for _, staticResourceObj := range models.Config.StaticResources {
 			targetCmd := fmt.Sprintf("rm -rf %s/%s/%s/", staticResourceObj.Path, pluginPackage.Name, pluginPackage.Version)
-			log.Debug(nil, log.LOGGER_APP, "unregister plugin,remove ui in remote host", zap.String("server", staticResourceObj.Server), zap.String("cmd", targetCmd))
-			if err = bash.RemoteSSHCommand(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, targetCmd); err != nil {
-				middleware.ReturnError(c, err)
-				return
+			log.Debug(nil, log.LOGGER_APP, "unregister plugin,remove ui in host", zap.String("server", staticResourceObj.Server), zap.String("cmd", targetCmd))
+			if tools.StringToBool(staticResourceObj.AsLocal) {
+				if err = bash.LocalCommand(targetCmd); err != nil {
+					middleware.ReturnError(c, err)
+					return
+				}
+			} else {
+				if err = bash.RemoteSSHCommand(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, targetCmd); err != nil {
+					middleware.ReturnError(c, err)
+					return
+				}
 			}
+
 		}
 	}
 	err = database.DecommissionPluginPackage(c, pluginPackageId, middleware.GetRequestUser(c))

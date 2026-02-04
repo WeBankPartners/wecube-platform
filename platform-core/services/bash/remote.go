@@ -4,17 +4,27 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
-	"go.uber.org/zap"
 	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 	_ "github.com/go-sql-driver/mysql"
 	"xorm.io/xorm"
 )
+
+func LocalCommand(command string) (err error) {
+	_, err = exec.Command("/bin/bash", "-c", command).Output()
+	if err != nil {
+		err = fmt.Errorf("run local command fail,%s ", err.Error())
+		log.Debug(nil, log.LOGGER_APP, "run local command fail", zap.String("cmd", command))
+	}
+	return
+}
 
 func RemoteSSHCommand(targetIp, user, pwd, port, command string) (err error) {
 	commandString := fmt.Sprintf("sshpass -p '%s' ssh %s@%s -p %s '%s'", pwd, user, targetIp, port, command)

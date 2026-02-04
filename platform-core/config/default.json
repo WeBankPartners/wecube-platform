@@ -46,6 +46,7 @@
     "plugin_package_bucket": "wecube-plugin-package-bucket"
   },
   "static_resources": [{
+    "as_local": "{{static_resource_server_as_local}}",
     "server": "{{static_resource_server_ips}}",
     "user": "{{static_resource_server_user}}",
     "password": "{{static_resource_server_password}}",

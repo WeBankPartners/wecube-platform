@@ -3,12 +3,13 @@ package api
 import (
 	"bytes"
 	"fmt"
-	data_trans "github.com/WeBankPartners/wecube-platform/platform-core/api/v1/data-trans"
-	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"strings"
 	"time"
+
+	data_trans "github.com/WeBankPartners/wecube-platform/platform-core/api/v1/data-trans"
+	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/api/middleware"
@@ -76,8 +77,8 @@ func init() {
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/runtime-resources", Method: "GET", HandlerFunc: plugin.GetPluginRuntimeResources, ApiCode: "get-runtime-resource"},
 		&handlerFuncObj{Url: "/packages/register/:pluginPackageId", Method: "POST", HandlerFunc: plugin.RegisterPackage, ApiCode: "register-package"},
 		&handlerFuncObj{Url: "/available-container-hosts", Method: "GET", HandlerFunc: plugin.GetAvailableContainerHost, ApiCode: "get-available-host"},
-		&handlerFuncObj{Url: "/hosts/:hostIp/next-available-port", Method: "GET", HandlerFunc: plugin.GetHostAvailablePort, ApiCode: "get-available-port"},
-		&handlerFuncObj{Url: "/packages/:pluginPackageId/hosts/:hostIp/ports/:port/instance/launch", Method: "POST", HandlerFunc: plugin.LaunchPlugin, ApiCode: "launch-plugin"},
+		&handlerFuncObj{Url: "/hosts/:hostId/next-available-port", Method: "GET", HandlerFunc: plugin.GetHostAvailablePort, ApiCode: "get-available-port"},
+		&handlerFuncObj{Url: "/packages/:pluginPackageId/hosts/:hostId/ports/:port/instance/launch", Method: "POST", HandlerFunc: plugin.LaunchPlugin, ApiCode: "launch-plugin"},
 		&handlerFuncObj{Url: "/packages/instances/:pluginInstanceId/remove", Method: "DELETE", HandlerFunc: plugin.RemovePlugin, ApiCode: "remove-plugin"},
 		&handlerFuncObj{Url: "/packages/:pluginPackageId/instances", Method: "GET", HandlerFunc: plugin.GetPluginRunningInstances, ApiCode: "get-plugin-running-instance"},
 		&handlerFuncObj{Url: "/packages/name/list", Method: "GET", HandlerFunc: plugin.GetPackageNames, ApiCode: "get-package-names"},

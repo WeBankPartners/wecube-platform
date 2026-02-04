@@ -97,6 +97,14 @@ type PluginPackageRuntimeResourcesS3 struct {
 	AdditionalProperties string `json:"additionalProperties" xorm:"additional_properties"` // 自动上传文件
 }
 
+type PluginPackageRuntimeResourcesVolume struct {
+	Id              string `json:"id" xorm:"id"`                             // 唯一标识
+	PluginPackageId string `json:"pluginPackageId" xorm:"plugin_package_id"` // 插件
+	Name            string `json:"name" xorm:"name"`                         // 卷名称
+	Size            string `json:"size" xorm:"size"`                         // 卷大小
+	MountPath       string `json:"mountPath" xorm:"mount_path"`              // 卷路径
+}
+
 type PluginMysqlInstances struct {
 	Id              string    `json:"id" xorm:"id"`                             // 唯一标识
 	Password        string    `json:"password" xorm:"password"`                 // 密码
@@ -157,6 +165,7 @@ type PluginRuntimeResourceData struct {
 	Docker []*PluginPackageRuntimeResourcesDocker `json:"docker"`
 	Mysql  []*PluginPackageRuntimeResourcesMysql  `json:"mysql"`
 	S3     []*PluginPackageRuntimeResourcesS3     `json:"s3"`
+	Volume []*PluginPackageRuntimeResourcesVolume `json:"volume"`
 }
 
 type AuthLatestEnabledInterfaces struct {
@@ -273,6 +282,12 @@ type RegisterXML struct {
 				} `xml:"file"`
 			} `xml:"fileSet"`
 		} `xml:"s3"`
+		// 新增：持久化存储声明（允许多个）
+		Volume []struct {
+			Name      string `xml:"name,attr"`      // 卷名称
+			Size      string `xml:"size,attr"`      // 大小，例如: "10Gi"
+			MountPath string `xml:"mountPath,attr"` // 挂载路径
+		} `xml:"volume"`
 	} `xml:"resourceDependencies"`
 	Plugins struct {
 		Text   string `xml:",chardata"`
