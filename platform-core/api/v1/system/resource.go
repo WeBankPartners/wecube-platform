@@ -56,7 +56,7 @@ func GetResourceServerStatus(c *gin.Context) {
 }
 
 func GetResourceServerTypes(c *gin.Context) {
-	data := []string{"s3", "mysql", "docker"}
+	data := []string{"s3", "mysql", "docker", "k8s", "k8s-storageClass", "image-registry"}
 	middleware.ReturnData(c, data)
 }
 
