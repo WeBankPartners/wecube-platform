@@ -535,7 +535,7 @@ export default {
       await this.getAvailableInstancesByPackageId(this.currentPluginId)
       this.availableHostList = cloneDeep(this.availableHostList).filter(item => {
         const findItem = find(this.allRunningInstances, {
-          id: item.id
+          resourceServerId: item.id
         })
         return !findItem
       })
@@ -788,7 +788,8 @@ export default {
                   id: _.id,
                   hostIp: _.host,
                   port: _.port,
-                  displayLabel: _.host + ':' + _.port
+                  displayLabel: _.host + ':' + _.port,
+                  resourceServerId: _.resourceServerId
                 }
               }
             })

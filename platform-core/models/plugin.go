@@ -70,6 +70,7 @@ type PluginInstances struct {
 	InstanceName                  string `json:"instanceName" xorm:"instance_name"`                                      // 容器实例名
 	PluginMysqlInstanceResourceId string `json:"pluginMysqlInstanceResourceId" xorm:"plugin_mysql_instance_resource_id"` // 数据库实例id
 	S3bucketResourceId            string `json:"s3bucketResourceId" xorm:"s3bucket_resource_id"`                         // s3资源id
+	ResourceServerId              string `json:"resourceServerId" xorm:"-"`                                              // DockerInstanceResourceId对应的RS id
 }
 
 type PluginPackageRuntimeResourcesDocker struct {

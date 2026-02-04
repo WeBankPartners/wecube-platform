@@ -811,6 +811,16 @@ func GetPluginRunningInstances(ctx context.Context, pluginPackageId string) (res
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 	}
+	for _, instance := range result {
+		resourceItem := models.ResourceItem{}
+		exists, errQuery := db.MysqlEngine.Context(ctx).SQL("select * from resource_item where id=?", instance.DockerInstanceResourceId).Get(&resourceItem)
+		if errQuery != nil {
+			err = exterror.Catch(exterror.New().DatabaseQueryError, errQuery)
+		}
+		if exists {
+			instance.ResourceServerId = resourceItem.ResourceServerId
+		}
+	}
 	return
 }
 

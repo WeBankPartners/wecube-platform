@@ -634,14 +634,15 @@ export default {
               id: _.id,
               hostIp: _.host,
               port: _.port,
-              displayLabel: _.host + ':' + _.port
+              displayLabel: _.host + ':' + _.port,
+              resourceServerId: _.resourceServerId
             }
           }
         })
         this.availableHostList = (await getAvailableContainerHosts()).data || []
         this.availableHostList = cloneDeep(this.availableHostList).filter(item => {
           const findItem = find(this.allInstances, {
-            id: item.id
+            resourceServerId: item.id
           })
           return !findItem
         })
