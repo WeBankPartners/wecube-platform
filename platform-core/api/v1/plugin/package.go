@@ -1228,11 +1228,13 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *mo
 			return
 		}
 		// 更新插件注册的菜单状态和更新插件实例数据
+		envBytes, _ := json.Marshal(newEnvItems)
+		volBytes, _ := json.Marshal(resources.Volume)
 		resourceItemProperties := models.ResourceItemProperties{
 			ImageName:      dockerResource.ImageName,
 			PortBindings:   strings.Join(portBindList, ","),
-			VolumeBindings: strings.Join(volumeBindList, ","),
-			EnvVariables:   strings.Join(envBindList, ","),
+			VolumeBindings: string(volBytes),
+			EnvVariables:   string(envBytes),
 		}
 		resourceItemPropertiesBytes, _ := json.Marshal(&resourceItemProperties)
 		resourceItem = &models.ResourceItem{
