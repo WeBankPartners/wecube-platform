@@ -69,8 +69,7 @@ CREATE TABLE `trans_export_analyze_data`
     `error_msg`      text COLLATE utf8_bin         DEFAULT NULL COMMENT '导出报错信息',
     `start_time`     datetime                      default NULL COMMENT '开始时间',
     `end_time`       datetime                      default NULL COMMENT '结束时间',
-    PRIMARY KEY (`id`),
-    CONSTRAINT `trans_export_analyze_data_force_trans_export` FOREIGN KEY (`trans_export`) REFERENCES `trans_export` (`id`)
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '数据迁移导出记录表';
 
 
@@ -87,8 +86,7 @@ CREATE TABLE `trans_export_detail`
     `error_msg`           text COLLATE utf8_bin        DEFAULT NULL COMMENT '导出报错信息',
     `start_time`          datetime                     default NULL COMMENT '开始时间',
     `end_time`            datetime                     default NULL COMMENT '结束时间',
-    PRIMARY KEY (`id`),
-    CONSTRAINT `trans_export_detail_force_trans_export` FOREIGN KEY (`trans_export`) REFERENCES `trans_export` (`id`)
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '数据迁移导出记录表';
 
 INSERT INTO menu_items (id, parent_code, code, source, description, local_display_name) VALUES ('ADMIN__ADMIN_BASE_MIGRATION', 'ADMIN', 'ADMIN_BASE_MIGRATION', 'SYSTEM', '', '底座迁移');
@@ -186,8 +184,7 @@ CREATE TABLE `trans_import_detail`
     `error_msg`    text COLLATE utf8_bin     DEFAULT NULL COMMENT '导出报错信息',
     `start_time`   datetime                  default NULL COMMENT '开始时间',
     `end_time`     datetime                  default NULL COMMENT '结束时间',
-    PRIMARY KEY (`id`),
-    CONSTRAINT `trans_import_detail_force_trans_import` FOREIGN KEY (`trans_import`) REFERENCES `trans_import` (`id`)
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '数据迁移导入记录详情表';
 
 CREATE TABLE `trans_import_proc_exec`
@@ -210,8 +207,7 @@ CREATE TABLE `trans_import_proc_exec`
     `end_time`            datetime                     default NULL COMMENT '结束时间',
     `created_user`        varchar(45) COLLATE utf8_bin DEFAULT NULL COMMENT '创建人',
     `created_time`        datetime                      NOT NULL,
-    PRIMARY KEY (`id`),
-    CONSTRAINT `trans_import_proc_exec_force_detail` FOREIGN KEY (`trans_import_detail`) REFERENCES `trans_import_detail` (`id`)
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT '数据迁移执行记录详情表';
 
 INSERT INTO system_variables (id, package_name, name, value, default_value, `scope`, source, status)
