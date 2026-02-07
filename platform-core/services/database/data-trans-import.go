@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -913,6 +914,8 @@ func DownloadImportArtifactPackages(ctx context.Context, nexusUrl, transImportId
 		return
 	}
 	for _, remoteFileName := range fileNameList {
+		// 对文件名进行 URL 编码，避免特殊字符（如 [w]）导致 400 Bad Request
+		encodedFileName := url.PathEscape(remoteFileName)
 		// 从nexus下载
 		downloadParam := tools.NexusReqParam{
 			UserName:   nexusConfig.NexusUser,
@@ -920,7 +923,7 @@ func DownloadImportArtifactPackages(ctx context.Context, nexusUrl, transImportId
 			RepoUrl:    nexusConfig.NexusUrl,
 			Repository: nexusConfig.NexusRepo,
 			TimeoutSec: 600,
-			FileParams: []*tools.NexusFileParam{{SourceFilePath: fmt.Sprintf("%s/%s/%s", nexusUrlPrefix, models.TransArtifactPackageDirName, remoteFileName), DestFilePath: fmt.Sprintf("%s/%s", tmpImportDir, remoteFileName)}},
+			FileParams: []*tools.NexusFileParam{{SourceFilePath: fmt.Sprintf("%s/%s/%s", nexusUrlPrefix, models.TransArtifactPackageDirName, encodedFileName), DestFilePath: fmt.Sprintf("%s/%s", tmpImportDir, remoteFileName)}},
 		}
 		if expectMd5, ok := fileMd5Map[remoteFileName]; ok {
 			downloadParam.FileParams[0].ExpectMd5 = expectMd5
@@ -985,6 +988,8 @@ func DownloadImportArtifactPackage(ctx context.Context, nexusConfig *models.Tran
 		return
 	}
 	localFilePath = fmt.Sprintf("%s/%s", dirPath, remoteFileName)
+	// 对文件名进行 URL 编码，避免特殊字符（如 [w]）导致 400 Bad Request
+	encodedFileName := url.PathEscape(remoteFileName)
 	// 从nexus下载
 	downloadParam := tools.NexusReqParam{
 		UserName:   nexusConfig.NexusUser,
@@ -992,9 +997,9 @@ func DownloadImportArtifactPackage(ctx context.Context, nexusConfig *models.Tran
 		RepoUrl:    nexusConfig.NexusUrl,
 		Repository: nexusConfig.NexusRepo,
 		TimeoutSec: 600,
-		FileParams: []*tools.NexusFileParam{{SourceFilePath: fmt.Sprintf("%s/%s/%s", nexusUrlPrefix, models.TransArtifactPackageDirName, remoteFileName), DestFilePath: localFilePath, ExpectMd5: expectMd5}},
+		FileParams: []*tools.NexusFileParam{{SourceFilePath: fmt.Sprintf("%s/%s/%s", nexusUrlPrefix, models.TransArtifactPackageDirName, encodedFileName), DestFilePath: localFilePath, ExpectMd5: expectMd5}},
 	}
-	log.Info(nil, log.LOGGER_APP, "start download nexus package file", zap.String("fileName", remoteFileName), log.JsonObj("downloadParam", downloadParam))
+	log.Info(nil, log.LOGGER_APP, "start download nexus package file", zap.String("fileName", remoteFileName), zap.String("encodeFileName", encodedFileName), log.JsonObj("downloadParam", downloadParam))
 	if err = tools.DownloadFile(&downloadParam); err != nil {
 		if clearErr := os.RemoveAll(dirPath); clearErr != nil {
 			log.Error(nil, log.LOGGER_APP, "download nexus artifact fail,try to clear artifact tmp dir fail ", zap.String("file", remoteFileName), zap.Error(clearErr))
@@ -1002,7 +1007,7 @@ func DownloadImportArtifactPackage(ctx context.Context, nexusConfig *models.Tran
 		err = fmt.Errorf("donwload nexus artifact file:%s fail,%s ", remoteFileName, err.Error())
 		return
 	}
-	log.Info(nil, log.LOGGER_APP, "done download nexus package file", zap.String("fileName", remoteFileName))
+	log.Info(nil, log.LOGGER_APP, "done download nexus package file", zap.String("fileName", remoteFileName), zap.String("encodeFileName", encodedFileName))
 	return
 }
 
