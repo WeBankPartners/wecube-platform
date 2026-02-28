@@ -1103,11 +1103,15 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *mo
 			log.Error(nil, log.LOGGER_APP, "failed to create/update k8s image pull secret", zap.String("containerName", dockerResource.ContainerName), zap.Error(err))
 			return
 		}
-		if exists, checkErr := k8sClient.ServiceExists(ctx, k8sNamespace, k8sSvcName); checkErr != nil {
+		exists, checkErr := k8sClient.ServiceExists(ctx, k8sNamespace, k8sSvcName)
+		if checkErr != nil {
 			err = checkErr
 			log.Error(nil, log.LOGGER_APP, "failed to check k8s svc", zap.String("containerName", dockerResource.ContainerName), zap.Error(checkErr))
 			return
-		} else if !exists {
+		}
+
+		if !exists {
+			// Service 不存在，创建新的
 			k8sSvcBuilder := remote.NewServiceBuilder(k8sSvcName, k8sNamespace).
 				WithLabels(map[string]string{
 					"app":     pluginPackageObj.Name,
@@ -1134,8 +1138,19 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *mo
 			}
 			// 填写插件调用IP为ClusterIP
 			pluginInstance.Host = k8sSvc.Spec.ClusterIP
+		} else {
+			// Service 已存在，获取现有的 ClusterIP
+			existingSvc, getErr := k8sClient.GetService(ctx, k8sNamespace, k8sSvcName)
+			if getErr != nil {
+				err = getErr
+				log.Error(nil, log.LOGGER_APP, "failed to get existing k8s svc", zap.String("containerName", dockerResource.ContainerName), zap.Error(getErr))
+				return
+			}
+			// 填写插件调用IP为现有Service的ClusterIP
+			pluginInstance.Host = existingSvc.Spec.ClusterIP
+			log.Info(nil, log.LOGGER_APP, "reuse existing k8s svc", zap.String("svcName", k8sSvcName), zap.String("clusterIP", existingSvc.Spec.ClusterIP))
 		}
-		exists, checkErr := k8sClient.StatefulSetExists(ctx, k8sNamespace, k8sStsName)
+		exists, checkErr = k8sClient.StatefulSetExists(ctx, k8sNamespace, k8sStsName)
 		if checkErr != nil {
 			err = checkErr
 			log.Error(nil, log.LOGGER_APP, "failed to check k8s sts", zap.String("containerName", dockerResource.ContainerName), zap.Error(checkErr))
@@ -1219,7 +1234,7 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *mo
 					StorageClassName: &storageClass.LoginUsername,
 				},
 			})
-			k8sContainerBuilder.AddVolumeMount(vol.Name, vol.MountPath)
+			// k8sContainerBuilder.AddVolumeMount(vol.Name, vol.MountPath)
 		}
 		_, createErr := k8sClient.CreateStatefulSet(ctx, k8sNamespace, k8sSts)
 		if createErr != nil {
