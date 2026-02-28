@@ -1063,7 +1063,7 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *mo
 			return
 		}
 		imageMgr := remote.NewImageManager(imageReg.Host, imageReg.LoginUsername, imageReg.LoginPassword)
-		imageMgr.SetInsecure(false)
+		imageMgr.SetInsecure(true)
 		err = imageMgr.UploadImageSimple2(tmpImageFile, dockerResource.ImageName)
 		if err != nil {
 			log.Error(nil, log.LOGGER_APP, "failed to upload image.tar to image registry", zap.String("containerName", dockerResource.ContainerName), zap.Error(err))

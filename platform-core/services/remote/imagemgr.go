@@ -27,16 +27,31 @@ type ImageUploadOptions struct {
 // NewImageManager 创建镜像管理器
 // registryURL: 镜像仓库地址，支持以下格式:
 //   - "registry.example.com" 或 "192.168.1.100:5000"
-//   - "https://192.168.1.100:5000/corg" (包含协议和项目路径)
+//   - "http://192.168.1.100:5000" (HTTP 协议，会自动设置 insecure=true)
+//   - "https://192.168.1.100:5000" (HTTPS 协议)
 //
 // username: 仓库认证用户名
 // password: 仓库认证密码
 func NewImageManager(registryURL, username, password string) *ImageManager {
+	// 检查并处理协议前缀，同时设置 insecure 默认值
+	cleanURL := registryURL
+	insecure := false
+
+	if strings.HasPrefix(registryURL, "http://") {
+		// HTTP 协议，去掉前缀并设置 insecure=true
+		cleanURL = strings.TrimPrefix(registryURL, "http://")
+		insecure = true
+	} else if strings.HasPrefix(registryURL, "https://") {
+		// HTTPS 协议，去掉前缀
+		cleanURL = strings.TrimPrefix(registryURL, "https://")
+		insecure = false
+	}
+
 	return &ImageManager{
-		registryURL: registryURL,
+		registryURL: cleanURL,
 		username:    username,
 		password:    password,
-		insecure:    false,
+		insecure:    insecure,
 	}
 }
 
@@ -70,15 +85,9 @@ func (m *ImageManager) UploadImage(opts ImageUploadOptions) error {
 	// 3. 构建源地址 (docker-archive)
 	sourceRef := fmt.Sprintf("docker-archive:%s", opts.LocalTarPath)
 
-	// 4. 构建目标地址 (docker)
-	// 判断协议
-	protocol := "docker://"
-	if strings.HasPrefix(m.registryURL, "http://") || strings.HasPrefix(m.registryURL, "https://") {
-		// 已包含协议，直接使用
-		protocol = ""
-	}
-
-	destRef := fmt.Sprintf("%s%s/%s:%s", protocol, m.registryURL, opts.Name, opts.Tag)
+	// 4. 构建目标地址
+	// registryURL 已在 NewImageManager 中清理过协议前缀，这里始终使用 docker:// 协议
+	destRef := fmt.Sprintf("docker://%s/%s:%s", m.registryURL, opts.Name, opts.Tag)
 
 	// 5. 构建 skopeo copy 命令
 	args := []string{"copy"}
@@ -152,11 +161,8 @@ func (m *ImageManager) InspectImage(imageName, tag string) (string, error) {
 	}
 
 	// 构建镜像地址
-	protocol := "docker://"
-	if strings.HasPrefix(m.registryURL, "http://") || strings.HasPrefix(m.registryURL, "https://") {
-		protocol = ""
-	}
-	imageRef := fmt.Sprintf("%s%s/%s:%s", protocol, m.registryURL, imageName, tag)
+	// registryURL 已在 NewImageManager 中清理过协议前缀，这里始终使用 docker:// 协议
+	imageRef := fmt.Sprintf("docker://%s/%s:%s", m.registryURL, imageName, tag)
 
 	// 构建命令
 	args := []string{"inspect"}
@@ -191,11 +197,8 @@ func (m *ImageManager) DeleteImage(imageName, tag string) error {
 	}
 
 	// 构建镜像地址
-	protocol := "docker://"
-	if strings.HasPrefix(m.registryURL, "http://") || strings.HasPrefix(m.registryURL, "https://") {
-		protocol = ""
-	}
-	imageRef := fmt.Sprintf("%s%s/%s:%s", protocol, m.registryURL, imageName, tag)
+	// registryURL 已在 NewImageManager 中清理过协议前缀，这里始终使用 docker:// 协议
+	imageRef := fmt.Sprintf("docker://%s/%s:%s", m.registryURL, imageName, tag)
 
 	// 构建命令
 	args := []string{"delete"}
@@ -230,18 +233,18 @@ func (m *ImageManager) CopyImage(srcRegistry, srcRepo, srcTag, destRepo, destTag
 	}
 
 	// 构建源地址
-	srcProtocol := "docker://"
-	if strings.HasPrefix(srcRegistry, "http://") || strings.HasPrefix(srcRegistry, "https://") {
-		srcProtocol = ""
+	// 处理源仓库的协议前缀
+	cleanSrcRegistry := srcRegistry
+	if strings.HasPrefix(srcRegistry, "http://") {
+		cleanSrcRegistry = strings.TrimPrefix(srcRegistry, "http://")
+	} else if strings.HasPrefix(srcRegistry, "https://") {
+		cleanSrcRegistry = strings.TrimPrefix(srcRegistry, "https://")
 	}
-	sourceRef := fmt.Sprintf("%s%s/%s:%s", srcProtocol, srcRegistry, srcRepo, srcTag)
+	sourceRef := fmt.Sprintf("docker://%s/%s:%s", cleanSrcRegistry, srcRepo, srcTag)
 
 	// 构建目标地址
-	destProtocol := "docker://"
-	if strings.HasPrefix(m.registryURL, "http://") || strings.HasPrefix(m.registryURL, "https://") {
-		destProtocol = ""
-	}
-	destRef := fmt.Sprintf("%s%s/%s:%s", destProtocol, m.registryURL, destRepo, destTag)
+	// registryURL 已在 NewImageManager 中清理过协议前缀
+	destRef := fmt.Sprintf("docker://%s/%s:%s", m.registryURL, destRepo, destTag)
 
 	// 构建命令
 	args := []string{"copy"}
@@ -276,11 +279,8 @@ func (m *ImageManager) ListTags(imageName string) ([]string, error) {
 	}
 
 	// 构建仓库地址
-	protocol := "docker://"
-	if strings.HasPrefix(m.registryURL, "http://") || strings.HasPrefix(m.registryURL, "https://") {
-		protocol = ""
-	}
-	repoRef := fmt.Sprintf("%s%s/%s", protocol, m.registryURL, imageName)
+	// registryURL 已在 NewImageManager 中清理过协议前缀，这里始终使用 docker:// 协议
+	repoRef := fmt.Sprintf("docker://%s/%s", m.registryURL, imageName)
 
 	// 构建命令
 	args := []string{"list-tags"}
