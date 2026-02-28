@@ -2,11 +2,9 @@ package remote
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -36,12 +34,8 @@ func NewK8sClient(apiUrl, token string) (*K8sClient, error) {
 		},
 	}
 
-	// 自定义Transport以支持更灵活的TLS配置
-	config.Transport = &http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-	}
+	// 注意：不要同时设置 TLSClientConfig 和自定义 Transport
+	// client-go 会基于 TLSClientConfig 自动构建合适的 Transport
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
