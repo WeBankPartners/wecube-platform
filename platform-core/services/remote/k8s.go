@@ -70,7 +70,7 @@ func (c *K8sClient) DeleteService(ctx context.Context, namespace, name string) e
 func (c *K8sClient) GetService(ctx context.Context, namespace, name string) (*corev1.Service, error) {
 	result, err := c.clientset.CoreV1().Services(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("get service fail: %s", err.Error())
+		return nil, err  // 直接返回原始错误，保留错误类型信息
 	}
 	return result, nil
 }
@@ -106,7 +106,7 @@ func (c *K8sClient) DeleteStatefulSet(ctx context.Context, namespace, name strin
 func (c *K8sClient) GetStatefulSet(ctx context.Context, namespace, name string) (*appsv1.StatefulSet, error) {
 	result, err := c.clientset.AppsV1().StatefulSets(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("get statefulset fail: %s", err.Error())
+		return nil, err  // 直接返回原始错误，保留错误类型信息
 	}
 	return result, nil
 }
@@ -149,7 +149,7 @@ func (c *K8sClient) GetClientset() *kubernetes.Clientset {
 func (c *K8sClient) GetPod(ctx context.Context, namespace, name string) (*corev1.Pod, error) {
 	result, err := c.clientset.CoreV1().Pods(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("get pod fail: %s", err.Error())
+		return nil, err  // 直接返回原始错误，保留错误类型信息
 	}
 	return result, nil
 }
