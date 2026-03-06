@@ -305,7 +305,7 @@ export default {
         customerId,
         selectedTreeJson: JSON.stringify(productData),
         excludeDeployZone,
-        deployZones: selectedZoneNames.join(',')
+        deployZones: selectedZoneNames
       }
       this.loading = true
       const { status, data } = await (this.id && this.type !== 'republish'
