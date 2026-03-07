@@ -70,6 +70,7 @@ type PluginInstances struct {
 	InstanceName                  string `json:"instanceName" xorm:"instance_name"`                                      // 容器实例名
 	PluginMysqlInstanceResourceId string `json:"pluginMysqlInstanceResourceId" xorm:"plugin_mysql_instance_resource_id"` // 数据库实例id
 	S3bucketResourceId            string `json:"s3bucketResourceId" xorm:"s3bucket_resource_id"`                         // s3资源id
+	ResourceServerId              string `json:"resourceServerId" xorm:"-"`                                              // DockerInstanceResourceId对应的RS id
 }
 
 type PluginPackageRuntimeResourcesDocker struct {
@@ -95,6 +96,14 @@ type PluginPackageRuntimeResourcesS3 struct {
 	PluginPackageId      string `json:"pluginPackageId" xorm:"plugin_package_id"`          // 插件
 	BucketName           string `json:"bucketName" xorm:"bucket_name"`                     // 桶名
 	AdditionalProperties string `json:"additionalProperties" xorm:"additional_properties"` // 自动上传文件
+}
+
+type PluginPackageRuntimeResourcesVolume struct {
+	Id              string `json:"id" xorm:"id"`                             // 唯一标识
+	PluginPackageId string `json:"pluginPackageId" xorm:"plugin_package_id"` // 插件
+	Name            string `json:"name" xorm:"name"`                         // 卷名称
+	Size            string `json:"size" xorm:"size"`                         // 卷大小
+	MountPath       string `json:"mountPath" xorm:"mount_path"`              // 卷路径
 }
 
 type PluginMysqlInstances struct {
@@ -157,6 +166,7 @@ type PluginRuntimeResourceData struct {
 	Docker []*PluginPackageRuntimeResourcesDocker `json:"docker"`
 	Mysql  []*PluginPackageRuntimeResourcesMysql  `json:"mysql"`
 	S3     []*PluginPackageRuntimeResourcesS3     `json:"s3"`
+	Volume []*PluginPackageRuntimeResourcesVolume `json:"volume"`
 }
 
 type AuthLatestEnabledInterfaces struct {
@@ -273,6 +283,12 @@ type RegisterXML struct {
 				} `xml:"file"`
 			} `xml:"fileSet"`
 		} `xml:"s3"`
+		// 新增：持久化存储声明（允许多个）
+		Volume []struct {
+			Name      string `xml:"name,attr"`      // 卷名称
+			Size      string `xml:"size,attr"`      // 大小，例如: "10Gi"
+			MountPath string `xml:"mountPath,attr"` // 挂载路径
+		} `xml:"volume"`
 	} `xml:"resourceDependencies"`
 	Plugins struct {
 		Text   string `xml:",chardata"`

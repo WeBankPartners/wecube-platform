@@ -62,6 +62,7 @@ type StaticResourceConfig struct {
 	Password string `json:"password"`
 	Port     string `json:"port"`
 	Path     string `json:"path"`
+	AsLocal  string `json:"as_local"`
 }
 
 type PluginJsonConfig struct {
