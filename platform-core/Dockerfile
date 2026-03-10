@@ -1,4 +1,4 @@
-FROM ccr.ccs.tencentyun.com/webankpartners/alpine-bash:v1
+FROM ccr.ccs.tencentyun.com/webankpartners/alpine-bash:v1.1
 
 ENV BASE_HOME=/app/platform-core
 
