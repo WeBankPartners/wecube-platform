@@ -1192,6 +1192,15 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *mo
 				k8sContainerBuilder.AddEnv(v.Name, v.Value)
 			}
 		}
+		// 添加默认meta env，如TZ
+		// 从当前环境的env中获取，如果存在值则设置
+		// all plugin container alias to CORE or UTC
+		tz := os.Getenv("TZ")
+		if tz != "" {
+			k8sContainerBuilder.AddEnv("TZ", tz)
+		} else {
+			k8sContainerBuilder.AddEnv("TZ", "UTC")
+		}
 		// 更新PVC卷挂载
 		for _, vol := range resources.Volume {
 			k8sContainerBuilder.AddVolumeMount(vol.Name, vol.MountPath)
