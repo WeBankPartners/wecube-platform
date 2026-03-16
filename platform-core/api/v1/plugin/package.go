@@ -26,7 +26,36 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/database"
 	"github.com/WeBankPartners/wecube-platform/platform-core/services/remote"
 	"github.com/gin-gonic/gin"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+type EnvItem struct {
+	Name  string
+	Value string
+	IsRef bool
+}
+
+// splitFirstEqual 以第一个 '=' 分割字符串，返回 key 和 value
+func splitFirstEqual(s string) (string, string) {
+	pos := strings.Index(s, "=")
+	if pos == -1 {
+		// 没有 '=' 返回原字符串作为 key，value 为空
+		return s, ""
+	}
+	key := s[:pos]
+	value := s[pos+1:]
+	return key, value
+}
+
+// removeSchema 移除 URL 前面的 schema:// 前缀
+func removeSchema(url string) string {
+	if pos := strings.Index(url, "://"); pos != -1 {
+		return url[pos+3:]
+	}
+	return url
+}
 
 // GetPackages 插件列表查询
 func GetPackages(c *gin.Context) {
@@ -518,7 +547,7 @@ func GetPluginRuntimeResources(c *gin.Context) {
 
 // GetAvailableContainerHost 运行管理 - 可用容器主机查询
 func GetAvailableContainerHost(c *gin.Context) {
-	result, err := database.GetAvailableContainerHost()
+	result, err := database.GetAvailableContainerHostView()
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -566,16 +595,30 @@ func RegisterPackage(c *gin.Context) {
 		defer bash.RemoveTmpFile(uiDir)
 		// 把ui.zip用ssh传到静态资源服务器上并解压，如果有两台服务器，则每台都要上传与解压
 		for _, staticResourceObj := range models.Config.StaticResources {
+			targetDirPath := fmt.Sprintf("%s/%s/%s/", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
 			targetPath := fmt.Sprintf("%s/%s/%s/ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
 			unzipCmd := fmt.Sprintf("cd %s/%s/%s && unzip -o ui.zip && rm -f ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
-			log.Debug(nil, log.LOGGER_APP, "register plugin,start scp ui.zip to remote host", zap.String("server", staticResourceObj.Server), zap.String("targetPath", targetPath))
-			if err = bash.RemoteSCP(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, uiFileLocalPath, targetPath); err != nil {
-				break
+			if tools.StringToBool(staticResourceObj.AsLocal) {
+				cpCmd := fmt.Sprintf("mkdir -p %s && cp -f %s %s", targetDirPath, uiFileLocalPath, targetPath)
+				log.Debug(nil, log.LOGGER_APP, "register plugin,start cp ui.zip to local path", zap.String("targetPath", targetPath))
+				if err = bash.LocalCommand(cpCmd); err != nil {
+					break
+				}
+				log.Debug(nil, log.LOGGER_APP, "register plugin,start unzip ui.zip in local path", zap.String("unzipCmd", unzipCmd))
+				if err = bash.LocalCommand(unzipCmd); err != nil {
+					break
+				}
+			} else {
+				log.Debug(nil, log.LOGGER_APP, "register plugin,start scp ui.zip to remote host", zap.String("server", staticResourceObj.Server), zap.String("targetPath", targetPath))
+				if err = bash.RemoteSCP(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, uiFileLocalPath, targetPath); err != nil {
+					break
+				}
+				log.Debug(nil, log.LOGGER_APP, "register plugin,start unzip ui.zip in remote host", zap.String("server", staticResourceObj.Server), zap.String("unzipCmd", unzipCmd))
+				if err = bash.RemoteSSHCommand(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, unzipCmd); err != nil {
+					break
+				}
 			}
-			log.Debug(nil, log.LOGGER_APP, "register plugin,start unzip ui.zip in remote host", zap.String("server", staticResourceObj.Server), zap.String("unzipCmd", unzipCmd))
-			if err = bash.RemoteSSHCommand(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, unzipCmd); err != nil {
-				break
-			}
+
 		}
 		if err != nil {
 			middleware.ReturnError(c, err)
@@ -634,10 +677,14 @@ func RegisterPackage(c *gin.Context) {
 
 // GetHostAvailablePort 运行管理 - 主机可用端口查询
 func GetHostAvailablePort(c *gin.Context) {
-	hostIP := c.Param("hostIp")
-	resourceServer, err := database.GetResourceServerByIp(hostIP)
+	hostId := c.Param("hostId")
+	resourceServer, err := database.GetResourceServerById(hostId)
 	if err != nil {
 		middleware.ReturnError(c, err)
+		return
+	}
+	if resourceServer.Type == "k8s" {
+		middleware.ReturnData(c, 20000)
 		return
 	}
 	port, getPortErr := bash.GetRemoteHostAvailablePort(resourceServer)
@@ -651,24 +698,32 @@ func GetHostAvailablePort(c *gin.Context) {
 // LaunchPlugin 运行管理 - 插件实例创建
 func LaunchPlugin(c *gin.Context) {
 	pluginPackageId := c.Param("pluginPackageId")
-	hostIp := c.Param("hostIp")
+	hostId := c.Param("hostId")
 	portValue := c.Param("port")
 	port, _ := strconv.Atoi(portValue)
 	if port < 20000 {
 		middleware.ReturnError(c, fmt.Errorf("param port %s illegal", portValue))
 		return
 	}
-	if running, err := database.CheckServerPortRunning(c, hostIp, port); err != nil {
-		log.Error(nil, log.LOGGER_APP, "check server port running fail", zap.Error(err))
-		middleware.ReturnError(c, err)
+	resServer, resErr := database.GetResourceServerById(hostId)
+	if resErr != nil {
+		log.Error(nil, log.LOGGER_APP, "get resource server fail", zap.Error(resErr))
+		middleware.ReturnError(c, resErr)
 		return
-	} else {
-		if running {
-			middleware.ReturnError(c, fmt.Errorf("server:%s port:%d already in running", hostIp, port))
+	}
+	if resServer.Type == "docker" {
+		if running, err := database.CheckServerPortRunning(c, resServer.Host, port); err != nil {
+			log.Error(nil, log.LOGGER_APP, "check server port running fail", zap.Error(err))
+			middleware.ReturnError(c, err)
 			return
+		} else {
+			if running {
+				middleware.ReturnError(c, fmt.Errorf("server:%s port:%d already in running", resServer.Host, port))
+				return
+			}
 		}
 	}
-	err := LaunchPluginFunc(c, pluginPackageId, hostIp, middleware.GetRequestUser(c), port)
+	err := LaunchPluginFunc(c, pluginPackageId, resServer, middleware.GetRequestUser(c), port)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -676,21 +731,24 @@ func LaunchPlugin(c *gin.Context) {
 	}
 }
 
-func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator string, port int) (err error) {
+func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *models.ResourceServer, operator string, port int) (err error) {
 	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
 	if err = database.GetSimplePluginPackage(ctx, &pluginPackageObj, true); err != nil {
 		log.Error(nil, log.LOGGER_APP, "GetSimplePluginPackage fail", zap.Error(err))
 		return
 	}
-	existPluginInstance, getExistErr := database.GetPluginInstance("", pluginPackageObj.Name, hostIp, "", false)
-	if getExistErr != nil {
-		err = getExistErr
-		return
+	if resServer.Type == "docker" {
+		existPluginInstance, getExistErr := database.GetPluginInstance("", pluginPackageObj.Name, resServer.Host, "", false)
+		if getExistErr != nil {
+			err = getExistErr
+			return
+		}
+		if existPluginInstance.Id != "" {
+			err = fmt.Errorf("Host:%s already running plugin:%s ", resServer.Host, pluginPackageObj.Name)
+			return
+		}
 	}
-	if existPluginInstance.Id != "" {
-		err = fmt.Errorf("Host:%s already running plugin:%s ", hostIp, pluginPackageObj.Name)
-		return
-	}
+
 	log.Debug(nil, log.LOGGER_APP, "pluginPackage", log.JsonObj("data", pluginPackageObj))
 	resources, getResourceErr := database.GetPluginRuntimeResources(ctx, pluginPackageId)
 	if getResourceErr != nil {
@@ -738,7 +796,7 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 	var mysqlServer *models.ResourceServer
 	pluginInstance := models.PluginInstances{
 		Id:              "p_docker_" + guid.CreateGuid(),
-		Host:            hostIp,
+		Host:            resServer.Host,
 		Port:            port,
 		ContainerStatus: "RUNNING",
 		PackageId:       pluginPackageId,
@@ -855,18 +913,24 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 		}
 	}
 	dockerResource := resources.Docker[0]
-	pluginInstance.ContainerName = dockerResource.ContainerName
-	dockerServer, getDockerServerErr := database.GetResourceServer(ctx, "docker", hostIp, "", "")
-	if getDockerServerErr != nil {
-		err = getDockerServerErr
-		return
+	if resServer.Type == "docker" {
+		pluginInstance.ContainerName = dockerResource.ContainerName
+	} else if resServer.Type == "k8s" {
+		pluginInstance.ContainerName = pluginPackageObj.Name
 	}
+
+	dockerServer := resServer
+	// dockerServer, getDockerServerErr := database.GetResourceServer(ctx, "docker", hostIp, "", "")
+	// if getDockerServerErr != nil {
+	// 	err = getDockerServerErr
+	// 	return
+	// }
 	envMap := make(map[string]string)
 	portBindList := getEnvMap(dockerResource.PortBindings, envMap)
 	volumeBindList := getEnvMap(dockerResource.VolumeBindings, envMap)
 	envBindList := getEnvMap(dockerResource.EnvVariables, envMap)
 	envMap["ALLOCATE_PORT"] = fmt.Sprintf("%d", port)
-	envMap["ALLOCATE_HOST"] = hostIp
+	envMap["ALLOCATE_HOST"] = resServer.Host
 	envMap["BASE_MOUNT_PATH"] = models.Config.Plugin.BaseMountPath
 	envMap["MONITOR_PORT"] = fmt.Sprintf("%d", port+10000)
 	if mysqlInstance != nil {
@@ -924,77 +988,286 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId, hostIp, operator str
 		err = buildEnvErr
 		return
 	}
-	portBindList = replaceEnvMap(portBindList, replaceMap)
-	volumeBindList = replaceEnvMap(volumeBindList, replaceMap)
-	envBindList = replaceEnvMap(envBindList, replaceMap)
-	// 先检查目标机器上有没有相关版本容器镜像，如果有的话就跳过下面两个下载和传镜像的操作
-	// 把s3上的image.tar下载来到本地？可否直接让目标机器下载image.tar
 	tmpImageFile, downloadImageErr := bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/image.tar", pluginPackageObj.Name, pluginPackageObj.Version))
 	if downloadImageErr != nil {
 		err = downloadImageErr
 		return
 	}
 	defer bash.RemoveTmpFile(tmpImageFile)
-	// 把image.tar传到目标机器
-	targetImagePath := fmt.Sprintf("%s/%s_%s_image.tar", models.Config.Plugin.DeployPath, pluginPackageObj.Name, pluginPackageObj.Version)
-	if err = bash.RemoteSCP(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, tmpImageFile, targetImagePath); err != nil {
-		return
-	}
-	log.Info(nil, log.LOGGER_APP, "scp plugin image file", zap.String("targetHost", dockerServer.Host), zap.String("tmpFile", tmpImageFile), zap.String("targetPath", targetImagePath))
-	if err = bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, fmt.Sprintf("docker load --input %s && rm -f %s", targetImagePath, targetImagePath)); err != nil {
-		return
-	}
-	time.Sleep(1 * time.Second)
-	// 去目标机器上docker run起来，或使用docker-compose
-	dockerCmd := fmt.Sprintf("docker run -d --name %s --restart=always ", dockerResource.ContainerName)
-	for _, v := range volumeBindList {
-		dockerCmd += fmt.Sprintf("--volume %s ", v)
-	}
-	for _, v := range portBindList {
-		if !strings.Contains(v, ":") {
-			continue
+	var resourceItem *models.ResourceItem
+	if resServer.Type == "docker" {
+		portBindList = replaceEnvMap(portBindList, replaceMap)
+		volumeBindList = replaceEnvMap(volumeBindList, replaceMap)
+		envBindList = replaceEnvMap(envBindList, replaceMap)
+		// 把image.tar传到目标机器
+		targetImagePath := fmt.Sprintf("%s/%s_%s_image.tar", models.Config.Plugin.DeployPath, pluginPackageObj.Name, pluginPackageObj.Version)
+		if err = bash.RemoteSCP(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, tmpImageFile, targetImagePath); err != nil {
+			return
 		}
-		dockerCmd += fmt.Sprintf("-p %s:%s ", dockerServer.Host, v)
-	}
-	for _, v := range envBindList {
-		tmpV := v
-		if eqIndex := strings.Index(v, "="); eqIndex > 0 {
-			tmpV = v[:eqIndex+1] + "'" + v[eqIndex+1:] + "'"
+		log.Info(nil, log.LOGGER_APP, "scp plugin image file", zap.String("targetHost", dockerServer.Host), zap.String("tmpFile", tmpImageFile), zap.String("targetPath", targetImagePath))
+		if err = bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, fmt.Sprintf("docker load --input %s && rm -f %s", targetImagePath, targetImagePath)); err != nil {
+			return
 		}
-		dockerCmd += fmt.Sprintf("-e %s ", tmpV)
-	}
-	dockerCmd += dockerResource.ImageName
-	log.Info(nil, log.LOGGER_APP, "docker run command", zap.String("cmd", dockerCmd))
-	if err = bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, dockerCmd); err != nil {
-		// 清理启动失败的docker
-		if rmDockerErr := bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, fmt.Sprintf("docker rm -f %s", dockerResource.ContainerName)); rmDockerErr != nil {
-			log.Error(nil, log.LOGGER_APP, "Try to remove failed docker container", zap.String("containerName", dockerResource.ContainerName), zap.Error(rmDockerErr))
+		time.Sleep(1 * time.Second)
+		// 去目标机器上docker run起来，或使用docker-compose
+		dockerCmd := fmt.Sprintf("docker run -d --name %s --restart=always ", dockerResource.ContainerName)
+		for _, v := range volumeBindList {
+			dockerCmd += fmt.Sprintf("--volume %s ", v)
 		}
-		return
+		for _, v := range portBindList {
+			if !strings.Contains(v, ":") {
+				continue
+			}
+			dockerCmd += fmt.Sprintf("-p %s:%s ", dockerServer.Host, v)
+		}
+		for _, v := range envBindList {
+			tmpV := v
+			if eqIndex := strings.Index(v, "="); eqIndex > 0 {
+				tmpV = v[:eqIndex+1] + "'" + v[eqIndex+1:] + "'"
+			}
+			dockerCmd += fmt.Sprintf("-e %s ", tmpV)
+		}
+		dockerCmd += dockerResource.ImageName
+		log.Info(nil, log.LOGGER_APP, "docker run command", zap.String("cmd", dockerCmd))
+		if err = bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, dockerCmd); err != nil {
+			// 清理启动失败的docker
+			if rmDockerErr := bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, fmt.Sprintf("docker rm -f %s", dockerResource.ContainerName)); rmDockerErr != nil {
+				log.Error(nil, log.LOGGER_APP, "Try to remove failed docker container", zap.String("containerName", dockerResource.ContainerName), zap.Error(rmDockerErr))
+			}
+			return
+		}
+		// 更新插件注册的菜单状态和更新插件实例数据
+		resourceItemProperties := models.ResourceItemProperties{
+			ImageName:      dockerResource.ImageName,
+			PortBindings:   strings.Join(portBindList, ","),
+			VolumeBindings: strings.Join(volumeBindList, ","),
+			EnvVariables:   strings.Join(envBindList, ","),
+		}
+		resourceItemPropertiesBytes, _ := json.Marshal(&resourceItemProperties)
+		resourceItem = &models.ResourceItem{
+			Id:                   "rs_item_" + guid.CreateGuid(),
+			ResourceServerId:     dockerServer.Id,
+			AdditionalProperties: string(resourceItemPropertiesBytes),
+			CreatedBy:            operator,
+			CreatedDate:          time.Now(),
+			Name:                 dockerResource.ContainerName,
+		}
+		pluginInstance.DockerInstanceResourceId = resourceItem.Id
+	} else if resServer.Type == "k8s" {
+		portBindList = replaceEnvMap(portBindList, replaceMap)
+		// 把tmpImageFile传到镜像仓库
+		imageReg, imageErr := database.GetResourceServerByType("image-registry")
+		if imageErr != nil {
+			err = imageErr
+			log.Error(nil, log.LOGGER_APP, "failed to get image registry", zap.String("containerName", dockerResource.ContainerName), zap.Error(imageErr))
+			return
+		}
+		imageMgr := remote.NewImageManager(imageReg.Host, imageReg.LoginUsername, imageReg.LoginPassword)
+		imageMgr.SetInsecure(true)
+		err = imageMgr.UploadImageSimple2(tmpImageFile, dockerResource.ImageName)
+		if err != nil {
+			log.Error(nil, log.LOGGER_APP, "failed to upload image.tar to image registry", zap.String("containerName", dockerResource.ContainerName), zap.Error(err))
+			return
+		}
+		log.Info(nil, log.LOGGER_APP, "upload image.tar to image registry", zap.String("targetHost", imageReg.Host), zap.String("tmpFile", tmpImageFile))
+		// 处理STS + SVC
+		storageClass, storageErr := database.GetResourceServerByType("k8s-storageClass")
+		if storageErr != nil {
+			err = storageErr
+			log.Error(nil, log.LOGGER_APP, "failed to get k8s storage class", zap.String("containerName", dockerResource.ContainerName), zap.Error(storageErr))
+			return
+		}
+		k8sRes, k8sErr := database.GetResourceServerByType("k8s")
+		if k8sErr != nil {
+			err = k8sErr
+			log.Error(nil, log.LOGGER_APP, "failed to get k8s endpoint", zap.String("containerName", dockerResource.ContainerName), zap.Error(k8sErr))
+			return
+		}
+		k8sClient, k8sErr := remote.NewK8sClient(k8sRes.Host, k8sRes.LoginPassword)
+		if k8sErr != nil {
+			err = k8sErr
+			log.Error(nil, log.LOGGER_APP, "failed to create k8s client", zap.String("containerName", dockerResource.ContainerName), zap.Error(k8sErr))
+			return
+		}
+		ctx := context.Background()
+
+		k8sNamespace := k8sRes.LoginUsername
+		k8sImagePullSecretName := imageReg.Name
+		k8sStsName := pluginPackageObj.Name
+		k8sSvcName := pluginPackageObj.Name + "-svc"
+		k8sSvcHeadlessName := pluginPackageObj.Name
+		// 判断和处理镜像secret
+		err = k8sClient.CreateOrUpdateImagePullSecret(ctx, k8sNamespace, k8sImagePullSecretName,
+			imageReg.Host, imageReg.LoginUsername, imageReg.LoginPassword)
+		if err != nil {
+			log.Error(nil, log.LOGGER_APP, "failed to create/update k8s image pull secret", zap.String("containerName", dockerResource.ContainerName), zap.Error(err))
+			return
+		}
+		exists, checkErr := k8sClient.ServiceExists(ctx, k8sNamespace, k8sSvcName)
+		if checkErr != nil {
+			err = checkErr
+			log.Error(nil, log.LOGGER_APP, "failed to check k8s svc", zap.String("containerName", dockerResource.ContainerName), zap.Error(checkErr))
+			return
+		}
+
+		if !exists {
+			// Service 不存在，创建新的
+			k8sSvcBuilder := remote.NewServiceBuilder(k8sSvcName, k8sNamespace).
+				WithLabels(map[string]string{
+					"app":     pluginPackageObj.Name,
+					"version": pluginPackageObj.Version,
+				}).WithSelector(map[string]string{
+				"app": pluginPackageObj.Name,
+			}).WithType(corev1.ServiceTypeClusterIP)
+			nameCounter := 1
+			for _, v := range portBindList {
+				if !strings.Contains(v, ":") {
+					continue
+				}
+				parts := strings.Split(v, ":")
+				svcPort, _ := strconv.ParseInt(parts[0], 10, 32)
+				targetPort, _ := strconv.ParseInt(parts[1], 10, 32)
+				k8sSvcBuilder = k8sSvcBuilder.AddPort(fmt.Sprintf("tcp%02d", nameCounter), corev1.ProtocolTCP, int32(svcPort), int32(targetPort))
+				nameCounter += 1
+			}
+			k8sSvc, createErr := k8sClient.CreateService(ctx, k8sNamespace, k8sSvcBuilder.Build())
+			if createErr != nil {
+				err = createErr
+				log.Error(nil, log.LOGGER_APP, "failed to create k8s svc", zap.String("containerName", dockerResource.ContainerName), zap.Error(createErr))
+				return
+			}
+			// 填写插件调用IP为ClusterIP
+			pluginInstance.Host = k8sSvc.Spec.ClusterIP
+		} else {
+			// Service 已存在，获取现有的 ClusterIP
+			existingSvc, getErr := k8sClient.GetService(ctx, k8sNamespace, k8sSvcName)
+			if getErr != nil {
+				err = getErr
+				log.Error(nil, log.LOGGER_APP, "failed to get existing k8s svc", zap.String("containerName", dockerResource.ContainerName), zap.Error(getErr))
+				return
+			}
+			// 填写插件调用IP为现有Service的ClusterIP
+			pluginInstance.Host = existingSvc.Spec.ClusterIP
+			log.Info(nil, log.LOGGER_APP, "reuse existing k8s svc", zap.String("svcName", k8sSvcName), zap.String("clusterIP", existingSvc.Spec.ClusterIP))
+		}
+		exists, checkErr = k8sClient.StatefulSetExists(ctx, k8sNamespace, k8sStsName)
+		if checkErr != nil {
+			err = checkErr
+			log.Error(nil, log.LOGGER_APP, "failed to check k8s sts", zap.String("containerName", dockerResource.ContainerName), zap.Error(checkErr))
+			return
+		}
+		if exists {
+			err = k8sClient.DeleteStatefulSet(ctx, k8sNamespace, k8sStsName)
+			if err != nil {
+				log.Error(nil, log.LOGGER_APP, "failed to delete k8s sts", zap.String("containerName", dockerResource.ContainerName), zap.Error(err))
+				return
+			}
+		}
+		// 创建 StatefulSet
+		imageUrl := removeSchema(imageReg.Host + "/" + dockerResource.ImageName)
+		// 处理镜像信息以及secret
+		k8sContainerBuilder := remote.NewContainerBuilder("app", imageUrl).
+			WithImagePullPolicy(corev1.PullIfNotPresent)
+		// 更新ENV动态配置，ENV要特殊处理ALLOCATE_HOST为PODIP
+		newEnvItems := make([]*EnvItem, 0)
+		for _, input := range envBindList {
+			if strings.Contains(input, "{{") {
+				k, v := splitFirstEqual(input)
+				// 特殊处理ALLOCATE_HOST
+				if strings.Contains(v, "{{ALLOCATE_HOST}}") {
+					newEnvItems = append(newEnvItems, &EnvItem{Name: k, Value: "status.podIP", IsRef: true})
+				} else {
+					newV := v
+					for rk, rv := range replaceMap {
+						newV = strings.ReplaceAll(newV, rk, rv)
+					}
+					newEnvItems = append(newEnvItems, &EnvItem{Name: k, Value: newV})
+				}
+			}
+		}
+		for _, v := range newEnvItems {
+			if v.IsRef {
+				k8sContainerBuilder.AddEnvFromField(v.Name, v.Value)
+			} else {
+				k8sContainerBuilder.AddEnv(v.Name, v.Value)
+			}
+		}
+		// 更新PVC卷挂载
+		for _, vol := range resources.Volume {
+			k8sContainerBuilder.AddVolumeMount(vol.Name, vol.MountPath)
+		}
+		k8sContainer := k8sContainerBuilder.Build()
+		k8sSts := remote.NewStatefulSetBuilder(k8sStsName, k8sNamespace, 1).
+			WithLabels(map[string]string{
+				"app":     pluginPackageObj.Name,
+				"version": pluginPackageObj.Version,
+			}).
+			WithSelector(map[string]string{
+				"app": pluginPackageObj.Name,
+			}).
+			WithPodLabels(map[string]string{
+				"app": pluginPackageObj.Name,
+			}).
+			WithServiceName(k8sSvcHeadlessName).
+			AddContainer(k8sContainer).
+			WithImagePullSecrets(k8sImagePullSecretName).
+			Build()
+
+		// 更新PVC模板配置
+		k8sSts.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{}
+		for _, vol := range resources.Volume {
+			k8sSts.Spec.VolumeClaimTemplates = append(k8sSts.Spec.VolumeClaimTemplates, corev1.PersistentVolumeClaim{
+				ObjectMeta: metav1.ObjectMeta{
+					// replace with volume name
+					Name: vol.Name,
+				},
+				Spec: corev1.PersistentVolumeClaimSpec{
+					AccessModes: []corev1.PersistentVolumeAccessMode{
+						corev1.ReadWriteOnce,
+					},
+					Resources: corev1.VolumeResourceRequirements{
+						Requests: corev1.ResourceList{
+							// replace with volume size
+							corev1.ResourceStorage: resource.MustParse(vol.Size),
+						},
+					},
+					StorageClassName: &storageClass.LoginUsername,
+				},
+			})
+			// k8sContainerBuilder.AddVolumeMount(vol.Name, vol.MountPath)
+		}
+		_, createErr := k8sClient.CreateStatefulSet(ctx, k8sNamespace, k8sSts)
+		if createErr != nil {
+			err = createErr
+			log.Error(nil, log.LOGGER_APP, "failed to create k8s sts", zap.String("containerName", dockerResource.ContainerName), zap.Error(createErr))
+			return
+		}
+		// 更新插件注册的菜单状态和更新插件实例数据
+		envBytes, _ := json.Marshal(newEnvItems)
+		volBytes, _ := json.Marshal(resources.Volume)
+		resourceItemProperties := models.ResourceItemProperties{
+			ImageName:      dockerResource.ImageName,
+			PortBindings:   strings.Join(portBindList, ","),
+			VolumeBindings: string(volBytes),
+			EnvVariables:   string(envBytes),
+		}
+		resourceItemPropertiesBytes, _ := json.Marshal(&resourceItemProperties)
+		resourceItem = &models.ResourceItem{
+			Id:                   "rs_item_" + guid.CreateGuid(),
+			ResourceServerId:     dockerServer.Id,
+			AdditionalProperties: string(resourceItemPropertiesBytes),
+			CreatedBy:            operator,
+			CreatedDate:          time.Now(),
+			Name:                 dockerResource.ContainerName,
+		}
+		pluginInstance.DockerInstanceResourceId = resourceItem.Id
 	}
-	// 更新插件注册的菜单状态和更新插件实例数据
-	resourceItemProperties := models.ResourceItemProperties{
-		ImageName:      dockerResource.ImageName,
-		PortBindings:   strings.Join(portBindList, ","),
-		VolumeBindings: strings.Join(volumeBindList, ","),
-		EnvVariables:   strings.Join(envBindList, ","),
-	}
-	resourceItemPropertiesBytes, _ := json.Marshal(&resourceItemProperties)
-	resourceItem := models.ResourceItem{
-		Id:                   "rs_item_" + guid.CreateGuid(),
-		ResourceServerId:     dockerServer.Id,
-		AdditionalProperties: string(resourceItemPropertiesBytes),
-		CreatedBy:            operator,
-		CreatedDate:          time.Now(),
-		Name:                 dockerResource.ContainerName,
-	}
-	pluginInstance.DockerInstanceResourceId = resourceItem.Id
-	err = database.LaunchPlugin(ctx, &pluginInstance, &resourceItem, operator)
+	err = database.LaunchPlugin(ctx, &pluginInstance, resourceItem, operator)
 	if err != nil {
 		return
 	}
 	// 向gateway注册插件路由
-	err = remote.RegisterPluginRoute(pluginPackageObj.Name, hostIp, fmt.Sprintf("%d", port))
+	err = remote.RegisterPluginRoute(pluginPackageObj.Name, pluginInstance.Host, fmt.Sprintf("%d", port))
 	if err != nil {
 		return
 	}
@@ -1034,14 +1307,55 @@ func RemovePluginInstanceFunc(ctx context.Context, pluginInstanceId string) (err
 		err = getErr
 		return
 	}
-	// 销毁容器
-	if strings.HasPrefix(resourceServer.LoginPassword, models.AESPrefix) {
-		resourceServer.LoginPassword = encrypt.DecryptWithAesECB(resourceServer.LoginPassword[5:], models.Config.Plugin.ResourcePasswordSeed, resourceServer.Name)
+	if resourceServer.Type == "k8s" {
+		// 销毁k8s sts/svc
+		k8sClient, k8sErr := remote.NewK8sClient(resourceServer.Host, resourceServer.LoginPassword)
+		if k8sErr != nil {
+			err = k8sErr
+			log.Error(nil, log.LOGGER_APP, "failed to create k8s client", zap.String("containerName", containerName), zap.Error(k8sErr))
+			return
+		}
+		ctx := context.Background()
+		k8sNamespace := resourceServer.LoginUsername
+		k8sStsName := pluginPackageObj.Name
+		k8sSvcName := pluginPackageObj.Name + "-svc"
+		exists, checkErr := k8sClient.ServiceExists(ctx, k8sNamespace, k8sSvcName)
+		if checkErr != nil {
+			err = checkErr
+			log.Error(nil, log.LOGGER_APP, "failed to check k8s svc", zap.String("containerName", containerName), zap.Error(checkErr))
+			return
+		}
+		if exists {
+			if err = k8sClient.DeleteService(ctx, k8sNamespace, k8sSvcName); err != nil {
+				log.Error(nil, log.LOGGER_APP, "failed to delete k8s svc", zap.String("containerName", containerName), zap.Error(err))
+				return
+			}
+			log.Info(nil, log.LOGGER_APP, "remove k8s svc", zap.String("containerName", containerName))
+		}
+		exists, checkErr = k8sClient.StatefulSetExists(ctx, k8sNamespace, k8sStsName)
+		if checkErr != nil {
+			err = checkErr
+			log.Error(nil, log.LOGGER_APP, "failed to check k8s sts", zap.String("containerName", containerName), zap.Error(checkErr))
+			return
+		}
+		if exists {
+			if err = k8sClient.DeleteStatefulSet(ctx, k8sNamespace, k8sStsName); err != nil {
+				log.Error(nil, log.LOGGER_APP, "failed to delete k8s sts", zap.String("containerName", containerName), zap.Error(err))
+				return
+			}
+			log.Info(nil, log.LOGGER_APP, "remove k8s sts", zap.String("containerName", containerName))
+		}
+	} else {
+		// 销毁容器
+		if strings.HasPrefix(resourceServer.LoginPassword, models.AESPrefix) {
+			resourceServer.LoginPassword = encrypt.DecryptWithAesECB(resourceServer.LoginPassword[5:], models.Config.Plugin.ResourcePasswordSeed, resourceServer.Name)
+		}
+		removeCmd := fmt.Sprintf("docker rm -f %s && docker rmi %s", containerName, imageName)
+		if err = bash.RemoteSSHCommand(resourceServer.Host, resourceServer.LoginUsername, resourceServer.LoginPassword, resourceServer.Port, removeCmd); err != nil {
+			return
+		}
 	}
-	removeCmd := fmt.Sprintf("docker rm -f %s && docker rmi %s", containerName, imageName)
-	if err = bash.RemoteSSHCommand(resourceServer.Host, resourceServer.LoginUsername, resourceServer.LoginPassword, resourceServer.Port, removeCmd); err != nil {
-		return
-	}
+
 	// 更新插件注册的菜单状态和更新插件实例数据
 	err = database.RemovePlugin(ctx, pluginPackageObj.Id, pluginInstanceId, pluginInstanceObj.DockerInstanceResourceId)
 	return
@@ -1167,16 +1481,30 @@ func UIRegisterPackage(c *gin.Context) {
 	defer bash.RemoveTmpFile(uiDir)
 	// 把ui.zip用ssh传到静态资源服务器上并解压，如果有两台服务器，则每台都要上传与解压
 	for _, staticResourceObj := range models.Config.StaticResources {
+		targetDirPath := fmt.Sprintf("%s/%s/%s/", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
 		targetPath := fmt.Sprintf("%s/%s/%s/ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
-		unzipCmd := fmt.Sprintf("cd %s/%s/%s && unzip -o ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
-		log.Debug(nil, log.LOGGER_APP, "register plugin,start scp ui.zip to remote host", zap.String("server", staticResourceObj.Server), zap.String("targetPath", targetPath))
-		if err = bash.RemoteSCP(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, uiFileLocalPath, targetPath); err != nil {
-			break
+		unzipCmd := fmt.Sprintf("cd %s/%s/%s && unzip -o ui.zip && rm -f ui.zip", staticResourceObj.Path, pluginPackageObj.Name, pluginPackageObj.Version)
+		if tools.StringToBool(staticResourceObj.AsLocal) {
+			cpCmd := fmt.Sprintf("mkdir -p %s && cp -f %s %s", targetDirPath, uiFileLocalPath, targetPath)
+			log.Debug(nil, log.LOGGER_APP, "register plugin,start cp ui.zip to local path", zap.String("targetPath", targetPath))
+			if err = bash.LocalCommand(cpCmd); err != nil {
+				break
+			}
+			log.Debug(nil, log.LOGGER_APP, "register plugin,start unzip ui.zip in local path", zap.String("unzipCmd", unzipCmd))
+			if err = bash.LocalCommand(unzipCmd); err != nil {
+				break
+			}
+		} else {
+			log.Debug(nil, log.LOGGER_APP, "register plugin,start scp ui.zip to remote host", zap.String("server", staticResourceObj.Server), zap.String("targetPath", targetPath))
+			if err = bash.RemoteSCP(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, uiFileLocalPath, targetPath); err != nil {
+				break
+			}
+			log.Debug(nil, log.LOGGER_APP, "register plugin,start unzip ui.zip in remote host", zap.String("server", staticResourceObj.Server), zap.String("unzipCmd", unzipCmd))
+			if err = bash.RemoteSSHCommand(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, unzipCmd); err != nil {
+				break
+			}
 		}
-		log.Debug(nil, log.LOGGER_APP, "register plugin,start unzip ui.zip in remote host", zap.String("server", staticResourceObj.Server), zap.String("unzipCmd", unzipCmd))
-		if err = bash.RemoteSSHCommand(staticResourceObj.Server, staticResourceObj.User, staticResourceObj.Password, staticResourceObj.Port, unzipCmd); err != nil {
-			break
-		}
+
 	}
 	if err != nil {
 		middleware.ReturnError(c, err)

@@ -9,6 +9,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"fmt"
+	"strconv"
 )
 
 func paddingPkcs5(origData []byte, blockSize int) []byte {
@@ -140,4 +141,15 @@ func Contains(ids []string, id string) bool {
 		}
 	}
 	return exist
+}
+
+func StringToBool(s string) bool {
+	if s == "" {
+		return false
+	}
+	b, err := strconv.ParseBool(s)
+	if err != nil {
+		return false
+	}
+	return b
 }

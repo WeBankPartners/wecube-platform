@@ -15,6 +15,7 @@ sed -i "s~{{jwt_signing_key}}~$jwt_signing_key~g" /app/platform-core/config/defa
 sed -i "s~{{s3_address}}~$s3_address~g" /app/platform-core/config/default.json
 sed -i "s~{{s3_access_key}}~$s3_access_key~g" /app/platform-core/config/default.json
 sed -i "s~{{s3_secret_key}}~$s3_secret_key~g" /app/platform-core/config/default.json
+sed -i "s~{{static_resource_server_as_local}}~$static_resource_server_as_local~g" /app/platform-core/config/default.json
 sed -i "s~{{static_resource_server_ips}}~$static_resource_server_ips~g" /app/platform-core/config/default.json
 sed -i "s~{{static_resource_server_user}}~$static_resource_server_user~g" /app/platform-core/config/default.json
 sed -i "s~{{static_resource_server_password}}~$static_resource_server_password~g" /app/platform-core/config/default.json

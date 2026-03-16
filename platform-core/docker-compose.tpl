@@ -26,6 +26,7 @@ services:
       - s3_address=[#s3_address]
       - s3_access_key=[#s3_access_key]
       - s3_secret_key=[#s3_secret_key]
+      - static_resource_server_as_local=[#static_resource_server_as_local]
       - static_resource_server_ips=[#static_resource_server_ips]
       - static_resource_server_user=[#static_resource_server_user]
       - static_resource_server_password=[#static_resource_server_password]

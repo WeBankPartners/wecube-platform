@@ -10,6 +10,11 @@ ADD config/menu-api-map.json $BASE_HOME/config/
 ADD config/i18n $BASE_HOME/config/i18n/
 ADD platform-core $BASE_HOME/
 
+RUN echo "https://mirrors.cloud.tencent.com/alpine/v3.19/main" > /etc/apk/repositories \
+ && echo "https://mirrors.cloud.tencent.com/alpine/v3.19/community" >> /etc/apk/repositories \
+ && apk update \
+ && apk add --no-cache skopeo
+
 WORKDIR $BASE_HOME
 RUN addgroup -S apps -g 6000 && adduser -S app -u 6001 -G apps
 RUN chown -R app:apps $BASE_HOME && chmod -R 755 $BASE_HOME

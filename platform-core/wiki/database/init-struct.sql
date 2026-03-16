@@ -45,8 +45,7 @@ CREATE TABLE `resource_item` (
      `type` varchar(64)  DEFAULT NULL COMMENT '类型',
      `updated_by` varchar(64)  DEFAULT NULL COMMENT '更新人',
      `updated_date` datetime DEFAULT NULL COMMENT '更新时间',
-     PRIMARY KEY (`id`),
-     CONSTRAINT `fk_resource_item_server` FOREIGN KEY (`resource_server_id`) REFERENCES `resource_server` (`id`)
+     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `menu_items` (
@@ -96,9 +95,7 @@ CREATE TABLE `plugin_instances` (
     `instance_name` varchar(64) DEFAULT NULL COMMENT '容器实例名',
     `plugin_mysql_instance_resource_id` varchar(64) DEFAULT NULL COMMENT '数据库实例id',
     `s3bucket_resource_id` varchar(64) DEFAULT NULL COMMENT 's3资源id',
-    PRIMARY KEY (`id`),
-    CONSTRAINT `fk_plugin_instances_s3` FOREIGN KEY (`s3bucket_resource_id`) REFERENCES `resource_item` (`id`),
-    CONSTRAINT `fk_plugin_instances_package` FOREIGN KEY (`package_id`) REFERENCES `plugin_packages` (`id`)
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `plugin_package_runtime_resources_docker` (
@@ -109,8 +106,7 @@ CREATE TABLE `plugin_package_runtime_resources_docker` (
        `port_bindings` varchar(255) NOT NULL COMMENT '端口信息',
        `volume_bindings` varchar(1024) NOT NULL COMMENT '目录映射',
        `env_variables` text DEFAULT NULL COMMENT '容器环境变量',
-       PRIMARY KEY (`id`),
-       CONSTRAINT `fk_plugin_rrd_package` FOREIGN KEY (`plugin_package_id`) REFERENCES `plugin_packages` (`id`)
+       PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `plugin_package_runtime_resources_mysql` (
@@ -119,8 +115,7 @@ CREATE TABLE `plugin_package_runtime_resources_mysql` (
       `schema_name` varchar(128) NOT NULL COMMENT '数据库名',
       `init_file_name` varchar(255) DEFAULT NULL COMMENT '初始化脚本',
       `upgrade_file_name` varchar(255) DEFAULT NULL COMMENT '升级脚本',
-      PRIMARY KEY (`id`),
-      CONSTRAINT `fk_plugin_rrm_package` FOREIGN KEY (`plugin_package_id`) REFERENCES `plugin_packages` (`id`)
+      PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `plugin_package_runtime_resources_s3` (
@@ -128,8 +123,7 @@ CREATE TABLE `plugin_package_runtime_resources_s3` (
        `plugin_package_id` varchar(64) NOT NULL COMMENT '插件',
        `bucket_name` varchar(255) NOT NULL COMMENT '桶名',
        `additional_properties` text DEFAULT NULL COMMENT '自动上传文件',
-       PRIMARY KEY (`id`),
-       CONSTRAINT `fk_plugin_rrs_package` FOREIGN KEY (`plugin_package_id`) REFERENCES `plugin_packages` (`id`)
+       PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `plugin_mysql_instances` (
@@ -144,9 +138,7 @@ CREATE TABLE `plugin_mysql_instances` (
       `pre_version` varchar(64) DEFAULT NULL COMMENT '插件版本',
       `created_time` datetime DEFAULT NULL COMMENT '创建时间',
       `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
-      PRIMARY KEY (`id`),
-      CONSTRAINT `fk_plugin_mysql_package` FOREIGN KEY (`plugin_package_id`) REFERENCES `plugin_packages` (`id`),
-      CONSTRAINT `fk_plugin_mysql_resource` FOREIGN KEY (`resource_item_id`) REFERENCES `resource_item` (`id`)
+      PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `plugin_package_authorities` (
@@ -154,8 +146,7 @@ CREATE TABLE `plugin_package_authorities` (
       `plugin_package_id` varchar(64) NOT NULL COMMENT '插件',
       `role_name` varchar(64) NOT NULL COMMENT '角色',
       `menu_code` varchar(64) NOT NULL COMMENT '菜单编码',
-      PRIMARY KEY (`id`),
-      CONSTRAINT `fx_plugin_auth_package` FOREIGN KEY (`plugin_package_id`) REFERENCES `plugin_packages` (`id`)
+      PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `plugin_package_dependencies` (
@@ -163,8 +154,7 @@ CREATE TABLE `plugin_package_dependencies` (
        `plugin_package_id` varchar(64) NOT NULL COMMENT '插件',
        `dependency_package_name` varchar(64) NOT NULL COMMENT '依赖包名',
        `dependency_package_version` varchar(32) NOT NULL COMMENT '依赖包版本',
-       PRIMARY KEY (`id`),
-       CONSTRAINT `fk_plugin_dependencies_package` FOREIGN KEY (`plugin_package_id`) REFERENCES `plugin_packages` (`id`)
+       PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `plugin_package_resource_files` (
@@ -174,8 +164,7 @@ CREATE TABLE `plugin_package_resource_files` (
      `package_version` varchar(32) NOT NULL COMMENT '插件版本',
      `source` varchar(64) NOT NULL COMMENT '压缩文件',
      `related_path` varchar(1024) NOT NULL COMMENT '静态文件路径',
-     PRIMARY KEY (`id`),
-     CONSTRAINT `fk_plugin_resource_file_package` FOREIGN KEY (`plugin_package_id`) REFERENCES `plugin_packages` (`id`)
+     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `plugin_package_menus` (
@@ -190,8 +179,7 @@ CREATE TABLE `plugin_package_menus` (
     `path` varchar(255) NOT NULL COMMENT '前端请求路径',
     `active` bit(1) DEFAULT b'0' COMMENT '是否启用->0(未启用)|1(启用)',
     PRIMARY KEY (`id`),
-    INDEX `idx_plugin_package_menu_order` (`menu_order`),
-    CONSTRAINT `fk_plugin_menus_package` FOREIGN KEY (`plugin_package_id`) REFERENCES `plugin_packages` (`id`)
+    INDEX `idx_plugin_package_menu_order` (`menu_order`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `plugin_configs` (
@@ -203,8 +191,7 @@ CREATE TABLE `plugin_configs` (
       `target_entity_filter_rule` varchar(2048) DEFAULT NULL COMMENT '目标类型过滤规则',
       `register_name` varchar(255) DEFAULT NULL COMMENT '服务注册名',
       `status` varchar(32) NOT NULL DEFAULT 'DISABLED' COMMENT '状态',
-      PRIMARY KEY (`id`),
-      CONSTRAINT `fk_plugin_config_package` FOREIGN KEY (`plugin_package_id`) REFERENCES `plugin_packages` (`id`)
+      PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `plugin_config_interfaces` (
@@ -219,8 +206,7 @@ CREATE TABLE `plugin_config_interfaces` (
         `type` varchar(32) DEFAULT 'EXECUTION' COMMENT '服务类型->APPROVAL(审批),EXECUTION(执行),DYNAMICFORM(动态表单)',
         `filter_rule` varchar(2048) DEFAULT NULL COMMENT '服务过滤规则',
         `description` varchar(255) DEFAULT NULL COMMENT '描述',
-        PRIMARY KEY (`id`),
-        CONSTRAINT `fk_plugin_interface_config` FOREIGN KEY (`plugin_config_id`) REFERENCES `plugin_configs` (`id`)
+        PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `plugin_config_interface_parameters` (
@@ -238,8 +224,7 @@ CREATE TABLE `plugin_config_interface_parameters` (
       `mapping_val` varchar(255) DEFAULT NULL COMMENT '静态值',
       `multiple` varchar(16) DEFAULT 'N' COMMENT '是否数组->Y(是) | N(否)',
       `ref_object_name` varchar(64) DEFAULT NULL COMMENT '关联对象名',
-      PRIMARY KEY (`id`),
-      CONSTRAINT `fk_plugin_param_interface` FOREIGN KEY (`plugin_config_interface_id`) REFERENCES `plugin_config_interfaces` (`id`)
+      PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `plugin_package_data_model` (
@@ -264,8 +249,7 @@ CREATE TABLE `plugin_package_entities` (
        `display_name` varchar(255) NOT NULL COMMENT '显示名',
        `description` varchar(255) DEFAULT NULL COMMENT '描述',
        PRIMARY KEY (`id`),
-       UNIQUE KEY `uk_plugin_entity_model_name` (`data_model_id`,`name`),
-       CONSTRAINT `fk_plugin_entity_model` FOREIGN KEY (`data_model_id`) REFERENCES `plugin_package_data_model` (`id`)
+       UNIQUE KEY `uk_plugin_entity_model_name` (`data_model_id`,`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `plugin_package_attributes` (
@@ -283,9 +267,7 @@ CREATE TABLE `plugin_package_attributes` (
      `created_time` datetime DEFAULT NULL COMMENT '创建时间',
      `order_no` int(11) DEFAULT 0 COMMENT '排序',
      PRIMARY KEY (`id`),
-     UNIQUE KEY `uk_plugin_attr_entity_name` (`entity_id`,`name`),
-     CONSTRAINT `fk_plugin_attr_entity` FOREIGN KEY (`entity_id`) REFERENCES `plugin_package_entities` (`id`),
-     CONSTRAINT `fk_plugin_attr_ref` FOREIGN KEY (`reference_id`) REFERENCES `plugin_package_attributes` (`id`)
+     UNIQUE KEY `uk_plugin_attr_entity_name` (`entity_id`,`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `plugin_config_roles` (

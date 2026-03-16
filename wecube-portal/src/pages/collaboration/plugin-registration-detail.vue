@@ -81,7 +81,7 @@
                       <Card dis-hover>
                         <div>
                           <Select v-model="selectedIp" multiple style="width: 40%" :max-tag-count="4">
-                            <Option v-for="item in availableHostList" :value="item" :key="item">{{ item }}</Option>
+                            <Option v-for="item in availableHostList" :value="item.id" :key="item.id">{{ item.host }} ({{ item.type }})</Option>
                           </Select>
                           <Button style="margin-left: 10px" size="small" type="success" @click="getPortByHostIp">
                             {{ $t('port_preview') }}
@@ -92,7 +92,7 @@
                           <div v-for="item in allowCreationIpPort" :key="item.ip + item.port">
                             <div class="instance-item">
                               <span>{{ item.ip + ':' + item.port }}</span>
-                              <Button size="small" type="success" @click="createInstanceByIpPort(item.ip, item.port)">{{
+                              <Button size="small" type="success" @click="createInstanceByIpPort(item.id, item.port)">{{
                                 $t('create')
                               }}</Button>
                             </div>
@@ -583,16 +583,18 @@ export default {
     async getPortByHostIp() {
       const ipMap = {}
       const promiseArray = []
-      this.selectedIp.forEach(async ip => {
-        promiseArray.push(getAvailablePortByHostIp(ip))
-        ipMap[ip] = promiseArray.length - 1
+      this.selectedIp.forEach(async id => {
+        promiseArray.push(getAvailablePortByHostIp(id))
+        ipMap[id] = promiseArray.length - 1
       })
       const finallArray = await Promise.all(promiseArray)
       this.allowCreationIpPort = []
       for (const key in ipMap) {
         if (finallArray[ipMap[key]].data) {
+          const host = this.availableHostList.find(item => item.id === key)
           this.allowCreationIpPort.push({
-            ip: key,
+            id: host.id,
+            ip: host.host,
             port: finallArray[ipMap[key]].data
           })
         }
@@ -632,14 +634,15 @@ export default {
               id: _.id,
               hostIp: _.host,
               port: _.port,
-              displayLabel: _.host + ':' + _.port
+              displayLabel: _.host + ':' + _.port,
+              resourceServerId: _.resourceServerId
             }
           }
         })
         this.availableHostList = (await getAvailableContainerHosts()).data || []
         this.availableHostList = cloneDeep(this.availableHostList).filter(item => {
           const findItem = find(this.allInstances, {
-            hostIp: item
+            resourceServerId: item.id
           })
           return !findItem
         })

@@ -438,6 +438,13 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 			ParamId:     inputParam.InputParameter.Id,
 			ParameValue: inputParam.InputParameterValue,
 		}
+		// 新版本服务接口，通过name替换参数id
+		for _, newParamDef := range reqParam.PluginConfigInterface.InputParameters {
+			if newParamDef.Name == inputParam.InputParameter.Name {
+				pluginDefInputParams.ParamId = newParamDef.Id
+				break
+			}
+		}
 
 		// 解密敏感字段的输入值
 		if inputParam.InputParameter.SensitiveData == "Y" {
