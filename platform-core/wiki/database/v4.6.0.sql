@@ -12,4 +12,8 @@ CREATE TABLE `plugin_package_runtime_resources_volume` (
 
 alter table proc_data_preview modify column entity_data_name varchar(1024) default null;
 alter table proc_ins_graph_node modify column display_name varchar(1024) default null;
+ALTER TABLE proc_ins MODIFY COLUMN entity_data_name VARCHAR(1024) DEFAULT NULL;
+ALTER TABLE proc_data_binding MODIFY COLUMN entity_data_name VARCHAR(1024) DEFAULT NULL;
+ALTER TABLE proc_data_cache MODIFY COLUMN entity_data_name VARCHAR(1024) DEFAULT NULL;
+ALTER TABLE proc_data_preview MODIFY COLUMN entity_data_name VARCHAR(1024) DEFAULT NULL;
 
