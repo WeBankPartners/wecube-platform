@@ -86,27 +86,29 @@ export default {
   },
   computed: {
     allEntity() {
-      let entity = []
-      this.allDataModelsWithAttrs.forEach(_ => {
-        if (_.entities) {
-          entity = entity.concat(_.entities).map(i => {
-            const noneFound = i.attributes.find(_ => _.name === 'NONE')
-            return {
-              ...i,
+      const entity = []
+      this.allDataModelsWithAttrs.forEach(pkg => {
+        if (pkg.entities) {
+          pkg.entities.forEach(e => {
+            const noneFound = e.attributes.find(a => a.name === 'NONE')
+            entity.push({
+              ...e,
+              // 将包名挂载到实体对象上，用于后续精确匹配
+              packageName: pkg.packageName,
               attributes: noneFound
-                ? i.attributes
-                : i.attributes.concat({
+                ? e.attributes
+                : e.attributes.concat({
                   dataType: 'str',
                   description: 'NONE',
-                  entityName: i.name,
-                  id: i.id + '__NONE',
+                  entityName: e.name,
+                  id: e.id + '__NONE',
                   name: 'NONE',
-                  packageName: _.packageName,
+                  packageName: pkg.packageName,
                   refAttributeName: null,
                   refEntityName: null,
                   refPackageName: null
                 })
-            }
+            })
           })
         }
       })
@@ -135,9 +137,11 @@ export default {
     addFilters() {
       if (this.rootEntity && this.rootEntity.length > 0) {
         this.currentPathFilterRules = []
-        this.currentNodeEntityAttrs = this.allEntity.find(_ => _.name === this.rootEntity)
-          ? this.allEntity.find(_ => _.name === this.rootEntity).attributes
-          : []
+        // 同时匹配实体名和 packageName（固定为 wecmdb），确保属性来自 CMDB 数据模型
+        const matchedEntity = this.allEntity.find(_ =>
+          _.name === this.rootEntity && _.packageName === 'wecmdb'
+        )
+        this.currentNodeEntityAttrs = matchedEntity ? matchedEntity.attributes : []
         const rules = this.value.match(/[^{]+(?=})/g)
         if (rules) {
           rules.forEach(async r => {
