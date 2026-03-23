@@ -9,3 +9,10 @@ CREATE TABLE `plugin_package_runtime_resources_volume` (
   `mount_path` varchar(255) NOT NULL COMMENT '卷路径',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+ALTER TABLE plugin_package_runtime_resources_docker ADD cpu varchar(32) NULL COMMENT '插件建议CPU，如500m/0.5/1/3等';
+ALTER TABLE plugin_package_runtime_resources_docker ADD memory varchar(32) NULL COMMENT '插件建议内存，如512Mi/0.5Gi/1Gi/3Gi';
+
+ALTER TABLE plugin_instances ADD cpu varchar(32) NULL COMMENT '插件实际运行CPU，如500m/0.5/1/3等';
+ALTER TABLE plugin_instances ADD memory varchar(32) NULL COMMENT '插件实际运行内存，如512Mi/0.5Gi/1Gi/3Gi';
