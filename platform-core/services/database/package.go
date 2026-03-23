@@ -109,7 +109,7 @@ func QueryPluginPackages(ctx context.Context, param *models.PluginPackageQueryPa
 	}
 
 	var packageRuntimeResDockers []*models.PluginPackageRuntimeResourcesDocker
-	err = db.MysqlEngine.Context(ctx).SQL("select plugin_package_id,cpu,memory from plugin_package_runtime_resources_docker where plugin_package_id in ("+idListFilter+") order by code", idListParam...).Find(&packageRuntimeResDockers)
+	err = db.MysqlEngine.Context(ctx).SQL("select plugin_package_id,cpu,memory from plugin_package_runtime_resources_docker where plugin_package_id in ("+idListFilter+") ", idListParam...).Find(&packageRuntimeResDockers)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
