@@ -734,6 +734,14 @@ func LaunchPlugin(c *gin.Context) {
 	portValue := c.Param("port")
 	requestCpu := c.Query("requestCpu")
 	requestMemory := c.Query("requestMemory")
+	replicasStr := c.Query("replicas") // works only in k8s
+	replicas := 1
+	if replicasStr != "" {
+		replicas, _ = strconv.Atoi(replicasStr)
+		if replicas < 1 || replicas > 50 {
+			replicas = 1
+		}
+	}
 	port, _ := strconv.Atoi(portValue)
 	if port < 20000 {
 		middleware.ReturnError(c, fmt.Errorf("param port %s illegal", portValue))
@@ -757,7 +765,7 @@ func LaunchPlugin(c *gin.Context) {
 			}
 		}
 	}
-	err := LaunchPluginFunc(c, pluginPackageId, resServer, middleware.GetRequestUser(c), port, requestCpu, requestMemory)
+	err := LaunchPluginFunc(c, pluginPackageId, resServer, middleware.GetRequestUser(c), port, requestCpu, requestMemory, replicas)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -766,7 +774,7 @@ func LaunchPlugin(c *gin.Context) {
 }
 
 func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *models.ResourceServer, operator string, port int,
-	requestCpu string, requestMemory string) (err error) {
+	requestCpu string, requestMemory string, replicas int) (err error) {
 	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
 	if err = database.GetSimplePluginPackage(ctx, &pluginPackageObj, true); err != nil {
 		log.Error(nil, log.LOGGER_APP, "GetSimplePluginPackage fail", zap.Error(err))
@@ -1283,7 +1291,7 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *mo
 			k8sContainerBuilder.WithResources(resourceLimits, resourceRequests)
 		}
 		k8sContainer := k8sContainerBuilder.Build()
-		k8sSts := remote.NewStatefulSetBuilder(k8sStsName, k8sNamespace, 1).
+		k8sSts := remote.NewStatefulSetBuilder(k8sStsName, k8sNamespace, int32(replicas)).
 			WithLabels(map[string]string{
 				"app":     pluginPackageObj.Name,
 				"version": pluginPackageObj.Version,
