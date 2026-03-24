@@ -410,7 +410,7 @@ func RestartPluginInstance(ctx context.Context, pluginPackageId string) (err err
 		return
 	}
 
-	err = plugin.LaunchPluginFunc(ctx, pluginPackageId, resServer, "system", pluginInstanceObj.Port, "", "", 1)
+	err = plugin.LaunchPluginFunc(ctx, pluginPackageId, resServer, "system", pluginInstanceObj.Port, pluginInstanceObj.Cpu, pluginInstanceObj.Memory, 1)
 	if err != nil {
 		err = fmt.Errorf("launch plugin:%s fail,%s ", pluginInstanceObj.InstanceName, err.Error())
 	}
