@@ -732,8 +732,8 @@ func LaunchPlugin(c *gin.Context) {
 	pluginPackageId := c.Param("pluginPackageId")
 	hostId := c.Param("hostId")
 	portValue := c.Param("port")
-	requestCpu := c.Param("requestCpu")
-	requestMemory := c.Param("requestMemory")
+	requestCpu := c.Query("requestCpu")
+	requestMemory := c.Query("requestMemory")
 	port, _ := strconv.Atoi(portValue)
 	if port < 20000 {
 		middleware.ReturnError(c, fmt.Errorf("param port %s illegal", portValue))
@@ -838,24 +838,27 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *mo
 		InstanceName:    pluginPackageObj.Name,
 	}
 	// 新增k8s资源限制支持
-	if requestCpu == "" {
-		if len(resources.Docker) > 0 {
-			if resources.Docker[0].Cpu != "" {
-				pluginInstance.Cpu = resources.Docker[0].Cpu
-			}
-		}
-	} else {
-		pluginInstance.Cpu = requestCpu
-	}
-	if requestMemory == "" {
-		if len(resources.Docker) > 0 {
-			if resources.Docker[0].Memory != "" {
-				pluginInstance.Memory = resources.Docker[0].Memory
-			}
-		}
-	} else {
-		pluginInstance.Memory = requestMemory
-	}
+	pluginInstance.Cpu = requestCpu
+	pluginInstance.Memory = requestMemory
+	// 依赖前端传入插件声明的数据，此处不自动判定，否则无法区分是无限制还是需要自动取默认值
+	// if requestCpu == "" {
+	// 	if len(resources.Docker) > 0 {
+	// 		if resources.Docker[0].Cpu != "" {
+	// 			pluginInstance.Cpu = resources.Docker[0].Cpu
+	// 		}
+	// 	}
+	// } else {
+	// 	pluginInstance.Cpu = requestCpu
+	// }
+	// if requestMemory == "" {
+	// 	if len(resources.Docker) > 0 {
+	// 		if resources.Docker[0].Memory != "" {
+	// 			pluginInstance.Memory = resources.Docker[0].Memory
+	// 		}
+	// 	}
+	// } else {
+	// 	pluginInstance.Memory = requestMemory
+	// }
 	if len(resources.Mysql) > 0 {
 		mysqlResource := resources.Mysql[0]
 		pluginInstance.PluginMysqlInstanceResourceId = mysqlResource.Id
