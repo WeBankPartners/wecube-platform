@@ -72,7 +72,8 @@ type PluginInstances struct {
 	S3bucketResourceId            string `json:"s3bucketResourceId" xorm:"s3bucket_resource_id"`                         // s3资源id
 	ResourceServerId              string `json:"resourceServerId" xorm:"-"`                                              // DockerInstanceResourceId对应的RS id
 	Cpu                           string `json:"cpu" xorm:"cpu"`                                                         // 插件实际运行CPU，如500m/0.5/1/3等
-	Memory                        string `json:"memory" xorm:"memory"`                                                   // 插件实际运行内存，如512Mi/0.5Gi/1Gi/3Gi
+	Memory                        string `json:"memory" xorm:"memory"`
+	Replicas                      int    `json:"replicas" xorm:"replicas"` // 实例副本数量(仅k8s)
 }
 
 type PluginPackageRuntimeResourcesDocker struct {
@@ -919,10 +920,11 @@ type PluginPackageQueryObj struct {
 }
 
 type PluginPackageInstanceObj struct {
-	Id      string `json:"id"`
-	Address string `json:"address"`
-	Cpu     string `json:"cpu"`
-	Memory  string `json:"memory"`
+	Id       string `json:"id"`
+	Address  string `json:"address"`
+	Cpu      string `json:"cpu"`
+	Memory   string `json:"memory"`
+	Replicas int    `json:"replicas"`
 }
 
 type PluginVersionListObj struct {

@@ -102,7 +102,7 @@ func QueryPluginPackages(ctx context.Context, param *models.PluginPackageQueryPa
 		menuItemNameMap[row.Code] = row.LocalDisplayName
 	}
 	var instanceRows []*models.PluginInstances
-	err = db.MysqlEngine.Context(ctx).SQL("select id,host,port,package_id,cpu,memory from plugin_instances").Find(&instanceRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select id,host,port,package_id,cpu,memory,replicas from plugin_instances").Find(&instanceRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -138,9 +138,9 @@ func QueryPluginPackages(ctx context.Context, param *models.PluginPackageQueryPa
 	for _, row := range instanceRows {
 		address := fmt.Sprintf("%s:%d", row.Host, row.Port)
 		if existInstanceList, ok := instanceMap[row.PackageId]; ok {
-			instanceMap[row.PackageId] = append(existInstanceList, &models.PluginPackageInstanceObj{Id: row.Id, Address: address, Cpu: row.Cpu, Memory: row.Memory})
+			instanceMap[row.PackageId] = append(existInstanceList, &models.PluginPackageInstanceObj{Id: row.Id, Address: address, Cpu: row.Cpu, Memory: row.Memory, Replicas: row.Replicas})
 		} else {
-			instanceMap[row.PackageId] = []*models.PluginPackageInstanceObj{{Id: row.Id, Address: address, Cpu: row.Cpu, Memory: row.Memory}}
+			instanceMap[row.PackageId] = []*models.PluginPackageInstanceObj{{Id: row.Id, Address: address, Cpu: row.Cpu, Memory: row.Memory, Replicas: row.Replicas}}
 		}
 	}
 
@@ -724,7 +724,7 @@ func LaunchPlugin(ctx context.Context, pluginInstance *models.PluginInstances, r
 	actions = append(actions, &db.ExecAction{Sql: "INSERT INTO resource_item (id,additional_properties,created_by,created_date,is_allocated,name,purpose,resource_server_id,status,`type`,updated_by,updated_date) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 		resourceItem.Id, resourceItem.AdditionalProperties, resourceItem.CreatedBy, resourceItem.CreatedDate, 1, resourceItem.Name, resourceItem.Purpose, resourceItem.ResourceServerId, "created", "docker_container", resourceItem.CreatedBy, resourceItem.CreatedDate,
 	}})
-	insertInsAction := &db.ExecAction{Sql: "INSERT INTO plugin_instances (id,host,container_name,port,container_status,package_id,docker_instance_resource_id,instance_name,plugin_mysql_instance_resource_id,s3bucket_resource_id,cpu,memory) values (?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+	insertInsAction := &db.ExecAction{Sql: "INSERT INTO plugin_instances (id,host,container_name,port,container_status,package_id,docker_instance_resource_id,instance_name,plugin_mysql_instance_resource_id,s3bucket_resource_id,cpu,memory,replicas) values (?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 		pluginInstance.Id, pluginInstance.Host, pluginInstance.ContainerName, pluginInstance.Port, pluginInstance.ContainerStatus, pluginInstance.PackageId, pluginInstance.DockerInstanceResourceId, pluginInstance.InstanceName,
 	}}
 	if pluginInstance.PluginMysqlInstanceResourceId != "" {
@@ -737,7 +737,7 @@ func LaunchPlugin(ctx context.Context, pluginInstance *models.PluginInstances, r
 	} else {
 		insertInsAction.Param = append(insertInsAction.Param, nil)
 	}
-	insertInsAction.Param = append(insertInsAction.Param, pluginInstance.Cpu, pluginInstance.Memory)
+	insertInsAction.Param = append(insertInsAction.Param, pluginInstance.Cpu, pluginInstance.Memory, pluginInstance.Replicas)
 	actions = append(actions, insertInsAction)
 	//actions = append(actions, &db.ExecAction{Sql: "INSERT INTO plugin_instances (id,host,container_name,port,container_status,package_id,docker_instance_resource_id,instance_name,plugin_mysql_instance_resource_id,s3bucket_resource_id) values (?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
 	//	pluginInstance.Id, pluginInstance.Host, pluginInstance.ContainerName, pluginInstance.Port, pluginInstance.ContainerStatus, pluginInstance.PackageId, pluginInstance.DockerInstanceResourceId, pluginInstance.InstanceName, pluginInstance.PluginMysqlInstanceResourceId, pluginInstance.S3bucketResourceId,

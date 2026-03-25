@@ -844,6 +844,7 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *mo
 		ContainerStatus: "RUNNING",
 		PackageId:       pluginPackageId,
 		InstanceName:    pluginPackageObj.Name,
+		Replicas:        replicas,
 	}
 	// 新增k8s资源限制支持
 	pluginInstance.Cpu = requestCpu

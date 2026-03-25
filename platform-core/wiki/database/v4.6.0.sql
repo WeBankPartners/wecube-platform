@@ -10,9 +10,11 @@ CREATE TABLE `plugin_package_runtime_resources_volume` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
+-- v4.6.0.1 支持插件资源限制
 ALTER TABLE plugin_package_runtime_resources_docker ADD cpu varchar(32) NULL COMMENT '插件建议CPU，如500m/0.5/1/3等';
 ALTER TABLE plugin_package_runtime_resources_docker ADD memory varchar(32) NULL COMMENT '插件建议内存，如512Mi/0.5Gi/1Gi/3Gi';
 
 ALTER TABLE plugin_instances ADD cpu varchar(32) NULL COMMENT '插件实际运行CPU，如500m/0.5/1/3等';
 ALTER TABLE plugin_instances ADD memory varchar(32) NULL COMMENT '插件实际运行内存，如512Mi/0.5Gi/1Gi/3Gi';
+ALTER TABLE plugin_instances ADD replicas INT DEFAULT 1 NULL COMMENT '实例副本数量(仅k8s)';
+
