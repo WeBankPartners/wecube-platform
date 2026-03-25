@@ -1091,5 +1091,9 @@
   "totp_success": "Success",
   "totp_setup_key_copied": "Setup key has been copied to clipboard",
   "totp_copy_fail": "Copy failed, please copy manually",
-  "totp_learn_more_tip": "Please use an authenticator app to scan the QR code to complete binding"
+  "totp_learn_more_tip": "Please use an authenticator app to scan the QR code to complete binding",
+  "p_instance_resource": "Instance Resource",
+  "p_cpu_resource": "CPU",
+  "p_memory_resource": "Memory Resource",
+  "p_unlimited": "Unlimited"
 }
