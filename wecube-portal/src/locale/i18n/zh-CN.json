@@ -1094,5 +1094,7 @@
   "p_instance_resource": "实例资源",
   "p_cpu_resource": "CPU",
   "p_memory_resource": "内存",
-  "p_unlimited": "无限制"
+  "p_unlimited": "无限制",
+  "p_core": "核",
+  "p_gi": "Gi"
 }
