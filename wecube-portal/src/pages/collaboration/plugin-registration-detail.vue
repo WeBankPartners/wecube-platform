@@ -89,35 +89,32 @@
                         </div>
                         <div v-if="allowCreationIpPort.length > 0">
                           <p style="margin-top: 20px">{{ $t('avaliable_port') }}:</p>
-                          <div v-for="item in allowCreationIpPort" :key="item.ip + item.port">
+                          <div v-for="(item, index) in allowCreationIpPort" :key="item.ip + item.port">
                             <div class="instance-item">
                               <span>{{ item.ip + ':' + item.port }}</span>
-                    
-                              <span style="display: inline-block; min-width: 34px; margin-left: 10px">{{ $t('p_cpu_resource') + ':' }}</span>
-                              <Select
+
+                              <!-- CPU 输入框 -->
+                              <span style="display: inline-block; min-width: 34px; margin-left: 10px">{{ $t('p_cpu_resource') +'(' + $t('p_core') + ')' + ':' }}</span>
+                              <Input
                                 v-model="item.cpu"
                                 clearable
-                                style="max-width: 80px; margin-left: 8px"
-                                :placeholder="$t('p_cpu_resource')"
-                              >
-                                <Option v-for="c in cpuOptions" :value="c" :key="'cpu-' + c">
-                                  {{ c === 'unlimited' ? $t('p_unlimited') : c + '核' }}
-                                </Option>
-                              </Select>
-                              <!-- 内存下拉框 -->
-                              <span style="display: inline-block; min-width: 34px; margin-left: 10px;">{{ $t('p_memory_resource') + ':' }}</span>
-                              <Select
+                                style="width: 80px; margin-left: 8px"
+                                placeholder="核(无限制)"
+                                @on-blur="validateCpu(item, index)"
+                              />
+                              <span v-if="cpuErrors[index]" style="color: red; font-size: 12px; margin-left: 4px">{{ cpuErrors[index] }}</span>
+                              <!-- 内存输入框 -->
+                              <span style="display: inline-block; min-width: 34px; margin-left: 10px;">{{ $t('p_memory_resource') + '(' + $t('p_gi') + ')' + ':' }}</span>
+                              <Input
                                 v-model="item.memory"
                                 clearable
-                                style="max-width: 80px; margin-left: 8px; margin-right: 20px"
-                                :placeholder="$t('p_memory_resource')"
-                              >
-                                <Option v-for="m in memoryOptions" :value="m" :key="'mem-' + m">
-                                  {{ m === 'unlimited' ? $t('p_unlimited') : m }}
-                                </Option>
-                              </Select>
+                                style="width: 80px; margin-left: 8px; margin-right: 20px"
+                                placeholder="G(无限制)"
+                                @on-blur="validateMemory(item, index)"
+                              />
+                              <span v-if="memoryErrors[index]" style="color: red; font-size: 12px; margin-left: 4px">{{ memoryErrors[index] }}</span>
 
-                              <Button size="small" type="success" @click="createInstanceByIpPort(item.id, item.port, item.cpu === 'unlimited' ? '' : item.cpu, item.memory === 'unlimited' ? '' : item.memory)">{{
+                              <Button size="small" type="success" @click="validateCpu(item, index) && validateMemory(item, index) && createInstanceByIpPort(item.id, item.port, item.cpu, item.memory ? item.memory + 'Gi' : '')">{{
                                 $t('create')
                               }}</Button>
                             </div>
@@ -448,11 +445,11 @@ export default {
       selectedVersion: '',
       spinContent: '',
       instanceCpuAndMemoryMap: {
-        cpu: 'unlimited',
-        memory: 'unlimited',
+        cpu: '',
+        memory: '',
       },
-      cpuOptions: ['unlimited', '0.1', '0.25', '0.5', '1', '2', '4', '8', '16'],
-      memoryOptions: ['unlimited', '0.25Gi', '0.5Gi', '1Gi', '2Gi', '4Gi', '8Gi', '16Gi', '32Gi', '64Gi'],
+      cpuErrors: {},
+      memoryErrors: {},
     }
   },
   created() {
@@ -624,11 +621,11 @@ export default {
         
         const pluginCpuAndMemoryMap = JSON.parse(pluginCpuAndMemoryMapStr)
         
-        cpu = pluginCpuAndMemoryMap[this.pluginItemDetail.name]?.cpu || 'unlimited'
-        memory = pluginCpuAndMemoryMap[this.pluginItemDetail.name]?.memory || 'unlimited'
+        cpu = pluginCpuAndMemoryMap[this.pluginItemDetail.name]?.cpu || ''
+        memory = pluginCpuAndMemoryMap[this.pluginItemDetail.name]?.memory || ''
       } else {
-        cpu = this.pluginItemDetail.requestCpu || 'unlimited'
-        memory = this.pluginItemDetail.requestMemory || 'unlimited'
+        cpu = this.pluginItemDetail.requestCpu || ''
+        memory = this.pluginItemDetail.requestMemory || ''
       }
 
       this.selectedIp.forEach(async id => {
@@ -637,6 +634,8 @@ export default {
       })
       const finallArray = await Promise.all(promiseArray)
       this.allowCreationIpPort = []
+      this.cpuErrors = {}
+      this.memoryErrors = {}
       for (const key in ipMap) {
         if (finallArray[ipMap[key]].data) {
           const host = this.availableHostList.find(item => item.id === key)
@@ -649,6 +648,34 @@ export default {
           })
         }
       }
+    },
+    validateCpu(item, index) {
+      const val = item.cpu
+      if (val === '' || val === null || val === undefined) {
+        this.$set(this.cpuErrors, index, '')
+        return true
+      }
+      const num = Number(val)
+      if (isNaN(num) || num <= 0) {
+        this.$set(this.cpuErrors, index, 'CPU须为正数')
+        return false
+      }
+      this.$set(this.cpuErrors, index, '')
+      return true
+    },
+    validateMemory(item, index) {
+      const val = item.memory
+      if (val === '' || val === null || val === undefined) {
+        this.$set(this.memoryErrors, index, '')
+        return true
+      }
+      const num = Number(val)
+      if (isNaN(num) || num <= 0) {
+        this.$set(this.memoryErrors, index, '内存须为正数')
+        return false
+      }
+      this.$set(this.memoryErrors, index, '')
+      return true
     },
     async createInstanceByIpPort(ip, port, cpu, memory) {
       this.isSpinShow = true
@@ -717,7 +744,7 @@ export default {
         let pluginCpuAndMemoryMap = JSON.parse(pluginCpuAndMemoryMapStr)
         pluginCpuAndMemoryMap[this.pluginItemDetail.name] = {
           cpu: item.cpu,
-          memory: item.memory
+          memory: item.memory ? String(parseFloat(item.memory)) : item.memory
         }
         localStorage.setItem('pluginCpuAndMemoryMapStr', JSON.stringify(pluginCpuAndMemoryMap))
 

@@ -1095,5 +1095,7 @@
   "p_instance_resource": "Instance Resource",
   "p_cpu_resource": "CPU",
   "p_memory_resource": "Memory Resource",
-  "p_unlimited": "Unlimited"
+  "p_unlimited": "Unlimited",
+  "p_core": "Core",
+  "p_gi": "Gi"
 }
