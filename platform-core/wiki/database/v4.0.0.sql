@@ -41,8 +41,7 @@ CREATE TABLE `proc_def_node` (
      `created_time` datetime DEFAULT NULL COMMENT '创建时间',
      `updated_by` varchar(64) DEFAULT NULL COMMENT '更新人',
      `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
-     PRIMARY KEY (`id`),
-     CONSTRAINT `fk_proc_def_node_def` FOREIGN KEY (`proc_def_id`) REFERENCES `proc_def` (`id`)
+     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `proc_def_node_param` (
@@ -56,8 +55,7 @@ CREATE TABLE `proc_def_node_param` (
        `ctx_bind_type` varchar(16) DEFAULT NULL COMMENT '上下文出入参->input(入参) | output(出参)',
        `ctx_bind_name` varchar(255) DEFAULT NULL COMMENT '上下文参数名',
        `required` varchar(16) DEFAULT 'N' COMMENT '是否必填',
-       PRIMARY KEY (`id`),
-       CONSTRAINT `fk_proc_def_param_node` FOREIGN KEY (`proc_def_node_id`) REFERENCES `proc_def_node` (`id`)
+       PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `proc_def_node_link` (
@@ -77,8 +75,7 @@ CREATE TABLE `proc_def_permission` (
        `role_id` varchar(64) NOT NULL COMMENT '角色id',
        `role_name` varchar(64) NOT NULL COMMENT '角色名称',
        `permission` varchar(32) NOT NULL COMMENT '权限->MGMT(管理) | USE(使用)',
-       PRIMARY KEY (`id`),
-       CONSTRAINT `fk_proc_def_perm_def` FOREIGN KEY (`proc_def_id`) REFERENCES `proc_def` (`id`)
+       PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `proc_def_collect` (
@@ -88,8 +85,7 @@ CREATE TABLE `proc_def_collect` (
     `user_id` varchar(64) NOT NULL COMMENT '用户id',
     `created_time` datetime DEFAULT NULL COMMENT '创建时间',
     `updated_time` datetime DEFAULT NULL COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    CONSTRAINT `fk_proc_def_collect_def` FOREIGN KEY (`proc_def_id`) REFERENCES `proc_def` (`id`)
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE `batch_execution` (
@@ -315,7 +311,7 @@ CREATE TABLE `proc_ins_node_req_param` (
        `callback_id` varchar(64) DEFAULT NULL COMMENT '回调id',
        `created_time` datetime DEFAULT NULL COMMENT '创建时间',
        PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
 CREATE TABLE `proc_run_workflow` (
