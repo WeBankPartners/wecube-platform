@@ -10,6 +10,15 @@ CREATE TABLE `plugin_package_runtime_resources_volume` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+alter table proc_data_preview modify column entity_data_name varchar(1024) default null;
+alter table proc_ins_graph_node modify column display_name varchar(1024) default null;
+ALTER TABLE proc_ins MODIFY COLUMN entity_data_name VARCHAR(1024) DEFAULT NULL;
+ALTER TABLE proc_data_binding MODIFY COLUMN entity_data_name VARCHAR(1024) DEFAULT NULL;
+ALTER TABLE proc_data_cache MODIFY COLUMN entity_data_name VARCHAR(1024) DEFAULT NULL;
+ALTER TABLE proc_data_preview MODIFY COLUMN entity_data_name VARCHAR(1024) DEFAULT NULL;
+
+
+
 -- v4.6.0.1 支持插件资源限制
 ALTER TABLE plugin_package_runtime_resources_docker ADD cpu varchar(32) NULL COMMENT '插件建议CPU，如500m/0.5/1/3等';
 ALTER TABLE plugin_package_runtime_resources_docker ADD memory varchar(32) NULL COMMENT '插件建议内存，如512Mi/0.5Gi/1Gi/3Gi';
