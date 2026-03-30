@@ -24,7 +24,7 @@
         <Form :label-width="100" :model="form" :rules="rules" ref="form">
           <!--资源-->
           <FormItem :label="$t('resource')" prop="resourceServerId">
-            <Select v-model="form.resourceServerId" @on-change="handleSelectResource" clearable>
+            <Select v-model="form.resourceServerId" @on-change="handleSelectResource" @on-open-change="handleResourceOpen" clearable>
               <Option v-for="item in resourceOptions" :key="item.id" :value="item.id">{{ item.name }}</Option>
             </Select>
           </FormItem>
@@ -333,7 +333,6 @@ export default {
     this.outerActions = this.outerActions.filter(i => ['add', 'edit', 'delete', 'cancel'].includes(i.actionType))
     this.getResourceItemStatus()
     this.getResourceItemType()
-    this.getResourceOptions()
     this.queryData()
   },
   methods: {
@@ -372,6 +371,12 @@ export default {
       const { status, data } = await retrieveServers(payload)
       if (status === 'OK') {
         this.resourceOptions = data.contents || []
+      }
+    },
+    // 展开资源下拉框时加载数据
+    handleResourceOpen(flag) {
+      if (flag) {
+        this.getResourceOptions()
       }
     },
     // 新增数据时选择资源自动带出类型
