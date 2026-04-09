@@ -416,7 +416,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 					//if _, ok := ciTypeDataMap[depCiType]; ok {
 					//	continue
 					//}
-					queryDepCiGuidRows, tmpQueryDepCiGuidErr := cmdbEngine.QueryString(fmt.Sprintf("select guid,%s from %s where %s in ('%s')", depCiAttr.Name, depCiType, depCiAttr.Name, strings.Join(newRowsGuidList, "','")))
+					queryDepCiGuidRows, tmpQueryDepCiGuidErr := cmdbEngine.QueryString(fmt.Sprintf("select guid,`%s` from `%s` where `%s` in ('%s')", depCiAttr.Name, depCiType, depCiAttr.Name, strings.Join(newRowsGuidList, "','")))
 					if tmpQueryDepCiGuidErr != nil {
 						err = fmt.Errorf("try to get ciType:%s with dependent ciType:%s ref attr:%s guidList fail,%s ", ciType, depCiType, depCiAttr.Name, tmpQueryDepCiGuidErr.Error())
 						break
