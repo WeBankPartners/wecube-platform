@@ -262,7 +262,7 @@ func analyzeCMDBData(ciType string, ciDataGuidList []string, filters []*models.C
 	ciTypeAttributes := ciTypeAttrMap[ciType]
 	var queryFilterList []string
 	queryFilterList = append(queryFilterList, fmt.Sprintf("guid in ('%s')", strings.Join(ciDataGuidList, "','")))
-	queryCiDataResult, queryErr := cmdbEngine.QueryString("select * from history_" + ciType + " where id in (select max(id) from history_" + ciType + " where history_action='confirm' and confirm_time<='" + lastConfirmTime + "' and " + strings.Join(queryFilterList, " and ") + " group by guid)")
+	queryCiDataResult, queryErr := cmdbEngine.QueryString("select * from `history_" + ciType + "` where id in (select max(id) from `history_" + ciType + "` where history_action='confirm' and confirm_time<='" + lastConfirmTime + "' and " + strings.Join(queryFilterList, " and ") + " group by guid)")
 	if queryErr != nil {
 		err = fmt.Errorf("query ciType:%s data fail,%s ", ciType, queryErr.Error())
 		return
@@ -624,7 +624,7 @@ func getCMDBMultiRefGuidList(ciType, attrName, condition string, fromGuidList, t
 		for _, row := range historyRows {
 			tmpFromGuidList = append(tmpFromGuidList, row.FromGuid)
 		}
-		queryErr = cmdbEngine.SQL("select guid as from_guid,max(history_time) as history_time from history_" + ciType + " where history_action='confirm' and guid in ('" + strings.Join(tmpFromGuidList, "','") + "') group by guid").Find(&fromGuidConfirmRows)
+		queryErr = cmdbEngine.SQL("select guid as from_guid,max(history_time) as history_time from `history_" + ciType + "` where history_action='confirm' and guid in ('" + strings.Join(tmpFromGuidList, "','") + "') group by guid").Find(&fromGuidConfirmRows)
 		if queryErr != nil {
 			err = fmt.Errorf("query multiRef list with toGuid fail, query confirm from guid error,ciType:%s attrName:%s,error:%s ", ciType, attrName, queryErr.Error())
 			return
@@ -1209,7 +1209,7 @@ func DataTransExportCMDBData(ctx context.Context, transExportId, path string) (e
 		return
 	}
 	for _, ciType := range ciTypeList {
-		tmpQuerySql := "select * from " + ciType
+		tmpQuerySql := "select * from `" + ciType + "`"
 		if tmpGuidList, ok := ciDataGuidMap[ciType]; ok {
 			tmpQuerySql += " where guid in ('" + strings.Join(tmpGuidList, "','") + "')"
 		} else {
@@ -1249,7 +1249,7 @@ func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableNa
 	}
 	if !strings.HasPrefix(tableName, "sys_") {
 		// 如果不是系统表，要把表结构导出来
-		queryTableRows, queryTableErr := cmdbEngine.QueryString("show create table " + tableName)
+		queryTableRows, queryTableErr := cmdbEngine.QueryString("show create table `" + tableName + "`")
 		if queryTableErr != nil {
 			err = fmt.Errorf("query cmdb table %s struct fail,error:%s ", tableName, queryTableErr.Error())
 			return
@@ -1263,7 +1263,7 @@ func dumpCMDBTableData(cmdbEngine *xorm.Engine, tables []*schemas.Table, tableNa
 		// 要把多对多关联表导出来
 		for _, t := range tables {
 			if strings.HasPrefix(t.Name, tableName+"$") {
-				multiRefQueryTableRows, multiRefQueryTableErr := cmdbEngine.QueryString("show create table " + t.Name)
+				multiRefQueryTableRows, multiRefQueryTableErr := cmdbEngine.QueryString("show create table `" + t.Name + "`")
 				if multiRefQueryTableErr != nil {
 					err = fmt.Errorf("query cmdb table %s struct fail,error:%s ", t.Name, multiRefQueryTableErr.Error())
 					return
