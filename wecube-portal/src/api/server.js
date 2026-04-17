@@ -97,8 +97,8 @@ export const getAllPluginPkgs = isRetrieveAllPluginPackages =>
 // export const getRefCiTypeTo = id => req.get(`/platform/v1/cmdb/ci-types/${id}/references/to`)
 // export const getCiTypeAttr = id => req.get(`/platform/v1/cmdb/ci-types/${id}/attributes`)
 export const getAvailableInstancesByPackageId = packageId => req.get(`/platform/v1/packages/${packageId}/instances`)
-export const createPluginInstanceByPackageIdAndHostIp = (packageId, ip, port) =>
-  req.post(`/platform/v1/packages/${packageId}/hosts/${ip}/ports/${port}/instance/launch`)
+export const createPluginInstanceByPackageIdAndHostIp = (packageId, ip, port, cpu, memory) =>
+  req.post(`/platform/v1/packages/${packageId}/hosts/${ip}/ports/${port}/instance/launch?requestCpu=${cpu}&requestMemory=${memory}`)
 
 export const removePluginInstance = instanceId => req.delete(`/platform/v1/packages/instances/${instanceId}/remove`)
 export const queryLog = data => req.post('/platform/v1/plugin/packages/instances/log', data)

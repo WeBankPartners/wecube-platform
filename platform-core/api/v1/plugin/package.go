@@ -57,6 +57,38 @@ func removeSchema(url string) string {
 	return url
 }
 
+// convertK8sCpuToDocker 将 k8s CPU 格式转换为 Docker 格式
+func convertK8sCpuToDocker(k8sCpu string) string {
+	if k8sCpu == "" {
+		return ""
+	}
+	if strings.HasSuffix(k8sCpu, "m") {
+		// 500m -> 0.5
+		if val, err := strconv.ParseFloat(k8sCpu[:len(k8sCpu)-1], 64); err == nil {
+			return fmt.Sprintf("%.3f", val/1000)
+		}
+	}
+	return k8sCpu
+}
+
+// convertK8sMemoryToDocker 将 k8s Memory 格式转换为 Docker 格式
+func convertK8sMemoryToDocker(k8sMem string) string {
+	if k8sMem == "" {
+		return ""
+	}
+	k8sMem = strings.ToLower(k8sMem)
+	if strings.HasSuffix(k8sMem, "gi") {
+		return strings.TrimSuffix(k8sMem, "i")
+	}
+	if strings.HasSuffix(k8sMem, "mi") {
+		return strings.TrimSuffix(k8sMem, "i")
+	}
+	if strings.HasSuffix(k8sMem, "ki") {
+		return strings.TrimSuffix(k8sMem, "i")
+	}
+	return k8sMem
+}
+
 // GetPackages 插件列表查询
 func GetPackages(c *gin.Context) {
 	//allPackageFlag := strings.ToLower(c.Query("all"))
@@ -700,6 +732,16 @@ func LaunchPlugin(c *gin.Context) {
 	pluginPackageId := c.Param("pluginPackageId")
 	hostId := c.Param("hostId")
 	portValue := c.Param("port")
+	requestCpu := c.Query("requestCpu")
+	requestMemory := c.Query("requestMemory")
+	replicasStr := c.Query("replicas") // works only in k8s
+	replicas := 1
+	if replicasStr != "" {
+		replicas, _ = strconv.Atoi(replicasStr)
+		if replicas < 1 || replicas > 50 {
+			replicas = 1
+		}
+	}
 	port, _ := strconv.Atoi(portValue)
 	if port < 20000 {
 		middleware.ReturnError(c, fmt.Errorf("param port %s illegal", portValue))
@@ -723,7 +765,7 @@ func LaunchPlugin(c *gin.Context) {
 			}
 		}
 	}
-	err := LaunchPluginFunc(c, pluginPackageId, resServer, middleware.GetRequestUser(c), port)
+	err := LaunchPluginFunc(c, pluginPackageId, resServer, middleware.GetRequestUser(c), port, requestCpu, requestMemory, replicas)
 	if err != nil {
 		middleware.ReturnError(c, err)
 	} else {
@@ -731,7 +773,8 @@ func LaunchPlugin(c *gin.Context) {
 	}
 }
 
-func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *models.ResourceServer, operator string, port int) (err error) {
+func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *models.ResourceServer, operator string, port int,
+	requestCpu string, requestMemory string, replicas int) (err error) {
 	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
 	if err = database.GetSimplePluginPackage(ctx, &pluginPackageObj, true); err != nil {
 		log.Error(nil, log.LOGGER_APP, "GetSimplePluginPackage fail", zap.Error(err))
@@ -801,7 +844,30 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *mo
 		ContainerStatus: "RUNNING",
 		PackageId:       pluginPackageId,
 		InstanceName:    pluginPackageObj.Name,
+		Replicas:        replicas,
 	}
+	// 新增k8s资源限制支持
+	pluginInstance.Cpu = requestCpu
+	pluginInstance.Memory = requestMemory
+	// 依赖前端传入插件声明的数据，此处不自动判定，否则无法区分是无限制还是需要自动取默认值
+	// if requestCpu == "" {
+	// 	if len(resources.Docker) > 0 {
+	// 		if resources.Docker[0].Cpu != "" {
+	// 			pluginInstance.Cpu = resources.Docker[0].Cpu
+	// 		}
+	// 	}
+	// } else {
+	// 	pluginInstance.Cpu = requestCpu
+	// }
+	// if requestMemory == "" {
+	// 	if len(resources.Docker) > 0 {
+	// 		if resources.Docker[0].Memory != "" {
+	// 			pluginInstance.Memory = resources.Docker[0].Memory
+	// 		}
+	// 	}
+	// } else {
+	// 	pluginInstance.Memory = requestMemory
+	// }
 	if len(resources.Mysql) > 0 {
 		mysqlResource := resources.Mysql[0]
 		pluginInstance.PluginMysqlInstanceResourceId = mysqlResource.Id
@@ -1011,6 +1077,12 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *mo
 		time.Sleep(1 * time.Second)
 		// 去目标机器上docker run起来，或使用docker-compose
 		dockerCmd := fmt.Sprintf("docker run -d --name %s --restart=always ", dockerResource.ContainerName)
+		if pluginInstance.Cpu != "" {
+			dockerCmd += fmt.Sprintf("--cpus=%s ", convertK8sCpuToDocker(pluginInstance.Cpu))
+		}
+		if pluginInstance.Memory != "" {
+			dockerCmd += fmt.Sprintf("--memory=%s ", convertK8sMemoryToDocker(pluginInstance.Memory))
+		}
 		for _, v := range volumeBindList {
 			dockerCmd += fmt.Sprintf("--volume %s ", v)
 		}
@@ -1192,12 +1264,35 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *mo
 				k8sContainerBuilder.AddEnv(v.Name, v.Value)
 			}
 		}
+		// 添加默认meta env，如TZ
+		// 从当前环境的env中获取，如果存在值则设置
+		// all plugin container alias to CORE or UTC
+		tz := os.Getenv("TZ")
+		if tz != "" {
+			k8sContainerBuilder.AddEnv("TZ", tz)
+		} else {
+			k8sContainerBuilder.AddEnv("TZ", "UTC")
+		}
 		// 更新PVC卷挂载
 		for _, vol := range resources.Volume {
 			k8sContainerBuilder.AddVolumeMount(vol.Name, vol.MountPath)
 		}
+		// 添加资源限制
+		if pluginInstance.Cpu != "" || pluginInstance.Memory != "" {
+			resourceRequests := corev1.ResourceList{}
+			resourceLimits := corev1.ResourceList{}
+			if pluginInstance.Cpu != "" {
+				resourceRequests[corev1.ResourceCPU] = resource.MustParse(pluginInstance.Cpu)
+				resourceLimits[corev1.ResourceCPU] = resource.MustParse(pluginInstance.Cpu)
+			}
+			if pluginInstance.Memory != "" {
+				resourceRequests[corev1.ResourceMemory] = resource.MustParse(pluginInstance.Memory)
+				resourceLimits[corev1.ResourceMemory] = resource.MustParse(pluginInstance.Memory)
+			}
+			k8sContainerBuilder.WithResources(resourceLimits, resourceRequests)
+		}
 		k8sContainer := k8sContainerBuilder.Build()
-		k8sSts := remote.NewStatefulSetBuilder(k8sStsName, k8sNamespace, 1).
+		k8sSts := remote.NewStatefulSetBuilder(k8sStsName, k8sNamespace, int32(replicas)).
 			WithLabels(map[string]string{
 				"app":     pluginPackageObj.Name,
 				"version": pluginPackageObj.Version,

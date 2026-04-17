@@ -89,10 +89,32 @@
                         </div>
                         <div v-if="allowCreationIpPort.length > 0">
                           <p style="margin-top: 20px">{{ $t('avaliable_port') }}:</p>
-                          <div v-for="item in allowCreationIpPort" :key="item.ip + item.port">
+                          <div v-for="(item, index) in allowCreationIpPort" :key="item.ip + item.port">
                             <div class="instance-item">
                               <span>{{ item.ip + ':' + item.port }}</span>
-                              <Button size="small" type="success" @click="createInstanceByIpPort(item.id, item.port)">{{
+
+                              <!-- CPU 输入框 -->
+                              <span style="display: inline-block; min-width: 34px; margin-left: 10px">{{ $t('p_cpu_resource') +'(' + $t('p_core') + ')' + ':' }}</span>
+                              <Input
+                                v-model="item.cpu"
+                                clearable
+                                style="width: 80px; margin-left: 8px"
+                                placeholder="核(无限制)"
+                                @on-blur="validateCpu(item, index)"
+                              />
+                              <span v-if="cpuErrors[index]" style="color: red; font-size: 12px; margin-left: 4px">{{ cpuErrors[index] }}</span>
+                              <!-- 内存输入框 -->
+                              <span style="display: inline-block; min-width: 34px; margin-left: 10px;">{{ $t('p_memory_resource') + '(' + $t('p_gi') + ')' + ':' }}</span>
+                              <Input
+                                v-model="item.memory"
+                                clearable
+                                style="width: 80px; margin-left: 8px; margin-right: 20px"
+                                placeholder="G(无限制)"
+                                @on-blur="validateMemory(item, index)"
+                              />
+                              <span v-if="memoryErrors[index]" style="color: red; font-size: 12px; margin-left: 4px">{{ memoryErrors[index] }}</span>
+
+                              <Button size="small" type="success" @click="validateCpu(item, index) && validateMemory(item, index) && createInstanceByIpPort(item.id, item.port, item.cpu, item.memory ? item.memory + 'Gi' : '')">{{
                                 $t('create')
                               }}</Button>
                             </div>
@@ -103,13 +125,15 @@
                           <div v-if="allInstances.length === 0">{{ $t('no_avaliable_instances') }}</div>
                           <div v-else style="display: flex; flex-direction: column">
                             <div v-for="item in allInstances" :key="item.id" class="mt-2">
-                              <div class="instance-item" style="border-bottom: 0px">
+                              <div class="instance-item" style="border-bottom: 0px; display: flex">
                                 <span>{{ item.displayLabel }}</span>
+                                <span style="margin-left: 20px">{{ $t('p_cpu_resource') + ':' + (item.cpu === '' ? $t('p_unlimited') : item.cpu) }}</span>
+                                <span style="margin-right: 20px">{{ $t('p_memory_resource') + ':' + (item.memory === '' ? $t('p_unlimited') : item.memory) }}</span>
                                 <Poptip
                                   confirm
                                   :title="$t('p_destroy_tips')"
                                   placement="left-end"
-                                  @on-ok="removePlugin(item.id)"
+                                  @on-ok="removePlugin(item)"
                                 >
                                   <Button size="small" type="error" class="destroy-instance-button">{{
                                     $t('ternmiante')
@@ -419,7 +443,13 @@ export default {
       isServiceActionNotEmpty: false, // 整个注册数字中只要有一个item.pluginConfigDtoList不为空数组则为true
       isSpinShow: false,
       selectedVersion: '',
-      spinContent: ''
+      spinContent: '',
+      instanceCpuAndMemoryMap: {
+        cpu: '',
+        memory: '',
+      },
+      cpuErrors: {},
+      memoryErrors: {},
     }
   },
   created() {
@@ -583,24 +613,71 @@ export default {
     async getPortByHostIp() {
       const ipMap = {}
       const promiseArray = []
+      let cpu = ''
+      let memory = ''
+
+      let pluginCpuAndMemoryMapStr = localStorage.getItem('pluginCpuAndMemoryMapStr')
+      if (pluginCpuAndMemoryMapStr && JSON.parse(pluginCpuAndMemoryMapStr)[this.pluginItemDetail.name]) {
+        
+        const pluginCpuAndMemoryMap = JSON.parse(pluginCpuAndMemoryMapStr)
+        
+        cpu = pluginCpuAndMemoryMap[this.pluginItemDetail.name]?.cpu || ''
+        memory = pluginCpuAndMemoryMap[this.pluginItemDetail.name]?.memory || ''
+      } else {
+        cpu = this.pluginItemDetail.requestCpu || ''
+        memory = this.pluginItemDetail.requestMemory || ''
+      }
+
       this.selectedIp.forEach(async id => {
         promiseArray.push(getAvailablePortByHostIp(id))
         ipMap[id] = promiseArray.length - 1
       })
       const finallArray = await Promise.all(promiseArray)
       this.allowCreationIpPort = []
+      this.cpuErrors = {}
+      this.memoryErrors = {}
       for (const key in ipMap) {
         if (finallArray[ipMap[key]].data) {
           const host = this.availableHostList.find(item => item.id === key)
           this.allowCreationIpPort.push({
             id: host.id,
             ip: host.host,
-            port: finallArray[ipMap[key]].data
+            port: finallArray[ipMap[key]].data,
+            cpu,
+            memory
           })
         }
       }
     },
-    async createInstanceByIpPort(ip, port) {
+    validateCpu(item, index) {
+      const val = item.cpu
+      if (val === '' || val === null || val === undefined) {
+        this.$set(this.cpuErrors, index, '')
+        return true
+      }
+      const num = Number(val)
+      if (isNaN(num) || num <= 0) {
+        this.$set(this.cpuErrors, index, 'CPU须为正数')
+        return false
+      }
+      this.$set(this.cpuErrors, index, '')
+      return true
+    },
+    validateMemory(item, index) {
+      const val = item.memory
+      if (val === '' || val === null || val === undefined) {
+        this.$set(this.memoryErrors, index, '')
+        return true
+      }
+      const num = Number(val)
+      if (isNaN(num) || num <= 0) {
+        this.$set(this.memoryErrors, index, '内存须为正数')
+        return false
+      }
+      this.$set(this.memoryErrors, index, '')
+      return true
+    },
+    async createInstanceByIpPort(ip, port, cpu, memory) {
       this.isSpinShow = true
       this.spinContent = this.$t('p_instance_creation')
       const timeId = setTimeout(() => {
@@ -608,7 +685,7 @@ export default {
         this.timeId = null
         this.$Message.error(this.$t('p_instance_creation_failed'))
       }, 180000)
-      const { status } = await createPluginInstanceByPackageIdAndHostIp(this.pluginId, ip, port)
+      const { status } = await createPluginInstanceByPackageIdAndHostIp(this.pluginId, ip, port, cpu, memory)
       if (status === 'OK') {
         this.isSpinShow = false
         clearTimeout(timeId)
@@ -635,7 +712,9 @@ export default {
               hostIp: _.host,
               port: _.port,
               displayLabel: _.host + ':' + _.port,
-              resourceServerId: _.resourceServerId
+              resourceServerId: _.resourceServerId,
+              cpu: _.cpu,
+              memory: _.memory
             }
           }
         })
@@ -648,7 +727,7 @@ export default {
         })
       }
     },
-    async removePlugin(instanceId) {
+    async removePlugin(item) {
       this.isSpinShow = true
       this.spinContent = this.$t('p_instance_destroy')
       const timeId = setTimeout(() => {
@@ -656,10 +735,19 @@ export default {
         this.timeId = null
         this.$Message.error(this.$t('p_instance_destroy_failed'))
       }, 180000)
-      const { status, message } = await removePluginInstance(instanceId)
+      const { status, message } = await removePluginInstance(item.id)
       this.isSpinShow = false
       clearTimeout(timeId)
       if (status === 'OK') {
+
+        let pluginCpuAndMemoryMapStr = localStorage.getItem('pluginCpuAndMemoryMapStr') || '{}'
+        let pluginCpuAndMemoryMap = JSON.parse(pluginCpuAndMemoryMapStr)
+        pluginCpuAndMemoryMap[this.pluginItemDetail.name] = {
+          cpu: item.cpu,
+          memory: item.memory ? String(parseFloat(item.memory)) : item.memory
+        }
+        localStorage.setItem('pluginCpuAndMemoryMapStr', JSON.stringify(pluginCpuAndMemoryMap))
+
         this.$Notice.success({
           title: 'Success',
           desc: message
@@ -797,7 +885,7 @@ export default {
         }
         .instance-item > span {
           display: inline-block;
-          min-width: 220px;
+          margin-left: 10px;
         }
       }
     }

@@ -389,4 +389,4 @@ CREATE TABLE `core_operation_event` (
     `oper_mode` varchar(45) DEFAULT 'defer',
     PRIMARY KEY (`id`),
     KEY `idx_core_operation_event_seq_no_1` (`event_seq_no`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

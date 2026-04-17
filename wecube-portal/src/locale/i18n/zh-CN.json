@@ -1090,5 +1090,11 @@
   "totp_success": "成功",
   "totp_setup_key_copied": "设置密钥已复制到剪贴板",
   "totp_copy_fail": "复制失败，请手动复制",
-  "totp_learn_more_tip": "请使用身份验证器应用扫描二维码完成绑定"
+  "totp_learn_more_tip": "请使用身份验证器应用扫描二维码完成绑定",
+  "p_instance_resource": "实例资源",
+  "p_cpu_resource": "CPU",
+  "p_memory_resource": "内存",
+  "p_unlimited": "无限制",
+  "p_core": "核",
+  "p_gi": "Gi"
 }

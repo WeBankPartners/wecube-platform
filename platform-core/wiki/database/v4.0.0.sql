@@ -311,7 +311,7 @@ CREATE TABLE `proc_ins_node_req_param` (
        `callback_id` varchar(64) DEFAULT NULL COMMENT '回调id',
        `created_time` datetime DEFAULT NULL COMMENT '创建时间',
        PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
 CREATE TABLE `proc_run_workflow` (
