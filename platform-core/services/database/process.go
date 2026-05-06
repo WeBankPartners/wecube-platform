@@ -1154,10 +1154,12 @@ func transProcDefNodeLinkUpdateConditionToSQL(procDefNodeLink *models.ProcDefNod
 func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where string, queryParam []interface{}) {
 	where = "where 1 = 1 "
 	if param.ProcDefId != "" {
-		where = where + " and  id like '%" + param.ProcDefId + "%' "
+		where = where + " and id like ?"
+		queryParam = append(queryParam, "%"+param.ProcDefId+"%")
 	}
 	if param.ProcDefName != "" {
-		where = where + " and  name like '%" + param.ProcDefName + "%' "
+		where = where + " and name like ?"
+		queryParam = append(queryParam, "%"+param.ProcDefName+"%")
 	}
 	if param.Status == string(models.Draft) || param.Status == string(models.Disabled) || param.Status == string(models.Deployed) {
 		where = where + " and status = ?"
@@ -1172,13 +1174,16 @@ func transProcDefConditionToSQL(param models.QueryProcessDefinitionParam) (where
 		queryParam = append(queryParam, []interface{}{param.CreatedTimeStart, param.CreatedTimeEnd}...)
 	}
 	if param.CreatedBy != "" {
-		where = where + " and  created_by like '%" + param.CreatedBy + "%'"
+		where = where + " and created_by like ?"
+		queryParam = append(queryParam, "%"+param.CreatedBy+"%")
 	}
 	if param.UpdatedBy != "" {
-		where = where + " and updated_by like '%" + param.UpdatedBy + "%'"
+		where = where + " and updated_by like ?"
+		queryParam = append(queryParam, "%"+param.UpdatedBy+"%")
 	}
 	if param.Scene != "" {
-		where = where + " and scene like '%" + param.Scene + "%'"
+		where = where + " and scene like ?"
+		queryParam = append(queryParam, "%"+param.Scene+"%")
 	}
 	if param.SubProc == "main" {
 		where = where + " and sub_proc=0 "
