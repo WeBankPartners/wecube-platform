@@ -654,7 +654,7 @@ func checkAuthentication(user *model.SysUser, credential *model.CredentialDto) e
 	presentedPassword := credential.Password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(presentedPassword)); err != nil {
 		log.Warn(nil, log.LOGGER_APP, "failed to compare hash and password", zap.Error(err))
-		return exterror.NewBadCredentialsError("Bad credential:bad password.")
+		return exterror.NewBadCredentialsError("Bad credential.")
 	}
 
 	return nil
