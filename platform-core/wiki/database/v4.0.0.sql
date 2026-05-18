@@ -301,7 +301,7 @@ CREATE TABLE `proc_ins_node_req_param` (
        `name` varchar(255) DEFAULT NULL COMMENT '参数名',
        `data_type` varchar(64) DEFAULT NULL COMMENT '参数数据类型',
        `data_value` text DEFAULT NULL COMMENT '参数数据值',
-       `entity_data_id` varchar(64) DEFAULT NULL COMMENT '数据id',
+       `entity_data_id` varchar(128) DEFAULT NULL COMMENT '数据id',
        `entity_type_id` varchar(255) DEFAULT NULL COMMENT '数据entity',
        `is_sensitive` bit(1) DEFAULT 0 COMMENT '是否敏感',
        `full_data_id` varchar(1024) DEFAULT NULL COMMENT '数据全路径',
