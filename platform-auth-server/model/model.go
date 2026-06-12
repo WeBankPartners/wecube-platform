@@ -42,11 +42,13 @@ type UmPermissionUpload struct {
 }
 
 type AuthenticationResponse struct {
-	UserId string `json:"userId"`
-	//Auth         []AggAuth `json:"auth"`
+	UserId       string `json:"userId"`
 	NeedRegister bool   `json:"needRegister"`
 	Tokens       []*Jwt `json:"tokens"`
-	//ProductCodes []string `json:"productCodes"`
+	QrCodeUrl    string `json:"qrCodeUrl,omitempty"`
+	QrCodeImage  string `json:"qrCodeImage,omitempty"`
+	TempToken    string `json:"tempToken,omitempty"`
+	NeedMfaCode  bool   `json:"needMfaCode,omitempty"`
 }
 
 type Jwt struct {
@@ -63,6 +65,8 @@ type SysUser struct {
 	CompositeAuthorities []*CompositeAuthority
 	AuthSource           string
 	AuthContext          string
+	MfaSecret            string
+	MfaBound             bool
 }
 
 type CompositeAuthority struct {

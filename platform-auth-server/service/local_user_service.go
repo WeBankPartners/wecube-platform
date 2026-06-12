@@ -41,6 +41,8 @@ func (LocalUserService) loadUserByUsername(username string) (*model.SysUser, err
 		Password:    userEntity.Password,
 		AuthSource:  userEntity.AuthSource,
 		AuthContext: userEntity.AuthContext,
+		MfaSecret:   userEntity.MfaSecret,
+		MfaBound:    userEntity.MfaBound,
 	}
 
 	userRoles, err := db.UserRoleRsRepositoryInstance.FindAllByUserId(userEntity.Id)

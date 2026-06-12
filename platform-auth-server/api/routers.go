@@ -120,6 +120,8 @@ func init() {
 	httpHandlerFuncList = []*handlerFuncObj{
 		{Url: constant.UriLogin, Method: http.MethodPost, HandlerFunc: Login,
 			ApiCode: "login"},
+		{Url: constant.UriMfaVerify, Method: http.MethodPost, HandlerFunc: VerifyMfaCode,
+			ApiCode: "mfa-verify"},
 		{Url: constant.UriTaskLogin, Method: http.MethodPost, HandlerFunc: TaskLogin,
 			ApiCode: "task-login"},
 		{Url: "/v1/api/token", Method: http.MethodGet, HandlerFunc: RefreshToken,

@@ -233,6 +233,19 @@ func (UserRepository) FindAllActiveUsers() ([]*model.SysUserEntity, error) {
 	return users, nil
 }
 
+func (UserRepository) UpdateMfaSecret(username, secret string) error {
+	// 初始化时设置为未绑定状态，直接存储明文 secret
+	user := &model.SysUserEntity{MfaSecret: secret, MfaBound: false}
+	_, err := Engine.Where("username = ?", username).Cols("mfa_secret", "mfa_bound").Update(user)
+	return err
+}
+
+func (UserRepository) UpdateMfaBound(username string, bound bool) error {
+	user := &model.SysUserEntity{MfaBound: bound}
+	_, err := Engine.Where("username = ?", username).Cols("mfa_bound").Update(user)
+	return err
+}
+
 func (UserRepository) QueryUsers(param model.QueryUserParam) (int, []*model.SysUserEntity, error) {
 	var users []*model.SysUserEntity
 	var userRoles []*model.UserRoleRsEntity

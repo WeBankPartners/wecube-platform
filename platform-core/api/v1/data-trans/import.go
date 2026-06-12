@@ -394,12 +394,23 @@ func RestartPluginInstance(ctx context.Context, pluginPackageId string) (err err
 		// 没有运行的实例，不用重启
 		return
 	}
+	resItem, queryErr := database.GetResourceItemById(pluginInstanceObj.DockerInstanceResourceId)
+	if queryErr != nil {
+		err = queryErr
+		return
+	}
+	resServer, queryErr := database.GetResourceServerById(resItem.ResourceServerId)
+	if queryErr != nil {
+		err = queryErr
+		return
+	}
 	err = plugin.RemovePluginInstanceFunc(ctx, pluginInstanceObj.Id)
 	if err != nil {
 		err = fmt.Errorf("remove plugin:%s fail,%s ", pluginInstanceObj.InstanceName, err.Error())
 		return
 	}
-	err = plugin.LaunchPluginFunc(ctx, pluginPackageId, pluginInstanceObj.Host, "system", pluginInstanceObj.Port)
+
+	err = plugin.LaunchPluginFunc(ctx, pluginPackageId, resServer, "system", pluginInstanceObj.Port, pluginInstanceObj.Cpu, pluginInstanceObj.Memory, pluginInstanceObj.Replicas)
 	if err != nil {
 		err = fmt.Errorf("launch plugin:%s fail,%s ", pluginInstanceObj.InstanceName, err.Error())
 	}

@@ -187,7 +187,7 @@
                         :max-tag-count="4"
                         v-model="selectHosts"
                       >
-                        <Option v-for="item in allAvailiableHosts" :value="item" :key="item">{{ item }}</Option>
+                        <Option v-for="item in allAvailiableHosts" :value="item.id" :key="item.id">{{ item.host }} ({{ item.type }})</Option>
                       </Select>
                       <Button size="small" type="success" @click="getAvailablePortByHostIp">
                         {{ $t('port_preview') }}
@@ -201,7 +201,7 @@
                               <Button
                                 size="small"
                                 type="success"
-                                @click="createPluginInstanceByPackageIdAndHostIp(item.ip, item.port)"
+                                @click="createPluginInstanceByPackageIdAndHostIp(item.id, item.port)"
                               >{{ $t('create') }}</Button>
                             </div>
                           </div>
@@ -824,7 +824,8 @@ export default {
               id: _.id,
               hostIp: _.host,
               port: _.port,
-              displayLabel: _.host + ':' + _.port
+              displayLabel: _.host + ':' + _.port,
+              resourceServerId: _.resourceServerId
             }
           }
         })
@@ -845,10 +846,12 @@ export default {
     getAvailablePortByHostIp() {
       this.availiableHostsWithPort = []
       this.selectHosts.forEach(async _ => {
-        const { data, status } = await getAvailablePortByHostIp(_)
+        const host = this.allAvailiableHosts.find(item => item.id === _)
+        const { data, status } = await getAvailablePortByHostIp(host.id)
         if (status === 'OK') {
           this.availiableHostsWithPort.push({
-            ip: _,
+            id: host.id,
+            ip: host.host,
             port: data,
             createParams: this.defaultCreateParams
           })

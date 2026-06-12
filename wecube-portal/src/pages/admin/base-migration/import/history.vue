@@ -23,6 +23,10 @@
 </template>
 
 <script>
+/**
+ * 导入历史列表页面组件
+ * 展示导入任务的历史记录，支持搜索、分页、查看详情、重新发起、终止等操作
+ */
 import dayjs from 'dayjs'
 import { getBaseMigrationImportList, getBaseMigrationImportQuery, updateImportStatus } from '@/api/server'
 import { updateTimeBasedOnDateType } from '@/const/util'
@@ -288,15 +292,27 @@ export default {
     window.sessionStorage.setItem('platform_import_baseMigration', JSON.stringify(storage))
   },
   methods: {
+    /**
+     * 初始化数据
+     * 设置表格高度、获取列表数据和搜索参数选项
+     */
     initData() {
       this.MODALHEIGHT = document.body.scrollHeight - 220
       this.getList()
       this.getSearchParams()
     },
+    /**
+     * 处理搜索查询
+     * 重置到第一页并重新获取列表数据
+     */
     handleQuery() {
       this.pageable.current = 1
       this.getList()
     },
+    /**
+     * 获取搜索参数选项
+     * 从接口获取下拉选项数据（产品、创建人等）
+     */
     async getSearchParams() {
       const { status, data } = await getBaseMigrationImportQuery()
       if (status === 'OK') {
@@ -320,6 +336,10 @@ export default {
         })
       }
     },
+    /**
+     * 获取导入列表数据
+     * 根据搜索条件和分页参数查询导入任务列表
+     */
     async getList() {
       const params = {
         id: this.searchParams.id,
@@ -339,16 +359,27 @@ export default {
         this.pageable.total = data.pageInfo.totalRows || 0
       }
     },
+    /**
+     * 改变每页显示数量
+     * @param {number} pageSize - 每页显示数量
+     */
     changePageSize(pageSize) {
       this.pageable.current = 1
       this.pageable.pageSize = pageSize
       this.getList()
     },
+    /**
+     * 切换页码
+     * @param {number} current - 当前页码
+     */
     changPage(current) {
       this.pageable.current = current
       this.getList()
     },
-    // 查看
+    /**
+     * 查看导入详情
+     * @param {Object} row - 当前行数据
+     */
     handleView(row) {
       this.$router.push({
         path: '/admin/base-migration/import',
@@ -358,7 +389,10 @@ export default {
         }
       })
     },
-    // 终止
+    /**
+     * 终止导入任务
+     * @param {Object} row - 当前行数据
+     */
     handleStop(row) {
       this.$Modal.confirm({
         title: this.$t('pi_tips'),
@@ -376,7 +410,10 @@ export default {
         onCancel: () => {}
       })
     },
-    // 重新发起
+    /**
+     * 重新发起导入
+     * @param {Object} row - 当前行数据
+     */
     handleRepub(row) {
       this.$router.push({
         path: '/admin/base-migration/import',

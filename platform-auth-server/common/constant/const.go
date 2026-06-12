@@ -14,6 +14,7 @@ const (
 	AuthorizationHeader   = "Authorization"
 	RefreshTokenHeader    = "Authorization-Info"
 	UriLogin              = "/v1/api/login"
+	UriMfaVerify          = "/v1/api/mfa/verify"
 	UriTaskLogin          = "/v1/api/taskLogin"
 	UriUsersRegister      = "/v1/users/register"
 	UriListApplyByApplier = "/v1/roles/apply/byapplier"
@@ -29,6 +30,7 @@ const (
 
 	TypeAccessToken  = "accessToken"
 	TypeRefreshToken = "refreshToken"
+	TypeMfaTempToken = "mfa_temp"
 
 	BearerTokenPrefix    = "Bearer "
 	DefaultJwtSigningKey = "Platform+Auth+Server+Secret"

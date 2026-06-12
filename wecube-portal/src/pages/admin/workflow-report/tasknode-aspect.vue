@@ -92,6 +92,10 @@
 </template>
 
 <script>
+/**
+ * 任务节点维度报表组件
+ * 展示任务节点的执行统计，包括成功数、失败数等
+ */
 import ReportDetail from './show-report-detail'
 import DateGroup from '@/pages/components/date-group'
 import {
@@ -108,8 +112,11 @@ export default {
   },
   data() {
     return {
+      // 表格最大高度
       MODALHEIGHT: 0,
+      // 搜索参数
       searchParams: {},
+      // 搜索配置
       searchConfig: {
         params: {
           startDate: '',
@@ -129,7 +136,9 @@ export default {
         tasknodeBindingOptions: [],
         displayNumberOptions: [100, 300, 500, 1000]
       },
+      // 总记录数
       totalRows: 0,
+      // 表格数据
       tableData: [],
       tableColumns: [
         {

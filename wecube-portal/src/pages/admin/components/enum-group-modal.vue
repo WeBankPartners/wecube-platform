@@ -41,6 +41,10 @@
   </Modal>
 </template>
 <script>
+/**
+ * 枚举组管理弹窗组件
+ * 提供枚举分类的创建和编辑功能
+ */
 import baseData from '../enums'
 import { createEnumCategory, updateEnumCategory } from '@/api/server'
 export default {
@@ -49,12 +53,15 @@ export default {
   },
   data() {
     return {
+      // 表单数据
       form: {
         catName: '',
         catTypeId: '',
         catGroupId: ''
       },
+      // 分类ID
       categoryId: -1,
+      // 分类类型选项
       catTypes: [
         {
           label: this.$t('pub_enum'),

@@ -46,14 +46,22 @@
 </template>
 
 <script>
+/**
+ * 工作流维度报表组件
+ * 展示工作流的执行统计，包括成功数、失败数、进行中数量等
+ */
 import dayjs from 'dayjs'
 import { getFlowExecuteOverviews, getProcessList } from '@/api/server.js'
 export default {
   data() {
     return {
+      // 表格最大高度
       MODALHEIGHT: 0,
+      // 表格数据
       tableData: [],
+      // 加载状态
       loading: false,
+      // 搜索配置
       searchConfig: {
         params: {
           time: [dayjs().subtract(3, 'day')

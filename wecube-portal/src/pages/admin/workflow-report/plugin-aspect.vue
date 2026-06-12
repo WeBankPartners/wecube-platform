@@ -72,6 +72,10 @@
 </template>
 
 <script>
+/**
+ * 插件服务维度报表组件
+ * 展示插件服务的执行统计，包括成功数、失败数等
+ */
 import ReportDetail from './show-report-detail'
 import DateGroup from '@/pages/components/date-group'
 import {
@@ -87,8 +91,11 @@ export default {
   },
   data() {
     return {
+      // 表格最大高度
       MODALHEIGHT: 0,
+      // 搜索参数
       searchParams: {},
+      // 搜索配置
       searchConfig: {
         params: {
           startDate: '',
@@ -105,7 +112,9 @@ export default {
         tasknodeBindingOptions: [],
         displayNumberOptions: [100, 300, 500, 1000]
       },
+      // 总记录数
       totalRows: 0,
+      // 表格数据
       tableData: [],
       tableColumns: [
         {
@@ -191,10 +200,17 @@ export default {
       ]
     }
   },
+  /**
+   * 组件挂载后设置表格高度
+   */
   mounted() {
     this.MODALHEIGHT = document.body.scrollHeight - 300
   },
   methods: {
+    /**
+     * 处理表格排序
+     * @param {Object} column - 排序列信息
+     */
     async sortTable(column) {
       this.searchConfig.params.sorting = {
         asc: column.order === 'asc',

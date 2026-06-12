@@ -15,32 +15,33 @@ import (
 
 var (
 	ApiMenuMap = make(map[string][]string) // key -> apiCode  value -> menuList
-	// taskman需要调用编排,根据ApiCode放行
+	// SUB_SYSTEM角色已在上层全局放行，子系统接口无需在此白名单
+	// 此白名单仅保留普通登录用户无需特定菜单权限即可访问的基础功能
 	whiteCodeMap = map[string]bool{
-		"get-all-models":                         true,
-		"process-definition-list":                true,
-		"plugin-process-definition-list":         true,
-		"process-def-outline":                    true,
-		"process-ins-detail":                     true,
-		"process-def-root-entity":                true,
-		"process-ins-node-context":               true,
-		"query-expr-entities":                    true,
-		"get-entity-model":                       true,
-		"proc-ins-callback":                      true,
-		"check-collect-batch-execution-template": true,
-		"import-batch-execution-template":        true,
-		"proc-start-events":                      true,
-		"export-batch-execution-template":        true,
-		"get-process-definition-node-link":       true,
+		// "get-all-models":                         true, // 应受菜单权限控制
+		// "process-definition-list":                true, // taskman使用SUB_SYSTEM角色，已全局放行
+		// "plugin-process-definition-list":         true, // taskman使用SUB_SYSTEM角色，已全局放行
+		// "process-def-outline":                    true, // taskman使用SUB_SYSTEM角色，已全局放行
+		// "process-ins-detail":                     true, // taskman使用SUB_SYSTEM角色，已全局放行
+		// "process-def-root-entity":                true, // taskman使用SUB_SYSTEM角色，已全局放行
+		// "process-ins-node-context":               true, // taskman使用SUB_SYSTEM角色，已全局放行
+		// "query-expr-entities":                    true, // taskman使用SUB_SYSTEM角色，已全局放行
+		// "get-entity-model":                       true, // taskman使用SUB_SYSTEM角色，已全局放行
+		// "proc-ins-callback":                      true, // taskman使用SUB_SYSTEM角色，已全局放行
+		// "check-collect-batch-execution-template": true, // taskman使用SUB_SYSTEM角色，已全局放行
+		// "import-batch-execution-template":        true, // taskman使用SUB_SYSTEM角色，已全局放行
+		// "proc-start-events":                      true, // taskman使用SUB_SYSTEM角色，已全局放行
+		// "export-batch-execution-template":        true, // taskman使用SUB_SYSTEM角色，已全局放行
+		// "get-process-definition-node-link":       true, // taskman使用SUB_SYSTEM角色，已全局放行
 		"get-user":                               true,
 		"change-user-password":                   true,
-		"get-packages":                           true,
-		"query-roles":                            true,
-		"get-all-user":                           true,
-		"get-role-user":                          true,
-		"get-user-roles":                         true,
-		"get-process-ins-by-session-id":          true,
-		"get-web-running-packages":               true,
+		// "get-packages":                           true, // 应受菜单权限控制
+		// "query-roles":                            true, // 应受菜单权限控制
+		// "get-all-user":                           true, // 应受菜单权限控制
+		// "get-role-user":                          true, // taskman使用SUB_SYSTEM角色，已全局放行
+		// "get-user-roles":                         true, // taskman使用SUB_SYSTEM角色，已全局放行
+		// "get-process-ins-by-session-id":          true, // taskman使用SUB_SYSTEM角色，已全局放行
+		// "get-web-running-packages":               true, // 应受菜单权限控制
 		"query-roles-and-menus":                  true,
 	}
 )

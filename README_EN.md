@@ -152,12 +152,3 @@ Please refer to the [WeCube Plugin Developer Guide](wecube-wiki/docs/developer/W
 WeCube is licensed uner the Apache License Version 2.0, please refer to [LICENSE](LICENSE) for details.
 
 
-## Community
-- For quick response, please [raise an issue](https://github.com/WeBankPartners/wecube-platform/issues/new/choose) to us, or you can also scan the following QR code to join our community, we will provide feedback as quickly as we can.
-
-  <div align="left">
-  <img src="wecube-wiki/images/wecube_qr_code.png"  height="200" width="200">
-  </div>
-
-- Contact us: fintech@webank.com
-

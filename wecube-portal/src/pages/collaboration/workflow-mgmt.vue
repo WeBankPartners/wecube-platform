@@ -13,6 +13,8 @@
       <div class="floating-button">
         <Button size="small" @click="resetCanvas">Reset</Button>
         <Button @click="handleFormatLayout" size="small" class="btn-gap">{{ $t('workflow_format_layout') }}</Button>
+        <Button @click="saveFormatedLayout" size="small" class="btn-gap" v-if="isWorkflowFormat && editFlow !== 'false'">{{
+          $t('workflow_format_layout_save') }}</Button>
       </div>
       <!-- 挂载节点 -->
       <div id="canvasPanel" ref="canvasPanel" @dragover.prevent></div>
@@ -145,7 +147,8 @@ export default {
       nodesAndDeges: {
         nodes: [],
         edges: []
-      } // 节点和边信息
+      }, // 节点和边信息
+      isWorkflowFormat: false,
     }
   },
   async mounted() {
@@ -1090,46 +1093,71 @@ export default {
           return;
         }
         
-        // 记录已处理的节点
-        const processedNodes = new Set();
-        // let currentY = 0;
+        // 记录节点层级
+        const nodeLevel = new Map(); // 记录节点层级（X坐标）
+        const levelNodes = new Map(); // 记录每层的节点列表（用于计算Y坐标）
         
-        // 处理单个分支
-        const processBranch = (nodeId, branchY) => {
-          if (processedNodes.has(nodeId)) return;
+        // 使用 BFS 计算节点层级
+        const calculateLevels = () => {
+          const queue = [];
+          startNodes.forEach(startId => {
+            queue.push({ id: startId, level: 0 });
+            nodeLevel.set(startId, 0);
+          });
           
-          const nodeInfo = nodeMap.get(nodeId);
-          if (!nodeInfo) return;
+          while (queue.length > 0) {
+            const { id, level } = queue.shift();
+            const nextNodes = outgoingEdges.get(id) || [];
+            
+            nextNodes.forEach(nextId => {
+              if (!nodeLevel.has(nextId) || nodeLevel.get(nextId) > level + 1) {
+                nodeLevel.set(nextId, level + 1);
+                queue.push({ id: nextId, level: level + 1 });
+              }
+            });
+          }
           
-          processedNodes.add(nodeId);
-          nodeInfo.y = branchY;
-          
-          // 获取下一个节点
-          const nextNodes = outgoingEdges.get(nodeId) || [];
-          nextNodes.forEach((nextId, index) => {
-            if (!processedNodes.has(nextId)) {
-              const nextY = nextNodes.length > 1 ? 
-                branchY + (index * 150) : // 多分支情况
-                branchY; // 单分支保持同一水平线
-              processBranch(nextId, nextY);
+          // 统计每层的节点
+          nodeLevel.forEach((level, nodeId) => {
+            if (!levelNodes.has(level)) {
+              levelNodes.set(level, []);
             }
+            levelNodes.get(level).push(nodeId);
           });
         };
         
-        // 处理所有分支
-        startNodes.forEach((startId, index) => {
-          processBranch(startId, index * 150);
+        calculateLevels();
+        
+        // 计算节点位置
+        const nodePositions = new Map();
+        const levelStartY = 100; // 起始Y坐标
+        const levelSpacing = 250; // 层级间距（X方向）
+        const nodeSpacing = 150; // 同层节点间距（Y方向）
+        
+        // 按层级分配位置
+        levelNodes.forEach((nodes, level) => {
+          const startX = 200 + level * levelSpacing; // X坐标根据层级递增
+          const totalHeight = nodes.length * nodeSpacing;
+          let startY = levelStartY - totalHeight / 2; // 居中排列
+          
+          nodes.forEach((nodeId, index) => {
+            nodePositions.set(nodeId, {
+              x: startX,
+              y: startY + index * nodeSpacing
+            });
+          });
         });
         
         // 准备更新数据
         const updates = [];
-        nodeMap.forEach((info, id) => {
-          if (processedNodes.has(id)) {
+        nodePositions.forEach((position, nodeId) => {
+          const nodeInfo = nodeMap.get(nodeId);
+          if (nodeInfo) {
             updates.push({
-              node: info.node,
+              node: nodeInfo.node,
               newPosition: {
-                x: info.x,
-                y: info.y
+                x: position.x,
+                y: position.y
               }
             });
           }
@@ -1148,7 +1176,7 @@ export default {
         this.graph.refresh();
         
         this.$Message.success(`成功处理 ${updates.length} 个节点`);
-        
+        this.isWorkflowFormat = true
       } catch (error) {
         console.error('格式化布局失败:', error);
         this.$Message.error({
@@ -1161,6 +1189,42 @@ export default {
         console.log('节点数量:', this.graph.getNodes().length);
         console.log('边数量:', this.graph.getEdges().length);
       }
+    },
+    saveFormatedLayout() {
+      // 从 graph 中获取最新的节点数据（包含格式化后的位置信息）
+      const graphData = this.graph.save()
+      // 过滤掉删除按钮节点
+      const validNodes = graphData.nodes.filter(node => node.id !== 'remove_node')
+      
+      // 构建保存数据，确保使用最新的位置信息
+      const nodeData = validNodes.map(node => {
+        const { customAttrs, ...selfAttrs } = node
+        // 确保位置信息是最新的
+        selfAttrs.x = node.x
+        selfAttrs.y = node.y
+        return {
+          customAttrs,
+          selfAttrs
+        }
+      })
+      
+      // 如果没有节点，提示错误
+      if (nodeData.length === 0) {
+        this.$Message.warning('没有可保存的节点数据')
+        return
+      }
+      
+      Promise.all(nodeData.map(item => this.setNodeInfo(item, true)))
+        .then(() => {
+          this.$Message.success(this.$t('save_successfully'))
+          this.isWorkflowFormat = false
+          // 保存成功后，重新加载流程数据以同步 nodesAndDeges
+          this.getFlowInfo(this.demoFlowId)
+        })
+        .catch((error) => {
+          console.error('保存布局失败:', error)
+          this.$Message.error(this.$t('saveFailed'))
+        })
     }
     // #endregion
   }
@@ -1181,6 +1245,7 @@ export default {
   box-shadow: rgb(174, 174, 174) 0 0 10px;
   padding: 10px 8px;
 }
+
 .g6-minimap {
   position: absolute;
   right: 0;
@@ -1211,10 +1276,10 @@ export default {
 
 .toolbar {
   margin-bottom: 10px;
-  
+
   .ivu-btn {
     margin-right: 8px;
-    
+
     .fa {
       margin-right: 4px;
     }

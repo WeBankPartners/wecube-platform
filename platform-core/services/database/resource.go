@@ -161,6 +161,15 @@ func GetAvailableContainerHost() (availableHost []string, err error) {
 	return
 }
 
+func GetAvailableContainerHostView() (availableHosts []*models.ResourceServer, err error) {
+	err = db.MysqlEngine.SQL("select `id`,`type`,`name`,`host` from resource_server where (`type`='docker' or `type`='k8s') and status='active'").Find(&availableHosts)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	return
+}
+
 func GetResourceServerByIp(hostIp string) (resourceServer *models.ResourceServer, err error) {
 	var resourceServerRows []*models.ResourceServer
 	err = db.MysqlEngine.SQL("select id,is_allocated,login_password,login_username,login_mode,name,port,`type`,host from resource_server where host=? and `type`='docker'", hostIp).Find(&resourceServerRows)
@@ -182,6 +191,24 @@ func GetResourceServerByIp(hostIp string) (resourceServer *models.ResourceServer
 func GetResourceServerById(resId string) (resourceServer *models.ResourceServer, err error) {
 	var resourceServerRows []*models.ResourceServer
 	err = db.MysqlEngine.SQL("select id,is_allocated,login_password,login_username,login_mode,name,port,`type`,host from resource_server where `id`=?", resId).Find(&resourceServerRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(resourceServerRows) == 0 {
+		err = exterror.Catch(exterror.New().DatabaseQueryEmptyError, err)
+		return
+	}
+	resourceServer = resourceServerRows[0]
+	if strings.HasPrefix(resourceServer.LoginPassword, models.AESPrefix) {
+		resourceServer.LoginPassword = encrypt.DecryptWithAesECB(resourceServer.LoginPassword[5:], models.Config.Plugin.ResourcePasswordSeed, resourceServer.Name)
+	}
+	return
+}
+
+func GetResourceServerByType(resType string) (resourceServer *models.ResourceServer, err error) {
+	var resourceServerRows []*models.ResourceServer
+	err = db.MysqlEngine.SQL("select id,is_allocated,login_password,login_username,login_mode,name,port,`type`,host from resource_server where `type`=?", resType).Find(&resourceServerRows)
 	if err != nil {
 		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
 		return
@@ -274,8 +301,8 @@ func CreateResourceItem(ctx context.Context, params []*models.ResourceItem, oper
 		}
 		properties := models.MysqlResourceItemProperties{Username: v.Username, Password: v.Password}
 		propertiesBytes, _ := json.Marshal(&properties)
-		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO resource_item (id,additional_properties,created_by,created_date,is_allocated,name,purpose,resource_server_id,status,`type`,`username`,`password`,updated_by,updated_date) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
-			v.Id, string(propertiesBytes), operator, nowTime, 1, v.Name, v.Purpose, v.ResourceServerId, "created", "mysql_database", v.Username, v.Password, operator, nowTime,
+		actions = append(actions, &db.ExecAction{Sql: "INSERT INTO resource_item (id,additional_properties,created_by,created_date,is_allocated,name,purpose,resource_server_id,status,`type`,`username`,`password`,`schema_name`,updated_by,updated_date) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Param: []interface{}{
+			v.Id, string(propertiesBytes), operator, nowTime, 1, v.Name, v.Purpose, v.ResourceServerId, "created", "mysql_database", v.Username, v.Password, v.SchemaName, operator, nowTime,
 		}})
 	}
 	err = db.Transaction(actions, ctx)
@@ -302,8 +329,8 @@ func UpdateResourceItem(ctx context.Context, params []*models.ResourceItem, oper
 		}
 		properties := models.MysqlResourceItemProperties{Username: v.Username, Password: v.Password}
 		propertiesBytes, _ := json.Marshal(&properties)
-		actions = append(actions, &db.ExecAction{Sql: "update resource_item set resource_server_id=?,name=?,additional_properties=?,`username`=?,`password`=?,is_allocated=?,purpose=?,updated_by=?,updated_date=? where id=?", Param: []interface{}{
-			v.ResourceServerId, v.Name, string(propertiesBytes), v.Username, v.Password, v.IsAllocated, v.Purpose, operator, nowTime, v.Id,
+		actions = append(actions, &db.ExecAction{Sql: "update resource_item set resource_server_id=?,name=?,additional_properties=?,`username`=?,`password`=?,`schema_name`=?,is_allocated=?,purpose=?,updated_by=?,updated_date=? where id=?", Param: []interface{}{
+			v.ResourceServerId, v.Name, string(propertiesBytes), v.Username, v.Password, v.SchemaName, v.IsAllocated, v.Purpose, operator, nowTime, v.Id,
 		}})
 		pluginMysqlInstanceRow, getMysqlInstanceErr := getPluginMysqlInstanceByItem(ctx, v.Id)
 		if getMysqlInstanceErr != nil {
@@ -385,6 +412,21 @@ func GetResourceItem(ctx context.Context, resourceType, name string, isAllocated
 			}
 		}
 	}
+	return
+}
+
+func GetResourceItemById(resId string) (resourceItem *models.ResourceItem, err error) {
+	var resourceRows []*models.ResourceItem
+	err = db.MysqlEngine.SQL("select * from resource_item where `id`=?", resId).Find(&resourceRows)
+	if err != nil {
+		err = exterror.Catch(exterror.New().DatabaseQueryError, err)
+		return
+	}
+	if len(resourceRows) == 0 {
+		err = exterror.Catch(exterror.New().DatabaseQueryEmptyError, err)
+		return
+	}
+	resourceItem = resourceRows[0]
 	return
 }
 

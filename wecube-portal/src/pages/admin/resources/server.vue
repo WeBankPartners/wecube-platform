@@ -16,6 +16,10 @@
 </template>
 
 <script>
+/**
+ * 资源服务器管理组件
+ * 提供资源服务器的增删改查、产品序列号查询等功能，支持密码加密存储
+ */
 import {
   getResourceServerStatus,
   getResourceServerType,
@@ -30,6 +34,9 @@ import CryptoJS from 'crypto-js'
 import { outerActions } from '@/const/actions.js'
 import { formatData } from '../../util/format.js'
 
+/**
+ * 布尔值选项
+ */
 const booleanOptions = [
   {
     label: 'true',

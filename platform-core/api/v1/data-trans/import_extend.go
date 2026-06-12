@@ -545,6 +545,14 @@ func importTaskManComponentLibrary(ctx context.Context, transImportParam *models
 // 9、导入taskman模版
 func importTaskManTemplate(ctx context.Context, transImportParam *models.TransImportJobParam) (output string, err error) {
 	log.Info(nil, log.LOGGER_APP, "9. importTaskManTemplate start!!!")
+	var pathExist bool
+	requestTemplatePath := fmt.Sprintf("%s/request_template.json", transImportParam.DirPath)
+	// 导入时候先检查 taskman模版路径是否存在,不存在直接跳过,不报错
+	if pathExist, err = tools.PathExist(requestTemplatePath); err != nil || !pathExist {
+		log.Info(nil, log.LOGGER_APP, "importTaskManTemplate", zap.Error(err), zap.String("path", requestTemplatePath), zap.Bool("pathExist", pathExist))
+		err = nil
+		return
+	}
 	// 导入模版
 	err = remote.ImportRequestTemplate(fmt.Sprintf("%s/request_template.json", transImportParam.DirPath), transImportParam.Token, transImportParam.Language)
 	if err != nil {

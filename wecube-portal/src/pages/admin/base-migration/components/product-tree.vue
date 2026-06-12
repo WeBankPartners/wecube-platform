@@ -17,8 +17,13 @@
 </template>
 
 <script>
+/**
+ * 产品树形选择组件
+ * 支持产品数据的树形展示、搜索过滤、多选等功能
+ */
 export default {
   props: {
+    // 产品树形数据
     data: {
       type: Array,
       default: () => []
@@ -26,9 +31,11 @@ export default {
   },
   data() {
     return {
+      // 搜索参数
       searchParams: {
         displayName: ''
       },
+      // 搜索配置选项
       searchOptions: [
         {
           key: 'displayName',
@@ -37,13 +44,20 @@ export default {
           width: '500px'
         }
       ],
+      // 已选中的产品列表
       selectionList: [],
+      // 原始产品数据
       productData: [],
+      // 过滤后的产品数据
       filterProductData: [],
+      // 当前树形展示的数据
       currentTreeData: []
     }
   },
   watch: {
+    /**
+     * 监听产品数据变化，更新当前树形数据
+     */
     data: {
       handler(val) {
         this.productData = val
@@ -54,7 +68,10 @@ export default {
     }
   },
   methods: {
-    // 更新当前树形数据
+    /**
+     * 更新当前树形数据
+     * 根据是否有搜索关键词决定使用原始数据还是过滤后的数据
+     */
     updateCurrentTreeData() {
       if (this.searchParams.displayName) {
         this.currentTreeData = this.filterProductData
@@ -62,7 +79,10 @@ export default {
         this.currentTreeData = this.productData
       }
     },
-    // 表格搜索
+    /**
+     * 处理产品数据搜索过滤
+     * 支持按产品名称搜索，并自动展开匹配的节点及其父节点
+     */
     handleFilterProductData() {
       // 清空搜索词时，默认折叠所有节点
       if (!this.searchParams.displayName) {
@@ -139,7 +159,11 @@ export default {
       this.filterProductData = filterWithRelations(this.productData)
       this.updateCurrentTreeData()
     },
-    // 深拷贝节点数据，保持引用关系
+    /**
+     * 深拷贝节点数据，保持引用关系
+     * @param {Object} node - 要拷贝的节点对象
+     * @returns {Object} 拷贝后的节点对象
+     */
     deepCloneNode(node) {
       const cloned = { ...node }
       // 保持原有的勾选状态
@@ -151,6 +175,12 @@ export default {
       }
       return cloned
     },
+    /**
+     * 渲染树节点内容
+     * @param {Function} h - Vue 渲染函数
+     * @param {Object} param1 - 包含节点数据的对象
+     * @returns {VNode} 渲染后的虚拟节点
+     */
     renderTreeContent(h, { data }) {
       return h(
         'span',
@@ -158,6 +188,14 @@ export default {
         this.highlightMatch(data.title, this.searchParams.displayName, data.matched, h)
       )
     },
+    /**
+     * 高亮匹配的关键词
+     * @param {string} title - 节点标题
+     * @param {string} keyword - 搜索关键词
+     * @param {boolean} matched - 是否匹配
+     * @param {Function} h - Vue 渲染函数
+     * @returns {Array|string} 高亮后的内容
+     */
     highlightMatch(title, keyword, matched, h) {
       if (!keyword) return title   
       const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // 转义正则特殊字符
@@ -177,15 +215,24 @@ export default {
         }
       })
     },
+    /**
+     * 处理产品选择变化
+     * 同步勾选状态并触发选择变化事件
+     */
     handleProductSelect() {
-      // 根据当前使用的数据源同步状态
+      // 如果当前使用过滤后的数据，需要同步状态到原始数据
       if (this.searchParams.displayName) {
         this.syncCheckState(this.filterProductData, this.productData)
       }
       this.selectionList = this.getCheckedLevel2Nodes(this.productData)
       this.$emit('checkChange', this.selectionList, this.productData)
     },
-    // 同步勾选状态的方法
+    /**
+     * 同步勾选状态
+     * 将过滤数据中的勾选状态同步到原始数据中
+     * @param {Array} sourceData - 源数据（过滤后的数据）
+     * @param {Array} targetData - 目标数据（原始数据）
+     */
     syncCheckState(sourceData, targetData) {
       if (!Array.isArray(sourceData) || !Array.isArray(targetData)) return   
       sourceData.forEach(sourceNode => {
@@ -204,6 +251,12 @@ export default {
         }
       })
     },
+    /**
+     * 根据ID查找节点
+     * @param {Array} nodes - 节点数组
+     * @param {string|number} id - 节点ID
+     * @returns {Object|null} 找到的节点或null
+     */
     findNodeById(nodes, id) {
       if (!Array.isArray(nodes)) return null
       for (const node of nodes) {
@@ -217,7 +270,11 @@ export default {
       }
       return null
     },
-    // 获取勾选的二级产品节点
+    /**
+     * 获取勾选的二级产品节点
+     * @param {Array} nodes - 节点数组
+     * @returns {Array} 勾选的二级节点列表
+     */
     getCheckedLevel2Nodes(nodes) {
       if (!Array.isArray(nodes)) return []     
       const checkedNodes = []       

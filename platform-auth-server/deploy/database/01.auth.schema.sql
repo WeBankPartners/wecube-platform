@@ -160,4 +160,6 @@ CREATE TABLE `auth_sys_user_role` (
 ENGINE=InnoDB
 ;
 
+
+
 SET FOREIGN_KEY_CHECKS=1;

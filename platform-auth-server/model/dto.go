@@ -20,6 +20,12 @@ type CredentialDto struct {
 	Nonce      string `json:"nonce"`
 }
 
+type MfaVerifyRequest struct {
+	Username  string `json:"username"`
+	Code      string `json:"code"`
+	TempToken string `json:"tempToken"`
+}
+
 type JwtTokenDto struct {
 	Expiration string `json:"expiration"`
 	Token      string `json:"token"`

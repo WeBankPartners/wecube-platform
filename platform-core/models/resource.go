@@ -14,7 +14,7 @@ type ResourceServer struct {
 	Port          string    `json:"port" xorm:"port"`                    // 端口
 	Purpose       string    `json:"purpose" xorm:"purpose"`              // 描述
 	Status        string    `json:"status" xorm:"status"`                // 状态,是否启用->inactive | active
-	Type          string    `json:"type" xorm:"type"`                    // 资源类型(docker,mysql,s3)
+	Type          string    `json:"type" xorm:"type"`                    // 资源类型(docker,mysql,s3,k8s,imagerepo)
 	UpdatedBy     string    `json:"updatedBy" xorm:"updated_by"`         // 更新人
 	UpdatedDate   time.Time `json:"updatedDate" xorm:"updated_date"`     // 更新时间
 	LoginMode     string    `json:"loginMode" xorm:"login_mode"`         // 登录模式
@@ -35,6 +35,7 @@ type ResourceItem struct {
 	UpdatedDate          time.Time `json:"-" xorm:"updated_date"`                             // 更新时间
 	Username             string    `json:"username" xorm:"username"`                          // 连接用户名
 	Password             string    `json:"password" xorm:"password"`                          // 连接用户密码
+	SchemaName           string    `json:"schemaName" xorm:"schema_name"`                     // 数据库名
 }
 
 type ResourceItemQueryRow struct {

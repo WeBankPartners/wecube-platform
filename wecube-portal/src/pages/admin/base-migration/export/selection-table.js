@@ -1,7 +1,11 @@
+/**
+ * 选择表格混入
+ * 提供角色、编排、批量执行、ITSM 等表格的列配置、数据和选择处理方法
+ */
 export default {
   data() {
     return {
-      // 角色表
+      // 角色表格相关配置
       roleTableLoading: false,
       roleTableColumns: [
         {
@@ -30,7 +34,7 @@ export default {
       ],
       roleTableData: [],
       roleSelectionList: [],
-      // 编排表
+      // 编排表格相关配置
       flowTableLoading: false,
       flowTableColumns: [
         {
@@ -124,7 +128,7 @@ export default {
         name: '',
         id: ''
       },
-      // 批量执行表
+      // 批量执行表格相关配置
       batchTableLoading: false,
       batchTableColumns: [
         {
@@ -219,7 +223,7 @@ export default {
         name: '',
         id: ''
       },
-      // ITSM表
+      // ITSM 表格相关配置
       itsmTableLoading: false,
       itsmTableColumns: [
         {
@@ -395,6 +399,12 @@ export default {
     }
   },
   methods: {
+    /**
+     * 处理详情跳转
+     * 根据类型跳转到对应的详情页面
+     * @param {string} type - 类型：flow编排、batch批量执行、itsm ITSM
+     * @param {Object} row - 当前行数据
+     */
     handleDetail(type, row) {
       let path = ''
       if (type === 'flow') {

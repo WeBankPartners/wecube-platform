@@ -22,10 +22,17 @@
 </template>
 
 <script>
+/**
+ * 插件认证管理页面组件
+ * 提供插件认证文件的导入、导出、删除功能
+ */
 import axios from 'axios'
 import { setCookie, getCookie } from '@/pages//util/cookie'
 import { getCertification, deleteCertification } from '@/api/server'
 
+/**
+ * 自定义 API 枚举配置
+ */
 export const custom_api_enum = [
   {
     "url": '/platform/v1/plugin-certifications/${row.id}/export',
@@ -44,7 +51,9 @@ export default {
   name: '',
   data() {
     return {
+      // 上传请求头
       headers: {},
+      // 表格列配置
       tableColumns: [
         {
           title: this.$t('plugin'),

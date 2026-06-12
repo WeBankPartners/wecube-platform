@@ -1,4 +1,4 @@
-FROM mysql:5.6
+FROM mysql:8.4.6
 COPY database /docker-entrypoint-initdb.d
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh

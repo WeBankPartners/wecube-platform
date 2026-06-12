@@ -200,6 +200,7 @@
     <!-- 新增实例 -->
     <Modal
       v-model="isAddInstanceModalShow"
+      :width="60"
       :title="$t('p_add_instance')"
       :cancel-text="$t('cancel')"
       :ok-text="$t('p_finish')"
@@ -218,7 +219,7 @@
             style="width: 60%"
             :placeholder="$t('select_an_instance')"
           >
-            <Option v-for="item in availableHostList" :value="item" :key="item">{{ item }}</Option>
+            <Option v-for="item in availableHostList" :value="item.id" :key="item.id">{{ item.host }} ({{ item.type }})</Option>
           </Select>
           <Button type="success" @click="getPortByHostIp" class="ml-3" size="small">{{ $t('port_preview') }}</Button>
         </div>
@@ -227,9 +228,32 @@
           <div v-if="allowCreationIpPort.length">
             <div class="allow-add-port-item" v-for="(item, index) in allowCreationIpPort" :key="index">
               {{ item.ip + ':' + item.port }}
-              <Button type="success" class="ml-3" @click="createInstanceByIpPort(item.ip, item.port)" size="small">{{
+              
+              <!-- CPU 输入框 -->
+              <span style="margin-left: 12px">{{ $t('p_cpu_resource') + '(' + $t('p_core') + ')' + ':' }}</span>
+              <Input
+                v-model="item.cpu"
+                style="min-width: 70px; margin-left: 8px"
+                clearable
+                placeholder="核(无限制)"
+                @on-blur="validateCpu(item, index)"
+              />
+              <span v-if="cpuErrors[index]" style="color: red; font-size: 12px; margin-left: 4px">{{ cpuErrors[index] }}</span>
+              <!-- 内存输入框 -->
+              <span style="display: inline-block; min-width: 60px; margin-left: 10px">{{ $t('p_memory_resource') + '(' + $t('p_gi') + ')' + ':' }}</span>
+              <Input
+                v-model="item.memory"
+                style="min-width: 70px; margin-left: 8px"
+                placeholder="G(无限制)"
+                clearable
+                @on-blur="validateMemory(item, index)"
+              />
+              <span v-if="memoryErrors[index]" style="color: red; font-size: 12px; margin-left: 4px">{{ memoryErrors[index] }}</span>
+
+              <Button type="success" class="ml-3" @click="validateCpu(item, index) && validateMemory(item, index) && createInstanceByIpPort(item.id, item.port, item.cpu, item.memory ? item.memory + 'Gi' : '')" size="small">{{
                 $t('p_create')
               }}</Button>
+
             </div>
           </div>
           <div v-else>-</div>
@@ -239,7 +263,9 @@
           <div v-if="allRunningInstances.length">
             <div class="allow-add-port-item" v-for="(item, index) in allRunningInstances" :key="index">
               {{ item.displayLabel }}
-              <Poptip confirm :title="$t('p_destroy_tips')" placement="left-end" @on-ok="destroyInstance(item.id)">
+              <span style="display: inline-block; min-width: 100px; margin-left: 12px">{{ $t('p_cpu_resource') + ':' + (item.cpu === '' ? $t('p_unlimited') : item.cpu) }}</span>
+              <span style="display: inline-block; min-width: 100px; margin-right: 12px">{{ $t('p_memory_resource') + ':' + (item.memory === '' ? $t('p_unlimited') : item.memory) }}</span>
+              <Poptip confirm :title="$t('p_destroy_tips')" placement="left-end" @on-ok="destroyInstance(item)">
                 <Button size="small" type="error" class="destroy-instance-button">{{ $t('ternmiante') }}</Button>
               </Poptip>
             </div>
@@ -399,6 +425,8 @@ export default {
       isAddInstanceModalShow: false,
       selectedIp: [],
       allowCreationIpPort: [],
+      cpuErrors: {},
+      memoryErrors: {},
       availableHostList: [],
       currentPluginId: '',
       isDeletedPluginModalShow: false,
@@ -439,7 +467,8 @@ export default {
         }
       ],
       isSpinShow: false,
-      spinContent: ''
+      spinContent: '',
+      selectItemDetail: null
     }
   },
   async mounted() {
@@ -528,6 +557,7 @@ export default {
       }
     },
     async onCreateInstanceButtonClick(item) {
+      this.selectItemDetail = cloneDeep(item)
       this.availableHostList = []
       const res = await getAvailableContainerHosts()
       this.availableHostList = res.data ? res.data : []
@@ -535,7 +565,7 @@ export default {
       await this.getAvailableInstancesByPackageId(this.currentPluginId)
       this.availableHostList = cloneDeep(this.availableHostList).filter(item => {
         const findItem = find(this.allRunningInstances, {
-          hostIp: item
+          resourceServerId: item.id
         })
         return !findItem
       })
@@ -549,6 +579,8 @@ export default {
       this.selectedIp = []
       this.allowCreationIpPort = []
       this.allRunningInstances = []
+      this.cpuErrors = {}
+      this.memoryErrors = {}
     },
     async onAddInstanceModalChange(state) {
       if (!state) {
@@ -556,7 +588,7 @@ export default {
         this.resetAddInstanceForm()
       }
     },
-    async destroyInstance(instanceId) {
+    async destroyInstance(one) {
       this.isSpinShow = true
       this.spinContent = this.$t('p_instance_destroy')
       let timeId = setTimeout(() => {
@@ -565,11 +597,18 @@ export default {
         this.$Message.error(this.$t('p_instance_destroy_failed'))
       }, 180000)
 
-      const { status, message } = await removePluginInstance(instanceId)
-      this.allRunningInstances = cloneDeep(this.allRunningInstances).filter(item => item.id !== instanceId)
+      const { status, message } = await removePluginInstance(one.id)
+      this.allRunningInstances = cloneDeep(this.allRunningInstances).filter(item => item.id !== one.id)
       this.isSpinShow = false
       clearTimeout(timeId)
       if (status === 'OK') {
+        let pluginCpuAndMemoryMapStr = localStorage.getItem('pluginCpuAndMemoryMapStr') || '{}'
+        let pluginCpuAndMemoryMap = JSON.parse(pluginCpuAndMemoryMapStr)
+        pluginCpuAndMemoryMap[this.selectItemDetail.name] = {
+          cpu: one.cpu,
+          memory: one.memory ? String(parseFloat(one.memory)) : one.memory
+        }
+        localStorage.setItem('pluginCpuAndMemoryMapStr', JSON.stringify(pluginCpuAndMemoryMap))
         this.$Notice.success({
           title: 'Success',
           desc: message
@@ -580,22 +619,67 @@ export default {
     async getPortByHostIp() {
       const ipMap = {}
       const promiseArray = []
-      this.selectedIp.forEach(async ip => {
-        promiseArray.push(getAvailablePortByHostIp(ip))
-        ipMap[ip] = promiseArray.length - 1
+      let cpu = ''
+      let memory = ''
+      let pluginCpuAndMemoryMapStr = localStorage.getItem('pluginCpuAndMemoryMapStr')
+      if (pluginCpuAndMemoryMapStr && JSON.parse(pluginCpuAndMemoryMapStr)[this.selectItemDetail.name]) {
+        
+        const pluginCpuAndMemoryMap = JSON.parse(pluginCpuAndMemoryMapStr)
+        
+        cpu = pluginCpuAndMemoryMap[this.selectItemDetail.name]?.cpu || ''
+        memory = pluginCpuAndMemoryMap[this.selectItemDetail.name]?.memory || ''
+      } else {
+        cpu = this.selectItemDetail.requestCpu || ''
+        memory = this.selectItemDetail.requestMemory || ''
+      }
+      this.selectedIp.forEach(async id => {
+        promiseArray.push(getAvailablePortByHostIp(id))
+        ipMap[id] = promiseArray.length - 1
       })
       const finallArray = await Promise.all(promiseArray)
       this.allowCreationIpPort = []
       for (const key in ipMap) {
         if (finallArray[ipMap[key]].data) {
+          const host = this.availableHostList.find(item => item.id === key)
           this.allowCreationIpPort.push({
-            ip: key,
-            port: finallArray[ipMap[key]].data
+            id: host.id,
+            ip: host.host,
+            port: finallArray[ipMap[key]].data,
+            cpu,
+            memory
           })
         }
       }
     },
-    async createInstanceByIpPort(ip, port) {
+    validateCpu(item, index) {
+      const val = item.cpu
+      if (val === '' || val === null || val === undefined) {
+        this.$set(this.cpuErrors, index, '')
+        return true
+      }
+      const num = Number(val)
+      if (isNaN(num) || num <= 0) {
+        this.$set(this.cpuErrors, index, 'CPU须为正数')
+        return false
+      }
+      this.$set(this.cpuErrors, index, '')
+      return true
+    },
+    validateMemory(item, index) {
+      const val = item.memory
+      if (val === '' || val === null || val === undefined) {
+        this.$set(this.memoryErrors, index, '')
+        return true
+      }
+      const num = Number(val)
+      if (isNaN(num) || num <= 0) {
+        this.$set(this.memoryErrors, index, '内存须为正数')
+        return false
+      }
+      this.$set(this.memoryErrors, index, '')
+      return true
+    },
+    async createInstanceByIpPort(ip, port, cpu, memory) {
       this.isSpinShow = true
       this.spinContent = this.$t('p_instance_creation')
       let timeId = setTimeout(() => {
@@ -603,7 +687,7 @@ export default {
         timeId = null
         this.$Message.error(this.$t('p_instance_creation_failed'))
       }, 180000)
-      const { status } = await createPluginInstanceByPackageIdAndHostIp(this.currentPluginId, ip, port)
+      const { status } = await createPluginInstanceByPackageIdAndHostIp(this.currentPluginId, ip, port, cpu, memory)
       if (status === 'OK') {
         this.isSpinShow = false
         clearTimeout(timeId)
@@ -786,7 +870,10 @@ export default {
                   id: _.id,
                   hostIp: _.host,
                   port: _.port,
-                  displayLabel: _.host + ':' + _.port
+                  displayLabel: _.host + ':' + _.port,
+                  resourceServerId: _.resourceServerId,
+                  cpu: _.cpu,
+                  memory: _.memory
                 }
               }
             })

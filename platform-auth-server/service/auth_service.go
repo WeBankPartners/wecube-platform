@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image/png"
 	"io/ioutil"
 	"math/big"
 	"strconv"
@@ -27,6 +28,8 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/remote/api_platform"
 	"github.com/WeBankPartners/wecube-platform/platform-auth-server/service/remote/api_um"
 	"github.com/golang-jwt/jwt"
+	"github.com/pquerna/otp"
+	"github.com/pquerna/otp/totp"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -43,6 +46,84 @@ const DelimiterSystemCodeAndNonce = ":"
 var AuthServiceInstance AuthService
 
 type AuthService struct {
+}
+
+const (
+	mfaEnabledVariable        = "MFA_ENABLED"
+	mfaIssuerVariable         = "MFA_ISSUER_NAME"
+	mfaPeriodVariable         = "MFA_TOTP_PERIOD"
+	defaultMfaIssuer          = "WeCube Login"
+	defaultMfaPeriod          = 30
+	defaultMfaTempTokenMins   = 5  // 已绑定用户的有效期（5分钟）
+	firstBindMfaTempTokenMins = 30 // 第一次绑定用户的有效期（30分钟）
+)
+
+type mfaConfig struct {
+	enabled bool
+	issuer  string
+	period  uint
+}
+
+// isMfaEnabled 检查MFA是否启用，支持 true, Y, yes, y 等值
+func isMfaEnabled(val string) bool {
+	val = strings.TrimSpace(val)
+	return strings.EqualFold(val, "true") ||
+		strings.EqualFold(val, "Y") ||
+		strings.EqualFold(val, "yes") ||
+		strings.EqualFold(val, "y")
+}
+
+// 加载MFA配置，包含开关、Issuer与周期
+func loadMfaConfig(username string) (*mfaConfig, error) {
+	values, err := fetchSystemVariables(username, []string{mfaEnabledVariable, mfaIssuerVariable, mfaPeriodVariable})
+	if err != nil {
+		return &mfaConfig{enabled: false, issuer: defaultMfaIssuer, period: defaultMfaPeriod}, err
+	}
+	cfg := &mfaConfig{issuer: defaultMfaIssuer, period: defaultMfaPeriod}
+	if val, ok := values[mfaEnabledVariable]; ok && isMfaEnabled(val) {
+		cfg.enabled = true
+	}
+	if val, ok := values[mfaIssuerVariable]; ok && strings.TrimSpace(val) != "" {
+		cfg.issuer = val
+	} else {
+		cfg.issuer = defaultMfaIssuer
+	}
+	if val, ok := values[mfaPeriodVariable]; ok {
+		if v, parseErr := strconv.Atoi(val); parseErr == nil && v > 0 {
+			cfg.period = uint(v)
+		}
+	}
+	if cfg.period == 0 {
+		cfg.period = defaultMfaPeriod
+	}
+	return cfg, nil
+}
+
+// 查询指定系统变量集合，返回变量名->值（优先值，其次默认值）
+func fetchSystemVariables(username string, names []string) (map[string]string, error) {
+	result := make(map[string]string)
+	accessToken, _, err := buildAccessToken(username, []string{}, []string{"ADMIN_SYSTEM_PARAMS"}, false)
+	if err != nil {
+		return result, err
+	}
+	param := &model.QueryRequestParam{
+		Filters: []*model.QueryRequestFilterObj{
+			{Name: "name", Operator: "in", Value: names},
+		},
+		Paging: false,
+	}
+	resp, err := api_platform.QuerySystemVariables(accessToken, "", param)
+	if err != nil {
+		return result, err
+	}
+	for _, item := range resp.Contents {
+		val := item.Value
+		if strings.TrimSpace(val) == "" {
+			val = item.DefaultValue
+		}
+		result[item.Name] = val
+	}
+	return result, nil
 }
 
 func (AuthService) InitKey() error {
@@ -136,31 +217,16 @@ func (AuthService) RefreshToken(refreshToken string) ([]*model.Jwt, error) {
 		authorities = append(authorities, constant.AuthoritySubsystem)
 	}
 	authorities = utils.DistinctArrayString(authorities)
-	jwts := packJwtTokens(claim.Subject, []string{}, authorities, claim.NeedRegister)
+	jwts, err := packJwtTokens(claim.Subject, []string{}, authorities, claim.NeedRegister)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Failed to refresh token: pack JWT tokens failed",
+			zap.String("subject", claim.Subject),
+			zap.Strings("authorities", authorities),
+			zap.Error(err))
+		return nil, err
+	}
 	return jwts, nil
 }
-
-// func validateSubsystemClaimForRefresh(claim *model.AuthClaims) ([]*model.Jwt, error) {
-// 	systemCode := claim.Subject
-// 	if isBlank(systemCode) {
-// 		log.Warn(nil, log.LOGGER_APP, "system code is blank")
-// 		return nil, exterror.NewBadCredentialsError("system code is blank")
-// 	}
-
-// 	systemInfo, err := SubSystemInfoDataServiceImplInstance.retrieveSysSubSystemInfoWithSystemCode(systemCode)
-// 	if err != nil {
-// 		log.Error(nil, log.LOGGER_APP, "failed to retrieve sub system info", zap.String("systemCode", systemCode), zap.Error(err))
-// 		return nil, err
-// 	}
-
-// 	if systemInfo == nil {
-// 		log.Error(nil, log.LOGGER_APP, fmt.Sprintf("such sub system %s is not available.", systemCode))
-// 		return nil, errors.New("such sub system is not available")
-// 	}
-
-// 	jwts := packJwtTokens(systemCode, []string{}, systemInfo.Authorities, claim.NeedRegister)
-// 	return jwts, nil
-// }
 
 func validateCredential(c *model.CredentialDto) error {
 	if c == nil {
@@ -302,26 +368,100 @@ func authenticateUser(credential *model.CredentialDto, taskLogin bool) (*model.A
 		authorities = append(authorities, authority.Authority)
 	}
 
-	authResp, err := createAuthenticationResponse(credential, authorities, false)
-	return authResp, err
+	return AuthServiceInstance.handleMfaLogin(user, credential, authorities)
 }
 
-func packJwtTokens(loginId string, roles []string, authorities []string, needRegister bool) []*model.Jwt {
-	jwts := make([]*model.Jwt, 2)
-	if accessToken, exp, err := buildAccessToken(loginId, roles, authorities, needRegister); err == nil {
-		jwts[0] = &model.Jwt{Expiration: strconv.Itoa(int(exp)), Token: accessToken, TokenType: constant.TypeAccessToken}
-	}
-	if refreshToken, exp, err := buildRefreshToken(loginId, needRegister); err == nil {
-		jwts[1] = &model.Jwt{Expiration: strconv.Itoa(int(exp)), Token: refreshToken, TokenType: constant.TypeRefreshToken}
+// 处理MFA登录逻辑，按开关与绑定状态返回二维码或验证码提示
+func (AuthService) handleMfaLogin(user *model.SysUser, credential *model.CredentialDto, authorities []string) (*model.AuthenticationResponse, error) {
+	cfg, err := loadMfaConfig(credential.Username)
+	if err != nil || !cfg.enabled {
+		return createAuthenticationResponse(credential, authorities, false)
 	}
 
-	return jwts
+	// 判断是否已绑定：需要同时检查 mfa_secret 和绑定状态
+	isBound := !isBlank(user.MfaSecret) && user.MfaBound
+
+	// 根据是否已绑定 secret 设置不同的有效期
+	// 第一次绑定：30分钟，已绑定：5分钟
+	var tokenMins int
+	if !isBound {
+		tokenMins = firstBindMfaTempTokenMins
+	} else {
+		tokenMins = defaultMfaTempTokenMins
+	}
+
+	tempToken, err := buildMfaTempToken(credential.Username, tokenMins)
+	if err != nil {
+		return createAuthenticationResponse(credential, authorities, false)
+	}
+
+	if !isBound {
+		genResp, genErr := generateMfaSecretAndQr(credential.Username, cfg)
+		if genErr != nil {
+			return createAuthenticationResponse(credential, authorities, false)
+		}
+		return &model.AuthenticationResponse{
+			UserId:      credential.Username,
+			QrCodeUrl:   genResp.QrCodeUrl,
+			QrCodeImage: genResp.QrCodeImage,
+			TempToken:   tempToken,
+		}, nil
+	}
+
+	return &model.AuthenticationResponse{
+		UserId:      credential.Username,
+		NeedMfaCode: true,
+		TempToken:   tempToken,
+	}, nil
+}
+
+func packJwtTokens(loginId string, roles []string, authorities []string, needRegister bool) ([]*model.Jwt, error) {
+	jwts := make([]*model.Jwt, 0, 2)
+
+	// 生成 Access Token
+	accessToken, exp, err := buildAccessToken(loginId, roles, authorities, needRegister)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Failed to pack JWT tokens: access token generation failed",
+			zap.String("loginId", loginId),
+			zap.Strings("roles", roles),
+			zap.Strings("authorities", authorities),
+			zap.Bool("needRegister", needRegister),
+			zap.Error(err))
+		return nil, fmt.Errorf("failed to build access token: %w", err)
+	}
+	jwts = append(jwts, &model.Jwt{
+		Expiration: strconv.Itoa(int(exp)),
+		Token:      accessToken,
+		TokenType:  constant.TypeAccessToken,
+	})
+
+	// 生成 Refresh Token
+	refreshToken, exp, err := buildRefreshToken(loginId, needRegister)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Failed to pack JWT tokens: refresh token generation failed",
+			zap.String("loginId", loginId),
+			zap.Bool("needRegister", needRegister),
+			zap.Error(err))
+		return nil, fmt.Errorf("failed to build refresh token: %w", err)
+	}
+	jwts = append(jwts, &model.Jwt{
+		Expiration: strconv.Itoa(int(exp)),
+		Token:      refreshToken,
+		TokenType:  constant.TypeRefreshToken,
+	})
+
+	log.Debug(nil, log.LOGGER_APP, "Successfully packed JWT tokens",
+		zap.String("loginId", loginId),
+		zap.Int("tokenCount", len(jwts)))
+
+	return jwts, nil
 }
 
 func buildAccessToken(loginId string, roles []string, authorities []string, needRegister bool) (string, int64, error) {
 	if model.Config.Auth.SigningKeyBytes == nil {
-		log.Error(nil, log.LOGGER_APP, "jwt key is invalid")
-		return "", 0, errors.New("failed to build refresh token")
+		log.Error(nil, log.LOGGER_APP, "Failed to build access token: JWT signing key is nil",
+			zap.String("loginId", loginId))
+		return "", 0, errors.New("JWT signing key is not configured")
 	}
 	issueAt := time.Now().UTC().Unix()
 	exp := time.Now().Add(time.Minute * time.Duration(model.Config.Auth.AccessTokenMins)).UTC().Unix()
@@ -333,23 +473,25 @@ func buildAccessToken(loginId string, roles []string, authorities []string, need
 		Roles:        roles,
 		Authority:    utils.BuildArrayString(authorities),
 		NeedRegister: needRegister,
-		/*		LoginType:   loginType,
-				Auth:        aggAuths,
-				AdminType:   adminType,
-				UserName:    userName,
-		*/})
-	if tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes); err == nil {
-		return tokenString, exp, nil
-	} else {
-		log.Error(nil, log.LOGGER_APP, "Failed to build access token", zap.Error(err))
-		return "", 0, errors.New("failed to build access token")
+	})
+	tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Failed to build access token: signing failed",
+			zap.String("loginId", loginId),
+			zap.Strings("roles", roles),
+			zap.Strings("authorities", authorities),
+			zap.Bool("needRegister", needRegister),
+			zap.Error(err))
+		return "", 0, fmt.Errorf("failed to sign access token: %w", err)
 	}
+	return tokenString, exp, nil
 }
 
 func buildRefreshToken(loginId string, needRegister bool) (string, int64, error) {
 	if model.Config.Auth.SigningKeyBytes == nil {
-		log.Error(nil, log.LOGGER_APP, "jwt key is invalid")
-		return "", 0, errors.New("failed to build refresh token")
+		log.Error(nil, log.LOGGER_APP, "Failed to build refresh token: JWT signing key is nil",
+			zap.String("loginId", loginId))
+		return "", 0, errors.New("JWT signing key is not configured")
 	}
 
 	issueAt := time.Now().UTC().Unix()
@@ -366,17 +508,99 @@ func buildRefreshToken(loginId string, needRegister bool) (string, int64, error)
 				AdminType: adminType,
 				UserName:  userName,
 		*/})
-	if tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes); err == nil {
-		return tokenString, exp, nil
-	} else {
-		log.Error(nil, log.LOGGER_APP, "Failed to build refresh token", zap.Error(err))
-		return "", 0, errors.New("failed to build access token")
+	tokenString, err := token.SignedString(model.Config.Auth.SigningKeyBytes)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Failed to build refresh token: signing failed",
+			zap.String("loginId", loginId),
+			zap.Bool("needRegister", needRegister),
+			zap.Error(err))
+		return "", 0, fmt.Errorf("failed to sign refresh token: %w", err)
 	}
+	return tokenString, exp, nil
+}
+
+// 生成临时MFA Token，仅用于二次验证
+// durationMins: Token有效期（分钟）
+func buildMfaTempToken(username string, durationMins int) (string, error) {
+	if model.Config.Auth.SigningKeyBytes == nil {
+		return "", errors.New("jwt key is invalid")
+	}
+	issueAt := time.Now().UTC().Unix()
+	exp := time.Now().Add(time.Minute * time.Duration(durationMins)).UTC().Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, model.AuthClaims{
+		Subject:   username,
+		IssuedAt:  issueAt,
+		ExpiresAt: exp,
+		Type:      constant.TypeMfaTempToken,
+	})
+	return token.SignedString(model.Config.Auth.SigningKeyBytes)
+}
+
+type mfaQrResp struct {
+	QrCodeUrl   string
+	QrCodeImage string
+	Secret      string
+}
+
+// 生成用户专属MFA密钥与二维码
+func generateMfaSecretAndQr(username string, cfg *mfaConfig) (*mfaQrResp, error) {
+	key, err := totp.Generate(totp.GenerateOpts{
+		Issuer:      cfg.issuer,
+		AccountName: username,
+		Period:      cfg.period,
+		Digits:      otp.DigitsSix,
+		Algorithm:   otp.AlgorithmSHA1,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if err = db.UserRepositoryInstance.UpdateMfaSecret(username, key.Secret()); err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	if img, imgErr := key.Image(200, 200); imgErr == nil && img != nil {
+		_ = png.Encode(&buf, img)
+	}
+	return &mfaQrResp{
+		QrCodeUrl:   key.URL(),
+		QrCodeImage: base64.StdEncoding.EncodeToString(buf.Bytes()),
+		Secret:      key.Secret(),
+	}, nil
+}
+
+// 校验临时MFA Token有效性
+func validateMfaTempToken(tempToken, username string) error {
+	jwtToken, err := jwt.ParseWithClaims(tempToken, &model.AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return model.Config.Auth.SigningKeyBytes, nil
+	})
+	if err != nil {
+		return err
+	}
+	claim, ok := jwtToken.Claims.(*model.AuthClaims)
+	if !ok || !jwtToken.Valid {
+		return errors.New("invalid temp token")
+	}
+	if claim.Type != constant.TypeMfaTempToken {
+		return errors.New("invalid token type")
+	}
+	if claim.Subject != username {
+		return errors.New("username mismatch")
+	}
+	return nil
 }
 
 func createAuthenticationResponse(credential *model.CredentialDto, authorities []string, needRegister bool) (*model.AuthenticationResponse, error) {
 	authorities = utils.DistinctArrayString(authorities)
-	jwts := packJwtTokens(credential.Username, []string{}, authorities, needRegister)
+	jwts, err := packJwtTokens(credential.Username, []string{}, authorities, needRegister)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Failed to create authentication response: pack JWT tokens failed",
+			zap.String("username", credential.Username),
+			zap.Strings("authorities", authorities),
+			zap.Bool("needRegister", needRegister),
+			zap.Error(err))
+		return nil, err
+	}
 	return &model.AuthenticationResponse{
 		UserId:       credential.Username,
 		NeedRegister: needRegister,
@@ -430,7 +654,7 @@ func checkAuthentication(user *model.SysUser, credential *model.CredentialDto) e
 	presentedPassword := credential.Password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(presentedPassword)); err != nil {
 		log.Warn(nil, log.LOGGER_APP, "failed to compare hash and password", zap.Error(err))
-		return exterror.NewBadCredentialsError("Bad credential:bad password.")
+		return exterror.NewBadCredentialsError("Bad credential.")
 	}
 
 	return nil
@@ -504,4 +728,62 @@ func decodeAesPassword(seed, password, ivValue string) (decodePwd string, err er
 		decodePwd, err = cipher.AesDePasswordWithIV(seed, password, ivValue)
 	}
 	return
+}
+
+// VerifyMfaCode 校验用户提交的TOTP验证码
+func (AuthService) VerifyMfaCode(request *model.MfaVerifyRequest) ([]*model.Jwt, error) {
+	if request == nil || isBlank(request.Username) || isBlank(request.Code) || isBlank(request.TempToken) {
+		return nil, exterror.NewBadCredentialsError("invalid request")
+	}
+	if err := validateMfaTempToken(request.TempToken, request.Username); err != nil {
+		return nil, exterror.NewBadCredentialsError("Please complete the first step login verification")
+	}
+
+	user, err := LocalUserServiceInstance.loadUserByUsername(request.Username)
+	if err != nil {
+		return nil, err
+	}
+	// 判断是否已绑定：需要同时检查 mfa_secret 和绑定状态
+	if user == nil || isBlank(user.MfaSecret) {
+		return nil, exterror.NewBadCredentialsError("Please bind MFA first")
+	}
+
+	cfg, _ := loadMfaConfig(request.Username)
+	period := cfg.period
+	if period == 0 {
+		period = defaultMfaPeriod
+	}
+	validateOk, _ := totp.ValidateCustom(request.Code, user.MfaSecret, time.Now().UTC(), totp.ValidateOpts{
+		Period:    period,
+		Skew:      1,
+		Digits:    otp.DigitsSix,
+		Algorithm: otp.AlgorithmSHA1,
+	})
+	if !validateOk {
+		return nil, exterror.NewBadCredentialsError("Invalid verification code")
+	}
+
+	// 验证成功后，设置绑定状态为已绑定
+	if !user.MfaBound {
+		if err = db.UserRepositoryInstance.UpdateMfaBound(request.Username, true); err != nil {
+			log.Warn(nil, log.LOGGER_APP, "failed to update mfa bound status", zap.String("username", request.Username), zap.Error(err))
+		}
+	}
+
+	authorities := make([]string, 0)
+	for _, authority := range user.CompositeAuthorities {
+		authorities = append(authorities, authority.Authority)
+	}
+
+	authorities = utils.DistinctArrayString(authorities)
+
+	jwts, err := packJwtTokens(request.Username, []string{}, authorities, false)
+	if err != nil {
+		log.Error(nil, log.LOGGER_APP, "Failed to verify MFA code: pack JWT tokens failed",
+			zap.String("username", request.Username),
+			zap.Strings("authorities", authorities),
+			zap.Error(err))
+		return nil, fmt.Errorf("failed to generate authentication tokens: %w", err)
+	}
+	return jwts, nil
 }

@@ -9,6 +9,9 @@
         <FormItem label="ID">
           <Input disabled v-model="itemCustomInfo.id"></Input>
         </FormItem>
+        <FormItem label="KEY">
+          <Input disabled v-model="itemCustomInfo.key"></Input>
+        </FormItem>
         <FormItem>
           <label slot="label">
             <span style="color: red">*</span>

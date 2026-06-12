@@ -283,6 +283,13 @@
   </div>
 </template>
 <script>
+/**
+ * 用户角色管理页面组件
+ * 提供用户、角色、菜单权限的管理功能，包括：
+ * - 用户的增删改查、密码重置、角色分配
+ * - 角色的增删改查、用户管理、菜单权限配置
+ * - 菜单权限的树形展示和配置
+ */
 import {
   userCreate,
   removeUser,
@@ -309,10 +316,15 @@ import { MENUS } from '@/const/menus.js'
 export default {
   data() {
     return {
-      userFilter: '', // 用户过滤条件
+      // 用户过滤条件
+      userFilter: '',
+      // 过滤后的用户列表
       userFilterRes: [],
-      roleFilter: '', // 用户过滤条件
+      // 角色过滤条件
+      roleFilter: '',
+      // 过滤后的角色列表
       roleFilterRes: [],
+      // 为用户添加角色的弹窗配置
       addRoleToUser: {
         isShow: false,
         params: {
@@ -322,18 +334,26 @@ export default {
         },
         allRoles: []
       },
+      // 是否显示新密码弹窗
       showNewPassword: false,
+      // 重置后的新密码
       newPassword: '',
+      // 当前选中的角色ID
       currentRoleId: '',
+      // 用户列表
       users: [],
+      // 当前选中的用户名
       selectedUser: '',
+      // 角色列表
       roles: [],
+      // 新增用户表单数据
       addedUser: {
         username: '',
         authType: 'LOCAL',
         email: '',
         password: ''
       },
+      // 新增/编辑角色表单数据
       addedRole: {
         isShow: false,
         isAdd: false,
@@ -346,6 +366,7 @@ export default {
           status: false
         }
       },
+      // 编辑用户邮箱弹窗配置
       editUser: {
         isShow: false,
         params: {
@@ -353,27 +374,42 @@ export default {
         }
       },
       addedRoleValue: '',
+      // 穿梭框标题
       transferTitles: [this.$t('unselected_user'), this.$t('selected_user')],
+      // 穿梭框样式
       transferStyle: {
         width: '300px',
         height: '300px'
       },
+      // 已选中角色的用户ID列表
       usersKeyBySelectedRole: [],
+      // 所有用户（用于穿梭框）
       allUsersForTransfer: [],
+      // 是否显示添加用户弹窗
       addUserModalVisible: false,
+      // 是否显示用户管理弹窗
       userManageModal: false,
+      // 原始菜单数据
       originMenus: [],
+      // 处理后的菜单树数据
       menus: [],
+      // 菜单树加载状态
       menuTreeLoading: false,
+      // 分页配置
       pagination: {
         total: 50,
         page: 1,
         size: 20
       },
+      // 所有用户信息（用于下拉选择）
       initAllUserInfo: []
     }
   },
   watch: {
+    /**
+     * 监听角色过滤条件变化
+     * 使用防抖优化性能，300ms 后执行过滤
+     */
     roleFilter: {
       handler: debounce(function (newValue) {
         const filter = newValue.trim()
@@ -382,11 +418,16 @@ export default {
         } else {
           this.roleFilterRes = this.roles.filter(r => r.name.includes(filter) || r.displayName.includes(filter))
         }
-      }, 300), // 300ms防抖时间'
+      }, 300),
       immediate: true
     }
   },
   methods: {
+    /**
+     * 比较函数，用于排序
+     * @param {string} prop - 要比较的属性名
+     * @returns {Function} 比较函数
+     */
     compare(prop) {
       return function (obj1, obj2) {
         let val1 = obj1[prop]
@@ -403,6 +444,9 @@ export default {
         return 0
       }
     },
+    /**
+     * 确认为用户添加角色
+     */
     async confirmAddRoleToUser() {
       const { status } = await addRoleToUser(this.addRoleToUser.params.id, this.addRoleToUser.params.roles)
       if (status === 'OK') {
@@ -414,6 +458,10 @@ export default {
         this.addRoleToUser.isShow = false
       }
     },
+    /**
+     * 打开为用户添加角色的弹窗
+     * @param {Object} item - 用户对象
+     */
     async addRoleToUsers(item) {
       this.addRoleToUser.params = { ...item }
       const allPromiseArr = []
@@ -429,6 +477,10 @@ export default {
         this.addRoleToUser.isShow = true
       }
     },
+    /**
+     * 删除用户
+     * @param {Object} item - 用户对象
+     */
     removeUser(item) {
       this.$Modal.confirm({
         title: this.$t('confirm_to_delete'),
@@ -448,6 +500,10 @@ export default {
         onCancel: () => {}
       })
     },
+    /**
+     * 重置用户密码
+     * @param {Object} item - 用户对象
+     */
     async resetRolePassword(item) {
       this.$Modal.confirm({
         title: this.$t('reset_password'),
@@ -465,6 +521,9 @@ export default {
         onCancel: () => {}
       })
     },
+    /**
+     * 复制密码到剪贴板
+     */
     copyPassword() {
       const inputElement = document.createElement('input')
       inputElement.value = this.newPassword
@@ -478,6 +537,10 @@ export default {
       inputElement.remove()
       this.showNewPassword = false
     },
+    /**
+     * 处理菜单树勾选变化
+     * @param {Array} allChecked - 所有已勾选的菜单项
+     */
     async handleMenuTreeCheck(allChecked) {
       this.menuTreeLoading = true
       const menuCodes = allChecked.filter(i => i.category).map(_ => _.code)
@@ -491,6 +554,9 @@ export default {
       }
       this.menuTreeLoading = false
     },
+    /**
+     * 获取所有菜单列表
+     */
     async getAllMenus() {
       const { status, data } = await getAllMenusList()
       if (status === 'OK') {
@@ -498,6 +564,12 @@ export default {
       }
       this.menus = this.menusResponseHandeler(this.originMenus)
     },
+    /**
+     * 设置菜单权限选中状态
+     * @param {Array} allMenus - 所有菜单
+     * @param {Array} menusPermissions - 已授权的菜单权限列表
+     * @param {boolean} disabled - 是否禁用
+     */
     menusPermissionSelected(allMenus, menusPermissions = [], disabled) {
       allMenus.forEach(_ => {
         _.children.forEach(m => {
@@ -510,6 +582,12 @@ export default {
         _.disabled = disabled
       })
     },
+    /**
+     * 处理菜单响应数据，转换为树形结构
+     * @param {Array} data - 原始菜单数据
+     * @param {boolean} disabled - 是否禁用
+     * @returns {Array} 处理后的菜单树
+     */
     menusResponseHandeler(data, disabled = true) {
       const menus = []
       data.forEach(_ => {
@@ -579,6 +657,9 @@ export default {
         this.getInitAllUserInfo()
       }
     },
+    /**
+     * 获取所有角色列表
+     */
     async getAllRoles() {
       const params = { all: 'Y' }
       const { status, data } = await getRoleList(params)
@@ -592,6 +673,12 @@ export default {
         this.roleFilterRes = this.roles
       }
     },
+    /**
+     * 处理用户点击事件
+     * 选中用户后，加载该用户的角色和菜单权限
+     * @param {boolean} checked - 是否选中
+     * @param {string} name - 用户名
+     */
     async handleUserClick(checked, name) {
       this.selectedUser = name
       this.currentRoleId = ''
@@ -626,6 +713,12 @@ export default {
         this.menusPermissionSelected(this.menus, [], true)
       }
     },
+    /**
+     * 处理角色点击事件
+     * 选中角色后，加载该角色的菜单权限和用户列表
+     * @param {boolean} checked - 是否选中
+     * @param {string} id - 角色ID
+     */
     async handleRoleClick(checked, id) {
       const find = this.roles.filter(r => r.id === id)
       if (find[0].status === 'Deleted') {
@@ -653,6 +746,12 @@ export default {
         })
       }
     },
+    /**
+     * 处理用户穿梭框变化
+     * @param {Array} newTargetKeys - 新的目标键列表
+     * @param {string} direction - 移动方向：right 添加，left 移除
+     * @param {Array} moveKeys - 移动的键列表
+     */
     async handleUserTransferChange(newTargetKeys, direction, moveKeys) {
       if (direction === 'right') {
         const { status, message } = await grantRolesForUser(moveKeys, this.selectedRole)
@@ -674,12 +773,19 @@ export default {
         }
       }
     },
+    /**
+     * 确认用户管理操作
+     */
     async confirmUser() {
       if (this.selectedUser) {
         await this.handleUserClick(true, this.selectedUser)
       }
       this.userManageModal = false
     },
+    /**
+     * 打开用户管理弹窗
+     * @param {string} id - 角色ID
+     */
     async openUserManageModal(id) {
       this.transferStyle.height = window.innerHeight - 260 + 'px'
       this.usersKeyBySelectedRole = []
@@ -696,10 +802,17 @@ export default {
       }))
       this.userManageModal = true
     },
+    /**
+     * 编辑用户邮箱
+     * @param {Object} item - 用户对象
+     */
     editUserEmail(item) {
       this.editUser.params = JSON.parse(JSON.stringify(item))
       this.editUser.isShow = true
     },
+    /**
+     * 确认编辑用户邮箱
+     */
     async confirmEditUserEmail() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!this.editUser.params.emailAddr) {
@@ -720,6 +833,10 @@ export default {
         this.getAllUsers()
       }
     },
+    /**
+     * 添加用户
+     * 包含用户名、密码、邮箱等验证
+     */
     async addUser() {
       if (!this.addedUser.username) {
         this.$Message.warning(`${this.$t('username_cannot_empty')}`)
@@ -765,6 +882,9 @@ export default {
         this.getAllUsers()
       }
     },
+    /**
+     * 添加或更新角色
+     */
     async addRole() {
       if (this.addedRole.isAdd && !this.addedRole.params.name) {
         this.$Message.warning(`${this.$t('role')}${this.$t('cannotBeEmpty')}`)
@@ -800,6 +920,9 @@ export default {
         this.getAllRoles()
       }
     },
+    /**
+     * 打开添加角色弹窗
+     */
     openAddRoleModal() {
       this.addedRole.isAdd = true
       this.addedRole.params.name = ''
@@ -808,6 +931,10 @@ export default {
       this.addedRole.params.administrator = ''
       this.addedRole.isShow = true
     },
+    /**
+     * 编辑角色
+     * @param {Object} item - 角色对象
+     */
     editRole(item) {
       this.addedRole.isAdd = false
       this.addedRole.params = { ...item }
@@ -818,6 +945,9 @@ export default {
       }
       this.addedRole.isShow = true
     },
+    /**
+     * 打开添加用户弹窗
+     */
     openAddUserModal() {
       this.addedUser.username = ''
       this.addedUser.authType = 'LOCAL'
@@ -825,22 +955,38 @@ export default {
       this.addedUser.email = ''
       this.addUserModalVisible = true
     },
+    /**
+     * 取消操作
+     */
     cancel() {
       this.addedRole.isShow = false
     },
+    /**
+     * 获取所有用户信息（用于下拉选择）
+     */
     async getInitAllUserInfo() {
       const { status, data } = await getUserList()
       if (status === 'OK') {
         this.initAllUserInfo = data
       }
     },
+    /**
+     * 获取第一页用户数据
+     */
     getFirstPageUsers() {
       this.pagination.page = 1
       this.getAllUsers(false)
     },
+    /**
+     * 用户过滤条件变化处理（防抖）
+     */
     onUserFilterChange: debounce(function () {
       this.getFirstPageUsers()
     }, 300),
+    /**
+     * 用户角色过滤条件变化处理
+     * @param {string} id - 角色ID
+     */
     onFilterUserRoleChange(id) {
       if (!id) return
       this.roles.forEach(item => {
@@ -851,8 +997,10 @@ export default {
         }
       })
       this.handleRoleClick(true, id)
-      
     },
+    /**
+     * 清除用户角色过滤条件
+     */
     onFilterUserRoleClear() {
       this.roles.forEach(_ => {
         _.checked = false
@@ -860,6 +1008,9 @@ export default {
       this.getFirstPageUsers()
     }
   },
+  /**
+   * 组件创建时初始化数据
+   */
   created() {
     this.getAllUsers()
     this.getAllRoles()

@@ -170,6 +170,8 @@ type SysUserEntity struct {
 	IsDeleted   bool   `xorm:"'IS_DELETED'"`
 	AuthSource  string `xorm:"'AUTH_SRC'"`
 	AuthContext string `xorm:"'AUTH_CTX'"`
+	MfaSecret   string `xorm:"'MFA_SECRET'"`
+	MfaBound    bool   `xorm:"'MFA_BOUND'"`
 }
 
 func (SysUserEntity) TableName() string {

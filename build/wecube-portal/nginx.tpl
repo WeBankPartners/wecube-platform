@@ -1,6 +1,6 @@
 user  root;
 worker_processes  2;
-error_log  /var/log/nginx/error.log warn;
+error_log  /var/log/nginx/error.log info;
 pid  /var/run/nginx.pid;
 events {
   worker_connections  1024;
@@ -15,6 +15,8 @@ http {
   proxy_buffer_size       128k;
   proxy_buffers           32 32k;
   proxy_busy_buffers_size 128k;
+  client_header_buffer_size 8k;
+  large_client_header_buffers 4 32k;
   access_log              /var/log/nginx/access.log  main;
   sendfile                on;
   keepalive_timeout       65;

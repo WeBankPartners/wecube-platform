@@ -70,6 +70,10 @@ type PluginInstances struct {
 	InstanceName                  string `json:"instanceName" xorm:"instance_name"`                                      // 容器实例名
 	PluginMysqlInstanceResourceId string `json:"pluginMysqlInstanceResourceId" xorm:"plugin_mysql_instance_resource_id"` // 数据库实例id
 	S3bucketResourceId            string `json:"s3bucketResourceId" xorm:"s3bucket_resource_id"`                         // s3资源id
+	ResourceServerId              string `json:"resourceServerId" xorm:"-"`                                              // DockerInstanceResourceId对应的RS id
+	Cpu                           string `json:"cpu" xorm:"cpu"`                                                         // 插件实际运行CPU，如500m/0.5/1/3等
+	Memory                        string `json:"memory" xorm:"memory"`
+	Replicas                      int    `json:"replicas" xorm:"replicas"` // 实例副本数量(仅k8s)
 }
 
 type PluginPackageRuntimeResourcesDocker struct {
@@ -80,6 +84,8 @@ type PluginPackageRuntimeResourcesDocker struct {
 	PortBindings    string `json:"portBindings" xorm:"port_bindings"`        // 端口信息
 	VolumeBindings  string `json:"volumeBindings" xorm:"volume_bindings"`    // 目录映射
 	EnvVariables    string `json:"envVariables" xorm:"env_variables"`        // 容器环境变量
+	Cpu             string `json:"cpu" xorm:"cpu"`                           // 插件建议CPU，如500m/0.5/1/3等
+	Memory          string `json:"memory" xorm:"memory"`                     // 插件建议内存，如512Mi/0.5Gi/1Gi/3Gi
 }
 
 type PluginPackageRuntimeResourcesMysql struct {
@@ -95,6 +101,14 @@ type PluginPackageRuntimeResourcesS3 struct {
 	PluginPackageId      string `json:"pluginPackageId" xorm:"plugin_package_id"`          // 插件
 	BucketName           string `json:"bucketName" xorm:"bucket_name"`                     // 桶名
 	AdditionalProperties string `json:"additionalProperties" xorm:"additional_properties"` // 自动上传文件
+}
+
+type PluginPackageRuntimeResourcesVolume struct {
+	Id              string `json:"id" xorm:"id"`                             // 唯一标识
+	PluginPackageId string `json:"pluginPackageId" xorm:"plugin_package_id"` // 插件
+	Name            string `json:"name" xorm:"name"`                         // 卷名称
+	Size            string `json:"size" xorm:"size"`                         // 卷大小
+	MountPath       string `json:"mountPath" xorm:"mount_path"`              // 卷路径
 }
 
 type PluginMysqlInstances struct {
@@ -157,6 +171,7 @@ type PluginRuntimeResourceData struct {
 	Docker []*PluginPackageRuntimeResourcesDocker `json:"docker"`
 	Mysql  []*PluginPackageRuntimeResourcesMysql  `json:"mysql"`
 	S3     []*PluginPackageRuntimeResourcesS3     `json:"s3"`
+	Volume []*PluginPackageRuntimeResourcesVolume `json:"volume"`
 }
 
 type AuthLatestEnabledInterfaces struct {
@@ -251,6 +266,8 @@ type RegisterXML struct {
 			Text           string `xml:",chardata"`
 			ImageName      string `xml:"imageName,attr"`
 			ContainerName  string `xml:"containerName,attr"`
+			Cpu            string `xml:"cpu,attr"`
+			Memory         string `xml:"memory,attr"`
 			PortBindings   string `xml:"portBindings,attr"`
 			VolumeBindings string `xml:"volumeBindings,attr"`
 			EnvVariables   string `xml:"envVariables,attr"`
@@ -273,6 +290,12 @@ type RegisterXML struct {
 				} `xml:"file"`
 			} `xml:"fileSet"`
 		} `xml:"s3"`
+		// 新增：持久化存储声明（允许多个）
+		Volume []struct {
+			Name      string `xml:"name,attr"`      // 卷名称
+			Size      string `xml:"size,attr"`      // 大小，例如: "10Gi"
+			MountPath string `xml:"mountPath,attr"` // 挂载路径
+		} `xml:"volume"`
 	} `xml:"resourceDependencies"`
 	Plugins struct {
 		Text   string `xml:",chardata"`
@@ -889,14 +912,19 @@ type PluginPackageQueryParam struct {
 
 type PluginPackageQueryObj struct {
 	PluginPackages
-	Menus      []string                    `json:"menus"`
-	LocalMenus []string                    `json:"localMenus"`
-	Instances  []*PluginPackageInstanceObj `json:"instances"`
+	Menus         []string                    `json:"menus"`
+	LocalMenus    []string                    `json:"localMenus"`
+	Instances     []*PluginPackageInstanceObj `json:"instances"`
+	RequestCpu    string                      `json:"requestCpu"`    // 插件建议CPU，如500m/0.5/1/3等
+	RequestMemory string                      `json:"requestMemory"` // 插件建议内存，如512Mi/0.5Gi/1Gi/3Gi
 }
 
 type PluginPackageInstanceObj struct {
-	Id      string `json:"id"`
-	Address string `json:"address"`
+	Id       string `json:"id"`
+	Address  string `json:"address"`
+	Cpu      string `json:"cpu"`
+	Memory   string `json:"memory"`
+	Replicas int    `json:"replicas"`
 }
 
 type PluginVersionListObj struct {
