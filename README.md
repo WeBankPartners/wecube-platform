@@ -200,12 +200,3 @@ WeCube 使用 Java 和 VUE 进行开发，数据存储于 MySQL，并依赖 Tomc
 
 WeCube 是基于 Apache License 2.0 协议， 详情请参考 [LICENSE](LICENSE)
 
-## 社区
-
-- 如果您想得到最快的响应，请给我们提[Issue](https://github.com/WeBankPartners/wecube-platform/issues/new/choose)或扫描下面的二维码，我们会第一时间反馈。
-
-<div align="left">
-<img src="wecube-wiki/images/wecube_qr_code.png"  height="200" width="200">
-</div>
-
-- 联系我们：fintech@webank.com
