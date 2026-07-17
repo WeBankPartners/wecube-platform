@@ -436,6 +436,7 @@ func doRunJob(c *gin.Context, reqParam *models.BatchExecRun) (result *models.Bat
 	for _, inputParam := range reqParam.InputParameterDefinitions {
 		pluginDefInputParams := &models.BatchExecutionPluginDefInputParams{
 			ParamId:     inputParam.InputParameter.Id,
+			ParamName:   inputParam.InputParameter.Name,
 			ParameValue: inputParam.InputParameterValue,
 		}
 		// 新版本服务接口，通过name替换参数id

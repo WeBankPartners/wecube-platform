@@ -202,6 +202,7 @@ type BatchExecutionPluginExecInputParams map[string]interface{}
 
 type BatchExecutionPluginDefInputParams struct {
 	ParamId     string `json:"inputParamId"`
+	ParamName   string `json:"inputParamName"`
 	ParameValue string `json:"inputParamValue"`
 }
 

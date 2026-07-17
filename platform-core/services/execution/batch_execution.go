@@ -80,6 +80,9 @@ func BatchExecutionCallPluginService(ctx context.Context, operator, authToken, p
 	inputConstantMap := make(map[string]string)
 	for _, inputConst := range inputParamConstants {
 		inputConstantMap[inputConst.ParamId] = inputConst.ParameValue
+		if inputConst.ParamName != "" {
+			inputConstantMap[inputConst.ParamName] = inputConst.ParameValue
+		}
 	}
 	rootExprList, errAnalyze1 := remote.AnalyzeExpression(entityType)
 	if errAnalyze1 != nil {
@@ -770,7 +773,11 @@ func handleInputData(
 				if inputDef.MappingVal != "" {
 					inputCalResult = inputDef.MappingVal
 				} else {
-					inputCalResult = inputConstantMap[inputDef.Id]
+					var ok bool
+					inputCalResult, ok = inputConstantMap[inputDef.Id]
+					if !ok {
+						inputCalResult = inputConstantMap[inputDef.Name]
+					}
 				}
 			case models.PluginParamMapTypeSystemVar:
 				if inputDef.MappingSystemVariableName == "" {

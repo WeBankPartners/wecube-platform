@@ -317,16 +317,15 @@ func UpdateResourceItem(ctx context.Context, params []*models.ResourceItem, oper
 			err = fmt.Errorf("item type %s illegal", v.Type)
 			return
 		}
-		if decodePwd, tmpErr := DecodeUIPassword(ctx, v.Password); tmpErr != nil {
+		decodePwd, tmpErr := DecodeUIPassword(ctx, v.Password)
+		if tmpErr != nil {
 			err = fmt.Errorf("try to decode ui password fail,%s ", tmpErr.Error())
 			return
 		} else {
 			v.Password = decodePwd
 		}
-		if !strings.HasPrefix(v.Password, models.AESPrefix) {
-			enPwd := encrypt.EncryptWithAesECB(v.Password, models.Config.Plugin.ResourcePasswordSeed, v.Name)
-			v.Password = models.AESPrefix + enPwd
-		}
+		resourceItemPassword, _, updatePluginMysqlPassword := buildResourceItemPasswordUpdates(v.Password, v.Name, nil)
+		v.Password = resourceItemPassword
 		properties := models.MysqlResourceItemProperties{Username: v.Username, Password: v.Password}
 		propertiesBytes, _ := json.Marshal(&properties)
 		actions = append(actions, &db.ExecAction{Sql: "update resource_item set resource_server_id=?,name=?,additional_properties=?,`username`=?,`password`=?,`schema_name`=?,is_allocated=?,purpose=?,updated_by=?,updated_date=? where id=?", Param: []interface{}{
@@ -337,11 +336,24 @@ func UpdateResourceItem(ctx context.Context, params []*models.ResourceItem, oper
 			err = getMysqlInstanceErr
 			return
 		}
-		if pluginMysqlInstanceRow != nil {
-			actions = append(actions, &db.ExecAction{Sql: "update plugin_mysql_instances set password=?,updated_time=? where id=?", Param: []interface{}{v.Password, nowTime, pluginMysqlInstanceRow.Id}})
+		if pluginMysqlInstanceRow != nil && updatePluginMysqlPassword {
+			_, pluginMysqlPassword, _ := buildResourceItemPasswordUpdates(decodePwd, v.Name, pluginMysqlInstanceRow)
+			actions = append(actions, &db.ExecAction{Sql: "update plugin_mysql_instances set password=?,updated_time=? where id=?", Param: []interface{}{pluginMysqlPassword, nowTime, pluginMysqlInstanceRow.Id}})
 		}
 	}
 	err = db.Transaction(actions, ctx)
+	return
+}
+
+func buildResourceItemPasswordUpdates(password, resourceItemName string, pluginMysqlInstance *models.PluginMysqlInstances) (resourceItemPassword, pluginMysqlPassword string, updatePluginMysqlPassword bool) {
+	if strings.HasPrefix(password, models.AESPrefix) {
+		return password, "", false
+	}
+	resourceItemPassword = models.AESPrefix + encrypt.EncryptWithAesECB(password, models.Config.Plugin.ResourcePasswordSeed, resourceItemName)
+	if pluginMysqlInstance != nil {
+		pluginMysqlPassword = models.AESPrefix + encrypt.EncryptWithAesECB(password, models.Config.Plugin.ResourcePasswordSeed, pluginMysqlInstance.SchemaName)
+		updatePluginMysqlPassword = true
+	}
 	return
 }
 
@@ -374,7 +386,7 @@ func DeleteResourceItem(ctx context.Context, params []*models.ResourceItem) (err
 
 func getPluginMysqlInstanceByItem(ctx context.Context, resourceItemId string) (pluginMysqlInstanceRow *models.PluginMysqlInstances, err error) {
 	var pluginMysqlInstanceRows []*models.PluginMysqlInstances
-	err = db.MysqlEngine.Context(ctx).SQL("select id from plugin_mysql_instances where resource_item_id=?", resourceItemId).Find(&pluginMysqlInstanceRows)
+	err = db.MysqlEngine.Context(ctx).SQL("select id,schema_name from plugin_mysql_instances where resource_item_id=?", resourceItemId).Find(&pluginMysqlInstanceRows)
 	if err != nil {
 		err = fmt.Errorf("query plugin mysql instance by resource item fail,%s ", err.Error())
 		return
