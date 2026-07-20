@@ -324,20 +324,24 @@ func UpdateResourceItem(ctx context.Context, params []*models.ResourceItem, oper
 		} else {
 			v.Password = decodePwd
 		}
-		resourceItemPassword, _, updatePluginMysqlPassword := buildResourceItemPasswordUpdates(v.Password, v.Name, nil)
+		oldResourceItem, getResourceItemErr := GetResourceItemById(v.Id)
+		if getResourceItemErr != nil {
+			err = getResourceItemErr
+			return
+		}
+		pluginMysqlInstanceRow, getMysqlInstanceErr := getPluginMysqlInstanceByItem(ctx, v.Id)
+		if getMysqlInstanceErr != nil {
+			err = getMysqlInstanceErr
+			return
+		}
+		resourceItemPassword, pluginMysqlPassword, updatePluginMysqlPassword := buildResourceItemPasswordUpdates(v.Password, oldResourceItem.Name, v.Name, pluginMysqlInstanceRow)
 		v.Password = resourceItemPassword
 		properties := models.MysqlResourceItemProperties{Username: v.Username, Password: v.Password}
 		propertiesBytes, _ := json.Marshal(&properties)
 		actions = append(actions, &db.ExecAction{Sql: "update resource_item set resource_server_id=?,name=?,additional_properties=?,`username`=?,`password`=?,`schema_name`=?,is_allocated=?,purpose=?,updated_by=?,updated_date=? where id=?", Param: []interface{}{
 			v.ResourceServerId, v.Name, string(propertiesBytes), v.Username, v.Password, v.SchemaName, v.IsAllocated, v.Purpose, operator, nowTime, v.Id,
 		}})
-		pluginMysqlInstanceRow, getMysqlInstanceErr := getPluginMysqlInstanceByItem(ctx, v.Id)
-		if getMysqlInstanceErr != nil {
-			err = getMysqlInstanceErr
-			return
-		}
 		if pluginMysqlInstanceRow != nil && updatePluginMysqlPassword {
-			_, pluginMysqlPassword, _ := buildResourceItemPasswordUpdates(decodePwd, v.Name, pluginMysqlInstanceRow)
 			actions = append(actions, &db.ExecAction{Sql: "update plugin_mysql_instances set password=?,updated_time=? where id=?", Param: []interface{}{pluginMysqlPassword, nowTime, pluginMysqlInstanceRow.Id}})
 		}
 	}
@@ -345,11 +349,16 @@ func UpdateResourceItem(ctx context.Context, params []*models.ResourceItem, oper
 	return
 }
 
-func buildResourceItemPasswordUpdates(password, resourceItemName string, pluginMysqlInstance *models.PluginMysqlInstances) (resourceItemPassword, pluginMysqlPassword string, updatePluginMysqlPassword bool) {
+func buildResourceItemPasswordUpdates(password, oldResourceItemName, newResourceItemName string, pluginMysqlInstance *models.PluginMysqlInstances) (resourceItemPassword, pluginMysqlPassword string, updatePluginMysqlPassword bool) {
 	if strings.HasPrefix(password, models.AESPrefix) {
-		return password, "", false
+		if oldResourceItemName == newResourceItemName {
+			return password, "", false
+		}
+		plainPassword := encrypt.DecryptWithAesECB(password[len(models.AESPrefix):], models.Config.Plugin.ResourcePasswordSeed, oldResourceItemName)
+		resourceItemPassword = models.AESPrefix + encrypt.EncryptWithAesECB(plainPassword, models.Config.Plugin.ResourcePasswordSeed, newResourceItemName)
+		return resourceItemPassword, "", false
 	}
-	resourceItemPassword = models.AESPrefix + encrypt.EncryptWithAesECB(password, models.Config.Plugin.ResourcePasswordSeed, resourceItemName)
+	resourceItemPassword = models.AESPrefix + encrypt.EncryptWithAesECB(password, models.Config.Plugin.ResourcePasswordSeed, newResourceItemName)
 	if pluginMysqlInstance != nil {
 		pluginMysqlPassword = models.AESPrefix + encrypt.EncryptWithAesECB(password, models.Config.Plugin.ResourcePasswordSeed, pluginMysqlInstance.SchemaName)
 		updatePluginMysqlPassword = true
