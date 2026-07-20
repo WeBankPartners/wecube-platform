@@ -33,8 +33,9 @@ var (
 		// "proc-start-events":                      true, // taskman使用SUB_SYSTEM角色，已全局放行
 		// "export-batch-execution-template":        true, // taskman使用SUB_SYSTEM角色，已全局放行
 		// "get-process-definition-node-link":       true, // taskman使用SUB_SYSTEM角色，已全局放行
-		"get-user":                               true,
-		"change-user-password":                   true,
+		"get-user":                true,
+		"change-user-password":    true,
+		"encrypt-config-password": true,
 		// "get-packages":                           true, // 应受菜单权限控制
 		// "query-roles":                            true, // 应受菜单权限控制
 		// "get-all-user":                           true, // 应受菜单权限控制
@@ -42,7 +43,7 @@ var (
 		// "get-user-roles":                         true, // taskman使用SUB_SYSTEM角色，已全局放行
 		// "get-process-ins-by-session-id":          true, // taskman使用SUB_SYSTEM角色，已全局放行
 		// "get-web-running-packages":               true, // 应受菜单权限控制
-		"query-roles-and-menus":                  true,
+		"query-roles-and-menus": true,
 	}
 )
 

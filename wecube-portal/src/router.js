@@ -25,6 +25,11 @@ const router = new Router({
           props: true
         },
         {
+          path: '/tools/password-encrypt',
+          name: 'passwordEncryptTool',
+          component: () => import('@/pages/tools/password-encrypt')
+        },
+        {
           path: '/collaboration/workflow-mgmt',
           name: 'flow',
           component: () => import('@/pages/collaboration/workflow-mgmt'),

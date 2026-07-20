@@ -45,6 +45,7 @@ func init() {
 		// base
 		&handlerFuncObj{Url: "/appinfo/version", Method: "GET", HandlerFunc: system.AppVersion, ApiCode: "get-version"},
 		&handlerFuncObj{Url: "/resource-files", Method: "GET", HandlerFunc: plugin.GetPluginResourceFiles, ApiCode: "get-resource-files"},
+		&handlerFuncObj{Url: "/tools/password/encrypt", Method: "POST", HandlerFunc: system.EncryptConfigPassword, ApiCode: "encrypt-config-password"},
 		// system-variable
 		&handlerFuncObj{Url: "/system-variables/retrieve", Method: "POST", HandlerFunc: system.QuerySystemVariables, ApiCode: "query-system-variables"},
 		&handlerFuncObj{Url: "/system-variables/create", Method: "POST", HandlerFunc: system.CreateSystemVariable, ApiCode: "create-system-variables"},
@@ -330,7 +331,7 @@ func httpLogHandle() gin.HandlerFunc {
 		}
 		c.Set(models.RequestIdHeader, requestId)
 		c.Set(models.TransactionIdHeader, transactionId)
-		if !strings.HasSuffix(c.Request.RequestURI, "/v1/packages") {
+		if !skipSensitiveBodyLog(c.Request.RequestURI) {
 			bodyBytes, _ := io.ReadAll(c.Request.Body)
 			c.Request.Body.Close()
 			c.Request.Body = io.NopCloser(bytes.NewReader(bodyBytes))
@@ -344,11 +345,21 @@ func httpLogHandle() gin.HandlerFunc {
 		costTime := time.Since(start).Seconds() * 1000
 		userId := c.GetString(models.ContextUserId)
 		if log.DebugEnable {
-			log.Info(nil, log.LOGGER_ACCESS, zap.String("userId", userId), zap.String("uri", c.Request.RequestURI), zap.String("serviceCode", apiCode), zap.String("method", c.Request.Method), zap.Int("httpCode", c.Writer.Status()), zap.Int(models.ContextErrorCode, c.GetInt(models.ContextErrorCode)), zap.String(models.ContextErrorMessage, c.GetString(models.ContextErrorMessage)), zap.Float64("costTime", costTime), zap.String(models.ContextResponseBody, c.GetString(models.ContextResponseBody)))
+			responseBody := ""
+			if !skipSensitiveBodyLog(c.Request.RequestURI) {
+				responseBody = c.GetString(models.ContextResponseBody)
+			}
+			log.Info(nil, log.LOGGER_ACCESS, zap.String("userId", userId), zap.String("uri", c.Request.RequestURI), zap.String("serviceCode", apiCode), zap.String("method", c.Request.Method), zap.Int("httpCode", c.Writer.Status()), zap.Int(models.ContextErrorCode, c.GetInt(models.ContextErrorCode)), zap.String(models.ContextErrorMessage, c.GetString(models.ContextErrorMessage)), zap.Float64("costTime", costTime), zap.String(models.ContextResponseBody, responseBody))
 		} else {
 			log.Info(nil, log.LOGGER_ACCESS, zap.String("userId", userId), zap.String("uri", c.Request.RequestURI), zap.String("serviceCode", apiCode), zap.String("method", c.Request.Method), zap.Int("httpCode", c.Writer.Status()), zap.Int(models.ContextErrorCode, c.GetInt(models.ContextErrorCode)), zap.String(models.ContextErrorMessage, c.GetString(models.ContextErrorMessage)), zap.Float64("costTime", costTime))
 		}
 	}
+}
+
+func skipSensitiveBodyLog(requestURI string) bool {
+	path := strings.SplitN(requestURI, "?", 2)[0]
+	return strings.HasSuffix(path, "/v1/packages") ||
+		strings.HasSuffix(path, "/v1/tools/password/encrypt")
 }
 
 func getRemoteIp(c *gin.Context) string {

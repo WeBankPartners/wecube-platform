@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/WeBankPartners/go-common-lib/cipher"
+	"github.com/WeBankPartners/wecube-platform/platform-core/common/encrypt"
 )
 
 type HttpServerConfig struct {
@@ -47,6 +48,7 @@ type AuthConfig struct {
 	Url                 string `json:"url"`
 	JwtSigningKey       string `json:"jwt_signing_key"`
 	SubSystemPrivateKey string `json:"sub_system_private_key"`
+	ConfigPasswordKey   string `json:"config_password_key"`
 }
 
 type S3Config struct {
@@ -179,14 +181,21 @@ func InitConfig(configFile string) (errMessage string) {
 			c.StaticResources = newStaticResourceList
 		}
 	}
+	dbPasswordEncryptedWithAESC := false
+	if c.Database.Password, dbPasswordEncryptedWithAESC, err = decryptAESCDatabasePassword(c.Database.Password, c.Auth.ConfigPasswordKey); err != nil {
+		errMessage = "decrypt database password config fail," + err.Error()
+		return
+	}
 	if c.PasswordPrivateKeyPath != "" {
 		privateBytes, readPriErr := os.ReadFile(c.PasswordPrivateKeyPath)
 		if readPriErr == nil {
-			if c.Database.Password, err = cipher.DecryptRsa(c.Database.Password, string(privateBytes)); err != nil {
-				errMessage = "decrypt database password config fail," + err.Error()
-				return
+			if !dbPasswordEncryptedWithAESC {
+				if c.Database.Password, err = cipher.DecryptRsa(c.Database.Password, string(privateBytes)); err != nil {
+					errMessage = "decrypt database password config fail," + err.Error()
+					return
+				}
+				c.Database.Password = strings.ReplaceAll(c.Database.Password, "\n", "")
 			}
-			c.Database.Password = strings.ReplaceAll(c.Database.Password, "\n", "")
 			if c.S3.SecretKey, err = cipher.DecryptRsa(c.S3.SecretKey, string(privateBytes)); err != nil {
 				errMessage = "decrypt s3 secretKey config fail," + err.Error()
 				return
@@ -244,4 +253,15 @@ func InitConfig(configFile string) (errMessage string) {
 		log.Println("disable menu api permission success")
 	}
 	return
+}
+
+func decryptAESCDatabasePassword(password, configPasswordKey string) (plainPassword string, encrypted bool, err error) {
+	if !strings.HasPrefix(password, encrypt.AESCPrefix) {
+		return password, false, nil
+	}
+	plainPassword, err = encrypt.DecryptWithAESC(password, configPasswordKey)
+	if err != nil {
+		return "", true, err
+	}
+	return strings.ReplaceAll(plainPassword, "\n", ""), true, nil
 }

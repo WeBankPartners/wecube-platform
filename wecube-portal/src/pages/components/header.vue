@@ -74,6 +74,11 @@
                   {{ $t('change_password') }}
                 </a>
               </DropdownItem>
+              <DropdownItem name="passwordEncryptTool">
+                <a @click="passwordEncryptTool" style="width: 100%; display: block">
+                  {{ $t('config_password_tool') }}
+                </a>
+              </DropdownItem>
               <DropdownItem name="logout" to="/login">
                 <a @click="logout" style="width: 100%; display: block">
                   {{ $t('logout') }}
@@ -266,6 +271,9 @@ export default {
     },
     showChangePassword() {
       this.changePassword = true
+    },
+    passwordEncryptTool() {
+      this.$router.push('/tools/password-encrypt')
     },
     async getInputParamsEncryptKey() {
       const { status, data } = await getInputParamsEncryptKey()

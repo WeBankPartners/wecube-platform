@@ -1,7 +1,10 @@
 {
   "logout": "Logout",
   "change_password": "Change Password",
+  "config_password_tool": "Config Password Tool",
   "original_password": "Old Password",
+  "password_1": "Password 1",
+  "password_2": "Password 2",
   "new_password": "New Password",
   "confirm_password": "Confirm Password",
   "original_password_input_placeholder": "Please input old password",
@@ -441,6 +444,7 @@
   "sdtn": "Write Node",
   "copy": "Copy",
   "copy_success": "Copy Successful",
+  "ciphertext": "Ciphertext",
   "filter_rule": "Filter Rules",
   "add_filter_rule": "Adding Filtering Rules",
   "set_filter_rule": "Set Up Filtering Rules",

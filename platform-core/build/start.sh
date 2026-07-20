@@ -12,6 +12,7 @@ sed -i "s~{{db_pass}}~$db_pass~g" /app/platform-core/config/default.json
 sed -i "s~{{db_database}}~$db_database~g" /app/platform-core/config/default.json
 sed -i "s~{{auth_server_url}}~$auth_server_url~g" /app/platform-core/config/default.json
 sed -i "s~{{jwt_signing_key}}~$jwt_signing_key~g" /app/platform-core/config/default.json
+sed -i "s~{{config_password_key}}~$config_password_key~g" /app/platform-core/config/default.json
 sed -i "s~{{s3_address}}~$s3_address~g" /app/platform-core/config/default.json
 sed -i "s~{{s3_access_key}}~$s3_access_key~g" /app/platform-core/config/default.json
 sed -i "s~{{s3_secret_key}}~$s3_secret_key~g" /app/platform-core/config/default.json
@@ -34,4 +35,3 @@ sed -i "s~{{encrypt_seed}}~$encrypt_seed~g" /app/platform-core/config/default.js
 sed -i "s~{{menu_api_map_enable}}~$menu_api_map_enable~g" /app/platform-core/config/default.json
 
 exec ./platform-core
-

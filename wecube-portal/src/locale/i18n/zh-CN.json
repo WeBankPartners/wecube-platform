@@ -1,7 +1,10 @@
 {
   "logout": "注销",
   "change_password": "修改密码",
+  "config_password_tool": "配置密码工具",
   "original_password": "旧密码",
+  "password_1": "密码1",
+  "password_2": "密码2",
   "new_password": "新密码",
   "confirm_password": "确认密码",
   "original_password_input_placeholder": "请输入原密码",
@@ -446,6 +449,7 @@
   "sdtn": "数据写入节点",
   "copy": "复制",
   "copy_success": "复制成功",
+  "ciphertext": "密文",
   "filter_rule": "过滤规则",
   "add_filter_rule": "添加过滤规则",
   "set_filter_rule": "设置过滤规则",

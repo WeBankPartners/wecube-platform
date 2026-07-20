@@ -1,6 +1,7 @@
 import req from './base'
 
 export const getMyMenus = () => req.get('/platform/v1/my-menus')
+export const encryptConfigPassword = data => req.post('/platform/v1/tools/password/encrypt', data)
 
 export const saveFlow = data => req.post('/platform/v1/process/definitions/deploy', data)
 

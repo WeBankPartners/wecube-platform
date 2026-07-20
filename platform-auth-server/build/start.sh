@@ -12,6 +12,7 @@ sed -i "s~\[#MYSQL_SERVER_DATABASE_NAME\]~$MYSQL_SERVER_DATABASE_NAME~g" /app/pl
 sed -i "s~\[#SIGNING_KEY\]~$SIGNING_KEY~g" /app/platform-auth-server/config/default.json
 sed -i "s~\[#USER_ACCESS_TOKEN\]~$USER_ACCESS_TOKEN~g" /app/platform-auth-server/config/default.json
 sed -i "s~\[#USER_REFRESH_TOKEN\]~$USER_REFRESH_TOKEN~g" /app/platform-auth-server/config/default.json
+sed -i "s~\[#CONFIG_PASSWORD_KEY\]~$CONFIG_PASSWORD_KEY~g" /app/platform-auth-server/config/default.json
 
 sed -i "s~\[#WECUBE_CORE_ADDRESS\]~$WECUBE_CORE_ADDRESS~g" /app/platform-auth-server/config/default.json
 sed -i "s~\[#SENDER_NAME\]~$SENDER_NAME~g" /app/platform-auth-server/config/default.json

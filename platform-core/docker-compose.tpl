@@ -23,6 +23,7 @@ services:
       - db_database=[#db_database]
       - auth_server_url=[#auth_server_url]
       - jwt_signing_key=[#jwt_signing_key]
+      - config_password_key=[#config_password_key]
       - s3_address=[#s3_address]
       - s3_access_key=[#s3_access_key]
       - s3_secret_key=[#s3_secret_key]

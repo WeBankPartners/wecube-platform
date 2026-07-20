@@ -29,6 +29,15 @@ type LoggerInfoDto struct {
 	Path  string `json:"path"`
 }
 
+type ConfigPasswordEncryptRequest struct {
+	Password        string `json:"password"`
+	ConfirmPassword string `json:"confirmPassword"`
+}
+
+type ConfigPasswordEncryptResponse struct {
+	Ciphertext string `json:"ciphertext"`
+}
+
 type RoleAuthoritiesDto struct {
 	RoleId      string               `json:"roleId"`
 	RoleName    string               `json:"roleName"`

@@ -120,6 +120,16 @@ export default {
       'zh-CN': '批量执行'
     }
   },
+  'tools/password-encrypt': {
+    childBreadcrumb: {
+      'en-US': 'Config Password Tool',
+      'zh-CN': '配置密码工具'
+    },
+    parentBreadcrumb: {
+      'en-US': 'Tools',
+      'zh-CN': '工具'
+    }
+  },
   'collaboration/registrationDetail': {
     childBreadcrumb: {
       'en-US': 'Plugin Install',
