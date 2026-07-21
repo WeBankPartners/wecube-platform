@@ -10,8 +10,6 @@ import (
 	"time"
 
 	"github.com/WeBankPartners/go-common-lib/cipher"
-	"github.com/WeBankPartners/wecube-platform/platform-core/common/log"
-	"go.uber.org/zap"
 
 	"github.com/WeBankPartners/go-common-lib/guid"
 	"github.com/WeBankPartners/wecube-platform/platform-core/common/db"
@@ -95,7 +93,8 @@ func CreateResourceServer(ctx context.Context, params []*models.ResourceServer) 
 	nowTime := time.Now()
 	for _, v := range params {
 		if decodePwd, tmpErr := DecodeUIPassword(ctx, v.LoginPassword); tmpErr != nil {
-			log.Info(nil, log.LOGGER_APP, "try to decode ui password fail", zap.Error(tmpErr))
+			err = fmt.Errorf("try to decode ui password fail,%w", tmpErr)
+			return
 		} else {
 			v.LoginPassword = decodePwd
 		}
@@ -120,7 +119,8 @@ func UpdateResourceServer(ctx context.Context, params []*models.ResourceServer) 
 	nowTime := time.Now()
 	for _, v := range params {
 		if decodePwd, tmpErr := DecodeUIPassword(ctx, v.LoginPassword); tmpErr != nil {
-			log.Info(nil, log.LOGGER_APP, "try to decode ui password fail", zap.Error(tmpErr))
+			err = fmt.Errorf("try to decode ui password fail,%w", tmpErr)
+			return
 		} else {
 			v.LoginPassword = decodePwd
 		}

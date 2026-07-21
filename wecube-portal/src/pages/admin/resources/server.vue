@@ -408,7 +408,7 @@ export default {
           id: _.id,
           host: _.host,
           isAllocated: _.isAllocated === 'true',
-          loginPassword: CryptoJS.AES.encrypt(_.loginPassword, key, config).toString(),
+          loginPassword: CryptoJS.AES.encrypt(_.loginPassword, key, config).toString() + '&\u0001' + timeTag,
           loginUsername: _.loginUsername,
           name: _.name,
           port: _.port,
