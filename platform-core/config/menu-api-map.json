@@ -190,6 +190,11 @@
         "method": "delete"
       },
       {
+        "key": "restartPluginInstance",
+        "url": "/platform/v1/packages/instances/${instanceId}/restart",
+        "method": "post"
+      },
+      {
         "key": "queryDataBaseByPackageId",
         "url": "/platform/v1/packages/${id}/resources/mysql/query",
         "method": "post"

@@ -102,6 +102,7 @@ export const createPluginInstanceByPackageIdAndHostIp = (packageId, ip, port, cp
   req.post(`/platform/v1/packages/${packageId}/hosts/${ip}/ports/${port}/instance/launch?requestCpu=${cpu}&requestMemory=${memory}`)
 
 export const removePluginInstance = instanceId => req.delete(`/platform/v1/packages/instances/${instanceId}/remove`)
+export const restartPluginInstance = instanceId => req.post(`/platform/v1/packages/instances/${instanceId}/restart`)
 export const queryLog = data => req.post('/platform/v1/plugin/packages/instances/log', data)
 export const getAvailableContainerHosts = () => req.get('/platform/v1/available-container-hosts')
 export const getAvailablePortByHostIp = ip => req.get(`/platform/v1/hosts/${ip}/next-available-port`)

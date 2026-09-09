@@ -258,6 +258,12 @@
     "description": "删除插件实例"
   },
   {
+    "key": "restartPluginInstance",
+    "path": "/platform/v1/packages/instances/{instanceId}/restart",
+    "method": "post",
+    "description": "重启插件实例"
+  },
+  {
     "key": "queryLog",
     "path": "/platform/v1/plugin/packages/instances/log",
     "method": "post",

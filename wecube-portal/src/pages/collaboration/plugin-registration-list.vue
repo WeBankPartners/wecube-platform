@@ -268,6 +268,9 @@
               <Poptip confirm :title="$t('p_destroy_tips')" placement="left-end" @on-ok="destroyInstance(item)">
                 <Button size="small" type="error" class="destroy-instance-button">{{ $t('ternmiante') }}</Button>
               </Poptip>
+              <Poptip confirm :title="$t('p_restart_tips')" placement="left-end" @on-ok="restartInstance(item)">
+                <Button size="small" type="error" ghost class="ml-2">{{ $t('p_restart') }}</Button>
+              </Poptip>
             </div>
           </div>
           <div v-else>-</div>
@@ -342,6 +345,7 @@ import {
   getAvailablePortByHostIp,
   createPluginInstanceByPackageIdAndHostIp,
   removePluginInstance,
+  restartPluginInstance,
   getPluginArtifacts,
   pullPluginArtifact,
   getPluginArtifactStatus,
@@ -614,6 +618,26 @@ export default {
           desc: message
         })
         this.reloadPage()
+      }
+    },
+    async restartInstance(one) {
+      this.isSpinShow = true
+      this.spinContent = this.$t('p_instance_restart')
+      let timeId = setTimeout(() => {
+        this.isSpinShow = false
+        timeId = null
+        this.$Message.error(this.$t('p_instance_restart_failed'))
+      }, 180000)
+
+      const { status } = await restartPluginInstance(one.id)
+      this.isSpinShow = false
+      clearTimeout(timeId)
+      await this.getAvailableInstancesByPackageId(this.currentPluginId)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: this.$t('p_instance_restart_success')
+        })
       }
     },
     async getPortByHostIp() {

@@ -1,5 +1,5 @@
-FROM nginx
-LABEL maintainer = "Webank CTB Team"
+FROM nginx:1.23.1
+LABEL maintainer="Webank CTB Team"
 RUN mkdir -p /root/app/ui-resources
 # RUN mkdir -p /root/wecube-docs
 COPY wecube-portal/dist /root/app/

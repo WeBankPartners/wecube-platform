@@ -775,6 +775,15 @@ func LaunchPlugin(c *gin.Context) {
 
 func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *models.ResourceServer, operator string, port int,
 	requestCpu string, requestMemory string, replicas int) (err error) {
+	return launchPluginFunc(ctx, pluginPackageId, resServer, operator, port, requestCpu, requestMemory, replicas, launchPluginOptions{LoadImage: true})
+}
+
+type launchPluginOptions struct {
+	LoadImage bool
+}
+
+func launchPluginFunc(ctx context.Context, pluginPackageId string, resServer *models.ResourceServer, operator string, port int,
+	requestCpu string, requestMemory string, replicas int, options launchPluginOptions) (err error) {
 	pluginPackageObj := models.PluginPackages{Id: pluginPackageId}
 	if err = database.GetSimplePluginPackage(ctx, &pluginPackageObj, true); err != nil {
 		log.Error(nil, log.LOGGER_APP, "GetSimplePluginPackage fail", zap.Error(err))
@@ -1054,27 +1063,33 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *mo
 		err = buildEnvErr
 		return
 	}
-	tmpImageFile, downloadImageErr := bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/image.tar", pluginPackageObj.Name, pluginPackageObj.Version))
-	if downloadImageErr != nil {
-		err = downloadImageErr
-		return
+	var tmpImageFile string
+	if options.LoadImage {
+		var downloadImageErr error
+		tmpImageFile, downloadImageErr = bash.DownloadPackageFile(models.Config.S3.PluginPackageBucket, fmt.Sprintf("%s/%s/image.tar", pluginPackageObj.Name, pluginPackageObj.Version))
+		if downloadImageErr != nil {
+			err = downloadImageErr
+			return
+		}
+		defer bash.RemoveTmpFile(tmpImageFile)
 	}
-	defer bash.RemoveTmpFile(tmpImageFile)
 	var resourceItem *models.ResourceItem
 	if resServer.Type == "docker" {
 		portBindList = replaceEnvMap(portBindList, replaceMap)
 		volumeBindList = replaceEnvMap(volumeBindList, replaceMap)
 		envBindList = replaceEnvMap(envBindList, replaceMap)
-		// 把image.tar传到目标机器
-		targetImagePath := fmt.Sprintf("%s/%s_%s_image.tar", models.Config.Plugin.DeployPath, pluginPackageObj.Name, pluginPackageObj.Version)
-		if err = bash.RemoteSCP(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, tmpImageFile, targetImagePath); err != nil {
-			return
+		if options.LoadImage {
+			// 把image.tar传到目标机器
+			targetImagePath := fmt.Sprintf("%s/%s_%s_image.tar", models.Config.Plugin.DeployPath, pluginPackageObj.Name, pluginPackageObj.Version)
+			if err = bash.RemoteSCP(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, tmpImageFile, targetImagePath); err != nil {
+				return
+			}
+			log.Info(nil, log.LOGGER_APP, "scp plugin image file", zap.String("targetHost", dockerServer.Host), zap.String("tmpFile", tmpImageFile), zap.String("targetPath", targetImagePath))
+			if err = bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, fmt.Sprintf("docker load --input %s && rm -f %s", targetImagePath, targetImagePath)); err != nil {
+				return
+			}
+			time.Sleep(1 * time.Second)
 		}
-		log.Info(nil, log.LOGGER_APP, "scp plugin image file", zap.String("targetHost", dockerServer.Host), zap.String("tmpFile", tmpImageFile), zap.String("targetPath", targetImagePath))
-		if err = bash.RemoteSSHCommand(dockerServer.Host, dockerServer.LoginUsername, dockerServer.LoginPassword, dockerServer.Port, fmt.Sprintf("docker load --input %s && rm -f %s", targetImagePath, targetImagePath)); err != nil {
-			return
-		}
-		time.Sleep(1 * time.Second)
 		// 去目标机器上docker run起来，或使用docker-compose
 		dockerCmd := fmt.Sprintf("docker run -d --name %s --restart=always ", dockerResource.ContainerName)
 		if pluginInstance.Cpu != "" {
@@ -1134,14 +1149,16 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *mo
 			log.Error(nil, log.LOGGER_APP, "failed to get image registry", zap.String("containerName", dockerResource.ContainerName), zap.Error(imageErr))
 			return
 		}
-		imageMgr := remote.NewImageManager(imageReg.Host, imageReg.LoginUsername, imageReg.LoginPassword)
-		imageMgr.SetInsecure(true)
-		err = imageMgr.UploadImageSimple2(tmpImageFile, dockerResource.ImageName)
-		if err != nil {
-			log.Error(nil, log.LOGGER_APP, "failed to upload image.tar to image registry", zap.String("containerName", dockerResource.ContainerName), zap.Error(err))
-			return
+		if options.LoadImage {
+			imageMgr := remote.NewImageManager(imageReg.Host, imageReg.LoginUsername, imageReg.LoginPassword)
+			imageMgr.SetInsecure(true)
+			err = imageMgr.UploadImageSimple2(tmpImageFile, dockerResource.ImageName)
+			if err != nil {
+				log.Error(nil, log.LOGGER_APP, "failed to upload image.tar to image registry", zap.String("containerName", dockerResource.ContainerName), zap.Error(err))
+				return
+			}
+			log.Info(nil, log.LOGGER_APP, "upload image.tar to image registry", zap.String("targetHost", imageReg.Host), zap.String("tmpFile", tmpImageFile))
 		}
-		log.Info(nil, log.LOGGER_APP, "upload image.tar to image registry", zap.String("targetHost", imageReg.Host), zap.String("tmpFile", tmpImageFile))
 		// 处理STS + SVC
 		storageClass, storageErr := database.GetResourceServerByType("k8s-storageClass")
 		if storageErr != nil {
@@ -1369,6 +1386,41 @@ func LaunchPluginFunc(ctx context.Context, pluginPackageId string, resServer *mo
 	return
 }
 
+// RestartPlugin 运行管理 - 插件实例重启
+func RestartPlugin(c *gin.Context) {
+	pluginInstanceId := c.Param("pluginInstanceId")
+	err := RestartPluginInstanceFunc(c, pluginInstanceId, middleware.GetRequestUser(c))
+	if err != nil {
+		middleware.ReturnError(c, err)
+	} else {
+		middleware.ReturnSuccess(c)
+	}
+}
+
+// RestartPluginInstanceFunc 销毁并使用原端口和最新环境变量重新创建实例，保留并复用原镜像。
+func RestartPluginInstanceFunc(ctx context.Context, pluginInstanceId, operator string) (err error) {
+	pluginInstanceObj, err := database.GetPluginInstance(pluginInstanceId, "", "", "", true)
+	if err != nil {
+		return err
+	}
+	resourceServer, err := database.GetPluginDockerRunningResource(pluginInstanceObj.DockerInstanceResourceId)
+	if err != nil {
+		return err
+	}
+	replicas := pluginInstanceObj.Replicas
+	if replicas < 1 || replicas > 50 {
+		replicas = 1
+	}
+	if err = removePluginInstanceFunc(ctx, pluginInstanceId, removePluginOptions{}); err != nil {
+		return fmt.Errorf("remove plugin instance %s before restart fail: %w", pluginInstanceId, err)
+	}
+	if err = launchPluginFunc(ctx, pluginInstanceObj.PackageId, resourceServer, operator, pluginInstanceObj.Port,
+		pluginInstanceObj.Cpu, pluginInstanceObj.Memory, replicas, launchPluginOptions{}); err != nil {
+		return fmt.Errorf("launch plugin instance %s after restart fail: %w", pluginInstanceId, err)
+	}
+	return nil
+}
+
 // RemovePlugin 运行管理 - 插件实例销毁
 func RemovePlugin(c *gin.Context) {
 	pluginInstanceId := c.Param("pluginInstanceId")
@@ -1381,6 +1433,14 @@ func RemovePlugin(c *gin.Context) {
 }
 
 func RemovePluginInstanceFunc(ctx context.Context, pluginInstanceId string) (err error) {
+	return removePluginInstanceFunc(ctx, pluginInstanceId, removePluginOptions{RemoveImage: true})
+}
+
+type removePluginOptions struct {
+	RemoveImage bool
+}
+
+func removePluginInstanceFunc(ctx context.Context, pluginInstanceId string, options removePluginOptions) (err error) {
 	pluginInstanceObj, getPluginErr := database.GetPluginInstance(pluginInstanceId, "", "", "", true)
 	if getPluginErr != nil {
 		err = getPluginErr
@@ -1445,7 +1505,10 @@ func RemovePluginInstanceFunc(ctx context.Context, pluginInstanceId string) (err
 		if strings.HasPrefix(resourceServer.LoginPassword, models.AESPrefix) {
 			resourceServer.LoginPassword = encrypt.DecryptWithAesECB(resourceServer.LoginPassword[5:], models.Config.Plugin.ResourcePasswordSeed, resourceServer.Name)
 		}
-		removeCmd := fmt.Sprintf("docker rm -f %s && docker rmi %s", containerName, imageName)
+		removeCmd := fmt.Sprintf("docker rm -f %s", containerName)
+		if options.RemoveImage {
+			removeCmd += fmt.Sprintf(" && docker rmi %s", imageName)
+		}
 		if err = bash.RemoteSSHCommand(resourceServer.Host, resourceServer.LoginUsername, resourceServer.LoginPassword, resourceServer.Port, removeCmd); err != nil {
 			return
 		}

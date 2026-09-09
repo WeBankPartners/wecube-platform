@@ -139,6 +139,14 @@
                                     $t('ternmiante')
                                   }}</Button>
                                 </Poptip>
+                                <Poptip
+                                  confirm
+                                  :title="$t('p_restart_tips')"
+                                  placement="left-end"
+                                  @on-ok="restartPlugin(item)"
+                                >
+                                  <Button size="small" type="error" ghost class="ml-2">{{ $t('p_restart') }}</Button>
+                                </Poptip>
                               </div>
                             </div>
                           </div>
@@ -297,6 +305,7 @@ import {
   getAvailablePortByHostIp,
   createPluginInstanceByPackageIdAndHostIp,
   removePluginInstance,
+  restartPluginInstance,
   queryDataBaseByPackageId,
   queryStorageFilesByPackageId,
   registPluginPackage,
@@ -754,6 +763,26 @@ export default {
         })
         this.getAvailableInstances(this.pluginId)
         this.updateMenus()
+      }
+    },
+    async restartPlugin(item) {
+      this.isSpinShow = true
+      this.spinContent = this.$t('p_instance_restart')
+      const timeId = setTimeout(() => {
+        this.isSpinShow = false
+        this.timeId = null
+        this.$Message.error(this.$t('p_instance_restart_failed'))
+      }, 180000)
+      const { status } = await restartPluginInstance(item.id)
+      this.isSpinShow = false
+      clearTimeout(timeId)
+      await this.getAvailableInstances(this.pluginId)
+      this.updateMenus()
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: this.$t('p_instance_restart_success')
+        })
       }
     },
     updateMenus() {
