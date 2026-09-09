@@ -950,6 +950,9 @@ export default {
       nodeDetailResponseHeader: null,
       currentFailedNodeID: '',
       timer: null,
+      // 每次查询都带一个递增序号，避免慢响应把最新的节点状态覆盖掉。
+      // 编排在很短时间内完成时，这种响应乱序尤其容易发生。
+      statusRequestSequence: 0,
       modelDetailTimer: null,
       flowNodesBindings: [],
       flowDetailTimer: null,
@@ -1740,7 +1743,6 @@ export default {
       if (!this.selectedFlowInstance) {
         return
       }
-      this.getStatus()
       this.getCurrentInstanceStatus()
       this.isEnqueryPage = true
       this.$nextTick(async () => {
@@ -1748,30 +1750,18 @@ export default {
         if (!(found && found.id)) {
           return
         }
+        const instanceId = found.id
         this.currentInstanceStatusForNodeOperation = found.status
         this.selectedFlow = found.procDefId
         this.selectedTarget = found.entityDataId
-        this.processInstance()
         this.getNodeBindings(found.id)
-        const { status, data } = await getProcessInstance(found.id)
-        if (status === 'OK') {
-          this.flowData = {
-            ...data,
-            flowNodes: data.taskNodeInstances
-          }
-          // this.getTargetOptions()
-          removeEvent('.retry', 'click', this.retryHandler)
-          removeEvent('.normal', 'click', this.normalHandler)
-          removeEvent('.time-node', 'click', this.timeNodeHandler)
-          removeEvent('.decision-node', 'click', this.executeBranchHandler)
-          this.initFlowGraph(true)
-          this.showExcution = false
-          this.nodesCannotBindData = data.taskNodeInstances
-            .filter(
-              d => [1, 2].includes(d.dynamicBind) && ['NotStarted', 'Risky', 'Faulted', 'Timeouted'].includes(d.status)
-            )
-            .map(d => d.nodeId)
-          this.subProcBindParentFlag = Boolean(data.parentProcIns && data.parentProcIns.procInsId)
+        // 详情首屏和后续轮询复用同一条状态更新链路，避免两个独立请求互相覆盖。
+        await this.getStatus()
+        if (instanceId !== this.selectedFlowInstance) {
+          return
+        }
+        if (!['Completed', 'InternallyTerminated', 'Faulted'].includes(this.currentInstanceStatusForNodeOperation)) {
+          this.start()
         }
         this.getModelData()
         this.tipForNonOwner(found)
@@ -2164,8 +2154,10 @@ export default {
         + nodesToString
         + genEdge()
         + '}'
+      // 状态轮询会频繁重绘；在上一轮 Graphviz transition 尚未结束时再次
+      // transition 会抛出 "transition ... not found"，从而导致本轮状态未渲染。
+      // 这里不需要动画，直接渲染可保证最终状态一定落到流程图上。
       this.flowGraph.graphviz
-        .transition()
         .renderDot(nodesString)
         .on('end', () => {
           if (this.isEnqueryPage) {
@@ -2278,11 +2270,8 @@ export default {
       }
     },
     start() {
-      if (this.timer === null) {
-        this.getStatus()
-      }
       if (this.timer !== null) {
-        this.stop()
+        return
       }
       this.timer = setInterval(() => {
         this.getStatus()
@@ -2290,14 +2279,25 @@ export default {
     },
     stop() {
       clearInterval(this.timer)
+      this.timer = null
+      // 使停止前已发出的请求失效，不能再回写已经完成的流程图。
+      this.statusRequestSequence += 1
+      this.intervalLoading = false
     },
     async getStatus() {
       const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
       if (!(found && found.id)) {
         return
       }
+      const instanceId = found.id
+      const requestSequence = ++this.statusRequestSequence
       this.intervalLoading = true
-      const { status, data } = await getProcessInstance(found.id)
+      const { status, data } = await getProcessInstance(instanceId)
+      // 请求完成的顺序并不等于发起的顺序。只接受当前实例最新一次查询的响应，
+      // 防止较早的 InProgress 快照覆盖后到的 Completed 快照。
+      if (requestSequence !== this.statusRequestSequence || instanceId !== this.selectedFlowInstance) {
+        return
+      }
       this.intervalLoading = false
       if (status === 'OK') {
         this.currentInstanceStatusForNodeOperation = data.status
@@ -2316,6 +2316,12 @@ export default {
             ...data,
             flowNodes: data.taskNodeInstances
           }
+          this.nodesCannotBindData = data.taskNodeInstances
+            .filter(
+              d => [1, 2].includes(d.dynamicBind) && ['NotStarted', 'Risky', 'Faulted', 'Timeouted'].includes(d.status)
+            )
+            .map(d => d.nodeId)
+          this.subProcBindParentFlag = Boolean(data.parentProcIns && data.parentProcIns.procInsId)
           removeEvent('.retry', 'click', this.retryHandler)
           removeEvent('.normal', 'click', this.normalHandler)
           removeEvent('.time-node', 'click', this.timeNodeHandler)
@@ -2373,6 +2379,7 @@ export default {
       return isNew
     },
     processInstance() {
+      this.getStatus()
       this.start()
     },
     // 通用节点操作弹框
@@ -2747,7 +2754,7 @@ export default {
         graph.on('dblclick.zoom', null).on('wheel.zoom', null)
           .on('mousewheel.zoom', null)
         this.graph.graphviz = graph
-          .graphviz()
+          .graphviz({ useWorker: false })
           .fit(true)
           .zoom(true)
           .height(graphEl.offsetHeight - 10)
@@ -2777,7 +2784,7 @@ export default {
       const graph = d3.select('#flow')
       graph.on('dblclick.zoom', null)
       this.flowGraph.graphviz = graph
-        .graphviz()
+        .graphviz({ useWorker: false })
         .fit(true)
         .zoom(true)
         .height(graphEl.offsetHeight - 10)
