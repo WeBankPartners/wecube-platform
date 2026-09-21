@@ -23,7 +23,11 @@ func GetInputFormMeta(ctx context.Context, procInstId, nodeDefId string, pluginI
 	urlParams := url.Values{}
 	urlParams.Set("procInstId", procInstId)
 	urlParams.Set("nodeDefId", nodeDefId)
-	urlObj, _ := url.Parse(uri)
+	urlObj, parseErr := parseRequestURL(uri)
+	if parseErr != nil {
+		err = parseErr
+		return
+	}
 	urlObj.RawQuery = urlParams.Encode()
 	req, reqErr := http.NewRequest(http.MethodGet, urlObj.String(), nil)
 	if reqErr != nil {

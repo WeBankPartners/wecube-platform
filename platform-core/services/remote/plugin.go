@@ -22,6 +22,18 @@ import (
 	"github.com/WeBankPartners/wecube-platform/platform-core/models"
 )
 
+// parseRequestURL 解析请求 URL，失败返回错误，避免对空指针调用 String 导致 panic
+func parseRequestURL(uri string) (*url.URL, error) {
+	urlObj, parseErr := url.Parse(uri)
+	if parseErr != nil {
+		return nil, fmt.Errorf("parse url fail, uri:%s, %s", uri, parseErr.Error())
+	}
+	if urlObj == nil {
+		return nil, fmt.Errorf("parse url fail, uri:%s, result is nil", uri)
+	}
+	return urlObj, nil
+}
+
 func GetPluginDataModels(ctx context.Context, pluginName, token string) (result []*models.SyncDataModelCiType, err error) {
 	uri := fmt.Sprintf("%s/%s/data-model", models.Config.Gateway.Url, pluginName)
 	if models.Config.HttpsEnable == "true" {
@@ -29,7 +41,11 @@ func GetPluginDataModels(ctx context.Context, pluginName, token string) (result 
 	} else {
 		uri = "http://" + uri
 	}
-	urlObj, _ := url.Parse(uri)
+	urlObj, parseErr := parseRequestURL(uri)
+	if parseErr != nil {
+		err = parseErr
+		return
+	}
 	req, reqErr := http.NewRequest(http.MethodGet, urlObj.String(), nil)
 	if reqErr != nil {
 		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
@@ -404,7 +420,11 @@ func RequestPluginModelData(ctx context.Context, packageName, entity, token stri
 	} else {
 		uri = "http://" + uri
 	}
-	urlObj, _ := url.Parse(uri)
+	urlObj, parseErr := parseRequestURL(uri)
+	if parseErr != nil {
+		err = parseErr
+		return
+	}
 	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), bytes.NewReader(postBytes))
 	if reqErr != nil {
 		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
@@ -465,7 +485,11 @@ func CreatePluginModelData(ctx context.Context, packageName, entity, token, oper
 	} else {
 		uri = "http://" + uri
 	}
-	urlObj, _ := url.Parse(uri)
+	urlObj, parseErr := parseRequestURL(uri)
+	if parseErr != nil {
+		err = parseErr
+		return
+	}
 	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), bytes.NewReader(postBytes))
 	if reqErr != nil {
 		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
@@ -525,7 +549,11 @@ func UpdatePluginModelData(ctx context.Context, packageName, entity, token, oper
 	} else {
 		uri = "http://" + uri
 	}
-	urlObj, _ := url.Parse(uri)
+	urlObj, parseErr := parseRequestURL(uri)
+	if parseErr != nil {
+		err = parseErr
+		return
+	}
 	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), bytes.NewReader(postBytes))
 	if reqErr != nil {
 		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
@@ -607,7 +635,11 @@ func DangerousBatchCheck(ctx context.Context, token string, reqParam interface{}
 	} else {
 		uri = "http://" + uri
 	}
-	urlObj, _ := url.Parse(uri)
+	urlObj, parseErr := parseRequestURL(uri)
+	if parseErr != nil {
+		err = parseErr
+		return
+	}
 	var reqBodyReader io.Reader
 	reqBody, _ := json.Marshal(reqParam)
 	reqBodyReader = bytes.NewReader(reqBody)
@@ -665,7 +697,11 @@ func DangerousWorkflowCheck(ctx context.Context, token string, reqParam interfac
 	} else {
 		uri = "http://" + uri
 	}
-	urlObj, _ := url.Parse(uri)
+	urlObj, parseErr := parseRequestURL(uri)
+	if parseErr != nil {
+		err = parseErr
+		return
+	}
 	var reqBodyReader io.Reader
 	reqBody, _ := json.Marshal(reqParam)
 	reqBodyReader = bytes.NewReader(reqBody)
@@ -729,7 +765,11 @@ func PluginInterfaceApi(ctx context.Context, token string, pluginInterface *mode
 	} else {
 		uri = "http://" + uri
 	}
-	urlObj, _ := url.Parse(uri)
+	urlObj, parseErr := parseRequestURL(uri)
+	if parseErr != nil {
+		err = parseErr
+		return
+	}
 	var reqBodyPtr []byte
 	var reqBodyReader io.Reader
 	if reqParam != nil {
@@ -852,7 +892,11 @@ func PushPackage(ctx context.Context, token string, unitDesignId string, deployP
 	}
 	// postData := models.PushArtifactPluginPackageParam{Path: subDirPath}
 	postBytes, _ := json.Marshal(postData)
-	urlObj, _ := url.Parse(uri)
+	urlObj, parseErr := parseRequestURL(uri)
+	if parseErr != nil {
+		err = parseErr
+		return
+	}
 	req, reqErr := http.NewRequest(http.MethodPost, urlObj.String(), bytes.NewReader(postBytes))
 	if reqErr != nil {
 		err = fmt.Errorf("new request fail,%s ", reqErr.Error())
@@ -924,9 +968,9 @@ func UploadArtifactPackageNew(ctx context.Context, token string, unitDesignId st
 	} else {
 		uri = "http://" + uri
 	}
-	urlObj, err := url.Parse(uri)
+	urlObj, err := parseRequestURL(uri)
 	if err != nil {
-		return "", fmt.Errorf("解析URL失败: %v", err)
+		return "", err
 	}
 
 	// 创建一个管道(pipe)作为请求体，实现流式传输
@@ -1052,7 +1096,11 @@ func UploadArtifactPackage(ctx context.Context, token string, unitDesignId strin
 	} else {
 		uri = "http://" + uri
 	}
-	urlObj, _ := url.Parse(uri)
+	urlObj, parseErr := parseRequestURL(uri)
+	if parseErr != nil {
+		err = parseErr
+		return
+	}
 	var req *http.Request
 	r, w := io.Pipe()
 	bodyWriter := multipart.NewWriter(w)
